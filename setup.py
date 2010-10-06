@@ -7,13 +7,16 @@ from plover import __version__
 from plover import __description__
 from plover import __long_description__
 from plover import __url__
+from plover import __download_url__
+from plover import __license__
 
 setup(name='plover',
       version=__version__,
       description=__description__,
       long_description=__long_description__,
       url=__url__,
-      license='GPL 2',
+      download_url=__download_url__,
+      license=__license__,
       author='Joshua Harlan Lifton',
       author_email='joshua.harlan.lifton@gmail.com',
       maintainer='Joshua Harlan Lifton',
