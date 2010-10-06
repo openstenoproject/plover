@@ -3,7 +3,7 @@
 
 """Plover: Open Source Stenography Software"""
 
-__version__ = '2.0'
+__version__ = '2.0.rc01'
 __copyright__ = '(C) 2010 Joshua Harlan Lifton'
 __url__ = 'http://plover.stenoknight.com'
 __credits__ = ['Stenographer: Mirabai Knight',
