@@ -203,10 +203,10 @@ class Formatter:
                         space = STOP_SPACE
                         english = english.capitalize()
                     elif previous_meta == META_CAPITALIZE:
-                        space = SPACE
+                        space = NO_SPACE
                         english = english.capitalize()
                     elif previous_meta.endswith(META_ATTACH_FLAG):
-                        pass  # Space is already deleted.
+                        space = NO_SPACE
 
                 out.append(space + english)
                 previous_atom = atom
