@@ -3,8 +3,7 @@
 
 """Thread-based monitoring of a Gemini PR stenotype machine."""
 
-import serial
-import threading
+import plover.machine.base
 
 STENO_KEY_CHART = ("Fn","#","#","#","#","#","#",
                    "S-","S-","T-","K-","P-","W-","H-",
@@ -15,7 +14,7 @@ STENO_KEY_CHART = ("Fn","#","#","#","#","#","#",
 
 BYTES_PER_STROKE = 6
 
-class Stenotype(threading.Thread):
+class Stenotype(plover.machine.base.SerialStenotypeBase):
     """Standard stenotype interface for a Gemini PR machine.
 
     This class implements the three methods necessary for a standard
@@ -24,24 +23,6 @@ class Stenotype(threading.Thread):
 
     """
     
-    def __init__(self, port='/dev/ttyUSB0'):
-        """Monitor the stenotype over a serial port.
-
-        Argument:
-
-        port -- Serial port to which the machine is
-        connected. Defaults to '/dev/ttyUSB0'.
-
-        """
-        threading.Thread.__init__(self)
-        self.finished = threading.Event()
-        self.subscribers = []
-        # The timeout argument to Serial is in seconds. This is needed
-        # so that the thread can terminate properly by being allowed
-        # to periodically check the finished flag. This might cause
-        # strokes to be only partially read.
-        self.serial_port = serial.Serial(port=port, timeout=2)
-        
     def run(self):
         """Overrides base class run method. Do not call directly."""
         while not self.finished.isSet() :
@@ -75,24 +56,3 @@ class Stenotype(threading.Thread):
             # Notify all subscribers.
             for callback in self.subscribers:
                 callback(steno_keys)
-
-    def start_capture(self):
-        """Begin listening for output from the stenotype machine."""
-        self.finished.clear()
-        self.start()
-
-    def stop_capture(self):
-        """Stop listening for output from the stenotype machine."""
-        self.finished.set()
-        self.serial_port.close()
-
-    def add_callback(self, callback):
-        """Subscribe to output from the stenotype machine.
-
-        Argument:
-
-        callback -- The function to call whenever there is output from
-        the stenotype machine and output is being captured.
-
-        """
-        self.subscribers.append(callback)

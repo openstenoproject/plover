@@ -3,7 +3,7 @@
 
 """Thread-based monitoring of a Gemini TX stenotype machine."""
 
-import plover.machine.geminipr
+import plover.machine.base
 
 STENO_KEY_CHART = (("S-","T-","K-","P-","W-","H-"), # If two high bits not set.
                    ("R-","A-","O-","*","-E","-U"),  # If second highest bit set.
@@ -11,7 +11,7 @@ STENO_KEY_CHART = (("S-","T-","K-","P-","W-","H-"), # If two high bits not set.
                    ("-T","-S","-D","-Z","#"))       # If two highest bits set.
 
 
-class Stenotype(plover.machine.geminipr.Stenotype):
+class Stenotype(plover.machine.base.SerialStenotypeBase):
     """Standard stenotype interface for a Gemini TX machine.
 
     This class implements the three methods necessary for a standard
