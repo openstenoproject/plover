@@ -63,6 +63,7 @@ DEFAULT_ENABLE_TRANSLATION_LOGGING = 'true'
 # Stenotype machines.
 MACHINE_SIDEWINDER_X4 = 'Microsoft Sidewinder X4'
 MACHINE_GEMINI_PR = 'Gemini PR'
+MACHINE_GEMINI_TX = 'Gemini TX'
 
 # Dictionary formats.
 DICTIONARY_ECLIPSE = 'Eclipse'
@@ -262,6 +263,8 @@ class StenoEngine:
             import plover.machine.sidewinder as machine_module
         elif machine_type == MACHINE_GEMINI_PR:
             import plover.machine.geminipr as machine_module
+        elif machine_type == MACHINE_GEMINI_TX:
+            import plover.machine.geminitx as machine_module
         else:
             raise ValueError('Invalid configuration value for %s: %s' %
                              (MACHINE_TYPE_OPTION, machine_type))

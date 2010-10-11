@@ -25,7 +25,7 @@ class Stenotype(threading.Thread):
     """
     
     def __init__(self, port='/dev/ttyUSB0'):
-        """Monitor a Gemini PR machine over a serial port.
+        """Monitor the stenotype over a serial port.
 
         Argument:
 
