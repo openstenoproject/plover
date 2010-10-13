@@ -49,12 +49,12 @@ for changes to the configuration file to take effect.
 STARTING, RUNNING, AND QUITTING PLOVER
 
 After installation is complete as above, the Plover application will
-be available in the applications menu. Starting the application will
-cause a red 'P' icon to appear in the desktop's taskbar. At this
-point, Plover is inactive. To activate Plover, click the red 'P'
-icon. The icon will turn green to indicate that Plover is active and
-ready to translate stenography keystrokes into English text. Clicking
-the green icon will cause it to turn red, which means Plover is again
-in the inactive state. Right clicking on the 'P' icon will cause a
-menu to appear. From the menu, Plover can be quit, or the active state
-toggled to inactive and vice versa.
+be available in the Applications->Universal Access menu. Starting the
+application will cause a red 'P' icon to appear in the desktop's
+taskbar. At this point, Plover is inactive. To activate Plover, click
+the red 'P' icon. The icon will turn green to indicate that Plover is
+active and ready to translate stenography keystrokes into English
+text. Clicking the green icon will cause it to turn red, which means
+Plover is again in the inactive state. Right clicking on the 'P' icon
+will cause a menu to appear. From the menu, Plover can be quit, or the
+active state toggled to inactive and vice versa.

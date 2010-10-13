@@ -46,11 +46,13 @@ class PloverTaskBarIcon(wx.TaskBarIcon):
     OFF_MESSAGE = "Plover is OFF"
     ON_IMAGE_FILE = "plover_on.png"
     OFF_IMAGE_FILE = "plover_off.png"
-    ABOUT_MENU_ITEM = "About Plover"
+    ABOUT_MENU_ITEM = "About..."
+    CONFIG_MENU_ITEM = "Configure..."
     PAUSE_MENU_ITEM = "Pause"
     RESUME_MENU_ITEM = "Resume"
     QUIT_MENU_ITEM = "Quit"
 
+    TBMENU_CONFIG = wx.NewId()
     TBMENU_ABOUT = wx.NewId()
     TBMENU_PAUSE = wx.NewId()
     TBMENU_RESUME = wx.NewId()
@@ -58,7 +60,7 @@ class PloverTaskBarIcon(wx.TaskBarIcon):
 
     def __init__(self, assets_dir, steno_engine):
         """
-
+        
         Arguments:
 
         assets_dir -- The base directory containing image and other
@@ -80,26 +82,21 @@ class PloverTaskBarIcon(wx.TaskBarIcon):
         # Bind events.
         self.Bind(wx.EVT_TASKBAR_LEFT_DOWN, self.OnTaskBarActivate)
         self.Bind(wx.EVT_MENU, self.OnTaskBarAbout, id=self.TBMENU_ABOUT)
+        self.Bind(wx.EVT_MENU, self.OnTaskBarConfig, id=self.TBMENU_CONFIG)
         self.Bind(wx.EVT_MENU, self.OnTaskBarPause, id=self.TBMENU_PAUSE)
         self.Bind(wx.EVT_MENU, self.OnTaskBarResume, id=self.TBMENU_RESUME)
         self.Bind(wx.EVT_MENU, self.OnTaskBarQuit, id=self.TBMENU_QUIT)
-
-    def _update_icon(self):
-        # Update the image used for the icon to reflect the state of
-        # the steno engine.
-        if self.steno_engine.is_running:
-            self.SetIcon(self.on_icon, self.ON_MESSAGE)
-        else:
-            self.SetIcon(self.off_icon, self.OFF_MESSAGE)
 
     def CreatePopupMenu(self):
         """Override of the base class method.
         
         This method is called by the base class when it needs to popup
         the menu for the default EVT_RIGHT_DOWN event.
+
         """
         menu = wx.Menu()
         menu.Append(self.TBMENU_ABOUT, self.ABOUT_MENU_ITEM)
+        menu.Append(self.TBMENU_CONFIG, self.CONFIG_MENU_ITEM)
         if self.steno_engine.is_running :
             menu.Append(self.TBMENU_PAUSE, self.PAUSE_MENU_ITEM)
         else :
@@ -128,6 +125,10 @@ class PloverTaskBarIcon(wx.TaskBarIcon):
         info.License = __license__
         wx.AboutBox(info)
 
+    def OnTaskBarConfig(self, event):
+        """Called when the Configure menu item is chosen."""
+        PloverConfigUI(steno_engine.config_file)
+
     def OnTaskBarPause(self, event):
         """Called when the Pause menu item is chosen."""
         self.steno_engine.stop()
@@ -142,3 +143,42 @@ class PloverTaskBarIcon(wx.TaskBarIcon):
         """Called when the Quit menu item is chosen."""
         self.steno_engine.stop()
         self.Destroy()
+
+    def _update_icon(self):
+        # Update the image used for the icon to reflect the state of
+        # the steno engine.
+        if self.steno_engine.is_running:
+            self.SetIcon(self.on_icon, self.ON_MESSAGE)
+        else:
+            self.SetIcon(self.off_icon, self.OFF_MESSAGE)
+
+
+class PloverConfigUI(wx.Dialog):
+    """A GUI for viewing and editing Plover configuration files.
+
+    Changes to the configuration file are saved when the GUI is
+    closed. Changes will take effect the next time the configuration
+    file is read by the application, which is typically after an
+    application restart.
+
+    """
+    def __init__(self, config_file, parent, id, title,
+                 size=wx.DefaultSize, pos=wx.DefaultPosition,
+                 style=wx.DEFAULT_DIALOG_STYLE):
+        """Create a configuration GUI based on the given config file.
+
+        Argument:
+
+        config_file -- The absolute or relative path to the
+        configuration file to view and edit.
+        
+        """
+        wx.Dialog.__init__(self, parent, id, title, size, pos, style)
+        self.config_file = config_file
+        self.config = ConfigParser.RawConfigParser()
+        self.config.read(self.config_file)
+
+    def OnClose(self, event):
+        with open(self.config_file, 'w') as f:
+            self.config.write(f)
+

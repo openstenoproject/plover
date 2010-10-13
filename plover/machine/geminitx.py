@@ -28,11 +28,11 @@ class Stenotype(plover.machine.base.SerialStenotypeBase):
             num_bytes = self.serial_port.read()
             if not num_bytes :
                 continue
+            num_bytes = ord(num_bytes)
             raw = self.serial_port.read(num_bytes)
             
             # XXX : work around for python 3.1 and python 2.6 differences
             if isinstance(raw, str) :
-                num_bytes = ord(num_bytes)
                 raw = [ord(x) for x in raw]
 
             # Make sure this is a valid steno stroke.
