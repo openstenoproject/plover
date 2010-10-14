@@ -54,5 +54,4 @@ class Stenotype(plover.machine.base.SerialStenotypeBase):
                         steno_keys.append(STENO_KEY_CHART[i*7 + j-1]) 
                 
             # Notify all subscribers.
-            for callback in self.subscribers:
-                callback(steno_keys)
+            self._notify(steno_keys)

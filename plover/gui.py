@@ -13,6 +13,10 @@ between using the keyboard as a regular keyboard and a stenotype.
 import os
 import wx
 import app
+import ConfigParser
+import plover.machine as machine
+import plover.dictionary as dictionary
+import plover.app as app
 from plover import __name__ as __software_name__
 from plover import __version__
 from plover import __copyright__
@@ -20,6 +24,13 @@ from plover import __long_description__
 from plover import __url__
 from plover import __credits__
 from plover import __license__
+
+MACHINE_CONFIG_TAB_NAME = "Machine"
+DICTIONARY_CONFIG_TAB_NAME = "Dictionary"
+LOGGING_CONFIG_TAB_NAME = "Logging"
+SAVE_CONFIG_BUTTON_NAME = "Save"
+CONFIG_PANEL_SIZE = (300, 300)
+
 
 class PloverGUI(wx.App):
     """The main entry point for the Plover application."""
@@ -127,7 +138,8 @@ class PloverTaskBarIcon(wx.TaskBarIcon):
 
     def OnTaskBarConfig(self, event):
         """Called when the Configure menu item is chosen."""
-        PloverConfigUI(steno_engine.config_file)
+        dialog = ConfigurationUI(self.steno_engine.config_file)
+        dialog.Show()
 
     def OnTaskBarPause(self, event):
         """Called when the Pause menu item is chosen."""
@@ -153,7 +165,7 @@ class PloverTaskBarIcon(wx.TaskBarIcon):
             self.SetIcon(self.off_icon, self.OFF_MESSAGE)
 
 
-class PloverConfigUI(wx.Dialog):
+class ConfigurationUI(wx.Dialog):
     """A GUI for viewing and editing Plover configuration files.
 
     Changes to the configuration file are saved when the GUI is
@@ -162,8 +174,12 @@ class PloverConfigUI(wx.Dialog):
     application restart.
 
     """
-    def __init__(self, config_file, parent, id, title,
-                 size=wx.DefaultSize, pos=wx.DefaultPosition,
+    def __init__(self, config_file,
+                 parent=None,
+                 id=-1,
+                 title="Plover Configuration",
+                 pos=wx.DefaultPosition,
+                 size=wx.DefaultSize,
                  style=wx.DEFAULT_DIALOG_STYLE):
         """Create a configuration GUI based on the given config file.
 
@@ -173,12 +189,76 @@ class PloverConfigUI(wx.Dialog):
         configuration file to view and edit.
         
         """
-        wx.Dialog.__init__(self, parent, id, title, size, pos, style)
+        wx.Dialog.__init__(self, parent, id, title, pos, size, style)
         self.config_file = config_file
         self.config = ConfigParser.RawConfigParser()
         self.config.read(self.config_file)
+
+        sizer = wx.BoxSizer(wx.VERTICAL)
+
+        notebook = wx.Notebook(self)
+        notebook.AddPage(MachineConfig(self.config, notebook),
+                         MACHINE_CONFIG_TAB_NAME)
+        notebook.AddPage(DictionaryConfig(self.config, notebook),
+                         DICTIONARY_CONFIG_TAB_NAME)
+        notebook.AddPage(LoggingConfig(self.config, notebook),
+                         LOGGING_CONFIG_TAB_NAME)
+        sizer.Add(notebook)
+
+        button_sizer = wx.StdDialogButtonSizer()
+        save_button = wx.Button(self, wx.ID_OK, SAVE_CONFIG_BUTTON_NAME)
+        save_button.SetDefault()
+        button_sizer.AddButton(save_button)
+        cancel_button = wx.Button(self, wx.ID_CANCEL)
+        button_sizer.AddButton(cancel_button)
+        button_sizer.Realize()        
+        sizer.Add(button_sizer)
+
+        self.SetSizer(sizer)
+        sizer.Fit(self)
 
     def OnClose(self, event):
         with open(self.config_file, 'w') as f:
             self.config.write(f)
 
+
+class MachineConfig(wx.Panel):
+    def __init__(self, config, parent):
+        wx.Panel.__init__(self, parent, size=CONFIG_PANEL_SIZE)
+        self.config = config
+        sizer = wx.BoxSizer(wx.VERTICAL)
+        machines = machine.supported.keys()
+        combo_box = wx.ComboBox(self,
+                                value=config.get(app.MACHINE_CONFIG_SECTION,
+                                                 app.MACHINE_TYPE_OPTION),
+                                choices=machines,
+                                style=wx.CB_DROPDOWN | wx.CB_SORT)
+        combo_box.SetEditable(False)
+        sizer.Add(combo_box, 0, wx.EXPAND)
+        self.SetSizer(sizer)
+        sizer.Fit(self)
+
+
+class DictionaryConfig(wx.Panel):
+    def __init__(self, config, parent):
+        wx.Panel.__init__(self, parent, size=CONFIG_PANEL_SIZE)
+        self.config = config
+        sizer = wx.GridSizer(3, 2, 5, 5)
+        sizer.Add(wx.StaticText(self, label="Format:", style=wx.ALIGN_RIGHT))
+        dictionaries = dictionary.supported.keys()
+        combo_box = wx.ComboBox(self,
+                                value=config.get(app.DICTIONARY_CONFIG_SECTION,
+                                                 app.DICTIONARY_FORMAT_OPTION),
+                                choices=dictionaries,
+                                style=wx.CB_DROPDOWN | wx.CB_SORT)
+        combo_box.SetEditable(False)
+        sizer.Add(combo_box, 0, wx.EXPAND)
+        sizer.Add(wx.StaticText(self, label="Encoding:", style=wx.ALIGN_RIGHT))
+        self.SetSizer(sizer)
+        sizer.Fit(self)
+
+
+class LoggingConfig(wx.Panel):
+    def __init__(self, config, parent):
+        wx.Panel.__init__(self, parent, size=CONFIG_PANEL_SIZE)
+        self.config = config

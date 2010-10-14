@@ -8,3 +8,6 @@ a toRTFCRE function that takes a sequence as input and returns a
 string.
 
 """
+
+supported = {'Eclipse' : 'plover.dictionary.eclipse',
+             'DCAT' : 'plover.dictionary.dcat',}

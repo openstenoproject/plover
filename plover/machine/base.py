@@ -62,3 +62,8 @@ class SerialStenotypeBase(threading.Thread):
 
         """
         self.subscribers.append(callback)
+
+    def _notify(self, steno_keys):
+        """Invoke the callback of each subscriber with the given argument."""
+        for callback in self.subscribers:
+            callback(steno_keys)

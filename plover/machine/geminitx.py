@@ -35,9 +35,12 @@ class Stenotype(plover.machine.base.SerialStenotypeBase):
             if isinstance(raw, str) :
                 raw = [ord(x) for x in raw]
 
+            print "[Gemini TX testing] Received %d bytes: %s" % (num_bytes, str(raw))
+
             # Make sure this is a valid steno stroke.
             if not len(raw) == num_bytes:
-                serial_port.flushInput()
+                print "[Gemini TX testing] number of bytes does not match bytes received."
+                self.serial_port.flushInput()
                 continue
 
             # Convert the raw machine output to a list of steno keys.
@@ -51,5 +54,4 @@ class Stenotype(plover.machine.base.SerialStenotypeBase):
                     mask <<= 1
                 
             # Notify all subscribers.
-            for callback in self.subscribers:
-                callback(steno_keys)
+            self._notify(steno_keys)

@@ -29,9 +29,11 @@ except ImportError :
     import json
 
 # Import plover modules.
-import formatting
-import keyboardcontrol
-import steno
+import plover.formatting as formatting
+import plover.keyboardcontrol as keyboardcontrol
+import plover.steno as steno
+import plover.machine as machine
+import plover.dictionary as dictionary
 
 # Configuration paths.
 ASSETS_DIR =  os.path.join(os.path.dirname(os.path.realpath(__file__)),
@@ -60,11 +62,6 @@ DEFAULT_LOG_FILE = 'plover.log'
 DEFAULT_ENABLE_STROKE_LOGGING = 'true'
 DEFAULT_ENABLE_TRANSLATION_LOGGING = 'true'
 
-# Stenotype machines.
-MACHINE_SIDEWINDER_X4 = 'Microsoft Sidewinder X4'
-MACHINE_GEMINI_PR = 'Gemini PR'
-MACHINE_GEMINI_TX = 'Gemini TX'
-
 # Dictionary formats.
 DICTIONARY_ECLIPSE = 'Eclipse'
 DICTIONARY_DCAT = 'DCAT'
@@ -75,6 +72,33 @@ LOGGER_NAME = 'plover_logger'
 LOG_FORMAT = '%(asctime)s %(message)s'
 LOG_MAX_BYTES = 10000000
 LOG_COUNT = 9
+
+def _import_named_module(name, module_dictionary):
+    """Returns the Python module corresponding to the given name.
+
+    Arguments:
+
+    name -- A string that serves as a key to a Python module.
+
+    module_dictionary -- A dictionary containing name-module key
+    pairs. Both name and module are strings; name is an arbitrary
+    string and module is a string that specifies a module that can be
+    imported.
+
+    Returns the references module, or None if the name is not a key in
+    the module_dictionary.
+    
+    """
+    mod_name =  module_dictionary.get(name, None)
+    if mod_name is not None:
+        hierarchy = mod_name.rsplit('.', 1)
+        if len(hierarchy) == 2:
+            fromlist = hierarchy[0]
+        else:
+            fromlist = []
+        return __import__(mod_name, fromlist=fromlist)
+    return None
+
 
 class StenoEngine:
     """Top-level class for using a stenotype machine for text input.
@@ -259,28 +283,20 @@ class StenoEngine:
             self.machine_init_vars = dict(config.items(machine_type))
         else:
             self.machine_init_vars = {}
-        if machine_type == MACHINE_SIDEWINDER_X4:
-            import plover.machine.sidewinder as machine_module
-        elif machine_type == MACHINE_GEMINI_PR:
-            import plover.machine.geminipr as machine_module
-        elif machine_type == MACHINE_GEMINI_TX:
-            import plover.machine.geminitx as machine_module
-        else:
+        self.machine_module = _import_named_module(machine_type,
+                                                   machine.supported)
+        if self.machine_module is None:
             raise ValueError('Invalid configuration value for %s: %s' %
                              (MACHINE_TYPE_OPTION, machine_type))
-        self.machine_module = machine_module
 
         # Set the steno dictionary format module.
         dictionary_format = self.config.get(DICTIONARY_CONFIG_SECTION,
                                             DICTIONARY_FORMAT_OPTION)
-        if dictionary_format == DICTIONARY_ECLIPSE:
-            import plover.dictionary.eclipse as dictionary_module
-        elif dictionary_format == DICTIONARY_DCAT:
-            import plover.dictionary.dcat as dictionary_module
-        else:
+        self.dictionary_module = _import_named_module(dictionary_format,
+                                                      dictionary.supported)
+        if self.dictionary_module is None:
             raise ValueError('Invalid configuration value for %s: %s' %
                              (DICTIONARY_FORMAT_OPTION, dictionary_format))
-        self.dictionary_module = dictionary_module
 
         # Load the dictionary. The dictionary path can be either
         # absolute or relative to the configuration directory.

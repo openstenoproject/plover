@@ -8,3 +8,7 @@ has start_capture, stop_capture, and add_callback methods.
 
 """
 __all__ = ['geminipr', 'geminitx', 'sidewinder']
+
+supported = {'Microsoft Sidewinder X4' : 'plover.machine.sidewinder',
+             'Gemini PR' : 'plover.machine.geminipr',
+             'Gemini TX' : 'plover.machine.geminitx',}
