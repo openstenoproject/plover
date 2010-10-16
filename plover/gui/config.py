@@ -91,14 +91,12 @@ class MachineConfig(wx.Panel):
                 border=3,
                 flag=wx.ALIGN_RIGHT | wx.ALIGN_CENTER_VERTICAL | wx.RIGHT)
         machines = machine.supported.keys()
-        self.combo_box = wx.ComboBox(self, 
-                                value=config.get(conf.MACHINE_CONFIG_SECTION,
-                                                 conf.MACHINE_TYPE_OPTION),
-                                choices=machines,
-                                style=wx.CB_DROPDOWN | wx.CB_SORT)
-        self.combo_box.SetEditable(False)
-        self.Bind(wx.EVT_COMBOBOX, self.update, self.combo_box)
-        box.Add(self.combo_box, proportion=1, flag=wx.EXPAND)
+        value = config.get(conf.MACHINE_CONFIG_SECTION,
+                           conf.MACHINE_TYPE_OPTION)
+        self.choice = wx.Choice(self, choices=machines)
+        self.choice.SetStringSelection(value)
+        self.Bind(wx.EVT_CHOICE, self.update, self.choice)
+        box.Add(self.choice, proportion=1, flag=wx.EXPAND)
         sizer.Add(box, border=UI_BORDER, flag=wx.ALL | wx.EXPAND)
         self.config_button = wx.Button(self,
                                        id=wx.ID_PREFERENCES,
@@ -109,7 +107,7 @@ class MachineConfig(wx.Panel):
 
     def update(self, event=None):
         """Refreshes the UI to reflect current data."""
-        mod = conf.import_named_module(self.combo_box.GetValue(),
+        mod = conf.import_named_module(self.choice.GetStringSelection(),
                                        machine.supported)
         if ((mod is not None) and
             hasattr(mod, 'Stenotype') and
@@ -146,13 +144,11 @@ class DictionaryConfig(wx.Panel):
                 border=3,
                 flag=wx.ALIGN_RIGHT | wx.ALIGN_CENTER_VERTICAL | wx.RIGHT)
         formats = dictionary.supported.keys()
-        self.combo_box = wx.ComboBox(self,
-                                value=config.get(conf.DICTIONARY_CONFIG_SECTION,
-                                                 conf.DICTIONARY_FORMAT_OPTION),
-                                choices=formats,
-                                style=wx.CB_DROPDOWN | wx.CB_SORT)
-        self.combo_box.SetEditable(False)
-        box.Add(self.combo_box, proportion=1)
+        value = config.get(conf.DICTIONARY_CONFIG_SECTION,
+                           conf.DICTIONARY_FORMAT_OPTION)
+        self.choice = wx.Choice(self, choices=formats)
+        self.choice.SetStringSelection(value)
+        box.Add(self.choice, proportion=1)
         sizer.Add(box,
                   border=UI_BORDER,
                   flag=wx.TOP | wx.LEFT | wx.RIGHT | wx.EXPAND)
