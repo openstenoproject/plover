@@ -1,6 +1,6 @@
 #!/usr/bin/env python2.6
 
-import plover.gui
+import plover.gui.main
 
 # XXX : There seems to be a bug in lockfile, so leave it out for now.x
 #import lockfile
@@ -16,7 +16,7 @@ import plover.gui
 #    sys.exit(2)
 
 # Create and start the user interface.
-gui = plover.gui.PloverGUI(0)
+gui = plover.gui.main.PloverGUI(0)
 gui.MainLoop()
 
 # Clean up.

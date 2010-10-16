@@ -3,6 +3,7 @@
 
 """For use with a Microsoft Sidewinder X4 keyboard used as stenotype machine."""
 
+from plover.machine.base import StenotypeBase
 from plover import keyboardcontrol
 
 QWERTY_TO_STENO = {"a": "S-",
@@ -44,7 +45,7 @@ QWERTY_TO_STENO = {"a": "S-",
                    "-": "#",
                    "=": "#",}
 
-class Stenotype :
+class Stenotype(StenotypeBase):
     """Standard stenotype interface for a Microsoft Sidewinder X4 keyboard.
 
     This class implements the three methods necessary for a standard
@@ -55,11 +56,11 @@ class Stenotype :
 
     def __init__(self):
         """Monitor a Microsoft Sidewinder X4 keyboard via X events."""
+        StenotypeBase.__init__(self)
         self._keyboard_emulation = keyboardcontrol.KeyboardEmulation()
         self._keyboard_capture = keyboardcontrol.KeyboardCapture()
         self._keyboard_capture.key_down = self._key_down
         self._keyboard_capture.key_up = self._key_up
-        self.subscribers = []
         self._down_keys = set()
         self._released_keys = set()
 
@@ -70,17 +71,6 @@ class Stenotype :
     def stop_capture(self):
         """Stop listening for output from the stenotype machine."""
         self._keyboard_capture.cancel()
-
-    def add_callback(self, callback):
-        """Subscribe to output from the stenotype machine.
-
-        Argument:
-
-        callback -- The function to call whenever there is output from
-        the stenotype machine and output is being captured.
-
-        """
-        self.subscribers.append(callback)
 
     def _key_down(self, event):
         # Called when a key is pressed.
@@ -100,5 +90,4 @@ class Stenotype :
                          if k in QWERTY_TO_STENO]
             self._down_keys.clear()
             self._released_keys.clear()
-            for callback in self.subscribers :
-                callback(steno_keys)
+            self._notify(steno_keys)

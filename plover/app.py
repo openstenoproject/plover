@@ -16,89 +16,20 @@ interface.
 
 # Import standard library modules.
 import os
-import sys
 import logging
 import logging.handlers
-import ConfigParser
-import shutil
-
-# Import third-party modules.
 try :
     import simplejson as json
 except ImportError :
     import json
 
 # Import plover modules.
+import plover.config as conf
 import plover.formatting as formatting
 import plover.keyboardcontrol as keyboardcontrol
 import plover.steno as steno
 import plover.machine as machine
 import plover.dictionary as dictionary
-
-# Configuration paths.
-ASSETS_DIR =  os.path.join(os.path.dirname(os.path.realpath(__file__)),
-                           'assets')
-DEFAULT_CONFIG_DIR = os.path.expanduser('~/.config/plover')
-DEFAULT_CONFIG_FILE = 'plover.cfg'
-
-# Configuration sections and options.
-MACHINE_CONFIG_SECTION = 'Machine Configuration'
-MACHINE_TYPE_OPTION = 'machine_type'
-DICTIONARY_CONFIG_SECTION = 'Dictionary Configuration'
-DICTIONARY_FILE_OPTION = 'dictionary_file'
-DICTIONARY_FORMAT_OPTION = 'dictionary_format'
-DICTIONARY_ENCODING_OPTION = 'dictionary_encoding'
-LOGGING_CONFIG_SECTION = 'Logging Configuration'
-LOG_FILE_OPTION = 'log_file'
-ENABLE_STROKE_LOGGING_OPTION = 'enable_stroke_logging'
-ENABLE_TRANSLATION_LOGGING_OPTION = 'enable_translation_logging'
-
-# Default values for configuration options.
-DEFAULT_MACHINE_TYPE = 'Microsoft Sidewinder X4'
-DEFAULT_DICTIONARY_FILE = 'dict.json'
-DEFAULT_DICTIONARY_FORMAT = 'Eclipse'
-DEFAULT_DICTIONARY_ENCODING = 'latin-1'
-DEFAULT_LOG_FILE = 'plover.log'
-DEFAULT_ENABLE_STROKE_LOGGING = 'true'
-DEFAULT_ENABLE_TRANSLATION_LOGGING = 'true'
-
-# Dictionary formats.
-DICTIONARY_ECLIPSE = 'Eclipse'
-DICTIONARY_DCAT = 'DCAT'
-JSON_EXTENSION = '.json'
-
-# Logging constants.
-LOGGER_NAME = 'plover_logger'
-LOG_FORMAT = '%(asctime)s %(message)s'
-LOG_MAX_BYTES = 10000000
-LOG_COUNT = 9
-
-def _import_named_module(name, module_dictionary):
-    """Returns the Python module corresponding to the given name.
-
-    Arguments:
-
-    name -- A string that serves as a key to a Python module.
-
-    module_dictionary -- A dictionary containing name-module key
-    pairs. Both name and module are strings; name is an arbitrary
-    string and module is a string that specifies a module that can be
-    imported.
-
-    Returns the references module, or None if the name is not a key in
-    the module_dictionary.
-    
-    """
-    mod_name =  module_dictionary.get(name, None)
-    if mod_name is not None:
-        hierarchy = mod_name.rsplit('.', 1)
-        if len(hierarchy) == 2:
-            fromlist = hierarchy[0]
-        else:
-            fromlist = []
-        return __import__(mod_name, fromlist=fromlist)
-    return None
-
 
 class StenoEngine:
     """Top-level class for using a stenotype machine for text input.
@@ -140,35 +71,68 @@ class StenoEngine:
 
     """
 
-    def __init__(self, config_dir=None, config_file=None):
-        """Creates and configures a single instance of this class.
-
-        Keyword arguments:
-        
-        config_dir -- The configuration directory to use, or
-        ~/.config/plover if None.
-
-        config_file -- The configuration file to use, or plover.cfg if
-        None. This file is relative to the config_dir unless an
-        absolute path is given.
-
-        """
-
-        # Set default values if arguments aren't given.
-        if config_dir is None:
-            config_dir = DEFAULT_CONFIG_DIR
-        if config_file is None:
-            config_file = os.path.join(config_dir, DEFAULT_CONFIG_FILE)
-        self.config_dir = config_dir
-        self.config_file = config_file
-
-        # Build the core application.
+    def __init__(self):
+        """Creates and configures a single steno pipeline."""
         self.is_running = False
         self.machine = None
         self.translator = None
         self.formatter = None
         self.output = None
-        self._configure()
+        self.config = conf.get_config()
+
+        # Set the machine module and any initialization variables.
+        machine_type = self.config.get(conf.MACHINE_CONFIG_SECTION,
+                                       conf.MACHINE_TYPE_OPTION)
+        if self.config.has_section(machine_type):
+            self.machine_init_vars = dict(self.config.items(machine_type))
+        else:
+            self.machine_init_vars = {}
+        self.machine_module = conf.import_named_module(machine_type,
+                                                       machine.supported)
+        if self.machine_module is None:
+            raise ValueError('Invalid configuration value for %s: %s' %
+                             (conf.MACHINE_TYPE_OPTION, machine_type))
+
+        # Set the steno dictionary format module.
+        dictionary_format = self.config.get(conf.DICTIONARY_CONFIG_SECTION,
+                                            conf.DICTIONARY_FORMAT_OPTION)
+        self.dictionary_module = conf.import_named_module(dictionary_format,
+                                                          dictionary.supported)
+        if self.dictionary_module is None:
+            raise ValueError('Invalid configuration value for %s: %s' %
+                             (conf.DICTIONARY_FORMAT_OPTION, dictionary_format))
+
+        # Load the dictionary. The dictionary path can be either
+        # absolute or relative to the configuration directory.
+        dictionary_filename = self.config.get(conf.DICTIONARY_CONFIG_SECTION,
+                                              conf.DICTIONARY_FILE_OPTION)
+        dictionary_path = os.path.join(conf.CONFIG_DIR, dictionary_filename)
+        if not os.path.isfile(dictionary_path):
+            raise ValueError('Invalid configuration value for %s: %s' %
+                             (conf.DICTIONARY_FILE_OPTION, dictionary_path))
+        dictionary_extension = os.path.splitext(dictionary_path)[1]
+        if dictionary_extension == conf.JSON_EXTENSION:
+            try:
+                with open(dictionary_path, 'r') as f:
+                    self.dictionary = json.load(f)
+            except UnicodeDecodeError:
+                with open(dictionary_path, 'r') as f:
+                    self.dictionary = json.load(f, conf.ALTERNATIVE_ENCODING)
+        else:
+            raise ValueError('The value of %s must end with %s.' %
+                             (conf.DICTIONARY_FILE_OPTION, conf.JSON_EXTENSION))
+
+        # Initialize the logger.
+        log_file = os.path.join(conf.CONFIG_DIR,
+                                self.config.get(conf.LOGGING_CONFIG_SECTION,
+                                                conf.LOG_FILE_OPTION))
+        self.logger = logging.getLogger(conf.LOGGER_NAME)
+        self.logger.setLevel(logging.DEBUG)
+        handler = logging.handlers.RotatingFileHandler(log_file,
+                                                    maxBytes=conf.LOG_MAX_BYTES,
+                                                    backupCount=conf.LOG_COUNT)
+        handler.setFormatter(logging.Formatter(conf.LOG_FORMAT))
+        self.logger.addHandler(handler)
 
     def start(self):
         """Initiates the stenography capture-translate-format-display pipeline.
@@ -191,11 +155,11 @@ class StenoEngine:
         self.formatter = formatting.Formatter(self.translator, self.output)
 
         # Add hooks for logging.
-        if self.config.getboolean(LOGGING_CONFIG_SECTION,
-                                  ENABLE_STROKE_LOGGING_OPTION):
+        if self.config.getboolean(conf.LOGGING_CONFIG_SECTION,
+                                  conf.ENABLE_STROKE_LOGGING_OPTION):
             self.machine.add_callback(self._log_stroke)
-        if self.config.getboolean(LOGGING_CONFIG_SECTION,
-                                  ENABLE_TRANSLATION_LOGGING_OPTION):
+        if self.config.getboolean(conf.LOGGING_CONFIG_SECTION,
+                                  conf.ENABLE_TRANSLATION_LOGGING_OPTION):
             self.translator.add_callback(self._log_translation)
 
         # Start the machine monitoring for steno strokes.
@@ -215,119 +179,6 @@ class StenoEngine:
         if self.machine:
             self.machine.stop_capture()
         self.is_running = False
-
-    def _configure(self):
-        # Initialization based on user configuration file. If no
-        # configuration file exists, a default configuration file is
-        # created. This method should only be called if at start up or
-        # if the user configuration file has changed, though creating
-        # a new StenoEngine object is preferable to calling this
-        # method.
-        
-        # Create config directory structure if it doesn't already exist.
-        if not os.path.exists(self.config_dir):
-            os.makedirs(self.config_dir)
-            # Copy the default dictionary to the configuration directory.
-            shutil.copyfile(os.path.join(ASSETS_DIR, DEFAULT_DICTIONARY_FILE),
-                            os.path.join(self.config_dir,
-                                         DEFAULT_DICTIONARY_FILE))
-
-        # Create a default configuration file if one doesn't already
-        # exist. Add default settings in reverse order so they appear
-        # in the correct order when written to the file.
-        if not os.path.exists(self.config_file):
-            default_config = ConfigParser.RawConfigParser()
-
-            # Set default logging parameters.
-            default_config.add_section(LOGGING_CONFIG_SECTION)
-            default_config.set(LOGGING_CONFIG_SECTION,
-                               ENABLE_TRANSLATION_LOGGING_OPTION,
-                               DEFAULT_ENABLE_TRANSLATION_LOGGING)
-            default_config.set(LOGGING_CONFIG_SECTION,
-                               ENABLE_STROKE_LOGGING_OPTION,
-                               DEFAULT_ENABLE_STROKE_LOGGING)
-            default_config.set(LOGGING_CONFIG_SECTION,
-                               LOG_FILE_OPTION,
-                               DEFAULT_LOG_FILE)
-
-            # Set default dictionary parameters.
-            default_config.add_section(DICTIONARY_CONFIG_SECTION)
-            default_config.set(DICTIONARY_CONFIG_SECTION,
-                               DICTIONARY_ENCODING_OPTION,
-                               DEFAULT_DICTIONARY_ENCODING)
-            default_config.set(DICTIONARY_CONFIG_SECTION,
-                               DICTIONARY_FORMAT_OPTION,
-                               DEFAULT_DICTIONARY_FORMAT)
-            default_config.set(DICTIONARY_CONFIG_SECTION,
-                               DICTIONARY_FILE_OPTION,
-                               DEFAULT_DICTIONARY_FILE)
-
-            # Set default machine parameters.
-            default_config.add_section(MACHINE_CONFIG_SECTION)
-            default_config.set(MACHINE_CONFIG_SECTION,
-                               MACHINE_TYPE_OPTION,
-                               DEFAULT_MACHINE_TYPE)
-
-            # Write the file to disk.
-            with open(self.config_file, 'w') as f:
-                default_config.write(f)
-
-        # Read in the configuration file.
-        self.config = ConfigParser.RawConfigParser()
-        self.config.read(self.config_file)
-
-        # Set the machine module and any initialization variables.
-        machine_type = self.config.get(MACHINE_CONFIG_SECTION,
-                                       MACHINE_TYPE_OPTION)
-        if self.config.has_section(machine_type):
-            self.machine_init_vars = dict(config.items(machine_type))
-        else:
-            self.machine_init_vars = {}
-        self.machine_module = _import_named_module(machine_type,
-                                                   machine.supported)
-        if self.machine_module is None:
-            raise ValueError('Invalid configuration value for %s: %s' %
-                             (MACHINE_TYPE_OPTION, machine_type))
-
-        # Set the steno dictionary format module.
-        dictionary_format = self.config.get(DICTIONARY_CONFIG_SECTION,
-                                            DICTIONARY_FORMAT_OPTION)
-        self.dictionary_module = _import_named_module(dictionary_format,
-                                                      dictionary.supported)
-        if self.dictionary_module is None:
-            raise ValueError('Invalid configuration value for %s: %s' %
-                             (DICTIONARY_FORMAT_OPTION, dictionary_format))
-
-        # Load the dictionary. The dictionary path can be either
-        # absolute or relative to the configuration directory.
-        dictionary_encoding = self.config.get(DICTIONARY_CONFIG_SECTION,
-                                              DICTIONARY_ENCODING_OPTION)
-        dictionary_filename = self.config.get(DICTIONARY_CONFIG_SECTION,
-                                              DICTIONARY_FILE_OPTION)
-        dictionary_path = os.path.join(self.config_dir, dictionary_filename)
-        if not os.path.isfile(dictionary_path):
-            raise ValueError('Invalid configuration value for %s: %s' %
-                             (DICTIONARY_FILE_OPTION, dictionary_path))
-        dictionary_extension = os.path.splitext(dictionary_path)[1]
-        if dictionary_extension == JSON_EXTENSION:
-            with open(dictionary_path, 'r') as f:
-                self.dictionary = json.load(f, dictionary_encoding)
-        else:
-            raise ValueError('The value of %s must end with %s.' %
-                             (DICTIONARY_FILE_OPTION, JSON_EXTENSION))
-
-        # Initialize the logger.
-        log_file = os.path.join(self.config_dir,
-                                self.config.get(LOGGING_CONFIG_SECTION,
-                                                LOG_FILE_OPTION))
-        self.logger = logging.getLogger(LOGGER_NAME)
-        self.logger.setLevel(logging.DEBUG)
-        handler = logging.handlers.RotatingFileHandler(log_file,
-                                                       maxBytes=LOG_MAX_BYTES,
-                                                       backupCount=LOG_COUNT)
-        handler.setFormatter(logging.Formatter(LOG_FORMAT))
-        self.logger.addHandler(handler)
-
 
     def _log_stroke(self, steno_keys):
         self.logger.info('Stroke(%s)' % ' '.join(steno_keys))

@@ -3,54 +3,27 @@
 
 """Base classes for machine types. Do not use directly."""
 
-# Copyright (c) 2010 Joshua Harlan Lifton.
-# See LICENSE.txt for details.
-
-"""Thread-based monitoring of a Gemini PR stenotype machine."""
-
 import serial
 import threading
 
-class SerialStenotypeBase(threading.Thread):
-    """For use with stenotype machines that connect via serial port.
+class StenotypeBase:
+    """The base class for all Stenotype classes."""
 
-    This class implements the three methods necessary for a standard
-    stenotype interface: start_capture, stop_capture, and
-    add_callback.
+    # Some subclasses of StenotypeBase might require configuration
+    # parameters to be passed to the constructor. This variable
+    # advertises what the class that contains such parameters.
+    CONFIG_CLASS = None
 
-    """
-    
-    def __init__(self, port='/dev/ttyUSB0'):
-        """Monitor the stenotype over a serial port.
-
-        Argument:
-
-        port -- Serial port to which the machine is
-        connected. Defaults to '/dev/ttyUSB0'.
-
-        """
-        threading.Thread.__init__(self)
-        self.finished = threading.Event()
+    def __init__(self):
         self.subscribers = []
-        # The timeout argument to Serial is in seconds. This is needed
-        # so that the thread can terminate properly by being allowed
-        # to periodically check the finished flag. This might cause
-        # strokes to be only partially read.
-        self.serial_port = serial.Serial(port=port, timeout=2)
-        
-    def run(self):
-        """This method should be overridden by a subclass."""
-        pass
 
     def start_capture(self):
         """Begin listening for output from the stenotype machine."""
-        self.finished.clear()
-        self.start()
+        pass
 
     def stop_capture(self):
         """Stop listening for output from the stenotype machine."""
-        self.finished.set()
-        self.serial_port.close()
+        pass
 
     def add_callback(self, callback):
         """Subscribe to output from the stenotype machine.
@@ -67,3 +40,51 @@ class SerialStenotypeBase(threading.Thread):
         """Invoke the callback of each subscriber with the given argument."""
         for callback in self.subscribers:
             callback(steno_keys)
+
+
+class SerialStenotypeBase(StenotypeBase, threading.Thread):
+    """For use with stenotype machines that connect via serial port.
+
+    This class implements the three methods necessary for a standard
+    stenotype interface: start_capture, stop_capture, and
+    add_callback.
+
+    """
+
+    CONFIG_CLASS = serial.Serial
+
+    def __init__(self, serial_port=None):
+        """Monitor the stenotype over a serial port.
+
+        Argument:
+
+        serial_port -- Serial port to which the machine is
+        connected. If None, a default serial port with
+        port='/dev/ttyUSB0', timeout=2 will be created.
+
+        """
+        threading.Thread.__init__(self)
+        StenotypeBase.__init__(self)
+        self.finished = threading.Event()
+        if serial_port is None:
+            # The timeout argument to Serial is in seconds. This is needed
+            # so that the thread can terminate properly by being allowed
+            # to periodically check the finished flag. This might cause
+            # strokes to be only partially read.
+            self.serial_port = serial.Serial(port='/dev/ttyUSB0', timeout=2)
+        else:
+            self.serial_port = serial_port
+        
+    def run(self):
+        """This method should be overridden by a subclass."""
+        pass
+
+    def start_capture(self):
+        """Begin listening for output from the stenotype machine."""
+        self.finished.clear()
+        self.start()
+
+    def stop_capture(self):
+        """Stop listening for output from the stenotype machine."""
+        self.finished.set()
+        self.serial_port.close()
