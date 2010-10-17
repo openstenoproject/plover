@@ -22,6 +22,7 @@ FILE_DIALOG_TITLE = "Select a Dictionary File"
 CONFIG_BUTTON_NAME = "Configure..."
 CONFIG_PANEL_SIZE = (600, 400)
 UI_BORDER = 15
+COMPONENT_SPACE = 3
 
 class ConfigurationDialog(wx.Dialog):
     """A GUI for viewing and editing Plover configuration files.
@@ -88,7 +89,7 @@ class MachineConfig(wx.Panel):
         sizer = wx.BoxSizer(wx.VERTICAL)
         box = wx.BoxSizer(wx.HORIZONTAL)
         box.Add(wx.StaticText(self, label=MACHINE_LABEL),
-                border=3,
+                border=COMPONENT_SPACE,
                 flag=wx.ALIGN_RIGHT | wx.ALIGN_CENTER_VERTICAL | wx.RIGHT)
         machines = machine.supported.keys()
         value = config.get(conf.MACHINE_CONFIG_SECTION,
@@ -141,7 +142,7 @@ class DictionaryConfig(wx.Panel):
                   flag=wx.TOP | wx.LEFT | wx.RIGHT | wx.EXPAND)
         box = wx.BoxSizer(wx.HORIZONTAL)
         box.Add(wx.StaticText(self, label=FORMAT_LABEL),
-                border=3,
+                border=COMPONENT_SPACE,
                 flag=wx.ALIGN_RIGHT | wx.ALIGN_CENTER_VERTICAL | wx.RIGHT)
         formats = dictionary.supported.keys()
         value = config.get(conf.DICTIONARY_CONFIG_SECTION,
