@@ -7,21 +7,29 @@ import os
 import wx
 import wx.lib.filebrowsebutton as filebrowse
 import ConfigParser
+from serial import Serial
 import plover.machine as machine
 import plover.dictionary as dictionary
 import plover.config as conf
+import plover.gui.serial_config as serial_config
 
+RESTART_DIALOG_MESSAGE = "Plover must be restarted before changes take effect."
+RESTART_DIALOG_TITLE = "Plover"
 MACHINE_CONFIG_TAB_NAME = "Machine"
 DICTIONARY_CONFIG_TAB_NAME = "Dictionary"
 LOGGING_CONFIG_TAB_NAME = "Logging"
 SAVE_CONFIG_BUTTON_NAME = "Save"
 MACHINE_LABEL = "Stenotype Machine:"
 FORMAT_LABEL = "Dictionary Format:"
-FILE_LABEL = "Dictionary File:"
-FILE_DIALOG_TITLE = "Select a Dictionary File"
+DICT_FILE_LABEL = "Dictionary File:"
+DICT_FILE_DIALOG_TITLE = "Select a Dictionary File"
+LOG_FILE_LABEL = "Log File:"
+LOG_STROKES_LABEL = "Log Strokes"
+LOG_TRANSLATIONS_LABEL = "Log Translations"
+LOG_FILE_DIALOG_TITLE = "Select a Log File"
 CONFIG_BUTTON_NAME = "Configure..."
 CONFIG_PANEL_SIZE = (600, 400)
-UI_BORDER = 15
+UI_BORDER = 4
 COMPONENT_SPACE = 3
 
 class ConfigurationDialog(wx.Dialog):
@@ -56,47 +64,70 @@ class ConfigurationDialog(wx.Dialog):
         sizer = wx.BoxSizer(wx.VERTICAL)
 
         notebook = wx.Notebook(self)
-        notebook.AddPage(MachineConfig(self.config, notebook),
-                         MACHINE_CONFIG_TAB_NAME)
-        notebook.AddPage(DictionaryConfig(self.config, notebook),
-                         DICTIONARY_CONFIG_TAB_NAME)
-        notebook.AddPage(LoggingConfig(self.config, notebook),
-                         LOGGING_CONFIG_TAB_NAME)
+        self.machine_config = MachineConfig(self.config, notebook)
+        self.dictionary_config = DictionaryConfig(self.config, notebook)
+        self.logging_config = LoggingConfig(self.config, notebook)
+        notebook.AddPage(self.machine_config, MACHINE_CONFIG_TAB_NAME)
+        notebook.AddPage(self.dictionary_config, DICTIONARY_CONFIG_TAB_NAME)
+        notebook.AddPage(self.logging_config, LOGGING_CONFIG_TAB_NAME)
         sizer.Add(notebook)
 
         button_sizer = wx.StdDialogButtonSizer()
-        save_button = wx.Button(self, wx.ID_OK, SAVE_CONFIG_BUTTON_NAME)
+        save_button = wx.Button(self, wx.ID_SAVE, SAVE_CONFIG_BUTTON_NAME)
         save_button.SetDefault()
         button_sizer.AddButton(save_button)
         cancel_button = wx.Button(self, wx.ID_CANCEL)
         button_sizer.AddButton(cancel_button)
         button_sizer.Realize()        
-        sizer.Add(button_sizer)
+        sizer.Add(button_sizer, flag=wx.ALL | wx.ALIGN_RIGHT, border=UI_BORDER)
 
+        self.Bind(wx.EVT_BUTTON, self._save, save_button)
         self.SetSizer(sizer)
         sizer.Fit(self)
 
-#    def OnClose(self, event):
-#        with open(self.config_file, 'w') as f:
-#            self.config.write(f)
+    def _save(self, event):
+        self.machine_config.save()
+        self.dictionary_config.save()
+        self.logging_config.save()
+        with open(self.config_file, 'w') as f:
+            self.config.write(f)
+        restart_dialog = wx.MessageDialog(self,
+                                          RESTART_DIALOG_MESSAGE,
+                                          RESTART_DIALOG_TITLE,
+                                          wx.OK | wx.ICON_INFORMATION)
+        restart_dialog.ShowModal()
+        restart_dialog.Destroy()
+        self.Close()
 
 
 class MachineConfig(wx.Panel):
+    """Stenotype machine configuration graphical user interface."""
+    
     def __init__(self, config, parent):
+        """Create a configuration component based on the given ConfigParser.
+
+        Arguments:
+
+        config -- A ConfigParser object.
+
+        parent -- This component's parent component.
+
+        """
         wx.Panel.__init__(self, parent, size=CONFIG_PANEL_SIZE)
         self.config = config
         self.config_class = None
+        self.config_instance = None
         sizer = wx.BoxSizer(wx.VERTICAL)
         box = wx.BoxSizer(wx.HORIZONTAL)
         box.Add(wx.StaticText(self, label=MACHINE_LABEL),
                 border=COMPONENT_SPACE,
                 flag=wx.ALIGN_RIGHT | wx.ALIGN_CENTER_VERTICAL | wx.RIGHT)
         machines = machine.supported.keys()
-        value = config.get(conf.MACHINE_CONFIG_SECTION,
-                           conf.MACHINE_TYPE_OPTION)
+        value = self.config.get(conf.MACHINE_CONFIG_SECTION,
+                                conf.MACHINE_TYPE_OPTION)
         self.choice = wx.Choice(self, choices=machines)
         self.choice.SetStringSelection(value)
-        self.Bind(wx.EVT_CHOICE, self.update, self.choice)
+        self.Bind(wx.EVT_CHOICE, self._update, self.choice)
         box.Add(self.choice, proportion=1, flag=wx.EXPAND)
         sizer.Add(box, border=UI_BORDER, flag=wx.ALL | wx.EXPAND)
         self.config_button = wx.Button(self,
@@ -104,10 +135,34 @@ class MachineConfig(wx.Panel):
                                        label=CONFIG_BUTTON_NAME)
         box.Add(self.config_button)
         self.SetSizer(sizer)
-        self.update()
+        self._update()
+        self.Bind(wx.EVT_BUTTON, self._advanced_config, self.config_button)
 
-    def update(self, event=None):
-        """Refreshes the UI to reflect current data."""
+    def save(self):
+        """Write all parameters to the configuration parser."""
+        machine_type = self.choice.GetStringSelection()
+        self.config.set(conf.MACHINE_CONFIG_SECTION,
+                        conf.MACHINE_TYPE_OPTION,
+                        machine_type)
+        if isinstance(self.config_instance, Serial):
+            conf.set_serial_port(self.config_instance,
+                                 machine_type,
+                                 self.config)
+
+    def _advanced_config(self, event=None):
+        # Brings up a more detailed configuration UI, if available.
+        if self.config_class:
+            machine_type = self.choice.GetStringSelection()
+            if self.config_class is Serial:                
+                self.config_instance = conf.get_serial_port(machine_type,
+                                                            self.config)
+                scd = serial_config.SerialConfigDialog(self.config_instance,
+                                                       self)
+                scd.ShowModal()
+                scd.Destroy()
+
+    def _update(self, event=None):
+        # Refreshes the UI to reflect current data.
         mod = conf.import_named_module(self.choice.GetStringSelection(),
                                        machine.supported)
         if ((mod is not None) and
@@ -120,7 +175,17 @@ class MachineConfig(wx.Panel):
 
 
 class DictionaryConfig(wx.Panel):
+    """Dictionary configuration graphical user interface."""
     def __init__(self, config, parent):
+        """Create a configuration component based on the given ConfigParser.
+
+        Arguments:
+
+        config -- A ConfigParser object.
+
+        parent -- This component's parent component.
+
+        """
         wx.Panel.__init__(self, parent, size=CONFIG_PANEL_SIZE)
         self.config = config
         sizer = wx.BoxSizer(wx.VERTICAL)
@@ -129,17 +194,15 @@ class DictionaryConfig(wx.Panel):
         dict_file = os.path.join(conf.CONFIG_DIR, dict_file)
         dict_dir = os.path.split(dict_file)[0]
         self.file_browser = filebrowse.FileBrowseButton(self,
-                                                        labelText=FILE_LABEL,
-                                                        fileMask='*' + \
-                                                           conf.JSON_EXTENSION,
-                                                        fileMode=wx.OPEN,
-                                                        dialogTitle= \
-                                                           FILE_DIALOG_TITLE,
-                                                        initialValue=dict_file,
-                                                        startDirectory=dict_dir)
-        sizer.Add(self.file_browser,
-                  border=UI_BORDER,
-                  flag=wx.TOP | wx.LEFT | wx.RIGHT | wx.EXPAND)
+                                                     labelText=DICT_FILE_LABEL,
+                                                     fileMask='*' + \
+                                                        conf.JSON_EXTENSION,
+                                                     fileMode=wx.OPEN,
+                                                     dialogTitle= \
+                                                        DICT_FILE_DIALOG_TITLE,
+                                                     initialValue=dict_file,
+                                                     startDirectory=dict_dir)
+        sizer.Add(self.file_browser, border=UI_BORDER, flag=wx.ALL| wx.EXPAND)
         box = wx.BoxSizer(wx.HORIZONTAL)
         box.Add(wx.StaticText(self, label=FORMAT_LABEL),
                 border=COMPONENT_SPACE,
@@ -150,14 +213,74 @@ class DictionaryConfig(wx.Panel):
         self.choice = wx.Choice(self, choices=formats)
         self.choice.SetStringSelection(value)
         box.Add(self.choice, proportion=1)
-        sizer.Add(box,
-                  border=UI_BORDER,
-                  flag=wx.TOP | wx.LEFT | wx.RIGHT | wx.EXPAND)
+        sizer.Add(box, border=UI_BORDER, flag=wx.ALL | wx.EXPAND)
         self.SetSizer(sizer)
         return
 
+    def save(self):
+        """Write all parameters to the configuration parser."""
+        self.config.set(conf.DICTIONARY_CONFIG_SECTION,
+                        conf.DICTIONARY_FILE_OPTION,
+                        self.file_browser.GetValue())
+        self.config.set(conf.DICTIONARY_CONFIG_SECTION,
+                        conf.DICTIONARY_FORMAT_OPTION,
+                        self.choice.GetStringSelection())
+
         
 class LoggingConfig(wx.Panel):
+    """Logging configuration graphical user interface."""
     def __init__(self, config, parent):
+        """Create a configuration component based on the given ConfigParser.
+
+        Arguments:
+
+        config -- A ConfigParser object.
+
+        parent -- This component's parent component.
+
+        """
         wx.Panel.__init__(self, parent, size=CONFIG_PANEL_SIZE)
         self.config = config
+        sizer = wx.BoxSizer(wx.VERTICAL)
+        log_file = config.get(conf.LOGGING_CONFIG_SECTION,
+                              conf.LOG_FILE_OPTION)
+        log_file = os.path.join(conf.CONFIG_DIR, log_file)
+        log_dir = os.path.split(log_file)[0]
+        self.file_browser = filebrowse.FileBrowseButton(self,
+                                                     labelText=LOG_FILE_LABEL,
+                                                     fileMask='*' + \
+                                                        conf.LOG_EXTENSION,
+                                                     fileMode=wx.SAVE,
+                                                     dialogTitle= \
+                                                        LOG_FILE_DIALOG_TITLE,
+                                                     initialValue=log_file,
+                                                     startDirectory=log_dir)
+        sizer.Add(self.file_browser, border=UI_BORDER, flag=wx.ALL | wx.EXPAND)
+        self.log_strokes_checkbox = wx.CheckBox(self, label=LOG_STROKES_LABEL)
+        stroke_logging = config.getboolean(conf.LOGGING_CONFIG_SECTION,
+                                           conf.ENABLE_STROKE_LOGGING_OPTION)
+        self.log_strokes_checkbox.SetValue(stroke_logging)
+        sizer.Add(self.log_strokes_checkbox,
+                  border=UI_BORDER,
+                  flag=wx.ALL | wx.EXPAND)
+        self.log_translations_checkbox = wx.CheckBox(self,
+                                                 label=LOG_TRANSLATIONS_LABEL)
+        translation_logging = config.getboolean(conf.LOGGING_CONFIG_SECTION,
+                                        conf.ENABLE_TRANSLATION_LOGGING_OPTION)
+        self.log_translations_checkbox.SetValue(translation_logging)
+        sizer.Add(self.log_translations_checkbox,
+                  border=UI_BORDER,
+                  flag=wx.ALL | wx.EXPAND)
+        self.SetSizer(sizer)
+
+    def save(self):
+        """Write all parameters to the configuration parser."""
+        self.config.set(conf.LOGGING_CONFIG_SECTION,
+                        conf.LOG_FILE_OPTION,
+                        self.file_browser.GetValue())
+        self.config.set(conf.LOGGING_CONFIG_SECTION,
+                        conf.ENABLE_STROKE_LOGGING_OPTION,
+                        self.log_strokes_checkbox.GetValue())
+        self.config.set(conf.LOGGING_CONFIG_SECTION,
+                        conf.ENABLE_TRANSLATION_LOGGING_OPTION,
+                        self.log_translations_checkbox.GetValue())

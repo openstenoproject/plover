@@ -9,6 +9,7 @@ import logging
 import logging.handlers
 import ConfigParser
 import shutil
+import serial
 
 # Configuration paths.
 ASSETS_DIR =  os.path.join(os.path.dirname(os.path.realpath(__file__)),
@@ -16,7 +17,7 @@ ASSETS_DIR =  os.path.join(os.path.dirname(os.path.realpath(__file__)),
 CONFIG_DIR = os.path.expanduser('~/.config/plover')
 CONFIG_FILE = os.path.join(CONFIG_DIR, 'plover.cfg')
 
-# Configuration sections and options.
+# General configuration sections and options.
 MACHINE_CONFIG_SECTION = 'Machine Configuration'
 MACHINE_TYPE_OPTION = 'machine_type'
 DICTIONARY_CONFIG_SECTION = 'Dictionary Configuration'
@@ -40,10 +41,21 @@ JSON_EXTENSION = '.json'
 ALTERNATIVE_ENCODING = 'latin-1'
 
 # Logging constants.
+LOG_EXTENSION = '.log'
 LOGGER_NAME = 'plover_logger'
 LOG_FORMAT = '%(asctime)s %(message)s'
 LOG_MAX_BYTES = 10000000
 LOG_COUNT = 9
+
+# Serial port options.
+SERIAL_PORT_OPTION = 'port'
+SERIAL_BAUDRATE_OPTION = 'baudrate'
+SERIAL_BYTESIZE_OPTION = 'bytesize'
+SERIAL_PARITY_OPTION = 'parity'
+SERIAL_STOPBITS_OPTION = 'stopbits'
+SERIAL_TIMEOUT_OPTION = 'timeout'
+SERIAL_XONXOFF_OPTION = 'xonxoff'
+SERIAL_RTSCTS_OPTION = 'rtscts'
 
 def import_named_module(name, module_dictionary):
     """Returns the Python module corresponding to the given name.
@@ -130,3 +142,69 @@ def get_config():
     config = ConfigParser.RawConfigParser()
     config.read(config_file)
     return config
+
+def get_serial_port(section, config):
+    """Returns a serial.Serial object built from configuration options.
+
+    Arguments:
+
+    section -- A string representing the section name containing the
+    parameters of interest.
+
+    config -- The ConfigParser object containing the parameters of
+    interest.
+
+    If config does not contain section, then a default serial.Serial
+    object is returned.
+
+    """
+    if config.has_section(section):
+        port = config.get(section, SERIAL_PORT_OPTION)
+        baudrate = config.getint(section, SERIAL_BAUDRATE_OPTION)
+        bytesize = config.getint(section, SERIAL_BYTESIZE_OPTION)
+        parity = config.get(section, SERIAL_PARITY_OPTION)
+        stopbits = config.getint(section, SERIAL_STOPBITS_OPTION)
+        timeout = config.get(section, SERIAL_TIMEOUT_OPTION)
+        if timeout == 'None':
+            timeout = None
+        else:
+            timeout = float(timeout)
+        xonxoff = config.getboolean(section, SERIAL_XONXOFF_OPTION)
+        rtscts = config.getboolean(section, SERIAL_RTSCTS_OPTION)
+        return serial.Serial(port=port,
+                             baudrate=baudrate,
+                             bytesize=bytesize,
+                             parity=parity,
+                             stopbits=stopbits,
+                             timeout=timeout,
+                             xonxoff=xonxoff,
+                             rtscts=rtscts)
+    return serial.Serial()
+
+def set_serial_port(serial_port, section, config):
+    """Writes a serial.Serial object to a section of a ConfigParser object.
+
+    Arguments:
+
+    serial_port -- The serial.Serial object to write to the
+    configuration. If None, no action is taken.
+
+    section -- A string representing the section name in which to
+    write the serial port parameters.
+
+    config -- The ConfigParser object containing to which to write.
+
+    """
+    if serial_port is None:
+        return
+    if not config.has_section(section):
+        config.add_section(section)
+    config.set(section, SERIAL_PORT_OPTION, serial_port.port)
+    config.set(section, SERIAL_BAUDRATE_OPTION, serial_port.baudrate)
+    config.set(section, SERIAL_BYTESIZE_OPTION, serial_port.bytesize)
+    config.set(section, SERIAL_PARITY_OPTION, serial_port.parity)
+    config.set(section, SERIAL_STOPBITS_OPTION, serial_port.stopbits)
+    config.set(section, SERIAL_TIMEOUT_OPTION, serial_port.timeout)
+    config.set(section, SERIAL_XONXOFF_OPTION, serial_port.xonxoff)
+    config.set(section, SERIAL_RTSCTS_OPTION, serial_port.rtscts)
+
