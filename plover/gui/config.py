@@ -153,9 +153,10 @@ class MachineConfig(wx.Panel):
         # Brings up a more detailed configuration UI, if available.
         if self.config_class:
             machine_type = self.choice.GetStringSelection()
-            if self.config_class is Serial:                
-                self.config_instance = conf.get_serial_port(machine_type,
-                                                            self.config)
+            if self.config_class is Serial:
+                if self.config_instance is None:
+                    self.config_instance = conf.get_serial_port(machine_type,
+                                                                self.config)
                 scd = serial_config.SerialConfigDialog(self.config_instance,
                                                        self)
                 scd.ShowModal()

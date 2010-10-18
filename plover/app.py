@@ -29,6 +29,7 @@ import plover.formatting as formatting
 import plover.keyboardcontrol as keyboardcontrol
 import plover.steno as steno
 import plover.machine as machine
+import plover.machine.base
 import plover.dictionary as dictionary
 
 class StenoEngine:
@@ -83,15 +84,19 @@ class StenoEngine:
         # Set the machine module and any initialization variables.
         machine_type = self.config.get(conf.MACHINE_CONFIG_SECTION,
                                        conf.MACHINE_TYPE_OPTION)
-        if self.config.has_section(machine_type):
-            self.machine_init_vars = dict(self.config.items(machine_type))
-        else:
-            self.machine_init_vars = {}
         self.machine_module = conf.import_named_module(machine_type,
                                                        machine.supported)
         if self.machine_module is None:
             raise ValueError('Invalid configuration value for %s: %s' %
                              (conf.MACHINE_TYPE_OPTION, machine_type))
+        if issubclass(self.machine_module.Stenotype,
+                      plover.machine.base.SerialStenotypeBase):
+            self.machine_init = {
+                'serial_port' : conf.get_serial_port(machine_type, self.config)
+                }
+        else:
+            self.machine_init = {}
+
 
         # Set the steno dictionary format module.
         dictionary_format = self.config.get(conf.DICTIONARY_CONFIG_SECTION,
@@ -147,7 +152,7 @@ class StenoEngine:
             self.machine.stop_capture()
             
         # Create the pipeline from machine to output.
-        self.machine = self.machine_module.Stenotype(**self.machine_init_vars)
+        self.machine = self.machine_module.Stenotype(**self.machine_init)
         self.output = keyboardcontrol.KeyboardEmulation()
         self.translator = steno.Translator(self.machine,
                                            self.dictionary,

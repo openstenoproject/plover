@@ -11,9 +11,9 @@ class StenotypeBase:
 
     # Some subclasses of StenotypeBase might require configuration
     # parameters to be passed to the constructor. This variable
-    # advertises what the class that contains such parameters.
+    # advertises the class that contains such parameters.
     CONFIG_CLASS = None
-
+    
     def __init__(self):
         self.subscribers = []
 
@@ -58,22 +58,13 @@ class SerialStenotypeBase(StenotypeBase, threading.Thread):
 
         Argument:
 
-        serial_port -- Serial port to which the machine is
-        connected. If None, a default serial port with
-        port='/dev/ttyUSB0', timeout=2 will be created.
+        serial_port -- An instance of serial.Serial.
 
         """
         threading.Thread.__init__(self)
         StenotypeBase.__init__(self)
         self.finished = threading.Event()
-        if serial_port is None:
-            # The timeout argument to Serial is in seconds. This is needed
-            # so that the thread can terminate properly by being allowed
-            # to periodically check the finished flag. This might cause
-            # strokes to be only partially read.
-            self.serial_port = serial.Serial(port='/dev/ttyUSB0', timeout=2)
-        else:
-            self.serial_port = serial_port
+        self.serial_port = serial_port
         
     def run(self):
         """This method should be overridden by a subclass."""

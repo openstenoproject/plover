@@ -271,10 +271,10 @@ class FloatValidator(wx.PyValidator):
 
         Argument:
 
-        window -- The window object to validate.
+        window -- The parent of the control being validated.
 
         """
-        value = window.GetValue()
+        value = self.GetWindow().GetValue()
         try:
             float(value)
             return True

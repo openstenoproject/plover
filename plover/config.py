@@ -56,6 +56,7 @@ SERIAL_STOPBITS_OPTION = 'stopbits'
 SERIAL_TIMEOUT_OPTION = 'timeout'
 SERIAL_XONXOFF_OPTION = 'xonxoff'
 SERIAL_RTSCTS_OPTION = 'rtscts'
+DEFAULT_SERIAL_ARGUMENTS = {'timeout' : 2.0}
 
 def import_named_module(name, module_dictionary):
     """Returns the Python module corresponding to the given name.
@@ -179,7 +180,7 @@ def get_serial_port(section, config):
                              timeout=timeout,
                              xonxoff=xonxoff,
                              rtscts=rtscts)
-    return serial.Serial()
+    return serial.Serial(**DEFAULT_SERIAL_ARGUMENTS)
 
 def set_serial_port(serial_port, section, config):
     """Writes a serial.Serial object to a section of a ConfigParser object.
