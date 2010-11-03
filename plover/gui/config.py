@@ -20,7 +20,6 @@ DICTIONARY_CONFIG_TAB_NAME = "Dictionary"
 LOGGING_CONFIG_TAB_NAME = "Logging"
 SAVE_CONFIG_BUTTON_NAME = "Save"
 MACHINE_LABEL = "Stenotype Machine:"
-FORMAT_LABEL = "Dictionary Format:"
 DICT_FILE_LABEL = "Dictionary File:"
 DICT_FILE_DIALOG_TITLE = "Select a Dictionary File"
 LOG_FILE_LABEL = "Log File:"
@@ -204,17 +203,6 @@ class DictionaryConfig(wx.Panel):
                                                      initialValue=dict_file,
                                                      startDirectory=dict_dir)
         sizer.Add(self.file_browser, border=UI_BORDER, flag=wx.ALL| wx.EXPAND)
-        box = wx.BoxSizer(wx.HORIZONTAL)
-        box.Add(wx.StaticText(self, label=FORMAT_LABEL),
-                border=COMPONENT_SPACE,
-                flag=wx.ALIGN_RIGHT | wx.ALIGN_CENTER_VERTICAL | wx.RIGHT)
-        formats = dictionary.supported.keys()
-        value = config.get(conf.DICTIONARY_CONFIG_SECTION,
-                           conf.DICTIONARY_FORMAT_OPTION)
-        self.choice = wx.Choice(self, choices=formats)
-        self.choice.SetStringSelection(value)
-        box.Add(self.choice, proportion=1)
-        sizer.Add(box, border=UI_BORDER, flag=wx.ALL | wx.EXPAND)
         self.SetSizer(sizer)
         return
 
@@ -223,9 +211,6 @@ class DictionaryConfig(wx.Panel):
         self.config.set(conf.DICTIONARY_CONFIG_SECTION,
                         conf.DICTIONARY_FILE_OPTION,
                         self.file_browser.GetValue())
-        self.config.set(conf.DICTIONARY_CONFIG_SECTION,
-                        conf.DICTIONARY_FORMAT_OPTION,
-                        self.choice.GetStringSelection())
 
         
 class LoggingConfig(wx.Panel):
