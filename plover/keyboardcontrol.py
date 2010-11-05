@@ -18,41 +18,21 @@ KeyboardCapture class to capture keyboard input. Call the send_string
 and send_backspaces functions of the KeyboardEmulation class to
 emulate keyboard input.
 
-TODO: This code does not conform to Plover code standards and needs to
-be cleaned up.
+For an explanation of keycodes, keysyms, and modifiers, see:
+http://tronche.com/gui/x/xlib/input/keyboard-encoding.html
 
 """
 
 import sys
-import re
 import threading
 
 from Xlib import X, XK, display
 from Xlib.ext import record
 from Xlib.protocol import rq, event
 
-MODIFIERS = ( XK.XK_Shift_L, 
-              XK.XK_Shift_R,
-              XK.XK_Caps_Lock,
-              XK.XK_Control_L,
-              XK.XK_Control_R,
-              XK.XK_Alt_L,
-              XK.XK_Alt_R,
-              XK.XK_Super_L,
-              XK.XK_Super_R,
-              XK.XK_Num_Lock )
-
-MASK_INDEXES = [ (X.ShiftMapIndex, X.ShiftMask),
-                 (X.ControlMapIndex, X.ControlMask),
-                 (X.LockMapIndex, X.LockMask),
-                 (X.Mod1MapIndex, X.Mod1Mask),
-                 (X.Mod2MapIndex, X.Mod2Mask),
-                 (X.Mod3MapIndex, X.Mod3Mask),
-                 (X.Mod4MapIndex, X.Mod4Mask),
-                 (X.Mod5MapIndex, X.Mod5Mask) ]
-
 RECORD_EXTENSION_NOT_FOUND = "Xlib's RECORD extension is required, \
 but could not be found."
+
 
 class KeyboardCapture(threading.Thread):
     """Listen to all keyboard events."""
@@ -60,19 +40,6 @@ class KeyboardCapture(threading.Thread):
     def __init__(self):
         threading.Thread.__init__(self)
         self.finished = threading.Event()
-        
-        # Give these some initial values
-        self.ison = {"shift":False, "caps":False}
-        
-        # Compile our regex statements.
-        self.isshift = re.compile('^Shift')
-        self.iscaps = re.compile('^Caps_Lock')
-        self.shiftablechar = re.compile("""^[a-z0-9]$|^minus$|^equal$|
-                                           ^bracketleft$|^bracketright$|
-                                           ^semicolon$|^backslash$|
-                                           ^apostrophe$|^comma$|^period$|
-                                           ^slash$|^grave$""",
-                                        re.VERBOSE)
         
         # Assign default function actions (do nothing).
         self.key_down = lambda x: True
@@ -133,156 +100,70 @@ class KeyboardCapture(threading.Thread):
         while len(data):
             event, data = rq.EventField(None).parse_binary_value(data, \
                                        self.record_display.display, None, None)
+            keycode = event.detail
+            keysym = self.local_display.keycode_to_keysym(keycode, 0)
+            key_event = XKeyEvent(keycode, keysym)
             if event.type == X.KeyPress:
-                hookevent = self.on_key_down(event)
-                self.key_down(hookevent)
+                self.key_down(key_event)
             elif event.type == X.KeyRelease:
-                hookevent = self.on_key_up(event)
-                self.key_up(hookevent)
-
-    def on_key_down(self, event):
-        matchto = self.lookup_keysym(self.local_display.keycode_to_keysym( \
-                                                              event.detail, 0))
-        if self.shiftablechar.match(self.lookup_keysym( \
-                       self.local_display.keycode_to_keysym(event.detail, 0))):
-            # This is a character that can be typed.
-            if self.ison["shift"] == False:
-                keysym = self.local_display.keycode_to_keysym(event.detail, 0)
-                return self.makekeyhookevent(keysym, event)
-            else:
-                keysym = self.local_display.keycode_to_keysym(event.detail, 1)
-                return self.makekeyhookevent(keysym, event)
-        else:
-            # Not a typable character.
-            keysym = self.local_display.keycode_to_keysym(event.detail, 0)
-            if self.isshift.match(matchto):
-                self.ison["shift"] = self.ison["shift"] + 1
-            elif self.iscaps.match(matchto):
-                if self.ison["caps"] == False:
-                    self.ison["shift"] = self.ison["shift"] + 1
-                    self.ison["caps"] = True
-                if self.ison["caps"] == True:
-                    self.ison["shift"] = self.ison["shift"] - 1
-                    self.ison["caps"] = False
-            return self.makekeyhookevent(keysym, event)
-    
-    def on_key_up(self, event):
-        if self.shiftablechar.match(self.lookup_keysym( \
-                       self.local_display.keycode_to_keysym(event.detail, 0))):
-            if self.ison["shift"] == False:
-                keysym = self.local_display.keycode_to_keysym(event.detail, 0)
-            else:
-                keysym = self.local_display.keycode_to_keysym(event.detail, 1)
-        else:
-            keysym = self.local_display.keycode_to_keysym(event.detail, 0)
-        matchto = self.lookup_keysym(keysym)
-        if self.isshift.match(matchto):
-            self.ison["shift"] = self.ison["shift"] - 1
-        return self.makekeyhookevent(keysym, event)
-
-    # Need the following because XK.keysym_to_string() only does
-    # printable chars rather than being the correct inverse of
-    # XK.string_to_keysym().
-    def lookup_keysym(self, keysym):
-        for name in dir(XK):
-            if name.startswith("XK_") and getattr(XK, name) == keysym:
-                return name.lstrip("XK_")
-        return "[%d]" % keysym
-
-    def asciivalue(self, keysym):
-        asciinum = XK.string_to_keysym(self.lookup_keysym(keysym))
-        if asciinum < 256:
-            return asciinum
-        else:
-            return 0
-    
-    def makekeyhookevent(self, keysym, event):
-        storewm = self.xwindowinfo()
-        if event.type == X.KeyPress:
-            MessageName = "key down"
-        elif event.type == X.KeyRelease:
-            MessageName = "key up"
-        return XKeyEvent(storewm["handle"],
-                         storewm["name"],
-                         storewm["class"],
-                         self.lookup_keysym(keysym),
-                         self.asciivalue(keysym),
-                         False,
-                         event.detail,
-                         MessageName)
-    
-    def xwindowinfo(self):
-        try:
-            windowvar = self.local_display.get_input_focus().focus
-            wmname = windowvar.get_wm_name()
-            wmclass = windowvar.get_wm_class()
-            wmhandle = str(windowvar)[20:30]
-        except:
-            # This is to keep things running smoothly. It almost never
-            # happens, but still...
-            return {"name":None, "class":None, "handle":None}
-        if (wmname == None) and (wmclass == None):
-            try:
-                windowvar = windowvar.query_tree().parent
-                wmname = windowvar.get_wm_name()
-                wmclass = windowvar.get_wm_class()
-                wmhandle = str(windowvar)[20:30]
-            except:
-                # This is to keep things running smoothly. It almost
-                # never happens, but still...
-                return {"name":None, "class":None, "handle":None}
-        if wmclass == None:
-            return {"name":wmname, "class":wmclass, "handle":wmhandle}
-        else:
-            return {"name":wmname, "class":wmclass[0], "handle":wmhandle}
+                self.key_up(key_event)
 
 
 class KeyboardEmulation :
     """Emulate printable key presses and backspaces."""
 
     def __init__(self) :
-
-        # Grab a reference to the display.
-        self.local_display = display.Display()
-
-        # Build modifier mask mapping
-        self.modMasks = {}
-        mapping = self.local_display.get_modifier_mapping()
-        for keySym in MODIFIERS :
-            keyCodeList = self.local_display.keysym_to_keycodes(keySym)
-            found = False
-            for keyCode, lvl in keyCodeList:                    
-                for index, mask in MASK_INDEXES:
-                    if keyCode in mapping[index]:
-                        self.modMasks[keySym] = mask
-                        found = True
-                        break
-                if found: break
+        self.display = display.Display()
+        self.modifier_mapping = self.display.get_modifier_mapping()
 
     def send_backspaces(self, number_of_backspaces):
         for x in xrange(number_of_backspaces) :
             self.send_keycode(22)
 
+    def keysym_to_keycode_and_modifiers(self, keysym):
+        """Return a keycode and modifier mask pair that result in the keysym.
+
+        There is a one-to-many mapping from keysyms to keycode and
+        modifiers pairs; this function returns one of the possibly
+        many valid mappings, or the tuple (None, None) if no mapping
+        exists.
+
+        Arguments:
+
+        keysym -- A key symbol.
+
+        """
+        keycodes = self.display.keysym_to_keycodes(keysym)
+        if len(keycodes) > 0:
+            keycode, offset = keycodes[0]
+            modifiers = 0
+            if offset == 1 or offset == 3:
+                # The keycode needs the Shift modifier.
+                modifiers |= X.ShiftMask
+            if offset == 2 or offset == 3:
+                # The keysym is in group Group 2 instead of Group 1.
+                for i, mod_keycodes in enumerate(self.modifier_mapping):
+                    if keycode in mod_keycodes:
+                        modifiers |= (1 << i)
+            return (keycode, modifiers)
+        return (None, None)
+
     def send_string(self, s) :
         for char in s:
-            keyCodeList = self.local_display.keysym_to_keycodes(ord(char))
-            if len(keyCodeList) > 0:
-                keyCode, offset = keyCodeList[0]
-                if offset == 0:
-                    modifiers = 0
-                elif offset == 1:
-                    modifiers = self.modMasks[XK.XK_Shift_L]
-                self.send_keycode(keyCode, modifiers)
+            keysym = ord(char)
+            keycode, modifiers = self.keysym_to_keycode_and_modifiers(keysym)
+            if keycode is not None:
+                self.send_keycode(keycode, modifiers)
 
-    def send_keycode(self, keyCode, modifiers=0):
-        self.send_key_event(keyCode, modifiers, event.KeyPress)
-        self.send_key_event(keyCode, modifiers, event.KeyRelease)
+    def send_keycode(self, keycode, modifiers=0):
+        self.send_key_event(keycode, modifiers, event.KeyPress)
+        self.send_key_event(keycode, modifiers, event.KeyRelease)
 
-    def send_key_event(self, keyCode, modifiers, eventClass) :
-        targetWindow = self.local_display.get_input_focus().focus
-        keyEvent = eventClass( detail=keyCode,
+    def send_key_event(self, keycode, modifiers, eventClass) :
+        targetWindow = self.display.get_input_focus().focus
+        keyEvent = eventClass( detail=keycode,
                                time=X.CurrentTime,
-                               root=self.local_display.screen().root,
+                               root=self.display.screen().root,
                                window=targetWindow,
                                child=X.NONE,
                                root_x=1,
@@ -298,41 +179,25 @@ class KeyboardEmulation :
 class XKeyEvent:
     """A class to hold all the information about a key event."""
     
-    def __init__(self, Window, WindowName, WindowProcName, Key, Ascii,
-                 KeyID, ScanCode, MessageName):
+    def __init__(self, keycode, keysym):
         """Create an event instance.
         
         Arguments:
         
-        Window -- The handle of the window.
+        keycode -- The keycode that identifies a physical key.
         
-        WindowName -- The name of the window.
-        
-        WindowProcName -- The backend process for the window.
-        
-        Key -- The key pressed, shifted to the correct caps value.
-        
-        Ascii -- An ascii representation of the key. It returns 0 if
-        the ascii value is not between 31 and 256.
-        
-        KeyID -- This is just False for now. Under windows, it is the
-        Virtual Key Code, but that's a windows-only thing.
-        
-        ScanCode -- Please don't use this. It differs for pretty much
-        every type of keyboard. X11 abstracts this information anyway.
-        
-        MessageName -- 'key down' or 'key up'.
-        
+        keysym -- The symbol obtained when the key corresponding to
+        keycode without any modifiers. The KeyboardEmulation class
+        does not track modifiers such as Shift and Control.
+
         """
-        self.Window = Window
-        self.WindowName = WindowName
-        self.WindowProcName = WindowProcName
-        self.Key = Key
-        self.Ascii = Ascii
-        self.KeyID = KeyID
-        self.ScanCode = ScanCode
-        self.MessageName = MessageName
-        self.char = chr(Ascii)
+        self.keycode = keycode
+        self.keysym = keysym
+        # Only want printable characters.
+        if keysym < 255 or keysym in (XK.XK_Return, XK.XK_Tab):
+            self.keystring = XK.keysym_to_string(keysym)
+        else:
+            self.keystring = None
     
     def __str__(self):
         return '\n'.join([('%s: %s' % (k, str(v))) \
@@ -343,9 +208,9 @@ if __name__ == '__main__':
     ke = KeyboardEmulation()
     
     def test(event):
-        print event
-        ke.send_backspaces(3)
-        ke.send_string('foo')
+        print event.keystring, event.keycode
+        #ke.send_backspaces(5)
+        #ke.send_string('Foo:~')
         
     kc.key_down = test
     kc.key_up = test
