@@ -101,26 +101,106 @@ class KeyboardCapture(threading.Thread):
             event, data = rq.EventField(None).parse_binary_value(data, \
                                        self.record_display.display, None, None)
             keycode = event.detail
-            keysym = self.local_display.keycode_to_keysym(keycode, 0)
-            key_event = XKeyEvent(keycode, keysym)
+            modifiers = event.state
+            keysym = self.local_display.keycode_to_keysym(keycode, modifiers)
+            key_event = XKeyEvent(keycode, modifiers, keysym)
             if event.type == X.KeyPress:
                 self.key_down(key_event)
             elif event.type == X.KeyRelease:
                 self.key_up(key_event)
 
 
-class KeyboardEmulation :
+class KeyboardEmulation:
     """Emulate printable key presses and backspaces."""
 
-    def __init__(self) :
+    def __init__(self):
         self.display = display.Display()
         self.modifier_mapping = self.display.get_modifier_mapping()
+        
 
     def send_backspaces(self, number_of_backspaces):
-        for x in xrange(number_of_backspaces) :
-            self.send_keycode(22)
+        for x in xrange(number_of_backspaces):
+            self._send_keycode(22)
 
-    def keysym_to_keycode_and_modifiers(self, keysym):
+    def send_string(self, s):
+        for char in s:
+            self._send_keysym(ord(char))
+
+    def send_commands(self, command_string):
+        global_modifiers = 0
+        key_down_stack = []
+        current_command = []
+        for c in command_string:
+            if c == ' ':
+                # Send press and release for command's key.
+                keystring = ''.join(current_command)
+                keysym = XK.string_to_keysym(keystring)
+                current_command = []
+                self._send_keysym(keysym, global_modifiers)
+            elif c == '(':
+                # Send press for command's key.
+                keystring = ''.join(current_command)
+                keysym = XK.string_to_keysym(keystring)
+                keycode, modifiers = self._keysym_to_keycode_and_modifiers(keysym)
+                current_command = []
+                for index, mod_keycodes in enumerate(self.modifier_mapping):
+                    if keycode in mod_keycodes:
+                        keycode = 0
+                        modifiers = (1 << index)
+                        global_modifiers |= modifiers
+                        break
+                else:
+                    modifiers |= global_modifiers
+                    self._send_key_event(keycode, modifiers , event.KeyPress)
+                key_down_stack.append((keycode, modifiers))
+            elif c == ')':
+                # Send press and release for command's key and release
+                # previously held key.
+                keystring = ''.join(current_command)
+                keysym = XK.string_to_keysym(keystring)
+                current_command = []
+                self._send_keysym(keysym, global_modifiers)
+                keycode, modifiers = key_down_stack.pop()
+                if keycode > 0:
+                    modifiers |= global_modifiers
+                    self._send_key_event(keycode, modifiers, event.KeyRelease)
+                else:
+                    global_modifiers &= ~modifiers
+            else:
+                current_command.append(c)
+        # Send final command key.
+        keystring = ''.join(current_command)
+        keysym = XK.string_to_keysym(keystring)
+        self._send_keysym(keysym)
+
+    def _send_keysym(self, keysym, global_modifiers=0):
+        print "sending sym:", keysym, global_modifiers
+        keycode, modifiers = self._keysym_to_keycode_and_modifiers(keysym)
+        if keycode is not None:
+            self._send_keycode(keycode, modifiers | global_modifiers)
+
+    def _send_keycode(self, keycode, modifiers=0):
+        print "sending code:", keycode, modifiers
+        self._send_key_event(keycode, modifiers, event.KeyPress)
+        self._send_key_event(keycode, modifiers, event.KeyRelease)
+
+    def _send_key_event(self, keycode, modifiers, eventClass):
+        targetWindow = self.display.get_input_focus().focus
+        keyEvent = eventClass( detail=keycode,
+                               time=X.CurrentTime,
+                               root=self.display.screen().root,
+                               window=targetWindow,
+                               child=X.NONE,
+                               root_x=1,
+                               root_y=1,
+                               event_x=1,
+                               event_y=1,
+                               state=modifiers,
+                               same_screen=1
+                               )
+        targetWindow.send_event(keyEvent)        
+
+    def _keysym_to_keycode_and_modifiers(self, keysym):
         """Return a keycode and modifier mask pair that result in the keysym.
 
         There is a one-to-many mapping from keysyms to keycode and
@@ -148,43 +228,21 @@ class KeyboardEmulation :
             return (keycode, modifiers)
         return (None, None)
 
-    def send_string(self, s) :
-        for char in s:
-            keysym = ord(char)
-            keycode, modifiers = self.keysym_to_keycode_and_modifiers(keysym)
-            if keycode is not None:
-                self.send_keycode(keycode, modifiers)
-
-    def send_keycode(self, keycode, modifiers=0):
-        self.send_key_event(keycode, modifiers, event.KeyPress)
-        self.send_key_event(keycode, modifiers, event.KeyRelease)
-
-    def send_key_event(self, keycode, modifiers, eventClass) :
-        targetWindow = self.display.get_input_focus().focus
-        keyEvent = eventClass( detail=keycode,
-                               time=X.CurrentTime,
-                               root=self.display.screen().root,
-                               window=targetWindow,
-                               child=X.NONE,
-                               root_x=1,
-                               root_y=1,
-                               event_x=1,
-                               event_y=1,
-                               state=modifiers,
-                               same_screen=1
-                               )
-        targetWindow.send_event(keyEvent)        
-
 
 class XKeyEvent:
     """A class to hold all the information about a key event."""
     
-    def __init__(self, keycode, keysym):
+    def __init__(self, keycode, modifiers, keysym):
         """Create an event instance.
         
         Arguments:
         
         keycode -- The keycode that identifies a physical key.
+
+        modifiers -- An 8-bit mask. A set bit means the corresponding
+        modifier is active. See Xlib.X.ShiftMask, Xlib.X.LockMask,
+        Xlib.X.ControlMask, and Xlib.X.Mod1Mask through
+        Xlib.X.Mod5Mask.
         
         keysym -- The symbol obtained when the key corresponding to
         keycode without any modifiers. The KeyboardEmulation class
@@ -192,6 +250,7 @@ class XKeyEvent:
 
         """
         self.keycode = keycode
+        self.modifiers = modifiers
         self.keysym = keysym
         # Only want printable characters.
         if keysym < 255 or keysym in (XK.XK_Return, XK.XK_Tab):
@@ -200,7 +259,7 @@ class XKeyEvent:
             self.keystring = None
     
     def __str__(self):
-        return '\n'.join([('%s: %s' % (k, str(v))) \
+        return ' '.join([('%s: %s' % (k, str(v))) \
                                       for k, v in self.__dict__.items()])
 
 if __name__ == '__main__':
@@ -208,16 +267,17 @@ if __name__ == '__main__':
     ke = KeyboardEmulation()
     
     def test(event):
-        print event.keystring, event.keycode
+        print event
+        #ke.send_commands('Alt_L(Tab)')
         #ke.send_backspaces(5)
         #ke.send_string('Foo:~')
         
-    kc.key_down = test
+    #kc.key_down = test
     kc.key_up = test
     kc.start()
     print 'Press CTRL-c to quit.'
-    try :
-        while True :
+    try:
+        while True:
             pass
-    except KeyboardInterrupt :
+    except KeyboardInterrupt:
         kc.cancel()
