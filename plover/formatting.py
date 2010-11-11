@@ -18,6 +18,7 @@ META_CAPITALIZE = '-|'
 META_PLURALIZE = '^s'
 META_GLUE_FLAG = '&'
 META_ATTACH_FLAG = '^'
+META_KEY_COMBINATION = '#'
 
 META_ESCAPE = '\\'
 RE_META_ESCAPE = '\\\\'
@@ -71,8 +72,9 @@ class Formatter:
         available via an add_callback interface.
 
         text_output -- Any object that has a send_backspaces method
-        that takes an integer as an argument and a send_string method
-        that takes a string as an argument.
+        that takes an integer as an argument, a send_string method
+        that takes a string as an argument, and a send_key_combination
+        method that takes a string as an argument.
 
         """
         self.translator = translator
@@ -138,7 +140,7 @@ class Formatter:
         Returns a printable string.
 
         """
-        out = []
+        text = []
         previous_atom = None
         for translation in translations:
             # Reduce the translation to atoms. An atom is in
@@ -150,7 +152,7 @@ class Formatter:
                 atoms = [translation.rtfcre]
             for atom in atoms:
                 atom = atom.strip()
-                if out:
+                if text:
                     space = SPACE
                 else:
                     space = NO_SPACE
@@ -160,22 +162,22 @@ class Formatter:
                     english = meta
                     space = NO_SPACE  # Correct for most meta commands.
                     if meta == META_ED_SUFFIX:
-                        if out:
-                            out[-1] = orthography.add_ed_suffix(out[-1])
+                        if text:
+                            text[-1] = orthography.add_ed_suffix(text[-1])
                             english = NO_SPACE
                     elif meta == META_ER_SUFFIX:
-                        if out:
-                            out[-1] = orthography.add_er_suffix(out[-1])
+                        if text:
+                            text[-1] = orthography.add_er_suffix(text[-1])
                             english = NO_SPACE
                     elif meta == META_ING_SUFFIX:
-                        if out:
-                            out[-1] = orthography.add_ing_suffix(out[-1])
+                        if text:
+                            text[-1] = orthography.add_ing_suffix(text[-1])
                             english = NO_SPACE
                     elif meta in META_COMMAS or meta in META_STOPS:
                         pass  # Space is already deleted.
                     elif meta == META_PLURALIZE:
-                        if out:
-                            out[-1] = orthography.pluralize_with_s(out[-1])
+                        if text:
+                            text[-1] = orthography.pluralize_with_s(text[-1])
                             english = NO_SPACE
                     elif meta.startswith(META_GLUE_FLAG):
                         english = meta[1:]
@@ -192,6 +194,10 @@ class Formatter:
                         english = meta[:-1]
                     elif meta == META_CAPITALIZE:
                         english = NO_SPACE
+                    elif meta.startswith(META_KEY_COMBINATION):
+                        english = NO_SPACE
+                        key_combination = meta[1:]
+                        # XXX : Do something with the key combination.
                 else:
                     english = self._unescape_atom(atom)
 
@@ -208,10 +214,10 @@ class Formatter:
                     elif previous_meta.endswith(META_ATTACH_FLAG):
                         space = NO_SPACE
 
-                out.append(space + english)
+                text.append(space + english)
                 previous_atom = atom
                     
-        return ''.join(out)
+        return ''.join(text)
 
     def _get_meta(self, atom):
         # Return the meta command, if any, without surrounding meta markups. 

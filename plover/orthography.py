@@ -55,7 +55,7 @@ def add_ing_suffix(word):
     word -- The infinitive form of a verb.
 
     """
-    if word[-1] in Y: # See _prep_for_simple_suffix special case.
+    if word and word[-1] in Y: # See _prep_for_simple_suffix special case.
         return word + 'ing'
     return _prep_for_simple_suffix(word) + 'ing'
 

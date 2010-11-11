@@ -27,67 +27,80 @@ import sys
 import threading
 
 from Xlib import X, XK, display
-from Xlib.ext import record
+from Xlib.ext import record, xtest
 from Xlib.protocol import rq, event
 
 RECORD_EXTENSION_NOT_FOUND = "Xlib's RECORD extension is required, \
 but could not be found."
 
+keyboard_capture_instances = []
 
 class KeyboardCapture(threading.Thread):
-    """Listen to all keyboard events."""
+    """Listen to keyboard press and release events."""
     
     def __init__(self):
+        """Prepare to listen for keyboard events."""
         threading.Thread.__init__(self)
-        self.finished = threading.Event()
+        self.context = None
+        self.key_events_to_ignore = []
         
-        # Assign default function actions (do nothing).
+        # Assign default callback functions.
         self.key_down = lambda x: True
         self.key_up = lambda x: True
         
-        # Hook to our display.
+        # Get references to the display.
         self.local_display = display.Display()
         self.record_display = display.Display()
         
         
     def run(self):
+        
         # Check if the extension is present
         if not self.record_display.has_extension("RECORD"):
             raise Exception(RECORD_EXTENSION_NOT_FOUND)
             sys.exit(1)
-        r = self.record_display.record_get_version(0, 0)
-        # See r.major_version and r.minor_version for RECORD extension version.
+        # Create a recording context for key events.
+        self.context = self.record_display.record_create_context(
+                                 0,
+                                 [record.AllClients],
+                                 [{'core_requests': (0, 0),
+                                   'core_replies': (0, 0),
+                                   'ext_requests': (0, 0, 0, 0),
+                                   'ext_replies': (0, 0, 0, 0),
+                                   'delivered_events': (0, 0),
+                                   'device_events': (X.KeyPress, X.KeyRelease),
+                                   'errors': (0, 0),
+                                   'client_started': False,
+                                   'client_died': False,
+                                   }])
 
-        # Create a recording context; we only want key events
-        self.ctx = self.record_display.record_create_context(
-                0,
-                [record.AllClients],
-                [{
-                        'core_requests': (0, 0),
-                        'core_replies': (0, 0),
-                        'ext_requests': (0, 0, 0, 0),
-                        'ext_replies': (0, 0, 0, 0),
-                        'delivered_events': (0, 0),
-                        'device_events': (X.KeyPress, X.KeyRelease),
-                        'errors': (0, 0),
-                        'client_started': False,
-                        'client_died': False,
-                }])
-
-        # Enable the context; this only returns after a call to
-        # record_disable_context, while calling the callback function
-        # in the meantime.
-        self.record_display.record_enable_context(self.ctx,
+        # This method returns only after record_disable_context is
+        # called. Until then, the callback function will be called
+        # whenever an event occurs.
+        self.record_display.record_enable_context(self.context,
                                                   self.process_events)
-        # Finally free the context.
-        self.record_display.record_free_context(self.ctx)
+        # Clean up.
+        self.record_display.record_free_context(self.context)
+
+    def start(self):
+        """Starts the thread after registering with a global list."""
+        keyboard_capture_instances.append(self)
+        threading.Thread.start(self)
 
     def cancel(self):
-        self.finished.set()
-        self.local_display.record_disable_context(self.ctx)
+        """Stop listening for keyboard events."""
+        if self.context is not None:
+            self.local_display.record_disable_context(self.context)
         self.local_display.flush()
+        if self in keyboard_capture_instances:
+            keyboard_capture_instances.remove(self)
     
     def process_events(self, reply):
+        """Handle keyboard events.
+
+        This usually means passing them off to other callback methods.
+
+        """
         if reply.category != record.FromServer:
             return
         if reply.client_swapped:
@@ -104,101 +117,202 @@ class KeyboardCapture(threading.Thread):
             modifiers = event.state
             keysym = self.local_display.keycode_to_keysym(keycode, modifiers)
             key_event = XKeyEvent(keycode, modifiers, keysym)
+            # Either ignore the event...
+            if self.key_events_to_ignore:
+                ignore_keycode, ignore_event_type = self.key_events_to_ignore[0]
+                if (keycode == ignore_keycode and
+                    event.type == ignore_event_type):
+                    self.key_events_to_ignore.pop(0)
+                    continue
+            # ...or pass it on to a callback method.
             if event.type == X.KeyPress:
                 self.key_down(key_event)
             elif event.type == X.KeyRelease:
                 self.key_up(key_event)
 
+    def ignore_key_events(self, key_events):
+        """A sequence of keycode, event type tuples to ignore.
 
-class KeyboardEmulation:
-    """Emulate printable key presses and backspaces."""
+        The sequence of keycode, event type pairs is added to a
+        queue. The first keycode event that matches the head of the
+        queue is ignored and the head of the queue is removed. This
+        method can be used in combination with
+        KeyboardEmulation.send_key_combination to prevent loops.
 
-    def __init__(self):
-        self.display = display.Display()
-        self.modifier_mapping = self.display.get_modifier_mapping()
+        Argument:
+
+        key_events -- The sequence of keycode, event type tuples to
+        ignore. Each element of the sequence is a two-tuple, the first
+        element of which is a keycode (integer in [8-255], inclusive)
+        and the second element of which is either Xlib.X.KeyPress or
+        Xlib.X.KeyRelease.
+        
+        """
+        self.key_events_to_ignore += key_events
         
 
+class KeyboardEmulation:
+    """Emulate keyboard events."""
+
+    def __init__(self):
+        """Prepare to emulate keyboard events."""
+        self.display = display.Display()
+        self.modifier_mapping = self.display.get_modifier_mapping()
+        # Determine the backspace keycode.
+        backspace_keysym = XK.string_to_keysym('BackSpace')
+        self.backspace_keycode, mods  = self._keysym_to_keycode_and_modifiers( \
+            backspace_keysym)
+
     def send_backspaces(self, number_of_backspaces):
+        """Emulate the given number of backspaces.
+
+        The emulated backspaces are not detected by KeyboardCapture.
+
+        Argument:
+
+        number_of_backspace -- The number of backspaces to emulate.
+
+        """
         for x in xrange(number_of_backspaces):
-            self._send_keycode(22)
+            self._send_keycode(self.backspace_keycode)
 
     def send_string(self, s):
-        for char in s:
-            self._send_keysym(ord(char))
+        """Emulate the given string.
 
-    def send_commands(self, command_string):
-        global_modifiers = 0
+        The emulated string is not detected by KeyboardCapture.
+
+        Argument:
+
+        s -- The string to emulate.
+        
+        """
+        for char in s:
+            keysym = ord(char)
+            keycode, modifiers = self._keysym_to_keycode_and_modifiers(keysym)
+            if keycode is not None:
+                self._send_keycode(keycode, modifiers)
+
+    def send_key_combination(self, combo_string):
+        """Emulate a sequence of key combinations.
+
+        KeyboardCapture instance would normally detect the emulated
+        key events. In order to prevent this, all KeyboardCapture
+        instances are told to ignore the emulated key events.
+
+        Argument:
+
+        combo_string -- A string representing a sequence of key
+        combinations. Keys are represented by their names in the
+        Xlib.XK module, without the 'XK_' prefix. For example, the
+        left Alt key is represented by 'Alt_L'. Keys are either
+        separated by a space or a left or right parenthesis.
+        Parentheses must be properly formed in pairs and may be
+        nested. A key immediately followed by a parenthetical
+        indicates that the key is pressed down while all keys enclosed
+        in the parenthetical or pressed and released in turn. For
+        example, Alt_L(Tab) means to hold the left Alt key down, press
+        and release the Tab key, and then release the left Alt key.
+
+        """
+        # Convert the argument into a sequence of keycode, event type pairs
+        # that, if executed in order, would emulate the key
+        # combination represented by the argument.
+        keycode_events = []
         key_down_stack = []
         current_command = []
-        for c in command_string:
-            if c == ' ':
-                # Send press and release for command's key.
+        for c in combo_string:            
+            if c in (' ', '(', ')'):
                 keystring = ''.join(current_command)
                 keysym = XK.string_to_keysym(keystring)
+                keycode, mods = self._keysym_to_keycode_and_modifiers(keysym)
                 current_command = []
-                self._send_keysym(keysym, global_modifiers)
-            elif c == '(':
-                # Send press for command's key.
-                keystring = ''.join(current_command)
-                keysym = XK.string_to_keysym(keystring)
-                keycode, modifiers = self._keysym_to_keycode_and_modifiers(keysym)
-                current_command = []
-                for index, mod_keycodes in enumerate(self.modifier_mapping):
-                    if keycode in mod_keycodes:
-                        keycode = 0
-                        modifiers = (1 << index)
-                        global_modifiers |= modifiers
-                        break
-                else:
-                    modifiers |= global_modifiers
-                    self._send_key_event(keycode, modifiers , event.KeyPress)
-                key_down_stack.append((keycode, modifiers))
-            elif c == ')':
-                # Send press and release for command's key and release
-                # previously held key.
-                keystring = ''.join(current_command)
-                keysym = XK.string_to_keysym(keystring)
-                current_command = []
-                self._send_keysym(keysym, global_modifiers)
-                keycode, modifiers = key_down_stack.pop()
-                if keycode > 0:
-                    modifiers |= global_modifiers
-                    self._send_key_event(keycode, modifiers, event.KeyRelease)
-                else:
-                    global_modifiers &= ~modifiers
+                if keycode is None:
+                    continue
+                if c == ' ':
+                    # Record press and release for command's key.
+                    keycode_events.append((keycode, X.KeyPress))
+                    keycode_events.append((keycode, X.KeyRelease))
+                elif c == '(':
+                    # Record press for command's key.
+                    key_down_stack.append(keycode)
+                    keycode_events.append((keycode, X.KeyPress))
+                elif c == ')':
+                    # Record press and release for command's key and
+                    # release previously held key.
+                    keycode_events.append((keycode, X.KeyPress))
+                    keycode_events.append((keycode, X.KeyRelease))
+                    if len(key_down_stack):
+                        keycode = key_down_stack.pop()
+                        keycode_events.append((keycode, X.KeyRelease))
             else:
-                current_command.append(c)
-        # Send final command key.
+                current_command.append(c)                
+        # Record final command key.
         keystring = ''.join(current_command)
         keysym = XK.string_to_keysym(keystring)
-        self._send_keysym(keysym)
-
-    def _send_keysym(self, keysym, global_modifiers=0):
-        print "sending sym:", keysym, global_modifiers
-        keycode, modifiers = self._keysym_to_keycode_and_modifiers(keysym)
+        keycode, mods = self._keysym_to_keycode_and_modifiers(keysym)
         if keycode is not None:
-            self._send_keycode(keycode, modifiers | global_modifiers)
+            keycode_events.append((keycode, X.KeyPress))
+            keycode_events.append((keycode, X.KeyRelease))
+        # Release all keys.
+        for keycode in key_down_stack:
+            keycode_events.append((keycode, X.KeyRelease))
+
+        # Tell all KeyboardCapture instances to ignore the key
+        # events that are about to be sent.
+        for capture in keyboard_capture_instances:
+            capture.ignore_key_events(keycode_events)
+
+        # Emulate the key combination by sending key events.
+        for keycode, event_type in keycode_events:
+            xtest.fake_input(self.display, event_type, keycode)
+        self.display.sync()
 
     def _send_keycode(self, keycode, modifiers=0):
-        print "sending code:", keycode, modifiers
+        """Emulate a key press and release.
+
+        Arguments:
+
+        keycode -- An integer in the inclusive range [8-255].
+
+        modifiers -- An 8-bit bit mask indicating if the key pressed
+        is modified by other keys, such as Shift, Capslock, Control,
+        and Alt.
+
+        """
         self._send_key_event(keycode, modifiers, event.KeyPress)
         self._send_key_event(keycode, modifiers, event.KeyRelease)
 
-    def _send_key_event(self, keycode, modifiers, eventClass):
-        targetWindow = self.display.get_input_focus().focus
-        keyEvent = eventClass( detail=keycode,
-                               time=X.CurrentTime,
-                               root=self.display.screen().root,
-                               window=targetWindow,
-                               child=X.NONE,
-                               root_x=1,
-                               root_y=1,
-                               event_x=1,
-                               event_y=1,
-                               state=modifiers,
-                               same_screen=1
-                               )
-        targetWindow.send_event(keyEvent)        
+    def _send_key_event(self, keycode, modifiers, event_class):
+        """Simulate a key press or release.
+
+        These events are not detected by KeyboardCapture.
+
+        Arguments:
+
+        keycode -- An integer in the inclusive range [8-255].
+
+        modifiers -- An 8-bit bit mask indicating if the key pressed
+        is modified by other keys, such as Shift, Capslock, Control,
+        and Alt.
+
+        event_class -- One of Xlib.protocol.event.KeyPress or
+        Xlib.protocol.event.KeyRelease.
+
+        """
+        target_window = self.display.get_input_focus().focus
+        key_event = event_class( detail=keycode,
+                                 time=X.CurrentTime,
+                                 root=self.display.screen().root,
+                                 window=target_window,
+                                 child=X.NONE,
+                                 root_x=1,
+                                 root_y=1,
+                                 event_x=1,
+                                 event_y=1,
+                                 state=modifiers,
+                                 same_screen=1
+                                 )
+        target_window.send_event(key_event)        
 
     def _keysym_to_keycode_and_modifiers(self, keysym):
         """Return a keycode and modifier mask pair that result in the keysym.
@@ -265,10 +379,14 @@ class XKeyEvent:
 if __name__ == '__main__':
     kc = KeyboardCapture()
     ke = KeyboardEmulation()
-    
+
+    import time
     def test(event):
+        if not event.keycode:
+            return
         print event
-        #ke.send_commands('Alt_L(Tab)')
+        time.sleep(0.1)
+        keycode_events = ke.send_key_combination('Alt_L(Tab)')
         #ke.send_backspaces(5)
         #ke.send_string('Foo:~')
         
