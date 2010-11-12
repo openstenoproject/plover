@@ -99,7 +99,9 @@ class Formatter:
             tBuffer = [overflow] + self.translator.translations
         else:
             tBuffer = self.translator.translations
-        newKeystrokes = self._translations_to_string(tBuffer)
+        new_keystrokes, key_combos = self._translations_to_string(tBuffer)
+        old_length = len(self.keystrokes)
+        new_length = len(new_keystrokes)
         
         # XXX: There is some code duplication here with
         # TranslationBuffer.consume_stroke. Might be worth
@@ -108,27 +110,36 @@ class Formatter:
         # Compare old keystrokes to new keystrokes and reconcile them
         # by emitting zero or more backspaces and zero or more
         # keystrokes.
-        for i in range(min(len(self.keystrokes), len(newKeystrokes))):
-            if self.keystrokes[i] != newKeystrokes[i]:
-                num_backspaces += len(self.keystrokes) - i
-                non_backspaces = newKeystrokes[i:]
+        for i in range(min(old_length, new_length)):
+            if self.keystrokes[i] != new_keystrokes[i]:
+                num_backspaces += old_length - i
+                non_backspaces = new_keystrokes[i:]
                 break
         else:
             # The old keystrokes and new keystrokes don't differ except
             # for one is the same as the other with additional keystrokes
             # appended.  As such, keystrokes must be removed or added,
             # depending on which string is longer.
-            if len(self.keystrokes) > len(newKeystrokes):
-                num_backspaces += len(self.keystrokes) - len(newKeystrokes)
+            if old_length > new_length:
+                num_backspaces += old_length - new_length
             else:
-                non_backspaces = newKeystrokes[len(self.keystrokes):]
+                non_backspaces = new_keystrokes[old_length:]
 
         # Now that the old and new keystrokes have been reconciled,
         # keep a record of the current state and output the changes.
-        self.keystrokes = self._translations_to_string( \
+        self.keystrokes, ignore = self._translations_to_string( \
                                                   self.translator.translations)
         self.text_output.send_backspaces(num_backspaces)
-        self.text_output.send_string(non_backspaces)
+        skip_count = new_length - len(non_backspaces)
+        while key_combos and key_combos[0][0] < skip_count:
+            key_combos.pop(0)
+        prev_i = 0
+        for i, combo in key_combos:
+            i -= skip_count
+            self.text_output.send_string(non_backspaces[prev_i:i])
+            self.text_output.send_key_combination(combo)
+            prev_i = i
+        self.text_output.send_string(non_backspaces[prev_i:])
 
     def _translations_to_string(self, translations):
         """ Converts a list of Translation objects into printable text.
@@ -137,10 +148,15 @@ class Formatter:
 
         translations -- A list of Translation objects.
 
-        Returns a printable string.
+        Returns a two-tuple, the first element of which is a printable
+        string and the second element of which is a list of index, key
+        combination pairs. Each key combination should be invoked
+        after index characters of string have been emulated.
 
         """
+        text_length = 0
         text = []
+        key_combinations = []
         previous_atom = None
         for translation in translations:
             # Reduce the translation to atoms. An atom is in
@@ -196,8 +212,8 @@ class Formatter:
                         english = NO_SPACE
                     elif meta.startswith(META_KEY_COMBINATION):
                         english = NO_SPACE
-                        key_combination = meta[1:]
-                        # XXX : Do something with the key combination.
+                        combo = meta[1:]
+                        key_combinations.append((text_length, combo))
                 else:
                     english = self._unescape_atom(atom)
 
@@ -214,10 +230,12 @@ class Formatter:
                     elif previous_meta.endswith(META_ATTACH_FLAG):
                         space = NO_SPACE
 
-                text.append(space + english)
+                new_text = space + english
+                text_length += len(new_text)
+                text.append(new_text)
                 previous_atom = atom
                     
-        return ''.join(text)
+        return (''.join(text), key_combinations)
 
     def _get_meta(self, atom):
         # Return the meta command, if any, without surrounding meta markups. 
