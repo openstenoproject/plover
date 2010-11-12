@@ -229,6 +229,8 @@ class Formatter:
                         english = english.capitalize()
                     elif previous_meta.endswith(META_ATTACH_FLAG):
                         space = NO_SPACE
+                    elif previous_meta.startswith(META_KEY_COMBINATION):
+                        space = NO_SPACE
 
                 new_text = space + english
                 text_length += len(new_text)
