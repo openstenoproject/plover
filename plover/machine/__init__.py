@@ -7,8 +7,7 @@ Each stenotype machine description must define a Stenotype class that
 has start_capture, stop_capture, and add_callback methods.
 
 """
-__all__ = ['geminipr', 'geminitx', 'sidewinder']
+__all__ = ['geminipr', 'sidewinder']
 
 supported = {'Microsoft Sidewinder X4' : 'plover.machine.sidewinder',
-             'Gemini PR' : 'plover.machine.geminipr',
-             'Gemini TX' : 'plover.machine.geminitx',}
+             'Gemini PR' : 'plover.machine.geminipr',}
