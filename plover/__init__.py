@@ -3,7 +3,7 @@
 
 """Plover: Open Source Stenography Software"""
 
-__version__ = '2.1.0'
+__version__ = '2.1.r01'
 __copyright__ = '(C) 2010 Joshua Harlan Lifton'
 __url__ = 'http://stenoknight.com/plover'
 __download_url__ = 'https://launchpad.net/plover'
