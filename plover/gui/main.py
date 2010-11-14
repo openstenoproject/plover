@@ -144,7 +144,7 @@ class PloverTaskBarIcon(wx.TaskBarIcon):
     def OnTaskBarQuit(self, event):
         """Called when the Quit menu item is chosen."""
         self.steno_engine.stop()
-        self.Destroy()
+        wx.CallAfter(self.Destroy)
 
     def _update_icon(self):
         # Update the image used for the icon to reflect the state of

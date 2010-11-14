@@ -2,7 +2,7 @@
 
 import plover.gui.main
 
-# XXX : There seems to be a bug in lockfile, so leave it out for now.x
+# XXX : There seems to be a bug in lockfile, so leave it out for now.
 #import lockfile
 #LOCK_FILE = '/tmp/plover'
 #lock = lockfile.FileLock(LOCK_FILE)

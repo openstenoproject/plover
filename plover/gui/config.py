@@ -81,6 +81,7 @@ class ConfigurationDialog(wx.Dialog):
         sizer.Add(button_sizer, flag=wx.ALL | wx.ALIGN_RIGHT, border=UI_BORDER)
 
         self.Bind(wx.EVT_BUTTON, self._save, save_button)
+        self.Bind(wx.EVT_BUTTON, self._cancel, cancel_button)
         self.SetSizer(sizer)
         sizer.Fit(self)
 
@@ -96,7 +97,10 @@ class ConfigurationDialog(wx.Dialog):
                                           wx.OK | wx.ICON_INFORMATION)
         restart_dialog.ShowModal()
         restart_dialog.Destroy()
-        self.Close()
+        self.Destroy()
+
+    def _cancel(self, event):
+        self.Destroy()
 
 
 class MachineConfig(wx.Panel):
