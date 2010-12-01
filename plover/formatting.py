@@ -80,6 +80,7 @@ class Formatter:
         self.translator = translator
         self.text_output = text_output
         self.keystrokes = ''
+        self.key_combos = []
         self.translator.add_callback(self.consume_translation)
 
     def consume_translation(self, translation, overflow):
@@ -99,7 +100,7 @@ class Formatter:
             tBuffer = [overflow] + self.translator.translations
         else:
             tBuffer = self.translator.translations
-        new_keystrokes, key_combos = self._translations_to_string(tBuffer)
+        new_keystrokes, new_key_combos = self._translations_to_string(tBuffer)
         old_length = len(self.keystrokes)
         new_length = len(new_keystrokes)
         
@@ -125,21 +126,33 @@ class Formatter:
             else:
                 non_backspaces = new_keystrokes[old_length:]
 
-        # Now that the old and new keystrokes have been reconciled,
-        # keep a record of the current state and output the changes.
-        self.keystrokes, ignore = self._translations_to_string( \
-                                                  self.translator.translations)
-        self.text_output.send_backspaces(num_backspaces)
+        # Don't send key combinations again if they've already been
+        # sent.
         skip_count = new_length - len(non_backspaces)
-        while key_combos and key_combos[0][0] < skip_count:
-            key_combos.pop(0)
+        while new_key_combos and self.key_combos:
+            if new_key_combos[0] == self.key_combos[0]:
+                skip_count += 1
+                new_key_combos.pop(0)
+                self.key_combos.pop(0)
+            else:
+                break
+            
+        # Output any corrective backspaces and new characters or key
+        # combinations.
+        self.text_output.send_backspaces(num_backspaces)
         prev_i = 0
-        for i, combo in key_combos:
+        for i, combo in new_key_combos:
             i -= skip_count
+            skip_count += 1
             self.text_output.send_string(non_backspaces[prev_i:i])
             self.text_output.send_key_combination(combo)
             prev_i = i
         self.text_output.send_string(non_backspaces[prev_i:])
+
+        # Keep track of the current state in preparation for the next
+        # call to this method.
+        self.keystrokes, self.key_combos = self._translations_to_string( \
+                                                  self.translator.translations)
 
     def _translations_to_string(self, translations):
         """ Converts a list of Translation objects into printable text.
@@ -151,7 +164,9 @@ class Formatter:
         Returns a two-tuple, the first element of which is a printable
         string and the second element of which is a list of index, key
         combination pairs. Each key combination should be invoked
-        after index characters of string have been emulated.
+        after the sum of the number of emulated characters of the
+        printable string and the number of emulated key combinations
+        is equal to index.
 
         """
         text_length = 0
@@ -177,24 +192,25 @@ class Formatter:
                     meta = self._unescape_atom(meta)
                     english = meta
                     space = NO_SPACE  # Correct for most meta commands.
+                    old_text = ''
                     if meta == META_ED_SUFFIX:
                         if text:
-                            text[-1] = orthography.add_ed_suffix(text[-1])
-                            english = NO_SPACE
+                            old_text = text.pop()
+                            english = orthography.add_ed_suffix(old_text)
                     elif meta == META_ER_SUFFIX:
                         if text:
-                            text[-1] = orthography.add_er_suffix(text[-1])
-                            english = NO_SPACE
+                            old_text = text.pop()
+                            english = orthography.add_er_suffix(old_text)
                     elif meta == META_ING_SUFFIX:
                         if text:
-                            text[-1] = orthography.add_ing_suffix(text[-1])
-                            english = NO_SPACE
+                            old_text = text.pop()
+                            english = orthography.add_ing_suffix(old_text)
                     elif meta in META_COMMAS or meta in META_STOPS:
                         pass  # Space is already deleted.
                     elif meta == META_PLURALIZE:
                         if text:
-                            text[-1] = orthography.pluralize_with_s(text[-1])
-                            english = NO_SPACE
+                            old_text = text.pop()
+                            english = orthography.pluralize_with_s(old_text)
                     elif meta.startswith(META_GLUE_FLAG):
                         english = meta[1:]
                         previous_meta = self._get_meta(previous_atom)
@@ -214,6 +230,8 @@ class Formatter:
                         english = NO_SPACE
                         combo = meta[1:]
                         key_combinations.append((text_length, combo))
+                        text_length += 1
+                    text_length -= len(old_text)
                 else:
                     english = self._unescape_atom(atom)
 
@@ -236,7 +254,7 @@ class Formatter:
                 text_length += len(new_text)
                 text.append(new_text)
                 previous_atom = atom
-                    
+
         return (''.join(text), key_combinations)
 
     def _get_meta(self, atom):

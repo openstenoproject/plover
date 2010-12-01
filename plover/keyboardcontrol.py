@@ -191,6 +191,7 @@ class KeyboardEmulation:
             keycode, modifiers = self._keysym_to_keycode_and_modifiers(keysym)
             if keycode is not None:
                 self._send_keycode(keycode, modifiers)
+        self.display.sync()
 
     def send_key_combination(self, combo_string):
         """Emulate a sequence of key combinations.
