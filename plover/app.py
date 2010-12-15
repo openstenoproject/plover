@@ -157,7 +157,11 @@ class StenoEngine:
         self.translator = steno.Translator(self.machine,
                                            self.dictionary,
                                            self.dictionary_module)
-        self.formatter = formatting.Formatter(self.translator, self.output)
+        auto_return = self.config.getboolean(conf.DICTIONARY_CONFIG_SECTION,
+                                             conf.ENABLE_AUTO_RETURN_OPTION)
+        self.formatter = formatting.Formatter(self.translator,
+                                              self.output,
+                                              auto_return)
 
         # Add hooks for logging.
         if self.config.getboolean(conf.LOGGING_CONFIG_SECTION,

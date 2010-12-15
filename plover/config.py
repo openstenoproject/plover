@@ -27,6 +27,7 @@ LOGGING_CONFIG_SECTION = 'Logging Configuration'
 LOG_FILE_OPTION = 'log_file'
 ENABLE_STROKE_LOGGING_OPTION = 'enable_stroke_logging'
 ENABLE_TRANSLATION_LOGGING_OPTION = 'enable_translation_logging'
+ENABLE_AUTO_RETURN_OPTION = 'enable_auto_return'
 
 # Default values for configuration options.
 DEFAULT_MACHINE_TYPE = 'Microsoft Sidewinder X4'
@@ -35,6 +36,7 @@ DEFAULT_DICTIONARY_FORMAT = 'Eclipse'
 DEFAULT_LOG_FILE = 'plover.log'
 DEFAULT_ENABLE_STROKE_LOGGING = 'true'
 DEFAULT_ENABLE_TRANSLATION_LOGGING = 'true'
+DEFAULT_ENABLE_AUTO_RETURN = 'false'
 
 # Dictionary constants.
 JSON_EXTENSION = '.json'
@@ -106,43 +108,53 @@ def get_config():
     # exist. Add default settings in reverse order so they appear
     # in the correct order when written to the file.
     if not os.path.exists(config_file):
-        default_config = ConfigParser.RawConfigParser()
-        
-        # Set default logging parameters.
-        default_config.add_section(LOGGING_CONFIG_SECTION)
-        default_config.set(LOGGING_CONFIG_SECTION,
-                           ENABLE_TRANSLATION_LOGGING_OPTION,
-                           DEFAULT_ENABLE_TRANSLATION_LOGGING)
-        default_config.set(LOGGING_CONFIG_SECTION,
-                           ENABLE_STROKE_LOGGING_OPTION,
-                           DEFAULT_ENABLE_STROKE_LOGGING)
-        default_config.set(LOGGING_CONFIG_SECTION,
-                           LOG_FILE_OPTION,
-                           DEFAULT_LOG_FILE)
-
-        # Set default dictionary parameters.
-        default_config.add_section(DICTIONARY_CONFIG_SECTION)
-        default_config.set(DICTIONARY_CONFIG_SECTION,
-                           DICTIONARY_FORMAT_OPTION,
-                           DEFAULT_DICTIONARY_FORMAT)
-        default_config.set(DICTIONARY_CONFIG_SECTION,
-                           DICTIONARY_FILE_OPTION,
-                           DEFAULT_DICTIONARY_FILE)
-        
-        # Set default machine parameters.
-        default_config.add_section(MACHINE_CONFIG_SECTION)
-        default_config.set(MACHINE_CONFIG_SECTION,
-                           MACHINE_TYPE_OPTION,
-                           DEFAULT_MACHINE_TYPE)
-
-        # Write the file to disk.
         with open(config_file, 'w') as f:
-            default_config.write(f)
-
+            f.close()
+        
     # Read in the configuration file.
     config = ConfigParser.RawConfigParser()
     config.read(config_file)
+    verify_config(config)
     return config
+
+def verify_config(config):
+    """Checks that the configuration contains values for all parameters.
+
+    Arguments:
+
+    config -- A ConfigParser.RawConfigParser object.
+
+    Returns True if all parameters were found. Otherwise returns False
+    and adds default values for all parameters.
+
+    """
+    config_file = CONFIG_FILE
+    # Verify options exist.
+    for section, option, default  in (\
+      (LOGGING_CONFIG_SECTION, LOG_FILE_OPTION,
+                               DEFAULT_LOG_FILE),
+      (LOGGING_CONFIG_SECTION, ENABLE_TRANSLATION_LOGGING_OPTION,
+                               DEFAULT_ENABLE_TRANSLATION_LOGGING),
+      (LOGGING_CONFIG_SECTION, ENABLE_STROKE_LOGGING_OPTION,
+                               DEFAULT_ENABLE_STROKE_LOGGING),
+      (DICTIONARY_CONFIG_SECTION, DICTIONARY_FORMAT_OPTION,
+                                  DEFAULT_DICTIONARY_FORMAT),
+      (DICTIONARY_CONFIG_SECTION, DICTIONARY_FILE_OPTION,
+                                  DEFAULT_DICTIONARY_FILE),
+      (DICTIONARY_CONFIG_SECTION, ENABLE_AUTO_RETURN_OPTION,
+                                  DEFAULT_ENABLE_AUTO_RETURN),
+      (MACHINE_CONFIG_SECTION, MACHINE_TYPE_OPTION,
+                               DEFAULT_MACHINE_TYPE),
+      ):
+        if not config.has_section(section):
+            config.add_section(section)
+        if not config.has_option(section, option):
+            config.set(section, option, default)
+    
+    # Write the file to disk.
+    with open(config_file, 'w') as f:
+        config.write(f)
+
 
 def get_serial_port(section, config):
     """Returns a serial.Serial object built from configuration options.

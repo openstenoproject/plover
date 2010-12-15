@@ -6,6 +6,8 @@
 import re
 import orthography
 
+RETURN_COMBO = 'Return'
+
 SPACE = ' '
 STOP_SPACE = ' '
 NO_SPACE = ''
@@ -63,7 +65,7 @@ class Formatter:
 
     """
     
-    def __init__(self, translator, text_output):
+    def __init__(self, translator, text_output, auto_return):
         """Create a state machine for processing Translation objects.
 
         Arguments:
@@ -79,6 +81,7 @@ class Formatter:
         """
         self.translator = translator
         self.text_output = text_output
+        self.auto_return = auto_return
         self.keystrokes = ''
         self.key_combos = []
         self.translator.add_callback(self.consume_translation)
@@ -148,6 +151,11 @@ class Formatter:
             self.text_output.send_key_combination(combo)
             prev_i = i
         self.text_output.send_string(non_backspaces[prev_i:])
+
+        # Send a final Return command, if enabled. This is useful for
+        # interfacing to text-to-speech programs, for example.
+        if self.auto_return:
+            self.text_output.send_key_combination(RETURN_COMBO)
 
         # Keep track of the current state in preparation for the next
         # call to this method.
