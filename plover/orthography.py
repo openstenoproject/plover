@@ -81,5 +81,5 @@ def _prep_for_simple_suffix(word):
               third_to_last not in VOWELS):
             return word + last
         elif last in Y and second_to_last in CONSONANTS:
-            return word[:-1] + i # Special case doesn't work for 'ing' suffix.
+            return word[:-1] + 'i' # Special case doesn't work for 'ing' suffix.
     return word
