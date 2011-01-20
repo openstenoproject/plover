@@ -1,4 +1,4 @@
-# Copyright (c) 2010 Joshua Harlan Lifton.
+# Copyright (c) 2010-2011 Joshua Harlan Lifton.
 # See LICENSE.txt for details.
 
 """Configuration dialog graphical user interface."""
@@ -22,7 +22,6 @@ SAVE_CONFIG_BUTTON_NAME = "Save"
 MACHINE_LABEL = "Stenotype Machine:"
 DICT_FILE_LABEL = "Dictionary File:"
 DICT_FILE_DIALOG_TITLE = "Select a Dictionary File"
-ENABLE_AUTO_RETURN_LABEL = "Append RETURN to All Output"
 LOG_FILE_LABEL = "Log File:"
 LOG_STROKES_LABEL = "Log Strokes"
 LOG_TRANSLATIONS_LABEL = "Log Translations"
@@ -208,15 +207,6 @@ class DictionaryConfig(wx.Panel):
                                                      initialValue=dict_file,
                                                      startDirectory=dict_dir)
         sizer.Add(self.file_browser, border=UI_BORDER, flag=wx.ALL| wx.EXPAND)
-        self.auto_return_checkbox = wx.CheckBox(self,
-                                                label=ENABLE_AUTO_RETURN_LABEL)
-        auto_return = config.getboolean(conf.DICTIONARY_CONFIG_SECTION,
-                                        conf.ENABLE_AUTO_RETURN_OPTION)
-        self.auto_return_checkbox.SetValue(auto_return)
-        sizer.Add(self.auto_return_checkbox,
-                  border=UI_BORDER,
-                  flag=wx.ALL | wx.EXPAND)
-    
         self.SetSizer(sizer)
 
     def save(self):
@@ -224,10 +214,6 @@ class DictionaryConfig(wx.Panel):
         self.config.set(conf.DICTIONARY_CONFIG_SECTION,
                         conf.DICTIONARY_FILE_OPTION,
                         self.file_browser.GetValue())
-        self.config.set(conf.DICTIONARY_CONFIG_SECTION,
-                        conf.ENABLE_AUTO_RETURN_OPTION,
-                        self.auto_return_checkbox.GetValue())
-
 
         
 class LoggingConfig(wx.Panel):

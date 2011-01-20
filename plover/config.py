@@ -1,4 +1,4 @@
-# Copyright (c) 2010 Joshua Harlan Lifton.
+# Copyright (c) 2010-2011 Joshua Harlan Lifton.
 # See LICENSE.txt for details.
 
 """Configuration management."""
@@ -27,7 +27,6 @@ LOGGING_CONFIG_SECTION = 'Logging Configuration'
 LOG_FILE_OPTION = 'log_file'
 ENABLE_STROKE_LOGGING_OPTION = 'enable_stroke_logging'
 ENABLE_TRANSLATION_LOGGING_OPTION = 'enable_translation_logging'
-ENABLE_AUTO_RETURN_OPTION = 'enable_auto_return'
 
 # Default values for configuration options.
 DEFAULT_MACHINE_TYPE = 'Microsoft Sidewinder X4'
@@ -36,7 +35,6 @@ DEFAULT_DICTIONARY_FORMAT = 'Eclipse'
 DEFAULT_LOG_FILE = 'plover.log'
 DEFAULT_ENABLE_STROKE_LOGGING = 'true'
 DEFAULT_ENABLE_TRANSLATION_LOGGING = 'true'
-DEFAULT_ENABLE_AUTO_RETURN = 'false'
 
 # Dictionary constants.
 JSON_EXTENSION = '.json'
@@ -141,8 +139,6 @@ def verify_config(config):
                                   DEFAULT_DICTIONARY_FORMAT),
       (DICTIONARY_CONFIG_SECTION, DICTIONARY_FILE_OPTION,
                                   DEFAULT_DICTIONARY_FILE),
-      (DICTIONARY_CONFIG_SECTION, ENABLE_AUTO_RETURN_OPTION,
-                                  DEFAULT_ENABLE_AUTO_RETURN),
       (MACHINE_CONFIG_SECTION, MACHINE_TYPE_OPTION,
                                DEFAULT_MACHINE_TYPE),
       ):
