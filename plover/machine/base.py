@@ -1,10 +1,11 @@
-# Copyright (c) 2010 Joshua Harlan Lifton.
+# Copyright (c) 2010-2011 Joshua Harlan Lifton.
 # See LICENSE.txt for details.
 
 """Base classes for machine types. Do not use directly."""
 
 import serial
 import threading
+from plover.exception import SerialPortException
 
 class StenotypeBase:
     """The base class for all Stenotype classes."""
@@ -61,10 +62,12 @@ class SerialStenotypeBase(StenotypeBase, threading.Thread):
         serial_port -- An instance of serial.Serial.
 
         """
+        if serial_port is None:
+            raise SerialPortException()
+        self.serial_port = serial_port
         threading.Thread.__init__(self)
         StenotypeBase.__init__(self)
         self.finished = threading.Event()
-        self.serial_port = serial_port
         
     def run(self):
         """This method should be overridden by a subclass."""

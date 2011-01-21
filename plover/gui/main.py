@@ -1,4 +1,4 @@
-# Copyright (c) 2010 Joshua Harlan Lifton.
+# Copyright (c) 2010-2011 Joshua Harlan Lifton.
 # See LICENSE.txt for details.
 
 """The main graphical user interface.
@@ -21,6 +21,8 @@ from plover import __long_description__
 from plover import __url__
 from plover import __credits__
 from plover import __license__
+
+ALERT_DIALOG_TITLE = "Plover Alert"
 
 class PloverGUI(wx.App):
     """The main entry point for the Plover application."""
@@ -111,7 +113,7 @@ class PloverTaskBarIcon(wx.TaskBarIcon):
         if self.steno_engine.is_running :
             self.steno_engine.stop()
         else :
-            self.steno_engine.start()
+            self._safe_start()
         self._update_icon()
         
     def OnTaskBarAbout(self, event):
@@ -138,7 +140,7 @@ class PloverTaskBarIcon(wx.TaskBarIcon):
         
     def OnTaskBarResume(self, event):
         """Called when the Resume menu item is chosen."""
-        self.steno_engine.start()
+        self._safe_start()
         self._update_icon()
         
     def OnTaskBarQuit(self, event):
@@ -153,3 +155,14 @@ class PloverTaskBarIcon(wx.TaskBarIcon):
             self.SetIcon(self.on_icon, self.ON_MESSAGE)
         else:
             self.SetIcon(self.off_icon, self.OFF_MESSAGE)
+
+    def _safe_start(self):
+        try:
+            self.steno_engine.start()
+        except SerialPortException, spe:
+            alert_dialog = wx.MessageDialog(self,
+                                            unicode(spe),
+                                            ALERT_DIALOG_TITLE,
+                                            wx.OK | wx.ICON_INFORMATION)
+            alert_dialog.ShowModal()
+            alert_dialog.Destroy()

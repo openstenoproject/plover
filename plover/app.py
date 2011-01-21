@@ -1,4 +1,4 @@
-# Copyright (c) 2010 Joshua Harlan Lifton.
+# Copyright (c) 2010-2011 Joshua Harlan Lifton.
 # See LICENSE.txt for details.
 
 """Configuration, initialization, and control of the Plover steno pipeline.
@@ -92,7 +92,7 @@ class StenoEngine:
         if issubclass(self.machine_module.Stenotype,
                       plover.machine.base.SerialStenotypeBase):
             self.machine_init = {
-                'serial_port' : conf.get_serial_port(machine_type, self.config)
+                'serial_port': conf.get_serial_port(machine_type, self.config)
                 }
         else:
             self.machine_init = {}

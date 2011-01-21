@@ -168,27 +168,25 @@ def get_serial_port(section, config):
 
     """
     if config.has_section(section):
-        port = config.get(section, SERIAL_PORT_OPTION)
-        baudrate = config.getint(section, SERIAL_BAUDRATE_OPTION)
-        bytesize = config.getint(section, SERIAL_BYTESIZE_OPTION)
-        parity = config.get(section, SERIAL_PARITY_OPTION)
-        stopbits = config.getint(section, SERIAL_STOPBITS_OPTION)
+        serial_args = {'port': config.get(section, SERIAL_PORT_OPTION),
+                       'baudrate': config.getint(section, SERIAL_BAUDRATE_OPTION),
+                       'bytesize': config.getint(section, SERIAL_BYTESIZE_OPTION),
+                       'parity': config.get(section, SERIAL_PARITY_OPTION),
+                       'stopbits': config.getint(section, SERIAL_STOPBITS_OPTION),
+                       'xonxoff': config.getboolean(section, SERIAL_XONXOFF_OPTION),
+                       'rtscts': config.getboolean(section, SERIAL_RTSCTS_OPTION),
+                       }
         timeout = config.get(section, SERIAL_TIMEOUT_OPTION)
         if timeout == 'None':
-            timeout = None
+            serial_args['timeout'] = None
         else:
-            timeout = float(timeout)
-        xonxoff = config.getboolean(section, SERIAL_XONXOFF_OPTION)
-        rtscts = config.getboolean(section, SERIAL_RTSCTS_OPTION)
-        return serial.Serial(port=port,
-                             baudrate=baudrate,
-                             bytesize=bytesize,
-                             parity=parity,
-                             stopbits=stopbits,
-                             timeout=timeout,
-                             xonxoff=xonxoff,
-                             rtscts=rtscts)
-    return serial.Serial(**DEFAULT_SERIAL_ARGUMENTS)
+            serial_args['timeout'] = float(timeout)
+    else:
+        serial_args = DEFAULT_SERIAL_ARGUMENTS
+    try:
+        return serial.Serial(**serial_args)
+    except serial.SerialException:
+        return None
 
 def set_serial_port(serial_port, section, config):
     """Writes a serial.Serial object to a section of a ConfigParser object.
