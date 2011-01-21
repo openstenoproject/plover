@@ -14,6 +14,7 @@ import wx
 import plover.app as app
 import plover.config as conf
 import plover.gui.config
+import plover.exception as exception
 from plover import __name__ as __software_name__
 from plover import __version__
 from plover import __copyright__
@@ -129,8 +130,7 @@ class PloverTaskBarIcon(wx.TaskBarIcon):
 
     def OnTaskBarConfig(self, event):
         """Called when the Configure menu item is chosen."""
-        dialog = plover.gui.config.ConfigurationDialog(conf.CONFIG_FILE)
-        dialog.Show()
+        self._show_config_dialog()
 
     def OnTaskBarPause(self, event):
         """Called when the Pause menu item is chosen."""
@@ -147,6 +147,11 @@ class PloverTaskBarIcon(wx.TaskBarIcon):
         self.steno_engine.stop()
         wx.CallAfter(self.Destroy)
 
+    def _show_config_dialog(self):
+        dialog = plover.gui.config.ConfigurationDialog(conf.CONFIG_FILE)
+        dialog.Show()
+        return dialog
+
     def _update_icon(self):
         # Update the image used for the icon to reflect the state of
         # the steno engine.
@@ -158,8 +163,8 @@ class PloverTaskBarIcon(wx.TaskBarIcon):
     def _safe_start(self):
         try:
             self.steno_engine.start()
-        except SerialPortException, spe:
-            alert_dialog = wx.MessageDialog(self,
+        except exception.SerialPortException, spe:
+            alert_dialog = wx.MessageDialog(self._show_config_dialog(),
                                             unicode(spe),
                                             self.ALERT_DIALOG_TITLE,
                                             wx.OK | wx.ICON_INFORMATION)

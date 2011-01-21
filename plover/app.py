@@ -93,7 +93,7 @@ class StenoEngine:
         if issubclass(self.machine_module.Stenotype,
                       plover.machine.base.SerialStenotypeBase):
             serial_params = conf.get_serial_params(machine_type, self.config)
-            self.machine_init['serial_params'] = serial_params.__dict__
+            self.machine_init.update(serial_params.__dict__)
 
         # Set the steno dictionary format module.
         dictionary_format = self.config.get(conf.DICTIONARY_CONFIG_SECTION,

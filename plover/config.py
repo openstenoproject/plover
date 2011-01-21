@@ -57,12 +57,6 @@ SERIAL_XONXOFF_OPTION = 'xonxoff'
 SERIAL_RTSCTS_OPTION = 'rtscts'
 DEFAULT_SERIAL_ARGUMENTS = {'timeout' : 2.0}
 
-# Helper class to convert a dictionary to an object.
-class _Struct:
-    def __init__(self, **kwargs):
-        self.__dict__.update(kwargs)
-
-
 def import_named_module(name, module_dictionary):
     """Returns the Python module corresponding to the given name.
 
@@ -188,7 +182,11 @@ def get_serial_params(section, config):
             serial_params['timeout'] = float(timeout)
     else:
         serial_params = DEFAULT_SERIAL_ARGUMENTS
-    return _Struct(serial_params)
+    # Helper class to convert a dictionary to an object.
+    class _Struct:
+        def __init__(self, **kwargs):
+            self.__dict__.update(kwargs)
+    return _Struct(**serial_params)
 
 def set_serial_params(serial_port, section, config):
     """Writes a serial.Serial object to a section of a ConfigParser object.
