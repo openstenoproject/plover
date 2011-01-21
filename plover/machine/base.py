@@ -54,17 +54,17 @@ class SerialStenotypeBase(StenotypeBase, threading.Thread):
 
     CONFIG_CLASS = serial.Serial
 
-    def __init__(self, serial_port=None):
+    def __init__(self, **kwargs):
         """Monitor the stenotype over a serial port.
 
-        Argument:
-
-        serial_port -- An instance of serial.Serial.
+        Keyword arguments are the same as the keyword arguments for a
+        serial.Serial object.
 
         """
-        if serial_port is None:
+        try:
+            self.serial_port = self.CONFIG_CLASS(**kwargs)
+        except serial.SerialException:
             raise SerialPortException()
-        self.serial_port = serial_port
         threading.Thread.__init__(self)
         StenotypeBase.__init__(self)
         self.finished = threading.Event()

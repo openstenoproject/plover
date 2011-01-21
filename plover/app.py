@@ -76,6 +76,7 @@ class StenoEngine:
         """Creates and configures a single steno pipeline."""
         self.is_running = False
         self.machine = None
+        self.machine_init = {}
         self.translator = None
         self.formatter = None
         self.output = None
@@ -91,12 +92,8 @@ class StenoEngine:
                              (conf.MACHINE_TYPE_OPTION, machine_type))
         if issubclass(self.machine_module.Stenotype,
                       plover.machine.base.SerialStenotypeBase):
-            self.machine_init = {
-                'serial_port': conf.get_serial_port(machine_type, self.config)
-                }
-        else:
-            self.machine_init = {}
-
+            serial_params = conf.get_serial_params(machine_type, self.config)
+            self.machine_init['serial_params'] = serial_params.__dict__
 
         # Set the steno dictionary format module.
         dictionary_format = self.config.get(conf.DICTIONARY_CONFIG_SECTION,

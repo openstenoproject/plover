@@ -60,11 +60,12 @@ class SerialConfigDialog(wx.Dialog):
 
         Arguments:
 
-        serial -- A serial.Serial object. This object determines the
-        initial values of the configuration interface. This is also
-        the object to which the configuration values are written when
-        pressing the OK button. The object is not changed if the
-        Cancel button is pressed.
+        serial -- A serial.Serial object or an object with the same
+        constructor parameters. This object determines the initial
+        values of the configuration interface. This is also the object
+        to which the configuration values are written when pressing
+        the OK button. The object is not changed if the Cancel button
+        is pressed.
 
         parent -- See wx.Dialog.
 
@@ -204,8 +205,8 @@ class SerialConfigDialog(wx.Dialog):
         
     def _update(self):
         # Updates the GUI to reflect the current data model.
-        if self.serial.portstr is not None:
-            self.port_combo_box.SetValue(str(self.serial.portstr))
+        if self.serial.port is not None:
+            self.port_combo_box.SetValue(str(self.serial.port))
         else:
             self.port_combo_box.SetSelection(0)
         self.baudrate_choice.SetStringSelection(str(self.serial.baudrate))

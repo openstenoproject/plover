@@ -22,8 +22,6 @@ from plover import __url__
 from plover import __credits__
 from plover import __license__
 
-ALERT_DIALOG_TITLE = "Plover Alert"
-
 class PloverGUI(wx.App):
     """The main entry point for the Plover application."""
 
@@ -54,6 +52,7 @@ class PloverTaskBarIcon(wx.TaskBarIcon):
     PAUSE_MENU_ITEM = "Pause"
     RESUME_MENU_ITEM = "Resume"
     QUIT_MENU_ITEM = "Quit"
+    ALERT_DIALOG_TITLE = "Plover"
 
     TBMENU_CONFIG = wx.NewId()
     TBMENU_ABOUT = wx.NewId()
@@ -162,7 +161,7 @@ class PloverTaskBarIcon(wx.TaskBarIcon):
         except SerialPortException, spe:
             alert_dialog = wx.MessageDialog(self,
                                             unicode(spe),
-                                            ALERT_DIALOG_TITLE,
+                                            self.ALERT_DIALOG_TITLE,
                                             wx.OK | wx.ICON_INFORMATION)
             alert_dialog.ShowModal()
             alert_dialog.Destroy()

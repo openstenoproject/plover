@@ -9,7 +9,6 @@ import logging
 import logging.handlers
 import ConfigParser
 import shutil
-import serial
 
 # Configuration paths.
 ASSETS_DIR =  os.path.join(os.path.dirname(os.path.realpath(__file__)),
@@ -57,6 +56,12 @@ SERIAL_TIMEOUT_OPTION = 'timeout'
 SERIAL_XONXOFF_OPTION = 'xonxoff'
 SERIAL_RTSCTS_OPTION = 'rtscts'
 DEFAULT_SERIAL_ARGUMENTS = {'timeout' : 2.0}
+
+# Helper class to convert a dictionary to an object.
+class _Struct:
+    def __init__(self, **kwargs):
+        self.__dict__.update(kwargs)
+
 
 def import_named_module(name, module_dictionary):
     """Returns the Python module corresponding to the given name.
@@ -152,8 +157,8 @@ def verify_config(config):
         config.write(f)
 
 
-def get_serial_port(section, config):
-    """Returns a serial.Serial object built from configuration options.
+def get_serial_params(section, config):
+    """Returns the serial.Serial parameters stored in the given configuration.
 
     Arguments:
 
@@ -163,38 +168,36 @@ def get_serial_port(section, config):
     config -- The ConfigParser object containing the parameters of
     interest.
 
-    If config does not contain section, then a default serial.Serial
-    object is returned.
+    If config does not contain section, then a the default
+    serial.Serial parameters are returned.
 
     """
     if config.has_section(section):
-        serial_args = {'port': config.get(section, SERIAL_PORT_OPTION),
-                       'baudrate': config.getint(section, SERIAL_BAUDRATE_OPTION),
-                       'bytesize': config.getint(section, SERIAL_BYTESIZE_OPTION),
-                       'parity': config.get(section, SERIAL_PARITY_OPTION),
-                       'stopbits': config.getint(section, SERIAL_STOPBITS_OPTION),
-                       'xonxoff': config.getboolean(section, SERIAL_XONXOFF_OPTION),
-                       'rtscts': config.getboolean(section, SERIAL_RTSCTS_OPTION),
-                       }
+        serial_params = {'port': config.get(section, SERIAL_PORT_OPTION),
+                         'baudrate': config.getint(section, SERIAL_BAUDRATE_OPTION),
+                         'bytesize': config.getint(section, SERIAL_BYTESIZE_OPTION),
+                         'parity': config.get(section, SERIAL_PARITY_OPTION),
+                         'stopbits': config.getint(section, SERIAL_STOPBITS_OPTION),
+                         'xonxoff': config.getboolean(section, SERIAL_XONXOFF_OPTION),
+                         'rtscts': config.getboolean(section, SERIAL_RTSCTS_OPTION),
+                         }
         timeout = config.get(section, SERIAL_TIMEOUT_OPTION)
         if timeout == 'None':
-            serial_args['timeout'] = None
+            serial_params['timeout'] = None
         else:
-            serial_args['timeout'] = float(timeout)
+            serial_params['timeout'] = float(timeout)
     else:
-        serial_args = DEFAULT_SERIAL_ARGUMENTS
-    try:
-        return serial.Serial(**serial_args)
-    except serial.SerialException:
-        return None
+        serial_params = DEFAULT_SERIAL_ARGUMENTS
+    return _Struct(serial_params)
 
-def set_serial_port(serial_port, section, config):
+def set_serial_params(serial_port, section, config):
     """Writes a serial.Serial object to a section of a ConfigParser object.
 
     Arguments:
 
-    serial_port -- The serial.Serial object to write to the
-    configuration. If None, no action is taken.
+    serial_port -- A serial.Serial object or an object with the same
+    constructor parameters. The parameters of this object will be
+    written to the configuration. If None, no action is taken.
 
     section -- A string representing the section name in which to
     write the serial port parameters.

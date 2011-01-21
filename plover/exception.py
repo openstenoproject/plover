@@ -8,10 +8,11 @@ loop and displayed to the user as an alert dialog.
 
 """
 
-SERIAL_PORT_EXCEPTION_MESSAGE =  ("The requested serial port either "
-                                  "doesn't exist or is "
-                                  "misconfigured. Please reconfigure"
-                                  "the serial port and restart Plover.")
+SERIAL_PORT_EXCEPTION_MESSAGE =  ("Either the stenotype machine is not "
+                                  "connected to the selected serial port "
+                                  "or the serial port is misconfigured. "
+                                  "Please check the connection and "
+                                  "configuration and then restart Plover.")
 
 class SerialPortException(Exception):
     """Raised when a serial port is misconfigured."""

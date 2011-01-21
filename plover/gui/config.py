@@ -148,9 +148,9 @@ class MachineConfig(wx.Panel):
                         conf.MACHINE_TYPE_OPTION,
                         machine_type)
         if isinstance(self.config_instance, Serial):
-            conf.set_serial_port(self.config_instance,
-                                 machine_type,
-                                 self.config)
+            conf.set_serial_params(self.config_instance,
+                                   machine_type,
+                                   self.config)
 
     def _advanced_config(self, event=None):
         # Brings up a more detailed configuration UI, if available.
@@ -158,8 +158,8 @@ class MachineConfig(wx.Panel):
             machine_type = self.choice.GetStringSelection()
             if self.config_class is Serial:
                 if self.config_instance is None:
-                    self.config_instance = conf.get_serial_port(machine_type,
-                                                                self.config)
+                    self.config_instance = conf.get_serial_params(machine_type,
+                                                                  self.config)
                 scd = serial_config.SerialConfigDialog(self.config_instance,
                                                        self)
                 scd.ShowModal()
