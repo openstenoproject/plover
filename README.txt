@@ -30,7 +30,7 @@ These installation notes are for Debian-like Linux systems. From the
 directory in which this README file is located, run the following
 commands:
 
-sudo aptitude install python-xlib python-serial python-wxgtk2.8
+sudo apt-get install python-xlib python-serial python-wxgtk2.8
 sudo python setup.py install
 
 

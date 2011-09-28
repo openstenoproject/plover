@@ -5,6 +5,13 @@
 
 import plover.machine.base
 
+# In the Gemini PR protocol, each packet consists of exactly six bytes
+# and the most significant bit (MSB) of every byte is used exclusively
+# to indicate whether that byte is the first byte of the packet
+# (MSB=1) or one of the remaining five bytes of the packet (MSB=0). As
+# such, there are really only seven bits of steno data in each packet
+# byte. This is why the STENO_KEY_CHART below is visually presented as
+# six rows of seven elements instead of six rows of eight elements.
 STENO_KEY_CHART = ("Fn","#","#","#","#","#","#",
                    "S-","S-","T-","K-","P-","W-","H-",
                    "R-","A-","O-","*","*","res","res",
@@ -45,13 +52,10 @@ class Stenotype(plover.machine.base.SerialStenotypeBase):
     
             # Convert the raw to a list of steno keys.
             steno_keys= []
-            for i in range(len(raw)):
-                b = raw[i]
-                for j in range(8):
-                    if i == 0 and j == 0:
-                        continue # Ignore the first bit 
+            for i, b in enumerate(raw):
+                for j in range(1,8):
                     if (b & (0x80 >> j)):
-                        steno_keys.append(STENO_KEY_CHART[i*7 + j-1]) 
+                        steno_keys.append(STENO_KEY_CHART[i*7 + j-1])
                 
             # Notify all subscribers.
             self._notify(steno_keys)
