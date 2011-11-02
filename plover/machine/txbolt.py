@@ -14,13 +14,15 @@ import plover.machine.base
 # 00XXXXXX 01XXXXXX 10XXXXXX 110XXXXX
 #   HWPKTS   UE*OAR   GLBPRF    #ZDST
 
-# The bytes arrive in order of the sets so it is clear when a new
-# stroke starts. Also, if a key is pressed in an earlier set in one
-# stroke and then a key is pressed only in a later set then there will
-# be a zero byte to indicate that this is a new stroke. So, it is
-# reliable to assume that a stroke ended when a lower set is seen.
-# Additionally, if there is no activity then the machine will send a
-# zero byte every few seconds.
+# The protocol uses variable length packets of one, two, three or four
+# bytes. Only those bytes for which keys were pressed will be
+# transmitted. The bytes arrive in order of the sets so it is clear
+# when a new stroke starts. Also, if a key is pressed in an earlier
+# set in one stroke and then a key is pressed only in a later set then
+# there will be a zero byte to indicate that this is a new stroke. So,
+# it is reliable to assume that a stroke ended when a lower set is
+# seen. Additionally, if there is no activity then the machine will
+# send a zero byte every few seconds.
 
 STENO_KEY_CHART = ("S-", "T-", "K-", "P-", "W-", "H-",  # 00
                    "R-", "A-", "O-", "*", "-E", "-U",   # 01
@@ -52,21 +54,12 @@ class Stenotype(plover.machine.base.SerialStenotypeBase):
 
     def run(self):
         """Overrides base class run method. Do not call directly."""
-        while not self.finished.isSet() :
-
-            # If there are no waiting bytes but there are some keys
-            # pressed then consider the stroke over.
-            # NOTE(hesky): This seems to work in practice but might
-            # depend on timing.
-            if self.serial_port.inWaiting() == 0 and len(self._pressed_keys) > 0:
-                self._finish_stroke()
-                continue
-
+        while not self.finished.isSet():
             # Grab data from the serial port.
             raw = self.serial_port.read(self.serial_port.inWaiting())
             
             # XXX : work around for python 3.1 and python 2.6 differences
-            if isinstance(raw, str) :
+            if isinstance(raw, str):
                 raw = [ord(x) for x in raw]
 
             if not raw and len(self._pressed_keys) > 0:
