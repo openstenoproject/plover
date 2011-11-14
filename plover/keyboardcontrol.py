@@ -210,7 +210,7 @@ class KeyboardEmulation:
         Parentheses must be properly formed in pairs and may be
         nested. A key immediately followed by a parenthetical
         indicates that the key is pressed down while all keys enclosed
-        in the parenthetical or pressed and released in turn. For
+        in the parenthetical are pressed and released in turn. For
         example, Alt_L(Tab) means to hold the left Alt key down, press
         and release the Tab key, and then release the left Alt key.
 
