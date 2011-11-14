@@ -8,6 +8,7 @@ import os
 import logging
 import logging.handlers
 import ConfigParser
+import serial
 import shutil
 
 # Configuration paths.
@@ -55,7 +56,15 @@ SERIAL_STOPBITS_OPTION = 'stopbits'
 SERIAL_TIMEOUT_OPTION = 'timeout'
 SERIAL_XONXOFF_OPTION = 'xonxoff'
 SERIAL_RTSCTS_OPTION = 'rtscts'
-DEFAULT_SERIAL_ARGUMENTS = {'timeout' : 2.0}
+SERIAL_ALL_OPTIONS = (SERIAL_PORT_OPTION,
+                      SERIAL_BAUDRATE_OPTION,
+                      SERIAL_BYTESIZE_OPTION,
+                      SERIAL_PARITY_OPTION,
+                      SERIAL_STOPBITS_OPTION,
+                      SERIAL_TIMEOUT_OPTION,
+                      SERIAL_XONXOFF_OPTION,
+                      SERIAL_RTSCTS_OPTION)
+SERIAL_DEFAULT_TIMEOUT = 2.0
 
 def import_named_module(name, module_dictionary):
     """Returns the Python module corresponding to the given name.
@@ -163,27 +172,39 @@ def get_serial_params(section, config):
     interest.
 
     If config does not contain section, then a the default
-    serial.Serial parameters are returned.
+    serial.Serial parameters are returned. If not all parameters are
+    included in the section, then default values for the missing
+    parameters are used in their place.
 
     """
-    if config.has_section(section):
-        serial_params = {'port': config.get(section, SERIAL_PORT_OPTION),
-                         'baudrate': config.getint(section, SERIAL_BAUDRATE_OPTION),
-                         'bytesize': config.getint(section, SERIAL_BYTESIZE_OPTION),
-                         'parity': config.get(section, SERIAL_PARITY_OPTION),
-                         'stopbits': config.getint(section, SERIAL_STOPBITS_OPTION),
-                         'xonxoff': config.getboolean(section, SERIAL_XONXOFF_OPTION),
-                         'rtscts': config.getboolean(section, SERIAL_RTSCTS_OPTION),
-                         }
+    serial_params = {}
+    default_serial_port = serial.Serial()
+    for opt in SERIAL_ALL_OPTIONS:
+        serial_params[opt] = default_serial_port.__getattribute__(opt)
+    for opt in (SERIAL_PORT_OPTION,
+                SERIAL_PARITY_OPTION):
+        if config.has_option(section, opt):
+            serial_params[opt] = config.get(section, opt)
+    for opt in (SERIAL_BAUDRATE_OPTION,
+                SERIAL_BYTESIZE_OPTION,
+                SERIAL_STOPBITS_OPTION):
+        if config.has_option(section, opt):
+            serial_params[opt] = config.getint(section, opt)
+    for opt in (SERIAL_XONXOFF_OPTION,
+                SERIAL_RTSCTS_OPTION):
+        if config.has_option(section, opt):
+            serial_params[opt] = config.getboolean(section, opt)
+    if config.has_option(section, SERIAL_TIMEOUT_OPTION):
         timeout = config.get(section, SERIAL_TIMEOUT_OPTION)
         if timeout == 'None':
-            serial_params['timeout'] = None
+            timeout = None
         else:
-            serial_params['timeout'] = float(timeout)
+            timeout = float(timeout)
     else:
-        serial_params = DEFAULT_SERIAL_ARGUMENTS
+        timeout = SERIAL_DEFAULT_TIMEOUT
+    serial_params[SERIAL_TIMEOUT_OPTION] = timeout
     # Helper class to convert a dictionary to an object.
-    class _Struct:
+    class _Struct(object):
         def __init__(self, **kwargs):
             self.__dict__.update(kwargs)
     return _Struct(**serial_params)
@@ -207,12 +228,5 @@ def set_serial_params(serial_port, section, config):
         return
     if not config.has_section(section):
         config.add_section(section)
-    config.set(section, SERIAL_PORT_OPTION, serial_port.port)
-    config.set(section, SERIAL_BAUDRATE_OPTION, serial_port.baudrate)
-    config.set(section, SERIAL_BYTESIZE_OPTION, serial_port.bytesize)
-    config.set(section, SERIAL_PARITY_OPTION, serial_port.parity)
-    config.set(section, SERIAL_STOPBITS_OPTION, serial_port.stopbits)
-    config.set(section, SERIAL_TIMEOUT_OPTION, serial_port.timeout)
-    config.set(section, SERIAL_XONXOFF_OPTION, serial_port.xonxoff)
-    config.set(section, SERIAL_RTSCTS_OPTION, serial_port.rtscts)
-
+    for opt in SERIAL_ALL_OPTIONS:
+        config.set(section, opt, serial_port.__getattribute__(opt))

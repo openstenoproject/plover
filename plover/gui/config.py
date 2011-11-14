@@ -147,10 +147,11 @@ class MachineConfig(wx.Panel):
         self.config.set(conf.MACHINE_CONFIG_SECTION,
                         conf.MACHINE_TYPE_OPTION,
                         machine_type)
-        if isinstance(self.config_instance, Serial):
-            conf.set_serial_params(self.config_instance,
-                                   machine_type,
-                                   self.config)
+        if self.config_instance is not None:
+            if self.config_class is Serial:
+                conf.set_serial_params(self.config_instance,
+                                       machine_type,
+                                       self.config)
 
     def _advanced_config(self, event=None):
         # Brings up a more detailed configuration UI, if available.
