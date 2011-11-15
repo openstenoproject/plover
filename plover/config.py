@@ -20,6 +20,7 @@ CONFIG_FILE = os.path.join(CONFIG_DIR, 'plover.cfg')
 # General configuration sections and options.
 MACHINE_CONFIG_SECTION = 'Machine Configuration'
 MACHINE_TYPE_OPTION = 'machine_type'
+MACHINE_AUTO_START_OPTION = 'auto_start'
 DICTIONARY_CONFIG_SECTION = 'Dictionary Configuration'
 DICTIONARY_FILE_OPTION = 'dictionary_file'
 DICTIONARY_FORMAT_OPTION = 'dictionary_format'
@@ -30,6 +31,7 @@ ENABLE_TRANSLATION_LOGGING_OPTION = 'enable_translation_logging'
 
 # Default values for configuration options.
 DEFAULT_MACHINE_TYPE = 'Microsoft Sidewinder X4'
+DEFAULT_MACHINE_AUTO_START = 'false'
 DEFAULT_DICTIONARY_FILE = 'dict.json'
 DEFAULT_DICTIONARY_FORMAT = 'Eclipse'
 DEFAULT_LOG_FILE = 'plover.log'
@@ -149,6 +151,8 @@ def verify_config(config):
                                   DEFAULT_DICTIONARY_FILE),
       (MACHINE_CONFIG_SECTION, MACHINE_TYPE_OPTION,
                                DEFAULT_MACHINE_TYPE),
+      (MACHINE_CONFIG_SECTION, MACHINE_AUTO_START_OPTION,
+                               DEFAULT_MACHINE_AUTO_START),
       ):
         if not config.has_section(section):
             config.add_section(section)

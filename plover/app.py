@@ -136,6 +136,11 @@ class StenoEngine:
         handler.setFormatter(logging.Formatter(conf.LOG_FORMAT))
         self.logger.addHandler(handler)
 
+        # Automatically start.
+        if self.config.getboolean(conf.MACHINE_CONFIG_SECTION,
+                                  conf.MACHINE_AUTO_START_OPTION):
+            self.start()
+
     def start(self):
         """Initiates the stenography capture-translate-format-display pipeline.
 

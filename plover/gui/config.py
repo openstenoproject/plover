@@ -20,6 +20,7 @@ DICTIONARY_CONFIG_TAB_NAME = "Dictionary"
 LOGGING_CONFIG_TAB_NAME = "Logging"
 SAVE_CONFIG_BUTTON_NAME = "Save"
 MACHINE_LABEL = "Stenotype Machine:"
+MACHINE_AUTO_START_LABEL = "Automatically Start"
 DICT_FILE_LABEL = "Dictionary File:"
 DICT_FILE_DIALOG_TITLE = "Select a Dictionary File"
 LOG_FILE_LABEL = "Log File:"
@@ -132,11 +133,20 @@ class MachineConfig(wx.Panel):
         self.choice.SetStringSelection(value)
         self.Bind(wx.EVT_CHOICE, self._update, self.choice)
         box.Add(self.choice, proportion=1, flag=wx.EXPAND)
-        sizer.Add(box, border=UI_BORDER, flag=wx.ALL | wx.EXPAND)
         self.config_button = wx.Button(self,
                                        id=wx.ID_PREFERENCES,
                                        label=CONFIG_BUTTON_NAME)
         box.Add(self.config_button)
+
+        self.auto_start_checkbox = wx.CheckBox(self, label=MACHINE_AUTO_START_LABEL)
+        auto_start = config.getboolean(conf.MACHINE_CONFIG_SECTION,
+                                       conf.MACHINE_AUTO_START_OPTION)
+        self.auto_start_checkbox.SetValue(auto_start)
+
+        sizer.Add(box, border=UI_BORDER, flag=wx.ALL | wx.EXPAND)
+        sizer.Add(self.auto_start_checkbox,
+                  border=UI_BORDER,
+                  flag=wx.ALL | wx.EXPAND)
         self.SetSizer(sizer)
         self._update()
         self.Bind(wx.EVT_BUTTON, self._advanced_config, self.config_button)
@@ -147,6 +157,10 @@ class MachineConfig(wx.Panel):
         self.config.set(conf.MACHINE_CONFIG_SECTION,
                         conf.MACHINE_TYPE_OPTION,
                         machine_type)
+        auto_start = self.auto_start_checkbox.GetValue()
+        self.config.set(conf.MACHINE_CONFIG_SECTION,
+                        conf.MACHINE_AUTO_START_OPTION,
+                        auto_start)
         if self.config_instance is not None:
             if self.config_class is Serial:
                 conf.set_serial_params(self.config_instance,
