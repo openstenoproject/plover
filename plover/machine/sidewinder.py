@@ -57,6 +57,7 @@ class Stenotype(StenotypeBase):
     def __init__(self):
         """Monitor a Microsoft Sidewinder X4 keyboard via X events."""
         StenotypeBase.__init__(self)
+        self.is_keyboard_suppressed = True
         self._keyboard_emulation = keyboardcontrol.KeyboardEmulation()
         self._keyboard_capture = keyboardcontrol.KeyboardCapture()
         self._keyboard_capture.key_down = self._key_down
@@ -74,7 +75,7 @@ class Stenotype(StenotypeBase):
 
     def _key_down(self, event):
         # Called when a key is pressed.
-        if event.keystring is not None :
+        if self.is_keyboard_suppressed and event.keystring is not None :
             self._keyboard_emulation.send_backspaces(1)
         self._down_keys.add(event.keycode)
 

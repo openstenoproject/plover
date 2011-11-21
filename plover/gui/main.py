@@ -45,8 +45,13 @@ class Frame(wx.Frame):
     BORDER = 5
     RUNNING_MESSAGE = "running"
     STOPPED_MESSAGE = "stopped"
+    ERROR_MESSAGE = "error"
     CONFIGURE_BUTTON_LABEL = "Configure..."
     ABOUT_BUTTON_LABEL = "About..."
+    COMMAND_SUSPEND = 'SUSPEND'
+    COMMAND_RESUME = 'RESUME'
+    COMMAND_TOGGLE = 'TOGGLE'
+    COMMAND_CONFIGURE = 'CONFIGURE'
 
     def __init__(self, config_file):
         wx.Frame.__init__(self, None,
@@ -59,7 +64,19 @@ class Frame(wx.Frame):
         config_file = config_file
         config = ConfigParser.RawConfigParser()
         config.read(config_file)
-        self.steno_engine = app.StenoEngine()
+        try:
+            self.steno_engine = app.StenoEngine()
+            self.steno_engine.formatter.engine_command_callback = \
+              self.consume_command
+        except exception.SerialPortException, spe:
+            self.steno_engine = None
+            alert_dialog = wx.MessageDialog(self._show_config_dialog(),
+                                            unicode(spe),
+                                            self.ALERT_DIALOG_TITLE,
+                                            wx.OK | wx.ICON_INFORMATION)
+            alert_dialog.ShowModal()
+            alert_dialog.Destroy()
+
 
         # Status button.
         on_icon_file = os.path.join(conf.ASSETS_DIR, self.ON_IMAGE_FILE)
@@ -92,19 +109,18 @@ class Frame(wx.Frame):
         sizer.Fit(self)
 
         self.Bind(wx.EVT_CLOSE, self.OnClose)
+        if self.steno_engine:
+            self.steno_engine.add_callback(self._update_status)
         self._update_status()
 
     def OnClose(self, event):
-        self.steno_engine.stop()
+        if self.steno_engine:
+            self.steno_engine.destroy()
         self.Destroy()
 
     def OnStatusButton(self, event):
         """Called when the status button is clicked."""
-        if self.steno_engine.is_running :
-            self.steno_engine.stop()
-        else :
-            self._safe_start()
-        self._update_status()
+        self.steno_engine.set_is_running(not self.steno_engine.is_running)
 
     def OnConfigureButton(self, event):
         """Called when the Configure... button is clicked."""
@@ -122,24 +138,29 @@ class Frame(wx.Frame):
         info.License = __license__
         wx.AboutBox(info)
 
-    def _update_status(self):
-        if self.steno_engine.is_running:
-            self.status_button.SetBitmapLabel(self.on_bitmap)
-            self.SetTitle("%s: %s" % (self.TITLE, self.RUNNING_MESSAGE))
-        else:
-            self.status_button.SetBitmapLabel(self.off_bitmap)
-            self.SetTitle("%s: %s" % (self.TITLE, self.STOPPED_MESSAGE))
+    def consume_command(self, command):
+        if command == self.COMMAND_SUSPEND and self.steno_engine:
+            self.steno_engine.set_is_running(False)
+        elif command == self.COMMAND_RESUME and self.steno_engine:
+            self.steno_engine.set_is_running(True)
+        elif command == self.COMMAND_TOGGLE and self.steno_engine:
+            self.steno_engine.set_is_running(not self.steno_engine.is_running)
+        elif command == self.COMMAND_CONFIGURE:
+            wx.CallAfter(self._show_config_dialog)
 
-    def _safe_start(self):
-        try:
-            self.steno_engine.start()
-        except exception.SerialPortException, spe:
-            alert_dialog = wx.MessageDialog(self._show_config_dialog(),
-                                            unicode(spe),
-                                            self.ALERT_DIALOG_TITLE,
-                                            wx.OK | wx.ICON_INFORMATION)
-            alert_dialog.ShowModal()
-            alert_dialog.Destroy()
+    def _update_status(self):
+        if self.steno_engine:
+            self.status_button.Enable()
+            if self.steno_engine.is_running:
+                self.status_button.SetBitmapLabel(self.on_bitmap)
+                self.SetTitle("%s: %s" % (self.TITLE, self.RUNNING_MESSAGE))
+            else:
+                self.status_button.SetBitmapLabel(self.off_bitmap)
+                self.SetTitle("%s: %s" % (self.TITLE, self.STOPPED_MESSAGE))
+        else:
+            self.status_button.Disable()
+            self.status_button.SetBitmapLabel(self.off_bitmap)
+            self.SetTitle("%s: %s" % (self.TITLE, self.ERROR_MESSAGE))
 
     def _show_config_dialog(self):
         dialog = gui.ConfigurationDialog(conf.CONFIG_FILE)

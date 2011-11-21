@@ -19,6 +19,7 @@ META_PLURALIZE = '^s'
 META_GLUE_FLAG = '&'
 META_ATTACH_FLAG = '^'
 META_KEY_COMBINATION = '#'
+META_COMMAND = 'PLOVER:'
 
 META_ESCAPE = '\\'
 RE_META_ESCAPE = '\\\\'
@@ -63,7 +64,10 @@ class Formatter:
 
     """
     
-    def __init__(self, translator, text_output):
+    def __init__(self, 
+                 translator, 
+                 text_output=None, 
+                 engine_command_callback=None):
         """Create a state machine for processing Translation objects.
 
         Arguments:
@@ -79,6 +83,7 @@ class Formatter:
         """
         self.translator = translator
         self.text_output = text_output
+        self.engine_command_callback = engine_command_callback
         self.keystrokes = ''
         self.key_combos = []
         self.translator.add_callback(self.consume_translation)
@@ -94,6 +99,12 @@ class Formatter:
         being kept track of due to space limitations.
 
         """
+        cmd = self._get_engine_command(translation)
+        if cmd: 
+            if self.engine_command_callback:
+                self.engine_command_callback(cmd)
+            return
+
         num_backspaces = 0
         non_backspaces = ''
         if overflow:
@@ -139,15 +150,16 @@ class Formatter:
             
         # Output any corrective backspaces and new characters or key
         # combinations.
-        self.text_output.send_backspaces(num_backspaces)
-        prev_i = 0
-        for i, combo in new_key_combos:
-            i -= skip_count
-            skip_count += 1
-            self.text_output.send_string(non_backspaces[prev_i:i])
-            self.text_output.send_key_combination(combo)
-            prev_i = i
-        self.text_output.send_string(non_backspaces[prev_i:])
+        if self.text_output:
+            self.text_output.send_backspaces(num_backspaces)
+            prev_i = 0
+            for i, combo in new_key_combos:
+                i -= skip_count
+                skip_count += 1
+                self.text_output.send_string(non_backspaces[prev_i:i])
+                self.text_output.send_key_combination(combo)
+                prev_i = i
+            self.text_output.send_string(non_backspaces[prev_i:])
 
         # Keep track of the current state in preparation for the next
         # call to this method.
@@ -174,6 +186,9 @@ class Formatter:
         key_combinations = []
         previous_atom = None
         for translation in translations:
+            
+            if self._get_engine_command(translation):
+                continue
             # Reduce the translation to atoms. An atom is in
             # irreducible string that is either entirely a single meta
             # command or entirely text containing no meta commands.
@@ -270,3 +285,10 @@ class Formatter:
         return atom.replace(META_ESC_START, META_START).replace(META_ESC_END,
                                                                 META_END)
 
+    def _get_engine_command(self, translation):
+        cmd = translation.english
+        if (cmd and 
+            cmd.startswith(META_START + META_COMMAND) and
+            cmd.endswith(META_END)):
+            return cmd[len(META_COMMAND) + 1:-1]
+        return None

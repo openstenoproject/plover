@@ -30,6 +30,7 @@ import plover.keyboardcontrol as keyboardcontrol
 import plover.steno as steno
 import plover.machine as machine
 import plover.machine.base
+import plover.machine.sidewinder
 import plover.dictionary as dictionary
 
 class StenoEngine:
@@ -74,6 +75,7 @@ class StenoEngine:
 
     def __init__(self):
         """Creates and configures a single steno pipeline."""
+        self.subscribers = []
         self.is_running = False
         self.machine = None
         self.machine_init = {}
@@ -136,30 +138,16 @@ class StenoEngine:
         handler.setFormatter(logging.Formatter(conf.LOG_FORMAT))
         self.logger.addHandler(handler)
 
-        # Automatically start.
-        if self.config.getboolean(conf.MACHINE_CONFIG_SECTION,
-                                  conf.MACHINE_AUTO_START_OPTION):
-            self.start()
-
-    def start(self):
-        """Initiates the stenography capture-translate-format-display pipeline.
-
-        Calling this method causes a worker thread to begin capturing
-        stenotype machine output and feeding the output to other
-        elements of the pipeline.
-
-        """
-        # Don't run more than one steno machine at a time.
-        if self.machine:
-            self.machine.stop_capture()
-            
-        # Create the pipeline from machine to output.
+        # Construct the stenography capture-translate-format-display pipeline.
         self.machine = self.machine_module.Stenotype(**self.machine_init)
         self.output = keyboardcontrol.KeyboardEmulation()
         self.translator = steno.Translator(self.machine,
                                            self.dictionary,
                                            self.dictionary_module)
-        self.formatter = formatting.Formatter(self.translator, self.output)
+        self.formatter = formatting.Formatter(self.translator)
+        auto_start = self.config.getboolean(conf.MACHINE_CONFIG_SECTION,
+                                            conf.MACHINE_AUTO_START_OPTION)
+        self.set_is_running(auto_start)
 
         # Add hooks for logging.
         if self.config.getboolean(conf.LOGGING_CONFIG_SECTION,
@@ -171,9 +159,19 @@ class StenoEngine:
 
         # Start the machine monitoring for steno strokes.
         self.machine.start_capture()
-        self.is_running = True
 
-    def stop(self):
+    def set_is_running(self, value):
+        self.is_running = value
+        if self.is_running:
+            self.formatter.text_output = self.output
+        else:
+            self.formatter.text_output = None
+        if isinstance(self.machine, plover.machine.sidewinder.Stenotype):
+            self.machine.is_keyboard_suppressed = self.is_running
+        for callback in self.subscribers:
+            callback()
+
+    def destroy(self):
         """Halts the stenography capture-translate-format-display pipeline.
 
         Calling this method causes all worker threads involved to
@@ -186,6 +184,17 @@ class StenoEngine:
         if self.machine:
             self.machine.stop_capture()
         self.is_running = False
+
+    def add_callback(self, callback) :
+        """Subscribes a function to receive changes of the is_running  state.
+
+        Arguments:
+
+        callback -- A function that takes no arguments.
+
+        """
+        self.subscribers.append(callback)
+
 
     def _log_stroke(self, steno_keys):
         self.logger.info('Stroke(%s)' % ' '.join(steno_keys))
