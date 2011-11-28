@@ -52,6 +52,8 @@ class Frame(wx.Frame):
     COMMAND_RESUME = 'RESUME'
     COMMAND_TOGGLE = 'TOGGLE'
     COMMAND_CONFIGURE = 'CONFIGURE'
+    COMMAND_FOCUS = 'FOCUS'
+    COMMAND_QUIT = 'QUIT'
 
     def __init__(self, config_file):
         wx.Frame.__init__(self, None,
@@ -84,15 +86,15 @@ class Frame(wx.Frame):
         self.on_bitmap = wx.Bitmap(on_icon_file, wx.BITMAP_TYPE_PNG)
         self.off_bitmap = wx.Bitmap(off_icon_file, wx.BITMAP_TYPE_PNG)
         self.status_button = wx.BitmapButton(self, bitmap=self.on_bitmap)
-        self.status_button.Bind(wx.EVT_BUTTON, self.OnStatusButton)
+        self.status_button.Bind(wx.EVT_BUTTON, self._toggle_steno_engine)
 
         # Configure button.
         self.configure_button = wx.Button(self, label=self.CONFIGURE_BUTTON_LABEL)
-        self.configure_button.Bind(wx.EVT_BUTTON, self.OnConfigureButton)
+        self.configure_button.Bind(wx.EVT_BUTTON, self._show_config_dialog)
 
         # About button.
         self.about_button = wx.Button(self, label=self.ABOUT_BUTTON_LABEL)
-        self.about_button.Bind(wx.EVT_BUTTON, self.OnAboutButton)
+        self.about_button.Bind(wx.EVT_BUTTON, self._show_about_dialog)
 
         # Layout.
         sizer = wx.BoxSizer(wx.HORIZONTAL)
@@ -108,45 +110,27 @@ class Frame(wx.Frame):
         self.SetSizer(sizer)
         sizer.Fit(self)
 
-        self.Bind(wx.EVT_CLOSE, self.OnClose)
+        self.Bind(wx.EVT_CLOSE, self._quit)
         if self.steno_engine:
             self.steno_engine.add_callback(self._update_status)
         self._update_status()
 
-    def OnClose(self, event):
-        if self.steno_engine:
-            self.steno_engine.destroy()
-        self.Destroy()
-
-    def OnStatusButton(self, event):
-        """Called when the status button is clicked."""
-        self.steno_engine.set_is_running(not self.steno_engine.is_running)
-
-    def OnConfigureButton(self, event):
-        """Called when the Configure... button is clicked."""
-        self._show_config_dialog()
-
-    def OnAboutButton(self, event):
-        """Called when the About... button is clicked."""
-        info = wx.AboutDialogInfo()
-        info.Name = __software_name__
-        info.Version = __version__
-        info.Copyright = __copyright__
-        info.Description = __long_description__
-        info.WebSite = __url__
-        info.Developers = __credits__
-        info.License = __license__
-        wx.AboutBox(info)
-
     def consume_command(self, command):
+        # Wrap all actions in a CallAfter since the initiator of the
+        # action is likely a thread other than the wx thread.
         if command == self.COMMAND_SUSPEND and self.steno_engine:
-            self.steno_engine.set_is_running(False)
+            wx.CallAfter(self.steno_engine.set_is_running, False)
         elif command == self.COMMAND_RESUME and self.steno_engine:
-            self.steno_engine.set_is_running(True)
+            wx.CallAfter(self.steno_engine.set_is_running, True)
         elif command == self.COMMAND_TOGGLE and self.steno_engine:
-            self.steno_engine.set_is_running(not self.steno_engine.is_running)
+            wx.CallAfter(self.steno_engine.set_is_running, not self.steno_engine.is_running)
         elif command == self.COMMAND_CONFIGURE:
             wx.CallAfter(self._show_config_dialog)
+        elif command == self.COMMAND_FOCUS:
+            wx.CallAfter(self.Raise)
+            wx.CallAfter(self.Iconize, False)
+        elif command == self.COMMAND_QUIT:
+            wx.CallAfter(self._quit)
 
     def _update_status(self):
         if self.steno_engine:
@@ -162,7 +146,29 @@ class Frame(wx.Frame):
             self.status_button.SetBitmapLabel(self.off_bitmap)
             self.SetTitle("%s: %s" % (self.TITLE, self.ERROR_MESSAGE))
 
-    def _show_config_dialog(self):
+    def _quit(self, event=None):
+        if self.steno_engine:
+            self.steno_engine.destroy()
+        self.Destroy()
+
+    def _toggle_steno_engine(self, event=None):
+        """Called when the status button is clicked."""
+        self.steno_engine.set_is_running(not self.steno_engine.is_running)
+
+    def _show_config_dialog(self, event=None):
         dialog = gui.ConfigurationDialog(conf.CONFIG_FILE)
         dialog.Show()
         return dialog
+
+    def _show_about_dialog(self, event=None):
+        """Called when the About... button is clicked."""
+        info = wx.AboutDialogInfo()
+        info.Name = __software_name__
+        info.Version = __version__
+        info.Copyright = __copyright__
+        info.Description = __long_description__
+        info.WebSite = __url__
+        info.Developers = __credits__
+        info.License = __license__
+        wx.AboutBox(info)
+
