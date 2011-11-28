@@ -1,7 +1,7 @@
 { 
 "KH-FG": " {#grave}",
-"-FPLT": "-FRPBLGTS",
-"STPH": "STKPWHR",
+"-FPLT": "{.}",
+"STPH": "{?}",
 "TPW-F": "{#Alt_L(Right)}",
 "TPW-B": "{#Alt_L(Left)}",
 "KHR*T": "{#Control_L(w)}",
