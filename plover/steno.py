@@ -33,7 +33,17 @@ STENO_KEY_NUMBERS = { 'S-':'1-',
                       '-L': '-8',
                       '-T': '-9'}
 
-STENO_KEY_ORDER = {"S-": 0,
+STENO_KEY_ORDER = {'1-': -10,  # Same as order in STENO_KEY_NUMBERS.
+                   '2-': -9,
+                   '3-': -8,
+                   '4-': -7,
+                   '5-': -6,
+                   '0-': -5,
+                   '-6': -4,
+                   '-7': -3,
+                   '-8': -2,
+                   '-9': -1,
+                   "S-": 0,
                    "T-": 1,
                    "K-": 2,
                    "P-": 3,
@@ -54,17 +64,7 @@ STENO_KEY_ORDER = {"S-": 0,
                    "-T": 21,
                    "-S": 22,
                    "-D": 23,
-                   "-Z": 24,
-                   '1-': 100,  # Same as order in STENO_KEY_NUMBERS.
-                   '2-': 101,
-                   '3-': 102,
-                   '4-': 103,
-                   '5-': 104,
-                   '0-': 105,
-                   '-6': 106,
-                   '-7': 107,
-                   '-8': 108,
-                   '-9': 109}
+                   "-Z": 24}
 
 STENO_KEYS = tuple(STENO_KEY_ORDER.keys())
 
