@@ -193,9 +193,15 @@ class Formatter:
             # irreducible string that is either entirely a single meta
             # command or entirely text containing no meta commands.
             if translation.english is not None:
-                atoms = META_RE.findall(translation.english)
+                to_atomize = translation.english
+                if to_atomize.isdigit():
+                    to_atomize = self._apply_glue(to_atomize)
+                atoms = META_RE.findall(to_atomize)
             else:
-                atoms = [translation.rtfcre]
+                to_atomize = translation.rtfcre
+                if to_atomize.isdigit():
+                    to_atomize = self._apply_glue(to_atomize)
+                atoms = [to_atomize]
             for atom in atoms:
                 atom = atom.strip()
                 if text:
@@ -286,9 +292,15 @@ class Formatter:
                                                                 META_END)
 
     def _get_engine_command(self, translation):
+        # Return the steno engine command, if any, represented by the
+        # given translation.
         cmd = translation.english
         if (cmd and 
             cmd.startswith(META_START + META_COMMAND) and
             cmd.endswith(META_END)):
             return cmd[len(META_COMMAND) + 1:-1]
         return None
+
+    def _apply_glue(self, s):
+        # Mark the given string as a glue stroke.
+        return META_START + META_GLUE_FLAG + s + META_END
