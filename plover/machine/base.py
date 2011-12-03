@@ -65,6 +65,8 @@ class SerialStenotypeBase(StenotypeBase, threading.Thread):
             self.serial_port = self.CONFIG_CLASS(**kwargs)
         except serial.SerialException:
             raise SerialPortException()
+        if self.serial_port is None or not self.serial_port.isOpen():
+            raise SerialPortException()
         threading.Thread.__init__(self)
         StenotypeBase.__init__(self)
         self.finished = threading.Event()

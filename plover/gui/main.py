@@ -79,7 +79,6 @@ class Frame(wx.Frame):
             alert_dialog.ShowModal()
             alert_dialog.Destroy()
 
-
         # Status button.
         on_icon_file = os.path.join(conf.ASSETS_DIR, self.ON_IMAGE_FILE)
         off_icon_file = os.path.join(conf.ASSETS_DIR, self.OFF_IMAGE_FILE)
