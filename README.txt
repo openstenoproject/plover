@@ -7,10 +7,10 @@ Stenography expertise, original concept, feature design, and testing
 by Mirabai Knight. Code and technical design by Joshua Harlan
 Lifton. Additional code contributions by Hesky Fisher.
 
-Supported stenotype machines:
- * Microsoft SideWinder X4 keyboard
- * Gemini PR stenography machine
- * Stentura Protege, Cybra, and Fusion stenography machines
+Supported stenotype protocols:
+ * QWERTY keyboards with n-key rollover (e.g. Microsoft SideWinder X4)
+ * Gemini PR (a.k.a. Gemini Enhanced)
+ * TX Bolt (a.k.a. Gemini TX)
 
 Contact the authors if you would like Plover to support your stenotype
 machine.
@@ -41,8 +41,11 @@ RUNNING PLOVER
 After installation is complete as above, the Plover application will
 be available from the command-line and as an icon in the application
 list. Starting the application will bring up a small window with a red
-'P' icon.  At this point, Plover is inactive. To activate Plover,
-click the red 'P' icon. The icon will turn green to indicate that
+'P' icon. At this point, Plover is inactive. To activate Plover, click
+the red 'P' icon, or type on the steno machine the strokes
+corresponding to the PLOVER:TOGGLE or PLOVER:RESUME commands as
+defined in the dictionary. The icon will turn green to indicate that
 Plover is active and ready to translate stenography keystrokes into
-English text. Clicking the green icon will cause it to turn red, which
-means Plover is again in the inactive state.
+English text. Clicking the green icon or sending the PLOVER:SUSPEND or
+PLOVER:TOGGLE commands will cause the icon to turn red, which means
+Plover is again in the inactive state.
