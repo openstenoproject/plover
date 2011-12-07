@@ -71,6 +71,8 @@ class Stenotype(plover.machine.base.SerialStenotypeBase):
                 if (byte == 0 and self._last_byte != 0) or (key_set < self._last_key_set):
                     self._finish_stroke()
                 else:
+                    self._last_key_set = key_set
+                    self._last_byte = byte
                     for i in xrange(6):
                         if (byte >> i) & 1:
                             self._pressed_keys.append(STENO_KEY_CHART[(key_set * 6) + i])
