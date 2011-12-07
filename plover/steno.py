@@ -123,9 +123,9 @@ class Stroke :
             self.rtfcre = self.rtfcre.replace('**', '*')
         self.rtfcre = self.rtfcre.replace('SS','S')
         if '-' in self.rtfcre:
-            noHyphen = self.rtfcre.replace('-','')
-            if noHyphen.isdigit(): 
-                self.rtfcre = noHyphen
+            no_hyphen = self.rtfcre.replace('-','')
+            if no_hyphen.isdigit(): 
+                self.rtfcre = no_hyphen
 
         # Determine if this stroke is a correction stroke.
         self.is_correction = (self.rtfcre == '*')
