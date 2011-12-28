@@ -1,4 +1,4 @@
-# Copyright (c) 2010 Joshua Harlan Lifton.
+# Copyright (c) 2010-2011 Joshua Harlan Lifton.
 # See LICENSE.txt for details.
 
 """This module converts translations to printable text."""

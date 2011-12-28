@@ -1,4 +1,4 @@
-# Copyright (c) 2010 Joshua Harlan Lifton.
+# Copyright (c) 2010-2011 Joshua Harlan Lifton.
 # See LICENSE.txt for details.
 
 """Thread-based monitoring of a Gemini PR stenotype machine."""

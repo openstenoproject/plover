@@ -34,9 +34,8 @@ README.txt file. Follow the directions in this file for installing and
 running \plover.
 
 \subsection{Starting the Program}
-Once installed, \plover~can be run from either the menu
-(\code{Applications->Universal Access->Plover}) or from a
-\terminal~(\code{plover} and then \code{ENTER}). If a stenotype
+Once installed, \plover~can be run from either the application menu or
+from a \terminal~(\code{plover} and then \code{ENTER}). If a stenotype
 machine other than the default is used, set the machine type in the
 configuration dialog.
 
@@ -45,63 +44,93 @@ configuration dialog.
 
 \plover~comes with a default configuration that should work for most
 setups that use the Microsoft Sidewinder X4 keyboard as the stenotype
-machine. \plover~can be configured by right-clicking on the
-\plover~task bar icon and selecting the \code{Configure...}
-option. Within the configuration dialog, the user can select which
-stenotype machine to use, which dictionary file to use, and whether or
-not strokes and translations should be logged to a file. \plover~will
-need to be restarted before any configuration changes take effect.
+machine. \plover~can be configured by clicking the \code{Configure...}
+button. Within the configuration dialog, the user can select which
+stenotype machine to use, which dictionary file to use, whether or not
+strokes and translations should be logged to a file, and whether or
+not \plover~should immediately start translating when the program is
+started. \plover~will need to be restarted before any configuration
+changes take effect.
 
 \section{Stenography Dictionary}
 At the core of stenography is a dictionary that translates stroke
-combinations into English words and phrases.
+combinations into words and phrases. The words and phrases can be
+English, another language, or a nonsense string of characters. The
+words and phrases can also be commands and special keys other than
+printable characters.
 
 \subsection{Dictionary Format}
 \plover~expects the stenography dictionary file to be in JSON format
 and each dictionary entry within the file to be in a specific variant
-of RTF/CRE format. A simple dictionary entry looks like:
+of RTF/CRE format.
 
-\code{"stroke": "Some English text",}
+\subsubsection{Single-stroke Entries}
+A simple dictionary entry looks like:
 
+\code{"STROKE": "word or phrase",}
+
+For example:
+\begin{itemize}
+\item \code{"TKO": "do",}
+\item \code{"K": "can",}
+\item \code{"KWRORPBL": "I don't remember",}
+\item \code{"PHAS": "mas",}
+\end{itemize}
+
+\subsubsection{Multiple-stroke Entries}
 A dictionary entry for more than one stroke looks like:
 
-\code{"stroke1/stroke2/stroke3": "Some more English text",}
+\code{"STROKE1/STROKE2/STROKE3": "another word or phrase",}
 
-Meta commands are surrounded by \{ and \}, like:
+\begin{itemize}
+\item \code{"SEUPB/OPB/PHOUS": "synonymous",}
+\item \code{"TKE/TPER": "defer",}
+\item \code{"TOEPBD/SRA*EU": "tend to have a",}
+\item \code{"KWREUP/KWREU/KAOEU/KWRAEU": "yippee ki-yay",}
+\item \code{"PEPB/SAR": "pensar",}
+\end{itemize}
 
-\code{"stroke1/stroke2": "\meta{\^{ }opolis}",}
+\subsubsection{Meta Commands}
 
-which means append ``opolis'' to the previous word without inserting a space.
+Meta commands are dictionary entries surrounded by \{ and \}, like:
+
+\code{"STROKE1/STROKE2": "\meta{\^{ }opolis}",}
+
+which means append ``opolis'' to the previous word without inserting a
+space.
 
 Meta commands and regular text can be mixed, like:
 
-\code{"stroke1/stroke2": "\meta{.}Thus, we can see that",}
+\code{"STROKE1/STROKE2": "\meta{.}Thus, we can see that",}
 
 which means append a period and the number of spaces after a period
 and the text ``Thus, we can see that''.
 
-Spaces between meta commands and regular text don't count, so the previous example is the same as:
+Spaces between meta commands and regular text don't count, so the
+previous example is the same as:
 
-\code{"stroke1/stroke2": "\meta{.} Thus, we can see that",}
+\code{"STROKE1/STROKE2": "\meta{.} Thus, we can see that",}
 
-Furthermore, since the \meta{.} meta command will also capitalize the next word, the previous example is also the same as:
+Furthermore, since the \meta{.} meta command will also capitalize the
+next word, the previous example is also the same as:
 
-\code{"stroke1/stroke2": "\meta{.} thus, we can see that",}
+\code{"STROKE1/STROKE2": "\meta{.} thus, we can see that",}
 
 There can be more than one meta command in a translation, like:
 
-\code{"stroke1/stroke2": "\meta{,}like\meta{,}}"
+\code{"STROKE1/STROKE2": "\meta{,}like\meta{,}}"
 
-Since \code{"}, \code{\{}, and \code{\}} are all special dictionary format characters, the
-character sequences \code{$\backslash$"}, \code{$\backslash$\{}, and \code{$\backslash$\}}, should be used within a
-translation, like:
+Since \code{"}, \code{\{}, and \code{\}} are all special dictionary
+format characters, the character sequences \code{$\backslash$"},
+\code{$\backslash$\{}, and \code{$\backslash$\}}, should be used
+within a translation, like:
 
-\code{"stroke1/stroke2": "\meta{\^{ }.$\backslash$"~}\meta{-\textbar}",}
+\code{"STROKE1/STROKE2": "\meta{\^{ }.$\backslash$"~}\meta{-\textbar}",}
 
 which will append ." and a space to the previous word and then
 capitalize the next word.
 
-\subsection{Available Meta Commands}
+\plover~supports the following meta commands:
 \begin{itemize}
 
 \item Sentence stops: \meta{.}, \meta{!}, \meta{?} all end a sentence
@@ -121,22 +150,27 @@ capitalize the next word.
 \item Glue flag: \meta{\&X} will connect the string X without a space to any
   adjacent (previous or following) strings that also have glue flags.
 
-\item Attach flag: \meta{\^{ }X}, \meta{X\^{ }}, \meta{\^{ }X\^{ }} will connect
-  the string X without a space to the previous, next, or both previous
-  and next, respectively, words, unless X is one of the simple
-  suffixes (ed, ing, er, s), in which case the simple suffix rules
-  take precedence.
+\item Attach flag: \meta{\^{ }X}, \meta{X\^{ }}, \meta{\^{ }X\^{ }}
+  will connect the string X without a space to the previous, next, or
+  both previous and next, respectively, words, unless X is one of the
+  simple suffixes (ed, ing, er, s), in which case the simple suffix
+  rules take precedence.
+
+\item \plover~controls: \meta{PLOVER:X} will control the state of the
+  \plover~program itself, where X is one of \code{SUSPEND},
+  \code{RESUME}, \code{TOGGLE}, \code{CONFIGURE}, \code{FOCUS}, or
+  \code{QUIT}.
 
 \item Key combinations: \meta{\#X} will execute the key combination
   described by X. See below for details.
 
 \end{itemize}
 
-\subsection{Arbitrary Key Combinations}
+\subsubsection{Arbitrary Key Combinations}
 
 Meta commands of the form \meta{\#X} are interpreted as a sequence of
 keyboard keys pressed and released in sequence and/or
-simultaneously. In sequence key presses are separated by a single
+simultaneously. Serial key presses are separated by a single
 space. Simultaneous key presses are denoted by parentheses surrounding
 keys pressed while another key is held down. For example:
 

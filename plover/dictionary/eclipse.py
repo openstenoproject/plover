@@ -1,4 +1,4 @@
-# Copyright (c) 2010 Joshua Harlan Lifton.
+# Copyright (c) 2010-2011 Joshua Harlan Lifton.
 # See LICENSE.txt for details.
 
 """Constants and functions for the Eclipse stenography dictionary format."""
@@ -16,7 +16,7 @@ def toRTFCRE(stenoKeys):
     out = []
     hyphenFound = False
     for k in stenoKeys:
-        if k == "A-" or k == "O-":
+        if k == "A-" or k == "O-" or k == "5-" or k == "0-":
             k = k[:-1]
             hyphenFound = True
             
@@ -31,9 +31,9 @@ def toRTFCRE(stenoKeys):
             k = k[:-1]
                 
         elif k.startswith("-"):
-            if hyphenFound == True:
+            if hyphenFound:
                 k = k[1:] 
-            elif hyphenFound == False:
+            else:
                 k = k[1:] 
                 out.append("-")
                 hyphenFound = True 

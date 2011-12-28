@@ -1,4 +1,4 @@
-# Copyright (c) 2010 Joshua Harlan Lifton.
+# Copyright (c) 2010-2011 Joshua Harlan Lifton.
 # See LICENSE.txt for details.
 
 """Generic stenography data models and translation engine.
@@ -33,16 +33,7 @@ STENO_KEY_NUMBERS = { 'S-':'1-',
                       '-L': '-8',
                       '-T': '-9'}
 
-STENO_KEY_ORDER = {'1-': -10,  # Same as order in STENO_KEY_NUMBERS.
-                   '2-': -9,
-                   '3-': -8,
-                   '4-': -7,
-                   '5-': -6,
-                   '0-': -5,
-                   '-6': -4,
-                   '-7': -3,
-                   '-8': -2,
-                   '-9': -1,
+STENO_KEY_ORDER = {"#": -1,
                    "S-": 0,
                    "T-": 1,
                    "K-": 2,
@@ -101,31 +92,26 @@ class Stroke :
         
         """
 
-        # Save local versions of the input parameters.
-        self.steno_keys = steno_keys
+        # Remove duplicate keys and save local versions of the input
+        # parameters.
+        self.steno_keys = list(set(steno_keys))
         self.dictionary_format = dictionary_format
-
-        # Convert strokes involving the number bar to numbers.  
-        if '#' in self.steno_keys:
-            for i, e in enumerate(self.steno_keys):
-                self.steno_keys[i] = STENO_KEY_NUMBERS.get(e,e)
-            while '#' in self.steno_keys:
-                self.steno_keys.remove('#')
 
         # Order the steno keys so comparisons can be made.
         self.steno_keys.sort(key=lambda x: STENO_KEY_ORDER[x])
                 
-        # Convert the list of steno keys to the RTF/CRE format
-        # appropriate for the dictionary being used and then normalize
-        # the RTFCRE.
-        self.rtfcre = self.dictionary_format.toRTFCRE(steno_keys)
-        while '**' in self.rtfcre:
-            self.rtfcre = self.rtfcre.replace('**', '*')
-        self.rtfcre = self.rtfcre.replace('SS','S')
-        if '-' in self.rtfcre:
-            no_hyphen = self.rtfcre.replace('-','')
-            if no_hyphen.isdigit(): 
-                self.rtfcre = no_hyphen
+        # Convert strokes involving the number bar to numbers.
+        if '#' in self.steno_keys:
+            numeral = False
+            for i, e in enumerate(self.steno_keys):
+                if e in STENO_KEY_NUMBERS:
+                    self.steno_keys[i] = STENO_KEY_NUMBERS[e]
+                    numeral = True
+            if numeral:
+                self.steno_keys.remove('#')
+
+        # Convert the list of steno keys to the RTF/CRE format.
+        self.rtfcre = self.dictionary_format.toRTFCRE(self.steno_keys)
 
         # Determine if this stroke is a correction stroke.
         self.is_correction = (self.rtfcre == '*')
