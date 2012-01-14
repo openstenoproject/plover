@@ -1,7 +1,5 @@
-#!/usr/bin/env xdg-open
-
 [Desktop Entry]
-Version=2.2.0
+Version=1.1
 Type=Application
 Terminal=false
 Exec=plover
