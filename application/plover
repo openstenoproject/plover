@@ -3,9 +3,22 @@
 import sys
 import lockfile
 import plover.gui.main
+import os
 
 # Ensure only one instance of Plover is running at a time.
-LOCK_FILE = '/tmp/plover'
+# Check the environment for items to make the lockfile unique
+# fallback if not found
+if 'USER' in os.environ:
+    user = os.environ['USER']
+else:
+    user = "UNKNOWN"
+    
+if 'DISPLAY' in os.environ:
+    display = os.environ['DISPLAY'][-1:]
+else:
+    display = "0"
+
+LOCK_FILE = '/tmp/.plover-%s-%s-%s' %(os.uname()[1],user,display)
 lock = lockfile.FileLock(LOCK_FILE)
 try:
     lock.acquire(0)
