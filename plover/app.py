@@ -26,7 +26,7 @@ except ImportError :
 # Import plover modules.
 import plover.config as conf
 import plover.formatting as formatting
-import plover.keyboardcontrol as keyboardcontrol
+import plover.oslayer.keyboardcontrol as keyboardcontrol
 import plover.steno as steno
 import plover.machine as machine
 import plover.machine.base
@@ -59,7 +59,7 @@ class StenoEngine:
     to the output.
 
     output: Typically an instance of the
-    plover.keyboardcontrol.KeyboardEmulation class. This object
+    plover.oslayerkeyboardcontrol.KeyboardEmulation class. This object
     displays text on the screen.
 
     In addition to the above pieces, a logger records timestamped
