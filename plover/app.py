@@ -167,7 +167,7 @@ class StenoEngine:
         else:
             self.formatter.text_output = None
         if isinstance(self.machine, plover.machine.sidewinder.Stenotype):
-            self.machine.is_keyboard_suppressed = self.is_running
+            self.machine.suppress_keyboard(self.is_running)
         for callback in self.subscribers:
             callback()
 

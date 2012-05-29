@@ -40,12 +40,14 @@ class KeyboardCapture(threading.Thread):
     def __init__(self):
         threading.Thread.__init__(self)
 
+        self.suppress_keyboard(True)
+        
         # NOTE(hesky): Does this need to be more efficient and less
         # general if it will be called for every keystroke?        
         def on_key_event(func_name, event):
             if not event.Injected and chr(event.Ascii) in WATCHED_KEYS:
                 getattr(self, func_name, lambda x: True)(KeyboardEvent(event.Ascii))
-                return False
+                return not self.is_keyboard_suppressed()
             else:
                 return True
 
@@ -62,11 +64,15 @@ class KeyboardCapture(threading.Thread):
             self.hm.UnhookKeyboard()
             win32api.PostThreadMessage(self.ident, win32con.WM_QUIT)
 
-    def blocks_events(self):
-        """Returns True if this class blocks events (so that the
-        keystrokes do not reach the active application and False
-        otherwise."""
+    def can_suppress_keyboard(self):
         return True
+        
+    def suppress_keyboard(self, suppress):
+        self._suppress_keyboard = suppress
+        
+    def is_keyboard_suppressed(self):
+        return self._suppress_keyboard
+
 
 class KeyboardEmulation:
     """ Mapping found here: http://msdn.microsoft.com/en-us/library/8c6yea83 """

@@ -95,8 +95,13 @@ class KeyboardCapture(threading.Thread):
         if self in keyboard_capture_instances:
             keyboard_capture_instances.remove(self)
 
-    def blocks_events(self):
-        """Whether this listener blocks the focused app from receiving events"""
+    def can_suppress_keyboard(self):
+        return False
+        
+    def suppress_keyboard(self, suppress):
+        pass
+        
+    def is_keyboard_suppressed(self):
         return False
             
     def process_events(self, reply):
