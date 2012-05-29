@@ -8,6 +8,7 @@ a toRTFCRE function that takes a sequence as input and returns a
 string.
 
 """
+__all__ = ['dcat', 'eclipse']
 
 supported = {'Eclipse' : 'plover.dictionary.eclipse',
              'DCAT' : 'plover.dictionary.dcat',}

@@ -35,12 +35,15 @@ except lockfile.AlreadyLocked:
 except lockfile.LockFailed:
     print "The lock file %s cannot be locked." % LOCK_FILE
     sys.exit(2)
-
+    
 # Create and start the user interface. Clean up the lock file afterward.
 try:
     print "If Plover is quit using Ctrl-c, the %s file must \
 be removed before Plover can be run again." % (LOCK_FILE)
     gui = plover.gui.main.PloverGUI()
     gui.MainLoop()
+except:
+    print "Unexpected error:", sys.exc_info()[0]
+    raise
 finally:
     lock.release()
