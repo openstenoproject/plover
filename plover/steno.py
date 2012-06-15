@@ -22,7 +22,7 @@ conversion algorithm.
 
 """
 
-STENO_KEY_NUMBERS = { 'S-':'1-', 
+STENO_KEY_NUMBERS = { 'S-':'1-',
                       'T-': '2-',
                       'P-': '3-',
                       'H-': '4-',
@@ -74,7 +74,7 @@ class Stroke :
     historical reasons) according to a particular dictionary format.
 
     """
-        
+
     def __init__(self, steno_keys, dictionary_format) :
         """Create a steno stroke by formatting steno keys.
 
@@ -89,7 +89,7 @@ class Stroke :
         one of the modules in plover.dictionary, but it could be any
         module that provides a STROKE_DELIMITER constant and a
         toRTFCRE method that takes in a sequence and returns a string.
-        
+
         """
 
         # Remove duplicate keys and save local versions of the input
@@ -99,7 +99,7 @@ class Stroke :
 
         # Order the steno keys so comparisons can be made.
         self.steno_keys.sort(key=lambda x: STENO_KEY_ORDER[x])
-                
+
         # Convert strokes involving the number bar to numbers.
         if '#' in self.steno_keys:
             numeral = False
@@ -115,20 +115,20 @@ class Stroke :
 
         # Determine if this stroke is a correction stroke.
         self.is_correction = (self.rtfcre == '*')
-            
+
     def __str__(self):
         if self.is_correction :
             prefix = '*'
         else :
             prefix = ''
         return '%sStroke(%s : %s)' % (prefix, self.rtfcre, self.steno_keys)
-    
+
     def __eq__(self, other):
         return isinstance(other, Stroke) and self.steno_keys==other.steno_keys
 
     def __ne__(self, other):
         return not self.__eq__(other)
-    
+
     def __repr__(self):
         return str(self)
 
@@ -177,13 +177,13 @@ class Translation :
             self.rtfcre = ''
         self.english = rtfcreDict.get(self.rtfcre, None)
         self.is_correction = False
-            
+
     def __eq__(self, other):
         return self.rtfcre == other.rtfcre
 
     def __ne__(self, other):
         return not self.__eq__(other)
-    
+
     def __str__(self):
         if self.is_correction :
             prefix = '*'
@@ -198,7 +198,7 @@ class Translation :
         if self.strokes is not None:
             return len(self.strokes)
         return 0
-    
+
 
 class Translator :
     """Converts a stenotype key stream to a translation stream.
@@ -273,7 +273,7 @@ class Translator :
             max_number_of_strokes = 0
             delimiter = dictionary_format.STROKE_DELIMITER
             for rtfcre in dictionary.keys() :
-                max_number_of_strokes = max(max_number_of_strokes, 
+                max_number_of_strokes = max(max_number_of_strokes,
                                             len(rtfcre.split(delimiter)))
         self.max_number_of_strokes = max_number_of_strokes
         self.steno_machine.add_callback(self.consume_steno_keys)
@@ -312,7 +312,7 @@ class Translator :
         if len(self.strokes) >= self.max_number_of_strokes:
             self.overflow = self.translations.pop(0)
             for s0 in self.overflow.strokes:
-                s1 = self.strokes.pop(0) 
+                s1 = self.strokes.pop(0)
                 if s0 != s1:
                     raise(RuntimeError("Steno stroke buffers out of sync."))
         if not stroke.is_correction:
@@ -324,7 +324,7 @@ class Translator :
         # dictionary entry can't be constructed, then a Translation
         # containing only the first Stroke is created.
         new_translations = []
-        n = 0 
+        n = 0
         while n != len(self.strokes):
             unused = self.strokes[n:]
             for i in range(len(unused),0,-1):
@@ -347,7 +347,7 @@ class Translator :
             if old_translations[i] != new_translations[i]:
                 # Emit corrections for each remaining element in
                 # old_translations after the two lists differ.
-                for t in old_translations[i:] :
+                for t in old_translations[i:] :  # XXX Should this be in reverse order?
                     t.is_correction = True
                     self._emit_translation(t)
                 for t in new_translations[i:] :
@@ -359,7 +359,7 @@ class Translator :
             # translations appended.  As such, translations must be
             # removed or added, depending on which list is longer.
             if len(old_translations) > len(new_translations) :
-                for t in old_translations[len(new_translations):] :
+                for t in old_translations[len(new_translations):] :  # XXX Should this be in reverse order?
                     t.is_correction = True
                     self._emit_translation(t)
             else :

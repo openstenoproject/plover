@@ -4,6 +4,7 @@ import sys
 import lockfile
 import plover.gui.main
 import os
+import tempfile
 
 # Ensure only one instance of Plover is running at a time.
 # Check the environment for items to make the lockfile unique
@@ -18,22 +19,31 @@ if 'DISPLAY' in os.environ:
 else:
     display = "0"
 
-LOCK_FILE = '/tmp/.plover-%s-%s-%s' %(os.uname()[1],user,display)
+if hasattr(os, "uname"):
+    hostname = os.uname()[1]
+else:
+    import socket
+    hostname = socket.gethostname()
+        
+LOCK_FILE = os.path.join(tempfile.gettempdir(), '.plover-%s-%s-%s' %(hostname,user,display))
 lock = lockfile.FileLock(LOCK_FILE)
 try:
     lock.acquire(0)
 except lockfile.AlreadyLocked:
-    print "Another instance of Plover is already running."
+    print "Another instance of Plover is already running. Close it or delete %s" % (LOCK_FILE)
     sys.exit(1)
 except lockfile.LockFailed:
     print "The lock file %s cannot be locked." % LOCK_FILE
     sys.exit(2)
-
+    
 # Create and start the user interface. Clean up the lock file afterward.
 try:
-    print "If Plover is quit using Ctrl-c, the /tmp/plover.lock file must \
-be removed before Plover can be run again."
+    print "If Plover is quit using Ctrl-c, the %s file must \
+be removed before Plover can be run again." % (LOCK_FILE)
     gui = plover.gui.main.PloverGUI()
     gui.MainLoop()
+except:
+    print "Unexpected error:", sys.exc_info()[0]
+    raise
 finally:
     lock.release()
