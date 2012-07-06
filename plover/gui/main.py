@@ -26,6 +26,9 @@ from plover import __license__
 
 class PloverGUI(wx.App):
     """The main entry point for the Plover application."""
+    
+    def __init__(self):
+        wx.App.__init__(self, redirect=False)
 
     def OnInit(self):
         """Called just before the application starts."""

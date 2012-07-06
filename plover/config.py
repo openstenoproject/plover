@@ -5,16 +5,22 @@
 
 # Import standard library modules.
 import os
+import oslayer.config
 import logging
 import logging.handlers
 import ConfigParser
 import serial
 import shutil
 
+# We need imports to be explicit for pyinstall. 
+# There may be another way but by default it doesn't 
+# understand the dynamic loading used here.
+from plover.machine import *
+from plover.dictionary import *
+
 # Configuration paths.
-ASSETS_DIR =  os.path.join(os.path.dirname(os.path.realpath(__file__)),
-                           'assets')
-CONFIG_DIR = os.path.expanduser('~/.config/plover')
+ASSETS_DIR = oslayer.config.ASSETS_DIR
+CONFIG_DIR = oslayer.config.CONFIG_DIR
 CONFIG_FILE = os.path.join(CONFIG_DIR, 'plover.cfg')
 
 # General configuration sections and options.

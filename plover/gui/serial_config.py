@@ -9,6 +9,8 @@ from serial import SerialException
 import string
 import wx
 
+from plover.oslayer.comscan import comscan
+
 DIALOG_TITLE = 'Serial Port Configuration'
 USE_TIMEOUT_STR = 'Use Timeout'
 RTS_CTS_STR = 'RTS/CTS'
@@ -29,20 +31,8 @@ LABEL_BORDER = 4
 GLOBAL_BORDER = 4
 
 def enumerate_ports():
-    """Enumerates common available ports on *nix systems."""
-    base = '/dev/tty'
-    candidates = []
-    for port in glob.glob(base + '*'):
-        if port == base:
-            continue
-        try:
-            ser = Serial(port=port)
-            del ser
-            candidates.append(port)
-        except SerialException:
-            continue
-    candidates.sort()
-    return candidates
+    """Enumerates available ports"""
+    return sorted([x['name'] for x in comscan() if x['available']])
 
 class SerialConfigDialog(wx.Dialog):
     """Serial port configuration dialog."""
