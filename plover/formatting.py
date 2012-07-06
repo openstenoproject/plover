@@ -55,7 +55,7 @@ META_RE = re.compile(r"""(?:%s%s|%s%s|[^%s%s])+ # One or more of anything
 #                                   # doesn't contain unescaped { or }
 #             """, re.VERBOSE)
 
-    
+
 class Formatter:
     """A state machine for converting Translation objects into printable text.
 
@@ -63,10 +63,10 @@ class Formatter:
     through the consume_translation method and output printable text.
 
     """
-    
-    def __init__(self, 
-                 translator, 
-                 text_output=None, 
+
+    def __init__(self,
+                 translator,
+                 text_output=None,
                  engine_command_callback=None):
         """Create a state machine for processing Translation objects.
 
@@ -100,7 +100,7 @@ class Formatter:
 
         """
         cmd = self._get_engine_command(translation)
-        if cmd: 
+        if cmd:
             if self.engine_command_callback:
                 self.engine_command_callback(cmd)
             return
@@ -114,11 +114,11 @@ class Formatter:
         new_keystrokes, new_key_combos = self._translations_to_string(tBuffer)
         old_length = len(self.keystrokes)
         new_length = len(new_keystrokes)
-        
+
         # XXX: There is some code duplication here with
         # TranslationBuffer.consume_stroke. Might be worth
         # generalizing and consolidating.
-        
+
         # Compare old keystrokes to new keystrokes and reconcile them
         # by emitting zero or more backspaces and zero or more
         # keystrokes.
@@ -147,7 +147,7 @@ class Formatter:
                 self.key_combos.pop(0)
             else:
                 break
-            
+
         # Output any corrective backspaces and new characters or key
         # combinations.
         if self.text_output:
@@ -186,7 +186,7 @@ class Formatter:
         key_combinations = []
         previous_atom = None
         for translation in translations:
-            
+
             if self._get_engine_command(translation):
                 continue
             # Reduce the translation to atoms. An atom is in
@@ -262,10 +262,12 @@ class Formatter:
                 if previous_meta is not None:
                     if previous_meta in META_STOPS:
                         space = STOP_SPACE
-                        english = english.capitalize()
+                        if english:
+                            english = english[0].upper() + english[1:]
                     elif previous_meta == META_CAPITALIZE:
                         space = NO_SPACE
-                        english = english.capitalize()
+                        if english:
+                            english = english[0].upper() + english[1:]
                     elif previous_meta.endswith(META_ATTACH_FLAG):
                         space = NO_SPACE
                     elif previous_meta.startswith(META_KEY_COMBINATION):
@@ -279,7 +281,7 @@ class Formatter:
         return (''.join(text), key_combinations)
 
     def _get_meta(self, atom):
-        # Return the meta command, if any, without surrounding meta markups. 
+        # Return the meta command, if any, without surrounding meta markups.
         if (atom is not None and
             atom.startswith(META_START) and
             atom.endswith(META_END)):
@@ -295,10 +297,10 @@ class Formatter:
         # Return the steno engine command, if any, represented by the
         # given translation.
         cmd = translation.english
-        if (cmd and 
+        if (cmd and
             cmd.startswith(META_START + META_COMMAND) and
             cmd.endswith(META_END)):
-            return cmd[len(META_COMMAND) + 1:-1]
+            return cmd[len(META_START) + len(META_COMMAND):-len(META_END)]
         return None
 
     def _apply_glue(self, s):
