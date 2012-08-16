@@ -59,7 +59,7 @@ class StenoEngine:
     to the output.
 
     output: Typically an instance of the
-    plover.oslayerkeyboardcontrol.KeyboardEmulation class. This object
+    plover.oslayer.keyboardcontrol.KeyboardEmulation class. This object
     displays text on the screen.
 
     In addition to the above pieces, a logger records timestamped
