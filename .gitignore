@@ -32,5 +32,9 @@ nosetests.xml
 #Mr Developer
 .mr.developer.cfg
 
+# mac files
+.DS_store
+
+# emacs backups
 *~
-.DS_Store
+
