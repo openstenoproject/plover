@@ -24,6 +24,8 @@ if sys.platform.startswith('linux'):
     import xkeyboardcontrol as keyboardcontrol
 elif sys.platform.startswith('win32'):
     import winkeyboardcontrol as keyboardcontrol
+elif sys.platform.startswith('darwin'):
+    import osxkeyboardcontrol as keyboardcontrol
 else:
     raise Exception(KEYBOARDCONTROL_NOT_FOUND_FOR_OS)
     
