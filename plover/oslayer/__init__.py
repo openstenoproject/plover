@@ -3,4 +3,4 @@
 
 """This package abstracts os details for plover."""
 
-__all__ = ['comscan', 'keyboardcontrol']
+__all__ = ['comscan', 'keyboardcontrol', 'processlock']
