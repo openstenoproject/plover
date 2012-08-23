@@ -11,7 +11,7 @@ Supported stenotype protocols:
  * QWERTY keyboards with n-key rollover (e.g. Microsoft SideWinder X4)
  * Gemini PR (a.k.a. Gemini Enhanced)
  * TX Bolt (a.k.a. Gemini TX)
-
+ * Stentura 
 Contact the authors if you would like Plover to support your stenotype
 machine.
 

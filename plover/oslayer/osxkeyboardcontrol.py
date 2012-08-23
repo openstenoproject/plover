@@ -198,6 +198,9 @@ class KeyboardCapture(threading.Thread):
                 MY_EVENT_SOURCE_ID):
                 return event
             result = CGEventKeyboardGetUnicodeString(event, 1, None, None)
+            # Don't intercept the event if it has modifiers.
+            if CGEventGetFlags(event) & ~kCGEventFlagMaskNonCoalesced:
+                return event
             if len(result[1]) > 0:
                 # Doesn't work for non-ascii keyboard mappings.
                 # TODO: Check that we are in an incompatible mapping and notify 
