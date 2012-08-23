@@ -1,5 +1,6 @@
 # Copyright (c) 2011 Hesky Fisher
 # See LICENSE.txt for details.
+# Many thanks to a steno geek for help with the protocol.
 
 # TODO: Come up with a mechanism to communicate back to the engine when there
 # is a connection error.
