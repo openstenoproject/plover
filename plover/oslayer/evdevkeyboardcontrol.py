@@ -74,9 +74,9 @@ class KeyboardCapture(threading.Thread):
 
     def suppress_keyboard(self, suppress):
         if suppress:
-            self.indevice.grab()
+            self.input.grab()
         else:
-            self.indevice.ungrab()
+            self.input.ungrab()
         self._suppress_keyboard = suppress
 
     def is_keyboard_suppressed(self):
