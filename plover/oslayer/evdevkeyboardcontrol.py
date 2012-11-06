@@ -99,6 +99,32 @@ upperchar_to_scancode = {
     '|':e.KEY_BACKSLASH,
     '}':e.KEY_RIGHTBRACE,
     '~':e.KEY_GRAVE,
+    'A':e.KEY_A,
+    'B':e.KEY_B,
+    'C':e.KEY_C,
+    'D':e.KEY_D,
+    'E':e.KEY_E,
+    'F':e.KEY_F,
+    'G':e.KEY_G,
+    'H':e.KEY_H,
+    'I':e.KEY_I,
+    'J':e.KEY_J,
+    'K':e.KEY_K,
+    'L':e.KEY_L,
+    'M':e.KEY_M,
+    'N':e.KEY_N,
+    'O':e.KEY_O,
+    'P':e.KEY_P,
+    'Q':e.KEY_Q,
+    'R':e.KEY_R,
+    'S':e.KEY_S,
+    'T':e.KEY_T,
+    'U':e.KEY_U,
+    'V':e.KEY_V,
+    'W':e.KEY_W,
+    'X':e.KEY_X,
+    'Y':e.KEY_Y,
+    'Z':e.KEY_Z,
 }
 
 keymap_multi = {
@@ -182,7 +208,6 @@ class KeyboardCapture(threading.Thread):
 
     def cancel(self):
         """Stop listening for keyboard events."""
-        print "Killin it"
         if self.interject: self.interject.send("stop")
 
 
