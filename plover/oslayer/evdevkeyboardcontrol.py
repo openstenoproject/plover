@@ -272,12 +272,16 @@ class KeyboardEmulation:
         keycode_list = []
 
         for char in s:
-            if char in upperchar_to_scancode:
+            code = upperchar_to_scancode.get(char, None)
+            if code:
                 keycode_list.append([e.KEY_LEFTSHIFT, KEY_DOWN])
-                keycode_list.append(upperchar_to_scancode[char])
+                keycode_list.append(code)
                 keycode_list.append([e.KEY_LEFTSHIFT, KEY_UP])
-            else:
-                keycode_list.append(char_to_scancode[char])
+                continue
+
+            code = char_to_scancode.get(char, None)
+            if code:
+                keycode_list.append(code)
 
         self._send_keycodes(keycode_list)
 
@@ -339,12 +343,15 @@ class KeyboardEmulation:
             else:
                 # Oh, a normal string? How rare.
                 for char in token:
-                    if char in upperchar_to_scancode:
+                    code = upperchar_to_scancode.get(char, None)
+                    if code:
                         keycode_list.append([e.KEY_LEFTSHIFT, KEY_DOWN])
-                        keycode_list.append(upperchar_to_scancode[char])
+                        keycode_list.append(code)
                         keycode_list.append([e.KEY_LEFTSHIFT, KEY_UP])
-                    else:
-                        keycode_list.append(char_to_scancode[char])
+                        continue
+                    code = char_to_scancode.get(char, None)
+                    if code:
+                        keycode_list.append(code)
 
         # Case where we only looped once and it was a multi-modifier.
         if last_command:
