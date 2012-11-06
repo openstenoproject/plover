@@ -24,9 +24,125 @@ uinput_options = {
 KEY_UP   = 0
 KEY_DOWN = 1
 
+char_to_scancode = {
+    ' ':e.KEY_SPACE,
+    '*':e.KEY_KPASTERISK,
+    ',':e.KEY_COMMA,
+    '-':e.KEY_MINUS,
+    '.':e.KEY_DOT,
+    '/':e.KEY_SLASH,
+    '1':e.KEY_1,
+    '2':e.KEY_2,
+    '3':e.KEY_3,
+    '4':e.KEY_4,
+    '5':e.KEY_5,
+    '6':e.KEY_6,
+    '7':e.KEY_7,
+    '8':e.KEY_8,
+    '9':e.KEY_9,
+    '0':e.KEY_0,
+    ';':e.KEY_SEMICOLON,
+    '=':e.KEY_EQUAL,
+    '[':e.KEY_LEFTBRACE,
+    '\'':e.KEY_APOSTROPHE,
+    '\\':e.KEY_BACKSLASH,
+    ']':e.KEY_RIGHTBRACE,
+    '`':e.KEY_GRAVE,
+    'a':e.KEY_A,
+    'b':e.KEY_B,
+    'c':e.KEY_C,
+    'd':e.KEY_D,
+    'e':e.KEY_E,
+    'f':e.KEY_F,
+    'g':e.KEY_G,
+    'h':e.KEY_H,
+    'i':e.KEY_I,
+    'j':e.KEY_J,
+    'k':e.KEY_K,
+    'l':e.KEY_L,
+    'm':e.KEY_M,
+    'n':e.KEY_N,
+    'o':e.KEY_O,
+    'p':e.KEY_P,
+    'q':e.KEY_Q,
+    'r':e.KEY_R,
+    's':e.KEY_S,
+    't':e.KEY_T,
+    'u':e.KEY_U,
+    'v':e.KEY_V,
+    'w':e.KEY_W,
+    'x':e.KEY_X,
+    'y':e.KEY_Y,
+    'z':e.KEY_Z,
+}
+scancode_to_char = dict(zip(char_to_scancode.values(), char_to_scancode.keys()))
+
+upperchar_to_scancode = {
+    '<':e.KEY_COMMA,
+    '_':e.KEY_MINUS,
+    '>':e.KEY_DOT,
+    '?':e.KEY_SLASH,
+    '!':e.KEY_1,
+    '@':e.KEY_2,
+    '#':e.KEY_3,
+    '$':e.KEY_4,
+    '%':e.KEY_5,
+    '^':e.KEY_6,
+    '&':e.KEY_7,
+    '*':e.KEY_8,
+    '(':e.KEY_9,
+    ')':e.KEY_0,
+    ':':e.KEY_SEMICOLON,
+    '+':e.KEY_EQUAL,
+    '{':e.KEY_LEFTBRACE,
+    '"':e.KEY_APOSTROPHE,
+    '|':e.KEY_BACKSLASH,
+    '}':e.KEY_RIGHTBRACE,
+    '~':e.KEY_GRAVE,
+}
+
+keymap_multi = {
+    "Alt_L":e.KEY_LEFTALT,
+    "Alt_R":e.KEY_RIGHTALT,
+    "Control_L":e.KEY_LEFTCTRL,
+    "Control_R":e.KEY_RIGHTCTRL,
+    "Shift_L":e.KEY_LEFTSHIFT,
+    "Shift_R":e.KEY_RIGHTSHIFT,
+}
+
+keymap_single = {
+    "Caps_Lock":e.KEY_CAPSLOCK,
+    "Num_Lock":e.KEY_NUMLOCK,
+    "Scroll_Lock":e.KEY_SCROLLLOCK,
+    "Shift_Lock":e.KEY_CAPSLOCK,  # This is the closest we have.
+
+    "Return":e.KEY_ENTER,
+    "Tab":e.KEY_TAB,
+    "BackSpace":e.KEY_BACKSPACE,
+    "Delete":e.KEY_DELETE,
+    "Escape":e.KEY_ESC,
+    "Break":e.KEY_BREAK,
+    "Insert":e.KEY_INSERT,
+
+    "Down":e.KEY_DOWN,
+    "Up":e.KEY_UP,
+    "Left":e.KEY_LEFT,
+    "Right":e.KEY_RIGHT,
+    "Page_Up":e.KEY_PAGEUP,
+    "Page_Down":e.KEY_PAGEDOWN,
+    "Home":e.KEY_HOME,
+    "End":e.KEY_END,
+
+    "Print":e.KEY_PRINT,
+    "Help":e.KEY_HELP,
+}
+for i in xrange (1, 25):
+    keymap_single['F%d' % i] = e.ecodes['KEY_F%s' % i]
+
+
 # Modify InputEvent so it can return a 'keystring'
 setattr (events.InputEvent, 'keystring',
-    property (lambda self: e.KEY[self.code]))
+    property (lambda self: scancode_to_char.get(self.code, 'UNKNOWN')))
 
 class KeyboardCapture(threading.Thread):
     """Listen to keyboard press and release events."""
@@ -48,8 +164,7 @@ class KeyboardCapture(threading.Thread):
 
         running = True
         while running:
-            inp = self.input
-            r,w,x = select.select([inp, self.interrupt], [], [])
+            r,w,x = select.select([self.input, self.interrupt], [], [])
             if r[0].fileno() == self.interrupt.fileno():
                 running = False
                 break
@@ -60,12 +175,14 @@ class KeyboardCapture(threading.Thread):
         self.interrupt.shutdown(socket.SHUT_RDWR)
         self.interject = self.interrupt = None
 
+
     def start(self):
         """Starts the thread."""
         threading.Thread.start(self)
 
     def cancel(self):
         """Stop listening for keyboard events."""
+        print "Killin it"
         if self.interject: self.interject.send("stop")
 
 
@@ -104,121 +221,6 @@ class KeyboardCapture(threading.Thread):
 class KeyboardEmulation:
     """Emulate keyboard events."""
 
-    char_to_scancode = {
-        ' ':e.KEY_SPACE,
-        '*':e.KEY_KPASTERISK,
-        ',':e.KEY_COMMA,
-        '-':e.KEY_MINUS,
-        '.':e.KEY_DOT,
-        '/':e.KEY_SLASH,
-        '1':e.KEY_1,
-        '2':e.KEY_2,
-        '3':e.KEY_3,
-        '4':e.KEY_4,
-        '5':e.KEY_5,
-        '6':e.KEY_6,
-        '7':e.KEY_7,
-        '8':e.KEY_8,
-        '9':e.KEY_9,
-        '0':e.KEY_0,
-        ';':e.KEY_SEMICOLON,
-        '=':e.KEY_EQUAL,
-        '[':e.KEY_LEFTBRACE,
-        '\'':e.KEY_APOSTROPHE,
-        '\\':e.KEY_BACKSLASH,
-        ']':e.KEY_RIGHTBRACE,
-        '`':e.KEY_GRAVE,
-        'a':e.KEY_A,
-        'b':e.KEY_B,
-        'c':e.KEY_C,
-        'd':e.KEY_D,
-        'e':e.KEY_E,
-        'f':e.KEY_F,
-        'g':e.KEY_G,
-        'h':e.KEY_H,
-        'i':e.KEY_I,
-        'j':e.KEY_J,
-        'k':e.KEY_K,
-        'l':e.KEY_L,
-        'm':e.KEY_M,
-        'n':e.KEY_N,
-        'o':e.KEY_O,
-        'p':e.KEY_P,
-        'q':e.KEY_Q,
-        'r':e.KEY_R,
-        's':e.KEY_S,
-        't':e.KEY_T,
-        'u':e.KEY_U,
-        'v':e.KEY_V,
-        'w':e.KEY_W,
-        'x':e.KEY_X,
-        'y':e.KEY_Y,
-        'z':e.KEY_Z,
-    }
-
-    upperchar_to_scancode = {
-        '<':e.KEY_COMMA,
-        '_':e.KEY_MINUS,
-        '>':e.KEY_DOT,
-        '?':e.KEY_SLASH,
-        '!':e.KEY_1,
-        '@':e.KEY_2,
-        '#':e.KEY_3,
-        '$':e.KEY_4,
-        '%':e.KEY_5,
-        '^':e.KEY_6,
-        '&':e.KEY_7,
-        '*':e.KEY_8,
-        '(':e.KEY_9,
-        ')':e.KEY_0,
-        ':':e.KEY_SEMICOLON,
-        '+':e.KEY_EQUAL,
-        '{':e.KEY_LEFTBRACE,
-        '"':e.KEY_APOSTROPHE,
-        '|':e.KEY_BACKSLASH,
-        '}':e.KEY_RIGHTBRACE,
-        '~':e.KEY_GRAVE,
-    }
-
-    keymap_multi = {
-        "Alt_L":e.KEY_LEFTALT,
-        "Alt_R":e.KEY_RIGHTALT,
-        "Control_L":e.KEY_LEFTCTRL,
-        "Control_R":e.KEY_RIGHTCTRL,
-        "Shift_L":e.KEY_LEFTSHIFT,
-        "Shift_R":e.KEY_RIGHTSHIFT,
-    }
-
-    keymap_single = {
-        "Caps_Lock":e.KEY_CAPSLOCK,
-        "Num_Lock":e.KEY_NUMLOCK,
-        "Scroll_Lock":e.KEY_SCROLLLOCK,
-        "Shift_Lock":e.KEY_CAPSLOCK,  # This is the closest we have.
-
-        "Return":e.KEY_ENTER,
-        "Tab":e.KEY_TAB,
-        "BackSpace":e.KEY_BACKSPACE,
-        "Delete":e.KEY_DELETE,
-        "Escape":e.KEY_ESC,
-        "Break":e.KEY_BREAK,
-        "Insert":e.KEY_INSERT,
-
-        "Down":e.KEY_DOWN,
-        "Up":e.KEY_UP,
-        "Left":e.KEY_LEFT,
-        "Right":e.KEY_RIGHT,
-        "Page_Up":e.KEY_PAGEUP,
-        "Page_Down":e.KEY_PAGEDOWN,
-        "Home":e.KEY_HOME,
-        "End":e.KEY_END,
-
-        "Print":e.KEY_PRINT,
-        "Help":e.KEY_HELP,
-    }
-
-    for i in xrange (1, 25):
-        keymap_single['F%d' % i] = e.ecodes['KEY_F%s' % i]
-
     def __init__(self):
         """Prepare to emulate keyboard events."""
         self.output = uinput.UInput(**uinput_options)
@@ -245,12 +247,12 @@ class KeyboardEmulation:
         keycode_list = []
 
         for char in s:
-            if char in self.upperchar_to_scancode:
+            if char in upperchar_to_scancode:
                 keycode_list.append([e.KEY_LEFTSHIFT, KEY_DOWN])
-                keycode_list.append(self.upperchar_to_scancode[char])
+                keycode_list.append(upperchar_to_scancode[char])
                 keycode_list.append([e.KEY_LEFTSHIFT, KEY_UP])
             else:
-                keycode_list.append(self.char_to_scancode[char])
+                keycode_list.append(char_to_scancode[char])
 
         self._send_keycodes(keycode_list)
 
@@ -298,26 +300,26 @@ class KeyboardEmulation:
                 keycode_list.append([key_down_stack.pop(), KEY_UP])
 
 
-            elif token in self.keymap_multi:
+            elif token in keymap_multi:
                 # *Just in case*
                 if last_command:
                     keycode_list.append(last_command)
 
                 # Store the command. The next token will dictate what happens.
-                last_command = self.keymap_multi[token]
+                last_command = keymap_multi[token]
 
-            elif token in self.keymap_single:
-                keycode_list.append(self.keymap_single[token])
+            elif token in keymap_single:
+                keycode_list.append(keymap_single[token])
 
             else:
                 # Oh, a normal string? How rare.
                 for char in token:
-                    if char in self.upperchar_to_scancode:
+                    if char in upperchar_to_scancode:
                         keycode_list.append([e.KEY_LEFTSHIFT, KEY_DOWN])
-                        keycode_list.append(self.upperchar_to_scancode[char])
+                        keycode_list.append(upperchar_to_scancode[char])
                         keycode_list.append([e.KEY_LEFTSHIFT, KEY_UP])
                     else:
-                        keycode_list.append(self.char_to_scancode[char])
+                        keycode_list.append(char_to_scancode[char])
 
         # Case where we only looped once and it was a multi-modifier.
         if last_command:
