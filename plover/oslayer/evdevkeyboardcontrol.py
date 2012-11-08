@@ -168,7 +168,7 @@ for i in xrange (1, 25):
 
 # Modify InputEvent so it can return a 'keystring'
 setattr (events.InputEvent, 'keystring',
-    property (lambda self: scancode_to_char.get(self.code, 'UNKNOWN')))
+    property (lambda self: scancode_to_char.get(self.code, e.KEY[self.code])))
 
 class KeyboardCapture(threading.Thread):
     """Listen to keyboard press and release events."""
