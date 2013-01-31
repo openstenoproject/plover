@@ -12,11 +12,15 @@ import ConfigParser
 import serial
 import shutil
 
-# We need imports to be explicit for pyinstall. 
+# We need imports to be explicit for py2app. 
 # There may be another way but by default it doesn't 
 # understand the dynamic loading used here.
-from plover.machine import *
-from plover.dictionary import *
+import plover.dictionary.eclipse
+import plover.dictionary.dcat
+import plover.machine.geminipr
+import plover.machine.txbolt
+import plover.machine.sidewinder
+import plover.machine.stentura
 
 # Configuration paths.
 ASSETS_DIR = oslayer.config.ASSETS_DIR
