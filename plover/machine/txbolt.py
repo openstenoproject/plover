@@ -4,6 +4,7 @@
 """Thread-based monitoring of a stenotype machine using the TX Bolt protocol."""
 
 import plover.machine.base
+import time
 
 # In the TX Bolt protocol, there are four sets of keys grouped in
 # order from left to right. Each byte represents all the keys that
@@ -46,7 +47,6 @@ class Stenotype(plover.machine.base.SerialStenotypeBase):
     def _reset_stroke_state(self):
         self._pressed_keys = []
         self._last_key_set = 0
-        self._last_byte = 0
 
     def _finish_stroke(self):
         self._notify(self._pressed_keys)
@@ -54,6 +54,8 @@ class Stenotype(plover.machine.base.SerialStenotypeBase):
 
     def run(self):
         """Overrides base class run method. Do not call directly."""
+        last_read_time_s = 0
+        timeout_s = 0.1
         while not self.finished.isSet():
             # Grab data from the serial port.
             raw = self.serial_port.read(self.serial_port.inWaiting())
@@ -62,17 +64,18 @@ class Stenotype(plover.machine.base.SerialStenotypeBase):
             if isinstance(raw, str):
                 raw = [ord(x) for x in raw]
 
-            if not raw and len(self._pressed_keys) > 0:
+            if raw:
+                last_read_time_s = time.clock()
+
+            if not raw and len(self._pressed_keys) > 0 and time.clock() - last_read_time_s > timeout_s:
                 self._finish_stroke()
                 continue
 
             for byte in raw:
                 key_set = byte >> 6
-                if (byte == 0 and self._last_byte != 0) or (key_set < self._last_key_set):
+                if key_set <= self._last_key_set and len(self._pressed_keys) > 0:
                     self._finish_stroke()
-                else:
-                    self._last_key_set = key_set
-                    self._last_byte = byte
-                    for i in xrange(6):
-                        if (byte >> i) & 1:
-                            self._pressed_keys.append(STENO_KEY_CHART[(key_set * 6) + i])
+                self._last_key_set = key_set
+                for i in xrange(6):
+                    if (byte >> i) & 1:
+                        self._pressed_keys.append(STENO_KEY_CHART[(key_set * 6) + i])
