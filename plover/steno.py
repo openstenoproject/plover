@@ -270,7 +270,7 @@ class Translator :
         self.dictionary_format = dictionary_format
         self.subscribers = []
         if max_number_of_strokes is None :
-            max_number_of_strokes = 0
+            max_number_of_strokes = 1
             delimiter = dictionary_format.STROKE_DELIMITER
             for rtfcre in dictionary.keys() :
                 max_number_of_strokes = max(max_number_of_strokes,
