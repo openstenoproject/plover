@@ -13,7 +13,7 @@ RULES = [
 
     # == +s ==
     # establish + s = establishes (sibilant pluralization)
-    (re.compile(r'^(.*[aeiou](?:s|x|z|ms|rs|sh|ss|tz|zz|lys|rsh)|.*y(?:x|ss)) \^ s$', re.I),
+    (re.compile(r'^(.*(?:s|sh|x|z|zh)) \^ s$', re.I),
         r'\1es'),
     # speech + s = speeches (soft ch pluralization)
     (re.compile(r'^(.*(?:a|i|ee|oo|au|ou|n|r|t)ch) \^ s$', re.I),
