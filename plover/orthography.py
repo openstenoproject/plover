@@ -35,7 +35,7 @@ RULES = [
 
     # == e ==
     # narrate + ing = narrating (silent e)
-    (re.compile(r'^(.+[bcdfghjklmnpqrstvwxz])e \^ ([aeiouy].*)$', re.I),
+    (re.compile(r'^(.+[bcdfghjklmnpqrstuvwxz])e \^ ([aeiouy].*)$', re.I),
         r'\1\2'),
     
     # == misc ==
