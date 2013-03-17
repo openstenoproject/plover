@@ -16,7 +16,7 @@ RULES = [
     (re.compile(r'^(.*(?:s|sh|x|z|zh)) \^ s$', re.I),
         r'\1es'),
     # speech + s = speeches (soft ch pluralization)
-    (re.compile(r'^(.*(?:a|i|ee|oo|au|ou|n|r|t)ch) \^ s$', re.I),
+    (re.compile(r'^(.*(?:a|i|ee|oo|au|ou|l|n|r|t)ch) \^ s$', re.I),
         r'\1es'),
     # cherry + s = cherries (consonant + y pluralization)
     (re.compile(r'^(.+[bcdfghjklmnpqrstvwxz])y \^ s$', re.I),
