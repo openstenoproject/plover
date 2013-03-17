@@ -8,24 +8,24 @@ import re
 RULES = [
     # == +ly ==
     # artistic + ly = artistically
-    (re.compile(r'^(.*[aeiou]c) \^ ly(\W.*)?$', re.I),
-        r'\1ally\2'),
+    (re.compile(r'^(.*[aeiou]c) \^ ly$', re.I),
+        r'\1ally'),
 
     # == +s ==
     # establish + s = establishes (sibilant pluralization)
-    (re.compile(r'^(.*(?:s|sh|x|z|zh)) \^ s(\W.*)?$', re.I),
-        r'\1es\2'),
+    (re.compile(r'^(.*(?:s|sh|x|z|zh)) \^ s$', re.I),
+        r'\1es'),
     # speech + s = speeches (soft ch pluralization)
-    (re.compile(r'^(.*(?:a|i|ee|oo|au|ou|n|r|t)ch) \^ s(\W.*)?$', re.I),
-        r'\1es\2'),
+    (re.compile(r'^(.*(?:a|i|ee|oo|au|ou|n|r|t)ch) \^ s$', re.I),
+        r'\1es'),
     # cherry + s = cherries (consonant + y pluralization)
-    (re.compile(r'^(.+[bcdfghjklmnpqrstvwxz])y \^ s(\W.*)?$', re.I),
-        r'\1ies\2'),
+    (re.compile(r'^(.+[bcdfghjklmnpqrstvwxz])y \^ s$', re.I),
+        r'\1ies'),
 
     # == y ==
     # die+ing = dying
-    (re.compile(r'^(.+)ie \^ ing(\W.*)?$', re.I),
-        r'\1ying\2'),
+    (re.compile(r'^(.+)ie \^ ing$', re.I),
+        r'\1ying'),
     # metallurgy + ist = metallurgist
     (re.compile(r'^(.+[bcdfghjklmnpqrstvwxz])y \^ i(.*)$', re.I),
         r'\1i\2'),
@@ -53,9 +53,10 @@ def add_suffix(word, suffix):
     suffix -- The suffix to add
     
     """
+    suffix, sep, rest = suffix.partition(' ')
     for r in RULES:
         m = r[0].match(word + " ^ " + suffix)
         if m:   
             expanded = m.expand(r[1])
-            return expanded
-    return word + suffix
+            return expanded + sep + rest
+    return word + suffix + sep + rest
