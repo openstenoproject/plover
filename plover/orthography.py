@@ -8,24 +8,24 @@ import re
 RULES = [
     # == +ly ==
     # artistic + ly = artistically
-    (re.compile(r'^(.*[aeiou]c) \^ ly$', re.I),
-        r'\1ally'),
+    (re.compile(r'^(.*[aeiou]c) \^ ly(\W.*)?$', re.I),
+        r'\1ally\2'),
 
     # == +s ==
     # establish + s = establishes (sibilant pluralization)
-    (re.compile(r'^(.*(?:s|sh|x|z|zh)) \^ s$', re.I),
-        r'\1es'),
+    (re.compile(r'^(.*(?:s|sh|x|z|zh)) \^ s(\W.*)?$', re.I),
+        r'\1es\2'),
     # speech + s = speeches (soft ch pluralization)
-    (re.compile(r'^(.*(?:a|i|ee|oo|au|ou|n|r|t)ch) \^ s$', re.I),
-        r'\1es'),
+    (re.compile(r'^(.*(?:a|i|ee|oo|au|ou|n|r|t)ch) \^ s(\W.*)?$', re.I),
+        r'\1es\2'),
     # cherry + s = cherries (consonant + y pluralization)
-    (re.compile(r'^(.+[bcdfghjklmnpqrstvwxz])y \^ s$', re.I),
-        r'\1ies'),
+    (re.compile(r'^(.+[bcdfghjklmnpqrstvwxz])y \^ s(\W.*)?$', re.I),
+        r'\1ies\2'),
 
     # == y ==
     # die+ing = dying
-    (re.compile(r'^(.+)ie \^ ing$', re.I),
-        r'\1ying'),
+    (re.compile(r'^(.+)ie \^ ing(\W.*)?$', re.I),
+        r'\1ying\2'),
     # metallurgy + ist = metallurgist
     (re.compile(r'^(.+[bcdfghjklmnpqrstvwxz])y \^ i(.*)$', re.I),
         r'\1i\2'),
