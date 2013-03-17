@@ -26,9 +26,9 @@ RULES = [
     # die+ing = dying
     (re.compile(r'^(.+)ie \^ ing$', re.I),
         r'\1ying'),
-    # metallurgy + ist = metallurgist
-    (re.compile(r'^(.+[bcdfghjklmnpqrstvwxz])y \^ i(.*)$', re.I),
-        r'\1i\2'),
+#    # metallurgy + ist = metallurgist   (too many problems: lobbyist quarrying)
+#    (re.compile(r'^(.+[bcdfghjklmnpqrstvwxz])y \^ i(.*)$', re.I),
+#        r'\1i\2'),
     # beauty + ful = beautiful (y -> i)
     (re.compile(r'^(.+[bcdfghjklmnpqrstvwxz])y \^ ([a-hj-xz].*)$', re.I),
         r'\1i\2'),
