@@ -30,7 +30,7 @@ RULES = [
     (re.compile(r'^(.+[bcdfghjklmnpqrstvwxz])y \^ i(.*)$', re.I),
         r'\1i\2'),
     # beauty + ful = beautiful (y -> i)
-    (re.compile(r'^(.+[bcdfghjklmnpqrstvwxz])y \^ ([bcdfghjklmnpqrtvwxz].*)$', re.I),
+    (re.compile(r'^(.+[bcdfghjklmnpqrstvwxz])y \^ ([a-hj-rt-xz].*)$', re.I),
         r'\1i\2'),
 
     # == e ==
