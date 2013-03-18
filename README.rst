@@ -2,6 +2,7 @@ Copyright (c) 2010-2011 Joshua Harlan Lifton.
 See LICENSE.txt for details.
 
 Plover: Open Source Stenography Software
+========================================
 
 Stenography expertise, original concept, feature design, and testing
 by Mirabai Knight. Code and technical design by Joshua Harlan
@@ -11,12 +12,14 @@ Supported stenotype protocols:
  * QWERTY keyboards with n-key rollover (e.g. Microsoft SideWinder X4)
  * Gemini PR (a.k.a. Gemini Enhanced)
  * TX Bolt (a.k.a. Gemini TX)
- * Stentura 
+ * Stentura
+
 Contact the authors if you would like Plover to support your stenotype
 machine.
 
 
-WARNING
+Warning
+-------
 
 Plover is not mature software. Once running, it will interpret all
 keystrokes according to the stenography dictionary you provide. Be
@@ -26,17 +29,19 @@ the mouse or stop the Plover program if you are unsure of what will
 result from typing.
 
 
-INSTALLATION
+Installation
+------------
 
 These installation notes are for Debian-like Linux systems. From the
 directory in which this README file is located, run the following
-commands:
+commands::
 
-sudo apt-get install python-xlib python-serial python-wxgtk2.8 appdirs
-sudo python setup.py install
+    sudo apt-get install python-xlib python-serial python-wxgtk2.8 appdirs
+    sudo python setup.py install
 
 
-RUNNING PLOVER
+Running Plover
+--------------
 
 After installation is complete as above, the Plover application will
 be available from the command-line and as an icon in the application
