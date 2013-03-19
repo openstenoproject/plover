@@ -222,10 +222,9 @@ class Formatter:
                         english = meta[1:]
                         if english.endswith(META_ATTACH_FLAG):
                             english = english[:-1]
-                        elif not META_ATTACH_FLAG in english:
-                            if text:
-                                old_text = text.pop()
-                                english = orthography.add_suffix(old_text, english);
+                        if text:
+                            old_text = text.pop()
+                            english = orthography.add_suffix(old_text, english);
                     elif meta.endswith(META_ATTACH_FLAG):
                         space = SPACE
                         english = meta[:-1]
