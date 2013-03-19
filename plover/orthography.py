@@ -3,83 +3,132 @@
 
 """Functions that implement some English orthographic rules."""
 
-CONSONANTS = 'bcdfghjklmnpqrstvwxzBCDFGHJKLMNPQRSTVWXZ'
-VOWELS = 'aeiouAEIOU'
-W = 'wW'
-Y = 'yY'
-PLURAL_SPECIAL = 'sxzSXZ'
+import re
 
-def pluralize_with_s(word):
-    """Form the plural of a word by adding an s.
+RULES = [
+    # == +ly ==
+    # artistic + ly = artistically
+    (re.compile(r'^(.*[aeiou]c) \^ ly$', re.I),
+        r'\1ally'),
 
-    Argument:
+    # == +s ==
+    # establish + s = establishes (sibilant pluralization)
+    (re.compile(r'^(.*(?:s|sh|x|z|zh)) \^ s$', re.I),
+        r'\1es'),
+    # speech + s = speeches (soft ch pluralization)
+    (re.compile(r'^(.*(?:oa|ea|i|ee|oo|au|ou|l|n|(?<![gin]a)r|t)ch) \^ s$', re.I),
+        r'\1es'),
+    # cherry + s = cherries (consonant + y pluralization)
+    (re.compile(r'^(.+[bcdfghjklmnpqrstvwxz])y \^ s$', re.I),
+        r'\1ies'),
 
-    word -- A singular noun or noun phrase.
+    # == y ==
+    # die+ing = dying
+    (re.compile(r'^(.+)ie \^ ing$', re.I),
+        r'\1ying'),
+    # metallurgy + ist = metallurgist
+    (re.compile(r'^(.+[cdfghlmnpr])y \^ ist$', re.I),
+        r'\1ist'),
+    # beauty + ful = beautiful (y -> i)
+    (re.compile(r'^(.+[bcdfghjklmnpqrstvwxz])y \^ ([a-hj-xz].*)$', re.I),
+        r'\1i\2'),
 
+    # == e ==
+    # narrate + ing = narrating (silent e)
+    (re.compile(r'^(.+[bcdfghjklmnpqrstuvwxz])e \^ ([aeiouy].*)$', re.I),
+        r'\1\2'),
+    
+    # == misc ==
+    # defer + ed = deferred (consonant doubling)   XXX monitor(stress not on last syllable)
+    (re.compile(r'^(.*[bcdfghjklmnpqrstvwxyz][aeiou])([bcdfgklmnprtvz]) \^ ([aeiouy].*)$', re.I),
+        r'\1\2\2\3'),
+]
+
+def add_suffix(word, suffix):
+    """Add a suffix to a word by applying the rules above
+    
+    Arguments:
+        
+    word -- A word
+    suffix -- The suffix to add
+    
     """
-    if len(word) < 2:
-        return word + 's'
-    a = word[-2]
-    b = word[-1]
-    if b in PLURAL_SPECIAL:
-        return word + 'es'
-    elif b in Y and a in CONSONANTS:
-        return word[:-1] + 'ies'
-    return word + 's'
+    suffix, sep, rest = suffix.partition(' ')
+    for r in RULES:
+        m = r[0].match(word + " ^ " + suffix)
+        if m:   
+            expanded = m.expand(r[1])
+            return expanded + sep + rest
+    return word + suffix + sep + rest
 
-def add_ed_suffix(word):
-    """Form the past tense of a verb by adding 'ed'.
+def _tests():
+    # c+ly->cally
+    assert add_suffix('artistic', 'ly') == 'artistically'
+    
+    # sibilant+s->es
+    assert add_suffix('establish', 's') == 'establishes'
+    assert add_suffix('speech', 's') == 'speeches'
+    assert add_suffix('approach', 's') == 'approaches'
+    assert add_suffix('beach', 's') == 'beaches'
+    assert add_suffix('arch', 's') == 'arches'
+    assert add_suffix('larch', 's') == 'larches'
+    assert add_suffix('march', 's') == 'marches'
+    assert add_suffix('search', 's') == 'searches'
+    assert add_suffix('starch', 's') == 'starches'
+    # hard ch+s->s
+    assert add_suffix('stomach', 's') == 'stomachs'
+    assert add_suffix('monarch', 's') == 'monarchs'
+    assert add_suffix('patriarch', 's') == 'patriarchs'
+    assert add_suffix('oligarch', 's') == 'oligarchs'
+   
+    # y+s->ies
+    assert add_suffix('cherry', 's') == 'cherries'
+    assert add_suffix('day', 's') == 'days'
+   
+    # y+ist->ist
+    assert add_suffix('pharmacy', 'ist') == 'pharmacist'
+    assert add_suffix('melody', 'ist') == 'melodist'
+    assert add_suffix('pacify', 'ist') == 'pacifist'
+    assert add_suffix('geology', 'ist') == 'geologist'
+    assert add_suffix('metallurgy', 'ist') == 'metallurgist'
+    assert add_suffix('anarchy', 'ist') == 'anarchist'
+    assert add_suffix('monopoly', 'ist') == 'monopolist'
+    assert add_suffix('alchemy', 'ist') == 'alchemist'
+    assert add_suffix('botany', 'ist') == 'botanist'
+    assert add_suffix('therapy', 'ist') == 'therapist'
+    assert add_suffix('theory', 'ist') == 'theorist'
+    assert add_suffix('psychiatry', 'ist') == 'psychiatrist'
+    # y+ist->i exceptions
+    assert add_suffix('lobby', 'ist') == 'lobbyist'
+    assert add_suffix('hobby', 'ist') == 'hobbyist'
+    assert add_suffix('copy', 'ist') != 'copyist'  # TODO
+    
+    # y+!i->i
+    assert add_suffix('beauty', 'ful') == 'beautiful'
+    assert add_suffix('weary', 'ness') == 'weariness'
+    assert add_suffix('weary', 'some') == 'wearisome'
+    
+    # e+vowel->vowel
+    assert add_suffix('narrate', 'ing') == 'narrating'
+    assert add_suffix('narrate', 'or') == 'narrator'
+    
+    # consonant doubling
+    assert add_suffix('defer', 'ed') == 'deferred'
+    assert add_suffix('defer', 'er') == 'deferrer'
+    assert add_suffix('defer', 'ing') == 'deferring'
+    assert add_suffix('pigment', 'ed') == 'pigmented'
+    assert add_suffix('refer', 'ed') == 'referred'
+    assert add_suffix('fix', 'ed') == 'fixed'
+    assert add_suffix('alter', 'ed') != 'altered'  # TODO
+    assert add_suffix('interpret', 'ing') != 'interpreting'  # TODO
+    assert add_suffix('wonder', 'ing') != 'wondering'  # TODO
+    assert add_suffix('target', 'ing') != 'targeting'  # TODO
+    assert add_suffix('limit', 'er') != 'limiter'  # TODO
+    assert add_suffix('maneuver', 'ing') != 'maneuvering'  # TODO
+    assert add_suffix('monitor', 'ing') != 'monitoring'  # TODO
+    assert add_suffix('color', 'ing') != 'coloring'  # TODO
+    assert add_suffix('inhibit', 'ing') != 'inhibiting'  # TODO
+    assert add_suffix('master', 'ed') != 'mastered'  # TODO
 
-    Argument:
-
-    word -- The infinitive form of a verb.
-
-    """
-    return _prep_for_simple_suffix(word) + 'ed'
-
-def add_er_suffix(word):
-    """Add an -er suffix to the end of a word.
-
-    Argument:
-
-    word -- An adjective or verb.
-
-    """
-    return _prep_for_simple_suffix(word) + 'er'
-
-def add_ing_suffix(word):
-    """Add an -ing suffix to the end of a word.
-
-    Argument:
-
-    word -- The infinitive form of a verb.
-
-    """
-    if word and word[-1] in Y: # See _prep_for_simple_suffix special case.
-        return word + 'ing'
-    return _prep_for_simple_suffix(word) + 'ing'
-
-def _prep_for_simple_suffix(word):
-    num_chars = len(word)
-    if num_chars < 2:
-        return word
-    if num_chars >= 3:
-        third_to_last = word[-3]
-    else:
-        third_to_last = ''
-    second_to_last = word[-2]
-    last = word[-1]
-    if second_to_last in VOWELS or second_to_last in CONSONANTS:
-        if last in VOWELS:
-            if third_to_last and (third_to_last in VOWELS or
-                                  third_to_last in CONSONANTS):
-                return word[:-1]
-        elif (last in CONSONANTS and
-              last not in W and
-              second_to_last in VOWELS and
-              third_to_last and
-              third_to_last not in VOWELS):
-            return word + last
-        elif last in Y and second_to_last in CONSONANTS:
-            return word[:-1] + 'i' # Special case doesn't work for 'ing' suffix.
-    return word
+if __name__ == '__main__':
+    _tests()
