@@ -163,7 +163,7 @@ class Formatter:
 
         # Keep track of the current state in preparation for the next
         # call to this method.
-        self.keystrokes, self.key_combos = self._translations_to_string( \
+        self.keystrokes, self.key_combos = self._translations_to_string(
                                                   self.translator.translations)
 
     def _translations_to_string(self, translations):

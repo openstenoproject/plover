@@ -153,21 +153,26 @@ import time
 
 import plover.machine.base
 
+
 class _ProtocolViolationException(Exception):
     """Something has happened that is doesn't follow the protocol."""
     pass
+
 
 class _StopException(Exception):
     """The thread was asked to stop."""
     pass
 
+
 class _TimeoutException(Exception):
     """An operation has timed out."""
     pass
 
+
 class _ConnectionLostException(Exception):
     """Cannot communicate with the machine."""
     pass
+
 
 _CRC_TABLE = [
     0x0000, 0xc0c1, 0xc181, 0x0140, 0xc301, 0x03c0, 0x0280, 0xc241,
@@ -204,6 +209,7 @@ _CRC_TABLE = [
     0x8201, 0x42c0, 0x4380, 0x8341, 0x4100, 0x81c1, 0x8081, 0x4040
 ]
 
+
 def _crc(data):
     """Compute the Crc algorithm used by the stentura protocol.
 
@@ -234,6 +240,7 @@ def _crc(data):
                     ((checksum >> 8) & 0xff))
     return checksum
 
+
 def _write_to_buffer(buf, offset, data):
     """Write data to buf at offset.
 
@@ -253,10 +260,11 @@ def _write_to_buffer(buf, offset, data):
 
 # Helper table for parsing strokes of the form:
 # 11^#STKP 11WHRAO* 11EUFRPB 11LGTSDZ
-_STENO_KEY_CHART = ('^', '#', 'S-', 'T-', 'K-', 'P-',   # Byte #1
-                    'W-', 'H-', 'R-', 'A-', 'O-', '*',  # Byte #2
-                    '-E', '-U', '-F', '-R', '-P', '-B', # Byte #3
-                    '-L', '-G', '-T', '-S', '-D', '-Z') # Byte #4
+_STENO_KEY_CHART = ('^', '#', 'S-', 'T-', 'K-', 'P-',    # Byte #1
+                    'W-', 'H-', 'R-', 'A-', 'O-', '*',   # Byte #2
+                    '-E', '-U', '-F', '-R', '-P', '-B',  # Byte #3
+                    '-L', '-G', '-T', '-S', '-D', '-Z')  # Byte #4
+
 
 def _parse_stroke(a, b, c, d):
     """Parse a stroke and return a list of keys pressed.
@@ -275,6 +283,7 @@ def _parse_stroke(a, b, c, d):
                   ((c & 0x3f) << 6) | d & 0x3f)
     return [_STENO_KEY_CHART[i] for i in xrange(24)
             if (fullstroke & (1 << (23 - i)))]
+
 
 def _parse_strokes(data):
     """Parse strokes from a buffer and return a sequence of strokes.
@@ -314,6 +323,7 @@ _TERM = 0x15
 _REQUEST_STRUCT = struct.Struct('<2B7H')
 _SHORT_STRUCT = struct.Struct('<H')
 
+
 def _make_request(buf, action, seq, p1=0, p2=0, p3=0, p4=0, p5=0, data=None):
     """Create a request packet.
 
@@ -344,6 +354,7 @@ def _make_request(buf, action, seq, p1=0, p2=0, p3=0, p4=0, p5=0, data=None):
         _SHORT_STRUCT.pack_into(buf, length - 2, crc)
     return buffer(buf, 0, length)
 
+
 def _make_open(buf, seq, drive, filename):
     """Make a packet with the OPEN command.
 
@@ -358,6 +369,7 @@ def _make_open(buf, seq, drive, filename):
 
     """
     return _make_request(buf, _OPEN, seq, p1=ord(drive), data=filename)
+
 
 def _make_read(buf, seq, block, byte, length=512):
     """Make a packet with the READC command.
@@ -375,6 +387,7 @@ def _make_read(buf, seq, block, byte, length=512):
     """
     return _make_request(buf, _READC, seq, p1=1, p3=length, p4=block, p5=byte)
 
+
 def _make_reset(buf, seq):
     """Make a packet with the RESET command.
 
@@ -387,6 +400,7 @@ def _make_reset(buf, seq):
 
     """
     return _make_request(buf, _RESET, seq)
+
 
 def _validate_response(packet):
     """Validate a response packet.
@@ -410,6 +424,7 @@ def _validate_response(packet):
         if _crc(buffer(packet, 14)) != 0:
             return False
     return True
+
 
 # Timeout is in seconds, can be a float.
 def _read_data(port, stop, buf, offset, timeout):
@@ -441,6 +456,7 @@ def _read_data(port, stop, buf, offset, timeout):
         raise _StopException()
     else:
         raise _TimeoutException()
+
 
 def _read_packet(port, stop, buf, timeout):
     """Read a full packet from the port.
@@ -477,6 +493,7 @@ def _read_packet(port, stop, buf, timeout):
         raise _ProtocolViolationException()
     return buffer(buf, 0, bytes_read)
 
+
 def _write_to_port(port, data):
     """Write data to a port.
 
@@ -487,6 +504,7 @@ def _write_to_port(port, data):
     """
     while data:
         data = buffer(data, port.write(data))
+
 
 def _send_receive(port, stop, packet, buf, max_tries=3, timeout=1):
     """Send a packet and return the response.
@@ -513,7 +531,6 @@ def _send_receive(port, stop, packet, buf, max_tries=3, timeout=1):
     _ProtocolViolationException: If the responses packet violates the protocol.
 
     """
-    request_seq = packet[1]
     request_action = _SHORT_STRUCT.unpack(buffer(packet, 4, 2))[0]
     for attempt in xrange(max_tries):
         _write_to_port(port, packet)
@@ -529,6 +546,7 @@ def _send_receive(port, stop, packet, buf, max_tries=3, timeout=1):
             continue
     raise _ConnectionLostException()
 
+
 class _SequenceCounter(object):
     """A mod 256 counter."""
     def __init__(self, seq=0):
@@ -539,6 +557,7 @@ class _SequenceCounter(object):
         """Return the next value."""
         cur, self.seq = self.seq, (self.seq + 1) % 256
         return cur
+
 
 def _read(port, stop, seq, request_buf, response_buf, stroke_buf, timeout=1):
     """Read the full contents of the current file from beginning to end.
@@ -580,6 +599,7 @@ def _read(port, stop, seq, request_buf, response_buf, stroke_buf, timeout=1):
             block += 1
             byte -= 512
 
+
 def _loop(port, stop, callback, timeout=1):
     """Enter into a loop talking to the machine and returning strokes.
 
@@ -618,6 +638,7 @@ def _loop(port, stop, callback, timeout=1):
         strokes = _parse_strokes(data)
         for stroke in strokes:
             callback(stroke)
+
 
 class Stenotype(plover.machine.base.SerialStenotypeBase):
     """Stentura interface.

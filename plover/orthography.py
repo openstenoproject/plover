@@ -9,6 +9,7 @@ W = 'wW'
 Y = 'yY'
 PLURAL_SPECIAL = 'sxzSXZ'
 
+
 def pluralize_with_s(word):
     """Form the plural of a word by adding an s.
 
@@ -27,6 +28,7 @@ def pluralize_with_s(word):
         return word[:-1] + 'ies'
     return word + 's'
 
+
 def add_ed_suffix(word):
     """Form the past tense of a verb by adding 'ed'.
 
@@ -36,6 +38,7 @@ def add_ed_suffix(word):
 
     """
     return _prep_for_simple_suffix(word) + 'ed'
+
 
 def add_er_suffix(word):
     """Add an -er suffix to the end of a word.
@@ -47,6 +50,7 @@ def add_er_suffix(word):
     """
     return _prep_for_simple_suffix(word) + 'er'
 
+
 def add_ing_suffix(word):
     """Add an -ing suffix to the end of a word.
 
@@ -55,9 +59,10 @@ def add_ing_suffix(word):
     word -- The infinitive form of a verb.
 
     """
-    if word and word[-1] in Y: # See _prep_for_simple_suffix special case.
+    if word and word[-1] in Y:  # See _prep_for_simple_suffix special case.
         return word + 'ing'
     return _prep_for_simple_suffix(word) + 'ing'
+
 
 def _prep_for_simple_suffix(word):
     num_chars = len(word)
@@ -81,5 +86,6 @@ def _prep_for_simple_suffix(word):
               third_to_last not in VOWELS):
             return word + last
         elif last in Y and second_to_last in CONSONANTS:
-            return word[:-1] + 'i' # Special case doesn't work for 'ing' suffix.
+            # Special case doesn't work for 'ing' suffix.
+            return word[:-1] + 'i'
     return word

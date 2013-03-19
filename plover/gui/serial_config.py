@@ -3,9 +3,7 @@
 
 """A graphical user interface for configuring a serial port."""
 
-import glob
 from serial import Serial
-from serial import SerialException
 import string
 import wx
 
@@ -30,20 +28,22 @@ FLOW_CONTROL_STR = 'Flow Control'
 LABEL_BORDER = 4
 GLOBAL_BORDER = 4
 
+
 def enumerate_ports():
     """Enumerates available ports"""
     return sorted([x['name'] for x in comscan() if x['available']])
 
+
 class SerialConfigDialog(wx.Dialog):
     """Serial port configuration dialog."""
-    
+
     def __init__(self,
                  serial,
                  parent,
                  id=wx.ID_ANY,
-                 title='', 
+                 title='',
                  pos=wx.DefaultPosition,
-                 size=wx.DefaultSize, 
+                 size=wx.DefaultSize,
                  style=wx.DEFAULT_DIALOG_STYLE,
                  name=wx.DialogNameStr):
         """Create a configuration GUI for the given serial port.
@@ -117,10 +117,10 @@ class SerialConfigDialog(wx.Dialog):
                     border=LABEL_BORDER)
         sizer.Add(self.port_combo_box)
         outline_sizer.Add(sizer, flag=wx.EXPAND)
-        
+
         sizer = wx.BoxSizer(wx.HORIZONTAL)
         sizer.Add(wx.StaticText(self, label=BAUDRATE_STR),
-                  flag=wx.ALL|wx.ALIGN_CENTER_VERTICAL,
+                  flag=wx.ALL | wx.ALIGN_CENTER_VERTICAL,
                   border=LABEL_BORDER)
         sizer.Add(self.baudrate_choice, flag=wx.ALIGN_RIGHT)
         outline_sizer.Add(sizer, flag=wx.EXPAND)
@@ -140,7 +140,7 @@ class SerialConfigDialog(wx.Dialog):
         sizer = wx.BoxSizer(wx.HORIZONTAL)
         sizer.Add(wx.StaticText(self, label=STOP_BITS_STR),
                   proportion=5,
-                  flag=wx.ALL|wx.ALIGN_CENTER_VERTICAL,
+                  flag=wx.ALL | wx.ALIGN_CENTER_VERTICAL,
                   border=LABEL_BORDER)
         sizer.Add(self.stopbits_choice, proportion=3, flag=wx.ALIGN_RIGHT)
         outline_sizer.Add(sizer, flag=wx.EXPAND)
@@ -158,27 +158,27 @@ class SerialConfigDialog(wx.Dialog):
         static_box = wx.StaticBox(self, label=TIMEOUT_STR)
         outline_sizer = wx.StaticBoxSizer(static_box, wx.HORIZONTAL)
         outline_sizer.Add(self.timeout_checkbox,
-                          flag=wx.ALL|wx.ALIGN_CENTER_VERTICAL,
+                          flag=wx.ALL | wx.ALIGN_CENTER_VERTICAL,
                           border=LABEL_BORDER)
         outline_sizer.Add(self.timeout_text_ctrl)
         outline_sizer.Add(wx.StaticText(self, label=SECONDS_STR),
-                          flag=wx.ALL|wx.ALIGN_CENTER_VERTICAL,
+                          flag=wx.ALL | wx.ALIGN_CENTER_VERTICAL,
                           border=LABEL_BORDER)
         global_sizer.Add(outline_sizer, flag=wx.ALL, border=GLOBAL_BORDER)
 
         static_box = wx.StaticBox(self, label=FLOW_CONTROL_STR)
         outline_sizer = wx.StaticBoxSizer(static_box, wx.HORIZONTAL)
         outline_sizer.Add(self.rtscts_checkbox,
-                          flag=wx.ALL|wx.ALIGN_CENTER_VERTICAL,
+                          flag=wx.ALL | wx.ALIGN_CENTER_VERTICAL,
                           border=LABEL_BORDER)
         outline_sizer.Add(self.xonxoff_checkbox,
-                          flag=wx.ALL|wx.ALIGN_CENTER_VERTICAL,
+                          flag=wx.ALL | wx.ALIGN_CENTER_VERTICAL,
                           border=LABEL_BORDER)
-        outline_sizer.Add((10,10), proportion=1, flag=wx.EXPAND)
+        outline_sizer.Add((10, 10), proportion=1, flag=wx.EXPAND)
         global_sizer.Add(outline_sizer,
                          flag=wx.EXPAND | wx.ALL,
                          border=GLOBAL_BORDER)
-        
+
         sizer = wx.BoxSizer(wx.HORIZONTAL)
         sizer.Add(ok_button)
         sizer.Add(cancel_button)
@@ -192,7 +192,7 @@ class SerialConfigDialog(wx.Dialog):
         global_sizer.SetSizeHints(self)
         self.Layout()
         self._update()
-        
+
     def _update(self):
         # Updates the GUI to reflect the current data model.
         if self.serial.port is not None:
@@ -283,7 +283,7 @@ class FloatValidator(wx.PyValidator):
     def _on_char(self, event):
         # Filter text input to ensure value is always a valid float.
         key = event.GetKeyCode()
-        char = chr(key)        
+        char = chr(key)
         current_value = self.GetWindow().GetValue()
         if key < wx.WXK_SPACE or key == wx.WXK_DELETE or key > 255:
             event.Skip()

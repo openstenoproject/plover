@@ -5,6 +5,7 @@
 
 STROKE_DELIMITER = '/'
 
+
 def toRTFCRE(stenoKeys):
     """Convert stenokeys to an RTF/CRE string in DCAT format.
 
@@ -20,7 +21,7 @@ def toRTFCRE(stenoKeys):
         if len(out) == 0 and k == '*':
             out.append(k)
 
-        elif k =="*" and out[-1] == "-": 
+        elif k == "*" and out[-1] == "-":
             out.pop()
             out.append(k)
             out.append("-")
@@ -31,7 +32,7 @@ def toRTFCRE(stenoKeys):
             out.append("-")
             hyphenFound = True
 
-        elif len(out) > 0 and k =="O-" and out[-1] == "-": 
+        elif len(out) > 0 and k == "O-" and out[-1] == "-":
             out.pop()
             k = k[:-1]
             out.append(k)
@@ -39,43 +40,43 @@ def toRTFCRE(stenoKeys):
             hyphenFound = True
 
         elif k == "O-":
-            if hyphenFound == True:
+            if hyphenFound is True:
                 k = k[:-1]
                 out.append(k)
-            elif hyphenFound == False:
+            elif hyphenFound is False:
                 k = k[:-1]
                 out.append(k)
                 out.append("-")
                 hyphenFound = True
 
         elif k == "-E":
-            if hyphenFound == True:
-                k = k[1:] 
+            if hyphenFound is True:
+                k = k[1:]
                 out.append(k)
-            elif hyphenFound == False: 
+            elif hyphenFound is False:
                 k = k[1:]
                 out.append("-")
                 hyphenFound = True
                 out.append(k)
 
         elif k == "-U":
-            if hyphenFound == True:
-                k = k[1:] 
+            if hyphenFound is True:
+                k = k[1:]
                 out.append(k)
-            elif hyphenFound == False: 
+            elif hyphenFound is False:
                 k = k[1:]
                 out.append("-")
                 hyphenFound = True
-                out.append(k) 
+                out.append(k)
 
         elif k.startswith("-"):
-            if hyphenFound == True:
-                k = k[1:] 
+            if hyphenFound is True:
+                k = k[1:]
                 out.append(k)
-            elif hyphenFound == False:
-                k = k[1:] 
+            elif hyphenFound is False:
+                k = k[1:]
                 out.append("-")
-                hyphenFound = True 
+                hyphenFound = True
                 out.append(k)
 
         elif k.endswith("-"):
@@ -88,5 +89,4 @@ def toRTFCRE(stenoKeys):
     if len(out) > 0 and out[-1] == "-":
         out.pop()
 
-    return ''.join(out) 
-    
+    return ''.join(out)

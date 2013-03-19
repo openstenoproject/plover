@@ -12,6 +12,6 @@ __credits__ = ['Stenographer: Mirabai Knight',
                'Contributors: Hesky Fisher']
 __license__ = 'GNU General Public License, version 2'
 __description__ = 'Open Source Stenography Software',
-__long_description__ = 'Plover is a free open source program intended to bring \
-realtime stenographic technology not just to stenographers, but also to \
-hackers, hobbyists, accessibility mavens, and all-around speed demons.'
+__long_description__ = """Plover is a free open source program intended to
+bring realtime stenographic technology not just to stenographers, but also to
+hackers, hobbyists, accessibility mavens, and all-around speed demons."""

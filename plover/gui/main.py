@@ -24,9 +24,10 @@ from plover import __url__
 from plover import __credits__
 from plover import __license__
 
+
 class PloverGUI(wx.App):
     """The main entry point for the Plover application."""
-    
+
     def __init__(self):
         wx.App.__init__(self, redirect=False)
 
@@ -36,6 +37,7 @@ class PloverGUI(wx.App):
         frame.Show()
         self.SetTopWindow(frame)
         return True
+
 
 class Frame(wx.Frame):
     """The top-level GUI element of the Plover application."""
@@ -63,8 +65,8 @@ class Frame(wx.Frame):
                           title=Frame.TITLE,
                           pos=wx.DefaultPosition,
                           size=wx.DefaultSize,
-                          style=wx.DEFAULT_FRAME_STYLE & ~(wx.RESIZE_BORDER|
-                                                           wx.RESIZE_BOX|
+                          style=wx.DEFAULT_FRAME_STYLE & ~(wx.RESIZE_BORDER |
+                                                           wx.RESIZE_BOX |
                                                            wx.MAXIMIZE_BOX))
         config_file = config_file
         config = ConfigParser.RawConfigParser()
@@ -91,7 +93,8 @@ class Frame(wx.Frame):
         self.status_button.Bind(wx.EVT_BUTTON, self._toggle_steno_engine)
 
         # Configure button.
-        self.configure_button = wx.Button(self, label=self.CONFIGURE_BUTTON_LABEL)
+        self.configure_button = wx.Button(self,
+                                          label=self.CONFIGURE_BUTTON_LABEL)
         self.configure_button.Bind(wx.EVT_BUTTON, self._show_config_dialog)
 
         # About button.
@@ -101,13 +104,13 @@ class Frame(wx.Frame):
         # Layout.
         sizer = wx.BoxSizer(wx.HORIZONTAL)
         sizer.Add(self.status_button,
-                  flag=wx.ALL|wx.ALIGN_CENTER_VERTICAL,
+                  flag=wx.ALL | wx.ALIGN_CENTER_VERTICAL,
                   border=self.BORDER)
         sizer.Add(self.configure_button,
-                  flag=wx.TOP|wx.BOTTOM|wx.RIGHT|wx.ALIGN_CENTER_VERTICAL,
+                  flag=wx.TOP | wx.BOTTOM | wx.RIGHT | wx.ALIGN_CENTER_VERTICAL,
                   border=self.BORDER)
         sizer.Add(self.about_button,
-                  flag=wx.TOP|wx.BOTTOM|wx.RIGHT|wx.ALIGN_CENTER_VERTICAL,
+                  flag=wx.TOP | wx.BOTTOM | wx.RIGHT | wx.ALIGN_CENTER_VERTICAL,
                   border=self.BORDER)
         self.SetSizer(sizer)
         sizer.Fit(self)
@@ -125,7 +128,8 @@ class Frame(wx.Frame):
         elif command == self.COMMAND_RESUME and self.steno_engine:
             wx.CallAfter(self.steno_engine.set_is_running, True)
         elif command == self.COMMAND_TOGGLE and self.steno_engine:
-            wx.CallAfter(self.steno_engine.set_is_running, not self.steno_engine.is_running)
+            wx.CallAfter(self.steno_engine.set_is_running,
+                         not self.steno_engine.is_running)
         elif command == self.COMMAND_CONFIGURE:
             wx.CallAfter(self._show_config_dialog)
         elif command == self.COMMAND_FOCUS:
@@ -173,4 +177,3 @@ class Frame(wx.Frame):
         info.Developers = __credits__
         info.License = __license__
         wx.AboutBox(info)
-
