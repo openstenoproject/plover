@@ -15,7 +15,9 @@ import ConfigParser
 import plover.app as app
 import plover.config as conf
 import plover.gui.config as gui
-import plover.exception as exception
+
+from plover.exception import InvalidConfigurationError
+
 from plover import __name__ as __software_name__
 from plover import __version__
 from plover import __copyright__
@@ -71,18 +73,30 @@ class Frame(wx.Frame):
         config_file = config_file
         config = ConfigParser.RawConfigParser()
         config.read(config_file)
-        try:
-            self.steno_engine = app.StenoEngine()
-            self.steno_engine.formatter.engine_command_callback = \
-              self.consume_command
-        except exception.SerialPortException, spe:
-            self.steno_engine = None
-            alert_dialog = wx.MessageDialog(self._show_config_dialog(),
-                                            unicode(spe),
-                                            self.ALERT_DIALOG_TITLE,
-                                            wx.OK | wx.ICON_INFORMATION)
-            alert_dialog.ShowModal()
-            alert_dialog.Destroy()
+
+        while True:
+            # Check configuration loop
+            try:
+                self.steno_engine = app.StenoEngine()
+                self.steno_engine.formatter.engine_command_callback = \
+                  self.consume_command
+                break
+            except InvalidConfigurationError, spe:
+                self.steno_engine = None
+                config_dialog = self._create_config_dialog(
+                                                    during_plover_init=True)
+
+                alert_dialog = wx.MessageDialog(config_dialog,
+                                                unicode(spe),
+                                                self.ALERT_DIALOG_TITLE,
+                                                wx.OK | wx.ICON_INFORMATION)
+                alert_dialog.ShowModal()
+                alert_dialog.Destroy()
+
+                ret = config_dialog.ShowModal()
+                if ret == wx.ID_CANCEL:
+                    self._quit()
+                    return
 
         # Status button.
         on_icon_file = os.path.join(conf.ASSETS_DIR, self.ON_IMAGE_FILE)
@@ -161,8 +175,20 @@ class Frame(wx.Frame):
         """Called when the status button is clicked."""
         self.steno_engine.set_is_running(not self.steno_engine.is_running)
 
+    def _create_config_dialog(self, event=None, during_plover_init=False):
+        """This will create a configuration dialog.
+
+        If during_plover_init is set to True, the user won't be prompted about
+        the restart of Plover: his modifications will be used to initialize
+        Plover.
+        """
+        dialog = gui.ConfigurationDialog(conf.CONFIG_FILE,
+                                         parent=self,
+                                         during_plover_init=during_plover_init)
+        return dialog
+
     def _show_config_dialog(self, event=None):
-        dialog = gui.ConfigurationDialog(conf.CONFIG_FILE)
+        dialog = self._create_config_dialog(event)
         dialog.Show()
         return dialog
 
