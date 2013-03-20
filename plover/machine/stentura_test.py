@@ -5,11 +5,11 @@
 
 import array
 import struct
-import time
 import threading
 import unittest
 
 import stentura
+
 
 def make_response(seq, action, error=0, p1=0, p2=0, data=None,
                   length=None):
@@ -27,8 +27,10 @@ def make_response(seq, action, error=0, p1=0, p2=0, data=None,
         response += data + struct.pack('<H', crc)
     return response
 
+
 def make_read_response(seq, data=[]):
     return make_response(seq, stentura._READC, p1=len(data), data=data)
+
 
 def make_readc_packets(data):
     requests, responses = [], []
@@ -54,14 +56,17 @@ def make_readc_packets(data):
     responses.append(str(r))
     return requests, responses
 
+
 def parse_request(request):
     header = struct.unpack_from('<2B8H', request)
     if header[2] > 18:
-        header = list(header) + [request[18:-2], struct.unpack('<H', request[-2:])]
+        header = list(header) + [request[18:-2], struct.unpack('<H',
+                                                               request[-2:])]
     else:
         header = list(header) + [None] * 2
     return dict(zip(['SOH', 'seq', 'length', 'action', 'p1', 'p2',
                      'p3', 'p4', 'p5', 'crc', 'data', 'data_crc'], header))
+
 
 class MockPacketPort(object):
     def __init__(self, responses, requests=None):
@@ -81,6 +86,7 @@ class MockPacketPort(object):
     def read(self, count):
         response = self._responses[self.writes - 1]
         return response
+
 
 class TestCase(unittest.TestCase):
     def test_crc(self):
@@ -103,6 +109,7 @@ class TestCase(unittest.TestCase):
         d = 0b11001000
         self.assertItemsEqual(stentura._parse_stroke(a, b, c, d),
                               ['S-', 'A-', '-T'])
+
 # 11^#STKP 11WHRAO* 11EUFRPB 11LGTSDZ
 # PRAOERBGS
     def test_parse_strokes(self):
@@ -228,7 +235,7 @@ class TestCase(unittest.TestCase):
                 self._times = 0
 
             def inWaiting(self):
-                self._times +=1
+                self._times += 1
                 if self._times == 5:
                     return 4
 
@@ -582,8 +589,10 @@ class TestCase(unittest.TestCase):
 
         for test in tests:
             read_data = []
+
             def callback(data):
                 read_data.append(data)
+
             port = test[0]
             expected = test[1]
             try:

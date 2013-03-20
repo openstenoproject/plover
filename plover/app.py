@@ -18,9 +18,9 @@ interface.
 import os
 import logging
 import logging.handlers
-try :
+try:
     import simplejson as json
-except ImportError :
+except ImportError:
     import json
 
 # Import plover modules.
@@ -32,6 +32,7 @@ import plover.machine as machine
 import plover.machine.base
 import plover.machine.sidewinder
 import plover.dictionary as dictionary
+
 
 class StenoEngine:
     """Top-level class for using a stenotype machine for text input.
@@ -104,7 +105,8 @@ class StenoEngine:
                                                           dictionary.supported)
         if self.dictionary_module is None:
             raise ValueError('Invalid configuration value for %s: %s' %
-                             (conf.DICTIONARY_FORMAT_OPTION, dictionary_format))
+                             (conf.DICTIONARY_FORMAT_OPTION,
+                              dictionary_format))
 
         # Load the dictionary. The dictionary path can be either
         # absolute or relative to the configuration directory.
@@ -124,7 +126,8 @@ class StenoEngine:
                     self.dictionary = json.load(f, conf.ALTERNATIVE_ENCODING)
         else:
             raise ValueError('The value of %s must end with %s.' %
-                             (conf.DICTIONARY_FILE_OPTION, conf.JSON_EXTENSION))
+                             (conf.DICTIONARY_FILE_OPTION,
+                              conf.JSON_EXTENSION))
 
         # Initialize the logger.
         log_file = os.path.join(conf.CONFIG_DIR,
@@ -132,9 +135,11 @@ class StenoEngine:
                                                 conf.LOG_FILE_OPTION))
         self.logger = logging.getLogger(conf.LOGGER_NAME)
         self.logger.setLevel(logging.DEBUG)
-        handler = logging.handlers.RotatingFileHandler(log_file,
-                                                    maxBytes=conf.LOG_MAX_BYTES,
-                                                    backupCount=conf.LOG_COUNT)
+        handler = logging.handlers.RotatingFileHandler(
+                                                log_file,
+                                                maxBytes=conf.LOG_MAX_BYTES,
+                                                backupCount=conf.LOG_COUNT,
+                                                )
         handler.setFormatter(logging.Formatter(conf.LOG_FORMAT))
         self.logger.addHandler(handler)
 
@@ -185,7 +190,7 @@ class StenoEngine:
             self.machine.stop_capture()
         self.is_running = False
 
-    def add_callback(self, callback) :
+    def add_callback(self, callback):
         """Subscribes a function to receive changes of the is_running  state.
 
         Arguments:
@@ -195,10 +200,8 @@ class StenoEngine:
         """
         self.subscribers.append(callback)
 
-
     def _log_stroke(self, steno_keys):
         self.logger.info('Stroke(%s)' % ' '.join(steno_keys))
-
 
     def _log_translation(self, translation, overflow):
         self.logger.info(translation)

@@ -7,6 +7,7 @@ import serial
 import threading
 from plover.exception import SerialPortException
 
+
 class StenotypeBase:
     """The base class for all Stenotype classes."""
 
@@ -14,7 +15,7 @@ class StenotypeBase:
     # parameters to be passed to the constructor. This variable
     # advertises the class that contains such parameters.
     CONFIG_CLASS = None
-    
+
     def __init__(self):
         self.subscribers = []
 
@@ -70,7 +71,7 @@ class SerialStenotypeBase(StenotypeBase, threading.Thread):
         threading.Thread.__init__(self)
         StenotypeBase.__init__(self)
         self.finished = threading.Event()
-        
+
     def run(self):
         """This method should be overridden by a subclass."""
         pass

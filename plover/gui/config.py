@@ -32,6 +32,7 @@ CONFIG_PANEL_SIZE = (600, 400)
 UI_BORDER = 4
 COMPONENT_SPACE = 3
 
+
 class ConfigurationDialog(wx.Dialog):
     """A GUI for viewing and editing Plover configuration files.
 
@@ -54,7 +55,6 @@ class ConfigurationDialog(wx.Dialog):
 
         config_file -- The absolute or relative path to the
         configuration file to view and edit.
-        
         """
         wx.Dialog.__init__(self, parent, id, title, pos, size, style)
         self.config_file = config_file
@@ -78,7 +78,7 @@ class ConfigurationDialog(wx.Dialog):
         button_sizer.AddButton(save_button)
         cancel_button = wx.Button(self, wx.ID_CANCEL)
         button_sizer.AddButton(cancel_button)
-        button_sizer.Realize()        
+        button_sizer.Realize()
         sizer.Add(button_sizer, flag=wx.ALL | wx.ALIGN_RIGHT, border=UI_BORDER)
 
         self.Bind(wx.EVT_BUTTON, self._save, save_button)
@@ -106,7 +106,7 @@ class ConfigurationDialog(wx.Dialog):
 
 class MachineConfig(wx.Panel):
     """Stenotype machine configuration graphical user interface."""
-    
+
     def __init__(self, config, parent):
         """Create a configuration component based on the given ConfigParser.
 
@@ -138,7 +138,8 @@ class MachineConfig(wx.Panel):
                                        label=CONFIG_BUTTON_NAME)
         box.Add(self.config_button)
 
-        self.auto_start_checkbox = wx.CheckBox(self, label=MACHINE_AUTO_START_LABEL)
+        self.auto_start_checkbox = wx.CheckBox(self,
+                                               label=MACHINE_AUTO_START_LABEL)
         auto_start = config.getboolean(conf.MACHINE_CONFIG_SECTION,
                                        conf.MACHINE_AUTO_START_OPTION)
         self.auto_start_checkbox.SetValue(auto_start)
@@ -212,16 +213,16 @@ class DictionaryConfig(wx.Panel):
                                conf.DICTIONARY_FILE_OPTION)
         dict_file = os.path.join(conf.CONFIG_DIR, dict_file)
         dict_dir = os.path.split(dict_file)[0]
-        self.file_browser = filebrowse.FileBrowseButton(self,
-                                                     labelText=DICT_FILE_LABEL,
-                                                     fileMask='*' + \
-                                                        conf.JSON_EXTENSION,
-                                                     fileMode=wx.OPEN,
-                                                     dialogTitle= \
-                                                        DICT_FILE_DIALOG_TITLE,
-                                                     initialValue=dict_file,
-                                                     startDirectory=dict_dir)
-        sizer.Add(self.file_browser, border=UI_BORDER, flag=wx.ALL| wx.EXPAND)
+        self.file_browser = filebrowse.FileBrowseButton(
+                                        self,
+                                        labelText=DICT_FILE_LABEL,
+                                        fileMask='*' + conf.JSON_EXTENSION,
+                                        fileMode=wx.OPEN,
+                                        dialogTitle=DICT_FILE_DIALOG_TITLE,
+                                        initialValue=dict_file,
+                                        startDirectory=dict_dir,
+                                        )
+        sizer.Add(self.file_browser, border=UI_BORDER, flag=wx.ALL | wx.EXPAND)
         self.SetSizer(sizer)
 
     def save(self):
@@ -230,7 +231,7 @@ class DictionaryConfig(wx.Panel):
                         conf.DICTIONARY_FILE_OPTION,
                         self.file_browser.GetValue())
 
-        
+
 class LoggingConfig(wx.Panel):
     """Logging configuration graphical user interface."""
     def __init__(self, config, parent):
@@ -250,15 +251,15 @@ class LoggingConfig(wx.Panel):
                               conf.LOG_FILE_OPTION)
         log_file = os.path.join(conf.CONFIG_DIR, log_file)
         log_dir = os.path.split(log_file)[0]
-        self.file_browser = filebrowse.FileBrowseButton(self,
-                                                     labelText=LOG_FILE_LABEL,
-                                                     fileMask='*' + \
-                                                        conf.LOG_EXTENSION,
-                                                     fileMode=wx.SAVE,
-                                                     dialogTitle= \
-                                                        LOG_FILE_DIALOG_TITLE,
-                                                     initialValue=log_file,
-                                                     startDirectory=log_dir)
+        self.file_browser = filebrowse.FileBrowseButton(
+                                            self,
+                                            labelText=LOG_FILE_LABEL,
+                                            fileMask='*' + conf.LOG_EXTENSION,
+                                            fileMode=wx.SAVE,
+                                            dialogTitle=LOG_FILE_DIALOG_TITLE,
+                                            initialValue=log_file,
+                                            startDirectory=log_dir,
+                                            )
         sizer.Add(self.file_browser, border=UI_BORDER, flag=wx.ALL | wx.EXPAND)
         self.log_strokes_checkbox = wx.CheckBox(self, label=LOG_STROKES_LABEL)
         stroke_logging = config.getboolean(conf.LOGGING_CONFIG_SECTION,

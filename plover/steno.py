@@ -22,16 +22,16 @@ conversion algorithm.
 
 """
 
-STENO_KEY_NUMBERS = { 'S-':'1-',
-                      'T-': '2-',
-                      'P-': '3-',
-                      'H-': '4-',
-                      'A-': '5-',
-                      'O-': '0-',
-                      '-F': '-6',
-                      '-P': '-7',
-                      '-L': '-8',
-                      '-T': '-9'}
+STENO_KEY_NUMBERS = {'S-': '1-',
+                     'T-': '2-',
+                     'P-': '3-',
+                     'H-': '4-',
+                     'A-': '5-',
+                     'O-': '0-',
+                     '-F': '-6',
+                     '-P': '-7',
+                     '-L': '-8',
+                     '-T': '-9'}
 
 STENO_KEY_ORDER = {"#": -1,
                    "S-": 0,
@@ -43,7 +43,7 @@ STENO_KEY_ORDER = {"#": -1,
                    "R-": 6,
                    "A-": 7,
                    "O-": 8,
-                   "*": 9,     # Also 10, 11, and 12 for some machines.
+                   "*": 9,  # Also 10, 11, and 12 for some machines.
                    "-E": 13,
                    "-U": 14,
                    "-F": 15,
@@ -60,7 +60,7 @@ STENO_KEY_ORDER = {"#": -1,
 STENO_KEYS = tuple(STENO_KEY_ORDER.keys())
 
 
-class Stroke :
+class Stroke:
     """A standardized data model for stenotype machine strokes.
 
     This class standardizes the representation of a stenotype chord
@@ -75,7 +75,7 @@ class Stroke :
 
     """
 
-    def __init__(self, steno_keys, dictionary_format) :
+    def __init__(self, steno_keys, dictionary_format):
         """Create a steno stroke by formatting steno keys.
 
         Arguments:
@@ -117,14 +117,15 @@ class Stroke :
         self.is_correction = (self.rtfcre == '*')
 
     def __str__(self):
-        if self.is_correction :
+        if self.is_correction:
             prefix = '*'
-        else :
+        else:
             prefix = ''
         return '%sStroke(%s : %s)' % (prefix, self.rtfcre, self.steno_keys)
 
     def __eq__(self, other):
-        return isinstance(other, Stroke) and self.steno_keys==other.steno_keys
+        return (isinstance(other, Stroke)
+                and self.steno_keys == other.steno_keys)
 
     def __ne__(self, other):
         return not self.__eq__(other)
@@ -133,7 +134,7 @@ class Stroke :
         return str(self)
 
 
-class Translation :
+class Translation:
     """A data model for the mapping between a sequence of Strokes and a string.
 
     This class represents the mapping between a sequence of Stroke
@@ -168,11 +169,11 @@ class Translation :
 
         """
         self.strokes = strokes
-        if strokes :
+        if strokes:
             dict_format = strokes[0].dictionary_format
             delimiter = dict_format.STROKE_DELIMITER
             self.rtfcre = delimiter.join([s.rtfcre for s in strokes])
-        else :
+        else:
             dict_format = None
             self.rtfcre = ''
         self.english = rtfcreDict.get(self.rtfcre, None)
@@ -185,9 +186,9 @@ class Translation :
         return not self.__eq__(other)
 
     def __str__(self):
-        if self.is_correction :
+        if self.is_correction:
             prefix = '*'
-        else :
+        else:
             prefix = ''
         return '%sTranslation(%s : %s)' % (prefix, self.rtfcre, self.english)
 
@@ -200,7 +201,7 @@ class Translation :
         return 0
 
 
-class Translator :
+class Translator:
     """Converts a stenotype key stream to a translation stream.
 
     An instance of this class serves as a state machine for processing
@@ -269,10 +270,10 @@ class Translator :
         self.dictionary = dictionary
         self.dictionary_format = dictionary_format
         self.subscribers = []
-        if max_number_of_strokes is None :
+        if max_number_of_strokes is None:
             max_number_of_strokes = 1
             delimiter = dictionary_format.STROKE_DELIMITER
-            for rtfcre in dictionary.keys() :
+            for rtfcre in dictionary.keys():
                 max_number_of_strokes = max(max_number_of_strokes,
                                             len(rtfcre.split(delimiter)))
         self.max_number_of_strokes = max_number_of_strokes
@@ -290,7 +291,7 @@ class Translator :
         steno_keys -- The raw output from a stenotype machine.
 
         """
-        if steno_keys :
+        if steno_keys:
             self.consume_stroke(Stroke(steno_keys, self.dictionary_format))
 
     def consume_stroke(self, stroke):
@@ -327,9 +328,9 @@ class Translator :
         n = 0
         while n != len(self.strokes):
             unused = self.strokes[n:]
-            for i in range(len(unused),0,-1):
+            for i in range(len(unused), 0, -1):
                 longest_translation = Translation(unused[:i], self.dictionary)
-                if longest_translation.english != None:
+                if longest_translation.english is not None:
                     break
             else:
                 longest_translation = Translation(unused[0:1], self.dictionary)
@@ -347,10 +348,10 @@ class Translator :
             if old_translations[i] != new_translations[i]:
                 # Emit corrections for each remaining element in
                 # old_translations after the two lists differ.
-                for t in old_translations[i:] :  # XXX Should this be in reverse order?
+                for t in old_translations[i:]:  # XXX Should this be in reverse order?
                     t.is_correction = True
                     self._emit_translation(t)
-                for t in new_translations[i:] :
+                for t in new_translations[i:]:
                     self._emit_translation(t)
                 break
         else:
@@ -358,15 +359,15 @@ class Translator :
             # for one is the same as the other with additional
             # translations appended.  As such, translations must be
             # removed or added, depending on which list is longer.
-            if len(old_translations) > len(new_translations) :
-                for t in old_translations[len(new_translations):] :  # XXX Should this be in reverse order?
+            if len(old_translations) > len(new_translations):
+                for t in old_translations[len(new_translations):]:  # XXX Should this be in reverse order?
                     t.is_correction = True
                     self._emit_translation(t)
-            else :
-                for t in new_translations[len(old_translations):] :
+            else:
+                for t in new_translations[len(old_translations):]:
                     self._emit_translation(t)
 
-    def add_callback(self, callback) :
+    def add_callback(self, callback):
         """Subscribes a function to receive new trasnlations.
 
         Arguments:
@@ -382,6 +383,6 @@ class Translator :
 
     def _emit_translation(self, translation):
         # Send a new translation and any dropped translations to all listeners.
-        for callback in self.subscribers :
+        for callback in self.subscribers:
             callback(translation, self.overflow)
         self.overflow = None

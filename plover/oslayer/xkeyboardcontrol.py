@@ -35,26 +35,25 @@ but could not be found."
 
 keyboard_capture_instances = []
 
+
 class KeyboardCapture(threading.Thread):
     """Listen to keyboard press and release events."""
-    
+
     def __init__(self):
         """Prepare to listen for keyboard events."""
         threading.Thread.__init__(self)
         self.context = None
         self.key_events_to_ignore = []
-        
+
         # Assign default callback functions.
         self.key_down = lambda x: True
         self.key_up = lambda x: True
-        
+
         # Get references to the display.
         self.local_display = display.Display()
         self.record_display = display.Display()
-        
-        
+
     def run(self):
-        
         # Check if the extension is present
         if not self.record_display.has_extension("RECORD"):
             raise Exception(RECORD_EXTENSION_NOT_FOUND)
@@ -97,13 +96,13 @@ class KeyboardCapture(threading.Thread):
 
     def can_suppress_keyboard(self):
         return False
-        
+
     def suppress_keyboard(self, suppress):
         pass
-        
+
     def is_keyboard_suppressed(self):
         return False
-            
+
     def process_events(self, reply):
         """Handle keyboard events.
 
@@ -120,7 +119,7 @@ class KeyboardCapture(threading.Thread):
             return
         data = reply.data
         while len(data):
-            event, data = rq.EventField(None).parse_binary_value(data, \
+            event, data = rq.EventField(None).parse_binary_value(data,
                                        self.record_display.display, None, None)
             keycode = event.detail
             modifiers = event.state
@@ -155,10 +154,10 @@ class KeyboardCapture(threading.Thread):
         element of which is a keycode (integer in [8-255], inclusive)
         and the second element of which is either Xlib.X.KeyPress or
         Xlib.X.KeyRelease.
-        
+
         """
         self.key_events_to_ignore += key_events
-        
+
 
 class KeyboardEmulation:
     """Emulate keyboard events."""
@@ -169,8 +168,8 @@ class KeyboardEmulation:
         self.modifier_mapping = self.display.get_modifier_mapping()
         # Determine the backspace keycode.
         backspace_keysym = XK.string_to_keysym('BackSpace')
-        self.backspace_keycode, mods  = self._keysym_to_keycode_and_modifiers( \
-            backspace_keysym)
+        self.backspace_keycode, mods = self._keysym_to_keycode_and_modifiers(
+                                                backspace_keysym)
 
     def send_backspaces(self, number_of_backspaces):
         """Emulate the given number of backspaces.
@@ -193,7 +192,7 @@ class KeyboardEmulation:
         Argument:
 
         s -- The string to emulate.
-        
+
         """
         for char in s:
             keysym = ord(char)
@@ -230,7 +229,7 @@ class KeyboardEmulation:
         keycode_events = []
         key_down_stack = []
         current_command = []
-        for c in combo_string:            
+        for c in combo_string:
             if c in (' ', '(', ')'):
                 keystring = ''.join(current_command)
                 keysym = XK.string_to_keysym(keystring)
@@ -255,7 +254,7 @@ class KeyboardEmulation:
                         keycode = key_down_stack.pop()
                         keycode_events.append((keycode, X.KeyRelease))
             else:
-                current_command.append(c)                
+                current_command.append(c)
         # Record final command key.
         keystring = ''.join(current_command)
         keysym = XK.string_to_keysym(keystring)
@@ -310,7 +309,7 @@ class KeyboardEmulation:
 
         """
         target_window = self.display.get_input_focus().focus
-        key_event = event_class( detail=keycode,
+        key_event = event_class(detail=keycode,
                                  time=X.CurrentTime,
                                  root=self.display.screen().root,
                                  window=target_window,
@@ -322,7 +321,7 @@ class KeyboardEmulation:
                                  state=modifiers,
                                  same_screen=1
                                  )
-        target_window.send_event(key_event)        
+        target_window.send_event(key_event)
 
     def _keysym_to_keycode_and_modifiers(self, keysym):
         """Return a keycode and modifier mask pair that result in the keysym.
@@ -355,19 +354,19 @@ class KeyboardEmulation:
 
 class XKeyEvent:
     """A class to hold all the information about a key event."""
-    
+
     def __init__(self, keycode, modifiers, keysym):
         """Create an event instance.
-        
+
         Arguments:
-        
+
         keycode -- The keycode that identifies a physical key.
 
         modifiers -- An 8-bit mask. A set bit means the corresponding
         modifier is active. See Xlib.X.ShiftMask, Xlib.X.LockMask,
         Xlib.X.ControlMask, and Xlib.X.Mod1Mask through
         Xlib.X.Mod5Mask.
-        
+
         keysym -- The symbol obtained when the key corresponding to
         keycode without any modifiers. The KeyboardEmulation class
         does not track modifiers such as Shift and Control.
@@ -381,9 +380,9 @@ class XKeyEvent:
             self.keystring = XK.keysym_to_string(keysym)
         else:
             self.keystring = None
-    
+
     def __str__(self):
-        return ' '.join([('%s: %s' % (k, str(v))) \
+        return ' '.join([('%s: %s' % (k, str(v)))
                                       for k, v in self.__dict__.items()])
 
 if __name__ == '__main__':
@@ -391,6 +390,7 @@ if __name__ == '__main__':
     ke = KeyboardEmulation()
 
     import time
+
     def test(event):
         if not event.keycode:
             return
@@ -399,7 +399,7 @@ if __name__ == '__main__':
         keycode_events = ke.send_key_combination('Alt_L(Tab)')
         #ke.send_backspaces(5)
         #ke.send_string('Foo:~')
-        
+
     #kc.key_down = test
     kc.key_up = test
     kc.start()

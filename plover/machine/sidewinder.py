@@ -1,7 +1,7 @@
 # Copyright (c) 2010 Joshua Harlan Lifton.
 # See LICENSE.txt for details.
 
-"""For use with a Microsoft Sidewinder X4 keyboard used as stenotype machine."""
+"For use with a Microsoft Sidewinder X4 keyboard used as stenotype machine."
 
 from plover.machine.base import StenotypeBase
 from plover.oslayer import keyboardcontrol
@@ -43,7 +43,9 @@ KEYSTRING_TO_STENO_KEY = {"a": "S-",
                           "9": "#",
                           "0": "#",
                           "-": "#",
-                          "=": "#",}
+                          "=": "#",
+                         }
+
 
 class Stenotype(StenotypeBase):
     """Standard stenotype interface for a Microsoft Sidewinder X4 keyboard.
@@ -76,10 +78,11 @@ class Stenotype(StenotypeBase):
     def suppress_keyboard(self, suppress):
         self._is_keyboard_suppressed = suppress
         self._keyboard_capture.suppress_keyboard(suppress)
-        
+
     def _key_down(self, event):
         # Called when a key is pressed.
-        if (self._is_keyboard_suppressed and event.keystring is not None 
+        if (self._is_keyboard_suppressed
+            and event.keystring is not None
             and not self._keyboard_capture.is_keyboard_suppressed()):
             self._keyboard_emulation.send_backspaces(1)
         self._down_keys.add(event.keystring)
