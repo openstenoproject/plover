@@ -1,7 +1,7 @@
 # Copyright (c) 2011 Hesky Fisher
 # See LICENSE.txt for details.
 
-"""Thread-based monitoring of a stenotype machine using the TX Bolt protocol."""
+"Thread-based monitoring of a stenotype machine using the TX Bolt protocol."
 
 import plover.machine.base
 import time
@@ -43,7 +43,7 @@ class Stenotype(plover.machine.base.SerialStenotypeBase):
     def __init__(self, **kwargs):
         plover.machine.base.SerialStenotypeBase.__init__(self, **kwargs)
         self._reset_stroke_state()
-    
+
     def _reset_stroke_state(self):
         self._pressed_keys = []
         self._last_key_set = 0
@@ -59,7 +59,7 @@ class Stenotype(plover.machine.base.SerialStenotypeBase):
         while not self.finished.isSet():
             # Grab data from the serial port.
             raw = self.serial_port.read(self.serial_port.inWaiting())
-            
+
             # XXX : work around for python 3.1 and python 2.6 differences
             if isinstance(raw, str):
                 raw = [ord(x) for x in raw]
@@ -67,15 +67,18 @@ class Stenotype(plover.machine.base.SerialStenotypeBase):
             if raw:
                 last_read_time_s = time.clock()
 
-            if not raw and len(self._pressed_keys) > 0 and time.clock() - last_read_time_s > timeout_s:
+            if (not raw and len(self._pressed_keys) > 0
+                and time.clock() - last_read_time_s > timeout_s):
                 self._finish_stroke()
                 continue
 
             for byte in raw:
                 key_set = byte >> 6
-                if key_set <= self._last_key_set and len(self._pressed_keys) > 0:
+                if (key_set <= self._last_key_set
+                    and len(self._pressed_keys) > 0):
                     self._finish_stroke()
                 self._last_key_set = key_set
                 for i in xrange(6):
                     if (byte >> i) & 1:
-                        self._pressed_keys.append(STENO_KEY_CHART[(key_set * 6) + i])
+                        self._pressed_keys.append(
+                            STENO_KEY_CHART[(key_set * 6) + i])

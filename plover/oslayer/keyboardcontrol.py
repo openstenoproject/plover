@@ -18,7 +18,8 @@ emulate keyboard input.
 
 import sys
 
-KEYBOARDCONTROL_NOT_FOUND_FOR_OS = "No keyboard control module was found for os %s" % sys.platform
+KEYBOARDCONTROL_NOT_FOUND_FOR_OS = \
+        "No keyboard control module was found for os %s" % sys.platform
 
 if sys.platform.startswith('linux'):
     import xkeyboardcontrol as keyboardcontrol
@@ -28,19 +29,22 @@ elif sys.platform.startswith('darwin'):
     import osxkeyboardcontrol as keyboardcontrol
 else:
     raise Exception(KEYBOARDCONTROL_NOT_FOUND_FOR_OS)
-    
+
+
 class KeyboardCapture(keyboardcontrol.KeyboardCapture):
     """Listen to keyboard events."""
     pass
 
-class KeyboardEmulation(keyboardcontrol.KeyboardEmulation) :
+
+class KeyboardEmulation(keyboardcontrol.KeyboardEmulation):
     """Emulate printable key presses and backspaces."""
     pass
+
 
 if __name__ == '__main__':
     kc = KeyboardCapture()
     ke = KeyboardEmulation()
-    
+
     def test(event):
         print event
         ke.send_backspaces(3)
@@ -48,13 +52,13 @@ if __name__ == '__main__':
 
     # For the windows version
     kc._create_own_pump = True
-        
+
     kc.key_down = test
     kc.key_up = test
     kc.start()
     print 'Press CTRL-c to quit.'
-    try :
-        while True :
+    try:
+        while True:
             pass
-    except KeyboardInterrupt :
+    except KeyboardInterrupt:
         kc.cancel()

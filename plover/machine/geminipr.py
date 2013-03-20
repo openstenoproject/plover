@@ -12,14 +12,15 @@ import plover.machine.base
 # such, there are really only seven bits of steno data in each packet
 # byte. This is why the STENO_KEY_CHART below is visually presented as
 # six rows of seven elements instead of six rows of eight elements.
-STENO_KEY_CHART = ("Fn","#","#","#","#","#","#",
-                   "S-","S-","T-","K-","P-","W-","H-",
-                   "R-","A-","O-","*","*","res","res",
-                   "pwr","*","*","-E","-U","-F","-R",
-                   "-P","-B","-L","-G","-T","-S","-D",
-                   "#","#","#","#","#","#","-Z")
+STENO_KEY_CHART = ("Fn", "#", "#", "#", "#", "#", "#",
+                   "S-", "S-", "T-", "K-", "P-", "W-", "H-",
+                   "R-", "A-", "O-", "*", "*", "res", "res",
+                   "pwr", "*", "*", "-E", "-U", "-F", "-R",
+                   "-P", "-B", "-L", "-G", "-T", "-S", "-D",
+                   "#", "#", "#", "#", "#", "#", "-Z")
 
 BYTES_PER_STROKE = 6
+
 
 class Stenotype(plover.machine.base.SerialStenotypeBase):
     """Standard stenotype interface for a Gemini PR machine.
@@ -29,18 +30,18 @@ class Stenotype(plover.machine.base.SerialStenotypeBase):
     add_callback.
 
     """
-    
+
     def run(self):
         """Overrides base class run method. Do not call directly."""
-        while not self.finished.isSet() :
+        while not self.finished.isSet():
 
             # Grab data from the serial port.
             raw = self.serial_port.read(BYTES_PER_STROKE)
-            if not raw :
+            if not raw:
                 continue
-            
+
             # XXX : work around for python 3.1 and python 2.6 differences
-            if isinstance(raw, str) :
+            if isinstance(raw, str):
                 raw = [ord(x) for x in raw]
 
             # Make sure this is a valid steno stroke.
@@ -49,13 +50,13 @@ class Stenotype(plover.machine.base.SerialStenotypeBase):
                     (len([b for b in raw if b & 0x80]) == 1)):
                 serial_port.flushInput()
                 continue
-    
+
             # Convert the raw to a list of steno keys.
-            steno_keys= []
+            steno_keys = []
             for i, b in enumerate(raw):
-                for j in range(1,8):
+                for j in range(1, 8):
                     if (b & (0x80 >> j)):
-                        steno_keys.append(STENO_KEY_CHART[i*7 + j-1])
-                
+                        steno_keys.append(STENO_KEY_CHART[i * 7 + j - 1])
+
             # Notify all subscribers.
             self._notify(steno_keys)
