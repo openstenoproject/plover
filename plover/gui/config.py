@@ -12,6 +12,7 @@ import plover.machine as machine
 import plover.dictionary as dictionary
 import plover.config as conf
 import plover.gui.serial_config as serial_config
+from plover.app import check_steno_config
 
 RESTART_DIALOG_MESSAGE = "Plover must be restarted before changes take effect."
 RESTART_DIALOG_TITLE = "Plover"
@@ -110,6 +111,16 @@ class ConfigurationDialog(wx.Dialog):
         self.machine_config.save()
         self.dictionary_config.save()
         self.logging_config.save()
+
+        errors, config_params = check_steno_config(self.config)
+        if errors:
+            alert_dialog = wx.MessageDialog(self,
+                                            unicode(errors[0]),
+                                            "Configuration error",
+                                            wx.OK | wx.ICON_INFORMATION)
+            alert_dialog.ShowModal()
+            alert_dialog.Destroy()
+            return
 
         with open(self.config_file, 'w') as f:
             self.config.write(f)
