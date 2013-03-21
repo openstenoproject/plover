@@ -17,7 +17,7 @@ interface.
 # Import standard library modules.
 from os.path import join, isfile, splitext
 import logging
-import logging.handlers
+from logging.handlers import RotatingFileHandler
 try:
     import simplejson as json
 except ImportError:
@@ -131,11 +131,8 @@ class StenoEngine:
                                         conf.LOG_FILE_OPTION))
         self.logger = logging.getLogger(conf.LOGGER_NAME)
         self.logger.setLevel(logging.DEBUG)
-        handler = logging.handlers.RotatingFileHandler(
-                                                log_file,
-                                                maxBytes=conf.LOG_MAX_BYTES,
-                                                backupCount=conf.LOG_COUNT,
-                                                )
+        handler = RotatingFileHandler(log_file, maxBytes=conf.LOG_MAX_BYTES,
+                                      backupCount=conf.LOG_COUNT,)
         handler.setFormatter(logging.Formatter(conf.LOG_FORMAT))
         self.logger.addHandler(handler)
 
