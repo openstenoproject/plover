@@ -35,6 +35,60 @@ import plover.dictionary as dictionary
 from plover.exception import InvalidConfigurationError
 
 
+def check_steno_config(config_params):
+    """This will do several check on the given configuration
+
+    This method can be used in StenoEngine's __init__ method, but also
+    when exiting the configuration dialog.
+
+    @return: a tuple composed of:
+        - a list of configuration errors
+        - a tuple of the following values:
+            * machine_type
+            * dictionary_format
+            * dictionary_path
+    """
+    errors = []
+    machine_type = config_params.get(conf.MACHINE_CONFIG_SECTION,
+                                     conf.MACHINE_TYPE_OPTION)
+    if machine_type not in machine.supported:
+        # The machine isn't supported
+        error = InvalidConfigurationError(
+            'Invalid configuration value for %s: %s' %
+            (conf.MACHINE_TYPE_OPTION, machine_type))
+        errors.append(error)
+
+    # Set the steno dictionary format module.
+    dictionary_format = config_params.get(conf.DICTIONARY_CONFIG_SECTION,
+                                          conf.DICTIONARY_FORMAT_OPTION)
+    if dictionary_format not in dictionary.supported:
+        # The dictionnary format isn't supported
+        error = InvalidConfigurationError(
+            'Invalid configuration value for %s: %s' %
+            (conf.DICTIONARY_FORMAT_OPTION, dictionary_format))
+        errors.append(error)
+
+    # Load the dictionary. The dictionary path can be either
+    # absolute or relative to the configuration directory.
+    dictionary_filename = config_params.get(conf.DICTIONARY_CONFIG_SECTION,
+                                            conf.DICTIONARY_FILE_OPTION)
+    dictionary_path = join(conf.CONFIG_DIR, dictionary_filename)
+    if not isfile(dictionary_path):
+        error = InvalidConfigurationError(
+            'Invalid configuration value for %s: %s' %
+            (conf.DICTIONARY_FILE_OPTION, dictionary_path))
+        errors.append(error)
+
+    dictionary_extension = splitext(dictionary_path)[1]
+    if dictionary_extension != conf.JSON_EXTENSION:
+        error = InvalidConfigurationError(
+            'The value of %s must end with %s.' %
+            (conf.DICTIONARY_FILE_OPTION, conf.JSON_EXTENSION))
+        errors.append(error)
+
+    return errors, (machine_type, dictionary_format, dictionary_path)
+
+
 class StenoEngine:
     """Top-level class for using a stenotype machine for text input.
 
@@ -87,7 +141,7 @@ class StenoEngine:
 
         # Check and use configuration
         config_params_dict = conf.get_config()
-        config_errors, config_values = self.check_config(config_params_dict)
+        config_errors, config_values = check_steno_config(config_params_dict)
         machine_type, dictionary_format, dictionary_path = config_values
         self.config = config_params_dict
 
@@ -198,56 +252,3 @@ class StenoEngine:
 
     def _log_translation(self, translation, overflow):
         self.logger.info(translation)
-
-    def check_config(self, config_params):
-        """This will do several check on the given configuration
-
-        This method can be used in StenoEngine's __init__ method, but also
-        when exiting the configuration dialog.
-
-        @return: a tuple composed of:
-            - a list of configuration errors
-            - a tuple of the following values:
-                * machine_type
-                * dictionary_format
-                * dictionary_path
-        """
-        errors = []
-        machine_type = config_params.get(conf.MACHINE_CONFIG_SECTION,
-                                         conf.MACHINE_TYPE_OPTION)
-        if machine_type not in machine.supported:
-            # The machine isn't supported
-            error = InvalidConfigurationError(
-                'Invalid configuration value for %s: %s' %
-                (conf.MACHINE_TYPE_OPTION, machine_type))
-            errors.append(error)
-
-        # Set the steno dictionary format module.
-        dictionary_format = config_params.get(conf.DICTIONARY_CONFIG_SECTION,
-                                              conf.DICTIONARY_FORMAT_OPTION)
-        if dictionary_format not in dictionary.supported:
-            # The dictionnary format isn't supported
-            error = InvalidConfigurationError(
-                'Invalid configuration value for %s: %s' %
-                (conf.DICTIONARY_FORMAT_OPTION, dictionary_format))
-            errors.append(error)
-
-        # Load the dictionary. The dictionary path can be either
-        # absolute or relative to the configuration directory.
-        dictionary_filename = config_params.get(conf.DICTIONARY_CONFIG_SECTION,
-                                                conf.DICTIONARY_FILE_OPTION)
-        dictionary_path = join(conf.CONFIG_DIR, dictionary_filename)
-        if not isfile(dictionary_path):
-            error = InvalidConfigurationError(
-                'Invalid configuration value for %s: %s' %
-                (conf.DICTIONARY_FILE_OPTION, dictionary_path))
-            errors.append(error)
-
-        dictionary_extension = splitext(dictionary_path)[1]
-        if dictionary_extension != conf.JSON_EXTENSION:
-            error = InvalidConfigurationError(
-                'The value of %s must end with %s.' %
-                (conf.DICTIONARY_FILE_OPTION, conf.JSON_EXTENSION))
-            errors.append(error)
-
-        return errors, (machine_type, dictionary_format, dictionary_path)
