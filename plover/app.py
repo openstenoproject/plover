@@ -62,7 +62,7 @@ def check_steno_config(config_params):
     dictionary_format = config_params.get(conf.DICTIONARY_CONFIG_SECTION,
                                           conf.DICTIONARY_FORMAT_OPTION)
     if dictionary_format not in dictionary.supported:
-        # The dictionnary format isn't supported
+        # The dictionary format isn't supported
         error = InvalidConfigurationError(
             'Invalid configuration value for %s: %s' %
             (conf.DICTIONARY_FORMAT_OPTION, dictionary_format))

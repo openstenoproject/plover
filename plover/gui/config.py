@@ -104,7 +104,7 @@ class ConfigurationDialog(wx.Dialog):
         self.SetSizer(sizer)
         sizer.Fit(self)
 
-        # Binding the save button the self._save callback
+        # Binding the save button to the self._save callback
         self.Bind(wx.EVT_BUTTON, self._save, save_button)
 
     def _save(self, event):
