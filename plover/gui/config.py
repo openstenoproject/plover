@@ -8,8 +8,7 @@ import wx
 import wx.lib.filebrowsebutton as filebrowse
 import ConfigParser
 from serial import Serial
-import plover.machine as machine
-import plover.dictionary as dictionary
+from plover.machine import SUPPORTED_DICT as SUPPORTED_MACHINES_DICT
 import plover.config as conf
 import plover.gui.serial_config as serial_config
 from plover.app import check_steno_config
@@ -160,7 +159,7 @@ class MachineConfig(wx.Panel):
         box.Add(wx.StaticText(self, label=MACHINE_LABEL),
                 border=COMPONENT_SPACE,
                 flag=wx.ALIGN_RIGHT | wx.ALIGN_CENTER_VERTICAL | wx.RIGHT)
-        machines = machine.supported.keys()
+        machines = SUPPORTED_MACHINES_DICT.keys()
         value = self.config.get(conf.MACHINE_CONFIG_SECTION,
                                 conf.MACHINE_TYPE_OPTION)
         self.choice = wx.Choice(self, choices=machines)
@@ -218,7 +217,7 @@ class MachineConfig(wx.Panel):
     def _update(self, event=None):
         # Refreshes the UI to reflect current data.
         mod = conf.import_named_module(self.choice.GetStringSelection(),
-                                       machine.supported)
+                                       SUPPORTED_MACHINES_DICT)
         if ((mod is not None) and
             hasattr(mod, 'Stenotype') and
             hasattr(mod.Stenotype, 'CONFIG_CLASS')):

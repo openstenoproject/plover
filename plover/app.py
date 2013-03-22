@@ -28,7 +28,7 @@ import plover.config as conf
 import plover.formatting as formatting
 import plover.oslayer.keyboardcontrol as keyboardcontrol
 import plover.steno as steno
-import plover.machine as machine
+from plover.machine import SUPPORTED_DICT as SUPPORTED_MACHINES_DICT
 import plover.machine.base
 import plover.machine.sidewinder
 from plover.dictionary import SUPPORTED_DICT as SUPPORTED_DICTIONARIES_DICT
@@ -51,7 +51,7 @@ def check_steno_config(config_params):
     errors = []
     machine_type = config_params.get(conf.MACHINE_CONFIG_SECTION,
                                      conf.MACHINE_TYPE_OPTION)
-    if machine_type not in machine.supported:
+    if machine_type not in SUPPORTED_MACHINES_DICT:
         # The machine isn't supported
         error = InvalidConfigurationError(
             'Invalid configuration value for %s: %s' %
@@ -164,8 +164,9 @@ class StenoEngine:
             raise error
 
         # Set the machine module and any initialization variables.
-        self.machine_module = conf.import_named_module(machine_type,
-                                                       machine.supported)
+        self.machine_module = conf.import_named_module(
+                                                machine_type,
+                                                SUPPORTED_MACHINES_DICT)
         if self.machine_module is None:
             raise InvalidConfigurationError(
                 'Invalid configuration value for %s: %s' %
