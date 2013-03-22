@@ -31,7 +31,7 @@ import plover.steno as steno
 import plover.machine as machine
 import plover.machine.base
 import plover.machine.sidewinder
-import plover.dictionary as dictionary
+from plover.dictionary import SUPPORTED_DICT as SUPPORTED_DICTIONARIES_DICT
 from plover.exception import InvalidConfigurationError
 
 
@@ -61,7 +61,7 @@ def check_steno_config(config_params):
     # Set the steno dictionary format module.
     dictionary_format = config_params.get(conf.DICTIONARY_CONFIG_SECTION,
                                           conf.DICTIONARY_FORMAT_OPTION)
-    if dictionary_format not in dictionary.supported:
+    if dictionary_format not in SUPPORTED_DICTIONARIES_DICT:
         # The dictionary format isn't supported
         error = InvalidConfigurationError(
             'Invalid configuration value for %s: %s' %
@@ -86,7 +86,21 @@ def check_steno_config(config_params):
             (conf.DICTIONARY_FILE_OPTION, conf.JSON_EXTENSION))
         errors.append(error)
 
-    return errors, (machine_type, dictionary_format, dictionary_path)
+    # Load the dictionary. The dictionary path can be either
+    # absolute or relative to the configuration directory.
+    try:
+        try:
+            with open(dictionary_path, 'r') as f:
+                user_dictionary = json.load(f)
+        except UnicodeDecodeError:
+            with open(dictionary_path, 'r') as f:
+                user_dictionary = json.load(f, conf.ALTERNATIVE_ENCODING)
+    except ValueError:
+        error = InvalidConfigurationError(
+            'The dictionary file contains incorrect json.')
+        errors.append(error)
+
+    return errors, (machine_type, dictionary_format, user_dictionary)
 
 
 class StenoEngine:
@@ -142,7 +156,7 @@ class StenoEngine:
         # Check and use configuration
         config_params_dict = conf.get_config()
         config_errors, config_values = check_steno_config(config_params_dict)
-        machine_type, dictionary_format, dictionary_path = config_values
+        machine_type, dictionary_format, user_dictionary = config_values
         self.config = config_params_dict
 
         for error in config_errors:
@@ -163,21 +177,13 @@ class StenoEngine:
             self.machine_init.update(serial_params.__dict__)
 
         # Set the steno dictionary format module.
-        self.dictionary_module = conf.import_named_module(dictionary_format,
-                                                          dictionary.supported)
+        self.dictionary_module = conf.import_named_module(
+                                                dictionary_format,
+                                                SUPPORTED_DICTIONARIES_DICT)
         if self.dictionary_module is None:
             raise InvalidConfigurationError(
                 'Invalid configuration value for %s: %s' %
                 (conf.DICTIONARY_FORMAT_OPTION, dictionary_format))
-
-        # Load the dictionary. The dictionary path can be either
-        # absolute or relative to the configuration directory.
-        try:
-            with open(dictionary_path, 'r') as f:
-                self.dictionary = json.load(f)
-        except UnicodeDecodeError:
-            with open(dictionary_path, 'r') as f:
-                self.dictionary = json.load(f, conf.ALTERNATIVE_ENCODING)
 
         # Initialize the logger.
         log_file = join(conf.CONFIG_DIR,
@@ -194,7 +200,7 @@ class StenoEngine:
         self.machine = self.machine_module.Stenotype(**self.machine_init)
         self.output = keyboardcontrol.KeyboardEmulation()
         self.translator = steno.Translator(self.machine,
-                                           self.dictionary,
+                                           user_dictionary,
                                            self.dictionary_module)
         self.formatter = formatting.Formatter(self.translator)
         auto_start = self.config.getboolean(conf.MACHINE_CONFIG_SECTION,
