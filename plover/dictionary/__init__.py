@@ -10,5 +10,5 @@ string.
 """
 __all__ = ['dcat', 'eclipse']
 
-supported = {'Eclipse': 'plover.dictionary.eclipse',
-             'DCAT': 'plover.dictionary.dcat', }
+SUPPORTED_DICT = {'Eclipse': 'plover.dictionary.eclipse',
+                  'DCAT': 'plover.dictionary.dcat', }
