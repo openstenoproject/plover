@@ -46,7 +46,7 @@ def check_steno_config(config_params):
         - a tuple of the following values:
             * machine_type
             * dictionary_format
-            * dictionary_path
+            * user_dictionary
     """
     errors = []
     machine_type = config_params.get(conf.MACHINE_CONFIG_SECTION,
