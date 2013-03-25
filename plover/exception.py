@@ -15,7 +15,13 @@ SERIAL_PORT_EXCEPTION_MESSAGE = ("Either the stenotype machine is not "
                                  "configuration and then restart Plover.")
 
 
-class SerialPortException(Exception):
+
+class InvalidConfigurationError(Exception):
+    "Raised when there is something wrong in the configuration."
+    pass
+
+
+class SerialPortException(InvalidConfigurationError):
     """Raised when a serial port is misconfigured."""
 
     def __init__(self, *args):
