@@ -7,9 +7,7 @@ This module is the foundation for manipulating and understanding the
 output of a stenotype machine. Three classes copmose this module:
 
 Stroke -- A data model class that encapsulates a sequence of steno
-keys, which might be ASCII or raw binary data, in the context of a
-particular normalized dictionary format, essentially abstracting away
-the details of a particular stenotype machine's formatting.
+keys.
 
 Translation -- A data model class that encapsulates a sequence of
 Stroke objects in the context of a particular dictionary. The
@@ -21,6 +19,43 @@ a time and emits one or more Translation objects based on a greedy
 conversion algorithm.
 
 """
+
+import re
+
+STROKE_DELIMITER = '/'
+
+HYPHEN_CHARS = set(('-', 'A', 'E', 'O', 'U', '*'))
+
+def normalize_steno(strokes_string):
+    """Convert steno strings to one common form.
+
+    Plover currently supports two encodings for steno strokes in its dictionary:
+    dcat and eclipse. This function converts both to one common form.
+
+    """
+    strokes = strokes_string.split(STROKE_DELIMITER)
+    normalized_strokes = []
+    for stroke in strokes:
+        if '#' in stroke and re.search('[0-9]', stroke):
+            stroke = stroke.replace('#', '')
+    
+        seen_dash = False
+        normalized_stroke = []
+        for c in stroke:
+            if c == '-':
+                if seen_dash:
+                    continue
+            if c in HYPHEN_CHARS:
+                seen_dash = True
+            normalized_stroke.append(c)
+        normalized_strokes.append(''.join(normalized_stroke))
+    return STROKE_DELIMITER.join(normalized_strokes)
+
+def normalize_dictionary(d):
+    normalized = {}
+    for k, v in d.iteritems():
+        normalized[normalize_steno(k)] = v
+    return d
 
 STENO_KEY_NUMBERS = {'S-': '1-',
                      'T-': '2-',
@@ -57,61 +92,56 @@ STENO_KEY_ORDER = {"#": -1,
                    "-D": 23,
                    "-Z": 24}
 
-STENO_KEYS = tuple(STENO_KEY_ORDER.keys())
-
+IMPLICIT_HYPHEN = set(('A-', 'O-', '5-', '0-', '-E', '-U', '*'))
 
 class Stroke:
     """A standardized data model for stenotype machine strokes.
 
-    This class standardizes the representation of a stenotype chord
-    according to a particular dictionary format. A stenotype chord can
-    be any sequence of stenotype keys that can be simultaneously
-    pressed. Nearly all stenotype machines offer the same set of keys
-    that can be combined into a chord, though some variation exists
-    due to duplicate keys. This class accounts for such duplication,
-    imposes the standard stenographic ordering on the keys, and
-    combines the keys into a single string (called RTFCRE for
-    historical reasons) according to a particular dictionary format.
+    This class standardizes the representation of a stenotype chord. A stenotype
+    chord can be any sequence of stenotype keys that can be simultaneously
+    pressed. Nearly all stenotype machines offer the same set of keys that can
+    be combined into a chord, though some variation exists due to duplicate
+    keys. This class accounts for such duplication, imposes the standard
+    stenographic ordering on the keys, and combines the keys into a single
+    string (called RTFCRE for historical reasons).
 
     """
 
-    def __init__(self, steno_keys, dictionary_format):
+    def __init__(self, steno_keys) :
         """Create a steno stroke by formatting steno keys.
 
         Arguments:
 
-        steno_keys -- A sequence of unordered stenographic keys
-        composing this stroke. Valid stenographic keys are given in
-        STENO_KEYS.
-
-        dictionary_format -- A Python module that encapsulates a
-        specific stenographic dictionary format. Typically, this is
-        one of the modules in plover.dictionary, but it could be any
-        module that provides a STROKE_DELIMITER constant and a
-        toRTFCRE method that takes in a sequence and returns a string.
+        steno_keys -- A sequence of pressed keys.
 
         """
-
-        # Remove duplicate keys and save local versions of the input
+        # Remove duplicate keys and save local versions of the input 
         # parameters.
-        self.steno_keys = list(set(steno_keys))
-        self.dictionary_format = dictionary_format
+        steno_keys_set = set(steno_keys)
+        steno_keys = list(steno_keys_set)
 
         # Order the steno keys so comparisons can be made.
-        self.steno_keys.sort(key=lambda x: STENO_KEY_ORDER[x])
-
+        steno_keys.sort(key=lambda x: STENO_KEY_ORDER[x])
+         
         # Convert strokes involving the number bar to numbers.
-        if '#' in self.steno_keys:
+        if '#' in steno_keys:
             numeral = False
-            for i, e in enumerate(self.steno_keys):
+            for i, e in enumerate(steno_keys):
                 if e in STENO_KEY_NUMBERS:
-                    self.steno_keys[i] = STENO_KEY_NUMBERS[e]
+                    steno_keys[i] = STENO_KEY_NUMBERS[e]
                     numeral = True
             if numeral:
-                self.steno_keys.remove('#')
+                steno_keys.remove('#')
+        
+        if steno_keys_set & IMPLICIT_HYPHEN:
+            self.rtfcre = ''.join(key.strip('-') for key in steno_keys)
+        else:
+            pre = ''.join(k.strip('-') for k in steno_keys if k[-1] == '-' or 
+                          k == '#')
+            post = ''.join(k.strip('-') for k in steno_keys if k[0] == '-')
+            self.rtfcre = '-'.join([pre, post]) if post else pre
 
-        # Convert the list of steno keys to the RTF/CRE format.
-        self.rtfcre = self.dictionary_format.toRTFCRE(self.steno_keys)
+        self.steno_keys = steno_keys
 
         # Determine if this stroke is a correction stroke.
         self.is_correction = (self.rtfcre == '*')
@@ -169,13 +199,7 @@ class Translation:
 
         """
         self.strokes = strokes
-        if strokes:
-            dict_format = strokes[0].dictionary_format
-            delimiter = dict_format.STROKE_DELIMITER
-            self.rtfcre = delimiter.join([s.rtfcre for s in strokes])
-        else:
-            dict_format = None
-            self.rtfcre = ''
+        self.rtfcre = STROKE_DELIMITER.join([s.rtfcre for s in strokes])
         self.english = rtfcreDict.get(self.rtfcre, None)
         self.is_correction = False
 
@@ -239,7 +263,6 @@ class Translator:
     def __init__(self,
                  steno_machine,
                  dictionary,
-                 dictionary_format,
                  max_number_of_strokes=None):
         """Prepare to translate steno keys into dictionary string values.
 
@@ -251,9 +274,6 @@ class Translator:
 
         dictionary -- A dictionary that maps strings in RTF/CRE format
         to English or meta command strings.
-
-        dictionary_format -- One of the submodules of
-        plover.dictionary. For example, plover.dictionary.eclipse.
 
         max_number_of_strokes -- The length of the internal Stroke
         FIFO. This should generally be the longest sequence of strokes
@@ -268,14 +288,12 @@ class Translator:
         self.translations = []
         self.overflow = None
         self.dictionary = dictionary
-        self.dictionary_format = dictionary_format
         self.subscribers = []
         if max_number_of_strokes is None:
             max_number_of_strokes = 1
-            delimiter = dictionary_format.STROKE_DELIMITER
             for rtfcre in dictionary.keys():
                 max_number_of_strokes = max(max_number_of_strokes,
-                                            len(rtfcre.split(delimiter)))
+                                            len(rtfcre.split(STROKE_DELIMITER)))
         self.max_number_of_strokes = max_number_of_strokes
         self.steno_machine.add_callback(self.consume_steno_keys)
 
@@ -292,7 +310,7 @@ class Translator:
 
         """
         if steno_keys:
-            self.consume_stroke(Stroke(steno_keys, self.dictionary_format))
+            self.consume_stroke(Stroke(steno_keys))
 
     def consume_stroke(self, stroke):
         """Process a stenotype chord, emitting translations as needed.
