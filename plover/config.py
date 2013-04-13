@@ -13,8 +13,6 @@ import shutil
 # We need imports to be explicit for py2app.
 # There may be another way but by default it doesn't
 # understand the dynamic loading used here.
-import plover.dictionary.eclipse
-import plover.dictionary.dcat
 import plover.machine.geminipr
 import plover.machine.txbolt
 import plover.machine.sidewinder
@@ -31,7 +29,6 @@ MACHINE_TYPE_OPTION = 'machine_type'
 MACHINE_AUTO_START_OPTION = 'auto_start'
 DICTIONARY_CONFIG_SECTION = 'Dictionary Configuration'
 DICTIONARY_FILE_OPTION = 'dictionary_file'
-DICTIONARY_FORMAT_OPTION = 'dictionary_format'
 LOGGING_CONFIG_SECTION = 'Logging Configuration'
 LOG_FILE_OPTION = 'log_file'
 ENABLE_STROKE_LOGGING_OPTION = 'enable_stroke_logging'
@@ -41,7 +38,6 @@ ENABLE_TRANSLATION_LOGGING_OPTION = 'enable_translation_logging'
 DEFAULT_MACHINE_TYPE = 'Microsoft Sidewinder X4'
 DEFAULT_MACHINE_AUTO_START = 'false'
 DEFAULT_DICTIONARY_FILE = 'dict.json'
-DEFAULT_DICTIONARY_FORMAT = 'Eclipse'
 DEFAULT_LOG_FILE = 'plover.log'
 DEFAULT_ENABLE_STROKE_LOGGING = 'true'
 DEFAULT_ENABLE_TRANSLATION_LOGGING = 'true'
@@ -156,8 +152,6 @@ def verify_config(config):
                                DEFAULT_ENABLE_TRANSLATION_LOGGING),
       (LOGGING_CONFIG_SECTION, ENABLE_STROKE_LOGGING_OPTION,
                                DEFAULT_ENABLE_STROKE_LOGGING),
-      (DICTIONARY_CONFIG_SECTION, DICTIONARY_FORMAT_OPTION,
-                                  DEFAULT_DICTIONARY_FORMAT),
       (DICTIONARY_CONFIG_SECTION, DICTIONARY_FILE_OPTION,
                                   DEFAULT_DICTIONARY_FILE),
       (MACHINE_CONFIG_SECTION, MACHINE_TYPE_OPTION,
