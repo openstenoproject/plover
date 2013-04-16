@@ -18,10 +18,6 @@ interface.
 from os.path import join, isfile, splitext
 import logging
 from logging.handlers import RotatingFileHandler
-try:
-    import simplejson as json
-except ImportError:
-    import json
 
 # Import plover modules.
 import plover.config as conf
@@ -32,7 +28,19 @@ from plover.machine import SUPPORTED_DICT as SUPPORTED_MACHINES_DICT
 import plover.machine.base
 import plover.machine.sidewinder
 from plover.exception import InvalidConfigurationError
+import steno_dictionary
+import steno
+import translation
 
+# Because 2.7 doesn't have this yet.
+class SimpleNamespace(object):
+    def __init__(self, **kwargs):
+        self.__dict__.update(kwargs)
+    def __repr__(self):
+        keys = sorted(self.__dict__)
+        items = ("{}={!r}".format(k, self.__dict__[k]) for k in keys)
+        return "{}({})".format(type(self).__name__, ", ".join(items))
+        
 
 def check_steno_config(config_params):
     """This will do several check on the given configuration
@@ -76,19 +84,14 @@ def check_steno_config(config_params):
 
     # Load the dictionary. The dictionary path can be either
     # absolute or relative to the configuration directory.
+    user_dictionary = None
     try:
-        try:
-            with open(dictionary_path, 'r') as f:
-                user_dictionary = json.load(f)
-        except UnicodeDecodeError:
-            with open(dictionary_path, 'r') as f:
-                user_dictionary = json.load(f, conf.ALTERNATIVE_ENCODING)
+        with open(dictionary_path, 'r') as f:
+            user_dictionary = steno_dictionary.load_dictionary(f.read())
     except ValueError:
         error = InvalidConfigurationError(
             'The dictionary file contains incorrect json.')
         errors.append(error)
-    
-    user_dictionary = steno.normalize_dictionary(user_dictionary)
 
     return errors, (machine_type, user_dictionary)
 
@@ -133,7 +136,7 @@ class StenoEngine:
 
     """
 
-    def __init__(self):
+    def __init__(self, engine_command_callback):
         """Creates and configures a single steno pipeline."""
         self.subscribers = []
         self.is_running = False
@@ -144,14 +147,13 @@ class StenoEngine:
         self.output = None
 
         # Check and use configuration
-        config_params_dict = conf.get_config()
-        config_errors, config_values = check_steno_config(config_params_dict)
-        machine_type, user_dictionary = config_values
-        self.config = config_params_dict
-
+        self.config = conf.get_config()
+        config_errors, config_values = check_steno_config(self.config)
         for error in config_errors:
             # This will raise one of the configuration errors.
             raise error
+            
+        machine_type, user_dictionary = config_values
 
         # Set the machine module and any initialization variables.
         self.machine_module = conf.import_named_module(
@@ -180,10 +182,23 @@ class StenoEngine:
 
         # Construct the stenography capture-translate-format-display pipeline.
         self.machine = self.machine_module.Stenotype(**self.machine_init)
-        self.output = keyboardcontrol.KeyboardEmulation()
-        self.translator = steno.Translator(self.machine,
-                                           user_dictionary)
-        self.formatter = formatting.Formatter(self.translator)
+        self.translator = translation.Translator()
+        self.translator.set_dictionary(user_dictionary)
+        self.formatter = formatting.Formatter()
+        self.machine.add_callback(lambda x: self.translator.translate(steno.Stroke(x)))
+        self.translator.add_listener(self.formatter.format)
+        keyboard_control = keyboardcontrol.KeyboardEmulation()
+        bag = SimpleNamespace()
+        bag.send_backspaces = keyboard_control.send_backspaces
+        bag.send_string = keyboard_control.send_string
+        bag.send_key_combination = keyboard_control.send_key_combination
+        bag.send_engine_command = engine_command_callback
+        self.full_output = bag
+        bag = SimpleNamespace()
+        bag.send_engine_command = engine_command_callback
+        self.command_only_output = bag
+        self.running_state = self.translator.get_state()
+        
         auto_start = self.config.getboolean(conf.MACHINE_CONFIG_SECTION,
                                             conf.MACHINE_AUTO_START_OPTION)
         self.set_is_running(auto_start)
@@ -194,7 +209,7 @@ class StenoEngine:
             self.machine.add_callback(self._log_stroke)
         if self.config.getboolean(conf.LOGGING_CONFIG_SECTION,
                                   conf.ENABLE_TRANSLATION_LOGGING_OPTION):
-            self.translator.add_callback(self._log_translation)
+            self.translator.add_listener(self._log_translation)
 
         # Start the machine monitoring for steno strokes.
         self.machine.start_capture()
@@ -202,9 +217,11 @@ class StenoEngine:
     def set_is_running(self, value):
         self.is_running = value
         if self.is_running:
-            self.formatter.text_output = self.output
+            self.translator.set_state(self.running_state)
+            self.formatter.set_output(self.full_output)
         else:
-            self.formatter.text_output = None
+            self.translator.clear_state()
+            self.formatter.set_output(self.command_only_output)
         if isinstance(self.machine, plover.machine.sidewinder.Stenotype):
             self.machine.suppress_keyboard(self.is_running)
         for callback in self.subscribers:
@@ -237,5 +254,9 @@ class StenoEngine:
     def _log_stroke(self, steno_keys):
         self.logger.info('Stroke(%s)' % ' '.join(steno_keys))
 
-    def _log_translation(self, translation, overflow):
-        self.logger.info(translation)
+    def _log_translation(self, undo, do, prev):
+        # TODO: Figure out what to actually log here.
+        for u in undo:
+            self.logger.info(u)
+        for d in do:
+            self.logger.info(d)
