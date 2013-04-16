@@ -185,8 +185,21 @@ class StenoEngine:
         self.translator = translation.Translator()
         self.translator.set_dictionary(user_dictionary)
         self.formatter = formatting.Formatter()
-        self.machine.add_callback(lambda x: self.translator.translate(steno.Stroke(x)))
+        
+        # Add hooks for logging. Do this first so logs appear in order.
+        if self.config.getboolean(conf.LOGGING_CONFIG_SECTION,
+                                  conf.ENABLE_STROKE_LOGGING_OPTION):
+            self.machine.add_callback(self._log_stroke)
+        if self.config.getboolean(conf.LOGGING_CONFIG_SECTION,
+                                  conf.ENABLE_TRANSLATION_LOGGING_OPTION):
+            self.translator.add_listener(self._log_translation)        
+        
+        self.machine.add_callback(
+            lambda x: self.translator.translate(steno.Stroke(x)))
         self.translator.add_listener(self.formatter.format)
+        # This seems like a reasonable number. If this becomes a problem it can
+        # be parameterized.
+        self.translator.set_min_undo_length(10)
         keyboard_control = keyboardcontrol.KeyboardEmulation()
         bag = SimpleNamespace()
         bag.send_backspaces = keyboard_control.send_backspaces
@@ -203,13 +216,7 @@ class StenoEngine:
                                             conf.MACHINE_AUTO_START_OPTION)
         self.set_is_running(auto_start)
 
-        # Add hooks for logging.
-        if self.config.getboolean(conf.LOGGING_CONFIG_SECTION,
-                                  conf.ENABLE_STROKE_LOGGING_OPTION):
-            self.machine.add_callback(self._log_stroke)
-        if self.config.getboolean(conf.LOGGING_CONFIG_SECTION,
-                                  conf.ENABLE_TRANSLATION_LOGGING_OPTION):
-            self.translator.add_listener(self._log_translation)
+
 
         # Start the machine monitoring for steno strokes.
         self.machine.start_capture()
@@ -257,6 +264,6 @@ class StenoEngine:
     def _log_translation(self, undo, do, prev):
         # TODO: Figure out what to actually log here.
         for u in undo:
-            self.logger.info(u)
+            self.logger.info('*%s', u)
         for d in do:
             self.logger.info(d)

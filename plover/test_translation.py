@@ -4,10 +4,10 @@
 """Unit tests for translation.py."""
 
 from collections import namedtuple
+import copy
 from mock import patch
 from steno_dictionary import StenoDictionary
 from translation import Translation, Translator, _State, _translate_stroke
-import translation
 import unittest
 
 class Stroke(object):
@@ -155,6 +155,45 @@ class TranslatorTestCase(unittest.TestCase):
         t.translate(s)
         self.assertEqual(output1, [])
         self.assertEqual(output2, [])
+        
+    def test_changing_state(self):
+        output = []
+        def listener(undo, do, prev):
+            output.append((undo, do, prev))
+
+        d = StenoDictionary()
+        d[('S', 'P')] = 'hi'
+        t = Translator()
+        t.set_dictionary(d)
+        t.translate(Stroke('T'))
+        t.translate(Stroke('S'))
+        s = copy.deepcopy(t.get_state())
+        
+        t.add_listener(listener)
+        
+        expected = [([Translation([Stroke('S')], d)], 
+                     [Translation([Stroke('S'), Stroke('P')], d)], 
+                     Translation([Stroke('T')], d))]
+        t.translate(Stroke('P'))
+        self.assertEqual(output, expected)
+        
+        del output[:]
+        t.set_state(s)
+        t.translate(Stroke('P'))
+        self.assertEqual(output, expected)
+        
+        del output[:]
+        t.clear_state()
+        t.translate(Stroke('P'))
+        self.assertEqual(output, [([], [Translation([Stroke('P')], d)], None)])
+        
+        del output[:]
+        t.set_state(s)
+        t.translate(Stroke('P'))
+        self.assertEqual(output, 
+                         [([], 
+                           [Translation([Stroke('P')], d)], 
+                           Translation([Stroke('S'), Stroke('P')], d))])
 
     def test_translator(self):
 
@@ -184,7 +223,7 @@ class TranslatorTestCase(unittest.TestCase):
                 
         d = StenoDictionary()        
         out = Output()        
-        t = translation.Translator()
+        t = Translator()
         t.set_dictionary(d)
         t.add_listener(out.write)
         
@@ -403,7 +442,7 @@ class TranslateStrokeTestCase(unittest.TestCase):
 
     def setUp(self):
         self.d = StenoDictionary()
-        self.s = translation._State()
+        self.s = _State()
         self.o = type(self).CaptureOutput()
 
     def test_first_stroke(self):
