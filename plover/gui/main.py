@@ -77,9 +77,7 @@ class Frame(wx.Frame):
         while True:
             # Check configuration loop
             try:
-                self.steno_engine = app.StenoEngine()
-                self.steno_engine.formatter.engine_command_callback = \
-                  self.consume_command
+                self.steno_engine = app.StenoEngine(self.consume_command)
                 break
             except InvalidConfigurationError, spe:
                 self.steno_engine = None
@@ -137,6 +135,7 @@ class Frame(wx.Frame):
     def consume_command(self, command):
         # Wrap all actions in a CallAfter since the initiator of the
         # action is likely a thread other than the wx thread.
+        # TODO: When using keyboard to resume the stroke is typed.
         if command == self.COMMAND_SUSPEND and self.steno_engine:
             wx.CallAfter(self.steno_engine.set_is_running, False)
         elif command == self.COMMAND_RESUME and self.steno_engine:

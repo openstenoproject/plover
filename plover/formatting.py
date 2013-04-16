@@ -1,21 +1,184 @@
 # Copyright (c) 2010-2011 Joshua Harlan Lifton.
 # See LICENSE.txt for details.
 
-"""This module converts translations to printable text."""
+"""This module converts translations to printable text.
 
-import re
+This module defines and implements plover's custom dictionary language.
+
+"""
+
+from os.path import commonprefix
+from collections import namedtuple
 import orthography
+import re
 
-SPACE = ' '
-STOP_SPACE = ' '
-NO_SPACE = ''
-META_STOPS = ('.', '!', '?')
-META_COMMAS = (',', ':', ';')
-META_CAPITALIZE = '-|'
-META_GLUE_FLAG = '&'
-META_ATTACH_FLAG = '^'
-META_KEY_COMBINATION = '#'
-META_COMMAND = 'PLOVER:'
+class Formatter(object):
+    """Convert translations into output.
+
+    The main entry point for this class is format, which takes in translations
+    to format. Output is sent via an output class passed in through set_output.
+    Other than setting the output, the formatter class is stateless. 
+
+    The output class can define the following functions, which will be called if
+    available:
+
+    send_backspaces -- Takes a number and deletes back that many characters.
+
+    send_string -- Takes a string and prints it verbatim.
+
+    send_key_combination -- Takes a string the dictionary format for specifying
+    key combinations and issues them.
+
+    send_engine_command -- Takes a string which names the special command to
+    execute.
+
+    """
+
+    output_type = namedtuple(
+        'output', ['send_backspaces', 'send_string', 'send_key_combination', 
+                   'send_engine_command'])
+
+    def __init__(self):
+        self.set_output(None)
+
+    def set_output(self, output):
+        """Set the output class."""
+        noop = lambda x: None
+        output_type = type(self).output_type
+        fields = output_type._fields
+        self._output = output_type(*[getattr(output, f, noop) for f in fields])
+
+    def format(self, undo, do, prev):
+        """Format the given translations.
+
+        Arguments:
+
+        undo -- A sequence of translations that should be undone. The formatting
+        parameter of the translations will be used to undo the actions that were
+        taken, if possible.
+
+        do -- The new actions to format. The formatting attribute will be filled
+        in with the result.
+
+        prev -- The last translation before the new actions in do. This
+        translation's formatting attribute provides the context for the new
+        rendered translations. If there is no context then this may be None.
+
+        """
+        for t in do:
+            last_action = _get_last_action(prev.formatting if prev else None)
+            if t.english:
+                t.formatting = _translation_to_actions(t.english, last_action)
+            else:
+                t.formatting = _raw_to_actions(t.rtfcre[0], last_action)
+            prev = t
+
+        old = [a for t in undo for a in t.formatting]
+        new = [a for t in do for a in t.formatting]
+        
+        min_length = min(len(old), len(new))
+        for i in xrange(min_length):
+            if old[i] != new[i]:
+                break
+        else:
+            i = min_length
+
+        _undo(old[i:], self._output)
+        _render_actions(new[i:], self._output)
+
+
+def _get_last_action(actions):
+    """Return last action in actions if possibleor return a blank action."""
+    return actions[-1] if actions else _Action()
+
+def _undo(actions, output):
+    """Send instructions to output to undo actions."""
+    for a in reversed(actions):
+        if a.text:
+            output.send_backspaces(len(a.text))
+        if a.replace:
+            output.send_string(a.replace)
+
+def _render_actions(actions, output):
+    """Send instructions to output to render new actions."""
+    for a in actions:
+        if a.replace:
+            output.send_backspaces(len(a.replace))
+        if a.text:
+            output.send_string(a.text)
+        if a.combo:
+            output.send_key_combination(a.combo)
+        if a.command:
+            output.send_engine_command(a.command)
+
+class _Action(object):
+    """A hybrid class that stores instructions and resulting state.
+
+    A single translation may be formatted into one or more actions. The
+    instructions are used to render the current action and the state is used as
+    context to render future translations.
+
+    """
+    def __init__(self, attach=False, glue=False, word='', capitalize=False,
+                 text='', replace='', combo='', command=''):
+        """Initialize a new action.
+
+        Arguments:
+
+        attach -- True if there should be no space between this and the next
+        action.
+
+        glue -- True if there be no space between this and the next action if
+        the next action also has glue set to True.
+
+        word -- The current word. This is context for future actions whose
+        behavior depends on the previous word such as suffixes.
+
+        capitalize -- True if the next action should be capitalized.
+
+        text -- The text that should be rendered for this action.
+
+        replace -- Text that should be deleted for this action.
+
+        combo -- The key combo, in plover's key combo language, that should be
+        executed for this action.
+
+        command -- The command that should be executed for this actions.
+
+        """
+        # State variables
+        self.attach = attach
+        self.glue = glue
+        self.word = word
+        self.capitalize = capitalize
+                
+        # Instruction variables
+        self.text = text
+        self.replace = replace
+        self.combo = combo
+        self.command = command
+        
+    def copy_state(self):
+        """Clone this action but only clone the state variables."""
+        a = _Action()
+        a.attach = self.attach
+        a.glue = self.glue
+        a.word = self.word
+        a.capitalize = self.capitalize
+        return a
+        
+    def __eq__(self, other):
+        return self.__dict__ == other.__dict__
+
+    def __ne__(self, other):
+        return not self == other
+
+    def __str__(self):
+        return 'Action(%s)' % str(self.__dict__)
+
+    def __repr__(self):
+        return str(self)
+
 
 META_ESCAPE = '\\'
 RE_META_ESCAPE = '\\\\'
@@ -51,241 +214,174 @@ META_RE = re.compile(r"""(?:%s%s|%s%s|[^%s%s])+ # One or more of anything
 #                                   # doesn't contain unescaped { or }
 #             """, re.VERBOSE)
 
+def _translation_to_actions(translation, last_action):
+    """Create actions for a translation.
+    
+    Arguments:
 
-class Formatter:
-    """A state machine for converting Translation objects into printable text.
+    translation -- A string with the translation to render.
 
-    Instances of this class take in one Translation object at a time
-    through the consume_translation method and output printable text.
+    last_action -- The action in whose context this translation is formatted.
+
+    Returns: A list of actions.
 
     """
+    actions = []
+    # Reduce the translation to atoms. An atom is an irreducible string that is
+    # either entirely a single meta command or entirely text containing no meta
+    # commands.
+    if translation.isdigit():
+        # If a translation is only digits then glue it to neighboring digits.
+        atoms = [_apply_glue(translation)]
+    else:
+        atoms = [x.strip() for x in META_RE.findall(translation) if x.strip()]
 
-    def __init__(self,
-                 translator,
-                 text_output=None,
-                 engine_command_callback=None):
-        """Create a state machine for processing Translation objects.
+    if not atoms:
+        return [last_action.copy_state()]
 
-        Arguments:
+    for atom in atoms:
+        action = _atom_to_action(atom, last_action)
+        actions.append(action)
+        last_action = action
 
-        translator -- A Translator that outputs Translation objects
-        available via an add_callback interface.
+    return actions
 
-        text_output -- Any object that has a send_backspaces method
-        that takes an integer as an argument, a send_string method
-        that takes a string as an argument, and a send_key_combination
-        method that takes a string as an argument.
 
-        """
-        self.translator = translator
-        self.text_output = text_output
-        self.engine_command_callback = engine_command_callback
-        self.keystrokes = ''
-        self.key_combos = []
-        self.translator.add_callback(self.consume_translation)
+SPACE = ' '
+NO_SPACE = ''
+META_STOPS = ('.', '!', '?')
+META_COMMAS = (',', ':', ';')
+META_CAPITALIZE = '-|'
+META_GLUE_FLAG = '&'
+META_ATTACH_FLAG = '^'
+META_KEY_COMBINATION = '#'
+META_COMMAND = 'PLOVER:'
 
-    def consume_translation(self, translation, overflow):
-        """Process a Translation object.
+def _raw_to_actions(stroke, last_action):
+    """Turn a raw stroke into actions.
 
-        Arguments:
+    Arguments:
 
-        translation -- A Translation object to be converted to text.
+    stroke -- A string representation of the stroke.
 
-        overflow -- None, or a Translation object that is no longer
-        being kept track of due to space limitations.
+    last_action -- The context in which the new actions are created
 
-        """
-        cmd = self._get_engine_command(translation)
-        if cmd:
-            if self.engine_command_callback:
-                self.engine_command_callback(cmd)
-            return
+    Returns: A list of actions.
 
-        num_backspaces = 0
-        non_backspaces = ''
-        if overflow:
-            tBuffer = [overflow] + self.translator.translations
-        else:
-            tBuffer = self.translator.translations
-        new_keystrokes, new_key_combos = self._translations_to_string(tBuffer)
-        old_length = len(self.keystrokes)
-        new_length = len(new_keystrokes)
+    """
+    # If a raw stroke is composed of digits then remove the dash (if 
+    # present) and glue it to any neighboring digits. Otherwise, just 
+    # output the raw stroke as is.
+    no_dash = stroke.replace('-', '', 1)
+    if no_dash.isdigit():
+        return _translation_to_actions(no_dash, last_action)
+    else:
+        return [_Action(text=(SPACE + stroke), word=stroke)]
 
-        # XXX: There is some code duplication here with
-        # TranslationBuffer.consume_stroke. Might be worth
-        # generalizing and consolidating.
+def _atom_to_action(atom, last_action):
+    """Convert an atom into an action.
 
-        # Compare old keystrokes to new keystrokes and reconcile them
-        # by emitting zero or more backspaces and zero or more
-        # keystrokes.
-        for i in range(min(old_length, new_length)):
-            if self.keystrokes[i] != new_keystrokes[i]:
-                num_backspaces += old_length - i
-                non_backspaces = new_keystrokes[i:]
-                break
-        else:
-            # The old keystrokes and new keystrokes don't differ except
-            # for one is the same as the other with additional keystrokes
-            # appended.  As such, keystrokes must be removed or added,
-            # depending on which string is longer.
-            if old_length > new_length:
-                num_backspaces += old_length - new_length
-            else:
-                non_backspaces = new_keystrokes[old_length:]
+    Arguments:
 
-        # Don't send key combinations again if they've already been
-        # sent.
-        skip_count = new_length - len(non_backspaces)
-        while new_key_combos and self.key_combos:
-            if new_key_combos[0] == self.key_combos[0]:
-                skip_count += 1
-                new_key_combos.pop(0)
-                self.key_combos.pop(0)
-            else:
-                break
+    atom -- A string holding an atom. An atom is an irreducible string that is
+    either entirely a single meta command or entirely text containing no meta
+    commands.
 
-        # Output any corrective backspaces and new characters or key
-        # combinations.
-        if self.text_output:
-            self.text_output.send_backspaces(num_backspaces)
-            prev_i = 0
-            for i, combo in new_key_combos:
-                i -= skip_count
-                skip_count += 1
-                self.text_output.send_string(non_backspaces[prev_i:i])
-                self.text_output.send_key_combination(combo)
-                prev_i = i
-            self.text_output.send_string(non_backspaces[prev_i:])
+    last_action -- The context in which the new action takes place.
 
-        # Keep track of the current state in preparation for the next
-        # call to this method.
-        self.keystrokes, self.key_combos = self._translations_to_string(
-                                                  self.translator.translations)
+    Returns: An action for the atom.
 
-    def _translations_to_string(self, translations):
-        """ Converts a list of Translation objects into printable text.
+    """
+    action = _Action()
+    last_word = last_action.word
+    last_glue = last_action.glue
+    last_attach = last_action.attach
+    last_capitalize = last_action.capitalize
+    meta = _get_meta(atom)
+    if meta is not None:
+        meta = _unescape_atom(meta)
+        if meta in META_COMMAS:
+            action.text = meta
+        elif meta in META_STOPS:
+            action.text = meta
+            action.capitalize = True
+        elif meta == META_CAPITALIZE:
+            action = last_action.copy_state()
+            action.capitalize = True
+        elif meta.startswith(META_COMMAND):
+            action = last_action.copy_state()
+            action.command = meta[len(META_COMMAND):]
+        elif meta.startswith(META_GLUE_FLAG):
+            action.glue = True
+            glue = last_glue or last_attach
+            space = NO_SPACE if glue else SPACE
+            text = meta[len(META_GLUE_FLAG):]
+            if last_capitalize:
+                text = _capitalize(text)
+            action.text = space + text
+            action.word = _rightmost_word(last_word + action.text)
+        elif (meta.startswith(META_ATTACH_FLAG) or 
+              meta.endswith(META_ATTACH_FLAG)):
+            begin = meta.startswith(META_ATTACH_FLAG)
+            end = meta.endswith(META_ATTACH_FLAG)
+            if begin:
+                meta = meta[len(META_ATTACH_FLAG):]
+            if end and len(meta) >= len(META_ATTACH_FLAG):
+                meta = meta[:-len(META_ATTACH_FLAG)]
+            space = NO_SPACE if begin or last_attach else SPACE
+            if end:
+                action.attach = True
+            if (begin and not end) or (begin and end and ' ' in meta):
+                new = orthography.add_suffix(last_word.lower(), meta)
+                common = commonprefix([last_word.lower(), new])
+                action.replace = last_word[len(common):]
+                meta = new[len(common):]
+            if last_capitalize:
+                meta = _capitalize(meta)
+            action.text = space + meta
+            action.word = _rightmost_word(
+                last_word[:len(last_word)-len(action.replace)] + action.text)
+        elif meta.startswith(META_KEY_COMBINATION):
+            action = last_action.copy_state()
+            action.combo = meta[len(META_KEY_COMBINATION):]
+    else:
+        text = _unescape_atom(atom)
+        if last_capitalize:
+            text = _capitalize(text)
+        space = NO_SPACE if last_attach else SPACE
+        action.text = space + text
+        action.word = _rightmost_word(text)
+    return action
 
-        Argument:
+def _get_meta(atom):
+    """Return the meta command, if any, without surrounding meta markups."""
+    if (atom is not None and
+        atom.startswith(META_START) and
+        atom.endswith(META_END)):
+        return atom[len(META_START):-len(META_END)]
+    return None
 
-        translations -- A list of Translation objects.
+def _apply_glue(s):
+    """Mark the given string as a glue stroke."""
+    return META_START + META_GLUE_FLAG + s + META_END
 
-        Returns a two-tuple, the first element of which is a printable
-        string and the second element of which is a list of index, key
-        combination pairs. Each key combination should be invoked
-        after the sum of the number of emulated characters of the
-        printable string and the number of emulated key combinations
-        is equal to index.
+def _unescape_atom(atom):
+    """Replace escaped meta markups with unescaped meta markups."""
+    return atom.replace(META_ESC_START, META_START).replace(META_ESC_END,
+                                                            META_END)
 
-        """
-        text_length = 0
-        text = []
-        key_combinations = []
-        previous_atom = None
-        for translation in translations:
+def _get_engine_command(atom):
+    """Return the steno engine command, if any, represented by the atom."""
+    if (atom and
+        atom.startswith(META_START + META_COMMAND) and
+        atom.endswith(META_END)):
+        return atom[len(META_START) + len(META_COMMAND):-len(META_END)]
+    return None
 
-            if self._get_engine_command(translation):
-                continue
-            # Reduce the translation to atoms. An atom is in
-            # irreducible string that is either entirely a single meta
-            # command or entirely text containing no meta commands.
-            if translation.english is not None:
-                to_atomize = translation.english
-                if to_atomize.isdigit():
-                    to_atomize = self._apply_glue(to_atomize)
-                atoms = META_RE.findall(to_atomize)
-            else:
-                to_atomize = translation.rtfcre
-                if to_atomize.isdigit():
-                    to_atomize = self._apply_glue(to_atomize)
-                atoms = [to_atomize]
-            for atom in atoms:
-                atom = atom.strip()
-                if text:
-                    space = SPACE
-                else:
-                    space = NO_SPACE
-                meta = self._get_meta(atom)
-                if meta is not None:
-                    meta = self._unescape_atom(meta)
-                    english = meta
-                    space = NO_SPACE  # Correct for most meta commands.
-                    old_text = ''
-                    if meta in META_COMMAS or meta in META_STOPS:
-                        pass  # Space is already deleted.
-                    elif meta.startswith(META_GLUE_FLAG):
-                        english = meta[1:]
-                        previous_meta = self._get_meta(previous_atom)
-                        if (previous_meta is None or
-                            not previous_meta.startswith(META_GLUE_FLAG)):
-                            space = SPACE
-                    elif meta.startswith(META_ATTACH_FLAG):
-                        english = meta[1:]
-                        if english.endswith(META_ATTACH_FLAG):
-                            english = english[:-1]
-                        if text:
-                            old_text = text.pop()
-                            english = orthography.add_suffix(old_text, english);
-                    elif meta.endswith(META_ATTACH_FLAG):
-                        space = SPACE
-                        english = meta[:-1]
-                    elif meta == META_CAPITALIZE:
-                        english = NO_SPACE
-                    elif meta.startswith(META_KEY_COMBINATION):
-                        english = NO_SPACE
-                        combo = meta[1:]
-                        key_combinations.append((text_length, combo))
-                        text_length += 1
-                    text_length -= len(old_text)
-                else:
-                    english = self._unescape_atom(atom)
+def _capitalize(s):
+    """Capitalize s."""
+    return s[0:1].upper() + s[1:]
 
-                # Check if the previous atom is a meta command that
-                # influences the next atom, namely this atom.
-                previous_meta = self._get_meta(previous_atom)
-                if previous_meta is not None:
-                    if previous_meta in META_STOPS:
-                        space = STOP_SPACE
-                        if english:
-                            english = english[0].upper() + english[1:]
-                    elif previous_meta == META_CAPITALIZE:
-                        space = NO_SPACE
-                        if english:
-                            english = english[0].upper() + english[1:]
-                    elif previous_meta.endswith(META_ATTACH_FLAG):
-                        space = NO_SPACE
-                    elif previous_meta.startswith(META_KEY_COMBINATION):
-                        space = NO_SPACE
-
-                new_text = space + english
-                text_length += len(new_text)
-                text.append(new_text)
-                previous_atom = atom
-
-        return (''.join(text), key_combinations)
-
-    def _get_meta(self, atom):
-        # Return the meta command, if any, without surrounding meta markups.
-        if (atom is not None and
-            atom.startswith(META_START) and
-            atom.endswith(META_END)):
-            return atom[1:-1]
-        return None
-
-    def _unescape_atom(self, atom):
-        # Replace escaped meta markups with unescaped meta markups.
-        return atom.replace(META_ESC_START, META_START).replace(META_ESC_END,
-                                                                META_END)
-
-    def _get_engine_command(self, translation):
-        # Return the steno engine command, if any, represented by the
-        # given translation.
-        cmd = translation.english
-        if (cmd and
-            cmd.startswith(META_START + META_COMMAND) and
-            cmd.endswith(META_END)):
-            return cmd[len(META_START) + len(META_COMMAND):-len(META_END)]
-        return None
-
-    def _apply_glue(self, s):
-        # Mark the given string as a glue stroke.
-        return META_START + META_GLUE_FLAG + s + META_END
+def _rightmost_word(s):
+    """Get the rightmost word in s."""
+    return s.rpartition(' ')[2]
