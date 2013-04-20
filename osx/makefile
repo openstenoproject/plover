@@ -7,6 +7,9 @@ all: Plover.dmg
 dist/Plover.app:
 	$(PYTHON) setup.py py2app
 	rm ../launch.py
+	ditto --arch i386 dist/Plover.app dist/PloverStripped.app
+	rm -rf dist/Plover.app
+	mv dist/PloverStripped.app dist/Plover.app
 
 Plover.dmg: dist/Plover.app
 	mkdir tmp
