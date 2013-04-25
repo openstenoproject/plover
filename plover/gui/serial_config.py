@@ -50,12 +50,11 @@ class SerialConfigDialog(wx.Dialog):
 
         Arguments:
 
-        serial -- A serial.Serial object or an object with the same
-        constructor parameters. This object determines the initial
-        values of the configuration interface. This is also the object
-        to which the configuration values are written when pressing
-        the OK button. The object is not changed if the Cancel button
-        is pressed.
+        serial -- A serial.Serial object or an object with the same constructor
+        parameters. This object determines the initial values of the
+        configuration interface. This is also the object to which the
+        configuration values are written when pressing the OK button. The object
+        is not changed if the Cancel button is pressed.
 
         parent -- See wx.Dialog.
 

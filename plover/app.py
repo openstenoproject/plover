@@ -3,13 +3,12 @@
 
 """Configuration, initialization, and control of the Plover steno pipeline.
 
-This module's single class, StenoEngine, encapsulates the
-configuration, initialization, and control (starting and stopping) of
-a complete stenographic processing pipeline, from reading stroke keys
-from a stenotype machine to outputting translated English text to the
-screen. Configuration parameters are read from a user-editable
-configuration file. In addition, application log files are maintained
-by this module. This module does not provide a graphical user
+This module's single class, StenoEngine, encapsulates the configuration,
+initialization, and control (starting and stopping) of a complete stenographic
+processing pipeline, from reading stroke keys from a stenotype machine to
+outputting translated English text to the screen. Configuration parameters are
+read from a user-editable configuration file. In addition, application log files
+are maintained by this module. This module does not provide a graphical user
 interface.
 
 """
@@ -45,8 +44,8 @@ class SimpleNamespace(object):
 def check_steno_config(config_params):
     """This will do several check on the given configuration
 
-    This method can be used in StenoEngine's __init__ method, but also
-    when exiting the configuration dialog.
+    This method can be used in StenoEngine's __init__ method, but also when
+    exiting the configuration dialog.
 
     @return: a tuple composed of:
         - a list of configuration errors
@@ -96,43 +95,40 @@ def check_steno_config(config_params):
     return errors, (machine_type, user_dictionary)
 
 
-class StenoEngine:
+class StenoEngine(object):
     """Top-level class for using a stenotype machine for text input.
 
-    This class combines all the non-GUI pieces needed to use a
-    stenotype machine as a general purpose text entry device in an X11
-    environment. The entire pipeline consists of the following elements:
+    This class combines all the non-GUI pieces needed to use a stenotype machine
+    as a general purpose text entry device in an X11 environment. The entire
+    pipeline consists of the following elements:
 
-    machine: Typically an instance of the Stenotype class from one of
-    the submodules of plover.machine. This object is responsible for
-    monitoring a particular type of hardware for stenotype output and
-    passing that output on to the translator.
+    machine: Typically an instance of the Stenotype class from one of the
+    submodules of plover.machine. This object is responsible for monitoring a
+    particular type of hardware for stenotype output and passing that output on
+    to the translator.
 
-    translator: Typically an instance of the plover.steno.Translator
-    class. This object converts raw steno keys into strokes and
-    strokes into translations. The translation objects are then passed
-    on to the formatter.
+    translator: Typically an instance of the plover.steno.Translator class. This
+    object converts raw steno keys into strokes and strokes into translations.
+    The translation objects are then passed on to the formatter.
 
-    formatter: Typically an instance of the
-    plover.formatting.Formatter class. This object converts
-    translation objects into printable English text that can be
-    displayed to the user. Orthographic and lexical rules, such as
-    capitalization at the beginning of a sentence and pluralizing a
-    word, are taken care of here. The formatted text is then passed on
-    to the output.
+    formatter: Typically an instance of the plover.formatting.Formatter class.
+    This object converts translation objects into printable English text that
+    can be displayed to the user. Orthographic and lexical rules, such as
+    capitalization at the beginning of a sentence and pluralizing a word, are
+    taken care of here. The formatted text is then passed on to the output.
 
     output: Typically an instance of the
-    plover.oslayer.keyboardcontrol.KeyboardEmulation class. This object
-    displays text on the screen.
+    plover.oslayer.keyboardcontrol.KeyboardEmulation class. This object displays
+    text on the screen.
 
-    In addition to the above pieces, a logger records timestamped
-    strokes and translations. Many of these pieces can be configured
-    by the user via a configuration file, which is by default located
-    at ~/.config/plover/plover.cfg and will be automatically generated
-    with reasonable default values if it doesn't already exist.
+    In addition to the above pieces, a logger records timestamped strokes and
+    translations. Many of these pieces can be configured by the user via a
+    configuration file, which is by default located at
+    ~/.config/plover/plover.cfg and will be automatically generated with
+    reasonable default values if it doesn't already exist.
 
-    In general, the only methods of interest in an instance of this
-    class are start and stop.
+    In general, the only methods of interest in an instance of this class are
+    start and stop.
 
     """
 
@@ -215,9 +211,7 @@ class StenoEngine:
         auto_start = self.config.getboolean(conf.MACHINE_CONFIG_SECTION,
                                             conf.MACHINE_AUTO_START_OPTION)
         self.set_is_running(auto_start)
-
-
-
+        
         # Start the machine monitoring for steno strokes.
         self.machine.start_capture()
 
@@ -237,11 +231,10 @@ class StenoEngine:
     def destroy(self):
         """Halts the stenography capture-translate-format-display pipeline.
 
-        Calling this method causes all worker threads involved to
-        terminate. This method should be called at least once if the
-        start method had been previously called. Calling this method
-        more than once or before the start method has been called has
-        no effect.
+        Calling this method causes all worker threads involved to terminate.
+        This method should be called at least once if the start method had been
+        previously called. Calling this method more than once or before the
+        start method has been called has no effect.
 
         """
         if self.machine:

@@ -3,9 +3,8 @@
 
 """The main graphical user interface.
 
-Plover's graphical user interface is a simple task bar icon that
-pauses and resumes stenotype translation and allows for application
-configuration.
+Plover's graphical user interface is a simple task bar icon that pauses and
+resumes stenotype translation and allows for application configuration.
 
 """
 

@@ -36,10 +36,9 @@ COMPONENT_SPACE = 3
 class ConfigurationDialog(wx.Dialog):
     """A GUI for viewing and editing Plover configuration files.
 
-    Changes to the configuration file are saved when the GUI is
-    closed. Changes will take effect the next time the configuration
-    file is read by the application, which is typically after an
-    application restart.
+    Changes to the configuration file are saved when the GUI is closed. Changes
+    will take effect the next time the configuration file is read by the
+    application, which is typically after an application restart.
 
     """
     def __init__(self, config_file,
