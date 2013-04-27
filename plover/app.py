@@ -188,7 +188,7 @@ class StenoEngine(object):
             self.machine.add_callback(self._log_stroke)
         if self.config.getboolean(conf.LOGGING_CONFIG_SECTION,
                                   conf.ENABLE_TRANSLATION_LOGGING_OPTION):
-            self.translator.add_listener(self._log_translation)        
+            self.translator.add_listener(self._log_translation)
         
         self.machine.add_callback(
             lambda x: self.translator.translate(steno.Stroke(x)))

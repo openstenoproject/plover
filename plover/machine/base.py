@@ -43,8 +43,31 @@ class StenotypeBase:
         for callback in self.subscribers:
             callback(steno_keys)
 
+class ThreadedStenotypeBase(StenotypeBase, threading.Thread):
+    """Base class for thread based machines.
+    
+    Subclasses should override run.
+    """
+    def __init__(self):
+        threading.Thread.__init__(self)
+        StenotypeBase.__init__(self)
+        self.finished = threading.Event()
 
-class SerialStenotypeBase(StenotypeBase, threading.Thread):
+    def run(self):
+        """This method should be overridden by a subclass."""
+        pass
+
+    def start_capture(self):
+        """Begin listening for output from the stenotype machine."""
+        self.finished.clear()
+        self.start()
+
+    def stop_capture(self):
+        """Stop listening for output from the stenotype machine."""
+        self.finished.set()
+        self.join()
+
+class SerialStenotypeBase(ThreadedStenotypeBase):
     """For use with stenotype machines that connect via serial port.
 
     This class implements the three methods necessary for a standard
@@ -62,26 +85,15 @@ class SerialStenotypeBase(StenotypeBase, threading.Thread):
         serial.Serial object.
 
         """
+        super(type(self), self).__init__()
         try:
             self.serial_port = self.CONFIG_CLASS(**kwargs)
         except serial.SerialException:
             raise SerialPortException()
         if self.serial_port is None or not self.serial_port.isOpen():
             raise SerialPortException()
-        threading.Thread.__init__(self)
-        StenotypeBase.__init__(self)
-        self.finished = threading.Event()
-
-    def run(self):
-        """This method should be overridden by a subclass."""
-        pass
-
-    def start_capture(self):
-        """Begin listening for output from the stenotype machine."""
-        self.finished.clear()
-        self.start()
 
     def stop_capture(self):
         """Stop listening for output from the stenotype machine."""
-        self.finished.set()
+        super(type(self), self).stop_capture()
         self.serial_port.close()
