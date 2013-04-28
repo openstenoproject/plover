@@ -97,4 +97,4 @@ def load_dictionary(data):
     try:
         return json.loads(data, object_pairs_hook=h)
     except UnicodeDecodeError:
-        return json.loads(data, conf.ALTERNATIVE_ENCODING, object_pairs_hook=h)
+        return json.loads(data, 'latin-1', object_pairs_hook=h)

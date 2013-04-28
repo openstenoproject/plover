@@ -17,6 +17,7 @@ import plover.machine.geminipr
 import plover.machine.txbolt
 import plover.machine.sidewinder
 import plover.machine.stentura
+import plover.machine.treal
 
 # Configuration paths.
 ASSETS_DIR = oslayer.config.ASSETS_DIR
@@ -44,7 +45,6 @@ DEFAULT_ENABLE_TRANSLATION_LOGGING = 'true'
 
 # Dictionary constants.
 JSON_EXTENSION = '.json'
-ALTERNATIVE_ENCODING = 'latin-1'
 
 # Logging constants.
 LOG_EXTENSION = '.log'
@@ -80,13 +80,12 @@ def import_named_module(name, module_dictionary):
 
     name -- A string that serves as a key to a Python module.
 
-    module_dictionary -- A dictionary containing name-module key
-    pairs. Both name and module are strings; name is an arbitrary
-    string and module is a string that specifies a module that can be
-    imported.
+    module_dictionary -- A dictionary containing name-module key pairs. Both
+    name and module are strings; name is an arbitrary string and module is a
+    string that specifies a module that can be imported.
 
-    Returns the references module, or None if the name is not a key in
-    the module_dictionary.
+    Returns the references module, or None if the name is not a key in the
+    module_dictionary.
 
     """
     mod_name = module_dictionary.get(name, None)
@@ -103,8 +102,8 @@ def import_named_module(name, module_dictionary):
 def get_config():
     """Return Plover's ConfigParser object.
 
-    If the given configuration file does not exist, a default
-    configuration file is created.
+    If the given configuration file does not exist, a default configuration file
+    is created.
 
     """
     config_dir = CONFIG_DIR
@@ -139,8 +138,8 @@ def verify_config(config):
 
     config -- A ConfigParser.RawConfigParser object.
 
-    Returns True if all parameters were found. Otherwise returns False
-    and adds default values for all parameters.
+    Returns True if all parameters were found. Otherwise returns False and adds
+    default values for all parameters.
 
     """
     config_file = CONFIG_FILE
@@ -174,16 +173,14 @@ def get_serial_params(section, config):
 
     Arguments:
 
-    section -- A string representing the section name containing the
-    parameters of interest.
+    section -- A string representing the section name containing the parameters
+    of interest.
 
-    config -- The ConfigParser object containing the parameters of
-    interest.
+    config -- The ConfigParser object containing the parameters of interest.
 
-    If config does not contain section, then a the default
-    serial.Serial parameters are returned. If not all parameters are
-    included in the section, then default values for the missing
-    parameters are used in their place.
+    If config does not contain section, then a the default serial.Serial
+    parameters are returned. If not all parameters are included in the section,
+    then default values for the missing parameters are used in their place.
 
     """
     serial_params = {}
@@ -225,12 +222,12 @@ def set_serial_params(serial_port, section, config):
 
     Arguments:
 
-    serial_port -- A serial.Serial object or an object with the same
-    constructor parameters. The parameters of this object will be
-    written to the configuration. If None, no action is taken.
+    serial_port -- A serial.Serial object or an object with the same constructor
+    parameters. The parameters of this object will be written to the
+    configuration. If None, no action is taken.
 
-    section -- A string representing the section name in which to
-    write the serial port parameters.
+    section -- A string representing the section name in which to write the
+    serial port parameters.
 
     config -- The ConfigParser object containing to which to write.
 

@@ -3,7 +3,7 @@
 @pushd %~dp0
 python -m compileall ..
 @rem %1 should be the path to pyinstaller-2.0
-%pyinstaller%\pyinstaller.py pyinstaller.spec
+python %pyinstaller%\pyinstaller.py pyinstaller.spec
 @popd
 @GOTO:EOF
 :Error
