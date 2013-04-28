@@ -8,7 +8,7 @@ import threading
 from plover.exception import SerialPortException
 
 
-class StenotypeBase:
+class StenotypeBase(object):
     """The base class for all Stenotype classes."""
 
     # Some subclasses of StenotypeBase might require configuration
