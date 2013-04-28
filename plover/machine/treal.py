@@ -36,7 +36,7 @@ class DataHandler(object):
             stroke = packet_to_stroke(self._pressed)
             if stroke:
                 self._callback(stroke)
-            pressed = EMPTY
+            self._pressed = EMPTY
         else:
             self._pressed = [x[0] | x[1] for x in zip(self._pressed, p)]
         
