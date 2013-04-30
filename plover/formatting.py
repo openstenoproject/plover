@@ -83,12 +83,66 @@ class Formatter(object):
         else:
             i = min_length
 
-        _undo(old[i:], self._output)
-        _render_actions(new[i:], self._output)
+        OutputHelper(self._output).render(old[i:], new[i:])
 
+class OutputHelper(object):
+    """A helper class for minimizing the amount of change on output.
+
+    This class figures out the current state, compares it to the new output and
+    optimizes away extra backspaces and typing.
+
+    """
+    def __init__(self, output):
+        self.before = ''
+        self.after = ''
+        self.output = output
+        
+    def commit(self):
+        offset = len(commonprefix([self.before, self.after]))
+        if self.before[offset:]:
+            self.output.send_backspaces(len(self.before[offset:]))
+        if self.after[offset:]:
+            self.output.send_string(self.after[offset:])
+        self.before = ''
+        self.after = ''
+
+    def render(self, undo, do):
+        for a in undo:
+            if a.replace:
+                if len(a.replace) >= len(self.before):
+                    self.before = ''
+                else:
+                    self.before = self.before[:-len(a.replace)]
+            if a.text:
+                self.before += a.text
+
+        self.after = self.before
+        
+        for a in reversed(undo):
+            if a.text:
+                self.after = self.after[:-len(a.text)]
+            if a.replace:
+                self.after += a.replace
+        
+        for a in do:
+            if a.replace:
+                if len(a.replace) > len(self.after):
+                    self.before = a.replace[:len(a.replace)-len(self.after)] + self.before
+                    self.after = ''
+                else:
+                    self.after = self.after[:-len(a.replace)]
+            if a.text:
+                self.after += a.text
+            if a.combo:
+                self.commit()
+                self.output.send_key_combination(a.combo)
+            if a.command:
+                self.commit()
+                self.output.send_engine_command(a.command)
+        self.commit()
 
 def _get_last_action(actions):
-    """Return last action in actions if possibleor return a blank action."""
+    """Return last action in actions if possible or return a blank action."""
     return actions[-1] if actions else _Action()
 
 def _undo(actions, output):
