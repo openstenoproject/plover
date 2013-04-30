@@ -91,11 +91,11 @@ class FormatterTestCase(unittest.TestCase):
         ),
         
         (
-         ([translation(formatting=[action(text='test')])],
+         ([translation(formatting=[action(text=' test')])],
           [translation(english='rest')],
           translation(formatting=[action(capitalize=True)])),
          ([action(text=' Rest', word='Rest')],),
-         [('b', 4), ('s', ' Rest')]
+         [('b', 4), ('s', 'Rest')]
         ),
         
         (
@@ -104,7 +104,31 @@ class FormatterTestCase(unittest.TestCase):
          [translation(english='rest')],
          translation(formatting=[action(capitalize=True)])),
          ([action(text=' Rest', word='Rest')],),
-         [('b', 3), ('s', 'e'), ('b', 4), ('s', ' Rest')]
+         [('b', 6), ('s', ' Rest')]
+        ),
+        
+        (
+         ([translation(formatting=[action(text=' drive')])],
+         [translation(english='driving')],
+         None),
+         ([action(text=' driving', word='driving')],),
+         [('b', 1), ('s', 'ing')]
+        ),
+        
+        (
+         ([translation(formatting=[action(text=' drive')])],
+         [translation(english='{#c}driving')],
+         None),
+         ([action(combo='c'), action(text=' driving', word='driving')],),
+         [('b', 6), ('c', 'c'), ('s', ' driving')]
+        ),
+        
+        (
+         ([translation(formatting=[action(text=' drive')])],
+         [translation(english='{PLOVER:c}driving')],
+         None),
+         ([action(command='c'), action(text=' driving', word='driving')],),
+         [('b', 6), ('e', 'c'), ('s', ' driving')]
         ),
         
         (
