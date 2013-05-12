@@ -38,3 +38,6 @@ nosetests.xml
 # emacs backups
 *~
 
+# deleted files
+\#*#
+.#*
