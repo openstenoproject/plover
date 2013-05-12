@@ -106,8 +106,7 @@ class KeyboardCapture(threading.Thread):
     def process_events(self, reply):
         """Handle keyboard events.
 
-        This usually means passing them off to other callback methods.
-
+        This usually means passing them off to other callback methods. 
         """
         if reply.category != record.FromServer:
             return
@@ -123,7 +122,10 @@ class KeyboardCapture(threading.Thread):
                                        self.record_display.display, None, None)
             keycode = event.detail
             modifiers = event.state
-            keysym = self.local_display.keycode_to_keysym(keycode, modifiers)
+            # Numlock modifier is 0x10. It is often on but
+            # keycode_to_keysym doesn't return the right value when
+            # given numlock so it is removed in this call.
+            keysym = self.local_display.keycode_to_keysym(keycode, modifiers & ~0x10)
             key_event = XKeyEvent(keycode, modifiers, keysym)
             # Either ignore the event...
             if self.key_events_to_ignore:
@@ -159,7 +161,7 @@ class KeyboardCapture(threading.Thread):
         self.key_events_to_ignore += key_events
 
 
-class KeyboardEmulation:
+class KeyboardEmulation(object):
     """Emulate keyboard events."""
 
     def __init__(self):
@@ -352,7 +354,8 @@ class KeyboardEmulation:
         return (None, None)
 
 
-class XKeyEvent:
+
+class XKeyEvent(object):
     """A class to hold all the information about a key event."""
 
     def __init__(self, keycode, modifiers, keysym):
@@ -378,6 +381,8 @@ class XKeyEvent:
         # Only want printable characters.
         if keysym < 255 or keysym in (XK.XK_Return, XK.XK_Tab):
             self.keystring = XK.keysym_to_string(keysym)
+            if self.keystring == '\x00':
+                self.keystring = None
         else:
             self.keystring = None
 
