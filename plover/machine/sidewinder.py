@@ -85,9 +85,12 @@ class Stenotype(StenotypeBase):
             and event.keystring is not None
             and not self._keyboard_capture.is_keyboard_suppressed()):
             self._keyboard_emulation.send_backspaces(1)
-        self._down_keys.add(event.keystring)
+        if event.keystring in KEYSTRING_TO_STENO_KEY:
+            self._down_keys.add(event.keystring)
 
     def _key_up(self, event):
+        if not event.keystring in KEYSTRING_TO_STENO_KEY:
+            return
         # Called when a key is released.
         # Remove invalid released keys.
         self._released_keys = self._released_keys.intersection(self._down_keys)
