@@ -73,7 +73,10 @@ STENO_KEY_ORDER = {"#": -1,
                    "-T": 21,
                    "-S": 22,
                    "-D": 23,
-                   "-Z": 24}
+                   "-Z": 24,
+
+                   "{calc}": 25, # Calculator button (sidewinder-specific)
+}
 
 IMPLICIT_HYPHEN = set(('A-', 'O-', '5-', '0-', '-E', '-U', '*'))
 
@@ -119,8 +122,8 @@ class Stroke:
         if steno_keys_set & IMPLICIT_HYPHEN:
             self.rtfcre = ''.join(key.strip('-') for key in steno_keys)
         else:
-            pre = ''.join(k.strip('-') for k in steno_keys if k[-1] == '-' or 
-                          k == '#')
+            pre = ''.join(k.strip('-') for k in steno_keys if k[-1] == '-' or
+                          k == '#' or "{" in k) # special keys
             post = ''.join(k.strip('-') for k in steno_keys if k[0] == '-')
             self.rtfcre = '-'.join([pre, post]) if post else pre
 
