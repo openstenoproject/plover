@@ -71,8 +71,8 @@ else:
                 import socket
                 hostname = socket.gethostname()
 
-            lock_file_name = os.path.join(tempfile.gettempdir(),
-                '.plover-%s-%s-%s' % (hostname, user, display))
+            lock_file_name = os.path.expanduser(
+                '~/.plover-lock-%s-%s' % (hostname, display))
             self.fd = open(lock_file_name, 'w')
 
         def acquire(self):
