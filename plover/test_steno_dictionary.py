@@ -4,7 +4,7 @@
 """Unit tests for steno_dictionary.py."""
 
 import unittest
-from steno_dictionary import StenoDictionary, load_dictionary
+from steno_dictionary import StenoDictionary
 
 class StenoDictionaryTestCase(unittest.TestCase):
 
@@ -44,14 +44,6 @@ class StenoDictionaryTestCase(unittest.TestCase):
         
         self.assertEqual(StenoDictionary([('a', 'b')]).items(), [('a', 'b')])
         self.assertEqual(StenoDictionary(a='b').items(), [('a', 'b')])
-
-    def test_load_dictionary(self):
-        def assertEqual(a, b):
-            self.assertEqual(a._dict, b)
-        
-        assertEqual(load_dictionary('{"S": "a"}'), {('S',): 'a'})
-        assertEqual(load_dictionary('{"S": "\xc3\xb1"}'), {('S',): u'\xf1'})
-        assertEqual(load_dictionary('{"S": "\xf1"}'), {('S',): u'\xf1'})
         
 if __name__ == '__main__':
     unittest.main()

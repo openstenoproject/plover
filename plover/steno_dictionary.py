@@ -8,13 +8,7 @@ A steno dictionary maps sequences of steno strokes to translations.
 """
 
 import collections
-import config as conf
 from steno import normalize_steno
-
-try:
-    import simplejson as json
-except ImportError:
-    import json
 
 class StenoDictionary(collections.MutableMapping):
     """A steno dictionary.
@@ -87,14 +81,3 @@ class StenoDictionary(collections.MutableMapping):
 
     def remove_longest_key_listener(self, callback):
         self._longest_listener_callbacks.remove(callback)
-
-def load_dictionary(data):
-    """Load a json dictionary from a string."""
-    
-    def h(pairs):
-        return StenoDictionary((normalize_steno(x[0]), x[1]) for x in pairs)
-
-    try:
-        return json.loads(data, object_pairs_hook=h)
-    except UnicodeDecodeError:
-        return json.loads(data, 'latin-1', object_pairs_hook=h)
