@@ -85,7 +85,7 @@ class SerialStenotypeBase(ThreadedStenotypeBase):
         serial.Serial object.
 
         """
-        super(type(self), self).__init__()
+        ThreadedStenotypeBase.__init__(self)
         try:
             self.serial_port = self.CONFIG_CLASS(**kwargs)
         except serial.SerialException:
@@ -95,5 +95,5 @@ class SerialStenotypeBase(ThreadedStenotypeBase):
 
     def stop_capture(self):
         """Stop listening for output from the stenotype machine."""
-        super(type(self), self).stop_capture()
+        ThreadedStenotypeBase.stop_capture(self)
         self.serial_port.close()

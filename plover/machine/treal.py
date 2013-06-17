@@ -47,7 +47,7 @@ if sys.platform.startswith('win32'):
     
     class Stenotype(StenotypeBase):
         def __init__(self):
-            super(type(self), self).__init__()
+            StenotypeBase.__init__(self)
 
         def start_capture(self):
             """Begin listening for output from the stenotype machine."""
@@ -75,7 +75,7 @@ else:
     class Stenotype(ThreadedStenotypeBase):
         
         def __init__(self):
-            super(type(self), self).__init__()
+            ThreadedStenotypeBase.__init__(self)
 
         def start_capture(self):
             """Begin listening for output from the stenotype machine."""
@@ -85,11 +85,11 @@ else:
             except IOError as e:
                 # TODO(hesky): Figure out what to do here. Maybe start_capture should return a bool or error or raise an exception.
                 raise e
-            super(type(self), self).start_capture()
+            ThreadedStenotypeBase.start_capture(self)
 
         def stop_capture(self):
             """Stop listening for output from the stenotype machine."""
-            super(type(self), self).stop_capture()
+            ThreadedStenotypeBase.stop_capture(self)
             self._machine.close()
 
         def run(self):
