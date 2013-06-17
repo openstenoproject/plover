@@ -40,7 +40,7 @@ class TranslationTestCase(unittest.TestCase):
 class TranslatorStateSizeTestCase(unittest.TestCase):
     class FakeState(_State):
         def __init__(self):
-            super(type(self), self).__init__()
+            _State.__init__(self)
             self.restrict_calls = []
         def restrict_size(self, n):
             self.restrict_calls.append(n)
