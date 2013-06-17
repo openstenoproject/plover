@@ -245,10 +245,14 @@ class DictionaryConfig(wx.Panel):
                                conf.DICTIONARY_FILE_OPTION)
         dict_file = os.path.join(conf.CONFIG_DIR, dict_file)
         dict_dir = os.path.split(dict_file)[0]
+        mask = 'Json files (*%s)|*%s|RTF/CRE files (*%s)|*%s' % (
+            conf.JSON_EXTENSION, conf.JSON_EXTENSION, 
+            conf.RTF_EXTENSION, conf.RTF_EXTENSION, 
+        )
         self.file_browser = filebrowse.FileBrowseButton(
                                         self,
                                         labelText=DICT_FILE_LABEL,
-                                        fileMask='*' + conf.JSON_EXTENSION,
+                                        fileMask=mask,
                                         fileMode=wx.OPEN,
                                         dialogTitle=DICT_FILE_DIALOG_TITLE,
                                         initialValue=dict_file,
