@@ -45,6 +45,7 @@ DEFAULT_ENABLE_TRANSLATION_LOGGING = 'true'
 
 # Dictionary constants.
 JSON_EXTENSION = '.json'
+RTF_EXTENSION = '.rtf'
 
 # Logging constants.
 LOG_EXTENSION = '.log'

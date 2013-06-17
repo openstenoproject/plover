@@ -30,6 +30,8 @@ from plover.exception import InvalidConfigurationError
 import steno_dictionary
 import steno
 import translation
+import plover.dictionary.json_dict as json_dict
+import plover.dictionary.rtfcre_dict as rtfcre_dict
 
 # Because 2.7 doesn't have this yet.
 class SimpleNamespace(object):
@@ -62,6 +64,7 @@ def check_steno_config(config_params):
             'Invalid configuration value for %s: %s' %
             (conf.MACHINE_TYPE_OPTION, machine_type))
         errors.append(error)
+        return errors, (None, None)
 
     # Load the dictionary. The dictionary path can be either
     # absolute or relative to the configuration directory.
@@ -73,24 +76,32 @@ def check_steno_config(config_params):
             'Invalid configuration value for %s: %s' %
             (conf.DICTIONARY_FILE_OPTION, dictionary_path))
         errors.append(error)
+        return errors, (None, None)
 
     dictionary_extension = splitext(dictionary_path)[1]
-    if dictionary_extension != conf.JSON_EXTENSION:
+    
+    if dictionary_extension.lower() == conf.JSON_EXTENSION:
+        dict_loader = json_dict.load_dictionary
+    elif dictionary_extension.lower() == conf.RTF_EXTENSION:
+        dict_loader = rtfcre_dict.load_dictionary
+    else:
         error = InvalidConfigurationError(
-            'The value of %s must end with %s.' %
-            (conf.DICTIONARY_FILE_OPTION, conf.JSON_EXTENSION))
+            'Dictionary file %s is not one of the upported dictionary file ' +
+            'types: %s and %s.' %
+            (dictionary_filename, conf.JSON_EXTENSION, conf.RTF_EXTENSION))
         errors.append(error)
+        return errors, (None, None)
 
     # Load the dictionary. The dictionary path can be either
     # absolute or relative to the configuration directory.
-    user_dictionary = None
     try:
         with open(dictionary_path, 'r') as f:
-            user_dictionary = steno_dictionary.load_dictionary(f.read())
+            user_dictionary = dict_loader(f.read())
     except ValueError:
         error = InvalidConfigurationError(
             'The dictionary file contains incorrect json.')
         errors.append(error)
+        return errors, (None, None)
 
     return errors, (machine_type, user_dictionary)
 
