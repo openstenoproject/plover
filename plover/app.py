@@ -95,7 +95,7 @@ def check_steno_config(config_params):
     # Load the dictionary. The dictionary path can be either
     # absolute or relative to the configuration directory.
     try:
-        with open(dictionary_path, 'r') as f:
+        with open(dictionary_path, 'rb') as f:
             user_dictionary = dict_loader(f.read())
     except ValueError:
         error = InvalidConfigurationError(
