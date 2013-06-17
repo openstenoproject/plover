@@ -1,7 +1,7 @@
 To create a windows dev environment you need to install:
 - python 2.7
 - pywin32
-- pthon serial
+- pyserial
 - wxpython for python2.7
 - appdirs
 - pywinusb
