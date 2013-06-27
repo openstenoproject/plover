@@ -80,7 +80,7 @@ else:
         def start_capture(self):
             """Begin listening for output from the stenotype machine."""
             try:
-                self._machine = hid.device(3526, 1)
+                self._machine = hid.device(VENDOR_ID, 1)
                 self._machine.set_nonblocking(1)
             except IOError as e:
                 # TODO(hesky): Figure out what to do here. Maybe start_capture should return a bool or error or raise an exception.
