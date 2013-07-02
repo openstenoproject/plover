@@ -32,20 +32,59 @@ result from typing.
 Installation
 ------------
 
-These installation notes are for Debian-like Linux systems. From the
-directory in which this README file is located, run the following
-commands::
+Windows:
+Plover is available for Windows as a compiled executable. The latest 
+version is here: http://stenoknight.com/plover/plover.exe
+There is no installer, just run the binary 
 
-    sudo apt-get install python-xlib python-serial python-wxgtk2.8 appdirs
+Mac:
+Plover is available for Mac OSX as an app. Download the dmg from:
+http://stenoknight.com/plover/Plover.dmg
+Open the dmg and drag plover to the applications folder to install.
+Before running the application you will also need to 
+Open System Preferences, Open "Universal Access" and check the box next 
+to "Enable access for assistive devices" If you do not do this, Plover 
+will not work.
+
+Linux (debian/ubuntu):
+There is no package yet so an installation requires installing all dependencies.
+Run the following commands::
+
+    cd ~
+    sudo add-apt-repository ppa:fkrull/deadsnakes
+    sudo apt-get update
+    sudo apt-get install python2.7 git python-xlib python-serial python-wxgtk2.8 python-pip
+    sudo pip install -U appdirs simplejson cython
+    git clone https://github.com/gbishop/cython-hidapi
+    cd cython-hidapi
+    python setup.py build
+    sudo python setup.py install
+    cd ..
+    git clone https://github.com/plover/plover
+    cd plover
     sudo python setup.py install
 
+Once this is done then you should be able to run python from the applications menu or from the command line with::
+
+    /usr/local/bin/plover
+    
+If you run into any trouble please seek help on the plover aviary: http://stenoknight.com/plover/aviary/phpBB3/
+or the plover mailing list: https://groups.google.com/forum/#!forum/ploversteno
 
 Running Plover
 --------------
 
-After installation is complete as above, the Plover application will
-be available from the command-line and as an icon in the application
-list. Starting the application will bring up a small window with a red
+Windows:
+Run the downloaded executable.
+
+Mac:
+Run plover from applications.
+
+Linux:
+Run plover from the application list or the command line as shown above.
+
+All OS:
+Starting the application will bring up a small window with a red
 'P' icon. At this point, Plover is inactive. To activate Plover, click
 the red 'P' icon, or type on the steno machine the strokes
 corresponding to the PLOVER:TOGGLE or PLOVER:RESUME commands as
