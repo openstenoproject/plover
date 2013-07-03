@@ -53,7 +53,7 @@ Run the following commands::
     cd ~
     sudo add-apt-repository ppa:fkrull/deadsnakes
     sudo apt-get update
-    sudo apt-get install python2.7 git python-xlib python-serial python-wxgtk2.8 python-pip
+    sudo apt-get install python2.7 git python-xlib python-serial python-wxgtk2.8 python-pip build-essential
     sudo pip install -U appdirs simplejson cython
     git clone https://github.com/gbishop/cython-hidapi
     cd cython-hidapi
