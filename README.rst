@@ -64,7 +64,7 @@ Run the following commands::
     cd plover
     sudo python setup.py install
 
-Once this is done then you should be able to run python from the applications menu or from the command line with::
+Once this is done then you should be able to run plover from the applications menu or from the command line with::
 
     /usr/local/bin/plover
     
