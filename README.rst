@@ -13,6 +13,7 @@ Supported stenotype protocols:
  * Gemini PR (a.k.a. Gemini Enhanced)
  * TX Bolt (a.k.a. Gemini TX)
  * Stentura
+ * Treal
 
 Contact the authors if you would like Plover to support your stenotype
 machine.
@@ -51,15 +52,8 @@ There is no package yet so an installation requires installing all dependencies.
 Run the following commands::
 
     cd ~
-    sudo add-apt-repository ppa:fkrull/deadsnakes
-    sudo apt-get update
-    sudo apt-get install python2.7 git python-xlib python-serial python-wxgtk2.8 python-pip build-essential libudev-dev libusb-1.0-0-dev
-    sudo pip install -U appdirs simplejson cython
-    git clone https://github.com/gbishop/cython-hidapi
-    cd cython-hidapi
-    python setup.py build
-    sudo python setup.py install
-    cd ..
+    sudo apt-get install git python-xlib python-serial python-wxgtk2.8 python-pip
+    sudo pip install -U appdirs simplejson
     git clone https://github.com/plover/plover
     cd plover
     sudo python setup.py install
