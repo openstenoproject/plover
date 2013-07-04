@@ -86,7 +86,7 @@ def check_steno_config(config_params):
         dict_loader = rtfcre_dict.load_dictionary
     else:
         error = InvalidConfigurationError(
-            'Dictionary file %s is not one of the upported dictionary file ' +
+            'Dictionary file %s is not one of the supported dictionary file ' +
             'types: %s and %s.' %
             (dictionary_filename, conf.JSON_EXTENSION, conf.RTF_EXTENSION))
         errors.append(error)
