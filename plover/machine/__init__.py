@@ -7,10 +7,15 @@ Each stenotype machine description must define a Stenotype class that
 has start_capture, stop_capture, and add_callback methods.
 
 """
-__all__ = ['geminipr', 'sidewinder', 'txbolt', 'stentura', 'treal']
+try:
+    import treal
+except ImportError:
+    treal = None
 
 SUPPORTED_DICT = {'Microsoft Sidewinder X4': 'plover.machine.sidewinder',
                   'Gemini PR': 'plover.machine.geminipr',
                   'TX Bolt': 'plover.machine.txbolt',
-                  'Stentura': 'plover.machine.stentura',
-                  'Treal': 'plover.machine.treal'}
+                  'Stentura': 'plover.machine.stentura'}
+
+if treal:
+    SUPPORTED_DICT['Treal'] = 'plover.machine.treal'

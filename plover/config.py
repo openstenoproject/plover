@@ -17,7 +17,10 @@ import plover.machine.geminipr
 import plover.machine.txbolt
 import plover.machine.sidewinder
 import plover.machine.stentura
-import plover.machine.treal
+try:
+    import plover.machine.treal
+except ImportError:
+    pass
 
 # Configuration paths.
 ASSETS_DIR = oslayer.config.ASSETS_DIR
