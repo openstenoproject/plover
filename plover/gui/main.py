@@ -14,6 +14,7 @@ import ConfigParser
 import plover.app as app
 import plover.config as conf
 import plover.gui.config as gui
+from plover.oslayer.keyboardcontrol import KeyboardEmulation
 
 from plover.exception import InvalidConfigurationError
 
@@ -69,31 +70,32 @@ class Frame(wx.Frame):
                           style=wx.DEFAULT_FRAME_STYLE & ~(wx.RESIZE_BORDER |
                                                            wx.RESIZE_BOX |
                                                            wx.MAXIMIZE_BOX))
-        config_file = config_file
-        config = ConfigParser.RawConfigParser()
-        config.read(config_file)
+        self.config = conf.Config()
+        try:
+            with open(config_file) as f:
+                self.config.load(f)
+        except InvalidConfigurationError as e:
+            self._show_alert(unicode(e))
+            self.config = conf.Config()
+
+        self.steno_engine = app.StenoEngine()
+        self.config_dialog = gui.ConfigurationDialog(self.steno_engine,
+                                                     self.config,
+                                                     config_file,
+                                                     parent=self)
 
         while True:
-            # Check configuration loop
             try:
-                self.steno_engine = app.StenoEngine(self.consume_command)
+                app.init_engine(self.steno_engine, self.config)
                 break
-            except InvalidConfigurationError, spe:
-                self.steno_engine = None
-                config_dialog = self._create_config_dialog(
-                                                    during_plover_init=True)
-
-                alert_dialog = wx.MessageDialog(config_dialog,
-                                                unicode(spe),
-                                                self.ALERT_DIALOG_TITLE,
-                                                wx.OK | wx.ICON_INFORMATION)
-                alert_dialog.ShowModal()
-                alert_dialog.Destroy()
-
-                ret = config_dialog.ShowModal()
+            except InvalidConfigurationError as e:
+                self.show_alert(unicode(e))
+                ret = self.config_dialog.ShowModal()
                 if ret == wx.ID_CANCEL:
                     self._quit()
                     return
+
+        self.steno_engine.set_output(Output(self.consume_command))
 
         # Status button.
         on_icon_file = os.path.join(conf.ASSETS_DIR, self.ON_IMAGE_FILE)
@@ -127,8 +129,8 @@ class Frame(wx.Frame):
         sizer.Fit(self)
 
         self.Bind(wx.EVT_CLOSE, self._quit)
-        if self.steno_engine:
-            self.steno_engine.add_callback(self._update_status)
+
+        self.steno_engine.add_callback(self._update_status)
         self._update_status()
 
     def consume_command(self, command):
@@ -151,7 +153,7 @@ class Frame(wx.Frame):
             wx.CallAfter(self._quit)
 
     def _update_status(self):
-        if self.steno_engine:
+        if self.steno_engine.machine:
             self.status_button.Enable()
             if self.steno_engine.is_running:
                 self.status_button.SetBitmapLabel(self.on_bitmap)
@@ -173,22 +175,8 @@ class Frame(wx.Frame):
         """Called when the status button is clicked."""
         self.steno_engine.set_is_running(not self.steno_engine.is_running)
 
-    def _create_config_dialog(self, event=None, during_plover_init=False):
-        """This will create a configuration dialog.
-
-        If during_plover_init is set to True, the user won't be prompted about
-        the restart of Plover: his modifications will be used to initialize
-        Plover.
-        """
-        dialog = gui.ConfigurationDialog(conf.CONFIG_FILE,
-                                         parent=self,
-                                         during_plover_init=during_plover_init)
-        return dialog
-
     def _show_config_dialog(self, event=None):
-        dialog = self._create_config_dialog(event)
-        dialog.Show()
-        return dialog
+        self.config_dialog.Show()
 
     def _show_about_dialog(self, event=None):
         """Called when the About... button is clicked."""
@@ -201,3 +189,28 @@ class Frame(wx.Frame):
         info.Developers = __credits__
         info.License = __license__
         wx.AboutBox(info)
+        
+    def _show_alert(self, message):
+        alert_dialog = wx.MessageDialog(self,
+                                        message,
+                                        self.ALERT_DIALOG_TITLE,
+                                        wx.OK | wx.ICON_INFORMATION)
+        alert_dialog.ShowModal()
+        alert_dialog.Destroy()
+        
+class Output(object):
+    def __init__(self, engine_command_callback):
+        self.engine_command_callback = engine_command_callback
+        self.keyboard_control = KeyboardEmulation()
+
+    def send_backspaces(self, b):
+        self.keyboard_control.send_backspaces(b)
+
+    def send_string(self, t):
+        self.keyboard_control.send_string(t)
+
+    def send_key_combination(self, c):
+        self.keyboard_control.send_key_combination(c)
+
+    def send_engine_command(self, c):
+        self.engine_command_callback(c)

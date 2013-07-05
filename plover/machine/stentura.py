@@ -648,8 +648,8 @@ class Stenotype(plover.machine.base.SerialStenotypeBase):
     add_callback.
     """
 
-    def __init__(self, **kwargs):
-        plover.machine.base.SerialStenotypeBase.__init__(self, **kwargs)
+    def __init__(self, params):
+        plover.machine.base.SerialStenotypeBase.__init__(self, params)
 
     def run(self):
         """Overrides base class run method. Do not call directly."""

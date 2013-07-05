@@ -5,6 +5,7 @@
 
 import unittest
 from json_dict import load_dictionary
+from base import DictionaryLoaderException
 
 class JsonDictionaryTestCase(unittest.TestCase):
     
@@ -15,6 +16,9 @@ class JsonDictionaryTestCase(unittest.TestCase):
         assertEqual(load_dictionary('{"S": "a"}'), {('S',): 'a'})
         assertEqual(load_dictionary('{"S": "\xc3\xb1"}'), {('S',): u'\xf1'})
         assertEqual(load_dictionary('{"S": "\xf1"}'), {('S',): u'\xf1'})
+        
+        with self.assertRaises(DictionaryLoaderException):
+            load_dictionary('foo')
 
 if __name__ == '__main__':
     unittest.main()

@@ -7,6 +7,7 @@
 
 from plover.steno_dictionary import StenoDictionary
 from plover.steno import normalize_steno
+from plover.exception import DictionaryLoaderException
 
 try:
     import simplejson as json
@@ -21,6 +22,9 @@ def load_dictionary(data):
         return StenoDictionary((normalize_steno(x[0]), x[1]) for x in pairs)
 
     try:
-        return json.loads(data, object_pairs_hook=h)
-    except UnicodeDecodeError:
-        return json.loads(data, 'latin-1', object_pairs_hook=h)
+        try:
+            return json.loads(data, object_pairs_hook=h)
+        except UnicodeDecodeError:
+            return json.loads(data, 'latin-1', object_pairs_hook=h)
+    except ValueError:
+        raise DictionaryLoaderException('Dictionary is not valid json.')

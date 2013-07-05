@@ -60,3 +60,4 @@ class Stenotype(plover.machine.base.SerialStenotypeBase):
 
             # Notify all subscribers.
             self._notify(steno_keys)
+

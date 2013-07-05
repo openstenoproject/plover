@@ -1,21 +1,4 @@
 # Copyright (c) 2010 Joshua Harlan Lifton.
 # See LICENSE.txt for details.
 
-"""Repository of stenotype machine descriptions.
-
-Each stenotype machine description must define a Stenotype class that
-has start_capture, stop_capture, and add_callback methods.
-
-"""
-try:
-    import treal
-except ImportError:
-    treal = None
-
-SUPPORTED_DICT = {'Microsoft Sidewinder X4': 'plover.machine.sidewinder',
-                  'Gemini PR': 'plover.machine.geminipr',
-                  'TX Bolt': 'plover.machine.txbolt',
-                  'Stentura': 'plover.machine.stentura'}
-
-if treal:
-    SUPPORTED_DICT['Treal'] = 'plover.machine.treal'
+"""Stenotype machines."""

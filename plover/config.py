@@ -3,48 +3,36 @@
 
 """Configuration management."""
 
-# Import standard library modules.
+from ConfigParser import RawConfigParser
 import os
-import oslayer.config
-import ConfigParser
-import serial
 import shutil
+from cStringIO import StringIO
+from plover.exception import InvalidConfigurationError
+from plover.machine.registry import machine_registry
+from plover.oslayer.config import ASSETS_DIR, CONFIG_DIR
 
-# We need imports to be explicit for py2app.
-# There may be another way but by default it doesn't
-# understand the dynamic loading used here.
-import plover.machine.geminipr
-import plover.machine.txbolt
-import plover.machine.sidewinder
-import plover.machine.stentura
-try:
-    import plover.machine.treal
-except ImportError:
-    pass
 
-# Configuration paths.
-ASSETS_DIR = oslayer.config.ASSETS_DIR
-CONFIG_DIR = oslayer.config.CONFIG_DIR
+# Config path.
 CONFIG_FILE = os.path.join(CONFIG_DIR, 'plover.cfg')
 
-# General configuration sections and options.
+# General configuration sections, options and defaults.
 MACHINE_CONFIG_SECTION = 'Machine Configuration'
 MACHINE_TYPE_OPTION = 'machine_type'
+DEFAULT_MACHINE_TYPE = 'NKRO Keyboard'
 MACHINE_AUTO_START_OPTION = 'auto_start'
+DEFAULT_MACHINE_AUTO_START = False
+
 DICTIONARY_CONFIG_SECTION = 'Dictionary Configuration'
 DICTIONARY_FILE_OPTION = 'dictionary_file'
+DEFAULT_DICTIONARY_FILE = 'dict.json'
+
 LOGGING_CONFIG_SECTION = 'Logging Configuration'
 LOG_FILE_OPTION = 'log_file'
-ENABLE_STROKE_LOGGING_OPTION = 'enable_stroke_logging'
-ENABLE_TRANSLATION_LOGGING_OPTION = 'enable_translation_logging'
-
-# Default values for configuration options.
-DEFAULT_MACHINE_TYPE = 'Microsoft Sidewinder X4'
-DEFAULT_MACHINE_AUTO_START = 'false'
-DEFAULT_DICTIONARY_FILE = 'dict.json'
 DEFAULT_LOG_FILE = 'plover.log'
-DEFAULT_ENABLE_STROKE_LOGGING = 'true'
-DEFAULT_ENABLE_TRANSLATION_LOGGING = 'true'
+ENABLE_STROKE_LOGGING_OPTION = 'enable_stroke_logging'
+DEFAULT_ENABLE_STROKE_LOGGING = True
+ENABLE_TRANSLATION_LOGGING_OPTION = 'enable_translation_logging'
+DEFAULT_ENABLE_TRANSLATION_LOGGING = True
 
 # Dictionary constants.
 JSON_EXTENSION = '.json'
@@ -52,193 +40,104 @@ RTF_EXTENSION = '.rtf'
 
 # Logging constants.
 LOG_EXTENSION = '.log'
-LOGGER_NAME = 'plover_logger'
-LOG_FORMAT = '%(asctime)s %(message)s'
-LOG_MAX_BYTES = 10000000
-LOG_COUNT = 9
 
-# Serial port options.
-SERIAL_PORT_OPTION = 'port'
-SERIAL_BAUDRATE_OPTION = 'baudrate'
-SERIAL_BYTESIZE_OPTION = 'bytesize'
-SERIAL_PARITY_OPTION = 'parity'
-SERIAL_STOPBITS_OPTION = 'stopbits'
-SERIAL_TIMEOUT_OPTION = 'timeout'
-SERIAL_XONXOFF_OPTION = 'xonxoff'
-SERIAL_RTSCTS_OPTION = 'rtscts'
-SERIAL_ALL_OPTIONS = (SERIAL_PORT_OPTION,
-                      SERIAL_BAUDRATE_OPTION,
-                      SERIAL_BYTESIZE_OPTION,
-                      SERIAL_PARITY_OPTION,
-                      SERIAL_STOPBITS_OPTION,
-                      SERIAL_TIMEOUT_OPTION,
-                      SERIAL_XONXOFF_OPTION,
-                      SERIAL_RTSCTS_OPTION)
-SERIAL_DEFAULT_TIMEOUT = 2.0
+# TODO: Unit test this class
 
+class Config(object):
 
-def import_named_module(name, module_dictionary):
-    """Returns the Python module corresponding to the given name.
+    def __init__(self):
+        self._config = RawConfigParser()
 
-    Arguments:
+    def load(self, fp):
+        self._config = RawConfigParser()
+        try:
+            self._config.readfp(fp)
+        except ConfigParser.Error as e:
+            raise InvalidConfigurationError(str(e))
 
-    name -- A string that serves as a key to a Python module.
+    def save(self, fp):
+        self._config.write(fp)
 
-    module_dictionary -- A dictionary containing name-module key pairs. Both
-    name and module are strings; name is an arbitrary string and module is a
-    string that specifies a module that can be imported.
+    def clone(self):
+        f = StringIO()
+        self.save(f)
+        c = Config()
+        f.seek(0, 0)
+        c.load(f)
+        return c
 
-    Returns the references module, or None if the name is not a key in the
-    module_dictionary.
+    def set_machine_type(self, machine_type):
+        self._set(MACHINE_CONFIG_SECTION, MACHINE_TYPE_OPTION, 
+                         machine_type)
 
-    """
-    mod_name = module_dictionary.get(name, None)
-    if mod_name is not None:
-        hierarchy = mod_name.rsplit('.', 1)
-        if len(hierarchy) == 2:
-            fromlist = hierarchy[0]
-        else:
-            fromlist = []
-        return __import__(mod_name, fromlist=fromlist)
-    return None
+    def get_machine_type(self):
+        return self._get(MACHINE_CONFIG_SECTION, MACHINE_TYPE_OPTION, 
+                         DEFAULT_MACHINE_TYPE)
 
+    def set_machine_specific_options(self, machine_name, options):
+        if not self._config.has_section(machine_name):
+            self._config.add_section(machine_name)
+        for k, v in options.items():
+            self._config.set(machine_name, k, str(v))
 
-def get_config():
-    """Return Plover's ConfigParser object.
+    def get_machine_specific_options(self, machine_name):
+        machine = machine_registry.get(machine_name)
+        option_info = machine.get_option_info()
+        if self._config.has_section(machine_name):
+            options = dict((o, self._config.get(machine_name, o)) 
+                           for o in self._config.options(machine_name))
+            return dict((k, option_info[k][1](v)) for k, v in options.items()
+                        if k in option_info)
+        return dict((k, v[0]) for k, v in option_info.items())
 
-    If the given configuration file does not exist, a default configuration file
-    is created.
+    def set_dictionary_file_name(self, filename):
+        self._set(DICTIONARY_CONFIG_SECTION, DICTIONARY_FILE_OPTION, filename)
 
-    """
-    config_dir = CONFIG_DIR
-    config_file = CONFIG_FILE
+    def get_dictionary_file_name(self):
+        return self._get(DICTIONARY_CONFIG_SECTION, DICTIONARY_FILE_OPTION, 
+                         DEFAULT_DICTIONARY_FILE)
 
-    # Create the configuration directory if needed.
-    if not os.path.exists(config_dir):
-        os.makedirs(config_dir)
-        # Copy the default dictionary to the configuration directory.
-        shutil.copyfile(os.path.join(ASSETS_DIR, DEFAULT_DICTIONARY_FILE),
-                        os.path.join(config_dir,
-                                     DEFAULT_DICTIONARY_FILE))
+    def set_log_file_name(self, filename):
+        self._set(LOGGING_CONFIG_SECTION, LOG_FILE_OPTION, filename)
 
-    # Create a default configuration file if one doesn't already
-    # exist. Add default settings in reverse order so they appear
-    # in the correct order when written to the file.
-    if not os.path.exists(config_file):
-        with open(config_file, 'w') as f:
-            f.close()
+    def get_log_file_name(self):
+        return self._get(LOGGING_CONFIG_SECTION, LOG_FILE_OPTION, 
+                         DEFAULT_LOG_FILE)
 
-    # Read in the configuration file.
-    config = ConfigParser.RawConfigParser()
-    config.read(config_file)
-    verify_config(config)
-    return config
+    def set_enable_stroke_logging(self, log):
+        self._set(LOGGING_CONFIG_SECTION, ENABLE_STROKE_LOGGING_OPTION, log)
 
+    def get_enable_stroke_logging(self):
+        return self._get_bool(LOGGING_CONFIG_SECTION, 
+                              ENABLE_STROKE_LOGGING_OPTION, 
+                              DEFAULT_ENABLE_STROKE_LOGGING)
 
-def verify_config(config):
-    """Checks that the configuration contains values for all parameters.
+    def set_enable_translation_logging(self, log):
+      self._set(LOGGING_CONFIG_SECTION, ENABLE_TRANSLATION_LOGGING_OPTION, log)
 
-    Arguments:
+    def get_enable_translation_logging(self):
+        return self._get_bool(LOGGING_CONFIG_SECTION, 
+                              ENABLE_TRANSLATION_LOGGING_OPTION, 
+                              DEFAULT_ENABLE_TRANSLATION_LOGGING)
 
-    config -- A ConfigParser.RawConfigParser object.
+    def set_auto_start(self, b):
+        self._set(MACHINE_CONFIG_SECTION, MACHINE_AUTO_START_OPTION, b)
 
-    Returns True if all parameters were found. Otherwise returns False and adds
-    default values for all parameters.
+    def get_auto_start(self):
+        return self._get_bool(MACHINE_CONFIG_SECTION, MACHINE_AUTO_START_OPTION, 
+                              DEFAULT_MACHINE_AUTO_START)
 
-    """
-    config_file = CONFIG_FILE
-    # Verify options exist.
-    for section, option, default in (
-      (LOGGING_CONFIG_SECTION, LOG_FILE_OPTION,
-                               DEFAULT_LOG_FILE),
-      (LOGGING_CONFIG_SECTION, ENABLE_TRANSLATION_LOGGING_OPTION,
-                               DEFAULT_ENABLE_TRANSLATION_LOGGING),
-      (LOGGING_CONFIG_SECTION, ENABLE_STROKE_LOGGING_OPTION,
-                               DEFAULT_ENABLE_STROKE_LOGGING),
-      (DICTIONARY_CONFIG_SECTION, DICTIONARY_FILE_OPTION,
-                                  DEFAULT_DICTIONARY_FILE),
-      (MACHINE_CONFIG_SECTION, MACHINE_TYPE_OPTION,
-                               DEFAULT_MACHINE_TYPE),
-      (MACHINE_CONFIG_SECTION, MACHINE_AUTO_START_OPTION,
-                               DEFAULT_MACHINE_AUTO_START),
-      ):
-        if not config.has_section(section):
-            config.add_section(section)
-        if not config.has_option(section, option):
-            config.set(section, option, default)
+    def _set(self, section, option, value):
+        if not self._config.has_section(section):
+            self._config.add_section(section)
+        self._config.set(section, option, str(value))
 
-    # Write the file to disk.
-    with open(config_file, 'w') as f:
-        config.write(f)
+    def _get(self, section, option, default):
+        if self._config.has_option(section, option):
+            return self._config.get(section, option)
+        return default
 
-
-def get_serial_params(section, config):
-    """Returns the serial.Serial parameters stored in the given configuration.
-
-    Arguments:
-
-    section -- A string representing the section name containing the parameters
-    of interest.
-
-    config -- The ConfigParser object containing the parameters of interest.
-
-    If config does not contain section, then a the default serial.Serial
-    parameters are returned. If not all parameters are included in the section,
-    then default values for the missing parameters are used in their place.
-
-    """
-    serial_params = {}
-    default_serial_port = serial.Serial()
-    for opt in SERIAL_ALL_OPTIONS:
-        serial_params[opt] = default_serial_port.__getattribute__(opt)
-    for opt in (SERIAL_PORT_OPTION,
-                SERIAL_PARITY_OPTION):
-        if config.has_option(section, opt):
-            serial_params[opt] = config.get(section, opt)
-    for opt in (SERIAL_BAUDRATE_OPTION,
-                SERIAL_BYTESIZE_OPTION,
-                SERIAL_STOPBITS_OPTION):
-        if config.has_option(section, opt):
-            serial_params[opt] = config.getint(section, opt)
-    for opt in (SERIAL_XONXOFF_OPTION,
-                SERIAL_RTSCTS_OPTION):
-        if config.has_option(section, opt):
-            serial_params[opt] = config.getboolean(section, opt)
-    if config.has_option(section, SERIAL_TIMEOUT_OPTION):
-        timeout = config.get(section, SERIAL_TIMEOUT_OPTION)
-        if timeout == 'None':
-            timeout = None
-        else:
-            timeout = float(timeout)
-    else:
-        timeout = SERIAL_DEFAULT_TIMEOUT
-    serial_params[SERIAL_TIMEOUT_OPTION] = timeout
-
-    class _Struct(object):
-        # Helper class to convert a dictionary to an object.
-        def __init__(self, **kwargs):
-            self.__dict__.update(kwargs)
-    return _Struct(**serial_params)
-
-
-def set_serial_params(serial_port, section, config):
-    """Writes a serial.Serial object to a section of a ConfigParser object.
-
-    Arguments:
-
-    serial_port -- A serial.Serial object or an object with the same constructor
-    parameters. The parameters of this object will be written to the
-    configuration. If None, no action is taken.
-
-    section -- A string representing the section name in which to write the
-    serial port parameters.
-
-    config -- The ConfigParser object containing to which to write.
-
-    """
-    if serial_port is None:
-        return
-    if not config.has_section(section):
-        config.add_section(section)
-    for opt in SERIAL_ALL_OPTIONS:
-        config.set(section, opt, serial_port.__getattribute__(opt))
+    def _get_bool(self, section, option, default):
+        if self._config.has_option(section, option):
+            return self._config.getboolean(section, option)
+        return default

@@ -46,7 +46,7 @@ if sys.platform.startswith('win32'):
     from pywinusb import hid
     
     class Stenotype(StenotypeBase):
-        def __init__(self):
+        def __init__(self, params):
             StenotypeBase.__init__(self)
 
         def start_capture(self):
@@ -74,7 +74,7 @@ else:
 
     class Stenotype(ThreadedStenotypeBase):
         
-        def __init__(self):
+        def __init__(self, params):
             ThreadedStenotypeBase.__init__(self)
 
         def start_capture(self):
