@@ -99,10 +99,3 @@ else:
 
         def __exit__(self, type, value, traceback):
             self.release()
-
-if __name__ == "__main__":
-    import time
-    with PloverLock():
-        print 'lock acquired'
-        time.sleep(30)
-        print 'locl released'

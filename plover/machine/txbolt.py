@@ -40,8 +40,8 @@ class Stenotype(plover.machine.base.SerialStenotypeBase):
 
     """
 
-    def __init__(self, **kwargs):
-        plover.machine.base.SerialStenotypeBase.__init__(self, **kwargs)
+    def __init__(self, params):
+        plover.machine.base.SerialStenotypeBase.__init__(self, params)
         self._reset_stroke_state()
 
     def _reset_stroke_state(self):

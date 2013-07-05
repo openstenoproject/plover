@@ -6,14 +6,12 @@
 import os
 import wx
 import wx.lib.filebrowsebutton as filebrowse
-import ConfigParser
-from serial import Serial
-from plover.machine import SUPPORTED_DICT as SUPPORTED_MACHINES_DICT
 import plover.config as conf
 import plover.gui.serial_config as serial_config
-from plover.app import check_steno_config
+from plover.app import update_engine
+from plover.machine.registry import machine_registry
+from plover.exception import InvalidConfigurationError
 
-RESTART_DIALOG_MESSAGE = "Plover must be restarted before changes take effect."
 RESTART_DIALOG_TITLE = "Plover"
 MACHINE_CONFIG_TAB_NAME = "Machine"
 DICTIONARY_CONFIG_TAB_NAME = "Dictionary"
@@ -41,14 +39,13 @@ class ConfigurationDialog(wx.Dialog):
     application, which is typically after an application restart.
 
     """
-    def __init__(self, config_file,
+    def __init__(self, engine, config, config_file,
                  parent=None,
                  id=-1,
                  title="Plover Configuration",
                  pos=wx.DefaultPosition,
                  size=wx.DefaultSize,
-                 style=wx.DEFAULT_DIALOG_STYLE,
-                 during_plover_init=False):
+                 style=wx.DEFAULT_DIALOG_STYLE):
         """Create a configuration GUI based on the given config file.
 
         Arguments:
@@ -59,11 +56,9 @@ class ConfigurationDialog(wx.Dialog):
         won't tell the user that Plover needs to be restarted.
         """
         wx.Dialog.__init__(self, parent, id, title, pos, size, style)
+        self.engine = engine
+        self.config = config
         self.config_file = config_file
-        self.config = ConfigParser.RawConfigParser()
-        self.config.read(self.config_file)
-
-        self._during_plover_init = during_plover_init
 
         self._setup_ui()
 
@@ -106,34 +101,32 @@ class ConfigurationDialog(wx.Dialog):
         self.Bind(wx.EVT_BUTTON, self._save, save_button)
 
     def _save(self, event):
+        old_config = conf.Config()
+        with open(self.config_file) as f:
+            old_config.load(f)
+        
         self.machine_config.save()
         self.dictionary_config.save()
         self.logging_config.save()
 
-        errors, config_params = check_steno_config(self.config)
-        if errors:
+        try:
+            update_engine(self.engine, old_config, self.config)
+        except InvalidConfigurationError as e:
             alert_dialog = wx.MessageDialog(self,
-                                            unicode(errors[0]),
+                                            unicode(e),
                                             "Configuration error",
                                             wx.OK | wx.ICON_INFORMATION)
             alert_dialog.ShowModal()
             alert_dialog.Destroy()
             return
 
-        with open(self.config_file, 'w') as f:
-            self.config.write(f)
+        with open(self.config_file, 'wb') as f:
+            self.config.save(f)
 
-        if not self._during_plover_init:
-            restart_dialog = wx.MessageDialog(self,
-                                              RESTART_DIALOG_MESSAGE,
-                                              RESTART_DIALOG_TITLE,
-                                              wx.OK | wx.ICON_INFORMATION)
-            restart_dialog.ShowModal()
-            restart_dialog.Destroy()
-            self.Close()
-
-        else:
+        if self.IsModal():
             self.EndModal(wx.ID_SAVE)
+        else:
+            self.Close()
 
 
 class MachineConfig(wx.Panel):
@@ -144,7 +137,7 @@ class MachineConfig(wx.Panel):
 
         Arguments:
 
-        config -- A ConfigParser object.
+        config -- A Config object.
 
         parent -- This component's parent component.
 
@@ -158,9 +151,9 @@ class MachineConfig(wx.Panel):
         box.Add(wx.StaticText(self, label=MACHINE_LABEL),
                 border=COMPONENT_SPACE,
                 flag=wx.ALIGN_RIGHT | wx.ALIGN_CENTER_VERTICAL | wx.RIGHT)
-        machines = SUPPORTED_MACHINES_DICT.keys()
-        value = self.config.get(conf.MACHINE_CONFIG_SECTION,
-                                conf.MACHINE_TYPE_OPTION)
+        machines = machine_registry.get_all_names()
+        # TODO: Handle the case where the config file has an invalid selection.
+        value = self.config.get_machine_type()
         self.choice = wx.Choice(self, choices=machines)
         self.choice.SetStringSelection(value)
         self.Bind(wx.EVT_CHOICE, self._update, self.choice)
@@ -172,8 +165,7 @@ class MachineConfig(wx.Panel):
 
         self.auto_start_checkbox = wx.CheckBox(self,
                                                label=MACHINE_AUTO_START_LABEL)
-        auto_start = config.getboolean(conf.MACHINE_CONFIG_SECTION,
-                                       conf.MACHINE_AUTO_START_OPTION)
+        auto_start = config.get_auto_start()
         self.auto_start_checkbox.SetValue(auto_start)
 
         sizer.Add(box, border=UI_BORDER, flag=wx.ALL | wx.EXPAND)
@@ -187,43 +179,30 @@ class MachineConfig(wx.Panel):
     def save(self):
         """Write all parameters to the configuration parser."""
         machine_type = self.choice.GetStringSelection()
-        self.config.set(conf.MACHINE_CONFIG_SECTION,
-                        conf.MACHINE_TYPE_OPTION,
-                        machine_type)
+        self.config.set_machine_type(machine_type)
         auto_start = self.auto_start_checkbox.GetValue()
-        self.config.set(conf.MACHINE_CONFIG_SECTION,
-                        conf.MACHINE_AUTO_START_OPTION,
-                        auto_start)
-        if self.config_instance is not None:
-            if self.config_class is Serial:
-                conf.set_serial_params(self.config_instance,
-                                       machine_type,
-                                       self.config)
+        self.config.set_auto_start(auto_start)
+        if self.advanced_options:
+            self.config.set_machine_specific_options(machine_type, 
+                                                     self.advanced_options)
 
     def _advanced_config(self, event=None):
-        # Brings up a more detailed configuration UI, if available.
-        if self.config_class:
-            machine_type = self.choice.GetStringSelection()
-            if self.config_class is Serial:
-                if self.config_instance is None:
-                    self.config_instance = conf.get_serial_params(machine_type,
-                                                                  self.config)
-                scd = serial_config.SerialConfigDialog(self.config_instance,
-                                                       self)
-                scd.ShowModal()
-                scd.Destroy()
+        class Struct(object):
+            def __init__(self, **kwargs):
+                self.__dict__.update(kwargs)
+        config_instance = Struct(**self.advanced_options)
+        scd = serial_config.SerialConfigDialog(config_instance, self)
+        scd.ShowModal()
+        scd.Destroy()
+        self.advanced_options = config_instance.__dict__
 
     def _update(self, event=None):
         # Refreshes the UI to reflect current data.
-        mod = conf.import_named_module(self.choice.GetStringSelection(),
-                                       SUPPORTED_MACHINES_DICT)
-        if ((mod is not None) and
-            hasattr(mod, 'Stenotype') and
-            hasattr(mod.Stenotype, 'CONFIG_CLASS')):
-            self.config_class = mod.Stenotype.CONFIG_CLASS
-        else:
-            self.config_class = None
-        self.config_button.Enable(self.config_class is not None)
+        machine_name = self.choice.GetStringSelection()
+        options = self.config.get_machine_specific_options(machine_name)
+        self.advanced_options = options
+        self.config_button.Enable(bool(options))
+        # TODO: figure out why advanced options are being copied from machine to machine
 
 
 class DictionaryConfig(wx.Panel):
@@ -233,7 +212,7 @@ class DictionaryConfig(wx.Panel):
 
         Arguments:
 
-        config -- A ConfigParser object.
+        config -- A Config object.
 
         parent -- This component's parent component.
 
@@ -241,8 +220,7 @@ class DictionaryConfig(wx.Panel):
         wx.Panel.__init__(self, parent, size=CONFIG_PANEL_SIZE)
         self.config = config
         sizer = wx.BoxSizer(wx.VERTICAL)
-        dict_file = config.get(conf.DICTIONARY_CONFIG_SECTION,
-                               conf.DICTIONARY_FILE_OPTION)
+        dict_file = config.get_dictionary_file_name()
         dict_file = os.path.join(conf.CONFIG_DIR, dict_file)
         dict_dir = os.path.split(dict_file)[0]
         mask = 'Json files (*%s)|*%s|RTF/CRE files (*%s)|*%s' % (
@@ -263,9 +241,7 @@ class DictionaryConfig(wx.Panel):
 
     def save(self):
         """Write all parameters to the configuration parser."""
-        self.config.set(conf.DICTIONARY_CONFIG_SECTION,
-                        conf.DICTIONARY_FILE_OPTION,
-                        self.file_browser.GetValue())
+        self.config.set_dictionary_file_name(self.file_browser.GetValue())
 
 
 class LoggingConfig(wx.Panel):
@@ -275,7 +251,7 @@ class LoggingConfig(wx.Panel):
 
         Arguments:
 
-        config -- A ConfigParser object.
+        config -- A Config object.
 
         parent -- This component's parent component.
 
@@ -283,8 +259,7 @@ class LoggingConfig(wx.Panel):
         wx.Panel.__init__(self, parent, size=CONFIG_PANEL_SIZE)
         self.config = config
         sizer = wx.BoxSizer(wx.VERTICAL)
-        log_file = config.get(conf.LOGGING_CONFIG_SECTION,
-                              conf.LOG_FILE_OPTION)
+        log_file = config.get_log_file_name()
         log_file = os.path.join(conf.CONFIG_DIR, log_file)
         log_dir = os.path.split(log_file)[0]
         self.file_browser = filebrowse.FileBrowseButton(
@@ -298,16 +273,14 @@ class LoggingConfig(wx.Panel):
                                             )
         sizer.Add(self.file_browser, border=UI_BORDER, flag=wx.ALL | wx.EXPAND)
         self.log_strokes_checkbox = wx.CheckBox(self, label=LOG_STROKES_LABEL)
-        stroke_logging = config.getboolean(conf.LOGGING_CONFIG_SECTION,
-                                           conf.ENABLE_STROKE_LOGGING_OPTION)
+        stroke_logging = config.get_enable_stroke_logging()
         self.log_strokes_checkbox.SetValue(stroke_logging)
         sizer.Add(self.log_strokes_checkbox,
                   border=UI_BORDER,
                   flag=wx.ALL | wx.EXPAND)
         self.log_translations_checkbox = wx.CheckBox(self,
                                                  label=LOG_TRANSLATIONS_LABEL)
-        translation_logging = config.getboolean(conf.LOGGING_CONFIG_SECTION,
-                                        conf.ENABLE_TRANSLATION_LOGGING_OPTION)
+        translation_logging = config.get_enable_translation_logging()
         self.log_translations_checkbox.SetValue(translation_logging)
         sizer.Add(self.log_translations_checkbox,
                   border=UI_BORDER,
@@ -316,12 +289,8 @@ class LoggingConfig(wx.Panel):
 
     def save(self):
         """Write all parameters to the configuration parser."""
-        self.config.set(conf.LOGGING_CONFIG_SECTION,
-                        conf.LOG_FILE_OPTION,
-                        self.file_browser.GetValue())
-        self.config.set(conf.LOGGING_CONFIG_SECTION,
-                        conf.ENABLE_STROKE_LOGGING_OPTION,
-                        self.log_strokes_checkbox.GetValue())
-        self.config.set(conf.LOGGING_CONFIG_SECTION,
-                        conf.ENABLE_TRANSLATION_LOGGING_OPTION,
-                        self.log_translations_checkbox.GetValue())
+        self.config.set_log_file_name(self.file_browser.GetValue())
+        self.config.set_enable_stroke_logging(
+            self.log_strokes_checkbox.GetValue())
+        self.config.set_enable_translation_logging(
+            self.log_translations_checkbox.GetValue())

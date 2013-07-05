@@ -3,6 +3,8 @@
 
 "For use with a Microsoft Sidewinder X4 keyboard used as stenotype machine."
 
+# TODO: Change name to NKRO Keyboard.
+
 from plover.machine.base import StenotypeBase
 from plover.oslayer import keyboardcontrol
 
@@ -56,7 +58,7 @@ class Stenotype(StenotypeBase):
 
     """
 
-    def __init__(self):
+    def __init__(self, params):
         """Monitor a Microsoft Sidewinder X4 keyboard via X events."""
         StenotypeBase.__init__(self)
         self._keyboard_emulation = keyboardcontrol.KeyboardEmulation()

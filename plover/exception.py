@@ -12,7 +12,7 @@ SERIAL_PORT_EXCEPTION_MESSAGE = ("Either the stenotype machine is not "
                                  "connected to the selected serial port "
                                  "or the serial port is misconfigured. "
                                  "Please check the connection and "
-                                 "configuration and then restart Plover.")
+                                 "configuration.")
 
 
 
@@ -27,3 +27,7 @@ class SerialPortException(InvalidConfigurationError):
     def __init__(self, *args):
         """Override the constructor to include a default message."""
         Exception.__init__(self, SERIAL_PORT_EXCEPTION_MESSAGE, *args)
+
+class DictionaryLoaderException(Exception):
+    """Dictionary file could not be loaded."""
+    pass
