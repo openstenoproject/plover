@@ -65,6 +65,7 @@ def init_engine(engine, config):
     engine.set_is_running(config.get_auto_start())
 
 def reset_machine(engine, config):
+    """Set the machine on the engine based on config."""
     machine_type = config.get_machine_type()
     machine_options = config.get_machine_specific_options(machine_type)
     try:
