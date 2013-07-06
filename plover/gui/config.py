@@ -174,7 +174,7 @@ class MachineConfig(wx.Panel):
         self.Bind(wx.EVT_BUTTON, self._advanced_config, self.config_button)
 
     def save(self):
-        """Write all parameters to the configuration parser."""
+        """Write all parameters to the config."""
         machine_type = self.choice.GetStringSelection()
         self.config.set_machine_type(machine_type)
         auto_start = self.auto_start_checkbox.GetValue()
@@ -189,8 +189,7 @@ class MachineConfig(wx.Panel):
                 self.__dict__.update(kwargs)
         config_instance = Struct(**self.advanced_options)
         scd = serial_config.SerialConfigDialog(config_instance, self)
-        scd.ShowModal()
-        #scd.Close()
+        scd.ShowModal()  # SerialConfigDialog destroys itself.
         self.advanced_options = config_instance.__dict__
 
     def _update(self, event=None):
@@ -199,8 +198,6 @@ class MachineConfig(wx.Panel):
         options = self.config.get_machine_specific_options(machine_name)
         self.advanced_options = options
         self.config_button.Enable(bool(options))
-        # TODO: figure out why advanced options are being copied from machine to machine
-
 
 class DictionaryConfig(wx.Panel):
     """Dictionary configuration graphical user interface."""
@@ -237,14 +234,14 @@ class DictionaryConfig(wx.Panel):
         self.SetSizer(sizer)
 
     def save(self):
-        """Write all parameters to the configuration parser."""
+        """Write all parameters to the config."""
         self.config.set_dictionary_file_name(self.file_browser.GetValue())
 
 
 class LoggingConfig(wx.Panel):
     """Logging configuration graphical user interface."""
     def __init__(self, config, parent):
-        """Create a configuration component based on the given ConfigParser.
+        """Create a configuration component based on the given Config.
 
         Arguments:
 
@@ -285,7 +282,7 @@ class LoggingConfig(wx.Panel):
         self.SetSizer(sizer)
 
     def save(self):
-        """Write all parameters to the configuration parser."""
+        """Write all parameters to the config."""
         self.config.set_log_file_name(self.file_browser.GetValue())
         self.config.set_enable_stroke_logging(
             self.log_strokes_checkbox.GetValue())
