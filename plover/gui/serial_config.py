@@ -1,21 +1,26 @@
 # Copyright (c) 2010 Joshua Harlan Lifton.
 # See LICENSE.txt for details.
 
-# TODO: add a scan button and show a spinning symbol rather than freezing up the UI when scanning for ports.
 
 """A graphical user interface for configuring a serial port."""
 
 from serial import Serial
 import string
 import wx
+import wx.animate
+from threading import Thread
+import os.path
 
 from plover.oslayer.comscan import comscan
+from plover.config import SPINNER_FILE
 
 DIALOG_TITLE = 'Serial Port Configuration'
 USE_TIMEOUT_STR = 'Use Timeout'
 RTS_CTS_STR = 'RTS/CTS'
 XON_XOFF_STR = 'Xon/Xoff'
 OK_STR = 'OK'
+SCAN_STR = "Scan"
+LOADING_STR = "Scanning ports..."
 CANCEL_STR = 'Cancel'
 CONNECTION_STR = 'Connection'
 PORT_STR = 'Port'
@@ -77,7 +82,7 @@ class SerialConfigDialog(wx.Dialog):
 
         # Create and layout components. Components must be created after the 
         # static box that contains them or they will be unresponsive on OSX.
-        
+
         global_sizer = wx.BoxSizer(wx.VERTICAL)
 
         static_box = wx.StaticBox(self, label=CONNECTION_STR)
@@ -88,10 +93,22 @@ class SerialConfigDialog(wx.Dialog):
                     flag=wx.ALL | wx.ALIGN_CENTER_VERTICAL,
                     border=LABEL_BORDER)
         self.port_combo_box = wx.ComboBox(self,
-                                          choices=enumerate_ports(),
+                                          choices=[],
                                           style=wx.CB_DROPDOWN)
-        sizer.Add(self.port_combo_box)
+        sizer.Add(self.port_combo_box, flag=wx.ALIGN_CENTER_VERTICAL)
+        self.scan_button = wx.Button(self, label=SCAN_STR)
+        sizer.Add(self.scan_button, flag=wx.ALIGN_CENTER_VERTICAL)
+        self.loading_text = wx.StaticText(self, label=LOADING_STR)
+        sizer.Add(self.loading_text,
+                  flag=wx.ALL | wx.ALIGN_CENTER_VERTICAL,
+                  border=LABEL_BORDER)
+        self.loading_text.Hide()
+        self.gif = wx.animate.GIFAnimationCtrl(self, -1, SPINNER_FILE)
+        self.gif.GetPlayer().UseBackgroundColour(True)
+        self.gif.Hide()
+        sizer.Add(self.gif, flag=wx.ALIGN_CENTER_VERTICAL)
         outline_sizer.Add(sizer, flag=wx.EXPAND)
+        self.port_sizer = sizer
 
         sizer = wx.BoxSizer(wx.HORIZONTAL)
         sizer.Add(wx.StaticText(self, label=BAUDRATE_STR),
@@ -168,35 +185,46 @@ class SerialConfigDialog(wx.Dialog):
                          flag=wx.EXPAND | wx.ALL,
                          border=GLOBAL_BORDER)
 
-        ok_button = wx.Button(self, label=OK_STR)
+        self.ok_button = wx.Button(self, label=OK_STR)
         cancel_button = wx.Button(self, label=CANCEL_STR)
-        ok_button.SetDefault()
+        self.ok_button.SetDefault()
         sizer = wx.BoxSizer(wx.HORIZONTAL)
-        sizer.Add(ok_button)
+        sizer.Add(self.ok_button)
         sizer.Add(cancel_button)
         global_sizer.Add(sizer,
                          flag=wx.ALL | wx.ALIGN_RIGHT,
                          border=GLOBAL_BORDER)
 
         # Bind events.
-        self.Bind(wx.EVT_BUTTON, self._on_ok, ok_button)
+        self.Bind(wx.EVT_BUTTON, self._on_ok, self.ok_button)
         self.Bind(wx.EVT_BUTTON, self._on_cancel, cancel_button)
         self.Bind(wx.EVT_CHECKBOX,
                   self._on_timeout_select,
                   self.timeout_checkbox)
+        self.Bind(wx.EVT_BUTTON, self._on_scan, self.scan_button)
 
         self.SetAutoLayout(True)
         self.SetSizer(global_sizer)
         global_sizer.Fit(self)
         global_sizer.SetSizeHints(self)
         self.Layout()
+        
+        self.Bind(wx.EVT_CLOSE, self._on_cancel)
+        
         self._update()
+        self.scan_pending = False
+        self.closed = False
+        
+        if serial.port and serial.port != 'None':
+            self.port_combo_box.SetValue(serial.port)
+        else:
+            self._on_scan()
 
     def _update(self):
         # Updates the GUI to reflect the current data model.
         if self.serial.port is not None:
             self.port_combo_box.SetValue(str(self.serial.port))
-        else:
+        elif self.port_combo_box.GetCount() > 0:
             self.port_combo_box.SetSelection(0)
         self.baudrate_choice.SetStringSelection(str(self.serial.baudrate))
         self.databits_choice.SetStringSelection(str(self.serial.bytesize))
@@ -218,7 +246,7 @@ class SerialConfigDialog(wx.Dialog):
         self.serial.port = self.port_combo_box.GetValue()
         self.serial.baudrate = int(self.baudrate_choice.GetStringSelection())
         self.serial.bytesize = int(self.databits_choice.GetStringSelection())
-        self.serial.stopbits = int(self.stopbits_choice.GetStringSelection())
+        self.serial.stopbits = float(self.stopbits_choice.GetStringSelection())
         self.serial.parity = self.parity_choice.GetStringSelection()
         self.serial.rtscts = self.rtscts_checkbox.GetValue()
         self.serial.xonxoff = self.xonxoff_checkbox.GetValue()
@@ -231,10 +259,12 @@ class SerialConfigDialog(wx.Dialog):
         else:
             self.serial.timeout = None
         self.EndModal(wx.ID_OK)
-
+        self._destroy()
+        
     def _on_cancel(self, events):
         # Dismiss the dialog without making any changes.
         self.EndModal(wx.ID_CANCEL)
+        self._destroy()
 
     def _on_timeout_select(self, events):
         # Dis/allow user input to timeout text control.
@@ -242,7 +272,46 @@ class SerialConfigDialog(wx.Dialog):
             self.timeout_text_ctrl.Enable(True)
         else:
             self.timeout_text_ctrl.Enable(False)
+            
+    def _on_scan(self, event=None):
+        self.scan_button.Hide()
+        self.port_combo_box.Hide()
+        self.gif.Show()
+        self.gif.Play()
+        self.loading_text.Show()
+        self.ok_button.Disable()
+        self.port_sizer.Layout()
+        t = Thread(target=self._do_scan)
+        t.daemon = True
+        self.scan_pending = True
+        t.start()
 
+    def _do_scan(self):
+        ports = enumerate_ports()
+        wx.CallAfter(self._scan_done, ports)
+
+    def _scan_done(self, ports):
+        if self.closed:
+            self.Destroy()
+            return
+        self.scan_pending = False
+        self.gif.Hide()
+        self.gif.Stop()
+        self.loading_text.Hide()
+        self.scan_button.Show()
+        self.port_combo_box.Show()
+        self.port_combo_box.Clear()
+        self.port_combo_box.AppendItems(ports)
+        if self.port_combo_box.GetCount() > 0:
+            self.port_combo_box.Select(0)
+        self.ok_button.Enable()
+        self.port_sizer.Layout()
+
+    def _destroy(self):
+        if self.scan_pending:
+            self.closed = True
+        else:
+            self.Destroy()
 
 class FloatValidator(wx.PyValidator):
     """Validates that a string can be converted to a float."""
@@ -322,7 +391,6 @@ class TestApp(wx.App):
         result = serial_config_dialog.ShowModal()
         print 'After:', ser.__dict__
         print 'Result:', result
-        self.ExitMainLoop() # TODO: Doesn't seem to exit.
         return True
 
 if __name__ == "__main__":

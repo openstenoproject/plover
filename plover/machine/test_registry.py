@@ -19,14 +19,16 @@ class RegistryClassTestCase(unittest.TestCase):
             
     def test_alias(self):
         registry = Registry()
-        registry.add_alias('a', 1)
-        self.assertEqual(1, registry.get('a'))
+        registry.register('a', 1)
+        registry.add_alias('b', 'a')
+        self.assertEqual(registry.resolve_alias('b'), 'a')
+        self.assertEqual(1, registry.get('b'))
             
     def test_all_names(self):
         registry = Registry()
         registry.register('a', 1)
         registry.register('b', 5)
-        registry.add_alias('c', 1)
+        registry.add_alias('c', 'b')
         self.assertEqual(['a', 'b'], sorted(registry.get_all_names()))
 
 class MachineRegistryTestCase(object):

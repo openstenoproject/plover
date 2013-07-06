@@ -54,6 +54,7 @@ class Stenotype(plover.machine.base.SerialStenotypeBase):
 
     def run(self):
         """Overrides base class run method. Do not call directly."""
+        self._ready()
         last_read_time_s = 0
         timeout_s = 0.1
         while not self.finished.isSet():

@@ -101,9 +101,7 @@ class ConfigurationDialog(wx.Dialog):
         self.Bind(wx.EVT_BUTTON, self._save, save_button)
 
     def _save(self, event):
-        old_config = conf.Config()
-        with open(self.config_file) as f:
-            old_config.load(f)
+        old_config = self.config.clone()
         
         self.machine_config.save()
         self.dictionary_config.save()
@@ -152,10 +150,9 @@ class MachineConfig(wx.Panel):
                 border=COMPONENT_SPACE,
                 flag=wx.ALIGN_RIGHT | wx.ALIGN_CENTER_VERTICAL | wx.RIGHT)
         machines = machine_registry.get_all_names()
-        # TODO: Handle the case where the config file has an invalid selection.
         value = self.config.get_machine_type()
         self.choice = wx.Choice(self, choices=machines)
-        self.choice.SetStringSelection(value)
+        self.choice.SetStringSelection(machine_registry.resolve_alias(value))
         self.Bind(wx.EVT_CHOICE, self._update, self.choice)
         box.Add(self.choice, proportion=1, flag=wx.EXPAND)
         self.config_button = wx.Button(self,
@@ -193,7 +190,7 @@ class MachineConfig(wx.Panel):
         config_instance = Struct(**self.advanced_options)
         scd = serial_config.SerialConfigDialog(config_instance, self)
         scd.ShowModal()
-        scd.Destroy()
+        #scd.Close()
         self.advanced_options = config_instance.__dict__
 
     def _update(self, event=None):

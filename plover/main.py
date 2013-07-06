@@ -45,7 +45,7 @@ def init_config_dir():
     # Create a default configuration file if one doesn't already
     # exist.
     if not os.path.exists(CONFIG_FILE):
-        with open(config_file, 'wb') as f:
+        with open(CONFIG_FILE, 'wb') as f:
             f.close()
 
 def main():

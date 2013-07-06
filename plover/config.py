@@ -11,6 +11,7 @@ from plover.exception import InvalidConfigurationError
 from plover.machine.registry import machine_registry
 from plover.oslayer.config import ASSETS_DIR, CONFIG_DIR
 
+SPINNER_FILE = os.path.join(ASSETS_DIR, 'spinner.gif')
 
 # Config path.
 CONFIG_FILE = os.path.join(CONFIG_DIR, 'plover.cfg')

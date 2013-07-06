@@ -10,11 +10,14 @@ resumes stenotype translation and allows for application configuration.
 
 import os
 import wx
+import wx.animate
 import ConfigParser
 import plover.app as app
 import plover.config as conf
 import plover.gui.config as gui
 from plover.oslayer.keyboardcontrol import KeyboardEmulation
+from plover.machine.base import STATE_ERROR, STATE_INITIALIZING, STATE_RUNNING
+from plover.machine.registry import machine_registry
 
 from plover.exception import InvalidConfigurationError
 
@@ -47,14 +50,18 @@ class Frame(wx.Frame):
     # Class constants.
     TITLE = "Plover"
     ALERT_DIALOG_TITLE = TITLE
-    ON_IMAGE_FILE = "plover_on.png"
-    OFF_IMAGE_FILE = "plover_off.png"
+    ON_IMAGE_FILE = os.path.join(conf.ASSETS_DIR, 'plover_on.png')
+    OFF_IMAGE_FILE = os.path.join(conf.ASSETS_DIR, 'plover_off.png')
+    CONNECTED_IMAGE_FILE = os.path.join(conf.ASSETS_DIR, 'connected.png')
+    DISCONNECTED_IMAGE_FILE = os.path.join(conf.ASSETS_DIR, 'disconnected.png')
+    REFRESH_IMAGE_FILE = os.path.join(conf.ASSETS_DIR, 'refresh.png')
     BORDER = 5
     RUNNING_MESSAGE = "running"
     STOPPED_MESSAGE = "stopped"
     ERROR_MESSAGE = "error"
     CONFIGURE_BUTTON_LABEL = "Configure..."
     ABOUT_BUTTON_LABEL = "About..."
+    RECONNECT_BUTTON_LABEL = "Reconnect..."
     COMMAND_SUSPEND = 'SUSPEND'
     COMMAND_RESUME = 'RESUME'
     COMMAND_TOGGLE = 'TOGGLE'
@@ -70,6 +77,81 @@ class Frame(wx.Frame):
                           style=wx.DEFAULT_FRAME_STYLE & ~(wx.RESIZE_BORDER |
                                                            wx.RESIZE_BOX |
                                                            wx.MAXIMIZE_BOX))
+
+        # Status button.
+        self.on_bitmap = wx.Bitmap(self.ON_IMAGE_FILE, wx.BITMAP_TYPE_PNG)
+        self.off_bitmap = wx.Bitmap(self.OFF_IMAGE_FILE, wx.BITMAP_TYPE_PNG)
+        self.status_button = wx.BitmapButton(self, bitmap=self.on_bitmap)
+        self.status_button.Bind(wx.EVT_BUTTON, self._toggle_steno_engine)
+
+        # Configure button.
+        self.configure_button = wx.Button(self,
+                                          label=self.CONFIGURE_BUTTON_LABEL)
+        self.configure_button.Bind(wx.EVT_BUTTON, self._show_config_dialog)
+
+        # About button.
+        self.about_button = wx.Button(self, label=self.ABOUT_BUTTON_LABEL)
+        self.about_button.Bind(wx.EVT_BUTTON, self._show_about_dialog)
+
+        # Machine status.
+        # TODO: Figure out why spinner has darker gray background.
+        self.spinner = wx.animate.GIFAnimationCtrl(self, -1, conf.SPINNER_FILE)
+        self.spinner.GetPlayer().UseBackgroundColour(True)
+        self.spinner.Hide()
+
+        self.connected_bitmap = wx.Bitmap(self.CONNECTED_IMAGE_FILE, 
+                                          wx.BITMAP_TYPE_PNG)
+        self.disconnected_bitmap = wx.Bitmap(self.DISCONNECTED_IMAGE_FILE, 
+                                             wx.BITMAP_TYPE_PNG)
+        self.connection_ctrl = wx.StaticBitmap(self, 
+                                               bitmap=self.disconnected_bitmap)
+
+        # Layout.
+        global_sizer = wx.BoxSizer(wx.VERTICAL)
+
+        sizer = wx.BoxSizer(wx.HORIZONTAL)
+        sizer.Add(self.status_button,
+                  flag=wx.ALL | wx.ALIGN_CENTER_VERTICAL,
+                  border=self.BORDER)
+        sizer.Add(self.configure_button,
+                  flag=wx.TOP | wx.BOTTOM | wx.RIGHT | wx.ALIGN_CENTER_VERTICAL,
+                  border=self.BORDER)
+        sizer.Add(self.about_button,
+                  flag=wx.TOP | wx.BOTTOM | wx.RIGHT | wx.ALIGN_CENTER_VERTICAL,
+                  border=self.BORDER)
+        global_sizer.Add(sizer)
+
+        sizer = wx.BoxSizer(wx.HORIZONTAL)
+        sizer.Add(self.spinner,
+                  flag=(wx.LEFT | wx.BOTTOM | wx.RIGHT | 
+                        wx.ALIGN_CENTER_VERTICAL), 
+                  border=self.BORDER)
+        sizer.Add(self.connection_ctrl, 
+                  flag=(wx.LEFT | wx.BOTTOM | wx.RIGHT | 
+                        wx.ALIGN_CENTER_VERTICAL), 
+                  border=self.BORDER)
+        longest_machine = max(machine_registry.get_all_names(), key=len)
+        longest_state = max((STATE_ERROR, STATE_INITIALIZING, STATE_RUNNING), 
+                            key=len)
+        longest_status = '%s: %s' % (longest_machine, longest_state)
+        self.machine_status_text = wx.StaticText(self, label=longest_status)
+        sizer.Add(self.machine_status_text, 
+                  flag=wx.BOTTOM | wx.RIGHT | wx.ALIGN_CENTER_VERTICAL,
+                  border=self.BORDER)
+        refresh_bitmap = wx.Bitmap(self.REFRESH_IMAGE_FILE, wx.BITMAP_TYPE_PNG)          
+        self.reconnect_button = wx.BitmapButton(self, bitmap=refresh_bitmap)
+        sizer.Add(self.reconnect_button, 
+                  flag=wx.BOTTOM | wx.RIGHT | wx.ALIGN_CENTER_VERTICAL, 
+                  border=self.BORDER)
+        self.machine_status_sizer = sizer
+        global_sizer.Add(sizer)
+        self.SetSizer(global_sizer)
+        global_sizer.Fit(self)
+
+        self.Bind(wx.EVT_CLOSE, self._quit)
+        self.reconnect_button.Bind(wx.EVT_BUTTON, 
+            lambda e: app.reset_machine(self.steno_engine, self.config))
+
         self.config = conf.Config()
         try:
             with open(config_file) as f:
@@ -79,6 +161,10 @@ class Frame(wx.Frame):
             self.config = conf.Config()
 
         self.steno_engine = app.StenoEngine()
+        self.steno_engine.add_callback(
+            lambda s: wx.CallAfter(self._update_status, s))
+        self.steno_engine.set_output(Output(self.consume_command))
+
         self.config_dialog = gui.ConfigurationDialog(self.steno_engine,
                                                      self.config,
                                                      config_file,
@@ -94,44 +180,6 @@ class Frame(wx.Frame):
                 if ret == wx.ID_CANCEL:
                     self._quit()
                     return
-
-        self.steno_engine.set_output(Output(self.consume_command))
-
-        # Status button.
-        on_icon_file = os.path.join(conf.ASSETS_DIR, self.ON_IMAGE_FILE)
-        off_icon_file = os.path.join(conf.ASSETS_DIR, self.OFF_IMAGE_FILE)
-        self.on_bitmap = wx.Bitmap(on_icon_file, wx.BITMAP_TYPE_PNG)
-        self.off_bitmap = wx.Bitmap(off_icon_file, wx.BITMAP_TYPE_PNG)
-        self.status_button = wx.BitmapButton(self, bitmap=self.on_bitmap)
-        self.status_button.Bind(wx.EVT_BUTTON, self._toggle_steno_engine)
-
-        # Configure button.
-        self.configure_button = wx.Button(self,
-                                          label=self.CONFIGURE_BUTTON_LABEL)
-        self.configure_button.Bind(wx.EVT_BUTTON, self._show_config_dialog)
-
-        # About button.
-        self.about_button = wx.Button(self, label=self.ABOUT_BUTTON_LABEL)
-        self.about_button.Bind(wx.EVT_BUTTON, self._show_about_dialog)
-
-        # Layout.
-        sizer = wx.BoxSizer(wx.HORIZONTAL)
-        sizer.Add(self.status_button,
-                  flag=wx.ALL | wx.ALIGN_CENTER_VERTICAL,
-                  border=self.BORDER)
-        sizer.Add(self.configure_button,
-                  flag=wx.TOP | wx.BOTTOM | wx.RIGHT | wx.ALIGN_CENTER_VERTICAL,
-                  border=self.BORDER)
-        sizer.Add(self.about_button,
-                  flag=wx.TOP | wx.BOTTOM | wx.RIGHT | wx.ALIGN_CENTER_VERTICAL,
-                  border=self.BORDER)
-        self.SetSizer(sizer)
-        sizer.Fit(self)
-
-        self.Bind(wx.EVT_CLOSE, self._quit)
-
-        self.steno_engine.add_callback(self._update_status)
-        self._update_status()
 
     def consume_command(self, command):
         # Wrap all actions in a CallAfter since the initiator of the
@@ -152,7 +200,23 @@ class Frame(wx.Frame):
         elif command == self.COMMAND_QUIT:
             wx.CallAfter(self._quit)
 
-    def _update_status(self):
+    def _update_status(self, state):
+        if state:
+            machine_name = machine_registry.resolve_alias(
+                self.config.get_machine_type())
+            self.machine_status_text.SetLabel('%s: %s' % (machine_name, state))
+            self.reconnect_button.Show(state == STATE_ERROR)
+            self.spinner.Show(state == STATE_INITIALIZING)
+            self.connection_ctrl.Show(state != STATE_INITIALIZING)
+            if state == STATE_INITIALIZING:
+                self.spinner.Play()
+            else:
+                self.spinner.Stop()
+            if state == STATE_RUNNING:
+                self.connection_ctrl.SetBitmap(self.connected_bitmap)
+            elif state == STATE_ERROR:
+                self.connection_ctrl.SetBitmap(self.disconnected_bitmap)
+            self.machine_status_sizer.Layout()
         if self.steno_engine.machine:
             self.status_button.Enable()
             if self.steno_engine.is_running:

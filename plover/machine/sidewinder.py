@@ -1,6 +1,9 @@
 # Copyright (c) 2010 Joshua Harlan Lifton.
 # See LICENSE.txt for details.
 
+# TODO: add options to remap keys
+# TODO: look into programmatically pasting into other applications
+
 "For use with a Microsoft Sidewinder X4 keyboard used as stenotype machine."
 
 # TODO: Change name to NKRO Keyboard.
@@ -72,10 +75,12 @@ class Stenotype(StenotypeBase):
     def start_capture(self):
         """Begin listening for output from the stenotype machine."""
         self._keyboard_capture.start()
+        self._ready()
 
     def stop_capture(self):
         """Stop listening for output from the stenotype machine."""
         self._keyboard_capture.cancel()
+        self._stopped()
 
     def suppress_keyboard(self, suppress):
         self._is_keyboard_suppressed = suppress

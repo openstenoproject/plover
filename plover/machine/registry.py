@@ -27,21 +27,23 @@ class Registry(object):
     def register(self, name, machine):
         self._machines[name] = machine
 
-    def add_alias(self, name, machine):
-        self._aliases[name] = machine
+    def add_alias(self, alias, name):
+        self._aliases[alias] = name
 
     def get(self, name):
         try:
-            return self._machines[name]
-        except KeyError:
-            pass
-        try:
-            return self._aliases[name]
+            return self._machines[self.resolve_alias(name)]
         except KeyError:
             raise NoSuchMachineException(name)
 
     def get_all_names(self):
         return self._machines.keys()
+        
+    def resolve_alias(self, name):
+        try:
+            return self._aliases[name]
+        except KeyError:
+            return name
 
 machine_registry = Registry()
 machine_registry.register('NKRO Keyboard', sidewinder)
@@ -51,4 +53,4 @@ machine_registry.register('Stentura', stentura)
 if treal:
     machine_registry.register('Treal', treal)
 
-machine_registry.add_alias('Microsoft Sidewinder X4', sidewinder)
+machine_registry.add_alias('Microsoft Sidewinder X4', 'NKRO Keyboard')

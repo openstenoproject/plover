@@ -45,13 +45,7 @@ class SimpleNamespace(object):
 
 def init_engine(engine, config):
     """Initialize a StenoEngine from a config object."""
-    machine_type = config.get_machine_type()
-    machine_options = config.get_machine_specific_options(machine_type)
-    try:
-        instance = machine_registry.get(machine_type)(machine_options)
-    except NoSuchMachineException as e:
-        raise InvalidConfigurationError(unicode(e))
-    engine.set_machine(instance)
+    reset_machine(engine, config)
     
     dictionary_file_name = config.get_dictionary_file_name()
     if dictionary_file_name:
@@ -69,6 +63,15 @@ def init_engine(engine, config):
     engine.enable_translation_logging(config.get_enable_translation_logging())
     
     engine.set_is_running(config.get_auto_start())
+
+def reset_machine(engine, config):
+    machine_type = config.get_machine_type()
+    machine_options = config.get_machine_specific_options(machine_type)
+    try:
+        instance = machine_registry.get(machine_type)(machine_options)
+    except NoSuchMachineException as e:
+        raise InvalidConfigurationError(unicode(e))
+    engine.set_machine(instance)
 
 def update_engine(engine, old, new):
     """Modify a StenoEngine using a before and after config object.
@@ -140,6 +143,7 @@ class StenoEngine(object):
     def __init__(self):
         """Creates and configures a single steno pipeline."""
         self.subscribers = []
+        self.machine_status_subscribers = []
         self.is_running = False
         self.machine = None
 
@@ -159,15 +163,18 @@ class StenoEngine(object):
 
     def set_machine(self, machine):
         if self.machine:
+            self.machine.remove_state_callback(self._machine_state_callback)
+            self.machine.remove_stroke_callback(
+                self._translator_machine_callback)
+            self.machine.remove_stroke_callback(self.logger.log_stroke)
             self.machine.stop_capture()
-            self.machine.remove_callback(self._translator_machine_callback)
-            self.machine.remove_callback(self.logger.log_stroke)
         self.machine = machine
         if self.machine:
-            self.machine.add_callback(self.logger.log_stroke)
-            self.machine.add_callback(self._translator_machine_callback)
-            self.set_is_running(self.is_running)
+            self.machine.add_state_callback(self._machine_state_callback)
+            self.machine.add_stroke_callback(self.logger.log_stroke)
+            self.machine.add_stroke_callback(self._translator_machine_callback)
             self.machine.start_capture()
+            self.set_is_running(self.is_running)
         else:
             self.set_is_running(False)
 
@@ -185,7 +192,7 @@ class StenoEngine(object):
         if isinstance(self.machine, plover.machine.sidewinder.Stenotype):
             self.machine.suppress_keyboard(self.is_running)
         for callback in self.subscribers:
-            callback()
+            callback(None)
 
     def set_output(self, o):
         self.full_output.send_backspaces = o.send_backspaces
@@ -232,3 +239,6 @@ class StenoEngine(object):
     def _translator_machine_callback(self, s):
         self.translator.translate(steno.Stroke(s))
 
+    def _machine_state_callback(self, s):
+        for callback in self.subscribers:
+            callback(s)

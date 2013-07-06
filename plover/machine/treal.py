@@ -1,6 +1,8 @@
 # Copyright (c) 2013 Hesky Fisher
 # See LICENSE.txt for details.
 
+# TODO: add tests
+
 "Thread-based monitoring of a stenotype machine using the Treal machine."
 
 import sys
@@ -53,7 +55,8 @@ if sys.platform.startswith('win32'):
             """Begin listening for output from the stenotype machine."""
             devices = hid.HidDeviceFilter(vendor_id = VENDOR_ID).get_devices()
             if len(devices) == 0:
-                raise Exception("No Treal is plugged in.")
+                self._error()
+                return
             self._machine = devices[0]
             self._machine.open()
             handler = DataHandler(self._notify)
@@ -63,10 +66,12 @@ if sys.platform.startswith('win32'):
                 handler.update(p[1:])
             
             self._machine.set_raw_data_handler(callback)
+            self._ready()
 
         def stop_capture(self):
             """Stop listening for output from the stenotype machine."""
             self._machine.close()
+            self._stopped()
 
 else:
     from plover.machine.base import ThreadedStenotypeBase
@@ -76,6 +81,7 @@ else:
         
         def __init__(self, params):
             ThreadedStenotypeBase.__init__(self)
+            self._machine = None
 
         def start_capture(self):
             """Begin listening for output from the stenotype machine."""
@@ -83,17 +89,20 @@ else:
                 self._machine = hid.device(VENDOR_ID, 1)
                 self._machine.set_nonblocking(1)
             except IOError as e:
-                # TODO(hesky): Figure out what to do here. Maybe start_capture should return a bool or error or raise an exception.
-                raise e
-            ThreadedStenotypeBase.start_capture(self)
+                self._error()
+                return
+            return ThreadedStenotypeBase.start_capture(self)
 
         def stop_capture(self):
             """Stop listening for output from the stenotype machine."""
             ThreadedStenotypeBase.stop_capture(self)
-            self._machine.close()
+            if self._machine:
+                self._machine.close()
+            self._stopped()
 
         def run(self):
             handler = DataHandler(self._notify)
+            self._ready()
             while not self.finished.isSet():
                 packet = self._machine.read(5)
                 if len(packet) != 5: continue

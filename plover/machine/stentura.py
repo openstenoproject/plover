@@ -599,8 +599,7 @@ def _read(port, stop, seq, request_buf, response_buf, stroke_buf, timeout=1):
             block += 1
             byte -= 512
 
-
-def _loop(port, stop, callback, timeout=1):
+def _loop(port, stop, callback, ready_callback, timeout=1):
     """Enter into a loop talking to the machine and returning strokes.
 
     Args:
@@ -608,6 +607,7 @@ def _loop(port, stop, callback, timeout=1):
     - stop: The event used to signal that it's time to stop.
     - callback: A function that takes a list of pressed keys, called for each
     stroke.
+    - ready_callback: A function that is called when the machine is ready.
     - timeout: Timeout to use when waiting for a response in seconds. Should be
     1 when talking to a real machine. (default: 1)
 
@@ -632,7 +632,7 @@ def _loop(port, stop, callback, timeout=1):
     _send_receive(port, stop, request, response_buf)
     # Do a full read to get to the current position in the realtime file.
     _read(port, stop, seq, request_buf, response_buf, stroke_buf)
-    print "Ready."  # TODO: Communicate readiness back to engine.
+    ready_callback()
     while True:
         data = _read(port, stop, seq, request_buf, response_buf, stroke_buf)
         strokes = _parse_strokes(data)
@@ -654,8 +654,8 @@ class Stenotype(plover.machine.base.SerialStenotypeBase):
     def run(self):
         """Overrides base class run method. Do not call directly."""
         try:
-            _loop(self.serial_port, self.finished, self._notify)
+            _loop(self.serial_port, self.finished, self._notify, self._ready)
         except _StopException:
-            pass  # Close serial port
+            pass
         except _ConnectionLostException, _ProtocolViolationException:
-            pass  # Tell the engine
+            self._error()
