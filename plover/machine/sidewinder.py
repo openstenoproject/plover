@@ -1,7 +1,12 @@
 # Copyright (c) 2010 Joshua Harlan Lifton.
 # See LICENSE.txt for details.
 
+# TODO: add options to remap keys
+# TODO: look into programmatically pasting into other applications
+
 "For use with a Microsoft Sidewinder X4 keyboard used as stenotype machine."
+
+# TODO: Change name to NKRO Keyboard.
 
 from plover.machine.base import StenotypeBase
 from plover.oslayer import keyboardcontrol
@@ -56,7 +61,7 @@ class Stenotype(StenotypeBase):
 
     """
 
-    def __init__(self):
+    def __init__(self, params):
         """Monitor a Microsoft Sidewinder X4 keyboard via X events."""
         StenotypeBase.__init__(self)
         self._keyboard_emulation = keyboardcontrol.KeyboardEmulation()
@@ -70,10 +75,12 @@ class Stenotype(StenotypeBase):
     def start_capture(self):
         """Begin listening for output from the stenotype machine."""
         self._keyboard_capture.start()
+        self._ready()
 
     def stop_capture(self):
         """Stop listening for output from the stenotype machine."""
         self._keyboard_capture.cancel()
+        self._stopped()
 
     def suppress_keyboard(self, suppress):
         self._is_keyboard_suppressed = suppress

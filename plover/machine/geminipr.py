@@ -33,6 +33,7 @@ class Stenotype(plover.machine.base.SerialStenotypeBase):
 
     def run(self):
         """Overrides base class run method. Do not call directly."""
+        self._ready()
         while not self.finished.isSet():
 
             # Grab data from the serial port.
@@ -60,3 +61,4 @@ class Stenotype(plover.machine.base.SerialStenotypeBase):
 
             # Notify all subscribers.
             self._notify(steno_keys)
+
