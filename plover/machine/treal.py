@@ -50,6 +50,7 @@ if sys.platform.startswith('win32'):
     class Stenotype(StenotypeBase):
         def __init__(self, params):
             StenotypeBase.__init__(self)
+            self._machine = None
 
         def start_capture(self):
             """Begin listening for output from the stenotype machine."""
@@ -70,7 +71,8 @@ if sys.platform.startswith('win32'):
 
         def stop_capture(self):
             """Stop listening for output from the stenotype machine."""
-            self._machine.close()
+            if self._machine:
+                self._machine.close()
             self._stopped()
 
 else:
