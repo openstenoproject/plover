@@ -48,14 +48,15 @@ to "Enable access for assistive devices" If you do not do this, Plover
 will not work.
 
 Linux (debian/ubuntu):
-There is no package yet so an installation requires installing all dependencies.
-Run the following commands::
+There is no package yet so an installation requires installing all dependencies. First, you must have python 2.7. Then
+run the following commands::
 
-    cd ~
-    sudo apt-get install git python-xlib python-serial python-wxgtk2.8 python-pip
+    cd
+    sudo apt-get install python-xlib python-serial python-wxgtk2.8 python-pip
     sudo pip install -U appdirs simplejson
-    git clone https://github.com/plover/plover
-    cd plover
+    wget https://github.com/plover/plover/archive/v2.3.1.tar.gz
+    tar -zxf v2.3.1.tar.gz
+    cd plover-2.3.1
     sudo python setup.py install
 
 Once this is done then you should be able to run plover from the applications menu or from the command line with::
