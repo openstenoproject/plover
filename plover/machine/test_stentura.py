@@ -595,11 +595,20 @@ class TestCase(unittest.TestCase):
 
             port = test[0]
             expected = test[1]
+            
+            ready_called = [False]
+            def ready():
+                ready_called[0] = True
+            
             try:
-                stentura._loop(port, port.event, callback, 0.001)
+                ready_called[0] = False
+                stentura._loop(port, port.event, callback, ready, 0.001)
             except stentura._StopException:
                 pass
             self.assertEqual(read_data, expected)
+            self.assertTrue(ready_called[0])
+
+# TODO: add a test on the machine itself with mocks
 
 if __name__ == '__main__':
     unittest.main()

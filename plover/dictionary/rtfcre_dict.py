@@ -25,6 +25,7 @@ DICT_ENTRY_PATTERN = re.compile(r'(?s)(?<!\\){\\\*\\cxs (?P<steno>[^}]+)}' +
                                 r'(?:(?:(?<!\\)\r\n\s*)*}\s*\Z))')
 
 class TranslationConverter(object):
+    """Convert an RTF/CRE translation into plover's internal format."""
     
     def __init__(self):
         handler_funcs = inspect.getmembers(self, inspect.ismethod)
@@ -228,6 +229,7 @@ class TranslationConverter(object):
 
 
 def load_dictionary(s):
+    """Load an RTF/CRE dictionary."""
     d = {}
     converter = TranslationConverter()
     for m in DICT_ENTRY_PATTERN.finditer(s):
