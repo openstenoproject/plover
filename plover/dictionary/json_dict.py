@@ -28,3 +28,8 @@ def load_dictionary(data):
             return json.loads(data, 'latin-1', object_pairs_hook=h)
     except ValueError:
         raise DictionaryLoaderException('Dictionary is not valid json.')
+        
+# TODO: test this
+def save_dictionary(d, fp):
+    d = dict(('/'.join(k), v) for k, v in d.iteritems())
+    json.dump(d, fp, sort_keys=True, indent=0, separators=(',', ': '))

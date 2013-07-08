@@ -18,6 +18,7 @@ class StenoDictionary(collections.MutableMapping):
 
     Attributes:
     longest_key -- A read only property holding the length of the longest key.
+    saver -- If set, is a function that will save this dictionary.
 
     """
     def __init__(self, *args, **kw):
@@ -25,6 +26,7 @@ class StenoDictionary(collections.MutableMapping):
         self._longest_key_length = 0
         self._longest_listener_callbacks = set()
         self.update(*args, **kw)
+        self.save = None
 
     @property
     def longest_key(self):

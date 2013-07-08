@@ -126,6 +126,9 @@ class Translator(object):
             self._dictionary.remove_longest_key_listener(callback)
         self._dictionary = d
         d.add_longest_key_listener(callback)
+        
+    def get_dictionary(self):
+        return self._dictionary
 
     def add_listener(self, callback):
         """Add a listener for translation outputs.
