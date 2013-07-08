@@ -14,6 +14,7 @@ import wx.animate
 import plover.app as app
 import plover.config as conf
 from plover.gui.config import ConfigurationDialog
+import plover.gui.add_translation
 from plover.oslayer.keyboardcontrol import KeyboardEmulation
 from plover.machine.base import STATE_ERROR, STATE_INITIALIZING, STATE_RUNNING
 from plover.machine.registry import machine_registry
@@ -37,8 +38,8 @@ class PloverGUI(wx.App):
     def OnInit(self):
         """Called just before the application starts."""
         frame = Frame(conf.CONFIG_FILE)
-        frame.Show()
         self.SetTopWindow(frame)
+        frame.Show()
         return True
 
 
@@ -61,6 +62,7 @@ class Frame(wx.Frame):
     ABOUT_BUTTON_LABEL = "About..."
     RECONNECT_BUTTON_LABEL = "Reconnect..."
     COMMAND_SUSPEND = 'SUSPEND'
+    COMMAND_ADD_TRANSLATION = 'ADD_TRANSLATION'
     COMMAND_RESUME = 'RESUME'
     COMMAND_TOGGLE = 'TOGGLE'
     COMMAND_CONFIGURE = 'CONFIGURE'
@@ -181,11 +183,11 @@ class Frame(wx.Frame):
 
     def consume_command(self, command):
         # TODO: When using keyboard to resume the stroke is typed.
-        if command == self.COMMAND_SUSPEND and self.steno_engine:
+        if command == self.COMMAND_SUSPEND:
             self.steno_engine.set_is_running(False)
-        elif command == self.COMMAND_RESUME and self.steno_engine:
+        elif command == self.COMMAND_RESUME:
             self.steno_engine.set_is_running(True)
-        elif command == self.COMMAND_TOGGLE and self.steno_engine:
+        elif command == self.COMMAND_TOGGLE:
             self.steno_engine.set_is_running(not self.steno_engine.is_running)
         elif command == self.COMMAND_CONFIGURE:
             self._show_config_dialog()
@@ -194,6 +196,8 @@ class Frame(wx.Frame):
             self.Iconize(False)
         elif command == self.COMMAND_QUIT:
             self._quit()
+        elif command == self.COMMAND_ADD_TRANSLATION:
+            plover.gui.add_translation.Show(self.steno_engine)
 
     def _update_status(self, state):
         if state:
@@ -228,6 +232,7 @@ class Frame(wx.Frame):
     def _quit(self, event=None):
         if self.steno_engine:
             self.steno_engine.destroy()
+        plover.gui.add_translation.Destroy()
         self.Destroy()
 
     def _toggle_steno_engine(self, event=None):

@@ -8,7 +8,7 @@ import wx
 import wx.lib.filebrowsebutton as filebrowse
 import plover.config as conf
 from plover.gui.serial_config import SerialConfigDialog
-from plover.gui.add_translation import AddTranslationDialog
+import plover.gui.add_translation
 from plover.app import update_engine
 from plover.machine.registry import machine_registry
 from plover.exception import InvalidConfigurationError
@@ -247,9 +247,7 @@ class DictionaryConfig(wx.Panel):
         self.config.set_dictionary_file_name(self.file_browser.GetValue())
         
     def show_add_translation(self, event):
-        dialog = AddTranslationDialog(self, self.engine)
-        dialog.ShowModal()
-        dialog.Destroy()
+        plover.gui.add_translation.Show(self.engine)
 
 
 class LoggingConfig(wx.Panel):

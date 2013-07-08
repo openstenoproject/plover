@@ -144,7 +144,6 @@ class StenoEngine(object):
     def __init__(self):
         """Creates and configures a single steno pipeline."""
         self.subscribers = []
-        self.machine_status_subscribers = []
         self.is_running = False
         self.machine = None
 
