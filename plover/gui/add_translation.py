@@ -72,16 +72,54 @@ class AddTranslationDialog(wx.Dialog):
         
         # events
         button.Bind(wx.EVT_BUTTON, self.on_add_translation)
-        
+        self.strokes_text.Bind(wx.EVT_TEXT, self.on_strokes_change)
+        self.translation_text.Bind(wx.EVT_TEXT, self.on_translations_change)
         self.strokes_text.SetFocus()
         
     def on_add_translation(self, event=None):
         d = self.engine.get_dictionary()
-        strokes = tuple(s for s in self.strokes_text.GetValue().split())
-        translation = self.translation_text.GetValue()
+        strokes = self.strokes_text.GetValue().upper().replace('/', ' ').split()
+        strokes = tuple(strokes)
+        translation = self.translation_text.GetValue().strip()
         d[strokes] = translation
         d.save()
         self.EndModal(wx.ID_OK)
+        
+    def on_strokes_change(self, event):
+        stroke = event.GetString().upper()
+        self.strokes_text.ChangeValue(stroke)
+        self.strokes_text.SetInsertionPointEnd()
+        strokes = stroke.replace('/', ' ').split()
+        stroke = '/'.join(strokes)
+        if stroke:
+            key = tuple(strokes)
+            d = self.engine.get_dictionary()
+            translation = d.get(key, None)
+            if translation:
+                label = '%s maps to %s' % (stroke, translation)
+            else:
+                label = '%s is not in the dictionary' % stroke
+        else:
+            label = ''
+        self.stroke_mapping_text.SetLabel(label)
+        self.GetSizer().Layout()
+
+    def on_translations_change(self, event):
+        # TODO: normalize dict entries to make reverse lookup more reliable with 
+        # whitespace.
+        translation = event.GetString().strip()
+        if translation:
+            d = self.engine.get_dictionary()
+            strokes_list = d.reverse[translation]
+            if strokes_list:
+                strokes = ', '.join('/'.join(x) for x in strokes_list)
+                label = '%s is mapped from %s' % (translation, strokes)
+            else:
+                label = '%s is not in the dictionary' % translation
+        else:
+            label = ''
+        self.translation_mapping_text.SetLabel(label)
+        self.GetSizer().Layout()
 
 class TestApp(wx.App):
     """A test application that brings up a SerialConfigDialog.

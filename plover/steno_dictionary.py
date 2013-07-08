@@ -25,6 +25,7 @@ class StenoDictionary(collections.MutableMapping):
         self._dict = {}
         self._longest_key_length = 0
         self._longest_listener_callbacks = set()
+        self.reverse = collections.defaultdict(list)
         self.update(*args, **kw)
         self.save = None
 
@@ -45,8 +46,11 @@ class StenoDictionary(collections.MutableMapping):
     def __setitem__(self, key, value):
         self._longest_key = max(self._longest_key, len(key))
         self._dict.__setitem__(key, value)
+        self.reverse[value].append(key)
 
     def __delitem__(self, key):
+        value = self._dict[key]
+        self.reverse[value].remove(key)
         self._dict.__delitem__(key)
         if len(key) == self.longest_key:
             if self._dict:
