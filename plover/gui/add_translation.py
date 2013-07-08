@@ -195,3 +195,4 @@ def Show(parent, engine):
     dialog_instance = AddTranslationDialog(parent, engine)
     dialog_instance.Show()
     dialog_instance.Raise()
+    dialog_instance.strokes_text.SetFocus()
