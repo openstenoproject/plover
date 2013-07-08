@@ -11,23 +11,20 @@ class AddTranslationDialog(wx.Dialog):
     BORDER = 3
     STROKES_TEXT = 'Strokes:'
     TRANSLATION_TEXT = 'Translation:'
+    TITLE = 'Plover: Add Translation'
     
-    def __init__(self, 
-                 parent,
-                 id=wx.ID_ANY,
-                 title='', 
-                 pos=wx.DefaultPosition,
-                 size=wx.DefaultSize, 
-                 style=wx.DEFAULT_DIALOG_STYLE,
-                 name=wx.DialogNameStr):
+    def __init__(self, parent, engine):
         print '__init__'
                  
-        wx.Dialog.__init__(self, parent, id, title, pos, size, style, name)
+        wx.Dialog.__init__(self, parent, wx.ID_ANY, self.TITLE, 
+                           wx.DefaultPosition, wx.DefaultSize, 
+                           wx.DEFAULT_DIALOG_STYLE, wx.DialogNameStr)
 
         # components
         self.strokes_text = wx.TextCtrl(self, style=wx.TE_PROCESS_ENTER)
         self.translation_text = wx.TextCtrl(self, style=wx.TE_PROCESS_ENTER)
-        button = wx.Button(self, label='Add to dictionary')
+        button = wx.Button(self, id=wx.ID_OK, label='Add to dictionary')
+        cancel = wx.Button(self, id=wx.ID_CANCEL)
         self.stroke_mapping_text = wx.StaticText(self)
         self.translation_mapping_text = wx.StaticText(self)
         
@@ -49,6 +46,9 @@ class AddTranslationDialog(wx.Dialog):
                   flag=wx.TOP | wx.RIGHT | wx.BOTTOM | wx.ALIGN_CENTER_VERTICAL, 
                   border=self.BORDER)
         sizer.Add(button, 
+                  flag=wx.TOP | wx.RIGHT | wx.BOTTOM | wx.ALIGN_CENTER_VERTICAL, 
+                  border=self.BORDER)
+        sizer.Add(cancel, 
                   flag=wx.TOP | wx.RIGHT | wx.BOTTOM | wx.ALIGN_CENTER_VERTICAL, 
                   border=self.BORDER)
         global_sizer.Add(sizer)
@@ -73,6 +73,9 @@ class AddTranslationDialog(wx.Dialog):
         
         # events
         button.Bind(wx.EVT_BUTTON, self.on_add_translation)
+        button.Bind(wx.EVT_SET_FOCUS, self.on_button_gained_focus)
+        cancel.Bind(wx.EVT_BUTTON, self.on_close)
+        cancel.Bind(wx.EVT_SET_FOCUS, self.on_button_gained_focus)
         self.strokes_text.Bind(wx.EVT_TEXT, self.on_strokes_change)
         self.translation_text.Bind(wx.EVT_TEXT, self.on_translation_change)
         self.strokes_text.Bind(wx.EVT_SET_FOCUS, self.on_strokes_gained_focus)
@@ -82,14 +85,8 @@ class AddTranslationDialog(wx.Dialog):
         self.translation_text.Bind(wx.EVT_KILL_FOCUS, self.on_translation_lost_focus)
         self.translation_text.Bind(wx.EVT_TEXT_ENTER, self.on_add_translation)
         self.Bind(wx.EVT_CLOSE, self.on_close)
-        self.Bind(wx.EVT_ACTIVATE, self.on_activate)
-
-    def show(self, engine):
-        print 'show'
-        self.engine = engine
         
-        if self.IsShown():
-            self.on_close()
+        self.engine = engine
         
         # TODO: add functions on engine for state
         self.previous_state = self.engine.translator.get_state()
@@ -100,21 +97,8 @@ class AddTranslationDialog(wx.Dialog):
         self.translation_state = self.engine.translator.get_state()
         self.engine.translator.set_state(self.previous_state)
         
-        self.closing = False
-        self.Show()
-        
         if sys.platform.startswith('win32'):
             self.last_window = win32gui.GetForegroundWindow()
-
-    def on_activate(self, event):
-        print 'on_activate'
-        if event.GetActive():
-            print 'dialog activated'
-            self.strokes_text.SetFocus()
-        else:
-            print 'dialog deactivated'
-            if not self.closing:
-                self.on_close()
     
     def on_add_translation(self, event=None):
         print 'on_add_translation'
@@ -131,11 +115,13 @@ class AddTranslationDialog(wx.Dialog):
 
     def on_close(self, event=None):
         print 'on_close'
-        self.closing = True
         self.engine.translator.set_state(self.previous_state)
-        self.Hide()
         if sys.platform.startswith('win32'):
-            win32gui.SetForegroundWindow(self.last_window)
+            try:
+                win32gui.SetForegroundWindow(self.last_window)
+            except:
+                pass
+        self.Destroy()
 
     def on_strokes_change(self, event):
         print 'on_stroked_change'
@@ -183,6 +169,7 @@ class AddTranslationDialog(wx.Dialog):
     def on_strokes_lost_focus(self, event):
         print 'on_strokes_lost_focus'
         self.engine.get_dictionary().remove_filter(self.stroke_dict_filter)
+        self.engine.translator.set_state(self.previous_state)
 
     def on_translation_gained_focus(self, event):
         print 'on_translation_fained_focus'
@@ -190,7 +177,12 @@ class AddTranslationDialog(wx.Dialog):
         
     def on_translation_lost_focus(self, event):
         print 'on_translation_lost_focus'
+        self.engine.translator.set_state(self.previous_state)
 
+    def on_button_gained_focus(self, event):
+        print 'on_button_gained_focus'
+        self.strokes_text.SetFocus()
+        
     def stroke_dict_filter(self, key, value):
         # Only allow translations with special entries. Do this by looking for 
         # braces but take into account escaped braces and slashes.
@@ -198,18 +190,8 @@ class AddTranslationDialog(wx.Dialog):
         special = '{#'  in escaped or '{PLOVER:' in escaped
         return not special
 
-dialog_instance = None
-
-def Show(engine):
+def Show(parent, engine):
     print 'global Show'
-    global dialog_instance
-    if not dialog_instance:
-        dialog_instance = AddTranslationDialog(None)
-    dialog_instance.show(engine)
-
-def Destroy():
-    print 'global Destroy'
-    global dialog_instance
-    if dialog_instance:
-        dialog_instance.Destroy()
-        dialog_instance = None
+    dialog_instance = AddTranslationDialog(parent, engine)
+    dialog_instance.Show()
+    dialog_instance.Raise()

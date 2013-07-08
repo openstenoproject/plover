@@ -247,7 +247,7 @@ class DictionaryConfig(wx.Panel):
         self.config.set_dictionary_file_name(self.file_browser.GetValue())
         
     def show_add_translation(self, event):
-        plover.gui.add_translation.Show(self.engine)
+        plover.gui.add_translation.Show(self, self.engine)
 
 
 class LoggingConfig(wx.Panel):

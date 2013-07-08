@@ -197,7 +197,7 @@ class Frame(wx.Frame):
         elif command == self.COMMAND_QUIT:
             self._quit()
         elif command == self.COMMAND_ADD_TRANSLATION:
-            plover.gui.add_translation.Show(self.steno_engine)
+            plover.gui.add_translation.Show(self, self.steno_engine)
 
     def _update_status(self, state):
         if state:
@@ -232,7 +232,6 @@ class Frame(wx.Frame):
     def _quit(self, event=None):
         if self.steno_engine:
             self.steno_engine.destroy()
-        plover.gui.add_translation.Destroy()
         self.Destroy()
 
     def _toggle_steno_engine(self, event=None):
