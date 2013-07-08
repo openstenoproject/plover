@@ -20,6 +20,8 @@ class AddTranslationDialog(wx.Dialog):
                  size=wx.DefaultSize, 
                  style=wx.DEFAULT_DIALOG_STYLE,
                  name=wx.DialogNameStr):
+        print '__init__'
+                 
         wx.Dialog.__init__(self, parent, id, title, pos, size, style, name)
 
         # components
@@ -81,9 +83,9 @@ class AddTranslationDialog(wx.Dialog):
         self.translation_text.Bind(wx.EVT_TEXT_ENTER, self.on_add_translation)
         self.Bind(wx.EVT_CLOSE, self.on_close)
         self.Bind(wx.EVT_ACTIVATE, self.on_activate)
-        
 
     def show(self, engine):
+        print 'show'
         self.engine = engine
         
         if self.IsShown():
@@ -105,6 +107,7 @@ class AddTranslationDialog(wx.Dialog):
             self.last_window = win32gui.GetForegroundWindow()
 
     def on_activate(self, event):
+        print 'on_activate'
         if event.GetActive():
             print 'dialog activated'
             self.strokes_text.SetFocus()
@@ -114,6 +117,7 @@ class AddTranslationDialog(wx.Dialog):
                 self.on_close()
     
     def on_add_translation(self, event=None):
+        print 'on_add_translation'
         d = self.engine.get_dictionary()
         strokes = self.strokes_text.GetValue().upper().replace('/', ' ').split()
         strokes = tuple(strokes)
@@ -126,7 +130,7 @@ class AddTranslationDialog(wx.Dialog):
         self.Close()
 
     def on_close(self, event=None):
-        print 'dialog closed'
+        print 'on_close'
         self.closing = True
         self.engine.translator.set_state(self.previous_state)
         self.Hide()
@@ -134,6 +138,7 @@ class AddTranslationDialog(wx.Dialog):
             win32gui.SetForegroundWindow(self.last_window)
 
     def on_strokes_change(self, event):
+        print 'on_stroked_change'
         stroke = event.GetString().upper()
         self.strokes_text.ChangeValue(stroke)
         self.strokes_text.SetInsertionPointEnd()
@@ -153,6 +158,7 @@ class AddTranslationDialog(wx.Dialog):
         self.GetSizer().Layout()
 
     def on_translation_change(self, event):
+        print 'on_translation_change'
         # TODO: normalize dict entries to make reverse lookup more reliable with 
         # whitespace.
         translation = event.GetString().strip()
@@ -170,20 +176,20 @@ class AddTranslationDialog(wx.Dialog):
         self.GetSizer().Layout()
         
     def on_strokes_gained_focus(self, event):
-        print 'strokes gained focus'
+        print 'on_strokes_gained_focus'
         self.engine.get_dictionary().add_filter(self.stroke_dict_filter)
         self.engine.translator.set_state(self.strokes_state)
         
     def on_strokes_lost_focus(self, event):
-        print 'strokes lost focus'
+        print 'on_strokes_lost_focus'
         self.engine.get_dictionary().remove_filter(self.stroke_dict_filter)
 
     def on_translation_gained_focus(self, event):
-        print 'translation gained focus'
+        print 'on_translation_fained_focus'
         self.engine.translator.set_state(self.translation_state)
         
     def on_translation_lost_focus(self, event):
-        print 'translation lost focus'
+        print 'on_translation_lost_focus'
 
     def stroke_dict_filter(self, key, value):
         # Only allow translations with special entries. Do this by looking for 
@@ -195,12 +201,14 @@ class AddTranslationDialog(wx.Dialog):
 dialog_instance = None
 
 def Show(engine):
+    print 'global Show'
     global dialog_instance
     if not dialog_instance:
         dialog_instance = AddTranslationDialog(None)
     dialog_instance.show(engine)
-    
+
 def Destroy():
+    print 'global Destroy'
     global dialog_instance
     if dialog_instance:
         dialog_instance.Destroy()
