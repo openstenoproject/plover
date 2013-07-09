@@ -7,12 +7,13 @@ import os
 import wx
 import wx.lib.filebrowsebutton as filebrowse
 import plover.config as conf
-import plover.gui.serial_config as serial_config
+from plover.gui.serial_config import SerialConfigDialog
+import plover.gui.add_translation
 from plover.app import update_engine
 from plover.machine.registry import machine_registry
 from plover.exception import InvalidConfigurationError
 
-RESTART_DIALOG_TITLE = "Plover"
+ADD_TRANSLATION_BUTTON_NAME = "Add Translation"
 MACHINE_CONFIG_TAB_NAME = "Machine"
 DICTIONARY_CONFIG_TAB_NAME = "Dictionary"
 LOGGING_CONFIG_TAB_NAME = "Logging"
@@ -70,7 +71,8 @@ class ConfigurationDialog(wx.Dialog):
 
         # Configuring each tab
         self.machine_config = MachineConfig(self.config, notebook)
-        self.dictionary_config = DictionaryConfig(self.config, notebook)
+        self.dictionary_config = DictionaryConfig(self.engine, self.config, 
+                                                  notebook)
         self.logging_config = LoggingConfig(self.config, notebook)
 
         # Adding each tab
@@ -188,7 +190,7 @@ class MachineConfig(wx.Panel):
             def __init__(self, **kwargs):
                 self.__dict__.update(kwargs)
         config_instance = Struct(**self.advanced_options)
-        scd = serial_config.SerialConfigDialog(config_instance, self)
+        scd = SerialConfigDialog(config_instance, self)
         scd.ShowModal()  # SerialConfigDialog destroys itself.
         self.advanced_options = config_instance.__dict__
 
@@ -201,7 +203,7 @@ class MachineConfig(wx.Panel):
 
 class DictionaryConfig(wx.Panel):
     """Dictionary configuration graphical user interface."""
-    def __init__(self, config, parent):
+    def __init__(self, engine, config, parent):
         """Create a configuration component based on the given ConfigParser.
 
         Arguments:
@@ -212,6 +214,7 @@ class DictionaryConfig(wx.Panel):
 
         """
         wx.Panel.__init__(self, parent, size=CONFIG_PANEL_SIZE)
+        self.engine = engine
         self.config = config
         sizer = wx.BoxSizer(wx.VERTICAL)
         dict_file = config.get_dictionary_file_name()
@@ -231,11 +234,20 @@ class DictionaryConfig(wx.Panel):
                                         startDirectory=dict_dir,
                                         )
         sizer.Add(self.file_browser, border=UI_BORDER, flag=wx.ALL | wx.EXPAND)
+        
+        button = wx.Button(self, -1, ADD_TRANSLATION_BUTTON_NAME)
+        sizer.Add(button, border=UI_BORDER, flag=wx.ALL)
+        
         self.SetSizer(sizer)
+        
+        button.Bind(wx.EVT_BUTTON, self.show_add_translation)
 
     def save(self):
         """Write all parameters to the config."""
         self.config.set_dictionary_file_name(self.file_browser.GetValue())
+        
+    def show_add_translation(self, event):
+        plover.gui.add_translation.Show(self, self.engine)
 
 
 class LoggingConfig(wx.Panel):

@@ -1,6 +1,8 @@
 # Copyright (c) 2013 Hesky Fisher.
 # See LICENSE.txt for details.
 
+# TODO: unit test filters
+
 """StenoDictionary class and related functions.
 
 A steno dictionary maps sequences of steno strokes to translations.
@@ -18,13 +20,17 @@ class StenoDictionary(collections.MutableMapping):
 
     Attributes:
     longest_key -- A read only property holding the length of the longest key.
+    saver -- If set, is a function that will save this dictionary.
 
     """
     def __init__(self, *args, **kw):
         self._dict = {}
         self._longest_key_length = 0
         self._longest_listener_callbacks = set()
+        self.reverse = collections.defaultdict(list)
+        self.filters = []
         self.update(*args, **kw)
+        self.save = None
 
     @property
     def longest_key(self):
@@ -38,13 +44,20 @@ class StenoDictionary(collections.MutableMapping):
         return self._dict.__iter__()
 
     def __getitem__(self, key):
-        return self._dict.__getitem__(key)
+        value = self._dict.__getitem__(key)
+        for f in self.filters:
+            if f(key, value):
+                raise KeyError('(%s, %s) is filtered' % (str(key), str(value)))
+        return value
 
     def __setitem__(self, key, value):
         self._longest_key = max(self._longest_key, len(key))
         self._dict.__setitem__(key, value)
+        self.reverse[value].append(key)
 
     def __delitem__(self, key):
+        value = self._dict[key]
+        self.reverse[value].remove(key)
         self._dict.__delitem__(key)
         if len(key) == self.longest_key:
             if self._dict:
@@ -53,7 +66,14 @@ class StenoDictionary(collections.MutableMapping):
                 self._longest_key = 0
 
     def __contains__(self, key):
-        return self._dict.__contains__(key)
+        contained = self._dict.__contains__(key)
+        if not contained:
+            return False
+        value = self._dict[key]
+        for f in self.filters:
+            if f(key, value):
+                return False
+        return True
 
     def iterkeys(self):
         return self._dict.iterkeys()
@@ -81,3 +101,13 @@ class StenoDictionary(collections.MutableMapping):
 
     def remove_longest_key_listener(self, callback):
         self._longest_listener_callbacks.remove(callback)
+
+    def add_filter(self, f):
+        self.filters.append(f)
+        
+    def remove_filter(self, f):
+        self.filters.remove(f)
+    
+    def raw_get(self, key, default):
+        """Bypass filters."""
+        return self._dict.get(key, default)

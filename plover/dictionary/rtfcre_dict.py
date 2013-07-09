@@ -239,3 +239,35 @@ def load_dictionary(s):
         if converted is not None:
             d[steno] = converted
     return StenoDictionary(d)
+
+HEADER = ("{\\rtf1\\ansi{\\*\\cxrev100}\\cxdict{\\*\\cxsystem Plover}" +
+          "{\\stylesheet{\\s0 Normal;}}\n")
+
+# TODO: test this
+def save_dictionary(d, fp):
+    fp.write(HEADER)
+
+    for s, t in d.items():
+        s = '/'.join(s)
+        
+        t = re.sub(r'{\.}', '{\\cxp. }', t)
+        t = re.sub(r'{!}', '{\\cxp! }', t)
+        t = re.sub(r'{\?}', '{\\cxp? }', t)
+        t = re.sub(r'{\,}', '{\\cxp, }', t)
+        t = re.sub(r'{:}', '{\\cxp: }', t)
+        t = re.sub(r'{;}', '{\\cxp; }', t)
+        t = re.sub(r'{\^}', '\\cxds ', t)
+        t = re.sub(r'{\^([^^}]*)}', '\\cxds \\1', t)
+        t = re.sub(r'{([^^}]*)\^}', '\\1\\cxds ', t)
+        t = re.sub(r'{\^([^^}]*)\^}', '\\cxds \\1\\cxds ', t)
+        t = re.sub(r'{-\|}', '\\cxfc ', t)
+        t = re.sub(r'{ }', ' ', t)
+        t = re.sub(r'{&([^}]+)}', '{\\cxfing \\1}', t)
+        t = re.sub(r'{#([^}]+)}', '\\{#\\1\\}', t)
+        t = re.sub(r'{PLOVER:([a-zA-Z]+)}', '\\{PLOVER:\\1\\}', t)
+        t = re.sub(r'\\"', '"', t)
+
+        entry = "{\\*\\cxs %s}%s\r\n" % (s, t)
+        fp.write(entry)
+
+    fp.write("}\n")
