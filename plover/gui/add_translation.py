@@ -3,8 +3,47 @@
 
 import wx
 import sys
+
 if sys.platform.startswith('win32'):
     import win32gui
+    GetForegroundWindow = win32gui.GetForegroundWindow
+    SetForegroundWindow = win32gui.SetForegroundWindow
+
+    def SetTopApp():
+        # Nothing else is necessary for windows.
+        pass
+
+elif sys.platform.startswith('darwin'):
+    from Foundation import NSAppleScript
+    from AppKit import NSApp, NSApplication
+
+    def GetForegroundWindow():
+        return NSAppleScript.alloc().initWithSource_("""
+tell application "System Events"
+    return unix id of first process whose frontmost = true
+end tell""").executeAndReturnError_(None)[0].int32Value()
+
+    def SetForegroundWindow(pid):
+        NSAppleScript.alloc().initWithSource_("""
+tell application "System Events"
+    set the frontmost of first process whose unix id is %d to true
+end tell""" % pid).executeAndReturnError_(None)
+
+    def SetTopApp():
+        NSApplication.sharedApplication()
+        NSApp().activateIgnoringOtherApps_(True)
+
+else:
+    # These functions are optional so provide a non-functional default 
+    # implementation.
+    def GetForgroundWindow():
+        return None
+
+    def SetForegroundWindow(w):
+        pass
+
+    def SetTopApp():
+        pass
 
 class AddTranslationDialog(wx.Dialog):
     
@@ -14,8 +53,6 @@ class AddTranslationDialog(wx.Dialog):
     TITLE = 'Plover: Add Translation'
     
     def __init__(self, parent, engine):
-        print '__init__'
-                 
         wx.Dialog.__init__(self, parent, wx.ID_ANY, self.TITLE, 
                            wx.DefaultPosition, wx.DefaultSize, 
                            wx.DEFAULT_DIALOG_STYLE, wx.DialogNameStr)
@@ -97,11 +134,9 @@ class AddTranslationDialog(wx.Dialog):
         self.translation_state = self.engine.translator.get_state()
         self.engine.translator.set_state(self.previous_state)
         
-        if sys.platform.startswith('win32'):
-            self.last_window = win32gui.GetForegroundWindow()
+        self.last_window = GetForegroundWindow()
     
     def on_add_translation(self, event=None):
-        print 'on_add_translation'
         d = self.engine.get_dictionary()
         strokes = self.strokes_text.GetValue().upper().replace('/', ' ').split()
         strokes = tuple(strokes)
@@ -109,22 +144,17 @@ class AddTranslationDialog(wx.Dialog):
         if strokes and translation:
             d[strokes] = translation
             d.save()
-            print 'add %s: %s' % (strokes, translation)
-
         self.Close()
 
     def on_close(self, event=None):
-        print 'on_close'
         self.engine.translator.set_state(self.previous_state)
-        if sys.platform.startswith('win32'):
-            try:
-                win32gui.SetForegroundWindow(self.last_window)
-            except:
-                pass
+        try:
+            SetForegroundWindow(self.last_window)
+        except:
+            pass
         self.Destroy()
 
     def on_strokes_change(self, event):
-        print 'on_stroked_change'
         stroke = event.GetString().upper()
         self.strokes_text.ChangeValue(stroke)
         self.strokes_text.SetInsertionPointEnd()
@@ -144,7 +174,6 @@ class AddTranslationDialog(wx.Dialog):
         self.GetSizer().Layout()
 
     def on_translation_change(self, event):
-        print 'on_translation_change'
         # TODO: normalize dict entries to make reverse lookup more reliable with 
         # whitespace.
         translation = event.GetString().strip()
@@ -162,25 +191,20 @@ class AddTranslationDialog(wx.Dialog):
         self.GetSizer().Layout()
         
     def on_strokes_gained_focus(self, event):
-        print 'on_strokes_gained_focus'
         self.engine.get_dictionary().add_filter(self.stroke_dict_filter)
         self.engine.translator.set_state(self.strokes_state)
         
     def on_strokes_lost_focus(self, event):
-        print 'on_strokes_lost_focus'
         self.engine.get_dictionary().remove_filter(self.stroke_dict_filter)
         self.engine.translator.set_state(self.previous_state)
 
     def on_translation_gained_focus(self, event):
-        print 'on_translation_fained_focus'
         self.engine.translator.set_state(self.translation_state)
         
     def on_translation_lost_focus(self, event):
-        print 'on_translation_lost_focus'
         self.engine.translator.set_state(self.previous_state)
 
     def on_button_gained_focus(self, event):
-        print 'on_button_gained_focus'
         self.strokes_text.SetFocus()
         
     def stroke_dict_filter(self, key, value):
@@ -191,8 +215,8 @@ class AddTranslationDialog(wx.Dialog):
         return not special
 
 def Show(parent, engine):
-    print 'global Show'
     dialog_instance = AddTranslationDialog(parent, engine)
     dialog_instance.Show()
     dialog_instance.Raise()
     dialog_instance.strokes_text.SetFocus()
+    SetTopApp()
