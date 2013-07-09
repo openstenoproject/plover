@@ -11,14 +11,13 @@ resumes stenotype translation and allows for application configuration.
 import os
 import wx
 import wx.animate
-import ConfigParser
 import plover.app as app
 import plover.config as conf
-import plover.gui.config as gui
+from plover.gui.config import ConfigurationDialog
+import plover.gui.add_translation
 from plover.oslayer.keyboardcontrol import KeyboardEmulation
 from plover.machine.base import STATE_ERROR, STATE_INITIALIZING, STATE_RUNNING
 from plover.machine.registry import machine_registry
-
 from plover.exception import InvalidConfigurationError
 
 from plover import __name__ as __software_name__
@@ -39,8 +38,8 @@ class PloverGUI(wx.App):
     def OnInit(self):
         """Called just before the application starts."""
         frame = Frame(conf.CONFIG_FILE)
-        frame.Show()
         self.SetTopWindow(frame)
+        frame.Show()
         return True
 
 
@@ -63,6 +62,7 @@ class Frame(wx.Frame):
     ABOUT_BUTTON_LABEL = "About..."
     RECONNECT_BUTTON_LABEL = "Reconnect..."
     COMMAND_SUSPEND = 'SUSPEND'
+    COMMAND_ADD_TRANSLATION = 'ADD_TRANSLATION'
     COMMAND_RESUME = 'RESUME'
     COMMAND_TOGGLE = 'TOGGLE'
     COMMAND_CONFIGURE = 'CONFIGURE'
@@ -165,10 +165,10 @@ class Frame(wx.Frame):
             lambda s: wx.CallAfter(self._update_status, s))
         self.steno_engine.set_output(Output(self.consume_command))
 
-        self.config_dialog = gui.ConfigurationDialog(self.steno_engine,
-                                                     self.config,
-                                                     config_file,
-                                                     parent=self)
+        self.config_dialog = ConfigurationDialog(self.steno_engine,
+                                                 self.config,
+                                                 config_file,
+                                                 parent=self)
 
         while True:
             try:
@@ -182,23 +182,22 @@ class Frame(wx.Frame):
                     return
 
     def consume_command(self, command):
-        # Wrap all actions in a CallAfter since the initiator of the
-        # action is likely a thread other than the wx thread.
         # TODO: When using keyboard to resume the stroke is typed.
-        if command == self.COMMAND_SUSPEND and self.steno_engine:
-            wx.CallAfter(self.steno_engine.set_is_running, False)
-        elif command == self.COMMAND_RESUME and self.steno_engine:
-            wx.CallAfter(self.steno_engine.set_is_running, True)
-        elif command == self.COMMAND_TOGGLE and self.steno_engine:
-            wx.CallAfter(self.steno_engine.set_is_running,
-                         not self.steno_engine.is_running)
+        if command == self.COMMAND_SUSPEND:
+            self.steno_engine.set_is_running(False)
+        elif command == self.COMMAND_RESUME:
+            self.steno_engine.set_is_running(True)
+        elif command == self.COMMAND_TOGGLE:
+            self.steno_engine.set_is_running(not self.steno_engine.is_running)
         elif command == self.COMMAND_CONFIGURE:
-            wx.CallAfter(self._show_config_dialog)
+            self._show_config_dialog()
         elif command == self.COMMAND_FOCUS:
-            wx.CallAfter(self.Raise)
-            wx.CallAfter(self.Iconize, False)
+            self.Raise()
+            self.Iconize(False)
         elif command == self.COMMAND_QUIT:
-            wx.CallAfter(self._quit)
+            self._quit()
+        elif command == self.COMMAND_ADD_TRANSLATION:
+            plover.gui.add_translation.Show(self, self.steno_engine)
 
     def _update_status(self, state):
         if state:
@@ -253,7 +252,7 @@ class Frame(wx.Frame):
         info.Developers = __credits__
         info.License = __license__
         wx.AboutBox(info)
-        
+
     def _show_alert(self, message):
         alert_dialog = wx.MessageDialog(self,
                                         message,
@@ -261,20 +260,20 @@ class Frame(wx.Frame):
                                         wx.OK | wx.ICON_INFORMATION)
         alert_dialog.ShowModal()
         alert_dialog.Destroy()
-        
+
 class Output(object):
     def __init__(self, engine_command_callback):
         self.engine_command_callback = engine_command_callback
         self.keyboard_control = KeyboardEmulation()
 
     def send_backspaces(self, b):
-        self.keyboard_control.send_backspaces(b)
+        wx.CallAfter(self.keyboard_control.send_backspaces, b)
 
     def send_string(self, t):
-        self.keyboard_control.send_string(t)
+        wx.CallAfter(self.keyboard_control.send_string, t)
 
     def send_key_combination(self, c):
-        self.keyboard_control.send_key_combination(c)
+        wx.CallAfter(self.keyboard_control.send_key_combination, c)
 
     def send_engine_command(self, c):
-        self.engine_command_callback(c)
+        wx.CallAfter(self.engine_command_callback, c)

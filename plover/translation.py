@@ -126,6 +126,9 @@ class Translator(object):
             self._dictionary.remove_longest_key_listener(callback)
         self._dictionary = d
         d.add_longest_key_listener(callback)
+        
+    def get_dictionary(self):
+        return self._dictionary
 
     def add_listener(self, callback):
         """Add a listener for translation outputs.
@@ -210,6 +213,18 @@ class _State(object):
             self.tail = self.translations[translation_index - 1]
         del self.translations[:translation_index]
 
+def has_undo(t):
+    # If there is no formatting then we're not dealing with a formatter so all 
+    # translations can be undone.
+    # TODO: combos are not undoable but in some contexts they appear as text. 
+    # Should we provide a way to undo those? or is backspace enough?
+    if not t.formatting:
+        return True
+    for a in t.formatting:
+        if a.text or a.replace:
+            return True
+    return False
+
 def _translate_stroke(stroke, state, dictionary, callback):
     """Process a stroke.
 
@@ -233,11 +248,15 @@ def _translate_stroke(stroke, state, dictionary, callback):
     undo = []
     do = []
     
+    # TODO: Test the behavior of undoing until a translation is undoable.
     if stroke.is_correction:
-        if state.translations:
-            prev = state.translations[-1]
-            undo.append(prev)
-            do.extend(prev.replaced)
+        for t in reversed(state.translations):
+            undo.append(t)
+            if has_undo(t):
+                break
+        undo.reverse()
+        for t in undo:
+            do.extend(t.replaced)
     else:
         # Figure out how much of the translation buffer can be involved in this
         # stroke and build the stroke list for translation.

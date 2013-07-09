@@ -191,35 +191,11 @@ class FormatterTestCase(unittest.TestCase):
                 self.assertEqual(do[i].formatting, formats[i])
             self.assertEqual(output.instructions, outputs)
 
-    def test_undo(self):
-        cases = [
-        ([action(text='hello')], [('b', 5)]),
-        ([action(text='ladies', replace='lady')], [('b', 6), ('s', 'lady')]),
-        ]
-        for input, expected in cases:
-            output = CaptureOutput()
-            formatting._undo(input, output)
-            self.assertEqual(output.instructions, expected)
-
     def test_get_last_action(self):
         self.assertEqual(formatting._get_last_action(None), action())
         self.assertEqual(formatting._get_last_action([]), action())
         actions = [action(text='hello'), action(text='world')]
         self.assertEqual(formatting._get_last_action(actions), actions[-1])
-
-    def test_render_actions(self):
-        cases = [
-        ([action(text='test')], [('s', 'test')]),
-        ([action(combo='test')], [('c', 'test')]),
-        ([action(command='test')], [('e', 'test')]),
-        ([action(replace='test')], [('b', 4)]),
-        ([action(replace='lady', text='ladies')], 
-         [('b', 4), ('s', 'ladies')]),
-        ]
-        for input, expected in cases:
-            output = CaptureOutput()
-            formatting._render_actions(input, output)
-            self.assertEqual(output.instructions, expected)
 
     def test_action(self):
         self.assertNotEqual(action(word='test'), 

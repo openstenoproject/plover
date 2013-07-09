@@ -44,7 +44,7 @@ class Formatter(object):
     def set_output(self, output):
         """Set the output class."""
         noop = lambda x: None
-        output_type = type(self).output_type
+        output_type = self.output_type
         fields = output_type._fields
         self._output = output_type(*[getattr(output, f, noop) for f in fields])
 
@@ -144,26 +144,6 @@ class OutputHelper(object):
 def _get_last_action(actions):
     """Return last action in actions if possible or return a blank action."""
     return actions[-1] if actions else _Action()
-
-def _undo(actions, output):
-    """Send instructions to output to undo actions."""
-    for a in reversed(actions):
-        if a.text:
-            output.send_backspaces(len(a.text))
-        if a.replace:
-            output.send_string(a.replace)
-
-def _render_actions(actions, output):
-    """Send instructions to output to render new actions."""
-    for a in actions:
-        if a.replace:
-            output.send_backspaces(len(a.replace))
-        if a.text:
-            output.send_string(a.text)
-        if a.combo:
-            output.send_key_combination(a.combo)
-        if a.command:
-            output.send_engine_command(a.command)
 
 class _Action(object):
     """A hybrid class that stores instructions and resulting state.
