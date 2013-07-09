@@ -33,10 +33,32 @@ end tell""" % pid).executeAndReturnError_(None)
         NSApplication.sharedApplication()
         NSApp().activateIgnoringOtherApps_(True)
 
+elif sys.platform.startswith('linux'):
+    from subprocess import call, check_output, CalledProcessError
+
+    def GetForegroundWindow():
+        try:
+            output = check_output(['xprop', '-root', '_NET_ACTIVE_WINDOW'])
+            return output.split()[-1]
+        except CalledProcessError:
+            return None
+
+    def SetForegroundWindow(w):
+        try:
+            call(['wmctrl', '-i', '-a', w])
+        except CalledProcessError:
+            pass
+
+    def SetTopApp():
+        try:
+            call(['wmctrl', '-a', TITLE])
+        except CalledProcessError:
+            pass
+
 else:
     # These functions are optional so provide a non-functional default 
     # implementation.
-    def GetForgroundWindow():
+    def GetForegroundWindow():
         return None
 
     def SetForegroundWindow(w):
@@ -45,15 +67,16 @@ else:
     def SetTopApp():
         pass
 
+TITLE = 'Plover: Add Translation'
+
 class AddTranslationDialog(wx.Dialog):
     
     BORDER = 3
     STROKES_TEXT = 'Strokes:'
     TRANSLATION_TEXT = 'Translation:'
-    TITLE = 'Plover: Add Translation'
     
     def __init__(self, parent, engine):
-        wx.Dialog.__init__(self, parent, wx.ID_ANY, self.TITLE, 
+        wx.Dialog.__init__(self, parent, wx.ID_ANY, TITLE, 
                            wx.DefaultPosition, wx.DefaultSize, 
                            wx.DEFAULT_DIALOG_STYLE, wx.DialogNameStr)
 

@@ -52,7 +52,7 @@ There is no package yet so an installation requires installing all dependencies.
 run the following commands::
 
     cd
-    sudo apt-get install python-xlib python-serial python-wxgtk2.8 python-pip
+    sudo apt-get install python-xlib python-serial python-wxgtk2.8 wmctrl python-pip
     sudo pip install -U appdirs simplejson
     wget https://github.com/plover/plover/archive/v2.3.1.tar.gz
     tar -zxf v2.3.1.tar.gz
