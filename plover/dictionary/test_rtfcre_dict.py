@@ -29,8 +29,8 @@ class TestCase(unittest.TestCase):
         (r'\cxds post', '{^}post'),
         (r'\cxds in\cxds', '{^}in{^}'),
         (r'\cxfc', '{-|}'),
-        (r'\cxfl', ''),
-        (r'pre\cxfl', 'pre'),
+        (r'\cxfl', '{>}'),
+        (r'pre\cxfl', 'pre{>}'),
         (r'\par', '{#Return}{#Return}'),
         # caseCATalyst declares new styles without a preceding \par so we treat
         # it as an implicit par.
