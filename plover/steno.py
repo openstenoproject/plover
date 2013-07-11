@@ -1,6 +1,8 @@
 # Copyright (c) 2010-2011 Joshua Harlan Lifton.
 # See LICENSE.txt for details.
 
+# TODO: unit test this file
+
 """Generic stenography data models.
 
 This module contains the following class:
@@ -26,6 +28,8 @@ def normalize_steno(strokes_string):
         has_implicit_dash = bool(set(stroke) & IMPLICIT_HYPHENS)
         if has_implicit_dash:
             stroke = stroke.replace('-', '')
+        if stroke.endswith('-'):
+            stroke = stroke[:-1]
         normalized_strokes.append(stroke)
     return tuple(normalized_strokes)
 
