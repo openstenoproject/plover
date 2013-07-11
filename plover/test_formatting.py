@@ -49,7 +49,7 @@ class FormatterTestCase(unittest.TestCase):
         for inputs, expected in cases:
             actual = f(*inputs)
             if actual != expected:
-                print actual, '!=', expected
+                print actual, '!=', expected, 'for', inputs
             self.assertEqual(actual, expected)
 
     def test_formatter(self):
@@ -209,7 +209,7 @@ class FormatterTestCase(unittest.TestCase):
         (('test', action()), 
          [action(text=' test', word='test')]),
         
-        (('{^^}', action()), [action(attach=True)]),
+        (('{^^}', action()), [action(attach=True, orthography=False)]),
          
         (('1-9', action()), 
          [action(word='1-9', text=' 1-9')]),
@@ -224,7 +224,7 @@ class FormatterTestCase(unittest.TestCase):
          [action(word='test', attach=True)]),
          
         (('{^} {.} hello {.} {#ALT_L(Grave)}{^ ^}', action()),
-         [action(attach=True), 
+         [action(attach=True, orthography=False), 
           action(text='.', capitalize=True), 
           action(text=' Hello', word='Hello'), 
           action(text='.', capitalize=True), 
@@ -242,6 +242,22 @@ class FormatterTestCase(unittest.TestCase):
          [action(capitalize=True),
           action(text=' Equip', word='Equip'),
           action(text='ped', word='Equipped'),
+         ]),
+
+        (('{>} Equip', action()),
+         [action(lower=True),
+          action(text=' equip', word='equip')
+         ]),
+
+        (('{>} equip', action()),
+         [action(lower=True),
+          action(text=' equip', word='equip')
+         ]),
+         
+        (('equip {^} {^ed}', action()),
+         [action(text=' equip', word='equip'),
+          action(word='equip', attach=True, orthography=False),
+          action(text='ed', word='equiped'),
          ]),
         ]
         self.check_arglist(formatting._translation_to_actions, cases)
@@ -322,6 +338,9 @@ class FormatterTestCase(unittest.TestCase):
 
         (('{-|}', action(word='test')),
          action(capitalize=True, word='test')),
+
+        (('{>}', action(word='test')),
+         action(lower=True, word='test')),
           
         (('{PLOVER:test_command}', action(word='test')),
          action(word='test', command='test_command')),

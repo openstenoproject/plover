@@ -153,8 +153,9 @@ class _Action(object):
     context to render future translations.
 
     """
-    def __init__(self, attach=False, glue=False, word='', capitalize=False,
-                 text='', replace='', combo='', command=''):
+    def __init__(self, attach=False, glue=False, word='', capitalize=False, 
+                 lower=False, orthography=True, text='', replace='', combo='', 
+                 command=''):
         """Initialize a new action.
 
         Arguments:
@@ -169,6 +170,11 @@ class _Action(object):
         behavior depends on the previous word such as suffixes.
 
         capitalize -- True if the next action should be capitalized.
+
+        lower -- True if the next action should be lower cased.
+
+        othography -- True if orthography rules should be applies when adding
+        a suffix to this action.
 
         text -- The text that should be rendered for this action.
 
@@ -185,6 +191,8 @@ class _Action(object):
         self.glue = glue
         self.word = word
         self.capitalize = capitalize
+        self.lower = lower
+        self.orthography = orthography
                 
         # Instruction variables
         self.text = text
@@ -199,6 +207,8 @@ class _Action(object):
         a.glue = self.glue
         a.word = self.word
         a.capitalize = self.capitalize
+        a.lower = self.lower
+        a.orthography = self.orthography
         return a
         
     def __eq__(self, other):
@@ -286,6 +296,7 @@ NO_SPACE = ''
 META_STOPS = ('.', '!', '?')
 META_COMMAS = (',', ':', ';')
 META_CAPITALIZE = '-|'
+META_LOWER = '>'
 META_GLUE_FLAG = '&'
 META_ATTACH_FLAG = '^'
 META_KEY_COMBINATION = '#'
@@ -331,6 +342,8 @@ def _atom_to_action(atom, last_action):
     last_glue = last_action.glue
     last_attach = last_action.attach
     last_capitalize = last_action.capitalize
+    last_lower = last_action.lower
+    last_orthography = last_action.orthography
     meta = _get_meta(atom)
     if meta is not None:
         meta = _unescape_atom(meta)
@@ -339,9 +352,15 @@ def _atom_to_action(atom, last_action):
         elif meta in META_STOPS:
             action.text = meta
             action.capitalize = True
+            action.lower = False
         elif meta == META_CAPITALIZE:
             action = last_action.copy_state()
             action.capitalize = True
+            action.lower = False
+        elif meta == META_LOWER:
+            action = last_action.copy_state()
+            action.lower = True
+            action.capitalize = False
         elif meta.startswith(META_COMMAND):
             action = last_action.copy_state()
             action.command = meta[len(META_COMMAND):]
@@ -352,6 +371,8 @@ def _atom_to_action(atom, last_action):
             text = meta[len(META_GLUE_FLAG):]
             if last_capitalize:
                 text = _capitalize(text)
+            if last_lower:
+                text = _lower(text)
             action.text = space + text
             action.word = _rightmost_word(last_word + action.text)
         elif (meta.startswith(META_ATTACH_FLAG) or 
@@ -365,13 +386,21 @@ def _atom_to_action(atom, last_action):
             space = NO_SPACE if begin or last_attach else SPACE
             if end:
                 action.attach = True
-            if (begin and not end) or (begin and end and ' ' in meta):
+            if begin and end and meta == '':
+                # We use an empty connection to indicate a "break" in the 
+                # application of orthography rules. This allows the stenographer 
+                # to tell plover not to auto-correct a word.
+                action.orthography = False
+            if (((begin and not end) or (begin and end and ' ' in meta)) and 
+                last_orthography):
                 new = orthography.add_suffix(last_word.lower(), meta)
                 common = commonprefix([last_word.lower(), new])
                 action.replace = last_word[len(common):]
                 meta = new[len(common):]
             if last_capitalize:
                 meta = _capitalize(meta)
+            if last_lower:
+                meta = _lower(meta)
             action.text = space + meta
             action.word = _rightmost_word(
                 last_word[:len(last_word)-len(action.replace)] + action.text)
@@ -382,6 +411,8 @@ def _atom_to_action(atom, last_action):
         text = _unescape_atom(atom)
         if last_capitalize:
             text = _capitalize(text)
+        if last_lower:
+            text = _lower(text)
         space = NO_SPACE if last_attach else SPACE
         action.text = space + text
         action.word = _rightmost_word(text)
@@ -413,8 +444,12 @@ def _get_engine_command(atom):
     return None
 
 def _capitalize(s):
-    """Capitalize s."""
+    """Capitalize the first letter of s."""
     return s[0:1].upper() + s[1:]
+
+def _lower(s):
+    """Lowercase the first letter of s."""
+    return s[0:1].lower() + s[1:]
 
 def _rightmost_word(s):
     """Get the rightmost word in s."""
