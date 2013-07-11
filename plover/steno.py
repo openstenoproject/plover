@@ -12,32 +12,21 @@ Stroke -- A data model class that encapsulates a sequence of steno keys.
 import re
 
 STROKE_DELIMITER = '/'
-
-HYPHEN_CHARS = set(('-', 'A', 'E', 'O', 'U', '*'))
+IMPLICIT_HYPHENS = set('AOEU*50')
 
 def normalize_steno(strokes_string):
-    """Convert steno strings to one common form.
-
-    Plover currently supports two encodings for steno strokes in its dictionary:
-    dcat and eclipse. This function converts both to one common form.
-
-    """
+    """Convert steno strings to one common form."""
     strokes = strokes_string.split(STROKE_DELIMITER)
     normalized_strokes = []
     for stroke in strokes:
-        if '#' in stroke and re.search('[0-9]', stroke):
+        if '#' in stroke:
             stroke = stroke.replace('#', '')
-    
-        seen_dash = False
-        normalized_stroke = []
-        for c in stroke:
-            if c == '-':
-                if seen_dash:
-                    continue
-            if c in HYPHEN_CHARS:
-                seen_dash = True
-            normalized_stroke.append(c)
-        normalized_strokes.append(''.join(normalized_stroke))
+            if not re.search('[0-9]', stroke):
+                stroke = '#' + stroke
+        has_implicit_dash = bool(set(stroke) & IMPLICIT_HYPHENS)
+        if has_implicit_dash:
+            stroke = stroke.replace('-', '')
+        normalized_strokes.append(stroke)
     return tuple(normalized_strokes)
 
 STENO_KEY_NUMBERS = {'S-': '1-',
@@ -75,7 +64,6 @@ STENO_KEY_ORDER = {"#": -1,
                    "-D": 23,
                    "-Z": 24}
 
-IMPLICIT_HYPHEN = set(('A-', 'O-', '5-', '0-', '-E', '-U', '*'))
 
 class Stroke:
     """A standardized data model for stenotype machine strokes.
@@ -89,6 +77,8 @@ class Stroke:
     string (called RTFCRE for historical reasons).
 
     """
+
+    IMPLICIT_HYPHEN = set(('A-', 'O-', '5-', '0-', '-E', '-U', '*'))
 
     def __init__(self, steno_keys) :
         """Create a steno stroke by formatting steno keys.
@@ -116,7 +106,7 @@ class Stroke:
             if numeral:
                 steno_keys.remove('#')
         
-        if steno_keys_set & IMPLICIT_HYPHEN:
+        if steno_keys_set & self.IMPLICIT_HYPHEN:
             self.rtfcre = ''.join(key.strip('-') for key in steno_keys)
         else:
             pre = ''.join(k.strip('-') for k in steno_keys if k[-1] == '-' or 
