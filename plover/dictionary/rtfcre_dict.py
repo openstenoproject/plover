@@ -27,7 +27,8 @@ DICT_ENTRY_PATTERN = re.compile(r'(?s)(?<!\\){\\\*\\cxs (?P<steno>[^}]+)}' +
 class TranslationConverter(object):
     """Convert an RTF/CRE translation into plover's internal format."""
     
-    def __init__(self):
+    def __init__(self, styles={}):
+        self.styles = styles
         handler_funcs = inspect.getmembers(self, inspect.ismethod)
         handlers = [self._make_re_handler(f.__doc__, f)
                     for name, f in handler_funcs 
@@ -77,6 +78,9 @@ class TranslationConverter(object):
         
         ignore = bool(m.group(1))
         command = m.group(2)
+        arg = m.group(3)
+        if arg:
+            arg = int(arg)
         
         if command == 'cxds':
             return '{^}'
@@ -89,8 +93,18 @@ class TranslationConverter(object):
             return ''
 
         if command == 'par':
+            self.seen_par = True
             return '{#Return}{#Return}'
-
+            
+        if command == 's':
+            result = []
+            if not self.seen_par:
+                result.append('{#Return}{#Return}')
+            style_name = self.styles.get(arg, '')
+            if style_name.startswith('Contin'):
+                result.append('{^    ^}')
+            return ''.join(result)
+        
         # Unrecognized commands are ignored.
         return ''
 
@@ -212,6 +226,8 @@ class TranslationConverter(object):
             return (endpos + 1, self(s[command_match.end():endpos]))
 
     def __call__(self, s):
+        self.seen_par = False
+        
         pos = 0
         tokens = []
         handler = self._handler
@@ -227,11 +243,17 @@ class TranslationConverter(object):
             tokens.append(token)
         return ''.join(tokens)
 
+STYLESHEET_RE = re.compile(r'(?s){\\s([0-9]+).*?((?:\b\w+\b\s*)+);}')
+
+def load_stylesheet(s):
+    """Returns a dictionary mapping a number to a style name."""
+    return dict((int(k), v) for k, v in STYLESHEET_RE.findall(s))
 
 def load_dictionary(s):
     """Load an RTF/CRE dictionary."""
+    styles = load_stylesheet(s)
     d = {}
-    converter = TranslationConverter()
+    converter = TranslationConverter(styles)
     for m in DICT_ENTRY_PATTERN.finditer(s):
         steno = normalize_steno(m.group('steno'))
         translation = m.group('translation')
@@ -239,6 +261,7 @@ def load_dictionary(s):
         if converted is not None:
             d[steno] = converted
     return StenoDictionary(d)
+
 
 HEADER = ("{\\rtf1\\ansi{\\*\\cxrev100}\\cxdict{\\*\\cxsystem Plover}" +
           "{\\stylesheet{\\s0 Normal;}}\n")
