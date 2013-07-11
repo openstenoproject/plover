@@ -10,7 +10,9 @@ import unittest
 class TestCase(unittest.TestCase):
     
     def test_converter(self):
-        convert = TranslationConverter()
+        styles = {1: 'Normal', 2: 'Continuation'}
+        
+        convert = TranslationConverter(styles)
         
         cases = (
         
@@ -30,8 +32,13 @@ class TestCase(unittest.TestCase):
         (r'\cxfl', ''),
         (r'pre\cxfl', 'pre'),
         (r'\par', '{#Return}{#Return}'),
-        (r'\s1', ''),
+        # caseCATalyst declares new styles without a preceding \par so we treat
+        # it as an implicit par.
+        (r'\s1', '{#Return}{#Return}'),
+        # But if the \par is present we don't treat \s as an implicit par.
         (r'\par\s1', '{#Return}{#Return}'),
+        # Continuation styles are indented too.
+        (r'\par\s2', '{#Return}{#Return}{^    ^}'),
         (r'{\cxstit contents}', 'contents'),
         (r'{\cxfing c}', '{&c}'),
         (r'{\cxp.}', '{.}'),
@@ -75,36 +82,43 @@ class TestCase(unittest.TestCase):
         verifies that they are called.
 
         """
-        header = r'''{\rtf1\ansi\cxdict{\*\cxrev100}{\*\cxsystem Fake Software}
-        {\stylesheet
-        {\s0 Normal;}
-        {\s1 Question;}
-        {\s2 Answer;}
-        {\s3 Colloquy;}
-        {\s4 Continuation Q;}
-        {\s5 Continuation A;}
-        {\s6 Continuation Col;}
-        {\s7 Paren;}
-        {\s8 Centered;}
+        
+        expected_styles = {
+            0: 'Normal',
+            1: 'Question',
+            2: 'Answer',
+            3: 'Colloquy',
+            4: 'Continuation Q',
+            5: 'Continuation A',
+            6: 'Continuation Col',
+            7: 'Paren',
+            8: 'Centered',
         }
-        '''
-        footer = '''
-        }'''
+        
+        header = '\r\n'.join(
+            [r'{\rtf1\ansi\cxdict{\*\cxrev100}{\*\cxsystem Fake Software}'] +
+            [r'{\s%d %s;}' % (k, v) for k, v in expected_styles.items()] + 
+            ['}'])
+        footer = '\r\n}'
         
         def make_dict(s):
-            return (header.replace('\n', '\r\n') + s + 
-                    footer.replace('\n', '\r\n'))
+            return ''.join((header, s, footer))
             
         def assertEqual(a, b):
             self.assertEqual(a._dict, b)
-                        
+
+        this = self
+
         class Converter(object):
+            def __init__(self, styles):
+                this.assertEqual(styles, expected_styles)
+
             def __call__(self, s):
                 if s == 'return_none':
                     return None
                 return 'converted(%s)' % s
                 
-        convert = Converter()
+        convert = Converter(expected_styles)
         normalize = lambda x: 'normalized(%s)' % x
         
         cases = (
@@ -144,6 +158,8 @@ class TestCase(unittest.TestCase):
                 expected = dict((normalize(k), convert(v)) 
                                 for k, v in expected.iteritems())
                 assertEqual(load_dictionary(make_dict(s)), expected)
+                
+            
 
 if __name__ == '__main__':
     unittest.main()
