@@ -89,8 +89,7 @@ class TranslationConverter(object):
             return '{-|}'
 
         if command == 'cxfl':
-            # Force lower case is not yet supported by plover.
-            return ''
+            return '{>}'
 
         if command == 'par':
             self.seen_par = True
@@ -284,6 +283,7 @@ def save_dictionary(d, fp):
         t = re.sub(r'{([^^}]*)\^}', '\\1\\cxds ', t)
         t = re.sub(r'{\^([^^}]*)\^}', '\\cxds \\1\\cxds ', t)
         t = re.sub(r'{-\|}', '\\cxfc ', t)
+        t = re.sub(r'{>}', '\\cxfl ', t)
         t = re.sub(r'{ }', ' ', t)
         t = re.sub(r'{&([^}]+)}', '{\\cxfing \\1}', t)
         t = re.sub(r'{#([^}]+)}', '\\{#\\1\\}', t)
