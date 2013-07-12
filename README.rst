@@ -54,9 +54,9 @@ run the following commands::
     cd
     sudo apt-get install python-xlib python-serial python-wxgtk2.8 wmctrl python-dev python-pip
     sudo pip install -U appdirs simplejson
-    wget https://github.com/plover/plover/archive/2.4.0.tar.gz
-    tar -zxf 2.4.0.tar.gz
-    cd plover-2.4.0
+    wget https://github.com/plover/plover/archive/v2.4.1.tar.gz
+    tar -zxf v2.4.1.tar.gz
+    cd plover-2.4.1
     sudo python setup.py install
 
 Once this is done then you should be able to run plover from the applications menu or from the command line with::
