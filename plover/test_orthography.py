@@ -7,74 +7,105 @@ import unittest
 class OrthographyTestCase(unittest.TestCase):
 
     def test_add_suffix(self):
-        # c+ly->cally
-        assert add_suffix('artistic', 'ly') == 'artistically'
-
-        # sibilant+s->es
-        assert add_suffix('establish', 's') == 'establishes'
-        assert add_suffix('speech', 's') == 'speeches'
-        assert add_suffix('approach', 's') == 'approaches'
-        assert add_suffix('beach', 's') == 'beaches'
-        assert add_suffix('arch', 's') == 'arches'
-        assert add_suffix('larch', 's') == 'larches'
-        assert add_suffix('march', 's') == 'marches'
-        assert add_suffix('search', 's') == 'searches'
-        assert add_suffix('starch', 's') == 'starches'
-        # hard ch+s->s
-        assert add_suffix('stomach', 's') == 'stomachs'
-        assert add_suffix('monarch', 's') == 'monarchs'
-        assert add_suffix('patriarch', 's') == 'patriarchs'
-        assert add_suffix('oligarch', 's') == 'oligarchs'
-
-        # y+s->ies
-        assert add_suffix('cherry', 's') == 'cherries'
-        assert add_suffix('day', 's') == 'days'
-
-        # y+ist->ist
-        assert add_suffix('pharmacy', 'ist') == 'pharmacist'
-        assert add_suffix('melody', 'ist') == 'melodist'
-        assert add_suffix('pacify', 'ist') == 'pacifist'
-        assert add_suffix('geology', 'ist') == 'geologist'
-        assert add_suffix('metallurgy', 'ist') == 'metallurgist'
-        assert add_suffix('anarchy', 'ist') == 'anarchist'
-        assert add_suffix('monopoly', 'ist') == 'monopolist'
-        assert add_suffix('alchemy', 'ist') == 'alchemist'
-        assert add_suffix('botany', 'ist') == 'botanist'
-        assert add_suffix('therapy', 'ist') == 'therapist'
-        assert add_suffix('theory', 'ist') == 'theorist'
-        assert add_suffix('psychiatry', 'ist') == 'psychiatrist'
-        # y+ist->i exceptions
-        assert add_suffix('lobby', 'ist') == 'lobbyist'
-        assert add_suffix('hobby', 'ist') == 'hobbyist'
-        assert add_suffix('copy', 'ist') != 'copyist'  # TODO
-
-        # y+!i->i
-        assert add_suffix('beauty', 'ful') == 'beautiful'
-        assert add_suffix('weary', 'ness') == 'weariness'
-        assert add_suffix('weary', 'some') == 'wearisome'
-
-        # e+vowel->vowel
-        assert add_suffix('narrate', 'ing') == 'narrating'
-        assert add_suffix('narrate', 'or') == 'narrator'
-
-        # consonant doubling
-        assert add_suffix('equip', 'ed') == 'equipped'
-        assert add_suffix('defer', 'ed') == 'deferred'
-        assert add_suffix('defer', 'er') == 'deferrer'
-        assert add_suffix('defer', 'ing') == 'deferring'
-        assert add_suffix('pigment', 'ed') == 'pigmented'
-        assert add_suffix('refer', 'ed') == 'referred'
-        assert add_suffix('fix', 'ed') == 'fixed'
-        assert add_suffix('alter', 'ed') != 'altered'  # TODO
-        assert add_suffix('interpret', 'ing') != 'interpreting'  # TODO
-        assert add_suffix('wonder', 'ing') != 'wondering'  # TODO
-        assert add_suffix('target', 'ing') != 'targeting'  # TODO
-        assert add_suffix('limit', 'er') != 'limiter'  # TODO
-        assert add_suffix('maneuver', 'ing') != 'maneuvering'  # TODO
-        assert add_suffix('monitor', 'ing') != 'monitoring'  # TODO
-        assert add_suffix('color', 'ing') != 'coloring'  # TODO
-        assert add_suffix('inhibit', 'ing') != 'inhibiting'  # TODO
-        assert add_suffix('master', 'ed') != 'mastered'  # TODO
+        cases = (
+        
+            ('artistic', 'ly', 'artistically'),
+            ('cosmetic', 'ly', 'cosmetically'),
+            ('establish', 's', 'establishes'),
+            ('speech', 's', 'speeches'),
+            ('approach', 's', 'approaches'),
+            ('beach', 's', 'beaches'),
+            ('arch', 's', 'arches'),
+            ('larch', 's', 'larches'),
+            ('march', 's', 'marches'),
+            ('search', 's', 'searches'),
+            ('starch', 's', 'starches'),
+            ('stomach', 's', 'stomachs'),
+            ('monarch', 's', 'monarchs'),
+            ('patriarch', 's', 'patriarchs'),
+            ('oligarch', 's', 'oligarchs'),
+            ('cherry', 's', 'cherries'),
+            ('day', 's', 'days'),
+            ('penny', 's', 'pennies'),
+            ('pharmacy', 'ist', 'pharmacist'),
+            ('melody', 'ist', 'melodist'),
+            ('pacify', 'ist', 'pacifist'),
+            ('geology', 'ist', 'geologist'),
+            ('metallurgy', 'ist', 'metallurgist'),
+            ('anarchy', 'ist', 'anarchist'),
+            ('monopoly', 'ist', 'monopolist'),
+            ('alchemy', 'ist', 'alchemist'),
+            ('botany', 'ist', 'botanist'),
+            ('therapy', 'ist', 'therapist'),
+            ('theory', 'ist', 'theorist'),
+            ('psychiatry', 'ist', 'psychiatrist'),
+            ('lobby', 'ist', 'lobbyist'),
+            ('hobby', 'ist', 'hobbyist'),
+            ('copy', 'ist', 'copyist'),
+            ('beauty', 'ful', 'beautiful'),
+            ('weary', 'ness', 'weariness'),
+            ('weary', 'some', 'wearisome'),
+            ('lonely', 'ness', 'loneliness'),
+            ('narrate', 'ing', 'narrating'),
+            ('narrate', 'or', 'narrator'),
+            ('generalize', 'ability', 'generalizability'),
+            ('reproduce', 'able', 'reproducible'),
+            ('grade', 'ations', 'gradations'),
+            ('urine', 'ary', 'urinary'),
+            ('achieve', 'able', 'achievable'),
+            ('polarize', 'ation', 'polarization'),
+            ('done', 'or', 'donor'),
+            ('analyze', 'ed', 'analyzed'),
+            ('narrate', 'ing', 'narrating'),
+            ('believe', 'able', 'believable'),
+            ('animate', 'ors', 'animators'),
+            ('discontinue', 'ation', 'discontinuation'),
+            ('innovate', 'ive', 'innovative'),
+            ('future', 'ists', 'futurists'),
+            ('illustrate', 'or', 'illustrator'),
+            ('emerge', 'ent', 'emergent'),
+            ('equip', 'ed', 'equipped'),
+            ('defer', 'ed', 'deferred'),
+            ('defer', 'er', 'deferrer'),
+            ('defer', 'ing', 'deferring'),
+            ('pigment', 'ed', 'pigmented'),
+            ('refer', 'ed', 'referred'),
+            ('fix', 'ed', 'fixed'),
+            ('alter', 'ed', 'altered'),
+            ('interpret', 'ing', 'interpreting'),
+            ('wonder', 'ing', 'wondering'),
+            ('target', 'ing', 'targeting'),
+            ('limit', 'er', 'limiter'),
+            ('maneuver', 'ing', 'maneuvering'),
+            ('monitor', 'ing', 'monitoring'),
+            ('color', 'ing', 'coloring'),
+            ('inhibit', 'ing', 'inhibiting'),
+            ('master', 'ed', 'mastered'),
+            ('target', 'ing', 'targeting'),
+            ('fix', 'ed', 'fixed'),
+            ('scrap', 'y', 'scrappy'),
+            ('trip', 's', 'trips'),
+            ('equip', 's', 'equips'),
+            ('bat', 'en', 'batten'),
+            ('smite', 'en', 'smitten'),
+            ('got', 'en', 'gotten'),
+            ('bite', 'en', 'bitten'),
+            ('write', 'en', 'written'),
+            ('flax', 'en', 'flaxen'),
+            ('wax', 'en', 'waxen'),
+            ('fast', 'est', 'fastest')
+        
+        )
+        
+        failed = []
+        for word, suffix, expected in cases:
+            if add_suffix(word, suffix) != expected:
+                failed.append((word, suffix, expected))
+                
+        for word, suffix, expected in failed:
+            print 'add_suffix(%s, %s) is %s not %s' % (word, suffix, add_suffix(word, suffix),expected)
+            
+        self.assertEqual(len(failed), 0)
         
 if __name__ == '__main__':
     unittest.main()

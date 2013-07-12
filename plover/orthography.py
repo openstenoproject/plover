@@ -3,7 +3,17 @@
 
 """Functions that implement some English orthographic rules."""
 
+import os.path
 import re
+from plover.config import ASSETS_DIR
+
+word_list_file_name = os.path.join(ASSETS_DIR, 'american_english_words.txt')
+WORDS = set()
+try:
+    with open(word_list_file_name) as f:
+        WORDS = set(word.strip().lower() for word in f)
+except IOError as e:
+    print e
 
 RULES = [
     # == +ly ==
@@ -34,6 +44,10 @@ RULES = [
         r'\1i\2'),
 
     # == e ==
+    # write + en = written
+    (re.compile(r'^(.+)([t])e \^ en$', re.I), r'\1\2\2en'),
+
+
     # narrate + ing = narrating (silent e)
     (re.compile(r'^(.+[bcdfghjklmnpqrstuvwxz])e \^ ([aeiouy].*)$', re.I),
         r'\1\2'),
@@ -43,6 +57,45 @@ RULES = [
     (re.compile(r'^(.*(?:[bcdfghjklmnprstvwxyz]|qu)[aeiou])([bcdfgklmnprtvz]) \^ ([aeiouy].*)$', re.I),
         r'\1\2\2\3'),
 ]
+
+
+def try_rules(word, suffix, check=lambda x: True):
+    """Add suffix to word using RULES."""
+    for r in RULES:
+        m = r[0].match(word + " ^ " + suffix)
+        if m:   
+            expanded = m.expand(r[1])
+            if check(expanded):
+                return expanded
+    return None
+
+
+def _add_suffix(word, suffix):
+    in_dict_f = lambda x: x in WORDS
+    
+    # Try 'ible' and see if it's in the dictionary.
+    if suffix == 'able':
+        expanded = try_rules(word, 'ible', in_dict_f)
+        if expanded:
+            return expanded
+    
+    # Try a simple join if it is in the dictionary.
+    expanded = word + suffix
+    if expanded in WORDS:
+        return expanded
+    
+    # Try rules with dict lookup.
+    expanded = try_rules(word, suffix, in_dict_f)
+    if expanded:
+        return expanded
+    
+    # Try rules without dict lookup.
+    expanded = try_rules(word, suffix)
+    if expanded:
+        return expanded
+    
+    # If all else fails then just do a simple join.
+    return word + suffix
 
 def add_suffix(word, suffix):
     """Add a suffix to a word by applying the rules above
@@ -54,9 +107,5 @@ def add_suffix(word, suffix):
     
     """
     suffix, sep, rest = suffix.partition(' ')
-    for r in RULES:
-        m = r[0].match(word + " ^ " + suffix)
-        if m:   
-            expanded = m.expand(r[1])
-            return expanded + sep + rest
-    return word + suffix + sep + rest
+    expanded = _add_suffix(word, suffix)
+    return expanded + sep + rest
