@@ -133,9 +133,13 @@ class AddTranslationDialog(wx.Dialog):
         
         # events
         button.Bind(wx.EVT_BUTTON, self.on_add_translation)
-        button.Bind(wx.EVT_SET_FOCUS, self.on_button_gained_focus)
+        # The reason for the focus event here is to skip focus on tab traversal
+        # of the buttons. But it seems that on windows this prevents the button
+        # from being pressed. Leave this commented out until that problem is
+        # resolved.
+        #button.Bind(wx.EVT_SET_FOCUS, self.on_button_gained_focus)
         cancel.Bind(wx.EVT_BUTTON, self.on_close)
-        cancel.Bind(wx.EVT_SET_FOCUS, self.on_button_gained_focus)
+        #cancel.Bind(wx.EVT_SET_FOCUS, self.on_button_gained_focus)
         self.strokes_text.Bind(wx.EVT_TEXT, self.on_strokes_change)
         self.translation_text.Bind(wx.EVT_TEXT, self.on_translation_change)
         self.strokes_text.Bind(wx.EVT_SET_FOCUS, self.on_strokes_gained_focus)
