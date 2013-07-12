@@ -3,6 +3,7 @@
 
 import wx
 import sys
+from plover.steno import normalize_steno
 
 if sys.platform.startswith('win32'):
     import win32gui
@@ -165,8 +166,7 @@ class AddTranslationDialog(wx.Dialog):
     
     def on_add_translation(self, event=None):
         d = self.engine.get_dictionary()
-        strokes = self.strokes_text.GetValue().upper().replace('/', ' ').split()
-        strokes = tuple(strokes)
+        strokes = self._normalized_strokes()
         translation = self.translation_text.GetValue().strip()
         if strokes and translation:
             d[strokes] = translation
@@ -182,19 +182,15 @@ class AddTranslationDialog(wx.Dialog):
         self.Destroy()
 
     def on_strokes_change(self, event):
-        stroke = event.GetString().upper()
-        self.strokes_text.ChangeValue(stroke)
-        self.strokes_text.SetInsertionPointEnd()
-        strokes = stroke.replace('/', ' ').split()
-        stroke = '/'.join(strokes)
-        if stroke:
-            key = tuple(strokes)
+        key = self._normalized_strokes()
+        if key:
             d = self.engine.get_dictionary()
             translation = d.raw_get(key, None)
+            strokes = '/'.join(key)
             if translation:
-                label = '%s maps to %s' % (stroke, translation)
+                label = '%s maps to %s' % (strokes, translation)
             else:
-                label = '%s is not in the dictionary' % stroke
+                label = '%s is not in the dictionary' % strokes
         else:
             label = ''
         self.stroke_mapping_text.SetLabel(label)
@@ -240,6 +236,11 @@ class AddTranslationDialog(wx.Dialog):
         escaped = value.replace('\\\\', '').replace('\\{', '')
         special = '{#'  in escaped or '{PLOVER:' in escaped
         return not special
+
+    def _normalized_strokes(self):
+        strokes = self.strokes_text.GetValue().upper().replace('/', ' ').split()
+        strokes = normalize_steno('/'.join(strokes))
+        return strokes
 
 def Show(parent, engine):
     dialog_instance = AddTranslationDialog(parent, engine)
