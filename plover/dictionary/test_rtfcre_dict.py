@@ -25,9 +25,9 @@ class TestCase(unittest.TestCase):
         (r'\_', '-'),
         ('\\\r\n', '{#Return}{#Return}'),
         (r'\cxds', '{^}'),
-        (r'pre\cxds', 'pre{^}'),
-        (r'\cxds post', '{^}post'),
-        (r'\cxds in\cxds', '{^}in{^}'),
+        (r'pre\cxds', '{pre^}'),
+        (r'\cxds post', '{^post}'),
+        (r'\cxds in\cxds', '{^in^}'),
         (r'\cxfc', '{-|}'),
         (r'\cxfl', '{>}'),
         (r'pre\cxfl', 'pre{>}'),
@@ -72,8 +72,15 @@ class TestCase(unittest.TestCase):
         (r'{\*\nonexistant {\cxp .}}', ''),
         )
         
+        failed = []
         for before, after in cases:
-            self.assertEqual(convert(before), after)
+            if convert(before) != after:
+                failed.append((before, after))
+                
+        for before, after in failed:
+            print 'convert(%s) != %s: %s' % (before, after, convert(before))
+
+        self.assertEqual(len(failed), 0)
     
     def test_load_dict(self):
         """Test the load_dict function.

@@ -29,7 +29,12 @@ class TranslationConverter(object):
     
     def __init__(self, styles={}):
         self.styles = styles
+        
+        def linenumber(f):
+            return f[1].im_func.func_code.co_firstlineno
+        
         handler_funcs = inspect.getmembers(self, inspect.ismethod)
+        handler_funcs.sort(key=linenumber)
         handlers = [self._make_re_handler(f.__doc__, f)
                     for name, f in handler_funcs 
                     if name.startswith('_re_handle_')]
@@ -73,6 +78,18 @@ class TranslationConverter(object):
         r'\\\r\n'
         return '{#Return}{#Return}'
         
+    def _re_handle_infix(self, m):
+        r'\\cxds ([^{}\\\r\n]+)\\cxds'
+        return '{^%s^}' % m.group(1)
+        
+    def _re_handle_suffix(self, m):
+        r'\\cxds ([^{}\\\r\n ]+)'
+        return '{^%s}' % m.group(1)
+
+    def _re_handle_prefix(self, m):
+        r'([^{}\\\r\n ]+)\\cxds'
+        return '{%s^}' % m.group(1)
+
     def _re_handle_commands(self, m):
         r'(\\\*)?\\([a-z]+)(-?[0-9]+)?[ ]?'
         
@@ -283,7 +300,7 @@ def save_dictionary(d, fp):
         t = re.sub(r'{([^^}]*)\^}', '\\1\\cxds ', t)
         t = re.sub(r'{\^([^^}]*)\^}', '\\cxds \\1\\cxds ', t)
         t = re.sub(r'{-\|}', '\\cxfc ', t)
-        t = re.sub(r'{>}', '\\cxfl ', t)
+        t = re.sub(r'{>}', '\\cxfls ', t)
         t = re.sub(r'{ }', ' ', t)
         t = re.sub(r'{&([^}]+)}', '{\\cxfing \\1}', t)
         t = re.sub(r'{#([^}]+)}', '\\{#\\1\\}', t)
