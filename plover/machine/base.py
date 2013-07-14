@@ -159,12 +159,13 @@ class SerialStenotypeBase(ThreadedStenotypeBase):
     def get_option_info():
         """Get the default options for this machine."""
         bool_converter = lambda s: s == 'True'
+        sb = lambda s: int(float(s)) if float(s).is_integer() else float(s)
         return {
             'port': (None, str), # TODO: make first port default
             'baudrate': (9600, int),
             'bytesize': (8, int),
             'parity': ('N', str),
-            'stopbits': (1, float),
+            'stopbits': (1, sb),
             'timeout': (2.0, float),
             'xonxoff': (False, bool_converter),
             'rtscts': (False, bool_converter)

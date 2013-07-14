@@ -243,10 +243,11 @@ class SerialConfigDialog(wx.Dialog):
 
     def _on_ok(self, events):
         # Transfer the configuration values to the serial config object.
+        sb = lambda s: int(float(s)) if float(s).is_integer() else float(s)
         self.serial.port = self.port_combo_box.GetValue()
         self.serial.baudrate = int(self.baudrate_choice.GetStringSelection())
         self.serial.bytesize = int(self.databits_choice.GetStringSelection())
-        self.serial.stopbits = float(self.stopbits_choice.GetStringSelection())
+        self.serial.stopbits = sb(self.stopbits_choice.GetStringSelection())
         self.serial.parity = self.parity_choice.GetStringSelection()
         self.serial.rtscts = self.rtscts_checkbox.GetValue()
         self.serial.xonxoff = self.xonxoff_checkbox.GetValue()
