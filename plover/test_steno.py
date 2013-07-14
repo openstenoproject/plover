@@ -15,8 +15,9 @@ class StenoTestCase(unittest.TestCase):
         ('S-', 'S'),
         ('-S', '-S'),
         ('ES', 'ES'),
-        ('-ES', 'ES')
-        
+        ('-ES', 'ES'),
+        ('TW-EPBL', 'TWEPBL'),
+        ('TWEPBL', 'TWEPBL'),
         )
         
         for arg, expected in cases:
