@@ -5,13 +5,13 @@
 """A graphical user interface for configuring a serial port."""
 
 from serial import Serial
+from serial.tools.list_ports import comports
 import string
 import wx
 import wx.animate
 from threading import Thread
 import os.path
 
-from plover.oslayer.comscan import comscan
 from plover.config import SPINNER_FILE
 
 DIALOG_TITLE = 'Serial Port Configuration'
@@ -38,7 +38,7 @@ GLOBAL_BORDER = 4
 
 def enumerate_ports():
     """Enumerates available ports"""
-    return sorted([x['name'] for x in comscan() if x['available']])
+    return sorted(x[0] for x in comports())
 
 class SerialConfigDialog(wx.Dialog):
     """Serial port configuration dialog."""
