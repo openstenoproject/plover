@@ -20,9 +20,6 @@ class ConfigTestCase(unittest.TestCase):
         ('machine_type', config.MACHINE_CONFIG_SECTION, 
          config.MACHINE_TYPE_OPTION, config.DEFAULT_MACHINE_TYPE, 'foo', 'bar', 
          'blee'),
-        ('dictionary_file_name', config.DICTIONARY_CONFIG_SECTION, 
-         config.DICTIONARY_FILE_OPTION, config.DEFAULT_DICTIONARY_FILE, 'dict1', 
-         'd2', 'third'),
         ('log_file_name', config.LOGGING_CONFIG_SECTION, config.LOG_FILE_OPTION, 
          config.DEFAULT_LOG_FILE, 'l1', 'log', 'sawzall'),
         ('enable_stroke_logging', config.LOGGING_CONFIG_SECTION, 
@@ -136,6 +133,44 @@ class ConfigTestCase(unittest.TestCase):
             f = StringIO()
             c.save(f)
             self.assertEqual(f.getvalue(), s + '\n\n')
+
+    def test_dictionary_option(self):
+        c = config.Config()
+        section = config.DICTIONARY_CONFIG_SECTION
+        option = config.DICTIONARY_FILE_OPTION
+        # Check the default value.
+        self.assertEqual(c.get_dictionary_file_names(), 
+                         [config.DEFAULT_DICTIONARY_FILE])
+        # Set a value...
+        names = ['b', 'a', 'd', 'c']
+        c.set_dictionary_file_names(names)
+        # ...and make sure it is really set.
+        self.assertEqual(c.get_dictionary_file_names(), names)
+        # Load from a file encoded the old way...
+        f = StringIO('[%s]\n%s: %s' % (section, option, 'some_file'))
+        c.load(f)
+        # ..and make sure the right value is set.
+        self.assertEqual(c.get_dictionary_file_names(), ['some_file'])
+        # Load from a file encoded the new way...
+        filenames = '\n'.join('%s%d: %s' % (option, d, v) 
+                              for d, v in enumerate(names, start=1))
+        f = StringIO('[%s]\n%s' % (section, filenames))
+        c.load(f)
+        # ...and make sure the right value is set.
+        self.assertEqual(c.get_dictionary_file_names(), names)
+        
+        names.reverse()
+        
+        # Set a value...
+        c.set_dictionary_file_names(names)
+        f = StringIO()
+        # ...save it...
+        c.save(f)
+        # ...and make sure it's right.
+        filenames = '\n'.join('%s%d = %s' % (option, d, v) 
+                              for d, v in enumerate(names, start=1))
+        self.assertEqual(f.getvalue(), 
+                         '[%s]\n%s\n\n' % (section, filenames))
 
 if __name__ == '__main__':
     unittest.main()

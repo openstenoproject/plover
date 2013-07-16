@@ -217,9 +217,8 @@ class DictionaryConfig(wx.Panel):
         self.engine = engine
         self.config = config
         sizer = wx.BoxSizer(wx.VERTICAL)
-        dict_file = config.get_dictionary_file_name()
-        dict_file = os.path.join(conf.CONFIG_DIR, dict_file)
-        dict_dir = os.path.split(dict_file)[0]
+        dict_files = config.get_dictionary_file_names()
+        dict_dir = os.path.split(dict_files[-1])[0]
         mask = 'Json files (*%s)|*%s|RTF/CRE files (*%s)|*%s' % (
             conf.JSON_EXTENSION, conf.JSON_EXTENSION, 
             conf.RTF_EXTENSION, conf.RTF_EXTENSION, 
@@ -230,7 +229,7 @@ class DictionaryConfig(wx.Panel):
                                         fileMask=mask,
                                         fileMode=wx.OPEN,
                                         dialogTitle=DICT_FILE_DIALOG_TITLE,
-                                        initialValue=dict_file,
+                                        initialValue=dict_files[-1],
                                         startDirectory=dict_dir,
                                         )
         sizer.Add(self.file_browser, border=UI_BORDER, flag=wx.ALL | wx.EXPAND)
@@ -244,7 +243,7 @@ class DictionaryConfig(wx.Panel):
 
     def save(self):
         """Write all parameters to the config."""
-        self.config.set_dictionary_file_name(self.file_browser.GetValue())
+        self.config.set_dictionary_file_names([self.file_browser.GetValue()])
         
     def show_add_translation(self, event):
         plover.gui.add_translation.Show(self, self.engine)

@@ -25,7 +25,7 @@ DEFAULT_MACHINE_AUTO_START = False
 
 DICTIONARY_CONFIG_SECTION = 'Dictionary Configuration'
 DICTIONARY_FILE_OPTION = 'dictionary_file'
-DEFAULT_DICTIONARY_FILE = 'dict.json'
+DEFAULT_DICTIONARY_FILE = os.path.join(CONFIG_DIR, 'dict.json')
 
 LOGGING_CONFIG_SECTION = 'Logging Configuration'
 LOG_FILE_OPTION = 'log_file'
@@ -91,12 +91,25 @@ class Config(object):
                         if k in option_info)
         return dict((k, v[0]) for k, v in option_info.items())
 
-    def set_dictionary_file_name(self, filename):
-        self._set(DICTIONARY_CONFIG_SECTION, DICTIONARY_FILE_OPTION, filename)
+    def set_dictionary_file_names(self, filenames):
+        if self._config.has_section(DICTIONARY_CONFIG_SECTION):
+            self._config.remove_section(DICTIONARY_CONFIG_SECTION)
+        self._config.add_section(DICTIONARY_CONFIG_SECTION)
+        for ordinal, filename in enumerate(filenames, start=1):
+            option = DICTIONARY_FILE_OPTION + str(ordinal)
+            self._config.set(DICTIONARY_CONFIG_SECTION, option, filename)
 
-    def get_dictionary_file_name(self):
-        return self._get(DICTIONARY_CONFIG_SECTION, DICTIONARY_FILE_OPTION, 
-                         DEFAULT_DICTIONARY_FILE)
+    def get_dictionary_file_names(self):
+        filenames = []
+        if self._config.has_section(DICTIONARY_CONFIG_SECTION):
+            options = filter(lambda x: x.startswith(DICTIONARY_FILE_OPTION),
+                             self._config.options(DICTIONARY_CONFIG_SECTION))
+            options.sort(key=_dict_entry_key)
+            filenames = [self._config.get(DICTIONARY_CONFIG_SECTION, o) 
+                         for o in options]
+        if not filenames or filenames == ['dict.json']:
+            filenames = [DEFAULT_DICTIONARY_FILE]
+        return filenames
 
     def set_log_file_name(self, filename):
         self._set(LOGGING_CONFIG_SECTION, LOG_FILE_OPTION, filename)
@@ -142,3 +155,10 @@ class Config(object):
         if self._config.has_option(section, option):
             return self._config.getboolean(section, option)
         return default
+
+
+def _dict_entry_key(s):
+    try:
+        return int(s[len(DICTIONARY_FILE_OPTION):])
+    except ValueError:
+        return -1
