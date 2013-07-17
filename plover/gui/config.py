@@ -5,15 +5,19 @@
 
 import os
 import wx
+from collections import namedtuple
 import wx.lib.filebrowsebutton as filebrowse
+from wx.lib.scrolledpanel import ScrolledPanel
 import plover.config as conf
 from plover.gui.serial_config import SerialConfigDialog
 import plover.gui.add_translation
 from plover.app import update_engine
 from plover.machine.registry import machine_registry
 from plover.exception import InvalidConfigurationError
+from plover.dictionary.loading_manager import manager as dict_manager
 
 ADD_TRANSLATION_BUTTON_NAME = "Add Translation"
+ADD_DICTIONARY_BUTTON_NAME = "Add Dictionary"
 MACHINE_CONFIG_TAB_NAME = "Machine"
 DICTIONARY_CONFIG_TAB_NAME = "Dictionary"
 LOGGING_CONFIG_TAB_NAME = "Logging"
@@ -40,13 +44,17 @@ class ConfigurationDialog(wx.Dialog):
     application, which is typically after an application restart.
 
     """
+    
+    # Keep track of other instances of ConfigurationDialog.
+    other_instances = []
+    
     def __init__(self, engine, config, config_file,
                  parent=None,
                  id=-1,
                  title="Plover Configuration",
                  pos=wx.DefaultPosition,
                  size=wx.DefaultSize,
-                 style=wx.DEFAULT_DIALOG_STYLE):
+                 style=wx.DEFAULT_DIALOG_STYLE | wx.RESIZE_BORDER):
         """Create a configuration GUI based on the given config file.
 
         Arguments:
@@ -60,6 +68,13 @@ class ConfigurationDialog(wx.Dialog):
         self.engine = engine
         self.config = config
         self.config_file = config_file
+
+        # Close all other instances.
+        if self.other_instances:
+            for instance in self.other_instances:
+                instance.Close()
+        del self.other_instances[:]
+        self.other_instances.append(self)
 
         self._setup_ui()
 
@@ -80,7 +95,7 @@ class ConfigurationDialog(wx.Dialog):
         notebook.AddPage(self.dictionary_config, DICTIONARY_CONFIG_TAB_NAME)
         notebook.AddPage(self.logging_config, LOGGING_CONFIG_TAB_NAME)
 
-        sizer.Add(notebook)
+        sizer.Add(notebook, proportion=1, flag=wx.EXPAND)
 
         # The bottom button container
         button_sizer = wx.StdDialogButtonSizer()
@@ -98,7 +113,7 @@ class ConfigurationDialog(wx.Dialog):
         sizer.Add(button_sizer, flag=wx.ALL | wx.ALIGN_RIGHT, border=UI_BORDER)
         self.SetSizer(sizer)
         sizer.Fit(self)
-
+        
         # Binding the save button to the self._save callback
         self.Bind(wx.EVT_BUTTON, self._save, save_button)
 
@@ -201,7 +216,12 @@ class MachineConfig(wx.Panel):
         self.advanced_options = options
         self.config_button.Enable(bool(options))
 
-class DictionaryConfig(wx.Panel):
+
+class DictionaryConfig(ScrolledPanel):
+    
+    DictionaryControls = namedtuple('DictionaryControls', 
+                                    'sizer up down remove label')
+    
     """Dictionary configuration graphical user interface."""
     def __init__(self, engine, config, parent):
         """Create a configuration component based on the given ConfigParser.
@@ -213,42 +233,107 @@ class DictionaryConfig(wx.Panel):
         parent -- This component's parent component.
 
         """
-        wx.Panel.__init__(self, parent, size=CONFIG_PANEL_SIZE)
+        ScrolledPanel.__init__(self, parent, size=CONFIG_PANEL_SIZE)
         self.engine = engine
         self.config = config
-        sizer = wx.BoxSizer(wx.VERTICAL)
-        dict_files = config.get_dictionary_file_names()
-        dict_dir = os.path.split(dict_files[-1])[0]
-        mask = 'Json files (*%s)|*%s|RTF/CRE files (*%s)|*%s' % (
+        dictionaries = config.get_dictionary_file_names()
+        
+        main_sizer = wx.BoxSizer(wx.VERTICAL)
+        
+        button_sizer = wx.BoxSizer(wx.HORIZONTAL)
+        
+        button = wx.Button(self, wx.ID_ANY, ADD_TRANSLATION_BUTTON_NAME)
+        button_sizer.Add(button, border=UI_BORDER, flag=wx.ALL)
+        button.Bind(wx.EVT_BUTTON, self.show_add_translation)
+        
+        button = wx.Button(self, wx.ID_ANY, ADD_DICTIONARY_BUTTON_NAME)
+        button_sizer.Add(button, border=UI_BORDER, 
+                                 flag=wx.TOP | wx.BOTTOM | wx.RIGHT)
+        button.Bind(wx.EVT_BUTTON, self.add_dictionary)
+        
+        main_sizer.Add(button_sizer)
+        
+        self.dictionary_controls = []
+        self.dicts_sizer = wx.BoxSizer(wx.VERTICAL)
+        for filename in dictionaries:
+            self.add_row(filename)
+
+        main_sizer.Add(self.dicts_sizer)
+        
+        self.mask = 'Json files (*%s)|*%s|RTF/CRE files (*%s)|*%s' % (
             conf.JSON_EXTENSION, conf.JSON_EXTENSION, 
             conf.RTF_EXTENSION, conf.RTF_EXTENSION, 
         )
-        self.file_browser = filebrowse.FileBrowseButton(
-                                        self,
-                                        labelText=DICT_FILE_LABEL,
-                                        fileMask=mask,
-                                        fileMode=wx.OPEN,
-                                        dialogTitle=DICT_FILE_DIALOG_TITLE,
-                                        initialValue=dict_files[-1],
-                                        startDirectory=dict_dir,
-                                        )
-        sizer.Add(self.file_browser, border=UI_BORDER, flag=wx.ALL | wx.EXPAND)
         
-        button = wx.Button(self, -1, ADD_TRANSLATION_BUTTON_NAME)
-        sizer.Add(button, border=UI_BORDER, flag=wx.ALL)
-        
-        self.SetSizer(sizer)
-        
-        button.Bind(wx.EVT_BUTTON, self.show_add_translation)
+        self.SetSizer(main_sizer)
+        self.SetupScrolling()
 
     def save(self):
         """Write all parameters to the config."""
-        self.config.set_dictionary_file_names([self.file_browser.GetValue()])
+        filenames = [x.label.GetLabel() for x in self.dictionary_controls]
+        self.config.set_dictionary_file_names(filenames)
         
     def show_add_translation(self, event):
         plover.gui.add_translation.Show(self, self.engine)
+        
+    def add_dictionary(self, event):
+        dlg = wx.FileDialog(self, "Choose a file", os.getcwd(), "", self.mask, 
+                            wx.OPEN)
+        if dlg.ShowModal() == wx.ID_OK:
+            path = dlg.GetPath()
+            all_dicts = [x.label.GetLabel() for x in self.dictionary_controls]
+            if path not in all_dicts:
+                self.add_row(path)
+        dlg.Destroy()
+        
+    def add_row(self, filename):
+        dict_manager.start_loading(filename)
+        index = len(self.dictionary_controls)
+        sizer = wx.BoxSizer(wx.HORIZONTAL)
+        up = wx.Button(self, label="Up")
+        up.Bind(wx.EVT_BUTTON, lambda e: self.move_row_down(index-1))
+        if len(self.dictionary_controls) == 0:
+            up.Disable()
+        else:
+            self.dictionary_controls[-1].down.Enable()
+        sizer.Add(up)
+        down = wx.Button(self, label="Down")
+        down.Bind(wx.EVT_BUTTON, lambda e: self.move_row_down(index))
+        down.Disable()
+        sizer.Add(down)
+        remove = wx.Button(self, label="Remove")
+        remove.Bind(wx.EVT_BUTTON, lambda e: self.remove_row(index))
+        sizer.Add(remove)
+        label = wx.StaticText(self, label=filename)
+        sizer.Add(label)
+        controls = self.DictionaryControls(sizer, up, down, remove, label)
+        self.dictionary_controls.append(controls)
+        self.dicts_sizer.Add(sizer)
+        if self.GetSizer():
+            self.GetSizer().Layout()
 
-
+    def remove_row(self, index):
+        names = [self.dictionary_controls[i].label.GetLabel() 
+                 for i in range(index+1, len(self.dictionary_controls))]
+        for i, name in enumerate(names, start=index):
+            self.dictionary_controls[i].label.SetLabel(name)
+        controls = self.dictionary_controls[-1]
+        self.dicts_sizer.Detach(controls.sizer)
+        for e in controls:
+            e.Destroy()
+        del self.dictionary_controls[-1]
+        if self.dictionary_controls:
+            self.dictionary_controls[-1].down.Disable()
+        self.GetSizer().Layout()
+        
+    def move_row_down(self, index):
+        top_label = self.dictionary_controls[index].label
+        bottom_label = self.dictionary_controls[index+1].label
+        tmp = bottom_label.GetLabel()
+        bottom_label.SetLabel(top_label.GetLabel())
+        top_label.SetLabel(tmp)
+        self.GetSizer().Layout()
+        
 class LoggingConfig(wx.Panel):
     """Logging configuration graphical user interface."""
     def __init__(self, config, parent):

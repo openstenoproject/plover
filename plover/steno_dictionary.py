@@ -113,9 +113,10 @@ class StenoDictionary(collections.MutableMapping):
         """Bypass filters."""
         return self._dict.get(key, default)
 
+
 class StenoDictionaryCollection(object):
     def __init__(self):
-        self.dicts= []
+        self.dicts = []
         self.filters = []
         self.longest_key = 0
         self.longest_key_callbacks = set()
@@ -123,11 +124,12 @@ class StenoDictionaryCollection(object):
     def set_dicts(self, dicts):
         for d in self.dicts:
             d.remove_longest_key_listener(self._longest_key_listener)
-        self.dicts = dicts
+        self.dicts = dicts[:]
+        self.dicts.reverse()
         for d in dicts:
             d.add_longest_key_listener(self._longest_key_listener)
         self._longest_key_listener()
-        
+
     def lookup(self, key):
         for d in self.dicts:
             value = d.get(key, None)
@@ -142,7 +144,7 @@ class StenoDictionaryCollection(object):
             value = d.get(key, None)
             if value:
                 return value
-    
+
     def reverse_lookup(self, value):
         for d in self.dicts:
             key = d.reverse.get(value, None)
@@ -151,12 +153,12 @@ class StenoDictionaryCollection(object):
 
     def set(self, key, value):
         if self.dicts:
-            self.dicts[-1][key] = value
-            
+            self.dicts[0][key] = value
+
     def save(self):
         if self.dicts:
-            self.dicts[-1].save()
-        
+            self.dicts[0].save()
+
     def add_filter(self, f):
         self.filters.append(f)
 
