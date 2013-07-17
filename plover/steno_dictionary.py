@@ -1,8 +1,6 @@
 # Copyright (c) 2013 Hesky Fisher.
 # See LICENSE.txt for details.
 
-# TODO: unit test filters
-
 """StenoDictionary class and related functions.
 
 A steno dictionary maps sequences of steno strokes to translations.

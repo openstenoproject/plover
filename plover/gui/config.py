@@ -4,6 +4,7 @@
 """Configuration dialog graphical user interface."""
 
 import os
+import os.path
 import wx
 from collections import namedtuple
 import wx.lib.filebrowsebutton as filebrowse
@@ -24,8 +25,6 @@ LOGGING_CONFIG_TAB_NAME = "Logging"
 SAVE_CONFIG_BUTTON_NAME = "Save"
 MACHINE_LABEL = "Stenotype Machine:"
 MACHINE_AUTO_START_LABEL = "Automatically Start"
-DICT_FILE_LABEL = "Dictionary File:"
-DICT_FILE_DIALOG_TITLE = "Select a Dictionary File"
 LOG_FILE_LABEL = "Log File:"
 LOG_STROKES_LABEL = "Log Strokes"
 LOG_TRANSLATIONS_LABEL = "Log Translations"
@@ -34,7 +33,9 @@ CONFIG_BUTTON_NAME = "Configure..."
 CONFIG_PANEL_SIZE = (600, 400)
 UI_BORDER = 4
 COMPONENT_SPACE = 3
-
+UP_IMAGE_FILE = os.path.join(conf.ASSETS_DIR, 'up.png')
+DOWN_IMAGE_FILE = os.path.join(conf.ASSETS_DIR, 'down.png')
+REMOVE_IMAGE_FILE = os.path.join(conf.ASSETS_DIR, 'remove.png')
 
 class ConfigurationDialog(wx.Dialog):
     """A GUI for viewing and editing Plover configuration files.
@@ -111,6 +112,7 @@ class ConfigurationDialog(wx.Dialog):
         button_sizer.Realize()
 
         sizer.Add(button_sizer, flag=wx.ALL | wx.ALIGN_RIGHT, border=UI_BORDER)
+        
         self.SetSizer(sizer)
         sizer.Fit(self)
         
@@ -238,6 +240,10 @@ class DictionaryConfig(ScrolledPanel):
         self.config = config
         dictionaries = config.get_dictionary_file_names()
         
+        self.up_bitmap = wx.Bitmap(UP_IMAGE_FILE, wx.BITMAP_TYPE_PNG)
+        self.down_bitmap = wx.Bitmap(DOWN_IMAGE_FILE, wx.BITMAP_TYPE_PNG)
+        self.remove_bitmap = wx.Bitmap(REMOVE_IMAGE_FILE, wx.BITMAP_TYPE_PNG)
+        
         main_sizer = wx.BoxSizer(wx.VERTICAL)
         
         button_sizer = wx.BoxSizer(wx.HORIZONTAL)
@@ -290,18 +296,18 @@ class DictionaryConfig(ScrolledPanel):
         dict_manager.start_loading(filename)
         index = len(self.dictionary_controls)
         sizer = wx.BoxSizer(wx.HORIZONTAL)
-        up = wx.Button(self, label="Up")
+        up = wx.BitmapButton(self, bitmap=self.up_bitmap)
         up.Bind(wx.EVT_BUTTON, lambda e: self.move_row_down(index-1))
         if len(self.dictionary_controls) == 0:
             up.Disable()
         else:
             self.dictionary_controls[-1].down.Enable()
         sizer.Add(up)
-        down = wx.Button(self, label="Down")
+        down = wx.BitmapButton(self, bitmap=self.down_bitmap)
         down.Bind(wx.EVT_BUTTON, lambda e: self.move_row_down(index))
         down.Disable()
         sizer.Add(down)
-        remove = wx.Button(self, label="Remove")
+        remove = wx.BitmapButton(self, bitmap=self.remove_bitmap)
         remove.Bind(wx.EVT_BUTTON, lambda e: self.remove_row(index))
         sizer.Add(remove)
         label = wx.StaticText(self, label=filename)
