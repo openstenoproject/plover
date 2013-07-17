@@ -186,6 +186,7 @@ class AddTranslationDialog(wx.Dialog):
         if key:
             d = self.engine.get_dictionary()
             translation = d.raw_lookup(key)
+            strokes = '/'.join(key)
             if translation:
                 label = '%s maps to %s' % (strokes, translation)
             else:
