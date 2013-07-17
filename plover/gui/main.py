@@ -153,6 +153,7 @@ class Frame(wx.Frame):
             lambda e: app.reset_machine(self.steno_engine, self.config))
 
         self.config = conf.Config()
+        self.config_file = config_file
         try:
             with open(config_file) as f:
                 self.config.load(f)
@@ -165,18 +166,17 @@ class Frame(wx.Frame):
             lambda s: wx.CallAfter(self._update_status, s))
         self.steno_engine.set_output(Output(self.consume_command))
 
-        self.config_dialog = ConfigurationDialog(self.steno_engine,
-                                                 self.config,
-                                                 config_file,
-                                                 parent=self)
-
         while True:
             try:
                 app.init_engine(self.steno_engine, self.config)
                 break
             except InvalidConfigurationError as e:
                 self.show_alert(unicode(e))
-                ret = self.config_dialog.ShowModal()
+                dlg = ConfigurationDialog(self.steno_engine,
+                                          self.config,
+                                          self.config_file,
+                                          parent=self)
+                re = dlg.ShowModel()
                 if ret == wx.ID_CANCEL:
                     self._quit()
                     return
@@ -239,7 +239,11 @@ class Frame(wx.Frame):
         self.steno_engine.set_is_running(not self.steno_engine.is_running)
 
     def _show_config_dialog(self, event=None):
-        self.config_dialog.Show()
+        dlg = ConfigurationDialog(self.steno_engine,
+                                  self.config,
+                                  self.config_file,
+                                  parent=self)
+        dlg.Show()
 
     def _show_about_dialog(self, event=None):
         """Called when the About... button is clicked."""

@@ -4,7 +4,7 @@
 """Unit tests for steno_dictionary.py."""
 
 import unittest
-from steno_dictionary import StenoDictionary
+from steno_dictionary import StenoDictionary, StenoDictionaryCollection
 
 class StenoDictionaryTestCase(unittest.TestCase):
 
@@ -44,6 +44,37 @@ class StenoDictionaryTestCase(unittest.TestCase):
         
         self.assertEqual(StenoDictionary([('a', 'b')]).items(), [('a', 'b')])
         self.assertEqual(StenoDictionary(a='b').items(), [('a', 'b')])
+        
+    def test_dictionary_collection(self):
+        dc = StenoDictionaryCollection()
+        d1 = StenoDictionary()
+        d1[('S',)] = 'a'
+        d1[('T',)] = 'b'
+        d2 = StenoDictionary()
+        d2[('S',)] = 'c'
+        d2[('W',)] = 'd'
+        dc.set_dicts([d1, d2])
+        self.assertEqual(dc.lookup(('S',)), 'c')
+        self.assertEqual(dc.lookup(('W',)), 'd')
+        self.assertEqual(dc.lookup(('T',)), 'b')
+        f = lambda k, v: v == 'c'
+        dc.add_filter(f)
+        self.assertIsNone(dc.lookup(('S',)))
+        self.assertEqual(dc.raw_lookup(('S',)), 'c')
+        self.assertEqual(dc.lookup(('W',)), 'd')
+        self.assertEqual(dc.lookup(('T',)), 'b')
+        self.assertEqual(dc.reverse_lookup('c'), [('S',)])
+        
+        dc.remove_filter(f)
+        self.assertEqual(dc.lookup(('S',)), 'c')
+        self.assertEqual(dc.lookup(('W',)), 'd')
+        self.assertEqual(dc.lookup(('T',)), 'b')
+        
+        self.assertEqual(dc.reverse_lookup('c'), [('S',)])
+        
+        dc.set(('S',), 'e')
+        self.assertEqual(dc.lookup(('S',)), 'e')
+        self.assertEqual(d2[('S',)], 'e')
         
 if __name__ == '__main__':
     unittest.main()

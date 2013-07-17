@@ -7,7 +7,7 @@
 
 """Common elements to all dictionary formats."""
 
-from os.path import join, splitext
+from os.path import splitext
 import shutil
 import threading
 
@@ -23,10 +23,7 @@ dictionaries = {
 
 def load_dictionary(filename):
     """Load a dictionary from a file."""
-    # The dictionary path can be either absolute or relative to the 
-    # configuration directory.
-    path = join(CONFIG_DIR, filename)
-    extension = splitext(path)[1].lower()
+    extension = splitext(filename)[1].lower()
     
     try:
         dict_type = dictionaries[extension]
@@ -38,7 +35,7 @@ def load_dictionary(filename):
     loader = dict_type.load_dictionary
 
     try:
-        with open(path, 'rb') as f:
+        with open(filename, 'rb') as f:
             d = loader(f.read())
     except IOError as e:
         raise DictionaryLoaderException(unicode(e))

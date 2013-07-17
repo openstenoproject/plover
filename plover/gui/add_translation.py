@@ -169,7 +169,7 @@ class AddTranslationDialog(wx.Dialog):
         strokes = self._normalized_strokes()
         translation = self.translation_text.GetValue().strip()
         if strokes and translation:
-            d[strokes] = translation
+            d.set(strokes, translation)
             d.save()
         self.Close()
 
@@ -185,8 +185,7 @@ class AddTranslationDialog(wx.Dialog):
         key = self._normalized_strokes()
         if key:
             d = self.engine.get_dictionary()
-            translation = d.raw_get(key, None)
-            strokes = '/'.join(key)
+            translation = d.raw_lookup(key)
             if translation:
                 label = '%s maps to %s' % (strokes, translation)
             else:
@@ -202,7 +201,7 @@ class AddTranslationDialog(wx.Dialog):
         translation = event.GetString().strip()
         if translation:
             d = self.engine.get_dictionary()
-            strokes_list = d.reverse[translation]
+            strokes_list = d.reverse_lookup(translation)
             if strokes_list:
                 strokes = ', '.join('/'.join(x) for x in strokes_list)
                 label = '%s is mapped from %s' % (translation, strokes)

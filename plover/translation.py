@@ -16,7 +16,7 @@ emits one or more Translation objects based on a greedy conversion algorithm.
 
 """
 
-from steno_dictionary import StenoDictionary
+from steno_dictionary import StenoDictionaryCollection
 
 class Translation(object):
     """A data model for the mapping between a sequence of Strokes and a string.
@@ -43,20 +43,19 @@ class Translation(object):
 
     """
 
-    def __init__(self, strokes, rtfcreDict):
+    def __init__(self, strokes, dictionary):
         """Create a translation by looking up strokes in a dictionary.
 
         Arguments:
 
         strokes -- A list of Stroke objects.
 
-        rtfcreDict -- A dictionary that maps strings in RTF/CRE format
-        to English phrases or meta commands.
+        dictionary -- A dictionary that maps steno outlines to translations.
 
         """
         self.strokes = strokes
         self.rtfcre = tuple(s.rtfcre for s in strokes)
-        self.english = rtfcreDict.get(self.rtfcre, None)
+        self.english = dictionary.lookup(self.rtfcre)
         self.replaced = []
         self.formatting = None
 
@@ -110,7 +109,7 @@ class Translator(object):
     def __init__(self):
         self._undo_length = 0
         self._dictionary = None
-        self.set_dictionary(StenoDictionary())
+        self.set_dictionary(StenoDictionaryCollection())
         self._listeners = set()
         self._state = _State()
 

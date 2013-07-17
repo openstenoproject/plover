@@ -6,7 +6,7 @@
 from collections import namedtuple
 import copy
 from mock import patch
-from steno_dictionary import StenoDictionary
+from steno_dictionary import StenoDictionary, StenoDictionaryCollection
 from translation import Translation, Translator, _State, _translate_stroke
 import unittest
 
@@ -23,16 +23,18 @@ class Stroke(object):
 
 class TranslationTestCase(unittest.TestCase):
     def test_no_translation(self):
-        d = StenoDictionary()
+        d = StenoDictionaryCollection()
         t = Translation([Stroke('S'), Stroke('T')], d)
         self.assertEqual(t.strokes, [Stroke('S'), Stroke('T')])
         self.assertEqual(t.rtfcre, ('S', 'T'))
         self.assertIsNone(t.english)
         
     def test_translation(self):
-        d = StenoDictionary()
+        dc = StenoDictionaryCollection()
+        d= StenoDictionary()
         d[('S', 'T')] = 'translation'
-        t = Translation([Stroke('S'), Stroke('T')], d)
+        dc.set_dicts([d])
+        t = Translation([Stroke('S'), Stroke('T')], dc)
         self.assertEqual(t.strokes, [Stroke('S'), Stroke('T')])
         self.assertEqual(t.rtfcre, ('S', 'T'))
         self.assertEqual(t.english, 'translation')
@@ -59,7 +61,9 @@ class TranslatorStateSizeTestCase(unittest.TestCase):
         self.s = type(self).FakeState()
         self.t._state = self.s
         self.d = StenoDictionary()
-        self.t.set_dictionary(self.d)
+        self.dc = StenoDictionaryCollection()
+        self.dc.set_dicts([self.d])
+        self.t.set_dictionary(self.dc)
 
     def test_dictionary_update_grows_size1(self):
         self.d[('S',)] = '1'
@@ -120,7 +124,7 @@ class TranslatorTestCase(unittest.TestCase):
         
         t = Translator()
         s = Stroke('S')
-        tr = Translation([s], StenoDictionary())
+        tr = Translation([s], StenoDictionaryCollection())
         expected_output = [([], [tr], tr)]
         
         t.translate(s)
@@ -163,17 +167,19 @@ class TranslatorTestCase(unittest.TestCase):
 
         d = StenoDictionary()
         d[('S', 'P')] = 'hi'
+        dc = StenoDictionaryCollection()
+        dc.set_dicts([d])
         t = Translator()
-        t.set_dictionary(d)
+        t.set_dictionary(dc)
         t.translate(Stroke('T'))
         t.translate(Stroke('S'))
         s = copy.deepcopy(t.get_state())
         
         t.add_listener(listener)
         
-        expected = [([Translation([Stroke('S')], d)], 
-                     [Translation([Stroke('S'), Stroke('P')], d)], 
-                     Translation([Stroke('T')], d))]
+        expected = [([Translation([Stroke('S')], dc)], 
+                     [Translation([Stroke('S'), Stroke('P')], dc)], 
+                     Translation([Stroke('T')], dc))]
         t.translate(Stroke('P'))
         self.assertEqual(output, expected)
         
@@ -185,15 +191,15 @@ class TranslatorTestCase(unittest.TestCase):
         del output[:]
         t.clear_state()
         t.translate(Stroke('P'))
-        self.assertEqual(output, [([], [Translation([Stroke('P')], d)], None)])
+        self.assertEqual(output, [([], [Translation([Stroke('P')], dc)], None)])
         
         del output[:]
         t.set_state(s)
         t.translate(Stroke('P'))
         self.assertEqual(output, 
                          [([], 
-                           [Translation([Stroke('P')], d)], 
-                           Translation([Stroke('S'), Stroke('P')], d))])
+                           [Translation([Stroke('P')], dc)], 
+                           Translation([Stroke('S'), Stroke('P')], dc))])
 
     def test_translator(self):
 
@@ -224,7 +230,9 @@ class TranslatorTestCase(unittest.TestCase):
         d = StenoDictionary()        
         out = Output()        
         t = Translator()
-        t.set_dictionary(d)
+        dc = StenoDictionaryCollection()
+        dc.set_dicts([d])
+        t.set_dictionary(dc)
         t.add_listener(out.write)
         
         t.translate(Stroke('S'))
@@ -324,7 +332,7 @@ class TranslatorTestCase(unittest.TestCase):
 class StateTestCase(unittest.TestCase):
     
     def setUp(self):
-        d = StenoDictionary()
+        d = StenoDictionaryCollection()
         self.a = Translation([Stroke('S')], d)
         self.b = Translation([Stroke('T'), Stroke('-D')], d)
         self.c = Translation([Stroke('-Z'), Stroke('P'), Stroke('T*')], d)
@@ -422,17 +430,17 @@ class TranslateStrokeTestCase(unittest.TestCase):
 
     def t(self, strokes):
         """A quick way to make a translation."""
-        return Translation([Stroke(x) for x in strokes.split('/')], self.d)
+        return Translation([Stroke(x) for x in strokes.split('/')], self.dc)
 
     def lt(self, translations):
-        """A quick qay to make a list of translations."""
+        """A quick way to make a list of translations."""
         return [self.t(x) for x in translations.split()]
 
     def define(self, key, value):
         self.d[tuple(key.split('/'))] = value
 
     def translate(self, stroke):
-        _translate_stroke(stroke, self.s, self.d, self.o)
+        _translate_stroke(stroke, self.s, self.dc, self.o)
 
     def assertTranslations(self, expected):
         self.assertEqual(self.s.translations, expected)
@@ -442,6 +450,8 @@ class TranslateStrokeTestCase(unittest.TestCase):
 
     def setUp(self):
         self.d = StenoDictionary()
+        self.dc = StenoDictionaryCollection()
+        self.dc.set_dicts([self.d])
         self.s = _State()
         self.o = type(self).CaptureOutput()
 
