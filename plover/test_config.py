@@ -31,6 +31,12 @@ class ConfigTestCase(unittest.TestCase):
         ('auto_start', config.MACHINE_CONFIG_SECTION, 
          config.MACHINE_AUTO_START_OPTION, config.DEFAULT_MACHINE_AUTO_START, 
          True, False, True),
+        ('show_stroke_display', config.STROKE_DISPLAY_SECTION, 
+         config.STROKE_DISPLAY_SHOW_OPTION, config.DEFAULT_STROKE_DISPLAY_SHOW, 
+         True, False, True),
+        ('stroke_display_on_top', config.STROKE_DISPLAY_SECTION, 
+         config.STROKE_DISPLAY_ON_TOP_OPTION, 
+         config.DEFAULT_STROKE_DISPLAY_ON_TOP, False, True, False),
         )
 
         for case in cases:

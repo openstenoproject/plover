@@ -35,6 +35,12 @@ DEFAULT_ENABLE_STROKE_LOGGING = True
 ENABLE_TRANSLATION_LOGGING_OPTION = 'enable_translation_logging'
 DEFAULT_ENABLE_TRANSLATION_LOGGING = True
 
+STROKE_DISPLAY_SECTION = 'Stroke Display'
+STROKE_DISPLAY_SHOW_OPTION = 'show'
+DEFAULT_STROKE_DISPLAY_SHOW = False
+STROKE_DISPLAY_ON_TOP_OPTION = 'on_top'
+DEFAULT_STROKE_DISPLAY_ON_TOP = True
+
 # Dictionary constants.
 JSON_EXTENSION = '.json'
 RTF_EXTENSION = '.rtf'
@@ -48,6 +54,8 @@ class Config(object):
 
     def __init__(self):
         self._config = RawConfigParser()
+        # A convenient place for other code to store a file name.
+        self.target_file = None
 
     def load(self, fp):
         self._config = RawConfigParser()
@@ -140,6 +148,20 @@ class Config(object):
     def get_auto_start(self):
         return self._get_bool(MACHINE_CONFIG_SECTION, MACHINE_AUTO_START_OPTION, 
                               DEFAULT_MACHINE_AUTO_START)
+
+    def set_show_stroke_display(self, b):
+        self._set(STROKE_DISPLAY_SECTION, STROKE_DISPLAY_SHOW_OPTION, b)
+
+    def get_show_stroke_display(self):
+        return self._get_bool(STROKE_DISPLAY_SECTION, 
+            STROKE_DISPLAY_SHOW_OPTION, DEFAULT_STROKE_DISPLAY_SHOW)
+
+    def set_stroke_display_on_top(self, b):
+        self._set(STROKE_DISPLAY_SECTION, STROKE_DISPLAY_ON_TOP_OPTION, b)
+
+    def get_stroke_display_on_top(self):
+        return self._get_bool(STROKE_DISPLAY_SECTION, 
+            STROKE_DISPLAY_ON_TOP_OPTION, DEFAULT_STROKE_DISPLAY_ON_TOP)
 
     def _set(self, section, option, value):
         if not self._config.has_section(section):
