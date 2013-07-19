@@ -169,7 +169,8 @@ class MainFrame(wx.Frame):
         self.steno_engine = app.StenoEngine()
         self.steno_engine.add_callback(
             lambda s: wx.CallAfter(self._update_status, s))
-        self.steno_engine.set_output(Output(self.consume_command))
+        self.steno_engine.set_output(
+            Output(self.consume_command, self.steno_engine))
 
         while True:
             try:
@@ -282,11 +283,14 @@ class MainFrame(wx.Frame):
         self.config.set_main_frame_x(pos[0]) 
         self.config.set_main_frame_y(pos[1])
         event.Skip()
+        
+    
 
 class Output(object):
-    def __init__(self, engine_command_callback):
+    def __init__(self, engine_command_callback, engine):
         self.engine_command_callback = engine_command_callback
         self.keyboard_control = KeyboardEmulation()
+        self.engine = engine
 
     def send_backspaces(self, b):
         wx.CallAfter(self.keyboard_control.send_backspaces, b)
@@ -298,4 +302,7 @@ class Output(object):
         wx.CallAfter(self.keyboard_control.send_key_combination, c)
 
     def send_engine_command(self, c):
+        # TODO: there might be a threading issue because the machine will issue send_backspace in its own thread.
+        if not self.engine.is_running:
+            self.engine.machine.suppress = self.send_backspaces
         wx.CallAfter(self.engine_command_callback, c)

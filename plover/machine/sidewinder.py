@@ -99,6 +99,14 @@ class Stenotype(StenotypeBase):
         if event.keystring in KEYSTRING_TO_STENO_KEY:
             self._down_keys.add(event.keystring)
 
+    def _post_suppress(self, suppress, steno_keys):
+        """Backspace the last stroke since it matched a command.
+        
+        The suppress function is passed in to prevent threading issues with the 
+        gui.
+        """
+        suppress(len(steno_keys))
+
     def _key_up(self, event):
         """Called when a key is released."""
         if event.keystring in KEYSTRING_TO_STENO_KEY:            
