@@ -73,6 +73,11 @@ DEFAULT_SERIAL_CONFIG_FRAME_X = -1
 SERIAL_CONFIG_FRAME_Y_OPTION = 'y'
 DEFAULT_SERIAL_CONFIG_FRAME_Y = -1
 
+KEYBOARD_CONFIG_FRAME_SECTION = 'Keyboard Config Frame'
+KEYBOARD_CONFIG_FRAME_X_OPTION = 'x'
+DEFAULT_KEYBOARD_CONFIG_FRAME_X = -1
+KEYBOARD_CONFIG_FRAME_Y_OPTION = 'y'
+DEFAULT_KEYBOARD_CONFIG_FRAME_Y = -1
 
 # Dictionary constants.
 JSON_EXTENSION = '.json'
@@ -286,6 +291,25 @@ class Config(object):
         return self._get_int(SERIAL_CONFIG_FRAME_SECTION, 
                              SERIAL_CONFIG_FRAME_Y_OPTION,
                              DEFAULT_SERIAL_CONFIG_FRAME_Y)
+
+    def set_keyboard_config_frame_x(self, x):
+        self._set(KEYBOARD_CONFIG_FRAME_SECTION, KEYBOARD_CONFIG_FRAME_X_OPTION, 
+                  x)
+    
+    def get_keyboard_config_frame_x(self):
+        return self._get_int(KEYBOARD_CONFIG_FRAME_SECTION, 
+                             KEYBOARD_CONFIG_FRAME_X_OPTION,
+                             DEFAULT_KEYBOARD_CONFIG_FRAME_X)
+
+    def set_keyboard_config_frame_y(self, y):
+        self._set(KEYBOARD_CONFIG_FRAME_SECTION, KEYBOARD_CONFIG_FRAME_Y_OPTION, 
+                  y)
+
+    def get_keyboard_config_frame_y(self):
+        return self._get_int(KEYBOARD_CONFIG_FRAME_SECTION, 
+                             KEYBOARD_CONFIG_FRAME_Y_OPTION,
+                             DEFAULT_KEYBOARD_CONFIG_FRAME_Y)
+    
     
     def _set(self, section, option, value):
         if not self._config.has_section(section):

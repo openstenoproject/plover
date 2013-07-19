@@ -18,7 +18,7 @@ from plover.machine.registry import machine_registry
 from plover.exception import InvalidConfigurationError
 from plover.dictionary.loading_manager import manager as dict_manager
 from plover.gui.paper_tape import StrokeDisplayDialog
-
+from plover.gui.keyboard_config import KeyboardConfigDialog
 
 ADD_TRANSLATION_BUTTON_NAME = "Add Translation"
 ADD_DICTIONARY_BUTTON_NAME = "Add Dictionary"
@@ -230,8 +230,14 @@ class MachineConfig(wx.Panel):
             def __init__(self, **kwargs):
                 self.__dict__.update(kwargs)
         config_instance = Struct(**self.advanced_options)
-        scd = SerialConfigDialog(config_instance, self, self.config)
-        scd.ShowModal()  # SerialConfigDialog destroys itself.
+        dialog = None
+        if 'port' in self.advanced_options:
+            scd = SerialConfigDialog(config_instance, self, self.config)
+            scd.ShowModal()  # SerialConfigDialog destroys itself.
+        else:
+            kbd = KeyboardConfigDialog(config_instance, self, self.config)
+            kbd.ShowModal()
+            kbd.Destroy()
         self.advanced_options = config_instance.__dict__
 
     def _update(self, event=None):
@@ -331,7 +337,8 @@ class DictionaryConfig(ScrolledPanel):
         down.Disable()
         sizer.Add(down)
         remove = wx.BitmapButton(self, bitmap=self.remove_bitmap)
-        remove.Bind(wx.EVT_BUTTON, lambda e: self.remove_row(index))
+        remove.Bind(wx.EVT_BUTTON, 
+                    lambda e: wx.CallAfter(self.remove_row, index))
         sizer.Add(remove)
         label = wx.StaticText(self, label=filename)
         sizer.Add(label)
@@ -437,11 +444,12 @@ class DisplayConfig(wx.Panel):
         show_strokes_button = wx.Button(self, 
                                         label=self.SHOW_STROKES_BUTTON_TEXT)
         show_strokes_button.Bind(wx.EVT_BUTTON, self.on_show_strokes)
-        sizer.Add(show_strokes_button)
+        sizer.Add(show_strokes_button, border=UI_BORDER, flag=wx.ALL)
         
         self.show_strokes = wx.CheckBox(self, label=self.SHOW_STROKES_TEXT)
         self.show_strokes.SetValue(config.get_show_stroke_display())
-        sizer.Add(self.show_strokes)
+        sizer.Add(self.show_strokes, border=UI_BORDER, 
+                  flag=wx.LEFT | wx.RIGHT | wx.BOTTOM)
 
         self.SetSizer(sizer)
 

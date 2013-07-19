@@ -71,10 +71,7 @@ class Stenotype(StenotypeBase):
         self.suppress_keyboard(True)
         self._down_keys = set()
         self._released_keys = set()
-        # This is handy for debugging on a non-NKRO keyboard. Once there is an
-        # options dialog for this machine then this can be used by regular
-        # users.
-        self.arpegiate = False
+        self.arpegiate = params['arpegiate']
 
     def start_capture(self):
         """Begin listening for output from the stenotype machine."""
@@ -105,7 +102,10 @@ class Stenotype(StenotypeBase):
         The suppress function is passed in to prevent threading issues with the 
         gui.
         """
-        suppress(len(steno_keys))
+        n = len(steno_keys)
+        if self.arpegiate:
+            n += 1
+        suppress(n)
 
     def _key_up(self, event):
         """Called when a key is released."""
@@ -128,3 +128,10 @@ class Stenotype(StenotypeBase):
                 self._down_keys.clear()
                 self._released_keys.clear()
                 self._notify(steno_keys)
+
+    @staticmethod
+    def get_option_info():
+        bool_converter = lambda s: s == 'True'
+        return {
+            'arpegiate': (False, bool_converter),
+        }

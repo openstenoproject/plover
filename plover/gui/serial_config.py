@@ -62,7 +62,6 @@ class SerialConfigDialog(wx.Dialog):
         pos = (config.get_serial_config_frame_x(), 
                config.get_serial_config_frame_y())
         wx.Dialog.__init__(self, parent, title=DIALOG_TITLE, pos=pos)
-        self.SetTitle(DIALOG_TITLE)
 
         self.serial = serial
 
@@ -229,7 +228,7 @@ class SerialConfigDialog(wx.Dialog):
         self.rtscts_checkbox.SetValue(self.serial.rtscts)
         self.xonxoff_checkbox.SetValue(self.serial.xonxoff)
 
-    def _on_ok(self, events):
+    def _on_ok(self, event):
         # Transfer the configuration values to the serial config object.
         sb = lambda s: int(float(s)) if float(s).is_integer() else float(s)
         self.serial.port = self.port_combo_box.GetValue()
@@ -250,12 +249,12 @@ class SerialConfigDialog(wx.Dialog):
         self.EndModal(wx.ID_OK)
         self._destroy()
         
-    def _on_cancel(self, events):
+    def _on_cancel(self, event):
         # Dismiss the dialog without making any changes.
         self.EndModal(wx.ID_CANCEL)
         self._destroy()
 
-    def _on_timeout_select(self, events):
+    def _on_timeout_select(self, event):
         # Dis/allow user input to timeout text control.
         if self.timeout_checkbox.GetValue():
             self.timeout_text_ctrl.Enable(True)
