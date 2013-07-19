@@ -40,6 +40,39 @@ STROKE_DISPLAY_SHOW_OPTION = 'show'
 DEFAULT_STROKE_DISPLAY_SHOW = False
 STROKE_DISPLAY_ON_TOP_OPTION = 'on_top'
 DEFAULT_STROKE_DISPLAY_ON_TOP = True
+STROKE_DISPLAY_X_OPTION = 'x'
+DEFAULT_STROKE_DISPLAY_X = -1
+STROKE_DISPLAY_Y_OPTION = 'y'
+DEFAULT_STROKE_DISPLAY_Y = -1
+
+CONFIG_FRAME_SECTION = 'Config Frame'
+CONFIG_FRAME_X_OPTION = 'x'
+DEFAULT_CONFIG_FRAME_X = -1
+CONFIG_FRAME_Y_OPTION = 'y'
+DEFAULT_CONFIG_FRAME_Y = -1
+CONFIG_FRAME_WIDTH_OPTION = 'width'
+DEFAULT_CONFIG_FRAME_WIDTH = -1
+CONFIG_FRAME_HEIGHT_OPTION = 'height'
+DEFAULT_CONFIG_FRAME_HEIGHT = -1
+
+MAIN_FRAME_SECTION = 'Main Frame'
+MAIN_FRAME_X_OPTION = 'x'
+DEFAULT_MAIN_FRAME_X = -1
+MAIN_FRAME_Y_OPTION = 'y'
+DEFAULT_MAIN_FRAME_Y = -1
+
+TRANSLATION_FRAME_SECTION = 'Translation Frame'
+TRANSLATION_FRAME_X_OPTION = 'x'
+DEFAULT_TRANSLATION_FRAME_X = -1
+TRANSLATION_FRAME_Y_OPTION = 'y'
+DEFAULT_TRANSLATION_FRAME_Y = -1
+
+SERIAL_CONFIG_FRAME_SECTION = 'Serial Config Frame'
+SERIAL_CONFIG_FRAME_X_OPTION = 'x'
+DEFAULT_SERIAL_CONFIG_FRAME_X = -1
+SERIAL_CONFIG_FRAME_Y_OPTION = 'y'
+DEFAULT_SERIAL_CONFIG_FRAME_Y = -1
+
 
 # Dictionary constants.
 JSON_EXTENSION = '.json'
@@ -63,6 +96,9 @@ class Config(object):
             self._config.readfp(fp)
         except ConfigParser.Error as e:
             raise InvalidConfigurationError(str(e))
+
+    def clear(self):
+        self._config = RawConfigParser()
 
     def save(self, fp):
         self._config.write(fp)
@@ -163,6 +199,94 @@ class Config(object):
         return self._get_bool(STROKE_DISPLAY_SECTION, 
             STROKE_DISPLAY_ON_TOP_OPTION, DEFAULT_STROKE_DISPLAY_ON_TOP)
 
+    def set_stroke_display_x(self, x):
+        self._set(STROKE_DISPLAY_SECTION, STROKE_DISPLAY_X_OPTION, x)
+
+    def get_stroke_display_x(self):
+        return self._get_int(STROKE_DISPLAY_SECTION, STROKE_DISPLAY_X_OPTION, 
+                             DEFAULT_STROKE_DISPLAY_X)
+
+    def set_stroke_display_y(self, y):
+        self._set(STROKE_DISPLAY_SECTION, STROKE_DISPLAY_Y_OPTION, y)
+
+    def get_stroke_display_y(self):
+        return self._get_int(STROKE_DISPLAY_SECTION, STROKE_DISPLAY_Y_OPTION, 
+                             DEFAULT_STROKE_DISPLAY_Y)
+
+    def set_config_frame_x(self, x):
+        self._set(CONFIG_FRAME_SECTION, CONFIG_FRAME_X_OPTION, x)
+        
+    def get_config_frame_x(self):
+        return self._get_int(CONFIG_FRAME_SECTION, CONFIG_FRAME_X_OPTION,
+                             DEFAULT_CONFIG_FRAME_X)
+
+    def set_config_frame_y(self, y):
+        self._set(CONFIG_FRAME_SECTION, CONFIG_FRAME_Y_OPTION, y)
+    
+    def get_config_frame_y(self):
+        return self._get_int(CONFIG_FRAME_SECTION, CONFIG_FRAME_Y_OPTION,
+                             DEFAULT_CONFIG_FRAME_Y)
+
+    def set_config_frame_width(self, width):
+        self._set(CONFIG_FRAME_SECTION, CONFIG_FRAME_WIDTH_OPTION, width)
+
+    def get_config_frame_width(self):
+        return self._get_int(CONFIG_FRAME_SECTION, CONFIG_FRAME_WIDTH_OPTION,
+                             DEFAULT_CONFIG_FRAME_WIDTH)
+
+    def set_config_frame_height(self, height):
+        self._set(CONFIG_FRAME_SECTION, CONFIG_FRAME_HEIGHT_OPTION, height)
+
+    def get_config_frame_height(self):
+        return self._get_int(CONFIG_FRAME_SECTION, CONFIG_FRAME_HEIGHT_OPTION,
+                             DEFAULT_CONFIG_FRAME_HEIGHT)
+
+    def set_main_frame_x(self, x):
+        self._set(MAIN_FRAME_SECTION, MAIN_FRAME_X_OPTION, x)
+    
+    def get_main_frame_x(self):
+        return self._get_int(MAIN_FRAME_SECTION, MAIN_FRAME_X_OPTION,
+                             DEFAULT_MAIN_FRAME_X)
+
+    def set_main_frame_y(self, y):
+        self._set(MAIN_FRAME_SECTION, MAIN_FRAME_Y_OPTION, y)
+
+    def get_main_frame_y(self):
+        return self._get_int(MAIN_FRAME_SECTION, MAIN_FRAME_Y_OPTION,
+                             DEFAULT_MAIN_FRAME_Y)
+
+    def set_translation_frame_x(self, x):
+        self._set(TRANSLATION_FRAME_SECTION, TRANSLATION_FRAME_X_OPTION, x)
+    
+    def get_translation_frame_x(self):
+        return self._get_int(TRANSLATION_FRAME_SECTION, 
+                             TRANSLATION_FRAME_X_OPTION,
+                             DEFAULT_TRANSLATION_FRAME_X)
+
+    def set_translation_frame_y(self, y):
+        self._set(TRANSLATION_FRAME_SECTION, TRANSLATION_FRAME_Y_OPTION, y)
+
+    def get_translation_frame_y(self):
+        return self._get_int(TRANSLATION_FRAME_SECTION, 
+                             TRANSLATION_FRAME_Y_OPTION,
+                             DEFAULT_TRANSLATION_FRAME_Y)
+    
+    def set_serial_config_frame_x(self, x):
+        self._set(SERIAL_CONFIG_FRAME_SECTION, SERIAL_CONFIG_FRAME_X_OPTION, x)
+    
+    def get_serial_config_frame_x(self):
+        return self._get_int(SERIAL_CONFIG_FRAME_SECTION, 
+                             SERIAL_CONFIG_FRAME_X_OPTION,
+                             DEFAULT_SERIAL_CONFIG_FRAME_X)
+
+    def set_serial_config_frame_y(self, y):
+        self._set(SERIAL_CONFIG_FRAME_SECTION, SERIAL_CONFIG_FRAME_Y_OPTION, y)
+
+    def get_serial_config_frame_y(self):
+        return self._get_int(SERIAL_CONFIG_FRAME_SECTION, 
+                             SERIAL_CONFIG_FRAME_Y_OPTION,
+                             DEFAULT_SERIAL_CONFIG_FRAME_Y)
+    
     def _set(self, section, option, value):
         if not self._config.has_section(section):
             self._config.add_section(section)
@@ -174,10 +298,21 @@ class Config(object):
         return default
 
     def _get_bool(self, section, option, default):
-        if self._config.has_option(section, option):
-            return self._config.getboolean(section, option)
+        try:
+            if self._config.has_option(section, option):
+                return self._config.getboolean(section, option)
+        except ValueError:
+            pass
         return default
 
+    def _get_int(self, section, option, default):
+        try:
+            if self._config.has_option(section, option):
+                return self._config.getint(section, option)
+        except ValueError:
+            pass
+        return default
+        
 
 def _dict_entry_key(s):
     try:

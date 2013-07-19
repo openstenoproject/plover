@@ -9,6 +9,7 @@ from serial.tools.list_ports import comports
 import string
 import wx
 import wx.animate
+from wx.lib.utils import AdjustRectToScreen
 from threading import Thread
 import os.path
 
@@ -43,15 +44,7 @@ def enumerate_ports():
 class SerialConfigDialog(wx.Dialog):
     """Serial port configuration dialog."""
 
-    def __init__(self,
-                 serial,
-                 parent,
-                 id=wx.ID_ANY,
-                 title='',
-                 pos=wx.DefaultPosition,
-                 size=wx.DefaultSize,
-                 style=wx.DEFAULT_DIALOG_STYLE,
-                 name=wx.DialogNameStr):
+    def __init__(self, serial, parent, config):
         """Create a configuration GUI for the given serial port.
 
         Arguments:
@@ -61,21 +54,14 @@ class SerialConfigDialog(wx.Dialog):
         be changed if the cancel button is pressed.
 
         parent -- See wx.Dialog.
-
-        id -- See wx.Dialog.
-
-        title -- See wx.Dialog.
-
-        pos -- See wx.Dialog.
-
-        size -- See wx.Dialog.
-
-        style -- See wx.Dialog.
-
-        name -- See wx.Dialog.
+        
+        config -- The config object that holds plover's settings.
 
         """
-        wx.Dialog.__init__(self, parent, id, title, pos, size, style, name)
+        self.config = config
+        pos = (config.get_serial_config_frame_x(), 
+               config.get_serial_config_frame_y())
+        wx.Dialog.__init__(self, parent, title=DIALOG_TITLE, pos=pos)
         self.SetTitle(DIALOG_TITLE)
 
         self.serial = serial
@@ -208,7 +194,9 @@ class SerialConfigDialog(wx.Dialog):
         global_sizer.Fit(self)
         global_sizer.SetSizeHints(self)
         self.Layout()
+        self.SetRect(AdjustRectToScreen(self.GetRect()))
         
+        self.Bind(wx.EVT_MOVE, self.on_move)
         self.Bind(wx.EVT_CLOSE, self._on_cancel)
         
         self._update()
@@ -313,6 +301,12 @@ class SerialConfigDialog(wx.Dialog):
             self.closed = True
         else:
             self.Destroy()
+            
+    def on_move(self, event):
+        pos = self.GetScreenPositionTuple()
+        self.config.set_serial_config_frame_x(pos[0]) 
+        self.config.set_serial_config_frame_y(pos[1])
+        event.Skip()
 
 class FloatValidator(wx.PyValidator):
     """Validates that a string can be converted to a float."""

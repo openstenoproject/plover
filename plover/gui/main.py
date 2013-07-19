@@ -11,14 +11,16 @@ resumes stenotype translation and allows for application configuration.
 import os
 import wx
 import wx.animate
+from wx.lib.utils import AdjustRectToScreen
 import plover.app as app
-import plover.config as conf
+from plover.config import ASSETS_DIR, SPINNER_FILE
 from plover.gui.config import ConfigurationDialog
 import plover.gui.add_translation
 from plover.oslayer.keyboardcontrol import KeyboardEmulation
 from plover.machine.base import STATE_ERROR, STATE_INITIALIZING, STATE_RUNNING
 from plover.machine.registry import machine_registry
 from plover.exception import InvalidConfigurationError
+from plover.gui.paper_tape import StrokeDisplayDialog
 
 from plover import __name__ as __software_name__
 from plover import __version__
@@ -32,28 +34,29 @@ from plover import __license__
 class PloverGUI(wx.App):
     """The main entry point for the Plover application."""
 
-    def __init__(self):
+    def __init__(self, config):
+        self.config = config
         wx.App.__init__(self, redirect=False)
 
     def OnInit(self):
         """Called just before the application starts."""
-        frame = Frame(conf.CONFIG_FILE)
+        frame = MainFrame(self.config)
         self.SetTopWindow(frame)
         frame.Show()
         return True
 
 
-class Frame(wx.Frame):
+class MainFrame(wx.Frame):
     """The top-level GUI element of the Plover application."""
 
     # Class constants.
     TITLE = "Plover"
     ALERT_DIALOG_TITLE = TITLE
-    ON_IMAGE_FILE = os.path.join(conf.ASSETS_DIR, 'plover_on.png')
-    OFF_IMAGE_FILE = os.path.join(conf.ASSETS_DIR, 'plover_off.png')
-    CONNECTED_IMAGE_FILE = os.path.join(conf.ASSETS_DIR, 'connected.png')
-    DISCONNECTED_IMAGE_FILE = os.path.join(conf.ASSETS_DIR, 'disconnected.png')
-    REFRESH_IMAGE_FILE = os.path.join(conf.ASSETS_DIR, 'refresh.png')
+    ON_IMAGE_FILE = os.path.join(ASSETS_DIR, 'plover_on.png')
+    OFF_IMAGE_FILE = os.path.join(ASSETS_DIR, 'plover_off.png')
+    CONNECTED_IMAGE_FILE = os.path.join(ASSETS_DIR, 'connected.png')
+    DISCONNECTED_IMAGE_FILE = os.path.join(ASSETS_DIR, 'disconnected.png')
+    REFRESH_IMAGE_FILE = os.path.join(ASSETS_DIR, 'refresh.png')
     BORDER = 5
     RUNNING_MESSAGE = "running"
     STOPPED_MESSAGE = "stopped"
@@ -69,11 +72,12 @@ class Frame(wx.Frame):
     COMMAND_FOCUS = 'FOCUS'
     COMMAND_QUIT = 'QUIT'
 
-    def __init__(self, config_file):
-        wx.Frame.__init__(self, None,
-                          title=Frame.TITLE,
-                          pos=wx.DefaultPosition,
-                          size=wx.DefaultSize,
+    def __init__(self, config):
+        self.config = config
+        
+        pos = wx.DefaultPosition
+        size = wx.DefaultSize
+        wx.Frame.__init__(self, None, title=self.TITLE, pos=pos, size=size,
                           style=wx.DEFAULT_FRAME_STYLE & ~(wx.RESIZE_BORDER |
                                                            wx.RESIZE_BOX |
                                                            wx.MAXIMIZE_BOX))
@@ -95,7 +99,7 @@ class Frame(wx.Frame):
 
         # Machine status.
         # TODO: Figure out why spinner has darker gray background.
-        self.spinner = wx.animate.GIFAnimationCtrl(self, -1, conf.SPINNER_FILE)
+        self.spinner = wx.animate.GIFAnimationCtrl(self, -1, SPINNER_FILE)
         self.spinner.GetPlayer().UseBackgroundColour(True)
         self.spinner.Hide()
 
@@ -147,19 +151,20 @@ class Frame(wx.Frame):
         global_sizer.Add(sizer)
         self.SetSizer(global_sizer)
         global_sizer.Fit(self)
+        
+        self.SetRect(AdjustRectToScreen(self.GetRect()))
 
         self.Bind(wx.EVT_CLOSE, self._quit)
+        self.Bind(wx.EVT_MOVE, self.on_move)
         self.reconnect_button.Bind(wx.EVT_BUTTON, 
             lambda e: app.reset_machine(self.steno_engine, self.config))
 
-        self.config = conf.Config()
-        self.config_file = config_file
         try:
-            with open(config_file) as f:
+            with open(config.target_file, 'rb') as f:
                 self.config.load(f)
         except InvalidConfigurationError as e:
             self._show_alert(unicode(e))
-            self.config = conf.Config()
+            self.config.clear()
 
         self.steno_engine = app.StenoEngine()
         self.steno_engine.add_callback(
@@ -174,12 +179,19 @@ class Frame(wx.Frame):
                 self.show_alert(unicode(e))
                 dlg = ConfigurationDialog(self.steno_engine,
                                           self.config,
-                                          self.config_file,
                                           parent=self)
                 re = dlg.ShowModel()
                 if ret == wx.ID_CANCEL:
                     self._quit()
                     return
+                    
+        self.steno_engine.add_stroke_listener(
+            StrokeDisplayDialog.stroke_handler)
+        if self.config.get_show_stroke_display():
+            StrokeDisplayDialog.display(self, self.config)
+            
+        pos = (config.get_main_frame_x(), config.get_main_frame_y())
+        self.SetPosition(pos)
 
     def consume_command(self, command):
         # TODO: When using keyboard to resume the stroke is typed.
@@ -197,7 +209,8 @@ class Frame(wx.Frame):
         elif command == self.COMMAND_QUIT:
             self._quit()
         elif command == self.COMMAND_ADD_TRANSLATION:
-            plover.gui.add_translation.Show(self, self.steno_engine)
+            plover.gui.add_translation.Show(self, self.steno_engine, 
+                                            self.config)
 
     def _update_status(self, state):
         if state:
@@ -241,7 +254,6 @@ class Frame(wx.Frame):
     def _show_config_dialog(self, event=None):
         dlg = ConfigurationDialog(self.steno_engine,
                                   self.config,
-                                  self.config_file,
                                   parent=self)
         dlg.Show()
 
@@ -264,6 +276,12 @@ class Frame(wx.Frame):
                                         wx.OK | wx.ICON_INFORMATION)
         alert_dialog.ShowModal()
         alert_dialog.Destroy()
+
+    def on_move(self, event):
+        pos = self.GetScreenPositionTuple()
+        self.config.set_main_frame_x(pos[0]) 
+        self.config.set_main_frame_y(pos[1])
+        event.Skip()
 
 class Output(object):
     def __init__(self, engine_command_callback):

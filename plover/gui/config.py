@@ -6,6 +6,7 @@
 import os
 import os.path
 import wx
+from wx.lib.utils import AdjustRectToScreen
 from collections import namedtuple
 import wx.lib.filebrowsebutton as filebrowse
 from wx.lib.scrolledpanel import ScrolledPanel
@@ -16,10 +17,13 @@ from plover.app import update_engine
 from plover.machine.registry import machine_registry
 from plover.exception import InvalidConfigurationError
 from plover.dictionary.loading_manager import manager as dict_manager
+from plover.gui.paper_tape import StrokeDisplayDialog
+
 
 ADD_TRANSLATION_BUTTON_NAME = "Add Translation"
 ADD_DICTIONARY_BUTTON_NAME = "Add Dictionary"
 MACHINE_CONFIG_TAB_NAME = "Machine"
+DISPLAY_CONFIG_TAB_NAME = "Display"
 DICTIONARY_CONFIG_TAB_NAME = "Dictionary"
 LOGGING_CONFIG_TAB_NAME = "Logging"
 SAVE_CONFIG_BUTTON_NAME = "Save"
@@ -30,12 +34,13 @@ LOG_STROKES_LABEL = "Log Strokes"
 LOG_TRANSLATIONS_LABEL = "Log Translations"
 LOG_FILE_DIALOG_TITLE = "Select a Log File"
 CONFIG_BUTTON_NAME = "Configure..."
-CONFIG_PANEL_SIZE = (600, 400)
+CONFIG_PANEL_SIZE = (-1, -1)
 UI_BORDER = 4
 COMPONENT_SPACE = 3
 UP_IMAGE_FILE = os.path.join(conf.ASSETS_DIR, 'up.png')
 DOWN_IMAGE_FILE = os.path.join(conf.ASSETS_DIR, 'down.png')
 REMOVE_IMAGE_FILE = os.path.join(conf.ASSETS_DIR, 'remove.png')
+TITLE = "Plover Configuration"
 
 class ConfigurationDialog(wx.Dialog):
     """A GUI for viewing and editing Plover configuration files.
@@ -49,26 +54,22 @@ class ConfigurationDialog(wx.Dialog):
     # Keep track of other instances of ConfigurationDialog.
     other_instances = []
     
-    def __init__(self, engine, config, config_file,
-                 parent=None,
-                 id=-1,
-                 title="Plover Configuration",
-                 pos=wx.DefaultPosition,
-                 size=wx.DefaultSize,
-                 style=wx.DEFAULT_DIALOG_STYLE | wx.RESIZE_BORDER):
+    def __init__(self, engine, config, parent):
         """Create a configuration GUI based on the given config file.
 
         Arguments:
 
-        config_file -- The absolute or relative path to the
         configuration file to view and edit.
         during_plover_init -- If this is set to True, the configuration dialog
         won't tell the user that Plover needs to be restarted.
         """
-        wx.Dialog.__init__(self, parent, id, title, pos, size, style)
+        pos = (config.get_config_frame_x(), config.get_config_frame_y())
+        size = wx.Size(config.get_config_frame_width(), 
+                       config.get_config_frame_height())
+        wx.Dialog.__init__(self, parent, title=TITLE, pos=pos, size=size, 
+                           style=wx.DEFAULT_DIALOG_STYLE | wx.RESIZE_BORDER)
         self.engine = engine
         self.config = config
-        self.config_file = config_file
 
         # Close all other instances.
         if self.other_instances:
@@ -77,9 +78,6 @@ class ConfigurationDialog(wx.Dialog):
         del self.other_instances[:]
         self.other_instances.append(self)
 
-        self._setup_ui()
-
-    def _setup_ui(self):
         sizer = wx.BoxSizer(wx.VERTICAL)
 
         # The tab container
@@ -90,11 +88,13 @@ class ConfigurationDialog(wx.Dialog):
         self.dictionary_config = DictionaryConfig(self.engine, self.config, 
                                                   notebook)
         self.logging_config = LoggingConfig(self.config, notebook)
+        self.display_config = DisplayConfig(self.config, notebook)
 
         # Adding each tab
         notebook.AddPage(self.machine_config, MACHINE_CONFIG_TAB_NAME)
         notebook.AddPage(self.dictionary_config, DICTIONARY_CONFIG_TAB_NAME)
         notebook.AddPage(self.logging_config, LOGGING_CONFIG_TAB_NAME)
+        notebook.AddPage(self.display_config, DISPLAY_CONFIG_TAB_NAME)
 
         sizer.Add(notebook, proportion=1, flag=wx.EXPAND)
 
@@ -114,10 +114,34 @@ class ConfigurationDialog(wx.Dialog):
         sizer.Add(button_sizer, flag=wx.ALL | wx.ALIGN_RIGHT, border=UI_BORDER)
         
         self.SetSizer(sizer)
-        sizer.Fit(self)
+        self.SetAutoLayout(True)
+        sizer.Layout()
+        #sizer.Fit(self)
+        
+        self.SetRect(AdjustRectToScreen(self.GetRect()))
         
         # Binding the save button to the self._save callback
         self.Bind(wx.EVT_BUTTON, self._save, save_button)
+        
+        self.Bind(wx.EVT_MOVE, self.on_move)
+        self.Bind(wx.EVT_SIZE, self.on_size)
+        self.Bind(wx.EVT_CLOSE, self.on_close)
+        
+    def on_move(self, event):
+        pos = self.GetScreenPositionTuple()
+        self.config.set_config_frame_x(pos[0]) 
+        self.config.set_config_frame_y(pos[1])
+        event.Skip()
+
+    def on_size(self, event):
+        size = self.GetSize()
+        self.config.set_config_frame_width(size.GetWidth())
+        self.config.set_config_frame_height(size.GetHeight())
+        event.Skip()
+        
+    def on_close(self, event):
+        self.other_instances.remove(self)
+        event.Skip()
 
     def _save(self, event):
         old_config = self.config.clone()
@@ -125,6 +149,7 @@ class ConfigurationDialog(wx.Dialog):
         self.machine_config.save()
         self.dictionary_config.save()
         self.logging_config.save()
+        self.display_config.save()
 
         try:
             update_engine(self.engine, old_config, self.config)
@@ -137,7 +162,7 @@ class ConfigurationDialog(wx.Dialog):
             alert_dialog.Destroy()
             return
 
-        with open(self.config_file, 'wb') as f:
+        with open(self.config.target_file, 'wb') as f:
             self.config.save(f)
 
         if self.IsModal():
@@ -161,8 +186,6 @@ class MachineConfig(wx.Panel):
         """
         wx.Panel.__init__(self, parent, size=CONFIG_PANEL_SIZE)
         self.config = config
-        self.config_class = None
-        self.config_instance = None
         sizer = wx.BoxSizer(wx.VERTICAL)
         box = wx.BoxSizer(wx.HORIZONTAL)
         box.Add(wx.StaticText(self, label=MACHINE_LABEL),
@@ -207,7 +230,7 @@ class MachineConfig(wx.Panel):
             def __init__(self, **kwargs):
                 self.__dict__.update(kwargs)
         config_instance = Struct(**self.advanced_options)
-        scd = SerialConfigDialog(config_instance, self)
+        scd = SerialConfigDialog(config_instance, self, self.config)
         scd.ShowModal()  # SerialConfigDialog destroys itself.
         self.advanced_options = config_instance.__dict__
 
@@ -280,7 +303,7 @@ class DictionaryConfig(ScrolledPanel):
         self.config.set_dictionary_file_names(filenames)
         
     def show_add_translation(self, event):
-        plover.gui.add_translation.Show(self, self.engine)
+        plover.gui.add_translation.Show(self, self.engine, self.config)
         
     def add_dictionary(self, event):
         dlg = wx.FileDialog(self, "Choose a file", os.getcwd(), "", self.mask, 
@@ -390,3 +413,41 @@ class LoggingConfig(wx.Panel):
             self.log_strokes_checkbox.GetValue())
         self.config.set_enable_translation_logging(
             self.log_translations_checkbox.GetValue())
+
+class DisplayConfig(wx.Panel):
+    
+    SHOW_STROKES_TEXT = "Open strokes display on startup"
+    SHOW_STROKES_BUTTON_TEXT = "Open stroke display"
+    
+    """Display configuration graphical user interface."""
+    def __init__(self, config, parent):
+        """Create a configuration component based on the given Config.
+
+        Arguments:
+
+        config -- A Config object.
+
+        parent -- This component's parent component.
+
+        """
+        wx.Panel.__init__(self, parent, size=CONFIG_PANEL_SIZE)
+        self.config = config
+        sizer = wx.BoxSizer(wx.VERTICAL)
+        
+        show_strokes_button = wx.Button(self, 
+                                        label=self.SHOW_STROKES_BUTTON_TEXT)
+        show_strokes_button.Bind(wx.EVT_BUTTON, self.on_show_strokes)
+        sizer.Add(show_strokes_button)
+        
+        self.show_strokes = wx.CheckBox(self, label=self.SHOW_STROKES_TEXT)
+        self.show_strokes.SetValue(config.get_show_stroke_display())
+        sizer.Add(self.show_strokes)
+
+        self.SetSizer(sizer)
+
+    def save(self):
+        """Write all parameters to the config."""
+        self.config.set_show_stroke_display(self.show_strokes.GetValue())
+
+    def on_show_strokes(self, event):
+        StrokeDisplayDialog.display(self.GetParent(), self.config)

@@ -144,6 +144,7 @@ class StenoEngine(object):
     def __init__(self):
         """Creates and configures a single steno pipeline."""
         self.subscribers = []
+        self.stroke_listeners = []
         self.is_running = False
         self.machine = None
 
@@ -239,8 +240,17 @@ class StenoEngine(object):
         """Turn translation logging on or off."""
         self.logger.enable_translation_logging(b)
 
+    def add_stroke_listener(self, listener):
+        self.stroke_listeners.append(listener)
+        
+    def remove_stroke_listener(self, listener):
+        self.stroke_listeners.remove(listener)
+
     def _translator_machine_callback(self, s):
-        self.translator.translate(steno.Stroke(s))
+        stroke = steno.Stroke(s)
+        self.translator.translate(stroke)
+        for listener in self.stroke_listeners:
+            listener(stroke)
 
     def _machine_state_callback(self, s):
         for callback in self.subscribers:

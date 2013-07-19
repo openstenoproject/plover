@@ -4,6 +4,7 @@
 """A gui display of recent strokes."""
 
 import wx
+from wx.lib.utils import AdjustRectToScreen
 from collections import deque
 from plover.steno import STENO_KEY_ORDER, STENO_KEY_NUMBERS
 
@@ -14,6 +15,7 @@ ALL_KEYS = ''.join(x[0].strip('-') for x in
                    sorted(STENO_KEY_ORDER.items(), key=lambda x: x[1]))
 REVERSE_NUMBERS = {v: k for k, v in STENO_KEY_NUMBERS.items()}
 STROKE_LINES = 30
+
 
 class StrokeDisplayDialog(wx.Dialog):
     
@@ -27,7 +29,8 @@ class StrokeDisplayDialog(wx.Dialog):
         style = wx.DEFAULT_DIALOG_STYLE
         if on_top:
             style |= wx.STAY_ON_TOP
-        wx.Dialog.__init__(self, parent, title=TITLE, style=style)
+        pos = (config.get_stroke_display_x(), config.get_stroke_display_y())
+        wx.Dialog.__init__(self, parent, title=TITLE, style=style, pos=pos)
                 
         sizer = wx.BoxSizer(wx.VERTICAL)
         
@@ -66,6 +69,20 @@ class StrokeDisplayDialog(wx.Dialog):
         self.close_all()
         self.other_instances.append(self)
         
+        self.SetRect(AdjustRectToScreen(self.GetRect()))
+        
+        self.Bind(wx.EVT_MOVE, self.on_move)
+        
+    def on_move(self, event):
+        pos = self.GetScreenPositionTuple()
+        self.config.set_stroke_display_x(pos[0]) 
+        self.config.set_stroke_display_y(pos[1])
+        event.Skip()
+        
+    def on_close(self, event):
+        self.other_instances.remove(self)
+        event.Skip()
+        
     def show_text(self, text):
         for i in range(len(self.labels) - 1):
             self.labels[i].SetLabel(self.labels[i + 1].GetLabel())
@@ -86,20 +103,19 @@ class StrokeDisplayDialog(wx.Dialog):
 
     def handle_on_top(self, event):
         self.config.set_stroke_display_on_top(event.IsChecked())
-        with open(self.config.target_file, 'wb') as fp:
-            self.config.save(fp)
         self.display(self.GetParent(), self.config)
 
     @staticmethod
     def close_all():
         for instance in StrokeDisplayDialog.other_instances:
             instance.Close()
+        del StrokeDisplayDialog.other_instances[:]
 
     @staticmethod
     def stroke_handler(stroke):
         StrokeDisplayDialog.strokes.append(stroke)
         for instance in StrokeDisplayDialog.other_instances:
-            instance.show_stroke(stroke)
+            wx.CallAfter(instance.show_stroke, stroke)
 
     @staticmethod
     def display(parent, config):
@@ -110,6 +126,8 @@ class fake_config(object):
     def __init__(self):
         self.on_top = True
         self.target_file = 'testfile'
+        self.x = -1
+        self.y = -1
         
     def get_stroke_display_on_top(self):
         return self.on_top
@@ -117,6 +135,18 @@ class fake_config(object):
     def set_stroke_display_on_top(self, b):
         self.on_top = b
         
+    def get_stroke_display_x(self):
+        return self.x
+
+    def set_stroke_display_x(self, x):
+        self.x = x
+
+    def get_stroke_display_y(self):
+        return self.y
+
+    def set_stroke_display_y(self, y):
+        self.y = y
+
     def save(self, fp):
         pass
 
