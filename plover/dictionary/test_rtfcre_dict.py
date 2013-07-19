@@ -39,6 +39,13 @@ class TestCase(unittest.TestCase):
         (r'\par\s1', '{#Return}{#Return}'),
         # Continuation styles are indented too.
         (r'\par\s2', '{#Return}{#Return}{^    ^}'),
+        # caseCATalyst punctuation.
+        (r'.', '{.}'),
+        (r'. ', '{.} '),
+        (r' . ', ' . '),
+        (r'{\cxa Q.}.', 'Q..'),
+        (r'Mr.', 'Mr.'),  # Don't mess with period that is part of a word.
+        (r'.attribute', '.attribute'),
         (r'{\cxstit contents}', 'contents'),
         (r'{\cxfing c}', '{&c}'),
         (r'{\cxp.}', '{.}'),

@@ -49,6 +49,8 @@ class TranslationConverter(object):
         self._command_pattern = re.compile(
             r'(\\\*)?\\([a-z]+)(-?[0-9]+)?[ ]?')
         self._multiple_whitespace_pattern = re.compile(r'([ ]{2,})')
+        # This poorly named variable indicates whether the current context is
+        # one where commands can be inserted (True) or not (False).
         self._whitespace = True
     
     def _make_re_handler(self, pattern, f):
@@ -170,6 +172,16 @@ class TranslationConverter(object):
     def _re_handle_eclipse_command(self, m):
         r'({[^\\][^{}]*})'
         return m.group()
+
+    # caseCATalyst doesn't put punctuation in \cxp so we will treat any 
+    # isolated punctuation at the beginning of the translation as special.
+    def _re_handle_punctuation(self, m):
+        r'^([.?!:;,])(?=\s|$)'
+        if self._whitespace:
+            result = '{%s}' % m.group(1)
+        else:
+            result = m.group(1)
+        return result
 
     def _re_handle_text(self, m):
         r'[^{}\\\r\n]+'
