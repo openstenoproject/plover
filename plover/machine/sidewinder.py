@@ -71,7 +71,7 @@ class Stenotype(StenotypeBase):
         self.suppress_keyboard(True)
         self._down_keys = set()
         self._released_keys = set()
-        self.arpegiate = params['arpegiate']
+        self.arpeggiate = params['arpeggiate']
 
     def start_capture(self):
         """Begin listening for output from the stenotype machine."""
@@ -103,7 +103,7 @@ class Stenotype(StenotypeBase):
         gui.
         """
         n = len(steno_keys)
-        if self.arpegiate:
+        if self.arpeggiate:
             n += 1
         suppress(n)
 
@@ -116,10 +116,10 @@ class Stenotype(StenotypeBase):
             self._released_keys = self._released_keys.intersection(self._down_keys)
 
         # A stroke is complete if all pressed keys have been released.
-        # If we are in arpegiate mode then only send stroke when spacebar is pressed.
+        # If we are in arpeggiate mode then only send stroke when spacebar is pressed.
         send_strokes = (self._down_keys and 
                         self._down_keys == self._released_keys)
-        if self.arpegiate:
+        if self.arpeggiate:
             send_strokes &= event.keystring == ' '
         if send_strokes:
             steno_keys = [KEYSTRING_TO_STENO_KEY[k] for k in self._down_keys
@@ -133,5 +133,5 @@ class Stenotype(StenotypeBase):
     def get_option_info():
         bool_converter = lambda s: s == 'True'
         return {
-            'arpegiate': (False, bool_converter),
+            'arpeggiate': (False, bool_converter),
         }

@@ -5,8 +5,8 @@ import wx
 from wx.lib.utils import AdjustRectToScreen
 
 DIALOG_TITLE = 'Keyboard Configuration'
-ARPEGIATE_LABEL = "Arpegiate"
-ARPEGIATE_INSTRUCTIONS = """Arpegiate allows using non-NKRO keyboards.
+ARPEGGIATE_LABEL = "Arpeggiate"
+ARPEGGIATE_INSTRUCTIONS = """Arpeggiate allows using non-NKRO keyboards.
 Each key can be pressed separately and the space bar
 is pressed to send the stroke."""
 UI_BORDER = 4
@@ -24,11 +24,11 @@ class KeyboardConfigDialog(wx.Dialog):
 
         sizer = wx.BoxSizer(wx.VERTICAL)
         
-        instructions = wx.StaticText(self, label=ARPEGIATE_INSTRUCTIONS)
+        instructions = wx.StaticText(self, label=ARPEGGIATE_INSTRUCTIONS)
         sizer.Add(instructions, border=UI_BORDER, flag=wx.ALL)
-        self.arpegiate_option = wx.CheckBox(self, label=ARPEGIATE_LABEL)
-        self.arpegiate_option.SetValue(options.arpegiate)
-        sizer.Add(self.arpegiate_option, border=UI_BORDER, 
+        self.arpeggiate_option = wx.CheckBox(self, label=ARPEGGIATE_LABEL)
+        self.arpeggiate_option.SetValue(options.arpeggiate)
+        sizer.Add(self.arpeggiate_option, border=UI_BORDER, 
                   flag=wx.LEFT | wx.RIGHT | wx.BOTTOM)
         
         ok_button = wx.Button(self, id=wx.ID_OK)
@@ -55,7 +55,7 @@ class KeyboardConfigDialog(wx.Dialog):
         event.Skip()
 
     def on_ok(self, event):
-        self.options.arpegiate = self.arpegiate_option.GetValue()
+        self.options.arpeggiate = self.arpeggiate_option.GetValue()
         self.EndModal(wx.ID_OK)
     
     def on_cancel(self, event):
