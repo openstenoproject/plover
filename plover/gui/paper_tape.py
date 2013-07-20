@@ -23,14 +23,15 @@ class StrokeDisplayDialog(wx.Dialog):
     strokes = deque(maxlen=STROKE_LINES)
 
     def __init__(self, parent, config):
-        self.config = config
+        self.config = config        
         on_top = config.get_stroke_display_on_top()
-        
         style = wx.DEFAULT_DIALOG_STYLE
         if on_top:
             style |= wx.STAY_ON_TOP
         pos = (config.get_stroke_display_x(), config.get_stroke_display_y())
         wx.Dialog.__init__(self, parent, title=TITLE, style=style, pos=pos)
+                
+        self.SetBackgroundColour(wx.WHITE)
                 
         sizer = wx.BoxSizer(wx.VERTICAL)
         
