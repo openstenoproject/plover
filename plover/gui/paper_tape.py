@@ -15,7 +15,10 @@ ALL_KEYS = ''.join(x[0].strip('-') for x in
                    sorted(STENO_KEY_ORDER.items(), key=lambda x: x[1]))
 REVERSE_NUMBERS = {v: k for k, v in STENO_KEY_NUMBERS.items()}
 STROKE_LINES = 30
-
+STYLE_TEXT = 'Style:'
+STYLE_PAPER = 'Paper'
+STYLE_RAW = 'Raw'
+STYLES = [STYLE_PAPER, STYLE_RAW]
 
 class StrokeDisplayDialog(wx.Dialog):
     
@@ -40,20 +43,32 @@ class StrokeDisplayDialog(wx.Dialog):
         self.on_top.Bind(wx.EVT_CHECKBOX, self.handle_on_top)
         sizer.Add(self.on_top, flag=wx.ALL, border=UI_BORDER)
         
-        self.header = wx.StaticText(self, label=ALL_KEYS)
+        box = wx.BoxSizer(wx.HORIZONTAL)
+        box.Add(wx.StaticText(self, label=STYLE_TEXT),
+                border=UI_BORDER,
+                flag=wx.ALIGN_RIGHT | wx.ALIGN_CENTER_VERTICAL | wx.RIGHT)
+        self.choice = wx.Choice(self, choices=STYLES)
+        self.choice.SetStringSelection(self.config.get_stroke_display_style())
+        self.choice.Bind(wx.EVT_CHOICE, self.on_style)
+        box.Add(self.choice, proportion=1)
+        sizer.Add(box, flag=wx.LEFT | wx.RIGHT | wx.BOTTOM | wx.EXPAND, 
+                  border=UI_BORDER)
+        
+        self.header = MyStaticText(self, label=ALL_KEYS)
         font = self.header.GetFont()
-        font.SetFaceName("Courier New")
+        font.SetFaceName("Courier")
         self.header.SetFont(font)
         sizer.Add(self.header, flag=wx.LEFT | wx.RIGHT | wx.BOTTOM, 
                   border=UI_BORDER)
         sizer.Add(wx.StaticLine(self), flag=wx.EXPAND)
-        
+
         self.labels = []
         for i in range(STROKE_LINES):
-            label = wx.StaticText(self, label=' ')
+            label = MyStaticText(self, label=' ')
             self.labels.append(label)
             font = label.GetFont()
-            font.SetFaceName("Courier New")
+            font.SetFaceName("Courier")
+            font.SetWeight(wx.FONTWEIGHT_NORMAL)
             label.SetFont(font)
             sizer.Add(label, border=UI_BORDER, 
                       flag=wx.LEFT | wx.RIGHT | wx.BOTTOM)
@@ -63,8 +78,7 @@ class StrokeDisplayDialog(wx.Dialog):
         sizer.Layout()
         sizer.Fit(self)
         
-        for stroke in self.strokes:
-            self.show_stroke(stroke)
+        self.on_style()
             
         self.Show()
         self.close_all()
@@ -90,6 +104,21 @@ class StrokeDisplayDialog(wx.Dialog):
         self.labels[-1].SetLabel(text)
         
     def show_stroke(self, stroke):
+        self.show_text(self.formatter(stroke))
+
+    def handle_on_top(self, event):
+        self.config.set_stroke_display_on_top(event.IsChecked())
+        self.display(self.GetParent(), self.config)
+
+    def on_style(self, event=None):
+        format = self.choice.GetStringSelection()
+        self.formatter = getattr(self, format.lower() + '_format')
+        for stroke in self.strokes:
+            self.show_stroke(stroke)
+        self.header.SetLabel(ALL_KEYS if format == STYLE_PAPER else ' ')
+        self.config.set_stroke_display_style(format)
+
+    def paper_format(self, stroke):
         text = [' '] * len(ALL_KEYS)
         keys = stroke.steno_keys[:]
         if any(key in REVERSE_NUMBERS for key in keys):
@@ -100,11 +129,10 @@ class StrokeDisplayDialog(wx.Dialog):
             index = STENO_KEY_ORDER[key]
             text[index] = ALL_KEYS[index]
         text = ''.join(text)
-        self.show_text(text)
+        return text        
 
-    def handle_on_top(self, event):
-        self.config.set_stroke_display_on_top(event.IsChecked())
-        self.display(self.GetParent(), self.config)
+    def raw_format(self, stroke):
+        return stroke.rtfcre
 
     @staticmethod
     def close_all():
@@ -123,12 +151,96 @@ class StrokeDisplayDialog(wx.Dialog):
         # StrokeDisplayDialog shows itself.
         StrokeDisplayDialog(parent, config)
 
+
+# This class exists solely so that the text doesn't get grayed out when the
+# window is not in focus.
+class MyStaticText(wx.PyControl):
+    def __init__(self, parent, id=wx.ID_ANY, label="", 
+                 pos=wx.DefaultPosition, size=wx.DefaultSize, 
+                 style=0, validator=wx.DefaultValidator, 
+                 name="MyStaticText"):
+        wx.PyControl.__init__(self, parent, id, pos, size, style|wx.NO_BORDER,
+                              validator, name)
+        wx.PyControl.SetLabel(self, label)
+        self.InheritAttributes()
+        self.SetInitialSize(size)
+        self.Bind(wx.EVT_PAINT, self.OnPaint)
+        self.Bind(wx.EVT_ERASE_BACKGROUND, self.OnEraseBackground)
+        
+    def OnPaint(self, event):
+        dc = wx.BufferedPaintDC(self)
+        self.Draw(dc)
+
+    def Draw(self, dc):
+        width, height = self.GetClientSize()
+
+        if not width or not height:
+            return
+
+        backBrush = wx.Brush(wx.WHITE, wx.SOLID)
+        dc.SetBackground(backBrush)
+        dc.Clear()
+            
+        dc.SetTextForeground(wx.BLACK)
+        dc.SetFont(self.GetFont())
+        label = self.GetLabel()
+        dc.DrawText(label, 0, 0)
+
+    def OnEraseBackground(self, event):
+        pass
+
+    def SetLabel(self, label):
+        wx.PyControl.SetLabel(self, label)
+        self.InvalidateBestSize()
+        self.SetSize(self.GetBestSize())
+        self.Refresh()
+        
+    def SetFont(self, font):
+        wx.PyControl.SetFont(self, font)
+        self.InvalidateBestSize()
+        self.SetSize(self.GetBestSize())
+        self.Refresh()
+        
+    def DoGetBestSize(self):
+        label = self.GetLabel()
+        font = self.GetFont()
+
+        if not font:
+            font = wx.SystemSettings.GetFont(wx.SYS_DEFAULT_GUI_FONT)
+
+        dc = wx.ClientDC(self)
+        dc.SetFont(font)
+
+        textWidth, textHeight = dc.GetTextExtent(label)
+        best = wx.Size(textWidth, textHeight)
+        self.CacheBestSize(best)
+        return best
+    
+    def AcceptsFocus(self):
+        return False
+
+    def SetForegroundColour(self, colour):
+        wx.PyControl.SetForegroundColour(self, colour)
+        self.Refresh()
+
+    def SetBackgroundColour(self, colour):
+        wx.PyControl.SetBackgroundColour(self, colour)
+        self.Refresh()
+
+    def GetDefaultAttributes(self):
+        return wx.StaticText.GetClassDefaultAttributes()
+    
+    def ShouldInheritColours(self):
+        return True
+
+
 class fake_config(object):
     def __init__(self):
         self.on_top = True
         self.target_file = 'testfile'
         self.x = -1
         self.y = -1
+        self.style = 'Raw'
         
     def get_stroke_display_on_top(self):
         return self.on_top
@@ -147,6 +259,12 @@ class fake_config(object):
 
     def set_stroke_display_y(self, y):
         self.y = y
+
+    def set_stroke_display_style(self, style):
+        self.style = style
+        
+    def get_stroke_display_style(self):
+        return self.style
 
     def save(self, fp):
         pass

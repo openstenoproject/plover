@@ -40,6 +40,8 @@ STROKE_DISPLAY_SHOW_OPTION = 'show'
 DEFAULT_STROKE_DISPLAY_SHOW = False
 STROKE_DISPLAY_ON_TOP_OPTION = 'on_top'
 DEFAULT_STROKE_DISPLAY_ON_TOP = True
+STROKE_DISPLAY_STYLE_OPTION = 'style'
+DEFAULT_STROKE_DISPLAY_STYLE = 'Paper'
 STROKE_DISPLAY_X_OPTION = 'x'
 DEFAULT_STROKE_DISPLAY_X = -1
 STROKE_DISPLAY_Y_OPTION = 'y'
@@ -203,6 +205,13 @@ class Config(object):
     def get_stroke_display_on_top(self):
         return self._get_bool(STROKE_DISPLAY_SECTION, 
             STROKE_DISPLAY_ON_TOP_OPTION, DEFAULT_STROKE_DISPLAY_ON_TOP)
+
+    def set_stroke_display_style(self, s):
+        self._set(STROKE_DISPLAY_SECTION, STROKE_DISPLAY_ON_TOP_OPTION, s)
+
+    def get_stroke_display_on_top(self):
+        return self._get(STROKE_DISPLAY_SECTION, STROKE_DISPLAY_STYLE_OPTION, 
+                         DEFAULT_STROKE_DISPLAY_STYLE)
 
     def set_stroke_display_x(self, x):
         self._set(STROKE_DISPLAY_SECTION, STROKE_DISPLAY_X_OPTION, x)

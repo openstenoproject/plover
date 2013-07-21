@@ -4,7 +4,7 @@
 """Unit tests for steno.py."""
 
 import unittest
-from steno import normalize_steno
+from steno import normalize_steno, Stroke
 
 class StenoTestCase(unittest.TestCase):
     def test_normalize_steno(self):
@@ -22,6 +22,13 @@ class StenoTestCase(unittest.TestCase):
         
         for arg, expected in cases:
             self.assertEqual('/'.join(normalize_steno(arg)), expected)
+            
+    def test_steno(self):
+        self.assertEqual(Stroke(['S-']).rtfcre, 'S')
+        self.assertEqual(Stroke(['S-', 'T-']).rtfcre, 'ST')
+        self.assertEqual(Stroke(['T-', 'S-']).rtfcre, 'ST')
+        self.assertEqual(Stroke(['-P', '-P']).rtfcre, '-P')
+        self.assertEqual(Stroke(['-P', 'X-']).rtfcre, 'X-P')
 
 if __name__ == '__main__':
     unittest.main()

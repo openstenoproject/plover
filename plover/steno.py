@@ -98,7 +98,7 @@ class Stroke:
         steno_keys = list(steno_keys_set)
 
         # Order the steno keys so comparisons can be made.
-        steno_keys.sort(key=lambda x: STENO_KEY_ORDER[x])
+        steno_keys.sort(key=lambda x: STENO_KEY_ORDER.get(x, -1))
          
         # Convert strokes involving the number bar to numbers.
         if '#' in steno_keys:
