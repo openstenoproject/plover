@@ -39,7 +39,7 @@ class StrokeDisplayDialog(wx.Dialog):
         sizer = wx.BoxSizer(wx.VERTICAL)
         
         self.on_top = wx.CheckBox(self, label=ON_TOP_TEXT)
-        self.on_top.SetValue(on_top)
+        self.on_top.SetValue(config.get_stroke_display_on_top())
         self.on_top.Bind(wx.EVT_CHECKBOX, self.handle_on_top)
         sizer.Add(self.on_top, flag=wx.ALL, border=UI_BORDER)
         

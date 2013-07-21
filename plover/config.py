@@ -207,9 +207,9 @@ class Config(object):
             STROKE_DISPLAY_ON_TOP_OPTION, DEFAULT_STROKE_DISPLAY_ON_TOP)
 
     def set_stroke_display_style(self, s):
-        self._set(STROKE_DISPLAY_SECTION, STROKE_DISPLAY_ON_TOP_OPTION, s)
+        self._set(STROKE_DISPLAY_SECTION, STROKE_DISPLAY_STYLE_OPTION, s)
 
-    def get_stroke_display_on_top(self):
+    def get_stroke_display_style(self):
         return self._get(STROKE_DISPLAY_SECTION, STROKE_DISPLAY_STYLE_OPTION, 
                          DEFAULT_STROKE_DISPLAY_STYLE)
 

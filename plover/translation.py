@@ -16,7 +16,8 @@ emits one or more Translation objects based on a greedy conversion algorithm.
 
 """
 
-from steno_dictionary import StenoDictionaryCollection
+from plover.steno import Stroke
+from plover.steno_dictionary import StenoDictionaryCollection
 
 class Translation(object):
     """A data model for the mapping between a sequence of Strokes and a string.
@@ -43,19 +44,19 @@ class Translation(object):
 
     """
 
-    def __init__(self, strokes, dictionary):
+    def __init__(self, outline, translation):
         """Create a translation by looking up strokes in a dictionary.
 
         Arguments:
 
-        strokes -- A list of Stroke objects.
+        outline -- A list of Stroke objects.
 
-        dictionary -- A dictionary that maps steno outlines to translations.
+        translation -- A translation for the outline or None.
 
         """
-        self.strokes = strokes
-        self.rtfcre = tuple(s.rtfcre for s in strokes)
-        self.english = dictionary.lookup(self.rtfcre)
+        self.strokes = outline
+        self.rtfcre = tuple(s.rtfcre for s in outline)
+        self.english = translation
         self.replaced = []
         self.formatting = None
 
@@ -272,8 +273,9 @@ def _translate_stroke(stroke, state, dictionary, callback):
         # existing translations by matching a longer entry in the
         # dictionary.
         for i in xrange(translation_index, len(state.translations)):
-            t = Translation(strokes, dictionary)
-            if t.english != None:
+            mapping = _lookup(strokes, dictionary)
+            if mapping != None:
+                t = Translation(strokes, mapping)
                 t.replaced = state.translations[i:]
                 undo.extend(t.replaced)
                 do.append(t)
@@ -281,8 +283,32 @@ def _translate_stroke(stroke, state, dictionary, callback):
             else:
                 del strokes[:len(state.translations[i])]
         else:
-            do.append(Translation([stroke], dictionary))
+            do.append(Translation([stroke], _lookup([stroke], dictionary)))
     
     del state.translations[len(state.translations) - len(undo):]
     callback(undo, do, state.last())
     state.translations.extend(do)
+
+SUFFIX_KEYS = ['-S', '-G', '-Z', '-D']
+
+def _lookup(strokes, dictionary):
+    dict_key = tuple(s.rtfcre for s in strokes)
+    result = dictionary.lookup(dict_key)
+    if result != None:
+        return result
+
+    for key in SUFFIX_KEYS:
+        if key in strokes[-1].steno_keys:
+            dict_key = (Stroke([key]).rtfcre,)
+            suffix_mapping = dictionary.lookup(dict_key)
+            if suffix_mapping == None: continue
+            keys = strokes[-1].steno_keys[:]
+            keys.remove(key)
+            copy = strokes[:]
+            copy[-1] = Stroke(keys)
+            dict_key = tuple(s.rtfcre for s in copy)
+            main_mapping = dictionary.lookup(dict_key)
+            if main_mapping == None: continue
+            return main_mapping + ' ' + suffix_mapping
+
+    return None
