@@ -284,7 +284,6 @@ class MainFrame(wx.Frame):
         self.config.set_main_frame_y(pos[1])
         event.Skip()
         
-    
 
 class Output(object):
     def __init__(self, engine_command_callback, engine):
@@ -305,4 +304,5 @@ class Output(object):
         # TODO: there might be a threading issue because the machine will issue send_backspace in its own thread.
         if not self.engine.is_running:
             self.engine.machine.suppress = self.send_backspaces
-        wx.CallAfter(self.engine_command_callback, c)
+        wx.CallAfter(wx.CallAfter, self.engine_command_callback, c)
+        #wx.CallAfter(self.engine_command_callback, c)
