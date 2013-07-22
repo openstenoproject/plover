@@ -33,14 +33,15 @@ def init_config_dir():
     
     This usually only does anything the first time plover is launched.
     """
-    
     # Create the configuration directory if needed.
     if not os.path.exists(CONFIG_DIR):
         os.makedirs(CONFIG_DIR)
-        # Copy the default dictionary to the configuration directory.
-        shutil.copyfile(os.path.join(ASSETS_DIR, DEFAULT_DICTIONARY_FILE),
-                        os.path.join(CONFIG_DIR,
-                                     DEFAULT_DICTIONARY_FILE))
+
+    # Copy the default dictionary to the configuration directory.
+    if not os.path.exists(DEFAULT_DICTIONARY_FILE):
+        dict_filename = os.path.basename(DEFAULT_DICTIONARY_FILE)
+        shutil.copyfile(os.path.join(ASSETS_DIR, dict_filename),
+                        DEFAULT_DICTIONARY_FILE)
 
     # Create a default configuration file if one doesn't already
     # exist.
