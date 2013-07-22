@@ -177,11 +177,11 @@ class MainFrame(wx.Frame):
                 app.init_engine(self.steno_engine, self.config)
                 break
             except InvalidConfigurationError as e:
-                self.show_alert(unicode(e))
+                self._show_alert(unicode(e))
                 dlg = ConfigurationDialog(self.steno_engine,
                                           self.config,
                                           parent=self)
-                re = dlg.ShowModel()
+                ret = dlg.ShowModal()
                 if ret == wx.ID_CANCEL:
                     self._quit()
                     return
