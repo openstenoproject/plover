@@ -7,6 +7,8 @@ from plover.machine.geminipr import Stenotype as geminipr
 from plover.machine.txbolt import Stenotype as txbolt
 from plover.machine.sidewinder import Stenotype as sidewinder
 from plover.machine.stentura import Stenotype as stentura
+from plover.machine.passport import Stenotype as passport
+
 try:
     from plover.machine.treal import Stenotype as treal
 except:
@@ -50,6 +52,7 @@ machine_registry.register('NKRO Keyboard', sidewinder)
 machine_registry.register('Gemini PR', geminipr)
 machine_registry.register('TX Bolt', txbolt)
 machine_registry.register('Stentura', stentura)
+machine_registry.register('Passport', passport)
 if treal:
     machine_registry.register('Treal', treal)
 

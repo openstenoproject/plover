@@ -5,13 +5,14 @@
 """A graphical user interface for configuring a serial port."""
 
 from serial import Serial
+from serial.tools.list_ports import comports
 import string
 import wx
 import wx.animate
+from wx.lib.utils import AdjustRectToScreen
 from threading import Thread
 import os.path
 
-from plover.oslayer.comscan import comscan
 from plover.config import SPINNER_FILE
 
 DIALOG_TITLE = 'Serial Port Configuration'
@@ -38,20 +39,12 @@ GLOBAL_BORDER = 4
 
 def enumerate_ports():
     """Enumerates available ports"""
-    return sorted([x['name'] for x in comscan() if x['available']])
+    return sorted(x[0] for x in comports())
 
 class SerialConfigDialog(wx.Dialog):
     """Serial port configuration dialog."""
 
-    def __init__(self,
-                 serial,
-                 parent,
-                 id=wx.ID_ANY,
-                 title='',
-                 pos=wx.DefaultPosition,
-                 size=wx.DefaultSize,
-                 style=wx.DEFAULT_DIALOG_STYLE,
-                 name=wx.DialogNameStr):
+    def __init__(self, serial, parent, config):
         """Create a configuration GUI for the given serial port.
 
         Arguments:
@@ -61,22 +54,14 @@ class SerialConfigDialog(wx.Dialog):
         be changed if the cancel button is pressed.
 
         parent -- See wx.Dialog.
-
-        id -- See wx.Dialog.
-
-        title -- See wx.Dialog.
-
-        pos -- See wx.Dialog.
-
-        size -- See wx.Dialog.
-
-        style -- See wx.Dialog.
-
-        name -- See wx.Dialog.
+        
+        config -- The config object that holds plover's settings.
 
         """
-        wx.Dialog.__init__(self, parent, id, title, pos, size, style, name)
-        self.SetTitle(DIALOG_TITLE)
+        self.config = config
+        pos = (config.get_serial_config_frame_x(), 
+               config.get_serial_config_frame_y())
+        wx.Dialog.__init__(self, parent, title=DIALOG_TITLE, pos=pos)
 
         self.serial = serial
 
@@ -208,7 +193,9 @@ class SerialConfigDialog(wx.Dialog):
         global_sizer.Fit(self)
         global_sizer.SetSizeHints(self)
         self.Layout()
+        self.SetRect(AdjustRectToScreen(self.GetRect()))
         
+        self.Bind(wx.EVT_MOVE, self.on_move)
         self.Bind(wx.EVT_CLOSE, self._on_cancel)
         
         self._update()
@@ -241,12 +228,13 @@ class SerialConfigDialog(wx.Dialog):
         self.rtscts_checkbox.SetValue(self.serial.rtscts)
         self.xonxoff_checkbox.SetValue(self.serial.xonxoff)
 
-    def _on_ok(self, events):
+    def _on_ok(self, event):
         # Transfer the configuration values to the serial config object.
+        sb = lambda s: int(float(s)) if float(s).is_integer() else float(s)
         self.serial.port = self.port_combo_box.GetValue()
         self.serial.baudrate = int(self.baudrate_choice.GetStringSelection())
         self.serial.bytesize = int(self.databits_choice.GetStringSelection())
-        self.serial.stopbits = float(self.stopbits_choice.GetStringSelection())
+        self.serial.stopbits = sb(self.stopbits_choice.GetStringSelection())
         self.serial.parity = self.parity_choice.GetStringSelection()
         self.serial.rtscts = self.rtscts_checkbox.GetValue()
         self.serial.xonxoff = self.xonxoff_checkbox.GetValue()
@@ -261,12 +249,12 @@ class SerialConfigDialog(wx.Dialog):
         self.EndModal(wx.ID_OK)
         self._destroy()
         
-    def _on_cancel(self, events):
+    def _on_cancel(self, event):
         # Dismiss the dialog without making any changes.
         self.EndModal(wx.ID_CANCEL)
         self._destroy()
 
-    def _on_timeout_select(self, events):
+    def _on_timeout_select(self, event):
         # Dis/allow user input to timeout text control.
         if self.timeout_checkbox.GetValue():
             self.timeout_text_ctrl.Enable(True)
@@ -312,6 +300,12 @@ class SerialConfigDialog(wx.Dialog):
             self.closed = True
         else:
             self.Destroy()
+            
+    def on_move(self, event):
+        pos = self.GetScreenPositionTuple()
+        self.config.set_serial_config_frame_x(pos[0]) 
+        self.config.set_serial_config_frame_y(pos[1])
+        event.Skip()
 
 class FloatValidator(wx.PyValidator):
     """Validates that a string can be converted to a float."""

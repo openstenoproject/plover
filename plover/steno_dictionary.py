@@ -1,8 +1,6 @@
 # Copyright (c) 2013 Hesky Fisher.
 # See LICENSE.txt for details.
 
-# TODO: unit test filters
-
 """StenoDictionary class and related functions.
 
 A steno dictionary maps sequences of steno strokes to translations.
@@ -10,6 +8,7 @@ A steno dictionary maps sequences of steno strokes to translations.
 """
 
 import collections
+import itertools
 from steno import normalize_steno
 
 class StenoDictionary(collections.MutableMapping):
@@ -20,7 +19,7 @@ class StenoDictionary(collections.MutableMapping):
 
     Attributes:
     longest_key -- A read only property holding the length of the longest key.
-    saver -- If set, is a function that will save this dictionary.
+    save -- If set, is a function that will save this dictionary.
 
     """
     def __init__(self, *args, **kw):
@@ -111,3 +110,68 @@ class StenoDictionary(collections.MutableMapping):
     def raw_get(self, key, default):
         """Bypass filters."""
         return self._dict.get(key, default)
+
+
+class StenoDictionaryCollection(object):
+    def __init__(self):
+        self.dicts = []
+        self.filters = []
+        self.longest_key = 0
+        self.longest_key_callbacks = set()
+
+    def set_dicts(self, dicts):
+        for d in self.dicts:
+            d.remove_longest_key_listener(self._longest_key_listener)
+        self.dicts = dicts[:]
+        self.dicts.reverse()
+        for d in dicts:
+            d.add_longest_key_listener(self._longest_key_listener)
+        self._longest_key_listener()
+
+    def lookup(self, key):
+        for d in self.dicts:
+            value = d.get(key, None)
+            if value:
+                for f in self.filters:
+                    if f(key, value):
+                        return None
+                return value
+
+    def raw_lookup(self, key):
+        for d in self.dicts:
+            value = d.get(key, None)
+            if value:
+                return value
+
+    def reverse_lookup(self, value):
+        for d in self.dicts:
+            key = d.reverse.get(value, None)
+            if key:
+                return key
+
+    def set(self, key, value):
+        if self.dicts:
+            self.dicts[0][key] = value
+
+    def save(self):
+        if self.dicts:
+            self.dicts[0].save()
+
+    def add_filter(self, f):
+        self.filters.append(f)
+
+    def remove_filter(self, f):
+        self.filters.remove(f)
+
+    def add_longest_key_listener(self, callback):
+        self.longest_key_callbacks.add(callback)
+
+    def remove_longest_key_listener(self, callback):
+        self.longest_key_callbacks.remove(callback)
+    
+    def _longest_key_listener(self, ignored=None):
+        new_longest_key = max(d.longest_key for d in self.dicts)
+        if new_longest_key != self.longest_key:
+            self.longest_key = new_longest_key
+            for c in self.longest_key_callbacks:
+                c(new_longest_key)

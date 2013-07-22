@@ -71,6 +71,7 @@ class Stenotype(StenotypeBase):
         self.suppress_keyboard(True)
         self._down_keys = set()
         self._released_keys = set()
+        self.arpeggiate = params['arpeggiate']
 
     def start_capture(self):
         """Begin listening for output from the stenotype machine."""
@@ -87,7 +88,7 @@ class Stenotype(StenotypeBase):
         self._keyboard_capture.suppress_keyboard(suppress)
 
     def _key_down(self, event):
-        # Called when a key is pressed.
+        """Called when a key is pressed."""
         if (self._is_keyboard_suppressed
             and event.keystring is not None
             and not self._keyboard_capture.is_keyboard_suppressed()):
@@ -95,18 +96,42 @@ class Stenotype(StenotypeBase):
         if event.keystring in KEYSTRING_TO_STENO_KEY:
             self._down_keys.add(event.keystring)
 
+    def _post_suppress(self, suppress, steno_keys):
+        """Backspace the last stroke since it matched a command.
+        
+        The suppress function is passed in to prevent threading issues with the 
+        gui.
+        """
+        n = len(steno_keys)
+        if self.arpeggiate:
+            n += 1
+        suppress(n)
+
     def _key_up(self, event):
-        if not event.keystring in KEYSTRING_TO_STENO_KEY:
-            return
-        # Called when a key is released.
-        # Remove invalid released keys.
-        self._released_keys = self._released_keys.intersection(self._down_keys)
-        # Process the newly released key.
-        self._released_keys.add(event.keystring)
+        """Called when a key is released."""
+        if event.keystring in KEYSTRING_TO_STENO_KEY:            
+            # Process the newly released key.
+            self._released_keys.add(event.keystring)
+            # Remove invalid released keys.
+            self._released_keys = self._released_keys.intersection(self._down_keys)
+
         # A stroke is complete if all pressed keys have been released.
-        if self._down_keys == self._released_keys:
+        # If we are in arpeggiate mode then only send stroke when spacebar is pressed.
+        send_strokes = (self._down_keys and 
+                        self._down_keys == self._released_keys)
+        if self.arpeggiate:
+            send_strokes &= event.keystring == ' '
+        if send_strokes:
             steno_keys = [KEYSTRING_TO_STENO_KEY[k] for k in self._down_keys
                           if k in KEYSTRING_TO_STENO_KEY]
-            self._down_keys.clear()
-            self._released_keys.clear()
-            self._notify(steno_keys)
+            if steno_keys:
+                self._down_keys.clear()
+                self._released_keys.clear()
+                self._notify(steno_keys)
+
+    @staticmethod
+    def get_option_info():
+        bool_converter = lambda s: s == 'True'
+        return {
+            'arpeggiate': (False, bool_converter),
+        }

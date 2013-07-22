@@ -2,7 +2,9 @@
 # See LICENSE.txt for details.
 
 import wx
+from wx.lib.utils import AdjustRectToScreen
 import sys
+from plover.steno import normalize_steno
 
 if sys.platform.startswith('win32'):
     import win32gui
@@ -75,10 +77,16 @@ class AddTranslationDialog(wx.Dialog):
     STROKES_TEXT = 'Strokes:'
     TRANSLATION_TEXT = 'Translation:'
     
-    def __init__(self, parent, engine):
+    other_instances = []
+    
+    def __init__(self, parent, engine, config):
+        pos = (config.get_translation_frame_x(), 
+               config.get_translation_frame_y())
         wx.Dialog.__init__(self, parent, wx.ID_ANY, TITLE, 
-                           wx.DefaultPosition, wx.DefaultSize, 
+                           pos, wx.DefaultSize, 
                            wx.DEFAULT_DIALOG_STYLE, wx.DialogNameStr)
+
+        self.config = config
 
         # components
         self.strokes_text = wx.TextCtrl(self, style=wx.TE_PROCESS_ENTER)
@@ -130,6 +138,7 @@ class AddTranslationDialog(wx.Dialog):
         global_sizer.Fit(self)
         global_sizer.SetSizeHints(self)
         self.Layout()
+        self.SetRect(AdjustRectToScreen(self.GetRect()))
         
         # events
         button.Bind(wx.EVT_BUTTON, self.on_add_translation)
@@ -149,6 +158,7 @@ class AddTranslationDialog(wx.Dialog):
         self.translation_text.Bind(wx.EVT_KILL_FOCUS, self.on_translation_lost_focus)
         self.translation_text.Bind(wx.EVT_TEXT_ENTER, self.on_add_translation)
         self.Bind(wx.EVT_CLOSE, self.on_close)
+        self.Bind(wx.EVT_MOVE, self.on_move)
         
         self.engine = engine
         
@@ -162,14 +172,21 @@ class AddTranslationDialog(wx.Dialog):
         self.engine.translator.set_state(self.previous_state)
         
         self.last_window = GetForegroundWindow()
+        
+        # Now that we saved the last window we'll close other instances. This 
+        # may restore their original window but we've already saved ours so it's 
+        # fine.
+        for instance in self.other_instances:
+            instance.Close()
+        del self.other_instances[:]
+        self.other_instances.append(self)
     
     def on_add_translation(self, event=None):
         d = self.engine.get_dictionary()
-        strokes = self.strokes_text.GetValue().upper().replace('/', ' ').split()
-        strokes = tuple(strokes)
+        strokes = self._normalized_strokes()
         translation = self.translation_text.GetValue().strip()
         if strokes and translation:
-            d[strokes] = translation
+            d.set(strokes, translation)
             d.save()
         self.Close()
 
@@ -179,22 +196,19 @@ class AddTranslationDialog(wx.Dialog):
             SetForegroundWindow(self.last_window)
         except:
             pass
+        self.other_instances.remove(self)
         self.Destroy()
 
     def on_strokes_change(self, event):
-        stroke = event.GetString().upper()
-        self.strokes_text.ChangeValue(stroke)
-        self.strokes_text.SetInsertionPointEnd()
-        strokes = stroke.replace('/', ' ').split()
-        stroke = '/'.join(strokes)
-        if stroke:
-            key = tuple(strokes)
+        key = self._normalized_strokes()
+        if key:
             d = self.engine.get_dictionary()
-            translation = d.raw_get(key, None)
+            translation = d.raw_lookup(key)
+            strokes = '/'.join(key)
             if translation:
-                label = '%s maps to %s' % (stroke, translation)
+                label = '%s maps to %s' % (strokes, translation)
             else:
-                label = '%s is not in the dictionary' % stroke
+                label = '%s is not in the dictionary' % strokes
         else:
             label = ''
         self.stroke_mapping_text.SetLabel(label)
@@ -206,7 +220,7 @@ class AddTranslationDialog(wx.Dialog):
         translation = event.GetString().strip()
         if translation:
             d = self.engine.get_dictionary()
-            strokes_list = d.reverse[translation]
+            strokes_list = d.reverse_lookup(translation)
             if strokes_list:
                 strokes = ', '.join('/'.join(x) for x in strokes_list)
                 label = '%s is mapped from %s' % (translation, strokes)
@@ -241,8 +255,19 @@ class AddTranslationDialog(wx.Dialog):
         special = '{#'  in escaped or '{PLOVER:' in escaped
         return not special
 
-def Show(parent, engine):
-    dialog_instance = AddTranslationDialog(parent, engine)
+    def on_move(self, event):
+        pos = self.GetScreenPositionTuple()
+        self.config.set_translation_frame_x(pos[0]) 
+        self.config.set_translation_frame_y(pos[1])
+        event.Skip()
+
+    def _normalized_strokes(self):
+        strokes = self.strokes_text.GetValue().upper().replace('/', ' ').split()
+        strokes = normalize_steno('/'.join(strokes))
+        return strokes
+
+def Show(parent, engine, config):
+    dialog_instance = AddTranslationDialog(parent, engine, config)
     dialog_instance.Show()
     dialog_instance.Raise()
     dialog_instance.strokes_text.SetFocus()

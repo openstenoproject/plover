@@ -20,9 +20,6 @@ class ConfigTestCase(unittest.TestCase):
         ('machine_type', config.MACHINE_CONFIG_SECTION, 
          config.MACHINE_TYPE_OPTION, config.DEFAULT_MACHINE_TYPE, 'foo', 'bar', 
          'blee'),
-        ('dictionary_file_name', config.DICTIONARY_CONFIG_SECTION, 
-         config.DICTIONARY_FILE_OPTION, config.DEFAULT_DICTIONARY_FILE, 'dict1', 
-         'd2', 'third'),
         ('log_file_name', config.LOGGING_CONFIG_SECTION, config.LOG_FILE_OPTION, 
          config.DEFAULT_LOG_FILE, 'l1', 'log', 'sawzall'),
         ('enable_stroke_logging', config.LOGGING_CONFIG_SECTION, 
@@ -34,6 +31,47 @@ class ConfigTestCase(unittest.TestCase):
         ('auto_start', config.MACHINE_CONFIG_SECTION, 
          config.MACHINE_AUTO_START_OPTION, config.DEFAULT_MACHINE_AUTO_START, 
          True, False, True),
+        ('show_stroke_display', config.STROKE_DISPLAY_SECTION, 
+         config.STROKE_DISPLAY_SHOW_OPTION, config.DEFAULT_STROKE_DISPLAY_SHOW, 
+         True, False, True),
+        ('stroke_display_on_top', config.STROKE_DISPLAY_SECTION, 
+         config.STROKE_DISPLAY_ON_TOP_OPTION, 
+         config.DEFAULT_STROKE_DISPLAY_ON_TOP, False, True, False),
+        ('stroke_display_style', config.STROKE_DISPLAY_SECTION, 
+         config.STROKE_DISPLAY_STYLE_OPTION, 
+         config.DEFAULT_STROKE_DISPLAY_STYLE, 'Raw', 'Paper', 'Pseudo'),
+        ('stroke_display_x', config.STROKE_DISPLAY_SECTION, 
+         config.STROKE_DISPLAY_X_OPTION, config.DEFAULT_STROKE_DISPLAY_X, 1, 2, 
+         3),
+        ('stroke_display_y', config.STROKE_DISPLAY_SECTION, 
+         config.STROKE_DISPLAY_Y_OPTION, config.DEFAULT_STROKE_DISPLAY_Y, 1, 2, 
+         3),
+        ('config_frame_x', config.CONFIG_FRAME_SECTION, 
+         config.CONFIG_FRAME_X_OPTION, config.DEFAULT_CONFIG_FRAME_X, 1, 2, 3),
+        ('config_frame_y', config.CONFIG_FRAME_SECTION, 
+         config.CONFIG_FRAME_Y_OPTION, config.DEFAULT_CONFIG_FRAME_Y, 1, 2, 3),
+        ('config_frame_width', config.CONFIG_FRAME_SECTION, 
+         config.CONFIG_FRAME_WIDTH_OPTION, config.DEFAULT_CONFIG_FRAME_WIDTH, 1, 
+         2, 3),
+        ('config_frame_height', config.CONFIG_FRAME_SECTION, 
+         config.CONFIG_FRAME_HEIGHT_OPTION, config.DEFAULT_CONFIG_FRAME_HEIGHT, 
+         1, 2, 3),
+        ('main_frame_x', config.MAIN_FRAME_SECTION, 
+         config.MAIN_FRAME_X_OPTION, config.DEFAULT_MAIN_FRAME_X, 1, 2, 3),
+        ('main_frame_y', config.MAIN_FRAME_SECTION, 
+         config.MAIN_FRAME_Y_OPTION, config.DEFAULT_MAIN_FRAME_Y, 1, 2, 3),
+        ('translation_frame_x', config.TRANSLATION_FRAME_SECTION, 
+         config.TRANSLATION_FRAME_X_OPTION, config.DEFAULT_TRANSLATION_FRAME_X, 
+         1, 2, 3),
+        ('translation_frame_y', config.TRANSLATION_FRAME_SECTION, 
+         config.TRANSLATION_FRAME_Y_OPTION, config.DEFAULT_TRANSLATION_FRAME_Y, 
+         1, 2, 3),
+        ('serial_config_frame_x', config.SERIAL_CONFIG_FRAME_SECTION, 
+         config.SERIAL_CONFIG_FRAME_X_OPTION, 
+         config.DEFAULT_SERIAL_CONFIG_FRAME_X, 1, 2, 3),
+        ('serial_config_frame_y', config.SERIAL_CONFIG_FRAME_SECTION, 
+         config.SERIAL_CONFIG_FRAME_Y_OPTION, 
+         config.DEFAULT_SERIAL_CONFIG_FRAME_Y, 1, 2, 3),
         )
 
         for case in cases:
@@ -136,6 +174,44 @@ class ConfigTestCase(unittest.TestCase):
             f = StringIO()
             c.save(f)
             self.assertEqual(f.getvalue(), s + '\n\n')
+
+    def test_dictionary_option(self):
+        c = config.Config()
+        section = config.DICTIONARY_CONFIG_SECTION
+        option = config.DICTIONARY_FILE_OPTION
+        # Check the default value.
+        self.assertEqual(c.get_dictionary_file_names(), 
+                         [config.DEFAULT_DICTIONARY_FILE])
+        # Set a value...
+        names = ['b', 'a', 'd', 'c']
+        c.set_dictionary_file_names(names)
+        # ...and make sure it is really set.
+        self.assertEqual(c.get_dictionary_file_names(), names)
+        # Load from a file encoded the old way...
+        f = StringIO('[%s]\n%s: %s' % (section, option, 'some_file'))
+        c.load(f)
+        # ..and make sure the right value is set.
+        self.assertEqual(c.get_dictionary_file_names(), ['some_file'])
+        # Load from a file encoded the new way...
+        filenames = '\n'.join('%s%d: %s' % (option, d, v) 
+                              for d, v in enumerate(names, start=1))
+        f = StringIO('[%s]\n%s' % (section, filenames))
+        c.load(f)
+        # ...and make sure the right value is set.
+        self.assertEqual(c.get_dictionary_file_names(), names)
+        
+        names.reverse()
+        
+        # Set a value...
+        c.set_dictionary_file_names(names)
+        f = StringIO()
+        # ...save it...
+        c.save(f)
+        # ...and make sure it's right.
+        filenames = '\n'.join('%s%d = %s' % (option, d, v) 
+                              for d, v in enumerate(names, start=1))
+        self.assertEqual(f.getvalue(), 
+                         '[%s]\n%s\n\n' % (section, filenames))
 
 if __name__ == '__main__':
     unittest.main()

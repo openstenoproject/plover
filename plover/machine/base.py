@@ -23,6 +23,7 @@ class StenotypeBase(object):
         self.stroke_subscribers = []
         self.state_subscribers = []
         self.state = STATE_STOPPED
+        self.suppress = None
 
     def start_capture(self):
         """Begin listening for output from the stenotype machine."""
@@ -61,8 +62,23 @@ class StenotypeBase(object):
 
     def _notify(self, steno_keys):
         """Invoke the callback of each subscriber with the given argument."""
+        # If the stroke matches a command while the keyboard is not suppressed 
+        # then the stroke needs to be suppressed after the fact. One of the 
+        # handlers will set the suppress function. This function is passed in to 
+        # prevent threading issues with the gui.
+        self.suppress = None
         for callback in self.stroke_subscribers:
             callback(steno_keys)
+        if self.suppress:
+            self._post_suppress(self.suppress, steno_keys)
+            
+    def _post_suppress(self, steno_keys):
+        """This is a complicated way for the application to tell the machine to 
+        suppress this stroke after the fact. This only currently has meaning for 
+        the keyboard machine so it can backspace over the last stroke when used 
+        to issue a command when plover is 'off'.
+        """
+        pass
 
     def _set_state(self, state):
         self.state = state
@@ -159,12 +175,13 @@ class SerialStenotypeBase(ThreadedStenotypeBase):
     def get_option_info():
         """Get the default options for this machine."""
         bool_converter = lambda s: s == 'True'
+        sb = lambda s: int(float(s)) if float(s).is_integer() else float(s)
         return {
             'port': (None, str), # TODO: make first port default
             'baudrate': (9600, int),
             'bytesize': (8, int),
             'parity': ('N', str),
-            'stopbits': (1, float),
+            'stopbits': (1, sb),
             'timeout': (2.0, float),
             'xonxoff': (False, bool_converter),
             'rtscts': (False, bool_converter)
