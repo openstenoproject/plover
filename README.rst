@@ -52,8 +52,8 @@ There is no package yet so an installation requires installing all dependencies.
 run the following commands::
 
     cd
-    sudo apt-get install python-xlib python-serial python-wxgtk2.8 wmctrl python-dev python-pip
-    sudo pip install -U appdirs simplejson
+    sudo apt-get install python-xlib python-wxgtk2.8 wmctrl python-dev python-pip
+    sudo pip install -U appdirs simplejson pyserial
     wget https://github.com/plover/plover/archive/v2.5.0.tar.gz
     tar -zxf v2.5.0.tar.gz
     cd plover-2.5.0
