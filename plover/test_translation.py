@@ -556,6 +556,15 @@ class TranslateStrokeTestCase(unittest.TestCase):
         self.translate(stroke('K-LG'))
         self.assertTranslations(lt)
 
+    def test_suffix_folding_multi_stroke(self):
+        self.define('K/-L', 'look')
+        self.define('-G', '{^ing}')
+        lt = self.lt('K/-LG')
+        self.assertEqual(lt[0].english, 'look {^ing}')
+        self.translate(stroke('K'))
+        self.translate(stroke('-LG'))
+        self.assertTranslations(lt)
+
     def test_suffix_folding_no_suffix(self):
         self.define('K-L', 'look')
         lt = self.lt('K-LG')
