@@ -44,29 +44,29 @@ STENO_KEY_NUMBERS = {'S-': '1-',
                      '-L': '-8',
                      '-T': '-9'}
 
-STENO_KEY_ORDER = {"#": -1,
-                   "S-": 0,
-                   "T-": 1,
-                   "K-": 2,
-                   "P-": 3,
-                   "W-": 4,
-                   "H-": 5,
-                   "R-": 6,
-                   "A-": 7,
-                   "O-": 8,
-                   "*": 9,  # Also 10, 11, and 12 for some machines.
-                   "-E": 13,
-                   "-U": 14,
-                   "-F": 15,
-                   "-R": 16,
-                   "-P": 17,
-                   "-B": 18,
-                   "-L": 19,
-                   "-G": 20,
-                   "-T": 21,
-                   "-S": 22,
-                   "-D": 23,
-                   "-Z": 24}
+STENO_KEY_ORDER = {"#": 0,
+                   "S-": 1,
+                   "T-": 2,
+                   "K-": 3,
+                   "P-": 4,
+                   "W-": 5,
+                   "H-": 6,
+                   "R-": 7,
+                   "A-": 8,
+                   "O-": 9,
+                   "*": 10,
+                   "-E": 11,
+                   "-U": 12,
+                   "-F": 13,
+                   "-R": 14,
+                   "-P": 15,
+                   "-B": 16,
+                   "-L": 17,
+                   "-G": 18,
+                   "-T": 19,
+                   "-S": 20,
+                   "-D": 21,
+                   "-Z": 22}
 
 
 class Stroke:
@@ -98,7 +98,7 @@ class Stroke:
         steno_keys = list(steno_keys_set)
 
         # Order the steno keys so comparisons can be made.
-        steno_keys.sort(key=lambda x: STENO_KEY_ORDER[x])
+        steno_keys.sort(key=lambda x: STENO_KEY_ORDER.get(x, -1))
          
         # Convert strokes involving the number bar to numbers.
         if '#' in steno_keys:

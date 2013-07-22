@@ -32,6 +32,7 @@ import plover.dictionary.json_dict as json_dict
 import plover.dictionary.rtfcre_dict as rtfcre_dict
 from plover.machine.registry import machine_registry, NoSuchMachineException
 from plover.logger import Logger
+from plover.dictionary.loading_manager import manager as dict_manager
 
 # Because 2.7 doesn't have this yet.
 class SimpleNamespace(object):
@@ -47,13 +48,12 @@ def init_engine(engine, config):
     """Initialize a StenoEngine from a config object."""
     reset_machine(engine, config)
     
-    dictionary_file_name = config.get_dictionary_file_name()
-    if dictionary_file_name:
-        try:
-            d = load_dictionary(dictionary_file_name)
-        except DictionaryLoaderException as e:
-            raise InvalidConfigurationError(unicode(e))
-        engine.set_dictionary(d)
+    dictionary_file_names = config.get_dictionary_file_names()
+    try:
+        dicts = dict_manager.load(dictionary_file_names)
+    except DictionaryLoaderException as e:
+        raise InvalidConfigurationError(unicode(e))
+    engine.get_dictionary().set_dicts(dicts)
 
     log_file_name = config.get_log_file_name()
     if log_file_name:
@@ -90,13 +90,13 @@ def update_engine(engine, old, new):
             raise InvalidConfigurationError(unicode(e))
         engine.set_machine(machine_class(machine_options))
 
-    dictionary_file_name = new.get_dictionary_file_name()
-    if old.get_dictionary_file_name() != dictionary_file_name:
+    dictionary_file_names = new.get_dictionary_file_names()
+    if old.get_dictionary_file_names() != dictionary_file_names:
         try:
-            d = load_dictionary(dictionary_file_name)
+            dicts = dict_manager.load(dictionary_file_names)
         except DictionaryLoaderException as e:
             raise InvalidConfigurationError(unicode(e))
-        engine.set_dictionary(d)
+        engine.get_dictionary().set_dicts(dicts)
 
     log_file_name = new.get_log_file_name()
     if old.get_log_file_name() != log_file_name:
@@ -144,6 +144,7 @@ class StenoEngine(object):
     def __init__(self):
         """Creates and configures a single steno pipeline."""
         self.subscribers = []
+        self.stroke_listeners = []
         self.is_running = False
         self.machine = None
 
@@ -239,8 +240,17 @@ class StenoEngine(object):
         """Turn translation logging on or off."""
         self.logger.enable_translation_logging(b)
 
+    def add_stroke_listener(self, listener):
+        self.stroke_listeners.append(listener)
+        
+    def remove_stroke_listener(self, listener):
+        self.stroke_listeners.remove(listener)
+
     def _translator_machine_callback(self, s):
-        self.translator.translate(steno.Stroke(s))
+        stroke = steno.Stroke(s)
+        self.translator.translate(stroke)
+        for listener in self.stroke_listeners:
+            listener(stroke)
 
     def _machine_state_callback(self, s):
         for callback in self.subscribers:
