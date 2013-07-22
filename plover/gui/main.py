@@ -195,23 +195,40 @@ class MainFrame(wx.Frame):
         self.SetPosition(pos)
 
     def consume_command(self, command):
-        # TODO: When using keyboard to resume the stroke is typed.
-        if command == self.COMMAND_SUSPEND:
-            self.steno_engine.set_is_running(False)
-        elif command == self.COMMAND_RESUME:
-            self.steno_engine.set_is_running(True)
+        # The first commands can be used whether plover is active or not.
+        if command == self.COMMAND_RESUME:
+            wx.CallAfter(self.steno_engine.set_is_running, True)
+            return True
         elif command == self.COMMAND_TOGGLE:
-            self.steno_engine.set_is_running(not self.steno_engine.is_running)
-        elif command == self.COMMAND_CONFIGURE:
-            self._show_config_dialog()
-        elif command == self.COMMAND_FOCUS:
-            self.Raise()
-            self.Iconize(False)
+            wx.CallAfter(self.steno_engine.set_is_running,
+                         not self.steno_engine.is_running)
+            return True
         elif command == self.COMMAND_QUIT:
-            self._quit()
+            wx.CallAfter(self._quit)
+            return True
+
+        if not self.steno_engine.is_running:
+            return False
+
+        # These commands can only be run when plover is active.
+        if command == self.COMMAND_SUSPEND:
+            wx.CallAfter(self.steno_engine.set_is_running, False)
+            return True
+        elif command == self.COMMAND_CONFIGURE:
+            wx.CallAfter(self._show_config_dialog)
+            return True
+        elif command == self.COMMAND_FOCUS:
+            def f():
+                self.Raise()
+                self.Iconize(False)
+            wx.CallAfter(f)
+            return True
         elif command == self.COMMAND_ADD_TRANSLATION:
-            plover.gui.add_translation.Show(self, self.steno_engine, 
-                                            self.config)
+            wx.CallAfter(plover.gui.add_translation.Show, 
+                         self, self.steno_engine, self.config)
+            return True
+            
+        return False
 
     def _update_status(self, state):
         if state:
@@ -300,9 +317,8 @@ class Output(object):
     def send_key_combination(self, c):
         wx.CallAfter(self.keyboard_control.send_key_combination, c)
 
+    # TODO: test all the commands now
     def send_engine_command(self, c):
-        # TODO: there might be a threading issue because the machine will issue send_backspace in its own thread.
-        if not self.engine.is_running:
+        result = self.engine_command_callback(c)
+        if result and not self.engine.is_running:
             self.engine.machine.suppress = self.send_backspaces
-        wx.CallAfter(wx.CallAfter, self.engine_command_callback, c)
-        #wx.CallAfter(self.engine_command_callback, c)
