@@ -17,6 +17,8 @@ import inspect
 import re
 from plover.steno import normalize_steno
 from plover.steno_dictionary import StenoDictionary
+# TODO: Move dictionary format somewhere more caninical than formatting.
+from plover.formatting import META_RE
 
 # A regular expression to capture an individual entry in the dictionary.
 DICT_ENTRY_PATTERN = re.compile(r'(?s)(?<!\\){\\\*\\cxs (?P<steno>[^}]+)}' + 
@@ -81,7 +83,7 @@ class TranslationConverter(object):
         return '{#Return}{#Return}'
         
     def _re_handle_infix(self, m):
-        r'\\cxds ([^{}\\\r\n]+)\\cxds'
+        r'\\cxds ([^{}\\\r\n]+)\\cxds ?'
         return '{^%s^}' % m.group(1)
         
     def _re_handle_suffix(self, m):
@@ -89,11 +91,11 @@ class TranslationConverter(object):
         return '{^%s}' % m.group(1)
 
     def _re_handle_prefix(self, m):
-        r'([^{}\\\r\n ]+)\\cxds'
+        r'([^{}\\\r\n ]+)\\cxds ?'
         return '{%s^}' % m.group(1)
 
     def _re_handle_commands(self, m):
-        r'(\\\*)?\\([a-z]+)(-?[0-9]+)?[ ]?'
+        r'(\\\*)?\\([a-z]+)(-?[0-9]+)? ?'
         
         ignore = bool(m.group(1))
         command = m.group(2)
@@ -294,31 +296,37 @@ def load_dictionary(s):
 HEADER = ("{\\rtf1\\ansi{\\*\\cxrev100}\\cxdict{\\*\\cxsystem Plover}" +
           "{\\stylesheet{\\s0 Normal;}}\n")
 
+def format_translation(t):
+    t = ' '.join([x.strip() for x in META_RE.findall(t) if x.strip()])
+    
+    t = re.sub(r'{\.}', '{\\cxp. }', t)
+    t = re.sub(r'{!}', '{\\cxp! }', t)
+    t = re.sub(r'{\?}', '{\\cxp? }', t)
+    t = re.sub(r'{\,}', '{\\cxp, }', t)
+    t = re.sub(r'{:}', '{\\cxp: }', t)
+    t = re.sub(r'{;}', '{\\cxp; }', t)
+    t = re.sub(r'{\^}', '\\cxds ', t)
+    t = re.sub(r'{\^([^^}]*)}', '\\cxds \\1', t)
+    t = re.sub(r'{([^^}]*)\^}', '\\1\\cxds ', t)
+    t = re.sub(r'{\^([^^}]*)\^}', '\\cxds \\1\\cxds ', t)
+    t = re.sub(r'{-\|}', '\\cxfc ', t)
+    t = re.sub(r'{>}', '\\cxfls ', t)
+    t = re.sub(r'{ }', ' ', t)
+    t = re.sub(r'{&([^}]+)}', '{\\cxfing \\1}', t)
+    t = re.sub(r'{#([^}]+)}', '\\{#\\1\\}', t)
+    t = re.sub(r'{PLOVER:([a-zA-Z]+)}', '\\{PLOVER:\\1\\}', t)
+    t = re.sub(r'\\"', '"', t)
+    
+    return t
+    
+
 # TODO: test this
 def save_dictionary(d, fp):
     fp.write(HEADER)
 
     for s, t in d.items():
         s = '/'.join(s)
-        
-        t = re.sub(r'{\.}', '{\\cxp. }', t)
-        t = re.sub(r'{!}', '{\\cxp! }', t)
-        t = re.sub(r'{\?}', '{\\cxp? }', t)
-        t = re.sub(r'{\,}', '{\\cxp, }', t)
-        t = re.sub(r'{:}', '{\\cxp: }', t)
-        t = re.sub(r'{;}', '{\\cxp; }', t)
-        t = re.sub(r'{\^}', '\\cxds ', t)
-        t = re.sub(r'{\^([^^}]*)}', '\\cxds \\1', t)
-        t = re.sub(r'{([^^}]*)\^}', '\\1\\cxds ', t)
-        t = re.sub(r'{\^([^^}]*)\^}', '\\cxds \\1\\cxds ', t)
-        t = re.sub(r'{-\|}', '\\cxfc ', t)
-        t = re.sub(r'{>}', '\\cxfls ', t)
-        t = re.sub(r'{ }', ' ', t)
-        t = re.sub(r'{&([^}]+)}', '{\\cxfing \\1}', t)
-        t = re.sub(r'{#([^}]+)}', '\\{#\\1\\}', t)
-        t = re.sub(r'{PLOVER:([a-zA-Z]+)}', '\\{PLOVER:\\1\\}', t)
-        t = re.sub(r'\\"', '"', t)
-
+        t = format_translation(t)
         entry = "{\\*\\cxs %s}%s\r\n" % (s, t)
         fp.write(entry)
 
