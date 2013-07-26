@@ -160,7 +160,9 @@ class KeyboardCapture(threading.Thread):
                                        self.record_display.display, None, None)
             keycode = event.detail
             modifiers = event.state
-            keysym = KEYCODE_TO_PSEUDOKEY.get(keycode, 0)
+            keysym = self.local_display.keycode_to_keysym(keycode, modifiers & ~0x10)
+            if modifiers & ~0x10 == 0:
+                keysym = KEYCODE_TO_PSEUDOKEY.get(keycode, keysym)
             key_event = XKeyEvent(keycode, modifiers, keysym)
             # Either ignore the event...
             if self.key_events_to_ignore:
