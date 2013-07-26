@@ -159,9 +159,9 @@ class KeyboardCapture(threading.Thread):
             event, data = rq.EventField(None).parse_binary_value(data,
                                        self.record_display.display, None, None)
             keycode = event.detail
-            modifiers = event.state
-            keysym = self.local_display.keycode_to_keysym(keycode, modifiers & ~0x10)
-            if modifiers & ~0x10 == 0:
+            modifiers = event.state & ~0b10000 & 0xFF
+            keysym = self.local_display.keycode_to_keysym(keycode, modifiers)
+            if modifiers == 0:
                 keysym = KEYCODE_TO_PSEUDOKEY.get(keycode, keysym)
             key_event = XKeyEvent(keycode, modifiers, keysym)
             # Either ignore the event...
