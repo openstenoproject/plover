@@ -35,6 +35,44 @@ but could not be found."
 
 keyboard_capture_instances = []
 
+KEYCODE_TO_PSEUDOKEY = {38: ord("a"),
+                        24: ord("q"),
+                        25: ord("w"),
+                        39: ord("s"),
+                        26: ord("e"),
+                        40: ord("d"),
+                        27: ord("r"),
+                        41: ord("f"),
+                        54: ord("c"),
+                        55: ord("v"),
+                        28: ord("t"),
+                        42: ord("g"),
+                        29: ord("y"),
+                        43: ord("h"),
+                        57: ord("n"),
+                        58: ord("m"),
+                        30: ord("u"),
+                        44: ord("j"),
+                        31: ord("i"),
+                        45: ord("k"),
+                        32: ord("o"),
+                        46: ord("l"),
+                        33: ord("p"),
+                        47: ord(";"),
+                        34: ord("["),
+                        48: ord("'"),
+                        10: ord("1"),
+                        11: ord("2"),
+                        12: ord("3"),
+                        13: ord("4"),
+                        14: ord("5"),
+                        15: ord("6"),
+                        16: ord("7"),
+                        17: ord("8"),
+                        18: ord("9"),
+                        19: ord("0"),
+                        20: ord("-"),
+                        21: ord("=")}
 
 class KeyboardCapture(threading.Thread):
     """Listen to keyboard press and release events."""
@@ -122,10 +160,7 @@ class KeyboardCapture(threading.Thread):
                                        self.record_display.display, None, None)
             keycode = event.detail
             modifiers = event.state
-            # Numlock modifier is 0x10. It is often on but
-            # keycode_to_keysym doesn't return the right value when
-            # given numlock so it is removed in this call.
-            keysym = self.local_display.keycode_to_keysym(keycode, modifiers & ~0x10)
+            keysym = KEYCODE_TO_PSEUDOKEY.get(keycode, 0)
             key_event = XKeyEvent(keycode, modifiers, keysym)
             # Either ignore the event...
             if self.key_events_to_ignore:
