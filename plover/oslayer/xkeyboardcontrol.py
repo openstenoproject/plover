@@ -238,7 +238,7 @@ class KeyboardEmulation(object):
             keycode, modifiers = self._keysym_to_keycode_and_modifiers(keysym)
             if keycode is not None:
                 self._send_keycode(keycode, modifiers)
-        self.display.sync()
+                self.display.sync()
 
     def send_key_combination(self, combo_string):
         """Emulate a sequence of key combinations.
@@ -313,7 +313,7 @@ class KeyboardEmulation(object):
         # Emulate the key combination by sending key events.
         for keycode, event_type in keycode_events:
             xtest.fake_input(self.display, event_type, keycode)
-        self.display.sync()
+            self.display.sync()
 
     def _send_keycode(self, keycode, modifiers=0):
         """Emulate a key press and release.
