@@ -14,6 +14,7 @@ Supported stenotype protocols:
  * TX Bolt (a.k.a. Gemini TX)
  * Stentura
  * Treal
+ * Passport
 
 Contact the authors if you would like Plover to support your stenotype
 machine.
