@@ -154,6 +154,8 @@ class StrokeDisplayDialog(wx.Dialog):
 
 # This class exists solely so that the text doesn't get grayed out when the
 # window is not in focus.
+# This class exists solely so that the text doesn't get grayed out when the
+# window is not in focus.
 class MyStaticText(wx.PyControl):
     def __init__(self, parent, id=wx.ID_ANY, label="", 
                  pos=wx.DefaultPosition, size=wx.DefaultSize, 
@@ -232,7 +234,6 @@ class MyStaticText(wx.PyControl):
     
     def ShouldInheritColours(self):
         return True
-
 
 class fake_config(object):
     def __init__(self):

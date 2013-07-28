@@ -1,11 +1,11 @@
 # Copyright (c) 2013 Hesky Fisher
 # See LICENSE.txt for details.
 
-from plover.steno_dictionary import StenoDictionary
-from rtfcre_dict import load_dictionary, TranslationConverter
+from plover.dictionary.rtfcre_dict import load_dictionary, TranslationConverter, format_translation, save_dictionary
 import mock
 import re
 import unittest
+from cStringIO import StringIO
 
 class TestCase(unittest.TestCase):
     
@@ -25,9 +25,12 @@ class TestCase(unittest.TestCase):
         (r'\_', '-'),
         ('\\\r\n', '{#Return}{#Return}'),
         (r'\cxds', '{^}'),
+        (r'pre\cxds ', '{pre^}'),
+        (r'pre\cxds  ', '{pre^} '),
         (r'pre\cxds', '{pre^}'),
         (r'\cxds post', '{^post}'),
         (r'\cxds in\cxds', '{^in^}'),
+        (r'\cxds in\cxds ', '{^in^}'),
         (r'\cxfc', '{-|}'),
         (r'\cxfl', '{>}'),
         (r'pre\cxfl', 'pre{>}'),
@@ -74,6 +77,7 @@ class TestCase(unittest.TestCase):
         (r'{\cxconf [{\cxc abc}|{\cxc def}]}', 'def'),
         (r'{\cxconf [{\cxc abc}|{\cxc def}|{\cxc ghi}]}', 'ghi'),
         (r'{\cxconf [{\cxc abc}|{\cxc {\cxp... }}]}', '{^... ^}'),
+        (r'be\cxds{\*\cxsvatdictentrydate\yr2006\mo5\dy10}', '{be^}'),
         
         (r'{\nonexistant {\cxp .}}', '{.}'),
         (r'{\*\nonexistant {\cxp .}}', ''),
@@ -172,8 +176,35 @@ class TestCase(unittest.TestCase):
                 expected = dict((normalize(k), convert(v)) 
                                 for k, v in expected.iteritems())
                 assertEqual(load_dictionary(make_dict(s)), expected)
-                
+
+    def test_format_translation(self):
+        cases = (
+        ('', ''),
+        ('{^in^}', '\cxds in\cxds '),
+        ('{pre^}', 'pre\cxds '),
+        ('{pre^} ', 'pre\cxds '),
+        ('{pre^}  ', 'pre\cxds ')
+        )
+        
+        failed = False
+        format_str = "format({}) != {}: {}"
+        for before, expected in cases:
+            result = format_translation(before)
+            if result != expected:
+                failed = True
+                print format_str.format(before, expected, result)
             
+        self.assertFalse(failed)
+        
+    def test_save_dictionary(self):
+        f = StringIO()
+        d = {
+        'S/T': '{pre^}',
+        }
+        save_dictionary(d, f)
+        expected = '{\\rtf1\\ansi{\\*\\cxrev100}\\cxdict{\\*\\cxsystem Plover}{\\stylesheet{\\s0 Normal;}}\n{\\*\\cxs S///T}pre\\cxds \r\n}\n' 
+        self.assertEqual(f.getvalue(), expected)
+
 
 if __name__ == '__main__':
     unittest.main()
