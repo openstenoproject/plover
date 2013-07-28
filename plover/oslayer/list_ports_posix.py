@@ -213,19 +213,6 @@ elif plat[:3] == 'aix':      # AIX
         return [(d, d, d) for d in devices]
 
 else:
-    # platform detection has failed...
-    sys.stderr.write("""\
-don't know how to enumerate ttys on this system.
-! I you know how the serial ports are named send this information to
-! the author of this module:
-
-sys.platform = %r
-os.name = %r
-pySerial version = %s
-
-also add the naming scheme of the serial ports and with a bit luck you can get
-this module running...
-""" % (sys.platform, os.name, serial.VERSION))
     raise ImportError("Sorry: no implementation for your platform ('%s') available" % (os.name,))
 
 # test
