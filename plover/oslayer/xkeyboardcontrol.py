@@ -209,6 +209,7 @@ class KeyboardEmulation(object):
         backspace_keysym = XK.string_to_keysym('BackSpace')
         self.backspace_keycode, mods = self._keysym_to_keycode_and_modifiers(
                                                 backspace_keysym)
+        self.time = 0
 
     def send_backspaces(self, number_of_backspaces):
         """Emulate the given number of backspaces.
@@ -348,8 +349,11 @@ class KeyboardEmulation(object):
 
         """
         target_window = self.display.get_input_focus().focus
+        # Make sure every event time is different than the previous one, to
+        # avoid an application thinking its an auto-repeat.
+        self.time += 1
         key_event = event_class(detail=keycode,
-                                 time=X.CurrentTime,
+                                 time=self.time,
                                  root=self.display.screen().root,
                                  window=target_window,
                                  child=X.NONE,
