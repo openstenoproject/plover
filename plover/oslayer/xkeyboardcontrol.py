@@ -351,7 +351,7 @@ class KeyboardEmulation(object):
         target_window = self.display.get_input_focus().focus
         # Make sure every event time is different than the previous one, to
         # avoid an application thinking its an auto-repeat.
-        self.time += 1
+        self.time = (self.time + 1) % 4294967295
         key_event = event_class(detail=keycode,
                                  time=self.time,
                                  root=self.display.screen().root,
