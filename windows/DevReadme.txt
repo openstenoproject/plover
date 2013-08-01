@@ -7,6 +7,7 @@ To create a windows dev environment you need to install:
 - pywinusb
 - mock
 - pyhook
+- pywinauto
 
 The starting point for plover is application\plover. You will need to add the root dir of the distribution to the PYTHONPATH environment variable. Alternatively, you can temporarily move application\plover to the root and change its name to launch.py (it may not be called plover.py) and call it from there.
 
