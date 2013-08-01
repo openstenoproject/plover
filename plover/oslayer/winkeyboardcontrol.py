@@ -21,35 +21,58 @@ import pyHook
 import pythoncom
 import threading
 import win32api
-import win32com.client
 import win32con
+from pywinauto.SendKeysCtypes import SendKeys as _SendKeys
+
+def SendKeys(s):
+    _SendKeys(s, with_spaces=True)
+
 # For the purposes of this class, we'll only report key presses that
 # result in these outputs in order to exclude special key combos.
-
-WATCHED_KEYS = set(['`', '1', '2', '3', '4', '5', '6', '7', '8', '9', '0', '-',
-                    '=', 'q', 'w', 'e', 'r', 't', 'y', 'u', 'i', 'o', 'p', '[',
-                    ']', '\\', 'a', 's', 'd', 'f', 'g', 'h', 'j', 'k', 'l',
-                    ';', '\'', 'z', 'x', 'c', 'v', 'b', 'n', 'm', ',', '.',
-                    '/', ' '])
+KEY_TO_ASCII = {
+    41: '`', 2: '1', 3: '2', 4: '3', 5: '4', 6: '5', 7: '6', 8: '7', 
+    9: '8', 10: '9', 11: '0', 12: '-', 13: '=', 16: 'q', 
+    17: 'w', 18: 'e', 19: 'r', 20: 't', 21: 'y', 22: 'u', 23: 'i',
+    24: 'o', 25: 'p', 26: '[', 27: ']', 43: '\\',
+    30: 'a', 31: 's', 32: 'd', 33: 'f', 34: 'g', 35: 'h', 36: 'j',
+    37: 'k', 38: 'l', 39: ';', 40: '\'', 44: 'z', 45: 'x',
+    46: 'c', 47: 'v', 48: 'b', 49: 'n', 50: 'm', 51: ',', 
+    52: '.', 53: '/', 57: ' ',
+}
 
 
 class KeyboardCapture(threading.Thread):
     """Listen to all keyboard events."""
 
+    CONTROL_KEYS = set(('Lcontrol', 'Rcontrol'))
+    SHIFT_KEYS = set(('Lshift', 'Rshift'))
+    ALT_KEYS = set(('Lmenu', 'Rmenu'))
+    
     def __init__(self):
         threading.Thread.__init__(self)
 
         self.suppress_keyboard(True)
+        
+        self.shift = False
+        self.ctrl = False
+        self.alt = False
 
         # NOTE(hesky): Does this need to be more efficient and less
         # general if it will be called for every keystroke?
         def on_key_event(func_name, event):
-            if not event.Injected and chr(event.Ascii) in WATCHED_KEYS:
-                getattr(self, func_name,
-                        lambda x: True)(KeyboardEvent(event.Ascii))
-                return not self.is_keyboard_suppressed()
-            else:
-                return True
+            ascii = KEY_TO_ASCII.get(event.ScanCode, None)
+            if not event.Injected:
+                if event.Key in self.CONTROL_KEYS:
+                    self.ctrl = func_name == 'key_down'
+                if event.Key in self.SHIFT_KEYS:
+                    self.shift = func_name == 'key_down'
+                if event.Key in self.ALT_KEYS:
+                    self.alt = func_name == 'key_down'
+                if ascii and not self.ctrl and not self.alt and not self.shift:
+                    getattr(self, func_name, lambda x: True)(KeyboardEvent(ascii))
+                    return not self.is_keyboard_suppressed()
+            
+            return True
 
         self.hm = pyHook.HookManager()
         self.hm.KeyDown = functools.partial(on_key_event, 'key_down')
@@ -139,18 +162,14 @@ class KeyboardEmulation:
         "F16": "{F16}",
     }
 
-    def __init__(self):
-        # Todo(Hesky): Is this hacky? Should we use keybd_event (deprecated) or
-        # its replacement SendInput?
-        self.shell = win32com.client.Dispatch("WScript.Shell")
-        self.SPECIAL_CHARS_PATTERN = re.compile(r'([{}[\]()+^%~])')
-
+    SPECIAL_CHARS_PATTERN = re.compile(r'([{}[\]()+^%~])')
+    
     def send_backspaces(self, number_of_backspaces):
         for _ in xrange(number_of_backspaces):
-            self.shell.SendKeys(self.keymap_single['BackSpace'])
+            SendKeys(self.keymap_single['BackSpace'])
 
     def send_string(self, s):
-        self.shell.SendKeys(re.sub(self.SPECIAL_CHARS_PATTERN, r'{\1}', s))
+        SendKeys(re.sub(self.SPECIAL_CHARS_PATTERN, r'{\1}', s))
 
     def send_key_combination(self, s):
         combo = []
@@ -164,14 +183,14 @@ class KeyboardEmulation:
                 pass
             else:
                 combo.append(token)
-        self.shell.SendKeys(''.join(combo))
+        SendKeys(''.join(combo))
 
 
 class KeyboardEvent(object):
     """A keyboard event."""
 
     def __init__(self, char):
-        self.keystring = chr(char)
+        self.keystring = char
 
 if __name__ == '__main__':
     kc = KeyboardCapture()
