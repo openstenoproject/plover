@@ -1,4 +1,34 @@
-from Quartz import *
+from Quartz import (
+    CFMachPortCreateRunLoopSource,
+    CFRunLoopAddSource,
+    CFRunLoopGetCurrent,
+    CFRunLoopRun,
+    CFRunLoopStop,
+    CGEventCreateKeyboardEvent,
+    CGEventGetFlags,
+    CGEventGetIntegerValueField,
+    CGEventMaskBit,
+    CGEventPost,
+    CGEventSetFlags,
+    CGEventSourceCreate,
+    CGEventSourceGetSourceStateID,
+    CGEventTapCreate,
+    CGEventTapEnable,
+    kCFRunLoopCommonModes,
+    kCGEventFlagMaskAlternate,
+    kCGEventFlagMaskCommand,
+    kCGEventFlagMaskControl,
+    kCGEventFlagMaskNonCoalesced,
+    kCGEventFlagMaskShift,
+    kCGEventKeyDown,
+    kCGEventKeyUp,
+    kCGEventSourceStateID,
+    kCGEventTapOptionDefault,
+    kCGHeadInsertEventTap,
+    kCGKeyboardEventKeycode,
+    kCGSessionEventTap,
+)
+  
 import threading
 import collections
 
