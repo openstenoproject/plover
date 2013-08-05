@@ -18,6 +18,7 @@ emits one or more Translation objects based on a greedy conversion algorithm.
 
 from plover.steno import Stroke
 from plover.steno_dictionary import StenoDictionaryCollection
+import itertools
 
 class Translation(object):
     """A data model for the mapping between a sequence of Strokes and a string.
@@ -260,30 +261,18 @@ def _translate_stroke(stroke, state, dictionary, callback):
     else:
         # Figure out how much of the translation buffer can be involved in this
         # stroke and build the stroke list for translation.
-        strokes = [stroke]
+        num_strokes = 1
         translation_count = 0
-        for i, t in enumerate(reversed(state.translations)):
-            if len(strokes) + len(t) > dictionary.longest_key:
+        for t in reversed(state.translations):
+            num_strokes += len(t)
+            if num_strokes > dictionary.longest_key:
                 break
-            strokes[:0] = t.strokes
             translation_count += 1
         translation_index = len(state.translations) - translation_count
-        
-        # The new stroke can either create a new translation or replace
-        # existing translations by matching a longer entry in the
-        # dictionary.
-        for i in xrange(translation_index, len(state.translations)):
-            mapping = _lookup(strokes, dictionary)
-            if mapping != None:
-                t = Translation(strokes, mapping)
-                t.replaced = state.translations[i:]
-                undo.extend(t.replaced)
-                do.append(t)
-                break
-            else:
-                del strokes[:len(state.translations[i])]
-        else:
-            do.append(Translation([stroke], _lookup([stroke], dictionary)))
+        translations = state.translations[translation_index:]
+        t = _find_translation(translations, dictionary, stroke)
+        do.append(t)
+        undo.extend(t.replaced)
     
     del state.translations[len(state.translations) - len(undo):]
     callback(undo, do, state.last())
@@ -291,13 +280,39 @@ def _translate_stroke(stroke, state, dictionary, callback):
 
 SUFFIX_KEYS = ['-S', '-G', '-Z', '-D']
 
-def _lookup(strokes, dictionary):
+def _find_translation(translations, dictionary, stroke):
+    t = _find_translation_helper(translations, dictionary, stroke, [])
+    if t:
+        return t
+    mapping = _lookup([stroke], dictionary, [])
+    if mapping is not None:  # Could be the empty string.
+        return Translation([stroke], mapping)
+    t = _find_translation_helper(translations, dictionary, stroke, SUFFIX_KEYS)
+    if t:
+        return t
+    return Translation([stroke], _lookup([stroke], dictionary, []))
+
+def _find_translation_helper(translations, dictionary, stroke, suffixes):
+    # The new stroke can either create a new translation or replace
+    # existing translations by matching a longer entry in the
+    # dictionary.
+    for i in xrange(len(translations)):
+        replaced = translations[i:]
+        strokes = list(itertools.chain(*[t.strokes for t in replaced]))
+        strokes.append(stroke)
+        mapping = _lookup(strokes, dictionary, suffixes)
+        if mapping != None:
+            t = Translation(strokes, mapping)
+            t.replaced = replaced
+            return t
+
+def _lookup(strokes, dictionary, suffixes):
     dict_key = tuple(s.rtfcre for s in strokes)
     result = dictionary.lookup(dict_key)
     if result != None:
         return result
 
-    for key in SUFFIX_KEYS:
+    for key in suffixes:
         if key in strokes[-1].steno_keys:
             dict_key = (Stroke([key]).rtfcre,)
             suffix_mapping = dictionary.lookup(dict_key)
