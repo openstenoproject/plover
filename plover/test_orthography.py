@@ -93,7 +93,10 @@ class OrthographyTestCase(unittest.TestCase):
             ('write', 'en', 'written'),
             ('flax', 'en', 'flaxen'),
             ('wax', 'en', 'waxen'),
-            ('fast', 'est', 'fastest')
+            ('fast', 'est', 'fastest'),
+            ('white', 'er', 'whiter'),
+            ('crap', 'y', 'crappy'),
+            ('lad', 'er', 'ladder'),
         
         )
         
