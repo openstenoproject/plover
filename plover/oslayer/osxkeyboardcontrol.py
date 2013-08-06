@@ -33,6 +33,7 @@ import collections
 import ctypes
 import ctypes.util
 import objc
+import sys
 
 
 # This mapping only works on keyboards using the ANSI standard layout. Each
@@ -296,10 +297,12 @@ def characters(s):
         yield character
 
 CGEventKeyboardSetUnicodeString = ctypes.cdll.LoadLibrary(ctypes.util.find_library('ApplicationServices')).CGEventKeyboardSetUnicodeString
+CGEventKeyboardSetUnicodeString.restype = None
+native_utf16 = 'utf-16-le' if sys.byteorder == 'little' else 'utf-16-be'
 
 def set_string(event, s):
-    buf = ctypes.create_unicode_buffer(s)
-    CGEventKeyboardSetUnicodeString(objc.pyobjc_id(event), len(buf) - 1, buf)
+    buf = s.encode(native_utf16)
+    CGEventKeyboardSetUnicodeString(objc.pyobjc_id(event), len(buf) / 2, buf)
 
 class KeyboardEmulation(object):
 
