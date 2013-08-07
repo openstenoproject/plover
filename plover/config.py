@@ -3,6 +3,7 @@
 
 """Configuration management."""
 
+import ConfigParser
 from ConfigParser import RawConfigParser
 import os
 import shutil
@@ -127,20 +128,28 @@ class Config(object):
                          DEFAULT_MACHINE_TYPE)
 
     def set_machine_specific_options(self, machine_name, options):
-        if not self._config.has_section(machine_name):
-            self._config.add_section(machine_name)
+        if self._config.has_section(machine_name):
+            self._config.remove_section(machine_name)
+        self._config.add_section(machine_name)
         for k, v in options.items():
             self._config.set(machine_name, k, str(v))
 
     def get_machine_specific_options(self, machine_name):
+        def convert(p, v):
+            try:
+                return p[1](v)
+            except ValueError:
+                return p[0]
         machine = machine_registry.get(machine_name)
-        option_info = machine.get_option_info()
+        info = machine.get_option_info()
+        defaults = {k: v[0] for k, v in info.items()}
         if self._config.has_section(machine_name):
-            options = dict((o, self._config.get(machine_name, o)) 
-                           for o in self._config.options(machine_name))
-            return dict((k, option_info[k][1](v)) for k, v in options.items()
-                        if k in option_info)
-        return dict((k, v[0]) for k, v in option_info.items())
+            options = {o: self._config.get(machine_name, o) 
+                       for o in self._config.options(machine_name)
+                       if o in info}
+            options = {k: convert(info[k], v) for k, v in options.items()}
+            defaults.update(options)
+        return defaults
 
     def set_dictionary_file_names(self, filenames):
         if self._config.has_section(DICTIONARY_CONFIG_SECTION):

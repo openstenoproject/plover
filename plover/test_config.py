@@ -126,6 +126,8 @@ class ConfigTestCase(unittest.TestCase):
                     'booloption1': (True, bool_converter),
                     'booloption2': (False, bool_converter)
                 }
+        defaults = {k: v[0] for k, v in FakeMachine.get_option_info().items()}
+
         machine_name = 'machine foo'
         registry = Registry()
         registry.register(machine_name, FakeMachine)
@@ -133,16 +135,8 @@ class ConfigTestCase(unittest.TestCase):
             c = config.Config()
             
             # Check default value.
-            expected = {
-                'stroption1': None,
-                'intoption1': 3,
-                'stroption2': 'abc',
-                'floatoption1': 1,
-                'booloption1': True,
-                'booloption2': False,
-            }
             actual = c.get_machine_specific_options(machine_name)
-            self.assertEqual(actual, expected)
+            self.assertEqual(actual, defaults)
 
             # Make sure setting a value is reflecting in the getter.
             options = {
@@ -153,12 +147,13 @@ class ConfigTestCase(unittest.TestCase):
             }
             c.set_machine_specific_options(machine_name, options)
             actual = c.get_machine_specific_options(machine_name)
-            self.assertEqual(actual, options)
+            expected = dict(defaults.items() + options.items())
+            self.assertEqual(actual, expected)
             
-            # Test loading a file.
+            # Test loading a file. Unknown option is ignored.
             s = '\n'.join(('[machine foo]', 'stroption1 = foo', 
                            'intoption1 = 3', 'booloption1 = True', 
-                           'booloption2 = False'))
+                           'booloption2 = False', 'unknown = True'))
             f = StringIO(s)
             c.load(f)
             expected = {
@@ -167,6 +162,7 @@ class ConfigTestCase(unittest.TestCase):
                 'booloption1': True,
                 'booloption2': False,
             }
+            expected = dict(defaults.items() + expected.items())
             actual = c.get_machine_specific_options(machine_name)
             self.assertEqual(actual, expected)
             
@@ -174,6 +170,19 @@ class ConfigTestCase(unittest.TestCase):
             f = StringIO()
             c.save(f)
             self.assertEqual(f.getvalue(), s + '\n\n')
+            
+            # Test reading invalid values.
+            s = '\n'.join(['[machine foo]', 'floatoption1 = None', 
+                           'booloption2 = True'])
+            f = StringIO(s)
+            c.load(f)
+            expected = {
+                'floatoption1': 1,
+                'booloption2': True,
+            }
+            expected = dict(defaults.items() + expected.items())
+            actual = c.get_machine_specific_options(machine_name)
+            self.assertEqual(actual, expected)
 
     def test_dictionary_option(self):
         c = config.Config()
