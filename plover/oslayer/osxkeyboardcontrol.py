@@ -1,6 +1,40 @@
-from Quartz import *
+from Quartz import (
+    CFMachPortCreateRunLoopSource,
+    CFRunLoopAddSource,
+    CFRunLoopGetCurrent,
+    CFRunLoopRun,
+    CFRunLoopStop,
+    CGEventCreateKeyboardEvent,
+    CGEventGetFlags,
+    CGEventGetIntegerValueField,
+    CGEventMaskBit,
+    CGEventPost,
+    CGEventSetFlags,
+    CGEventSourceCreate,
+    CGEventSourceGetSourceStateID,
+    CGEventTapCreate,
+    CGEventTapEnable,
+    kCFRunLoopCommonModes,
+    kCGEventFlagMaskAlternate,
+    kCGEventFlagMaskCommand,
+    kCGEventFlagMaskControl,
+    kCGEventFlagMaskNonCoalesced,
+    kCGEventFlagMaskShift,
+    kCGEventKeyDown,
+    kCGEventKeyUp,
+    kCGEventSourceStateID,
+    kCGEventTapOptionDefault,
+    kCGHeadInsertEventTap,
+    kCGKeyboardEventKeycode,
+    kCGSessionEventTap,
+)
 import threading
 import collections
+import ctypes
+import ctypes.util
+import objc
+import sys
+
 
 # This mapping only works on keyboards using the ANSI standard layout. Each
 # entry represents a sequence of keystrokes that are needed to achieve the
@@ -250,6 +284,26 @@ class KeyboardCapture(threading.Thread):
         return self._suppress_keyboard
 
 
+# "Narrow python" unicode objects store chracters in UTF-16 so we 
+# can't iterate over characters in the standard way. This workaround 
+# let's us iterate over full characters in the string.
+def characters(s):
+    encoded = s.encode('utf-32-be')
+    characters = []
+    for i in xrange(len(encoded)/4):
+        start = i * 4
+        end = start + 4
+        character = encoded[start:end].decode('utf-32-be')
+        yield character
+
+CGEventKeyboardSetUnicodeString = ctypes.cdll.LoadLibrary(ctypes.util.find_library('ApplicationServices')).CGEventKeyboardSetUnicodeString
+CGEventKeyboardSetUnicodeString.restype = None
+native_utf16 = 'utf-16-le' if sys.byteorder == 'little' else 'utf-16-be'
+
+def set_string(event, s):
+    buf = s.encode(native_utf16)
+    CGEventKeyboardSetUnicodeString(objc.pyobjc_id(event), len(buf) / 2, buf)
+
 class KeyboardEmulation(object):
 
     def __init__(self):
@@ -263,8 +317,13 @@ class KeyboardEmulation(object):
                 CGEventCreateKeyboardEvent(MY_EVENT_SOURCE, 51, False))
 
     def send_string(self, s):
-        for c in s:
-            self._send_sequence(down_up(KEYNAME_TO_KEYCODE[LITERALS[c]]))
+        for c in characters(s):
+            event = CGEventCreateKeyboardEvent(MY_EVENT_SOURCE, 0, True)
+            set_string(event, c)
+            CGEventPost(kCGSessionEventTap, event)
+            event = CGEventCreateKeyboardEvent(MY_EVENT_SOURCE, 0, False)
+            set_string(event, c)
+            CGEventPost(kCGSessionEventTap, event)
 
     def send_key_combination(self, combo_string):
         """Emulate a sequence of key combinations.

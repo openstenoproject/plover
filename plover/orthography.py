@@ -8,10 +8,12 @@ import re
 from plover.config import ASSETS_DIR
 
 word_list_file_name = os.path.join(ASSETS_DIR, 'american_english_words.txt')
-WORDS = set()
+WORDS = dict()
 try:
     with open(word_list_file_name) as f:
-        WORDS = set(word.strip().lower() for word in f)
+        pairs = [word.strip().rsplit(' ', 1) for word in f]
+        pairs.sort(reverse=True, key=lambda x: int(x[1]))
+        WORDS = {p[0].lower(): int(p[1]) for p in pairs}
 except IOError as e:
     print e
 
@@ -59,43 +61,46 @@ RULES = [
 ]
 
 
-def try_rules(word, suffix, check=lambda x: True):
-    """Add suffix to word using RULES."""
+def make_candidates_from_rules(word, suffix, check=lambda x: True):
+    candidates = []
     for r in RULES:
         m = r[0].match(word + " ^ " + suffix)
         if m:   
             expanded = m.expand(r[1])
             if check(expanded):
-                return expanded
-    return None
-
+                candidates.append(expanded)
+    return candidates
 
 def _add_suffix(word, suffix):
     in_dict_f = lambda x: x in WORDS
+
+    candidates = []
     
     # Try 'ible' and see if it's in the dictionary.
     if suffix == 'able':
-        expanded = try_rules(word, 'ible', in_dict_f)
-        if expanded:
-            return expanded
+        candidates.extend(make_candidates_from_rules(word, 'ible', in_dict_f))
     
     # Try a simple join if it is in the dictionary.
-    expanded = word + suffix
-    if expanded in WORDS:
-        return expanded
+    simple = word + suffix
+    if in_dict_f(simple):
+        candidates.append(simple)
     
     # Try rules with dict lookup.
-    expanded = try_rules(word, suffix, in_dict_f)
-    if expanded:
-        return expanded
+    candidates.extend(make_candidates_from_rules(word, suffix, in_dict_f))
+
+    # For all candidates sort by prominence in dictionary and, since sort is
+    # stable, also by the order added to candidates list.
+    if candidates:
+        candidates.sort(key=lambda x: WORDS[x])
+        return candidates[0]
     
     # Try rules without dict lookup.
-    expanded = try_rules(word, suffix)
-    if expanded:
-        return expanded
+    candidates = make_candidates_from_rules(word, suffix)
+    if candidates:
+        return candidates[0]
     
     # If all else fails then just do a simple join.
-    return word + suffix
+    return simple
 
 def add_suffix(word, suffix):
     """Add a suffix to a word by applying the rules above

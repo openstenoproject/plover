@@ -162,7 +162,7 @@ class KeyboardEmulation:
         "F16": "{F16}",
     }
 
-    SPECIAL_CHARS_PATTERN = re.compile(r'([{}[\]()+^%~])')
+    SPECIAL_CHARS_PATTERN = re.compile(r'([]{}()+^%~[])')
     
     def send_backspaces(self, number_of_backspaces):
         for _ in xrange(number_of_backspaces):
