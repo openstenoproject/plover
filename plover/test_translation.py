@@ -178,9 +178,9 @@ class TranslatorTestCase(unittest.TestCase):
         
         t.add_listener(listener)
         
-        expected = [([Translation([stroke('S')], dc)], 
-                     [Translation([stroke('S'), stroke('P')], dc)], 
-                     Translation([stroke('T')], dc))]
+        expected = [([Translation([stroke('S')], None)], 
+                     [Translation([stroke('S'), stroke('P')], 'hi')], 
+                     Translation([stroke('T')], None))]
         t.translate(stroke('P'))
         self.assertEqual(output, expected)
         
@@ -192,15 +192,15 @@ class TranslatorTestCase(unittest.TestCase):
         del output[:]
         t.clear_state()
         t.translate(stroke('P'))
-        self.assertEqual(output, [([], [Translation([stroke('P')], dc)], None)])
+        self.assertEqual(output, [([], [Translation([stroke('P')], None)], None)])
         
         del output[:]
         t.set_state(s)
         t.translate(stroke('P'))
         self.assertEqual(output, 
                          [([], 
-                           [Translation([stroke('P')], dc)], 
-                           Translation([stroke('S'), stroke('P')], dc))])
+                           [Translation([stroke('P')], None)], 
+                           Translation([stroke('S'), stroke('P')], 'hi'))])
 
     def test_translator(self):
 
@@ -335,10 +335,9 @@ class TranslatorTestCase(unittest.TestCase):
 class StateTestCase(unittest.TestCase):
     
     def setUp(self):
-        d = StenoDictionaryCollection()
-        self.a = Translation([stroke('S')], d)
-        self.b = Translation([stroke('T'), stroke('-D')], d)
-        self.c = Translation([stroke('-Z'), stroke('P'), stroke('T*')], d)
+        self.a = Translation([stroke('S')], None)
+        self.b = Translation([stroke('T'), stroke('-D')], None)
+        self.c = Translation([stroke('-Z'), stroke('P'), stroke('T*')], None)
     
     def test_last_list0(self):
         s = _State()
