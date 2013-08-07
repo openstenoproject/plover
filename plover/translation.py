@@ -290,7 +290,7 @@ def _find_translation(translations, dictionary, stroke):
     t = _find_translation_helper(translations, dictionary, stroke, SUFFIX_KEYS)
     if t:
         return t
-    return Translation([stroke], _lookup([stroke], dictionary, []))
+    return Translation([stroke], _lookup([stroke], dictionary, SUFFIX_KEYS))
 
 def _find_translation_helper(translations, dictionary, stroke, suffixes):
     # The new stroke can either create a new translation or replace
