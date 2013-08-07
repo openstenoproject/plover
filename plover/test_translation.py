@@ -434,7 +434,7 @@ class TranslateStrokeTestCase(unittest.TestCase):
     def t(self, strokes):
         """A quick way to make a translation."""
         strokes = [stroke(x) for x in strokes.split('/')]
-        return Translation(strokes, _lookup(strokes, self.dc))
+        return Translation(strokes, _lookup(strokes, self.dc, []))
 
     def lt(self, translations):
         """A quick way to make a list of translations."""
@@ -552,18 +552,27 @@ class TranslateStrokeTestCase(unittest.TestCase):
         self.define('K-L', 'look')
         self.define('-G', '{^ing}')
         lt = self.lt('K-LG')
-        self.assertEqual(lt[0].english, 'look {^ing}')
+        lt[0].english = 'look {^ing}'
         self.translate(stroke('K-LG'))
         self.assertTranslations(lt)
 
     def test_suffix_folding_multi_stroke(self):
-        self.define('K/-L', 'look')
-        self.define('-G', '{^ing}')
-        lt = self.lt('K/-LG')
-        self.assertEqual(lt[0].english, 'look {^ing}')
-        self.translate(stroke('K'))
-        self.translate(stroke('-LG'))
-        self.assertTranslations(lt)
+        self.define('E/HR', 'he will')
+        self.define('-S', '{^s}')
+        self.translate(stroke('E'))
+        self.translate(stroke('HR-S'))
+        output = ' '.join(t.english for t in self.s.translations)
+        self.assertEqual(output, 'he will {^s}')
+
+    def test_suffix_folding_doesnt_interfere(self):
+        self.define('E/HR', 'he will')
+        self.define('-S', '{^s}')
+        self.define('E', 'he')
+        self.define('HR-S', 'also')
+        self.translate(stroke('E'))
+        self.translate(stroke('HR-S'))
+        output = ' '.join(t.english for t in self.s.translations)
+        self.assertEqual(output, 'he also')
 
     def test_suffix_folding_no_suffix(self):
         self.define('K-L', 'look')
@@ -578,7 +587,6 @@ class TranslateStrokeTestCase(unittest.TestCase):
         self.assertEqual(lt[0].english, None)
         self.translate(stroke('K-LG'))
         self.assertTranslations(lt)
-    
     
 
 if __name__ == '__main__':

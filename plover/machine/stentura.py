@@ -559,7 +559,7 @@ class _SequenceCounter(object):
         return cur
 
 
-def _read(port, stop, seq, request_buf, response_buf, stroke_buf, timeout=1):
+def _read(port, stop, seq, request_buf, response_buf, stroke_buf, block, byte, timeout=1):
     """Read the full contents of the current file from beginning to end.
 
     The file should be opened first.
@@ -580,7 +580,7 @@ def _read(port, stop, seq, request_buf, response_buf, stroke_buf, timeout=1):
     _ConnectionLostException: If we can't seem to talk to the machine.
 
     """
-    bytes_read, block, byte = 0, 0, 0
+    bytes_read = 0
     while True:
         packet = _make_read(request_buf, seq(), block, byte, length=512)
         response = _send_receive(port, stop, packet, response_buf,
@@ -590,7 +590,7 @@ def _read(port, stop, seq, request_buf, response_buf, stroke_buf, timeout=1):
                 (p1 == len(response) - 16)):          # Data.
             raise _ProtocolViolationException()
         if p1 == 0:
-            return buffer(stroke_buf, 0, bytes_read)
+            return block, byte, buffer(stroke_buf, 0, bytes_read)
         data = buffer(response, 14, p1)
         _write_to_buffer(stroke_buf, bytes_read, data)
         bytes_read += len(data)
@@ -631,10 +631,11 @@ def _loop(port, stop, callback, ready_callback, timeout=1):
     # Any checking needed on the response packet?
     _send_receive(port, stop, request, response_buf)
     # Do a full read to get to the current position in the realtime file.
-    _read(port, stop, seq, request_buf, response_buf, stroke_buf)
+    block, byte = 0, 0
+    block, byte, _ = _read(port, stop, seq, request_buf, response_buf, stroke_buf, block, byte)
     ready_callback()
     while True:
-        data = _read(port, stop, seq, request_buf, response_buf, stroke_buf)
+        block, byte, data = _read(port, stop, seq, request_buf, response_buf, stroke_buf, block, byte)
         strokes = _parse_strokes(data)
         for stroke in strokes:
             callback(stroke)
