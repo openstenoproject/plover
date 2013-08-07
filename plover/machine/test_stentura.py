@@ -505,9 +505,12 @@ class TestCase(unittest.TestCase):
             requests, responses = make_readc_packets(data)
             port = MockPacketPort(responses, requests)
             seq = stentura._SequenceCounter()
-            response = stentura._read(port, event, seq, request_buf,
-                                      response_buf, stroke_buf)
+            block, byte = 0, 0
+            block, byte, response = stentura._read(port, event, seq, request_buf,
+                                      response_buf, stroke_buf, block, byte)
             self.assertEqual(data, str(response))
+            self.assertEqual(block, len(data) / 512)
+            self.assertEqual(byte, len(data) % 512)
 
     def test_loop(self):
         class Event(object):
@@ -515,13 +518,15 @@ class TestCase(unittest.TestCase):
                 self.count = count
                 self.data = data
                 self.stop = stop
+                
+            def __repr__(self):
+                return '<{}, {}, {}>'.format(self.count, self.data, self.stop)
 
         class MockPort(object):
             def __init__(self, events=[]):
                 self._file = ''
                 self._out = ''
                 self._is_open = False
-                self._read_pos = 0
                 self.event = threading.Event()
                 self.count = 0
                 self.events = [Event(*x) for x in
@@ -536,17 +541,15 @@ class TestCase(unittest.TestCase):
                 if p['action'] == stentura._OPEN:
                     self._out = make_response(p['seq'], p['action'])
                     self._is_open = True
-                    self._read_pos = 0
                 elif p['action'] == stentura._READC:
                     if not self._is_open:
                         raise Exception("no open")
                     length, block, byte = p['p3'], p['p4'], p['p5']
                     seq = p['seq']
                     action = stentura._READC
-                    start = self._read_pos + block * 512 + byte
+                    start = block * 512 + byte
                     end = start + length
                     data = self._file[start:end]
-                    self._read_pos += len(data)
                     self._out = make_response(seq, action, p1=len(data),
                                               data=data)
                 while self.events and self.events[0].count <= self.count:
@@ -584,7 +587,7 @@ class TestCase(unittest.TestCase):
             # Ignore data that's there before we started.
             (MockPort([(46, '', True)]).append(data2), []),
             # Ignore data that was there and also parse some strokes.
-            (MockPort([(5, data1), (36, '', True)]).append(data2), data1_trans)
+            (MockPort([(25, data1), (36, '', True)]).append(data2), data1_trans)
         ]
 
         for test in tests:
