@@ -62,7 +62,7 @@ class Translation(object):
         self.formatting = None
 
     def __eq__(self, other):
-        return self.rtfcre == other.rtfcre
+        return self.rtfcre == other.rtfcre and self.english == other.english
 
     def __ne__(self, other):
         return not self.__eq__(other)
