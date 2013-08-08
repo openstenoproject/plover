@@ -34,6 +34,8 @@ class TestCase(unittest.TestCase):
         (r'\cxfc', '{-|}'),
         (r'\cxfl', '{>}'),
         (r'pre\cxfl', 'pre{>}'),
+        (r'{\*\cxsvatdictflags N}', '{-|}'),
+        (r'{\*\cxsvatdictflags LN1}', '{-|}'),
         (r'\par', '{#Return}{#Return}'),
         # caseCATalyst declares new styles without a preceding \par so we treat
         # it as an implicit par.
