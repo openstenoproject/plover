@@ -36,12 +36,12 @@ Installation
 
 Windows:
 Plover is available for Windows as a compiled executable. The latest 
-version is here: https://github.com/plover/plover/releases/download/v2.5.4/plover.exe
+version is here: https://github.com/plover/plover/releases/download/v2.5.5/plover.exe
 There is no installer, just run the binary 
 
 Mac:
 Plover is available for Mac OSX as an app. Download the dmg from:
-https://github.com/plover/plover/releases/download/v2.5.4/Plover.dmg
+https://github.com/plover/plover/releases/download/v2.5.5/Plover.dmg
 Open the dmg and drag plover to the applications folder to install.
 Before running the application you will also need to 
 Open System Preferences, Open "Universal Access" and check the box next 
@@ -55,9 +55,9 @@ run the following commands::
     cd
     sudo apt-get install python-xlib python-wxgtk2.8 wmctrl python-dev python-pip
     sudo pip install -U appdirs simplejson pyserial
-    wget https://github.com/plover/plover/archive/v2.5.4.tar.gz
-    tar -zxf v2.5.4.tar.gz
-    cd plover-2.5.4
+    wget https://github.com/plover/plover/archive/v2.5.5.tar.gz
+    tar -zxf v2.5.5.tar.gz
+    cd plover-2.5.5
     sudo python setup.py install
 
 Once this is done then you should be able to run plover from the applications menu or from the command line with::
