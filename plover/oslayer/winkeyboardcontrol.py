@@ -25,7 +25,7 @@ import win32con
 from pywinauto.SendKeysCtypes import SendKeys as _SendKeys
 
 def SendKeys(s):
-    _SendKeys(s, with_spaces=True)
+    _SendKeys(s, with_spaces=True, pause=0)
 
 # For the purposes of this class, we'll only report key presses that
 # result in these outputs in order to exclude special key combos.
