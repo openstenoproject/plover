@@ -124,7 +124,7 @@ class TranslationConverter(object):
             if style_name.startswith('Contin'):
                 result.append('{^    ^}')
             return ''.join(result)
-        
+
         # Unrecognized commands are ignored.
         return ''
 
@@ -164,6 +164,9 @@ class TranslationConverter(object):
                 return '{^' + contents + '^}'
             # Show unknown punctuation as given.
             return '{^' + contents + '^}'
+        
+        if command == 'cxsvatdictflags' and 'N' in contents:
+            return '{-|}'
         
         # unrecognized commands
         if ignore:
