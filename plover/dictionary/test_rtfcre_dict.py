@@ -23,7 +23,8 @@ class TestCase(unittest.TestCase):
         (r'\}', '}'),
         (r'\~', '{^ ^}'),
         (r'\_', '-'),
-        ('\\\r\n', '{#Return}{#Return}'),
+        ('\\\r', '{#Return}{#Return}'),
+        ('\\\n', '{#Return}{#Return}'),
         (r'\cxds', '{^}'),
         (r'pre\cxds ', '{pre^}'),
         (r'pre\cxds  ', '{pre^} '),
@@ -153,10 +154,12 @@ class TestCase(unittest.TestCase):
         # Multiple translations on separate lines.
         ('{\\*\\cxs SP}translation\r\n{\\*\\cxs S}translation2', 
          {'SP': 'translation', 'S': 'translation2'}),
-        # Escaped \r\n handled
-        ('{\\*\\cxs SP}trans\\\r\n', {'SP': 'trans\\\r\n'}),
+        ('{\\*\\cxs SP}translation\n{\\*\\cxs S}translation2', 
+         {'SP': 'translation', 'S': 'translation2'}),
+        # Escaped \r and \n handled
+        ('{\\*\\cxs SP}trans\\\r\\\n', {'SP': 'trans\\\r\\\n'}),
         # Escaped \r\n handled in mid translation
-        ('{\\*\\cxs SP}trans\\\r\nlation', {'SP': 'trans\\\r\nlation'}),
+        ('{\\*\\cxs SP}trans\\\r\\\nlation', {'SP': 'trans\\\r\\\nlation'}),
         # Whitespace is preserved in various situations.
         ('{\\*\\cxs S}t  ', {'S': 't  '}),
         ('{\\*\\cxs S}t   {\\*\\cxs T}t    ', {'S': 't   ', 'T': 't    '}),
@@ -204,7 +207,7 @@ class TestCase(unittest.TestCase):
         'S/T': '{pre^}',
         }
         save_dictionary(d, f)
-        expected = '{\\rtf1\\ansi{\\*\\cxrev100}\\cxdict{\\*\\cxsystem Plover}{\\stylesheet{\\s0 Normal;}}\n{\\*\\cxs S///T}pre\\cxds \r\n}\n' 
+        expected = '{\\rtf1\\ansi{\\*\\cxrev100}\\cxdict{\\*\\cxsystem Plover}{\\stylesheet{\\s0 Normal;}}\r\n{\\*\\cxs S///T}pre\\cxds \r\n}\r\n' 
         self.assertEqual(f.getvalue(), expected)
 
 

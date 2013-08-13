@@ -22,9 +22,9 @@ from plover.formatting import META_RE
 
 # A regular expression to capture an individual entry in the dictionary.
 DICT_ENTRY_PATTERN = re.compile(r'(?s)(?<!\\){\\\*\\cxs (?P<steno>[^}]+)}' + 
-                                r'(?P<translation>.*?)(?:(?<!\\)\r\n)*?'
+                                r'(?P<translation>.*?)(?:(?<!\\)(?:\r\n|\n))*?'+
                                 r'(?=(?:(?<!\\){\\\*\\cxs [^}]+})|' +
-                                r'(?:(?:(?<!\\)\r\n\s*)*}\s*\Z))')
+                                r'(?:(?:(?<!\\)(?:\r\n|\n)\s*)*}\s*\Z))')
 
 class TranslationConverter(object):
     """Convert an RTF/CRE translation into plover's internal format."""
@@ -79,7 +79,7 @@ class TranslationConverter(object):
         return '-'
         
     def _re_handle_escaped_newline(self, m):
-        r'\\\r\n'
+        r'\\\r|\\\n'
         return '{#Return}{#Return}'
         
     def _re_handle_infix(self, m):
@@ -297,7 +297,7 @@ def load_dictionary(s):
 
 
 HEADER = ("{\\rtf1\\ansi{\\*\\cxrev100}\\cxdict{\\*\\cxsystem Plover}" +
-          "{\\stylesheet{\\s0 Normal;}}\n")
+          "{\\stylesheet{\\s0 Normal;}}\r\n")
 
 def format_translation(t):
     t = ' '.join([x.strip() for x in META_RE.findall(t) if x.strip()])
@@ -333,4 +333,4 @@ def save_dictionary(d, fp):
         entry = "{\\*\\cxs %s}%s\r\n" % (s, t)
         fp.write(entry)
 
-    fp.write("}\n")
+    fp.write("}\r\n")
