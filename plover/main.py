@@ -7,6 +7,12 @@ import os
 import shutil
 import sys
 import traceback
+
+WXVER = '2.8'
+if not hasattr(sys, 'frozen'):
+    import wxversion
+    wxversion.ensureMinimal(WXVER)
+
 import wx
 import json
 import glob
@@ -20,7 +26,7 @@ from plover.config import CONFIG_FILE, DEFAULT_DICTIONARY_FILE, Config
 
 def show_error(title, message):
     """Report error to the user.
-    
+
     This shows a graphical error and prints the same to the terminal.
     """
     print message
@@ -34,7 +40,7 @@ def show_error(title, message):
 
 def init_config_dir():
     """Creates plover's config dir.
-    
+
     This usually only does anything the first time plover is launched.
     """
     # Create the configuration directory if needed.
