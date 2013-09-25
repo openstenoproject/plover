@@ -67,6 +67,8 @@ Once this is done then you should be able to run plover from the applications me
 If you run into any trouble please seek help on the plover aviary: http://stenoknight.com/plover/aviary/phpBB3/
 or the plover mailing list: https://groups.google.com/forum/#!forum/ploversteno
 
+More information is available at the Plover Wiki: http://stenoknight.com/wiki/Main_Page and the Plover Blog:  http://plover.stenoknight.com/
+
 Running Plover
 --------------
 
