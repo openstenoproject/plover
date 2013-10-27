@@ -117,8 +117,8 @@ class Stenotype(StenotypeBase):
 
         # A stroke is complete if all pressed keys have been released.
         # If we are in arpeggiate mode then only send stroke when spacebar is pressed.
-        send_strokes = (self._down_keys and 
-                        self._down_keys == self._released_keys)
+        send_strokes = bool(self._down_keys and 
+                            self._down_keys == self._released_keys)
         if self.arpeggiate:
             send_strokes &= event.keystring == ' '
         if send_strokes:
