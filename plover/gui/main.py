@@ -16,6 +16,7 @@ import plover.app as app
 from plover.config import ASSETS_DIR, SPINNER_FILE
 from plover.gui.config import ConfigurationDialog
 import plover.gui.add_translation
+import plover.gui.lookup
 from plover.oslayer.keyboardcontrol import KeyboardEmulation
 from plover.machine.base import STATE_ERROR, STATE_INITIALIZING, STATE_RUNNING
 from plover.machine.registry import machine_registry
@@ -66,6 +67,7 @@ class MainFrame(wx.Frame):
     RECONNECT_BUTTON_LABEL = "Reconnect..."
     COMMAND_SUSPEND = 'SUSPEND'
     COMMAND_ADD_TRANSLATION = 'ADD_TRANSLATION'
+    COMMAND_LOOKUP = 'LOOKUP'
     COMMAND_RESUME = 'RESUME'
     COMMAND_TOGGLE = 'TOGGLE'
     COMMAND_CONFIGURE = 'CONFIGURE'
@@ -225,6 +227,10 @@ class MainFrame(wx.Frame):
             return True
         elif command == self.COMMAND_ADD_TRANSLATION:
             wx.CallAfter(plover.gui.add_translation.Show, 
+                         self, self.steno_engine, self.config)
+            return True
+        elif command == self.COMMAND_LOOKUP:
+            wx.CallAfter(plover.gui.lookup.Show, 
                          self, self.steno_engine, self.config)
             return True
             
