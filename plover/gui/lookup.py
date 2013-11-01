@@ -198,11 +198,6 @@ class LookupDialog(wx.Dialog):
         self.config.set_translation_frame_y(pos[1])
         event.Skip()
 
-    def _normalized_strokes(self):
-        strokes = self.strokes_text.GetValue().upper().replace('/', ' ').split()
-        strokes = normalize_steno('/'.join(strokes))
-        return strokes
-
 def Show(parent, engine, config):
     dialog_instance = LookupDialog(parent, engine, config)
     dialog_instance.Show()
