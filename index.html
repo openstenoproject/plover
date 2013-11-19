@@ -13,6 +13,15 @@
     <!-- Bootstrap core CSS -->
     <link href="//netdna.bootstrapcdn.com/bootstrap/3.0.2/css/bootstrap.min.css" rel="stylesheet">
 
+    <!-- Font Awesome -->
+    <link href="//netdna.bootstrapcdn.com/font-awesome/4.0.3/css/font-awesome.css" rel="stylesheet">
+
+    <style>
+    .nav-tabs {
+      margin-bottom: 15px;
+    }
+    </style>
+
     <!-- HTML5 shim and Respond.js IE8 support of HTML5 elements and media queries -->
     <!--[if lt IE 9]>
       <script src="https://oss.maxcdn.com/libs/html5shiv/3.7.0/html5shiv.js"></script>
@@ -20,11 +29,38 @@
     <![endif]-->
   </head>
 
-  <body>
+  <body>      
     <div class="container">
 
-        <h1>Bootstrap starter template</h1>
-        <p class="lead">Use this document as a way to quickly start any new project.<br> All you get is this text and a mostly barebones HTML document.</p>
+        <h1>Plover</h1>
+        <p class="lead">Free and open source real-time stenography</p>
+
+        <!-- Nav tabs -->
+        <ul class="nav nav-tabs" id="os_tab">
+          <li><a href="#windows" data-toggle="tab"><i class="fa fa-windows"></i> Windows</a></li>
+          <li><a href="#osx" data-toggle="tab"><i class="fa fa-apple"></i> OS X</a></li>
+          <li><a href="#linux" data-toggle="tab"><i class="fa fa-linux"></i> Linux</a></li>
+          <li><a href="#source" data-toggle="tab"><i class="fa fa-github"></i> Source Code</a></li>
+        </ul>
+
+        <!-- Tab panes -->
+        <div class="tab-content">
+          <div class="tab-pane" id="windows">
+              <h3>Windows</h3>
+          </div>
+          <div class="tab-pane" id="osx">
+
+          </div>
+          <div class="tab-pane" id="linux">
+              
+          </div>
+          
+          <div class="tab-pane" id="source">
+              <p>Get the source on <a href="https://github.com/openstenoproject/plover">GitHub</a>.</p>
+          </div>
+        </div>
+
+
 
     </div><!-- /.container -->
 
@@ -33,5 +69,7 @@
     ================================================== -->
     <!-- Placed at the end of the document so the pages load faster -->
     <script src="//ajax.googleapis.com/ajax/libs/jquery/1.10.2/jquery.min.js"></script>
-    <script src="//netdna.bootstrapcdn.com/bootstrap/3.0.2/js/bootstrap.min.js"></script>  </body>
+    <script src="//netdna.bootstrapcdn.com/bootstrap/3.0.2/js/bootstrap.min.js"></script>
+    <script src="/javascript/main.js"></script>
+  </body>
 </html>
