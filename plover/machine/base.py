@@ -157,7 +157,7 @@ class SerialStenotypeBase(ThreadedStenotypeBase):
 
         try:
             self.serial_port = serial.Serial(**self.serial_params)
-        except serial.SerialException as e:
+        except (serial.SerialException, OSError) as e:
             print e
             self._error()
             return
