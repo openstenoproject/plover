@@ -1,152 +1,37 @@
 <!DOCTYPE html>
-<html>
-
+<html lang="en">
   <head>
-    <meta charset='utf-8' />
-    <meta http-equiv="X-UA-Compatible" content="chrome=1" />
-    <meta name="description" content="Plover : Open source stenotype engine" />
+    <meta charset="utf-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="description" content="Plover download page">
+    <meta name="author" content="Hesky Fisher">
+    <link rel="shortcut icon" href="images/favicon.ico">
 
-    <link rel="stylesheet" type="text/css" media="screen" href="stylesheets/stylesheet.css">
+    <title>Plover download page</title>
 
-    <title>Plover</title>
+    <!-- Bootstrap core CSS -->
+    <link href="//netdna.bootstrapcdn.com/bootstrap/3.0.2/css/bootstrap.min.css" rel="stylesheet">
+
+    <!-- HTML5 shim and Respond.js IE8 support of HTML5 elements and media queries -->
+    <!--[if lt IE 9]>
+      <script src="https://oss.maxcdn.com/libs/html5shiv/3.7.0/html5shiv.js"></script>
+      <script src="https://oss.maxcdn.com/libs/respond.js/1.3.0/respond.min.js"></script>
+    <![endif]-->
   </head>
 
   <body>
+    <div class="container">
 
-    <!-- HEADER -->
-    <div id="header_wrap" class="outer">
-        <header class="inner">
-          <a id="forkme_banner" href="https://github.com/openstenoproject/plover">View on GitHub</a>
+        <h1>Bootstrap starter template</h1>
+        <p class="lead">Use this document as a way to quickly start any new project.<br> All you get is this text and a mostly barebones HTML document.</p>
 
-          <h1 id="project_title">Plover</h1>
-          <h2 id="project_tagline">Open source stenotype engine</h2>
-
-            <section id="downloads">
-              <a class="zip_download_link" href="https://github.com/openstenoproject/plover/zipball/master">Download this project as a .zip file</a>
-              <a class="tar_download_link" href="https://github.com/openstenoproject/plover/tarball/master">Download this project as a tar.gz file</a>
-            </section>
-        </header>
-    </div>
-
-    <!-- MAIN CONTENT -->
-    <div id="main_content_wrap" class="outer">
-      <section id="main_content" class="inner">
-        <p>Copyright (c) 2010-2011 Joshua Harlan Lifton.
-See LICENSE.txt for details.</p>
-
-<h1>
-<a name="plover-open-source-stenography-software" class="anchor" href="#plover-open-source-stenography-software"><span class="octicon octicon-link"></span></a>Plover: Open Source Stenography Software</h1>
-
-<p>Stenography expertise, original concept, feature design, and testing
-by Mirabai Knight. Code and technical design by Joshua Harlan
-Lifton. Additional code contributions by Hesky Fisher.</p>
-
-<p>Supported stenotype protocols:</p>
-
-<ul>
-<li>QWERTY keyboards with n-key rollover (e.g. Microsoft SideWinder X4)</li>
-<li>Gemini PR (a.k.a. Gemini Enhanced)</li>
-<li>TX Bolt (a.k.a. Gemini TX)</li>
-<li>Stentura</li>
-<li>Treal</li>
-<li>Passport</li>
-</ul><p>Contact the authors if you would like Plover to support your stenotype
-machine.</p>
-
-<h2>
-<a name="warning" class="anchor" href="#warning"><span class="octicon octicon-link"></span></a>Warning</h2>
-
-<p>Plover is not mature software. Once running, it will interpret all
-keystrokes according to the stenography dictionary you provide. Be
-careful what you type. When using the Sidewinder or any other normal
-keyboard with Plover, your normal keyboard shortcuts may not work. Use
-the mouse or stop the Plover program if you are unsure of what will
-result from typing.</p>
-
-<h2>
-<a name="installation" class="anchor" href="#installation"><span class="octicon octicon-link"></span></a>Installation</h2>
-
-<p>Windows:
-Plover is available for Windows as a compiled executable. The latest 
-version is here: <a href="https://github.com/plover/plover/releases/download/v2.5.6/plover.exe">https://github.com/plover/plover/releases/download/v2.5.6/plover.exe</a>
-There is no installer, just run the binary </p>
-
-<p>Mac:
-Plover is available for Mac OSX as an app. Download the dmg from:
-<a href="https://github.com/plover/plover/releases/download/v2.5.6/Plover.dmg">https://github.com/plover/plover/releases/download/v2.5.6/Plover.dmg</a>
-Open the dmg and drag plover to the applications folder to install.
-Before running the application you will also need to 
-Open System Preferences, Open "Universal Access" and check the box next 
-to "Enable access for assistive devices" If you do not do this, Plover 
-will not work.</p>
-
-<p>Linux (debian/ubuntu):
-There is no package yet so an installation requires installing all dependencies. First, you must have python 2.7. Then
-run the following commands::</p>
-
-<pre><code>cd
-sudo apt-get install python-xlib python-wxgtk2.8 wmctrl python-dev python-pip
-sudo pip install -U appdirs simplejson pyserial
-wget https://github.com/plover/plover/archive/v2.5.6.tar.gz
-tar -zxf v2.5.6.tar.gz
-cd plover-2.5.6
-sudo python setup.py install
-</code></pre>
-
-<p>Once this is done then you should be able to run plover from the applications menu or from the command line with::</p>
-
-<pre><code>/usr/local/bin/plover
-</code></pre>
-
-<p>If you run into any trouble please seek help on the plover aviary: <a href="http://stenoknight.com/plover/aviary/phpBB3/">http://stenoknight.com/plover/aviary/phpBB3/</a>
-or the plover mailing list: <a href="https://groups.google.com/forum/#!forum/ploversteno">https://groups.google.com/forum/#!forum/ploversteno</a></p>
-
-<p>More information is available at the Plover Wiki: <a href="http://stenoknight.com/wiki/Main_Page">http://stenoknight.com/wiki/Main_Page</a> and the Plover Blog:  <a href="http://plover.stenoknight.com/">http://plover.stenoknight.com/</a></p>
-
-<h2>
-<a name="running-plover" class="anchor" href="#running-plover"><span class="octicon octicon-link"></span></a>Running Plover</h2>
-
-<p>Windows:
-Run the downloaded executable.</p>
-
-<p>Mac:
-Run plover from applications.</p>
-
-<p>Linux:
-Run plover from the application list or the command line as shown above.</p>
-
-<p>All OS:
-Starting the application will bring up a small window with a red
-'P' icon. At this point, Plover is inactive. To activate Plover, click
-the red 'P' icon, or type on the steno machine the strokes
-corresponding to the PLOVER:TOGGLE or PLOVER:RESUME commands as
-defined in the dictionary. The icon will turn green to indicate that
-Plover is active and ready to translate stenography keystrokes into
-English text. Clicking the green icon or sending the PLOVER:SUSPEND or
-PLOVER:TOGGLE commands will cause the icon to turn red, which means
-Plover is again in the inactive state.</p>
-      </section>
-    </div>
-
-    <!-- FOOTER  -->
-    <div id="footer_wrap" class="outer">
-      <footer class="inner">
-        <p class="copyright">Plover maintained by <a href="https://github.com/openstenoproject">openstenoproject</a></p>
-        <p>Published with <a href="http://pages.github.com">GitHub Pages</a></p>
-      </footer>
-    </div>
-
-              <script type="text/javascript">
-            var gaJsHost = (("https:" == document.location.protocol) ? "https://ssl." : "http://www.");
-            document.write(unescape("%3Cscript src='" + gaJsHost + "google-analytics.com/ga.js' type='text/javascript'%3E%3C/script%3E"));
-          </script>
-          <script type="text/javascript">
-            try {
-              var pageTracker = _gat._getTracker("UA-42897347-1");
-            pageTracker._trackPageview();
-            } catch(err) {}
-          </script>
+    </div><!-- /.container -->
 
 
-  </body>
+    <!-- Bootstrap core JavaScript
+    ================================================== -->
+    <!-- Placed at the end of the document so the pages load faster -->
+    <script src="//ajax.googleapis.com/ajax/libs/jquery/1.10.2/jquery.min.js"></script>
+    <script src="//netdna.bootstrapcdn.com/bootstrap/3.0.2/js/bootstrap.min.js"></script>  </body>
 </html>
