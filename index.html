@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="en" ng-app>
   <head>
     <meta charset="utf-8">
     <meta http-equiv="X-UA-Compatible" content="IE=edge">
@@ -27,10 +27,21 @@
       <script src="https://oss.maxcdn.com/libs/html5shiv/3.7.0/html5shiv.js"></script>
       <script src="https://oss.maxcdn.com/libs/respond.js/1.3.0/respond.min.js"></script>
     <![endif]-->
+    
+    <script>
+      (function(i,s,o,g,r,a,m){i['GoogleAnalyticsObject']=r;i[r]=i[r]||function(){
+      (i[r].q=i[r].q||[]).push(arguments)},i[r].l=1*new Date();a=s.createElement(o),
+      m=s.getElementsByTagName(o)[0];a.async=1;a.src=g;m.parentNode.insertBefore(a,m)
+      })(window,document,'script','//www.google-analytics.com/analytics.js','ga');
+
+      ga('create', 'UA-42897347-1', 'plover.github.io');
+      ga('send', 'pageview');
+
+    </script>
   </head>
 
-  <body>      
-    <div class="container">
+  <body>
+    <div class="container" ng-controller="SimpleCtrl">
 
         <h1>Plover</h1>
         <p class="lead">Free and open source real-time stenography</p>
@@ -46,20 +57,64 @@
         <!-- Tab panes -->
         <div class="tab-content">
           <div class="tab-pane" id="windows">
-              <h3>Windows</h3>
+              <h3>Download</h3>
+              <a class="btn btn-primary" href="https://github.com/openstenoproject/plover/releases/download/{{latest_version}}/plover.exe">Download Plover for Windows<br><small>{{latest_version}}</small></a>
+              <h3>Install</h3>
+              There is no installer. Simply run the downloaded executable each time you want to use Plover.
           </div>
           <div class="tab-pane" id="osx">
-
+              <h3>Download</h3>
+              <a class="btn btn-primary" href="https://github.com/openstenoproject/plover/releases/download/{{latest_version}}/Plover.dmg">Download Plover for OSX<br><small>{{latest_version}}</small></a>
+              <h3>Install</h3>
+              <p>Open the dmg and drag plover to the applications folder to install.</p>
+              <h3>Enable access for assistive devices</h3>
+              <p>Before running the application you will need to enable access for assistive devices. If you do not do this, Plover will not work.</p>
+              <h4>Pre-Mavericks</h4>
+              <ol>
+                <li>Open System Preferences</li>
+                <li>Open "Universal Access"</li>
+                <li>Check the box next to "Enable access for assistive devices"</li>
+              </ol>
+              <h4>Mavericks</h4>
+              <ol>
+                <li>Open System Preferences</li>
+                <li>Click the Security &amp; Privacy icon.</li>
+                <li>Select the Privacy tab.</li>
+                <li>Select Accessibility from the list on the left side of the Privacy pane.</li>
+                <li>Click the lock icon in the lower left corner of the window and enter an admin account and password when prompted.</li>
+                <li>Drag Plover into area on the right.</li>
+              </ol>
           </div>
           <div class="tab-pane" id="linux">
-              
+              <h3>Debian/Ubuntu</h3>
+              <p>There is no package yet so an installation requires installing all the dependencies. First you must have python 2.7. Then, run the following commands:</p>
+              <pre>cd
+sudo apt-get install python-xlib python-wxgtk2.8 wmctrl python-dev python-pip
+sudo pip install -U appdirs simplejson pyserial
+wget https://github.com/plover/plover/archive/v2.5.6.tar.gz
+tar -zxf v2.5.6.tar.gz
+cd plover-2.5.6
+sudo python setup.py install</pre>
+              <p>Once this is done then you should be able to run plover from the applications menu or from the command line with:</p>
+              <pre>/usr/local/bin/plover</pre>
           </div>
           
           <div class="tab-pane" id="source">
               <p>Get the source on <a href="https://github.com/openstenoproject/plover">GitHub</a>.</p>
           </div>
+        </div><!-- /.tab-content -->
+        
+        <h3>Documentation</h3>
+        <a class="btn btn-primary" href="https://github.com/openstenoproject/plover/blob/master/doc/plover_guide.pdf?raw=true">Download Plover user guide</a>
+        
+        <h3>Community</h3>
+        <p>Now that you have Plover you might be interested in these community resources.</p>
+        <div class="list-group">
+            <a href="http://stenoknight.com/wiki/Main_Page" class="list-group-item">Plover Wiki</a>
+            <a href="http://plover.stenoknight.com/" class="list-group-item">Plover Blog</a>
+            <a href="http://stenoknight.com/plover/aviary/phpBB3/" class="list-group-item">Plover Aviary (Forum)</a>
+            <a href="https://groups.google.com/forum/#!forum/ploversteno" class="list-group-item">Plover Google Group (mailing list)</a>
         </div>
-
 
 
     </div><!-- /.container -->
@@ -71,5 +126,6 @@
     <script src="//ajax.googleapis.com/ajax/libs/jquery/1.10.2/jquery.min.js"></script>
     <script src="//netdna.bootstrapcdn.com/bootstrap/3.0.2/js/bootstrap.min.js"></script>
     <script src="/javascript/main.js"></script>
+    <script src="https://ajax.googleapis.com/ajax/libs/angularjs/1.2.0/angular.min.js"></script>
   </body>
 </html>

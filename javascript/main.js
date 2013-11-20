@@ -8,3 +8,7 @@ $( document ).ready(function() {
     }
     $('#os_tab a[href="#' + os + '"]').tab('show')
 });
+
+function SimpleCtrl($scope) {
+    $scope.latest_version = 'v2.5.6';
+}
