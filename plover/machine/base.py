@@ -72,7 +72,7 @@ class StenotypeBase(object):
         if self.suppress:
             self._post_suppress(self.suppress, steno_keys)
             
-    def _post_suppress(self, steno_keys):
+    def _post_suppress(self, suppress, steno_keys):
         """This is a complicated way for the application to tell the machine to 
         suppress this stroke after the fact. This only currently has meaning for 
         the keyboard machine so it can backspace over the last stroke when used 
