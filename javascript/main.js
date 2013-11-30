@@ -10,5 +10,5 @@ $( document ).ready(function() {
 });
 
 function SimpleCtrl($scope) {
-    $scope.latest_version = 'v2.5.6';
+    $scope.latest_version = 'v2.5.7';
 }
