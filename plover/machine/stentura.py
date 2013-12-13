@@ -427,7 +427,7 @@ def _validate_response(packet):
 
 
 # Timeout is in seconds, can be a float.
-def _read_data(port, stop, buf, offset, timeout):
+def _read_data(port, stop, buf, offset):
     """Read data off the serial port and into port at offset.
 
     Args:
@@ -435,27 +435,22 @@ def _read_data(port, stop, buf, offset, timeout):
     - stop: An event which, when set, causes this function to stop.
     - buf: The buffer to write.
     - offset: The offset into the buffer to write.
-    - timeout: The amount of time to wait for data.
 
-    Returns: The number of bytes read.
+    Returns: The number of bytes read.  It will read up to 2048
+    bytes or until the low-level port timeout occurs, whichever
+    comes first.
 
     Raises:
     _StopException: If stop is set.
-    _TimeoutException: If the timeout is reached with no data read.
 
     """
-    start_time = time.clock()
-    end_time = start_time + timeout
-    while not stop.is_set() and time.clock() < end_time:
-        num_bytes = port.inWaiting()
-        if num_bytes > 0:
-            bytes = port.read(num_bytes)
-            _write_to_buffer(buf, offset, bytes)
-            return num_bytes
     if stop.is_set():
         raise _StopException()
-    else:
-        raise _TimeoutException()
+
+    # if less than requested amount of data, will timeout based on 'timeout' set on port
+    bytes = port.read(2048)
+    _write_to_buffer(buf, offset, bytes)
+    return len(bytes)
 
 
 def _read_packet(port, stop, buf, timeout):
@@ -478,16 +473,22 @@ def _read_packet(port, stop, buf, timeout):
     _StopException: If a stop was requested.
 
     """
-    start_time = time.clock()
+    start_time = time.time()
     end_time = start_time + timeout
     bytes_read = 0
     while bytes_read < 4:
-        bytes_read += _read_data(port, stop, buf, bytes_read,
-                                 end_time - time.clock())
+        bytes_read += _read_data(port, stop, buf, bytes_read)
+
+        if time.time() >= end_time:
+            raise _TimeoutException()
+
     packet_length = _SHORT_STRUCT.unpack_from(buf, 2)[0]
     while bytes_read < packet_length:
-        bytes_read += _read_data(port, stop, buf, bytes_read,
-                                 end_time - time.clock())
+        bytes_read += _read_data(port, stop, buf, bytes_read)
+
+        if time.time() >= end_time:
+            raise _TimeoutException()
+
     packet = buffer(buf, 0, bytes_read)
     if not _validate_response(packet):
         raise _ProtocolViolationException()
@@ -622,6 +623,11 @@ def _loop(port, stop, callback, ready_callback, timeout=1):
     # wait.
     if stop.wait(timeout):
         raise _StopException()
+
+    settings = port.getSettingsDict()
+    settings['timeout'] = 0.05 # seconds.  Small compared to typical overall timeout of 1 second.
+    port.applySettingsDict(settings)
+
     port.flushInput()
     port.flushOutput()
     request_buf, response_buf = array.array('B'), array.array('B')
