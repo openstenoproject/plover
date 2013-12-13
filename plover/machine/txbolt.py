@@ -4,7 +4,6 @@
 "Thread-based monitoring of a stenotype machine using the TX Bolt protocol."
 
 import plover.machine.base
-import time
 
 # In the TX Bolt protocol, there are four sets of keys grouped in
 # order from left to right. Each byte represents all the keys that
@@ -54,25 +53,19 @@ class Stenotype(plover.machine.base.SerialStenotypeBase):
 
     def run(self):
         """Overrides base class run method. Do not call directly."""
-        timeout_s = 0.1
         settings = self.serial_port.getSettingsDict()
-        settings['timeout'] = timeout_s
+        settings['timeout'] = 0.1 # seconds
         self.serial_port.applySettingsDict(settings)
-        last_read_time_s = 0
         self._ready()
         while not self.finished.isSet():
-            # Grab data from the serial port.
+            # Grab data from the serial port, or wait for timeout if none available.
             raw = self.serial_port.read(max(1, self.serial_port.inWaiting()))
             
             # XXX : work around for python 3.1 and python 2.6 differences
             if isinstance(raw, str):
                 raw = [ord(x) for x in raw]
 
-            if raw:
-                last_read_time_s = time.time()
-
-            if (not raw and len(self._pressed_keys) > 0
-                and time.time() - last_read_time_s >= timeout_s):
+            if not raw and len(self._pressed_keys) > 0:
                 self._finish_stroke()
                 continue
 
