@@ -48,7 +48,6 @@ def init_config_dir():
         for dict_filename in dict_filenames:
             unified_dict.update(json.load(open(dict_filename, 'rb')))
         ordered = OrderedDict(sorted(unified_dict.iteritems(), key=lambda x: x[1]))
-        print ordered.items()[0]
         outfile = open(DEFAULT_DICTIONARY_FILE, 'wb')
         json.dump(ordered, outfile, indent=0, separators=(',', ': '))
 
