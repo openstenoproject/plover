@@ -45,6 +45,8 @@ class PloverGUI(wx.App):
         frame.Show()
         return True
 
+def gui_thread_hook(fn, *args):
+    wx.CallAfter(fn, *args)
 
 class MainFrame(wx.Frame):
     """The top-level GUI element of the Plover application."""
