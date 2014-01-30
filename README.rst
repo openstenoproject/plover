@@ -19,6 +19,13 @@ Supported stenotype protocols:
 Contact the authors if you would like Plover to support your stenotype
 machine.
 
+Why Use Plover?
+ * For people who can't use their voice to speak but want to communicate in realtime
+ * For people whose fluency of thought depends on ease and efficiency of text input
+ * For people who want to avoid wasted effort and repetitive stress injuries
+ * For people who want to input text and control their computers while walking around
+ * For people who want to provide live verbatim transcription professionally
+ * For people who have to be the fastest, no matter what
 
 Warning
 -------
