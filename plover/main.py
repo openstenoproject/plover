@@ -8,6 +8,10 @@ import shutil
 import sys
 import traceback
 import wx
+import json
+import glob
+
+from collections import OrderedDict
 
 import plover.gui.main
 import plover.oslayer.processlock
@@ -39,9 +43,13 @@ def init_config_dir():
 
     # Copy the default dictionary to the configuration directory.
     if not os.path.exists(DEFAULT_DICTIONARY_FILE):
-        dict_filename = os.path.basename(DEFAULT_DICTIONARY_FILE)
-        shutil.copyfile(os.path.join(ASSETS_DIR, dict_filename),
-                        DEFAULT_DICTIONARY_FILE)
+        unified_dict = {}
+        dict_filenames = glob.glob(os.path.join(ASSETS_DIR, '*.json'))
+        for dict_filename in dict_filenames:
+            unified_dict.update(json.load(open(dict_filename, 'rb')))
+        ordered = OrderedDict(sorted(unified_dict.iteritems(), key=lambda x: x[1]))
+        outfile = open(DEFAULT_DICTIONARY_FILE, 'wb')
+        json.dump(ordered, outfile, indent=0, separators=(',', ': '))
 
     # Create a default configuration file if one doesn't already
     # exist.

@@ -45,6 +45,8 @@ class PloverGUI(wx.App):
         frame.Show()
         return True
 
+def gui_thread_hook(fn, *args):
+    wx.CallAfter(fn, *args)
 
 class MainFrame(wx.Frame):
     """The top-level GUI element of the Plover application."""
@@ -166,7 +168,7 @@ class MainFrame(wx.Frame):
             self._show_alert(unicode(e))
             self.config.clear()
 
-        self.steno_engine = app.StenoEngine()
+        self.steno_engine = app.StenoEngine(gui_thread_hook)
         self.steno_engine.add_callback(
             lambda s: wx.CallAfter(self._update_status, s))
         self.steno_engine.set_output(

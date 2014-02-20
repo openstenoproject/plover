@@ -110,6 +110,9 @@ def update_engine(engine, old, new):
     if old.get_enable_translation_logging() != enable_translation_logging:
         engine.enable_translation_logging(enable_translation_logging)
 
+def same_thread_hook(fn, *args):
+    fn(*args)
+
 class StenoEngine(object):
     """Top-level class for using a stenotype machine for text input.
 
@@ -141,12 +144,13 @@ class StenoEngine(object):
 
     """
 
-    def __init__(self):
+    def __init__(self, thread_hook=same_thread_hook):
         """Creates and configures a single steno pipeline."""
         self.subscribers = []
         self.stroke_listeners = []
         self.is_running = False
         self.machine = None
+        self.thread_hook = thread_hook
 
         self.translator = translation.Translator()
         self.formatter = formatting.Formatter()
@@ -246,12 +250,20 @@ class StenoEngine(object):
     def remove_stroke_listener(self, listener):
         self.stroke_listeners.remove(listener)
 
-    def _translator_machine_callback(self, s):
+    def _translate_stroke(self, s):
         stroke = steno.Stroke(s)
         self.translator.translate(stroke)
         for listener in self.stroke_listeners:
             listener(stroke)
 
-    def _machine_state_callback(self, s):
+    def _translator_machine_callback(self, s):
+        self.thread_hook(self._translate_stroke, s)
+
+    def _notify_listeners(self, s):
         for callback in self.subscribers:
             callback(s)
+
+    def _machine_state_callback(self, s):
+        self.thread_hook(self._notify_listeners, s)
+
+
