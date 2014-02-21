@@ -48,6 +48,16 @@ DEFAULT_STROKE_DISPLAY_X = -1
 STROKE_DISPLAY_Y_OPTION = 'y'
 DEFAULT_STROKE_DISPLAY_Y = -1
 
+SPEED_REPORT_SECTION = 'Speed Report'
+SPEED_REPORT_SHOW_OPTION = 'show'
+DEFAULT_SPEED_REPORT_SHOW = False
+SPEED_REPORT_DISPLAY_ON_TOP_OPTION = 'on_top'
+DEFAULT_SPEED_REPORT_ON_TOP = True
+SPEED_REPORT_DISPLAY_X_OPTION = 'x'
+DEFAULT_SPEED_REPORT_X = -1
+SPEED_REPORT_DISPLAY_Y_OPTION = 'y'
+DEFAULT_SPEED_REPORT_Y = -1
+
 CONFIG_FRAME_SECTION = 'Config Frame'
 CONFIG_FRAME_X_OPTION = 'x'
 DEFAULT_CONFIG_FRAME_X = -1
@@ -235,6 +245,34 @@ class Config(object):
     def get_stroke_display_y(self):
         return self._get_int(STROKE_DISPLAY_SECTION, STROKE_DISPLAY_Y_OPTION, 
                              DEFAULT_STROKE_DISPLAY_Y)
+
+    def set_show_speed_report(self, b):
+        self._set(SPEED_REPORT_SECTION, SPEED_REPORT_SHOW_OPTION, b)
+
+    def get_show_speed_report(self):
+        return self._get_bool(SPEED_REPORT_SECTION,
+              SPEED_REPORT_SHOW_OPTION, DEFAULT_SPEED_REPORT_SHOW)
+
+    def set_speed_report_on_top(self, b):
+        self._set(SPEED_REPORT_SECTION, SPEED_REPORT_DISPLAY_ON_TOP_OPTION, b)
+
+    def get_speed_report_on_top(self):
+        return self._get_bool(SPEED_REPORT_SECTION,
+              SPEED_REPORT_DISPLAY_ON_TOP_OPTION, DEFAULT_SPEED_REPORT_ON_TOP)
+
+    def set_speed_report_x(self, x):
+        self._set(SPEED_REPORT_SECTION, SPEED_REPORT_DISPLAY_X_OPTION, x)
+
+    def get_speed_report_x(self):
+        return self._get_int(SPEED_REPORT_SECTION, SPEED_REPORT_DISPLAY_X_OPTION,
+                             DEFAULT_SPEED_REPORT_X)
+
+    def set_speed_report_y(self, y):
+        self._set(SPEED_REPORT_SECTION, SPEED_REPORT_DISPLAY_Y_OPTION, y)
+
+    def get_speed_report_y(self):
+        return self._get_int(SPEED_REPORT_SECTION, SPEED_REPORT_DISPLAY_Y_OPTION,
+                             DEFAULT_SPEED_REPORT_Y)
 
     def set_config_frame_x(self, x):
         self._set(CONFIG_FRAME_SECTION, CONFIG_FRAME_X_OPTION, x)

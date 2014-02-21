@@ -18,6 +18,7 @@ from plover.machine.registry import machine_registry
 from plover.exception import InvalidConfigurationError
 from plover.dictionary.loading_manager import manager as dict_manager
 from plover.gui.paper_tape import StrokeDisplayDialog
+from plover.gui.speed_report import SpeedReportDialog
 from plover.gui.keyboard_config import KeyboardConfigDialog
 
 ADD_TRANSLATION_BUTTON_NAME = "Add Translation"
@@ -425,6 +426,7 @@ class DisplayConfig(wx.Panel):
     
     SHOW_STROKES_TEXT = "Open strokes display on startup"
     SHOW_STROKES_BUTTON_TEXT = "Open stroke display"
+    SHOW_SPEED_BUTTON_TEXT = "Display Typing Speed"
     
     """Display configuration graphical user interface."""
     def __init__(self, config, parent):
@@ -453,9 +455,16 @@ class DisplayConfig(wx.Panel):
 
         self.SetSizer(sizer)
 
+        show_speed_button = wx.Button(self,
+                                      label=self.SHOW_SPEED_BUTTON_TEXT)
+        show_speed_button.Bind(wx.EVT_BUTTON, self.on_show_speed)
+
     def save(self):
         """Write all parameters to the config."""
         self.config.set_show_stroke_display(self.show_strokes.GetValue())
 
     def on_show_strokes(self, event):
         StrokeDisplayDialog.display(self.GetParent(), self.config)
+
+    def on_show_speed(self, event):
+        SpeedReportDialog.display(self.GetParent(), self.config)

@@ -21,6 +21,7 @@ from plover.machine.base import STATE_ERROR, STATE_INITIALIZING, STATE_RUNNING
 from plover.machine.registry import machine_registry
 from plover.exception import InvalidConfigurationError
 from plover.gui.paper_tape import StrokeDisplayDialog
+from plover.gui.speed_report import SpeedReportDialog
 
 from plover import __name__ as __software_name__
 from plover import __version__
@@ -192,6 +193,11 @@ class MainFrame(wx.Frame):
             StrokeDisplayDialog.stroke_handler)
         if self.config.get_show_stroke_display():
             StrokeDisplayDialog.display(self, self.config)
+
+        if self.config.get_show_speed_report():
+            self.steno_engine.add_stroke_listener(SpeedReportDialog.stroke_handler)
+            self.formatter.add_output_listener(SpeedReportDialog.output_handler)
+            SpeedReportDialog.display(self, self.config)
             
         pos = (config.get_main_frame_x(), config.get_main_frame_y())
         self.SetPosition(pos)
