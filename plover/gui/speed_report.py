@@ -11,6 +11,10 @@ ON_TOP_TEXT = "Always on top"
 UI_BORDER = 4
 MAX_SAMPLES = 300
 WORD_LENGTH = 5
+CURRENT_SPEED_TEXT = "cur. speed"
+AVERAGE_SPEED_TEXT = "avg. speed"
+MAX_SPEED_TEXT = "max. speed"
+RATIO_TEXT = "ratio"
 
 class SpeedReportDialog(wx.Dialog):
 
@@ -34,8 +38,18 @@ class SpeedReportDialog(wx.Dialog):
         self.on_top.SetValue(config.get_stroke_display_on_top())
         self.on_top.Bind(wx.EVT_CHECKBOX, self.handle_on_top)
 
-        box = wx.BoxSizer(wx.HORIZONTAL)
-        box.Add(self.choice, proportion=1)
+        c_speed_text = wx.StaticText(self, label=CURRENT_SPEED_TEXT+": 0")
+        a_speed_text = wx.StaticText(self, label=AVERAGE_SPEED_TEXT+": 0")
+        m_speed_text = wx.StaticText(self, label=MAX_SPEED_TEXT+": 0")
+        ratio_text = wx.StaticText(self, label=RATIO_TEXT+" 1:1")
+
+        sizer = wx.BoxSizer(wx.HORIZONTAL)
+        sizer.Add(c_speed_text, flag=wx.ALL | wx.ALIGN_CENTER_VERTICAL, border=UI_BORDER)
+        sizer.Add(a_speed_text, flag=wx.ALL | wx.ALIGN_CENTER_VERTICAL, border=UI_BORDER)
+        sizer.Add(m_speed_text, flag=wx.ALL | wx.ALIGN_CENTER_VERTICAL, border=UI_BORDER)
+        sizer.Add(ratio_text, flag=wx.ALL | wx.ALIGN_CENTER_VERTICAL, border=UI_BORDER)
+
+        self.SetSizer(sizer)
 
     def update(self):
         # called every second
@@ -55,7 +69,7 @@ class SpeedReportDialog(wx.Dialog):
             if (len(self.history) > 10):
                 self.maximum_speed = current_speed
 
-        #TODO: Update Display
+                #TODO: Update Display
 
     @staticmethod
     def display(parent, config):
@@ -64,11 +78,11 @@ class SpeedReportDialog(wx.Dialog):
 
     @classmethod
     def stroke_handler(cls, stroke):
-        cls.total_strokes+=1
+        cls.total_strokes += 1
 
     @classmethod
-    def output_handler(cls, text):
-        cls.total_characters+=text.length()
+    def output_handler(cls, backspaces, text):
+        cls.total_characters = cls.total_characters + len(text) - backspaces
 
 
 class HistoryItem:
