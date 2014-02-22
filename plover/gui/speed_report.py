@@ -3,7 +3,9 @@
 
 """Display the avg speed, current speed, and  maximum speed for the session, and stroke/word ratio"""
 import wx
+import threading
 import time
+from wx.lib.utils import AdjustRectToScreen
 from collections import deque
 
 TITLE = 'Plover: Stroke Display'
@@ -18,6 +20,7 @@ RATIO_TEXT = "ratio"
 
 class SpeedReportDialog(wx.Dialog):
 
+    other_instances = []
     history = deque(maxlen=MAX_SAMPLES)
     start_time = time.time()
     total_strokes = 0
@@ -28,32 +31,59 @@ class SpeedReportDialog(wx.Dialog):
         self.start_time = time.time()
         self.config = config
         on_top = config.get_speed_report_on_top()
-        style = wx.DEFAULT_DIALOG_STYLE
-        if on_top:
-            style |= wx.STAY_ON_TOP
+        style = wx.DEFAULT_DIALOG_STYLE | wx.STAY_ON_TOP
         pos = (config.get_speed_report_x(), config.get_speed_report_y())
         wx.Dialog.__init__(self, parent, title=TITLE, style=style, pos=pos)
 
-        self.on_top = wx.CheckBox(self, label=ON_TOP_TEXT)
-        self.on_top.SetValue(config.get_stroke_display_on_top())
-        self.on_top.Bind(wx.EVT_CHECKBOX, self.handle_on_top)
+        box = wx.BoxSizer(wx.VERTICAL)
 
-        c_speed_text = wx.StaticText(self, label=CURRENT_SPEED_TEXT+": 0")
-        a_speed_text = wx.StaticText(self, label=AVERAGE_SPEED_TEXT+": 0")
-        m_speed_text = wx.StaticText(self, label=MAX_SPEED_TEXT+": 0")
-        ratio_text = wx.StaticText(self, label=RATIO_TEXT+" 1:1")
+        self.c_speed_text = wx.StaticText(self, label=CURRENT_SPEED_TEXT+": 0  ")
+        self.a_speed_text = wx.StaticText(self, label=AVERAGE_SPEED_TEXT+": 0  ")
+        self.m_speed_text = wx.StaticText(self, label=MAX_SPEED_TEXT+": 0    ")
+        self.ratio_text = wx.StaticText(self, label=RATIO_TEXT)
 
         sizer = wx.BoxSizer(wx.HORIZONTAL)
-        sizer.Add(c_speed_text, flag=wx.ALL | wx.ALIGN_CENTER_VERTICAL, border=UI_BORDER)
-        sizer.Add(a_speed_text, flag=wx.ALL | wx.ALIGN_CENTER_VERTICAL, border=UI_BORDER)
-        sizer.Add(m_speed_text, flag=wx.ALL | wx.ALIGN_CENTER_VERTICAL, border=UI_BORDER)
-        sizer.Add(ratio_text, flag=wx.ALL | wx.ALIGN_CENTER_VERTICAL, border=UI_BORDER)
+        box.Add(self.c_speed_text, flag=wx.RIGHT | wx.BOTTOM, border=UI_BORDER)
+        box.Add(self.a_speed_text, flag=wx.RIGHT | wx.BOTTOM, border=UI_BORDER)
+        box.Add(self.m_speed_text, flag=wx.RIGHT | wx.BOTTOM , border=UI_BORDER)
+        box.Add(self.ratio_text, flag=wx.RIGHT | wx.BOTTOM, border=UI_BORDER)
 
-        self.SetSizer(sizer)
+        #box.Add(sizer, flag=wx.LEFT | wx.RIGHT | wx.BOTTOM | wx.EXPAND, border=UI_BORDER)
 
-    def update(self):
+        self.SetSizer(box)
+        self.SetAutoLayout(True)
+        box.Layout()
+        box.Fit(self)
+
+        self.Show()
+
+        self.close_all()
+        self.other_instances.append(self)
+        self.SetRect(AdjustRectToScreen(self.GetRect()))
+
+        self.Bind(wx.EVT_MOVE, self.on_move)
+        self.run()
+
+    def on_move(self, event):
+        pos = self.GetScreenPositionTuple()
+        self.config.set_speed_report_x(pos[0])
+        self.config.set_speed_report_y(pos[1])
+        event.Skip()
+
+    def on_close(self, event):
+        self.config.set_show_speed_report(False)
+        self.other_instances.remove(self)
+        event.Skip()
+
+    def run(self):
+        threading.Timer(1.0, self.run).start()
+        wx.CallAfter(self.update_display)
+
+    def update_display(self):
         # called every second
         # add history item & update display
+        if self.total_strokes<=0:
+            return
         total_words = self.total_characters/WORD_LENGTH
         current_time = time.time()
         self.history.append(HistoryItem(current_time, self.total_strokes, total_words))
@@ -62,27 +92,46 @@ class SpeedReportDialog(wx.Dialog):
 
         oldest_item = self.history[0]
         words_in_history = (total_words-oldest_item.get_words())
-        minutes_in_history = (current_time-oldest_item.get_time())/60
+        minutes_in_history = (current_time-oldest_item.get_time())/float(60)
+        if (minutes_in_history<=0):
+            return
         current_speed =  words_in_history/minutes_in_history
 
         if (current_speed > self.maximum_speed):
             if (len(self.history) > 10):
                 self.maximum_speed = current_speed
 
-                #TODO: Update Display
+        ratio = total_words/self.total_strokes
+
+        self.c_speed_text.SetLabel(CURRENT_SPEED_TEXT+": "+str(round(current_speed)))
+        self.a_speed_text.SetLabel(AVERAGE_SPEED_TEXT+": "+str(round(average_speed)))
+        self.m_speed_text.SetLabel(MAX_SPEED_TEXT+": "+str(round(self.maximum_speed)))
+        self.ratio_text.SetLabel(RATIO_TEXT+": "+str(round(ratio,2)))
+
+        self.Show()
+
+    def handle_on_top(self, event):
+        self.config.set_speed_report_on_top(event.IsChecked())
+        self.display(self.GetParent(), self.config)
+
+    @staticmethod
+    def close_all():
+        for instance in SpeedReportDialog.other_instances:
+            instance.Close()
+        del SpeedReportDialog.other_instances[:]
 
     @staticmethod
     def display(parent, config):
         # StrokeDisplayDialog shows itself.
         SpeedReportDialog(parent, config)
 
-    @classmethod
-    def stroke_handler(cls, stroke):
-        cls.total_strokes += 1
+    @staticmethod
+    def stroke_handler(stroke):
+        SpeedReportDialog.total_strokes += 1
 
-    @classmethod
-    def output_handler(cls, backspaces, text):
-        cls.total_characters = cls.total_characters + len(text) - backspaces
+    @staticmethod
+    def output_handler(backspaces, text):
+        SpeedReportDialog.total_characters += len(text) - backspaces
 
 
 class HistoryItem:

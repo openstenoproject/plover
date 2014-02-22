@@ -453,11 +453,12 @@ class DisplayConfig(wx.Panel):
         sizer.Add(self.show_strokes, border=UI_BORDER, 
                   flag=wx.LEFT | wx.RIGHT | wx.BOTTOM)
 
-        self.SetSizer(sizer)
-
         show_speed_button = wx.Button(self,
                                       label=self.SHOW_SPEED_BUTTON_TEXT)
         show_speed_button.Bind(wx.EVT_BUTTON, self.on_show_speed)
+        sizer.Add(show_speed_button, border=UI_BORDER, flag=wx.ALL)
+
+        self.SetSizer(sizer)
 
     def save(self):
         """Write all parameters to the config."""
@@ -467,4 +468,9 @@ class DisplayConfig(wx.Panel):
         StrokeDisplayDialog.display(self.GetParent(), self.config)
 
     def on_show_speed(self, event):
-        SpeedReportDialog.display(self.GetParent(), self.config)
+        new_setting = not self.config.get_show_speed_report()
+        self.config.set_show_speed_report(new_setting)
+        if (new_setting):
+            SpeedReportDialog.display(self.GetParent(), self.config)
+        else:
+            SpeedReportDialog.close_all()
