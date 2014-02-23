@@ -20,6 +20,8 @@ class LookupTable:
 
     @staticmethod
     def lookup(phrase):
+        if (not phrase.strip()):
+            return
         return LookupTable.table.get(phrase.strip())
 
     @staticmethod

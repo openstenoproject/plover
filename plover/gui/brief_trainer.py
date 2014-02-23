@@ -28,6 +28,8 @@ class Candidate:
 class BriefTrainer:
     #Lookup better briefs for multi-stroke words
     candidates = []
+    text = ""
+    backspaces = 0
     strokes = 0
     lookupTable = LookupTable
     enabled = False
@@ -37,35 +39,41 @@ class BriefTrainer:
         pass
 
     @staticmethod
-    def numberOfStrokes(text):
-        return len(text)
-
-    @staticmethod
     def stroke_handler(stroke):
-        BriefTrainer.strokes = BriefTrainer.numberOfStrokes(stroke.rtfcre)
+        if (stroke.is_correction):
+            BriefTrainer.strokes = -1
+        else:
+            BriefTrainer.strokes = 1
+        BriefTrainer.process()
 
     @staticmethod
     def output_handler(backspaces, text):
+        BriefTrainer.backspaces = backspaces
+        BriefTrainer.text = text
+
+    @staticmethod
+    def process():
         # add this text to all candidates,
         # exclude the ones without translations
         # notify if translation exists with fewer strokes
         if not (BriefTrainer.enabled and BriefTrainer.lookupTable.loaded):
             return
         for candidate in list(BriefTrainer.candidates):
-            candidate.addWord(backspaces, text)
+            candidate.addWord(BriefTrainer.backspaces, BriefTrainer.text)
             if (candidate.phrase):
                 lookup = BriefTrainer.lookupTable.lookup(candidate.phrase)
                 if (lookup):
-                    if (BriefTrainer.numberOfStrokes(lookup) < candidate.strokes):
-                        print(str(lookup) + " : " + candidate.phrase)
+                    #print(candidate.strokes, candidate.phrase)
+                    if (len(lookup) < candidate.strokes):
+                        savings = str(candidate.strokes-len(lookup))
+                        print(savings, str(lookup) + " : " + candidate.phrase)
                 else:
                     BriefTrainer.candidates.remove(candidate)
             else:
                 BriefTrainer.candidates.remove(candidate)
-        BriefTrainer.candidates.append(Candidate(BriefTrainer.strokes, text))
-
-
-
+        if (BriefTrainer.strokes > 0 and len(BriefTrainer.text)>0):
+            BriefTrainer.candidates.append(Candidate(BriefTrainer.strokes, BriefTrainer.text))
+            #print(BriefTrainer.strokes, BriefTrainer.text)
 
 
 
