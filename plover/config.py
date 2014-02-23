@@ -58,6 +58,10 @@ DEFAULT_SPEED_REPORT_X = -1
 SPEED_REPORT_DISPLAY_Y_OPTION = 'y'
 DEFAULT_SPEED_REPORT_Y = -1
 
+BRIEF_SUGGESTION_SECTION = 'Brief Suggestions'
+ENABLE_BRIEF_SUGGESTIONS_OPTION = 'enable'
+DEFAULT_ENABLE_BRIEF_SUGGESTION = False
+
 CONFIG_FRAME_SECTION = 'Config Frame'
 CONFIG_FRAME_X_OPTION = 'x'
 DEFAULT_CONFIG_FRAME_X = -1
@@ -273,6 +277,13 @@ class Config(object):
     def get_speed_report_y(self):
         return self._get_int(SPEED_REPORT_SECTION, SPEED_REPORT_DISPLAY_Y_OPTION,
                              DEFAULT_SPEED_REPORT_Y)
+
+    def set_enable_brief_suggestions(self, b):
+        self._set(BRIEF_SUGGESTION_SECTION, ENABLE_BRIEF_SUGGESTIONS_OPTION, b)
+
+    def get_enable_brief_suggestions(self):
+        return self._get_bool(BRIEF_SUGGESTION_SECTION, ENABLE_BRIEF_SUGGESTIONS_OPTION,
+                              DEFAULT_ENABLE_BRIEF_SUGGESTION)
 
     def set_config_frame_x(self, x):
         self._set(CONFIG_FRAME_SECTION, CONFIG_FRAME_X_OPTION, x)

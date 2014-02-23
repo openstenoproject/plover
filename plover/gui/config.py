@@ -10,6 +10,8 @@ from wx.lib.utils import AdjustRectToScreen
 from collections import namedtuple
 import wx.lib.filebrowsebutton as filebrowse
 from wx.lib.scrolledpanel import ScrolledPanel
+from plover.dictionary.lookup_table import LookupTable
+from plover.gui.brief_trainer import BriefTrainer
 import plover.config as conf
 from plover.gui.serial_config import SerialConfigDialog
 import plover.gui.add_translation
@@ -89,7 +91,7 @@ class ConfigurationDialog(wx.Dialog):
         self.dictionary_config = DictionaryConfig(self.engine, self.config, 
                                                   notebook)
         self.logging_config = LoggingConfig(self.config, notebook)
-        self.display_config = DisplayConfig(self.config, notebook)
+        self.display_config = DisplayConfig(self.engine, self.config, notebook)
 
         # Adding each tab
         notebook.AddPage(self.machine_config, MACHINE_CONFIG_TAB_NAME)
@@ -427,9 +429,10 @@ class DisplayConfig(wx.Panel):
     SHOW_STROKES_TEXT = "Open strokes display on startup"
     SHOW_STROKES_BUTTON_TEXT = "Open stroke display"
     SHOW_SPEED_BUTTON_TEXT = "Display Typing Speed"
+    ENABLE_BRIEF_SUGGESTIONS_TEXT = "Enable brief suggestions"
     
     """Display configuration graphical user interface."""
-    def __init__(self, config, parent):
+    def __init__(self, engine, config, parent):
         """Create a configuration component based on the given Config.
 
         Arguments:
@@ -441,6 +444,7 @@ class DisplayConfig(wx.Panel):
         """
         wx.Panel.__init__(self, parent, size=CONFIG_PANEL_SIZE)
         self.config = config
+        self.engine = engine
         sizer = wx.BoxSizer(wx.VERTICAL)
         
         show_strokes_button = wx.Button(self, 
@@ -458,11 +462,23 @@ class DisplayConfig(wx.Panel):
         show_speed_button.Bind(wx.EVT_BUTTON, self.on_show_speed)
         sizer.Add(show_speed_button, border=UI_BORDER, flag=wx.ALL)
 
+        self.brief_suggestions = wx.CheckBox(self, label=self.ENABLE_BRIEF_SUGGESTIONS_TEXT)
+        self.brief_suggestions.SetValue(config.get_enable_brief_suggestions())
+        sizer.Add(self.brief_suggestions, border=UI_BORDER, flag=wx.ALL)
+
         self.SetSizer(sizer)
 
     def save(self):
         """Write all parameters to the config."""
         self.config.set_show_stroke_display(self.show_strokes.GetValue())
+        self.config.set_enable_brief_suggestions(self.brief_suggestions.GetValue())
+        if (self.brief_suggestions.GetValue()):
+            if (not LookupTable.loaded):
+                LookupTable.load(self.engine.get_dictionary())
+                LookupTable.loaded = True;
+        BriefTrainer.enabled = self.brief_suggestions.GetValue()
+
+
 
     def on_show_strokes(self, event):
         StrokeDisplayDialog.display(self.GetParent(), self.config)
@@ -474,3 +490,6 @@ class DisplayConfig(wx.Panel):
             SpeedReportDialog.display(self.GetParent(), self.config)
         else:
             SpeedReportDialog.close_all()
+
+
+
