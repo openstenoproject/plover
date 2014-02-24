@@ -4,6 +4,7 @@
 # analyze output, and suggest when a brief in the dictionary would save strokes
 
 from plover.dictionary.lookup_table import LookupTable
+import wx
 
 TITLE = "Brief Trainer"
 
@@ -23,27 +24,46 @@ class Candidate:
         else:
             self.phrase+=text
 
+class Suggestion:
+    #details for presenting to user
+    def __init__(self, savings, stroke, phrase):
+        self.savings = savings
+        self.stroke = stroke
+        self.phrase = phrase
+
+    def __str__(self):
+        return "("+str(self.savings)+") "+self.stroke+" : "+self.phrase
+
+    def phrase(self):
+        return self.phrase;
+
 
 
 class BriefTrainer:
     #Lookup better briefs for multi-stroke words
+    MAX_SUGGESTIONS=5
+    suggestions = []
     candidates = []
+    deleted = []
     text = ""
     backspaces = 0
     strokes = 0
     lookupTable = LookupTable
     enabled = False
 
-    def __init__(self):
-        BriefTrainer.lookupTable.load()
+    @staticmethod
+    def display(suggestion):
         pass
 
     @staticmethod
     def stroke_handler(stroke):
         if (stroke.is_correction):
             BriefTrainer.strokes = -1
+            BriefTrainer.candidates.extend(BriefTrainer.deleted)
+            BriefTrainer.deleted = []
         else:
             BriefTrainer.strokes = 1
+            BriefTrainer.deleted = []
         BriefTrainer.process()
 
     @staticmethod
@@ -63,17 +83,23 @@ class BriefTrainer:
             if (candidate.phrase):
                 lookup = BriefTrainer.lookupTable.lookup(candidate.phrase)
                 if (lookup):
-                    #print(candidate.strokes, candidate.phrase)
                     if (len(lookup) < candidate.strokes):
                         savings = str(candidate.strokes-len(lookup))
-                        print(savings, str(lookup) + " : " + candidate.phrase)
+                        suggestion = Suggestion(savings, str(lookup), candidate.phrase)
+                        BriefTrainer.suggestions = [s for s in BriefTrainer.suggestions if s.phrase != candidate.phrase]
+                        BriefTrainer.suggestions.append(suggestion)
+                        while (len(BriefTrainer.suggestions) > BriefTrainer.MAX_SUGGESTIONS):
+                            BriefTrainer.suggestions.remove(BriefTrainer.suggestions[0])
+                        print(suggestion)
+
                 else:
-                    BriefTrainer.candidates.remove(candidate)
+                    if not (BriefTrainer.backspaces==1): # don't delete if fingerspelling or suffix
+                        BriefTrainer.deleted.append(candidate)
+                        BriefTrainer.candidates.remove(candidate)
             else:
                 BriefTrainer.candidates.remove(candidate)
         if (BriefTrainer.strokes > 0 and len(BriefTrainer.text)>0):
             BriefTrainer.candidates.append(Candidate(BriefTrainer.strokes, BriefTrainer.text))
-            #print(BriefTrainer.strokes, BriefTrainer.text)
 
 
 
