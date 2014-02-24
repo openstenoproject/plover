@@ -426,7 +426,7 @@ class DisplayConfig(wx.Panel):
     
     SHOW_STROKES_TEXT = "Open strokes display on startup"
     SHOW_STROKES_BUTTON_TEXT = "Open stroke display"
-    SHOW_SPEED_BUTTON_TEXT = "Display Typing Speed"
+    SHOW_SPEED_BUTTON_TEXT = "Display Typing Speed on startup"
     
     """Display configuration graphical user interface."""
     def __init__(self, config, parent):
@@ -453,24 +453,21 @@ class DisplayConfig(wx.Panel):
         sizer.Add(self.show_strokes, border=UI_BORDER, 
                   flag=wx.LEFT | wx.RIGHT | wx.BOTTOM)
 
-        show_speed_button = wx.Button(self,
+        self.show_speed = wx.CheckBox(self,
                                       label=self.SHOW_SPEED_BUTTON_TEXT)
-        show_speed_button.Bind(wx.EVT_BUTTON, self.on_show_speed)
-        sizer.Add(show_speed_button, border=UI_BORDER, flag=wx.ALL)
+        self.show_speed.SetValue(config.get_show_speed_report())
+        sizer.Add(self.show_speed, border=UI_BORDER, flag=wx.ALL)
 
         self.SetSizer(sizer)
 
     def save(self):
         """Write all parameters to the config."""
         self.config.set_show_stroke_display(self.show_strokes.GetValue())
+        self.config.set_show_speed_report(self.show_speed.GetValue())
+        if (self.show_speed.GetValue()):
+            if (not SpeedReportDialog.instances):
+                SpeedReportDialog.display(self.GetParent(), self.config)
 
     def on_show_strokes(self, event):
         StrokeDisplayDialog.display(self.GetParent(), self.config)
 
-    def on_show_speed(self, event):
-        new_setting = not self.config.get_show_speed_report()
-        self.config.set_show_speed_report(new_setting)
-        if (new_setting):
-            SpeedReportDialog.display(self.GetParent(), self.config)
-        else:
-            SpeedReportDialog.close_all()

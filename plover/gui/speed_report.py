@@ -31,7 +31,6 @@ class SpeedReportDialog(wx.Dialog):
         self.disabled=False
         self.start_time = time.time()
         self.config = config
-        on_top = config.get_speed_report_on_top()
         style = wx.DEFAULT_DIALOG_STYLE | wx.STAY_ON_TOP
         pos = (config.get_speed_report_x(), config.get_speed_report_y())
         wx.Dialog.__init__(self, parent, title=TITLE, style=style, pos=pos)
@@ -43,7 +42,6 @@ class SpeedReportDialog(wx.Dialog):
 
         sizer = wx.BoxSizer(wx.VERTICAL)
         line = wx.BoxSizer(wx.HORIZONTAL)
-        #second_line = wx.BoxSizer(wx.HORIZONTAL)
         line.Add(self.c_speed_text, flag=wx.RIGHT | wx.BOTTOM, border=UI_BORDER)
         line.Add(self.a_speed_text, flag=wx.RIGHT | wx.BOTTOM, border=UI_BORDER)
         line.Add(self.m_speed_text, flag=wx.RIGHT | wx.BOTTOM , border=UI_BORDER)
@@ -62,6 +60,7 @@ class SpeedReportDialog(wx.Dialog):
         self.SetRect(AdjustRectToScreen(self.GetRect()))
 
         self.Bind(wx.EVT_MOVE, self.on_move)
+        self.Bind(wx.EVT_CLOSE, self.on_close)
         self.run()
 
     def on_move(self, event):
@@ -71,8 +70,6 @@ class SpeedReportDialog(wx.Dialog):
         event.Skip()
 
     def on_close(self, event):
-        SpeedReportDialog.close_all
-        self.config.set_show_speed_report(False)
         self.disabled=True
         event.Skip()
 
@@ -80,6 +77,8 @@ class SpeedReportDialog(wx.Dialog):
         if (not self.disabled):
             threading.Timer(1.0, self.run).start()
             wx.CallAfter(self.update_display)
+        else:
+            SpeedReportDialog.close_all()
 
     def update_display(self):
         # called every second
@@ -116,19 +115,21 @@ class SpeedReportDialog(wx.Dialog):
 
         self.Show()
 
+
+
     def handle_on_top(self, event):
         self.config.set_speed_report_on_top(event.IsChecked())
         self.display(self.GetParent(), self.config)
 
     @staticmethod
     def close_all():
-        for instance in SpeedReportDialog.instances:
-            instance.Close()
+        # for instance in SpeedReportDialog.instances:
+        #     instance.disabled = True
+        #     instance.Close()
         del SpeedReportDialog.instances[:]
 
     @staticmethod
     def display(parent, config):
-        # StrokeDisplayDialog shows itself.
         if (SpeedReportDialog.instances):
             return
         SpeedReportDialog(parent, config)
