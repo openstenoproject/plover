@@ -47,6 +47,7 @@ class BriefTrainer(wx.Dialog):
     suggestions = []
     candidates = []
     deleted = []
+    sug_row = []
     sug_stroke = []
     sug_translation = []
     text = ""
@@ -57,6 +58,7 @@ class BriefTrainer(wx.Dialog):
 
     def __init__(self, parent, config):
         self.config = config
+        BriefTrainer.enabled = True
         style = wx.DEFAULT_DIALOG_STYLE | wx.STAY_ON_TOP
         pos = (config.get_brief_suggestions_x(), config.get_brief_suggestions_y())
         wx.Dialog.__init__(self, parent, title=TITLE, style=style, pos=pos)
@@ -67,13 +69,14 @@ class BriefTrainer(wx.Dialog):
         self.translations = []
         for i in range(BriefTrainer.MAX_SUGGESTIONS):
             row = wx.BoxSizer(wx.HORIZONTAL)
-            stroke = wx.StaticText(self, label='                                ')
+            BriefTrainer.sug_row.append(row)
+            stroke = wx.StaticText(self, label=' ', style=wx.ALIGN_LEFT)
             BriefTrainer.sug_stroke.append(stroke)
-            translation = wx.StaticText(self, label=' ')
+            translation = wx.StaticText(self, label=' ', style=wx.ALIGN_RIGHT)
             BriefTrainer.sug_translation.append(translation)
-            row.Add(stroke)
-            row.Add(wx.StaticText(self, label=' : '))
-            row.Add(translation)
+            row.Add(stroke, proportion=1, flag=wx.EXPAND)
+            row.Add(wx.StaticText(self, label=' :'))
+            row.Add(translation, proportion=1, flag=wx.EXPAND)
             sizer.Add(row)
 
         self.SetSizer(sizer)
@@ -138,7 +141,8 @@ class BriefTrainer(wx.Dialog):
                         for i in range(len(BriefTrainer.suggestions)):
                             BriefTrainer.sug_stroke[i].SetLabel(BriefTrainer.suggestions[i].stroke)
                             BriefTrainer.sug_translation[i].SetLabel(BriefTrainer.suggestions[i].phrase)
-                        #print(suggestion)
+                            BriefTrainer.sug_row[i].RecalcSizes
+                        print(suggestion)
 
                 else:
                     if not (BriefTrainer.backspaces==1): # don't delete if fingerspelling or suffix

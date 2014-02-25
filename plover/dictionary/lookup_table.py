@@ -1,4 +1,5 @@
 from os.path import splitext
+import threading
 
 from plover.dictionary.tst import TST
 
@@ -13,10 +14,18 @@ class LookupTable:
 
 
     @staticmethod
-    def load(dictionaries):
-        for dictionary in dictionaries.dicts:
+    def load(dictionary_collection):
+        if (not LookupTable.loaded):
+            background=threading.Thread(target=LookupTable.load_in_background, args=[dictionary_collection.dicts])
+            background.start()
+
+
+    @staticmethod
+    def load_in_background(dictionaries):
+        for dictionary in dictionaries:
             for item in dictionary.iteritems():
                 LookupTable.addToDictionary(item)
+        LookupTable.loaded=True
 
     @staticmethod
     def lookup(phrase):

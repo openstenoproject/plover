@@ -204,10 +204,9 @@ class MainFrame(wx.Frame):
         self.steno_engine.add_stroke_listener(BriefTrainer.stroke_handler)
         self.steno_engine.formatter.add_output_listener(BriefTrainer.output_handler)
         if self.config.get_show_brief_suggestions():
-            if (not LookupTable.loaded):
-                LookupTable.load(self.steno_engine.translator.get_dictionary())
-                LookupTable.loaded = True
-                BriefTrainer.enabled = True
+            LookupTable.load(self.steno_engine.translator.get_dictionary())
+            BriefTrainer.display(self, self.config)
+
             
         pos = (config.get_main_frame_x(), config.get_main_frame_y())
         self.SetPosition(pos)
