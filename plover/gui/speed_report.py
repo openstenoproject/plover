@@ -20,7 +20,7 @@ RATIO_TEXT = "strokes per word"
 
 class SpeedReportDialog(wx.Dialog):
 
-    other_instances = []
+    instances = []
     history = deque(maxlen=MAX_SAMPLES)
     start_time = time.time()
     total_strokes = 0
@@ -31,7 +31,6 @@ class SpeedReportDialog(wx.Dialog):
         self.disabled=False
         self.start_time = time.time()
         self.config = config
-        on_top = config.get_speed_report_on_top()
         style = wx.DEFAULT_DIALOG_STYLE | wx.STAY_ON_TOP
         pos = (config.get_speed_report_x(), config.get_speed_report_y())
         wx.Dialog.__init__(self, parent, title=TITLE, style=style, pos=pos)
@@ -42,30 +41,26 @@ class SpeedReportDialog(wx.Dialog):
         self.ratio_text = wx.StaticText(self, label=RATIO_TEXT+":           ")
 
         sizer = wx.BoxSizer(wx.VERTICAL)
-        top_line = wx.BoxSizer(wx.HORIZONTAL)
-        #second_line = wx.BoxSizer(wx.HORIZONTAL)
-        top_line.Add(self.c_speed_text, flag=wx.RIGHT | wx.BOTTOM, border=UI_BORDER)
-        top_line.Add(self.a_speed_text, flag=wx.RIGHT | wx.BOTTOM, border=UI_BORDER)
-        top_line.Add(self.m_speed_text, flag=wx.RIGHT | wx.BOTTOM , border=UI_BORDER)
-        top_line.Add(self.ratio_text, flag=wx.RIGHT | wx.BOTTOM, border=UI_BORDER)
+        line = wx.BoxSizer(wx.HORIZONTAL)
+        line.Add(self.c_speed_text, flag=wx.RIGHT | wx.BOTTOM, border=UI_BORDER)
+        line.Add(self.a_speed_text, flag=wx.RIGHT | wx.BOTTOM, border=UI_BORDER)
+        line.Add(self.m_speed_text, flag=wx.RIGHT | wx.BOTTOM , border=UI_BORDER)
+        line.Add(self.ratio_text, flag=wx.RIGHT | wx.BOTTOM, border=UI_BORDER)
 
-        sizer.Add(top_line)
-        #sizer.Add(second_line)
+        sizer.Add(line)
 
-        #box.Add(sizer, flag=wx.LEFT | wx.RIGHT | wx.BOTTOM | wx.EXPAND, border=UI_BORDER)
-
-        self.SetSizer(top_line)
+        self.SetSizer(line)
         self.SetAutoLayout(True)
-        top_line.Layout()
-        top_line.Fit(self)
+        line.Layout()
+        line.Fit(self)
 
         self.Show()
 
-        self.close_all()
-        self.other_instances.append(self)
+        SpeedReportDialog.instances.append(self)
         self.SetRect(AdjustRectToScreen(self.GetRect()))
 
         self.Bind(wx.EVT_MOVE, self.on_move)
+        self.Bind(wx.EVT_CLOSE, self.on_close)
         self.run()
 
     def on_move(self, event):
@@ -75,8 +70,6 @@ class SpeedReportDialog(wx.Dialog):
         event.Skip()
 
     def on_close(self, event):
-        self.config.set_show_speed_report(False)
-        self.other_instances.remove(self)
         self.disabled=True
         event.Skip()
 
@@ -84,6 +77,8 @@ class SpeedReportDialog(wx.Dialog):
         if (not self.disabled):
             threading.Timer(1.0, self.run).start()
             wx.CallAfter(self.update_display)
+        else:
+            SpeedReportDialog.close_all()
 
     def update_display(self):
         # called every second
@@ -120,19 +115,23 @@ class SpeedReportDialog(wx.Dialog):
 
         self.Show()
 
+
+
     def handle_on_top(self, event):
         self.config.set_speed_report_on_top(event.IsChecked())
         self.display(self.GetParent(), self.config)
 
     @staticmethod
     def close_all():
-        for instance in SpeedReportDialog.other_instances:
-            instance.Close()
-        del SpeedReportDialog.other_instances[:]
+        # for instance in SpeedReportDialog.instances:
+        #     instance.disabled = True
+        #     instance.Close()
+        del SpeedReportDialog.instances[:]
 
     @staticmethod
     def display(parent, config):
-        # StrokeDisplayDialog shows itself.
+        if (SpeedReportDialog.instances):
+            return
         SpeedReportDialog(parent, config)
 
     @staticmethod

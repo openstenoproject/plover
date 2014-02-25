@@ -51,8 +51,6 @@ DEFAULT_STROKE_DISPLAY_Y = -1
 SPEED_REPORT_SECTION = 'Speed Report'
 SPEED_REPORT_SHOW_OPTION = 'show'
 DEFAULT_SPEED_REPORT_SHOW = False
-SPEED_REPORT_DISPLAY_ON_TOP_OPTION = 'on_top'
-DEFAULT_SPEED_REPORT_ON_TOP = True
 SPEED_REPORT_DISPLAY_X_OPTION = 'x'
 DEFAULT_SPEED_REPORT_X = -1
 SPEED_REPORT_DISPLAY_Y_OPTION = 'y'
@@ -256,13 +254,6 @@ class Config(object):
     def get_show_speed_report(self):
         return self._get_bool(SPEED_REPORT_SECTION,
               SPEED_REPORT_SHOW_OPTION, DEFAULT_SPEED_REPORT_SHOW)
-
-    def set_speed_report_on_top(self, b):
-        self._set(SPEED_REPORT_SECTION, SPEED_REPORT_DISPLAY_ON_TOP_OPTION, b)
-
-    def get_speed_report_on_top(self):
-        return self._get_bool(SPEED_REPORT_SECTION,
-              SPEED_REPORT_DISPLAY_ON_TOP_OPTION, DEFAULT_SPEED_REPORT_ON_TOP)
 
     def set_speed_report_x(self, x):
         self._set(SPEED_REPORT_SECTION, SPEED_REPORT_DISPLAY_X_OPTION, x)

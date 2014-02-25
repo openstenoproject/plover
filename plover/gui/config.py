@@ -26,7 +26,7 @@ from plover.gui.keyboard_config import KeyboardConfigDialog
 ADD_TRANSLATION_BUTTON_NAME = "Add Translation"
 ADD_DICTIONARY_BUTTON_NAME = "Add Dictionary"
 MACHINE_CONFIG_TAB_NAME = "Machine"
-DISPLAY_CONFIG_TAB_NAME = "Display"
+DISPLAY_CONFIG_TAB_NAME = "Training"
 DICTIONARY_CONFIG_TAB_NAME = "Dictionary"
 LOGGING_CONFIG_TAB_NAME = "Logging"
 SAVE_CONFIG_BUTTON_NAME = "Save"
@@ -426,9 +426,10 @@ class LoggingConfig(wx.Panel):
 
 class DisplayConfig(wx.Panel):
     
-    SHOW_STROKES_TEXT = "Open strokes display on startup"
-    SHOW_STROKES_BUTTON_TEXT = "Open stroke display"
-    SHOW_SPEED_BUTTON_TEXT = "Display Typing Speed"
+    SHOW_STROKES_TEXT = "Show strokes display on startup"
+    SHOW_STROKES_BUTTON_TEXT = "Show now"
+    SHOW_SPEED_TEXT = "Show typing speed on startup"
+    SHOW_SPEED_BUTTON_TEXT = "Show now"
     ENABLE_BRIEF_SUGGESTIONS_TEXT = "Enable brief suggestions"
     
     """Display configuration graphical user interface."""
@@ -446,21 +447,24 @@ class DisplayConfig(wx.Panel):
         self.config = config
         self.engine = engine
         sizer = wx.BoxSizer(wx.VERTICAL)
-        
-        show_strokes_button = wx.Button(self, 
-                                        label=self.SHOW_STROKES_BUTTON_TEXT)
-        show_strokes_button.Bind(wx.EVT_BUTTON, self.on_show_strokes)
-        sizer.Add(show_strokes_button, border=UI_BORDER, flag=wx.ALL)
-        
+
+        stroke_sizer = wx.BoxSizer(wx.HORIZONTAL)
         self.show_strokes = wx.CheckBox(self, label=self.SHOW_STROKES_TEXT)
         self.show_strokes.SetValue(config.get_show_stroke_display())
-        sizer.Add(self.show_strokes, border=UI_BORDER, 
-                  flag=wx.LEFT | wx.RIGHT | wx.BOTTOM)
-
-        show_speed_button = wx.Button(self,
-                                      label=self.SHOW_SPEED_BUTTON_TEXT)
+        stroke_sizer.Add(self.show_strokes, border=UI_BORDER,flag=wx.ALL)
+        show_strokes_button = wx.Button(self, label=self.SHOW_STROKES_BUTTON_TEXT)
+        show_strokes_button.Bind(wx.EVT_BUTTON, self.on_show_strokes)
+        stroke_sizer.Add(show_strokes_button, border=UI_BORDER, flag=wx.ALL)
+        sizer.Add(stroke_sizer, border=UI_BORDER, flag=wx.ALL)
+        
+        speed_sizer = wx.BoxSizer(wx.HORIZONTAL)
+        self.show_speed = wx.CheckBox(self, label=self.SHOW_SPEED_TEXT)
+        self.show_speed.SetValue(config.get_show_speed_report())
+        speed_sizer.Add(self.show_speed, border=UI_BORDER, flag=wx.ALL)
+        show_speed_button = wx.Button(self, label=self.SHOW_SPEED_BUTTON_TEXT)
         show_speed_button.Bind(wx.EVT_BUTTON, self.on_show_speed)
-        sizer.Add(show_speed_button, border=UI_BORDER, flag=wx.ALL)
+        speed_sizer.Add(show_speed_button, border=UI_BORDER, flag=wx.ALL)
+        sizer.Add(speed_sizer, border=UI_BORDER, flag=wx.ALL)
 
         self.brief_suggestions = wx.CheckBox(self, label=self.ENABLE_BRIEF_SUGGESTIONS_TEXT)
         self.brief_suggestions.SetValue(config.get_enable_brief_suggestions())
@@ -471,6 +475,10 @@ class DisplayConfig(wx.Panel):
     def save(self):
         """Write all parameters to the config."""
         self.config.set_show_stroke_display(self.show_strokes.GetValue())
+        self.config.set_show_speed_report(self.show_speed.GetValue())
+        if (self.show_speed.GetValue()):
+            if (not SpeedReportDialog.instances):
+                SpeedReportDialog.display(self.GetParent(), self.config)
         self.config.set_enable_brief_suggestions(self.brief_suggestions.GetValue())
         if (self.brief_suggestions.GetValue()):
             if (not LookupTable.loaded):
@@ -484,12 +492,5 @@ class DisplayConfig(wx.Panel):
         StrokeDisplayDialog.display(self.GetParent(), self.config)
 
     def on_show_speed(self, event):
-        new_setting = not self.config.get_show_speed_report()
-        self.config.set_show_speed_report(new_setting)
-        if (new_setting):
-            SpeedReportDialog.display(self.GetParent(), self.config)
-        else:
-            SpeedReportDialog.close_all()
-
-
+        SpeedReportDialog.display(self.GetParent(), self.config)
 
