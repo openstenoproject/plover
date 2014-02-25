@@ -6,6 +6,7 @@
 from plover.dictionary.lookup_table import LookupTable
 import wx
 
+
 TITLE = "Brief Trainer"
 
 class Candidate:
@@ -39,21 +40,65 @@ class Suggestion:
 
 
 
-class BriefTrainer:
+class BriefTrainer(wx.Dialog):
     #Lookup better briefs for multi-stroke words
-    MAX_SUGGESTIONS=5
+    MAX_SUGGESTIONS=7
+    instances = []
     suggestions = []
     candidates = []
     deleted = []
+    sug_stroke = []
+    sug_translation = []
     text = ""
     backspaces = 0
     strokes = 0
     lookupTable = LookupTable
     enabled = False
 
+    def __init__(self, parent, config):
+        self.config = config
+        style = wx.DEFAULT_DIALOG_STYLE | wx.STAY_ON_TOP
+        pos = (config.get_brief_suggestions_x(), config.get_brief_suggestions_y())
+        wx.Dialog.__init__(self, parent, title=TITLE, style=style, pos=pos)
+
+        sizer = wx.BoxSizer(wx.VERTICAL)
+
+        self.strokes = []
+        self.translations = []
+        for i in range(BriefTrainer.MAX_SUGGESTIONS):
+            row = wx.BoxSizer(wx.HORIZONTAL)
+            stroke = wx.StaticText(self, label='                                ')
+            BriefTrainer.sug_stroke.append(stroke)
+            translation = wx.StaticText(self, label=' ')
+            BriefTrainer.sug_translation.append(translation)
+            row.Add(stroke)
+            row.Add(wx.StaticText(self, label=' : '))
+            row.Add(translation)
+            sizer.Add(row)
+
+        self.SetSizer(sizer)
+        self.SetAutoLayout(True)
+        sizer.Layout()
+        #sizer.Fit(self)
+
+        self.Show()
+
+        BriefTrainer.instances.append(self)
+        self.Bind(wx.EVT_MOVE, self.on_move)
+
+    def on_move(self, event):
+        pos = self.GetScreenPositionTuple()
+        self.config.set_brief_suggestions_x(pos[0])
+        self.config.set_brief_suggestions_y(pos[1])
+        event.Skip()
+
+
+
     @staticmethod
-    def display(suggestion):
-        pass
+    def display(parent, config):
+        if (BriefTrainer.instances):
+            return
+        BriefTrainer(parent, config)
 
     @staticmethod
     def stroke_handler(stroke):
@@ -90,7 +135,10 @@ class BriefTrainer:
                         BriefTrainer.suggestions.append(suggestion)
                         while (len(BriefTrainer.suggestions) > BriefTrainer.MAX_SUGGESTIONS):
                             BriefTrainer.suggestions.remove(BriefTrainer.suggestions[0])
-                        print(suggestion)
+                        for i in range(len(BriefTrainer.suggestions)):
+                            BriefTrainer.sug_stroke[i].SetLabel(BriefTrainer.suggestions[i].stroke)
+                            BriefTrainer.sug_translation[i].SetLabel(BriefTrainer.suggestions[i].phrase)
+                        #print(suggestion)
 
                 else:
                     if not (BriefTrainer.backspaces==1): # don't delete if fingerspelling or suffix

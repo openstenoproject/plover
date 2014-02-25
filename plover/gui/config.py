@@ -430,7 +430,9 @@ class DisplayConfig(wx.Panel):
     SHOW_STROKES_BUTTON_TEXT = "Show now"
     SHOW_SPEED_TEXT = "Show typing speed on startup"
     SHOW_SPEED_BUTTON_TEXT = "Show now"
-    ENABLE_BRIEF_SUGGESTIONS_TEXT = "Enable brief suggestions"
+    SHOW_BRIEF_SUGGESTIONS_TEXT = "Show brief suggestions on startup"
+    SHOW_BRIEF_SUGGESTIONS_BUTTON_TEXT = "Show now"
+
     
     """Display configuration graphical user interface."""
     def __init__(self, engine, config, parent):
@@ -455,7 +457,7 @@ class DisplayConfig(wx.Panel):
         show_strokes_button = wx.Button(self, label=self.SHOW_STROKES_BUTTON_TEXT)
         show_strokes_button.Bind(wx.EVT_BUTTON, self.on_show_strokes)
         stroke_sizer.Add(show_strokes_button, border=UI_BORDER, flag=wx.ALL)
-        sizer.Add(stroke_sizer, border=UI_BORDER, flag=wx.ALL)
+        sizer.Add(stroke_sizer, border=UI_BORDER)
         
         speed_sizer = wx.BoxSizer(wx.HORIZONTAL)
         self.show_speed = wx.CheckBox(self, label=self.SHOW_SPEED_TEXT)
@@ -464,11 +466,17 @@ class DisplayConfig(wx.Panel):
         show_speed_button = wx.Button(self, label=self.SHOW_SPEED_BUTTON_TEXT)
         show_speed_button.Bind(wx.EVT_BUTTON, self.on_show_speed)
         speed_sizer.Add(show_speed_button, border=UI_BORDER, flag=wx.ALL)
-        sizer.Add(speed_sizer, border=UI_BORDER, flag=wx.ALL)
+        sizer.Add(speed_sizer, border=UI_BORDER)
 
-        self.brief_suggestions = wx.CheckBox(self, label=self.ENABLE_BRIEF_SUGGESTIONS_TEXT)
-        self.brief_suggestions.SetValue(config.get_enable_brief_suggestions())
-        sizer.Add(self.brief_suggestions, border=UI_BORDER, flag=wx.ALL)
+        brief_sizer = wx.BoxSizer(wx.HORIZONTAL)
+        self.brief_suggestions = wx.CheckBox(self, label=self.SHOW_BRIEF_SUGGESTIONS_TEXT)
+        self.brief_suggestions.SetValue(config.get_show_brief_suggestions())
+        brief_sizer.Add(self.brief_suggestions, border=UI_BORDER, flag=wx.ALL)
+        sizer.Add(brief_sizer, border=UI_BORDER)
+        show_brief_suggestions_button = wx.Button(self, label=self.SHOW_BRIEF_SUGGESTIONS_BUTTON_TEXT)
+        show_brief_suggestions_button.Bind(wx.EVT_BUTTON, self.on_show_brief_suggestions)
+        brief_sizer.Add(show_brief_suggestions_button, border=UI_BORDER, flag=wx.ALL)
+        sizer.Add(brief_sizer, border=UI_BORDER)
 
         self.SetSizer(sizer)
 
@@ -479,7 +487,7 @@ class DisplayConfig(wx.Panel):
         if (self.show_speed.GetValue()):
             if (not SpeedReportDialog.instances):
                 SpeedReportDialog.display(self.GetParent(), self.config)
-        self.config.set_enable_brief_suggestions(self.brief_suggestions.GetValue())
+        self.config.set_show_brief_suggestions(self.brief_suggestions.GetValue())
         if (self.brief_suggestions.GetValue()):
             if (not LookupTable.loaded):
                 LookupTable.load(self.engine.get_dictionary())
@@ -493,4 +501,7 @@ class DisplayConfig(wx.Panel):
 
     def on_show_speed(self, event):
         SpeedReportDialog.display(self.GetParent(), self.config)
+
+    def on_show_brief_suggestions(self, event):
+        BriefTrainer.display(self.GetParent(), self.config)
 
