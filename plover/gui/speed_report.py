@@ -17,6 +17,7 @@ CURRENT_SPEED_TEXT = "current"
 AVERAGE_SPEED_TEXT = "average"
 MAX_SPEED_TEXT = "maximum"
 RATIO_TEXT = "strokes per word"
+RESET_SPEED_TEXT = "reset"
 
 class SpeedReportDialog(wx.Dialog):
 
@@ -47,6 +48,10 @@ class SpeedReportDialog(wx.Dialog):
         line.Add(self.m_speed_text, flag=wx.RIGHT | wx.BOTTOM , border=UI_BORDER)
         line.Add(self.ratio_text, flag=wx.RIGHT | wx.BOTTOM, border=UI_BORDER)
 
+        reset_button = wx.Button(self, label=RESET_SPEED_TEXT)
+        reset_button.Bind(wx.EVT_BUTTON, self.on_reset)
+        line.Add(reset_button, border=UI_BORDER, flag=wx.ALL)
+
         sizer.Add(line)
 
         self.SetSizer(line)
@@ -73,6 +78,10 @@ class SpeedReportDialog(wx.Dialog):
         self.disabled=True
         event.Skip()
 
+    def on_reset(self, event):
+        SpeedReportDialog.reset()
+        event.Skip()
+
     def run(self):
         if (not self.disabled):
             threading.Timer(1.0, self.run).start()
@@ -88,6 +97,10 @@ class SpeedReportDialog(wx.Dialog):
             self.start_time = time.time()
             self.history.clear()
             self.history.append(HistoryItem(self.start_time, 0, 0))
+            self.c_speed_text.SetLabel(CURRENT_SPEED_TEXT+": 0")
+            self.a_speed_text.SetLabel(AVERAGE_SPEED_TEXT+": 0")
+            self.m_speed_text.SetLabel(MAX_SPEED_TEXT+": 0")
+            self.ratio_text.SetLabel(RATIO_TEXT+": 0.00")
             return
         total_words = self.total_characters/float(WORD_LENGTH)
         current_time = time.time()
@@ -133,6 +146,14 @@ class SpeedReportDialog(wx.Dialog):
         if (SpeedReportDialog.instances):
             return
         SpeedReportDialog(parent, config)
+
+    @staticmethod
+    def reset():
+        SpeedReportDialog.start_time = time.time()
+        SpeedReportDialog.total_strokes = 0
+        SpeedReportDialog.total_characters = 0
+        SpeedReportDialog.maximum_speed = 0
+        SpeedReportDialog.history.clear()
 
     @staticmethod
     def stroke_handler(stroke):
