@@ -4,26 +4,12 @@
 # analyze output, and suggest when a brief in the dictionary would save strokes
 
 from plover.dictionary.lookup_table import LookupTable
+from plover.dictionary.lookup_table import Candidate
 import wx
 
 
 TITLE = "Brief Trainer"
 
-class Candidate:
-    #encapsulates potential incomplete briefs
-    def __init__(self, strokes, phrase):
-        self.strokes = strokes
-        self.phrase = phrase
-
-    def phrase(self):
-        return self.phrase
-
-    def addWord(self, backspaces, text):
-        self.strokes+=BriefTrainer.strokes
-        if (backspaces>0):
-            self.phrase=self.phrase[0:-backspaces]+text
-        else:
-            self.phrase+=text
 
 class Suggestion:
     #details for presenting to user
@@ -53,7 +39,6 @@ class BriefTrainer(wx.Dialog):
     text = ""
     backspaces = 0
     strokes = 0
-    lookupTable = LookupTable
     enabled = False
 
     def __init__(self, parent, config):
@@ -124,12 +109,12 @@ class BriefTrainer(wx.Dialog):
         # add this text to all candidates,
         # exclude the ones without translations
         # notify if translation exists with fewer strokes
-        if not (BriefTrainer.enabled and BriefTrainer.lookupTable.loaded):
+        if not (BriefTrainer.enabled and LookupTable.loaded):
             return
         for candidate in list(BriefTrainer.candidates):
-            candidate.addWord(BriefTrainer.backspaces, BriefTrainer.text)
+            candidate.addWord(BriefTrainer.strokes, BriefTrainer.backspaces, BriefTrainer.text)
             if (candidate.phrase):
-                lookup = BriefTrainer.lookupTable.lookup(candidate.phrase)
+                lookup = LookupTable.lookup(candidate.phrase)
                 if (lookup):
                     if (len(lookup) < candidate.strokes):
                         savings = str(candidate.strokes-len(lookup))

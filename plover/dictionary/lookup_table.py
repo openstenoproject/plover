@@ -9,9 +9,6 @@ class LookupTable:
     table = TST()
     loaded = False
 
-    def __init__(self):
-        pass
-
 
     @staticmethod
     def load(dictionary_collection):
@@ -62,3 +59,19 @@ class LookupTable:
         if (len(str(stroke1)) < len(str(stroke2))):
             return stroke1
         return stroke2
+
+class Candidate:
+    #encapsulates potential incomplete briefs
+    def __init__(self, strokes, phrase):
+        self.strokes = strokes
+        self.phrase = phrase
+
+    def phrase(self):
+        return self.phrase
+
+    def addWord(self, stroke, backspaces, text):
+        self.strokes+=stroke
+        if (backspaces>0):
+            self.phrase=self.phrase[0:-backspaces]+text
+        else:
+            self.phrase+=text
