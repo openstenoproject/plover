@@ -11,21 +11,6 @@ import wx
 TITLE = "Brief Trainer"
 
 
-class Suggestion:
-    #details for presenting to user
-    def __init__(self, savings, stroke, phrase):
-        self.savings = savings
-        self.stroke = stroke
-        self.phrase = phrase
-
-    def __str__(self):
-        return "("+str(self.savings)+") "+self.stroke+" : "+self.phrase
-
-    def phrase(self):
-        return self.phrase;
-
-
-
 class BriefTrainer(wx.Dialog):
     #Lookup better briefs for multi-stroke words
     MAX_SUGGESTIONS=7
@@ -117,8 +102,7 @@ class BriefTrainer(wx.Dialog):
                 lookup = LookupTable.lookup(candidate.phrase)
                 if (lookup):
                     if (len(lookup) < candidate.strokes):
-                        savings = str(candidate.strokes-len(lookup))
-                        suggestion = Suggestion(savings, str(lookup), candidate.phrase)
+                        suggestion = Candidate(str(lookup), candidate.phrase)
                         BriefTrainer.suggestions = [s for s in BriefTrainer.suggestions if s.phrase != candidate.phrase]
                         BriefTrainer.suggestions.append(suggestion)
                         while (len(BriefTrainer.suggestions) > BriefTrainer.MAX_SUGGESTIONS):

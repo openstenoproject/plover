@@ -82,6 +82,16 @@ class TST:
                 x = x.mid
         return s[0:length]
 
+    def prefixMatch(self, prefix):
+        x = self.get(self.root, prefix, 0)
+        queue = []
+        if (not x):
+            return []
+        if (not x.val):
+            return queue.append(prefix)
+        self.collect_i(x.mid, prefix, queue)
+        return queue
+
     def collect_i(self, x, prefix, queue):
         if x is None:
             return

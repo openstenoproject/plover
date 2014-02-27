@@ -427,11 +427,14 @@ class LoggingConfig(wx.Panel):
 class DisplayConfig(wx.Panel):
     
     SHOW_STROKES_TEXT = "Show strokes display on startup"
-    SHOW_STROKES_BUTTON_TEXT = "Show now"
+    SHOW_STROKES_BUTTON_TEXT = "Show"
     SHOW_SPEED_TEXT = "Show typing speed on startup"
-    SHOW_SPEED_BUTTON_TEXT = "Show now"
+    SHOW_SPEED_BUTTON_TEXT = "Show"
+    SHOW_PREDICTIONS_TEXT = "Show stroke trainer on startup"
+    SHOW_PREDICTIONS_BUTTON_TEXT = "Show"
+    PREDICTIONS_LIMIT_TEXT = "Max. suggestions"
     SHOW_BRIEF_SUGGESTIONS_TEXT = "Show brief suggestions on startup"
-    SHOW_BRIEF_SUGGESTIONS_BUTTON_TEXT = "Show now"
+    SHOW_BRIEF_SUGGESTIONS_BUTTON_TEXT = "Show"
 
     
     """Display configuration graphical user interface."""
@@ -453,47 +456,54 @@ class DisplayConfig(wx.Panel):
         stroke_sizer = wx.BoxSizer(wx.HORIZONTAL)
         self.show_strokes = wx.CheckBox(self, label=self.SHOW_STROKES_TEXT)
         self.show_strokes.SetValue(config.get_show_stroke_display())
-        stroke_sizer.Add(self.show_strokes, border=UI_BORDER,flag=wx.ALL)
         show_strokes_button = wx.Button(self, label=self.SHOW_STROKES_BUTTON_TEXT)
         show_strokes_button.Bind(wx.EVT_BUTTON, self.on_show_strokes)
         stroke_sizer.Add(show_strokes_button, border=UI_BORDER, flag=wx.ALL)
+        stroke_sizer.Add(self.show_strokes, border=UI_BORDER,flag=wx.ALL)
         sizer.Add(stroke_sizer, border=UI_BORDER)
         
         speed_sizer = wx.BoxSizer(wx.HORIZONTAL)
         self.show_speed = wx.CheckBox(self, label=self.SHOW_SPEED_TEXT)
         self.show_speed.SetValue(config.get_show_speed_report())
-        speed_sizer.Add(self.show_speed, border=UI_BORDER, flag=wx.ALL)
         show_speed_button = wx.Button(self, label=self.SHOW_SPEED_BUTTON_TEXT)
         show_speed_button.Bind(wx.EVT_BUTTON, self.on_show_speed)
         speed_sizer.Add(show_speed_button, border=UI_BORDER, flag=wx.ALL)
+        speed_sizer.Add(self.show_speed, border=UI_BORDER, flag=wx.ALL)
         sizer.Add(speed_sizer, border=UI_BORDER)
+
+        predictions_sizer = wx.BoxSizer(wx.HORIZONTAL)
+        self.show_predictions = wx.CheckBox(self, label=self.SHOW_PREDICTIONS_TEXT)
+        self.show_predictions.SetValue(config.get_show_predictions())
+        show_predictions_button = wx.Button(self, label=self.SHOW_PREDICTIONS_BUTTON_TEXT)
+        show_predictions_button.Bind(wx.EVT_BUTTON, self.on_show_predictions)
+        predictions_sizer.Add(show_predictions_button, border=UI_BORDER, flag=wx.ALL)
+        predictions_sizer.Add(self.show_predictions, border=UI_BORDER, flag=wx.ALL)
+        sizer.Add(predictions_sizer, border=UI_BORDER)
 
         brief_sizer = wx.BoxSizer(wx.HORIZONTAL)
         self.brief_suggestions = wx.CheckBox(self, label=self.SHOW_BRIEF_SUGGESTIONS_TEXT)
         self.brief_suggestions.SetValue(config.get_show_brief_suggestions())
-        brief_sizer.Add(self.brief_suggestions, border=UI_BORDER, flag=wx.ALL)
-        sizer.Add(brief_sizer, border=UI_BORDER)
         show_brief_suggestions_button = wx.Button(self, label=self.SHOW_BRIEF_SUGGESTIONS_BUTTON_TEXT)
         show_brief_suggestions_button.Bind(wx.EVT_BUTTON, self.on_show_brief_suggestions)
         brief_sizer.Add(show_brief_suggestions_button, border=UI_BORDER, flag=wx.ALL)
+        brief_sizer.Add(self.brief_suggestions, border=UI_BORDER, flag=wx.ALL)
         sizer.Add(brief_sizer, border=UI_BORDER)
 
         self.SetSizer(sizer)
 
     def save(self):
         """Write all parameters to the config."""
+        self.config.set_show_predictions(self.show_predictions.GetValue())
         self.config.set_show_stroke_display(self.show_strokes.GetValue())
         self.config.set_show_speed_report(self.show_speed.GetValue())
         if (self.show_speed.GetValue()):
             if (not SpeedReportDialog.instances):
                 SpeedReportDialog.display(self.GetParent(), self.config)
         self.config.set_show_brief_suggestions(self.brief_suggestions.GetValue())
-        if (self.brief_suggestions.GetValue()):
-            if (not LookupTable.loaded):
-                LookupTable.load(self.engine.get_dictionary())
-                LookupTable.loaded = True;
+        if (self.brief_suggestions.GetValue() or self.show_predictions.GetValue()):
+            LookupTable.load(self.engine.get_dictionary())
         BriefTrainer.enabled = self.brief_suggestions.GetValue()
-
+        plover.gui.predictions.enabled = self.show_predictions.GetValue()
 
 
     def on_show_strokes(self, event):
@@ -502,6 +512,11 @@ class DisplayConfig(wx.Panel):
     def on_show_speed(self, event):
         SpeedReportDialog.display(self.GetParent(), self.config)
 
+    def on_show_predictions(self, event):
+        plover.gui.predictions.enabled=True
+        plover.gui.predictions.display(self.GetParent(), self.config)
+
     def on_show_brief_suggestions(self, event):
+        BriefTrainer.enabled=True
         BriefTrainer.display(self.GetParent(), self.config)
 

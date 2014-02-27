@@ -44,6 +44,10 @@ class LookupTable:
         LookupTable.table.put(phrase, new_stroke)
 
     @staticmethod
+    def prefixMatch(word):
+        return LookupTable.table.prefixMatch(word)
+
+    @staticmethod
     def shortestOf(stroke1, stroke2):
         #compare strokes by existence, then number of strokes, then absolute length
         if (not (stroke1 or stroke2)):
@@ -75,3 +79,5 @@ class Candidate:
             self.phrase=self.phrase[0:-backspaces]+text
         else:
             self.phrase+=text
+
+

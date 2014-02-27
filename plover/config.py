@@ -56,6 +56,16 @@ DEFAULT_SPEED_REPORT_X = -1
 SPEED_REPORT_DISPLAY_Y_OPTION = 'y'
 DEFAULT_SPEED_REPORT_Y = -1
 
+PREDICTIONS_SECTION = 'Predictions'
+SHOW_PREDICTIONS_OPTION = 'enable'
+DEFAULT_SHOW_PREDICTIONS = False
+PREDICTIONS_DISPLAY_X_OPTION = 'x'
+DEFAULT_PREDICTIONS_DISPLAY_X = -1
+PREDICTIONS_DISPLAY_Y_OPTION = 'y'
+DEFAULT_PREDICTIONS_DISPLAY_Y = -1
+NUMBER_OF_PREDICTIONS_OPTION = 'limit'
+DEFAULT_NUMBER_OF_PREDICTIONS = 25
+
 BRIEF_SUGGESTION_SECTION = 'Brief Suggestions'
 SHOW_BRIEF_SUGGESTIONS_OPTION = 'enable'
 DEFAULT_SHOW_BRIEF_SUGGESTION = False
@@ -272,6 +282,30 @@ class Config(object):
     def get_speed_report_y(self):
         return self._get_int(SPEED_REPORT_SECTION, SPEED_REPORT_DISPLAY_Y_OPTION,
                              DEFAULT_SPEED_REPORT_Y)
+
+    def set_show_predictions(self, b):
+        self._set(PREDICTIONS_SECTION, SHOW_PREDICTIONS_OPTION, b)
+
+    def get_show_predictions(self):
+        return self._get_bool(PREDICTIONS_SECTION, SHOW_PREDICTIONS_OPTION, DEFAULT_SHOW_PREDICTIONS)
+
+    def set_predictions_x(self, x):
+        self._set(PREDICTIONS_SECTION, PREDICTIONS_DISPLAY_X_OPTION, x)
+
+    def get_predictions_x(self):
+        return self._get_int(PREDICTIONS_SECTION, PREDICTIONS_DISPLAY_X_OPTION, DEFAULT_PREDICTIONS_DISPLAY_X)
+
+    def set_predictions_y(self, y):
+        self._set(PREDICTIONS_SECTION, PREDICTIONS_DISPLAY_Y_OPTION, y)
+
+    def get_predictions_y(self):
+        return self._get_int(PREDICTIONS_SECTION, PREDICTIONS_DISPLAY_Y_OPTION, DEFAULT_PREDICTIONS_DISPLAY_Y)
+
+    def set_predictions_limit(self, limit):
+        self._set(PREDICTIONS_SECTION, NUMBER_OF_PREDICTIONS_OPTION, limit)
+
+    def get_predictions_limit(self):
+        return self._get_int(PREDICTIONS_SECTION, NUMBER_OF_PREDICTIONS_OPTION, DEFAULT_NUMBER_OF_PREDICTIONS)
 
     def set_show_brief_suggestions(self, b):
         self._set(BRIEF_SUGGESTION_SECTION, SHOW_BRIEF_SUGGESTIONS_OPTION, b)
