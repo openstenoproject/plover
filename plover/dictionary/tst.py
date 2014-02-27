@@ -64,12 +64,12 @@ class TST:
         return x
 
     def longestPrefixOf(self, s):
-        if (s is None or s.__len__() == 0):
-            return None
+        if (s is None or len(s) == 0):
+            return ""
         length = 0
         x = self.root
         i = 0
-        while (not x is None) and (i < s.__len__()):
+        while (x) and (i < len(s)):
             c = s[i]
             if c < x.c:
                 x = x.left
@@ -83,14 +83,14 @@ class TST:
         return s[0:length]
 
     def prefixMatch(self, prefix):
-        x = self.get(self.root, prefix, 0)
-        queue = []
+        x = self.get_i(self.root, prefix, 0)
+        q = Queue.Queue(0)
         if (not x):
             return []
-        if (not x.val):
-            return queue.append(prefix)
-        self.collect_i(x.mid, prefix, queue)
-        return queue
+        if (not x.value):
+            return q.put(prefix)
+        self.collect_i(x.mid, prefix, q)
+        return q
 
     def collect_i(self, x, prefix, queue):
         if x is None:
@@ -102,7 +102,7 @@ class TST:
         self.collect_i(x.right, prefix, queue)
 
     def keys(self):
-        q = Queue()
+        q = Queue.Queue(0)
         self.collect_i(self.root, "", q)
         return q
 
@@ -121,7 +121,7 @@ class TST:
             self.collect_ii(x.right, prefix, i, pat, q)
 
     def wildcardMatch(self, pat):
-        q = Queue()
+        q = Queue.Queue(0)
         self.collect_ii(self.root, "", 0, pat, q)
         return q
                 

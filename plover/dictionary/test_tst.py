@@ -29,9 +29,19 @@ class TestCase(unittest.TestCase):
         tst.put("aunt", "AUNT")
         self.assertEquals(tst.longestPrefixOf("auntie"), "aunt")
         self.assertEquals(tst.longestPrefixOf("ant"), "ant")
-        self.assertIsNone(tst.longestPrefixOf(""))
+        self.assertEquals(tst.longestPrefixOf(""), "")
         self.assertEquals(tst.longestPrefixOf("b"), "")
-        self.assertEquals(tst.prefixMatch("ant"), ["a", "ant"])
+
+    def test_prefix_match(self):
+        tst = TST()
+        tst.put("a", "A")
+        tst.put("anterior", "ANTERIOR")
+        tst.put("antidisassembly", "ANTIDISASSEMBLY")
+        tst.put("ant", "ANT")
+        tst.put("aunt", "AUNT")
+        r = tst.prefixMatch("ant");
+        self.assertEquals(r.qsize(), 3)
+        self.assertEquals(r.get(), "ant")
 
         self.assertFalse(True)
 
