@@ -41,7 +41,15 @@ class TestCase(unittest.TestCase):
         tst.put("aunt", "AUNT")
         r = tst.prefixMatch("ant");
         self.assertEquals(r.qsize(), 3)
-        self.assertEquals(r.get(), "ant")
-
+	self.assertEquals(r.get(), "ant")
+        self.assertEquals(r.get(), "anterior")
+        self.assertEquals(r.get(), "antidisassembly")
+	r = tst.prefixMatch("bob");
+	self.assertEquals(r.qsize(), 0)
+	r = tst.prefixMatch("aunt");
+	self.assertEquals(r.qsize(), 1)
+	r = tst.prefixMatch("auntie")
+	self.assertEquals(r.qsize(), 0)
+	
         self.assertFalse(True)
 

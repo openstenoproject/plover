@@ -28,6 +28,7 @@ def process():
     global enabled, backspaces, text, candidates, deleted_candidates, output, WORD_LIMIT
     if not (enabled and LookupTable.loaded):
         return
+    print("HERE")
     for candidate in list(candidates):
         candidate.addWord(0, backspaces, text)
         if (candidate.phrase):
@@ -35,7 +36,8 @@ def process():
             if lookup:
                 i=0
                 while lookup and (i<WORD_LIMIT):
-                    print(lookup)
+                    i+=1
+                    print(lookup.get())
                     #output.append(Candidate(str(lookup)))
             else:
                 deleted_candidates.append(candidate)

@@ -83,12 +83,14 @@ class TST:
         return s[0:length]
 
     def prefixMatch(self, prefix):
+	if (not prefix):
+	    return Queue.Queue(0)
         x = self.get_i(self.root, prefix, 0)
         q = Queue.Queue(0)
         if (not x):
-            return []
-        if (not x.value):
-            return q.put(prefix)
+            return Queue.Queue(0)
+        if (x.value):
+            q.put(prefix)
         self.collect_i(x.mid, prefix, q)
         return q
 
