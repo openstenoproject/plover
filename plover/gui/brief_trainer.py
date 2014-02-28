@@ -108,7 +108,7 @@ class BriefTrainer(wx.Dialog):
                         while (len(BriefTrainer.suggestions) > BriefTrainer.MAX_SUGGESTIONS):
                             BriefTrainer.suggestions.remove(BriefTrainer.suggestions[0])
                         for i in range(len(BriefTrainer.suggestions)):
-                            BriefTrainer.sug_stroke[i].SetLabel(BriefTrainer.suggestions[i].stroke)
+                            BriefTrainer.sug_stroke[i].SetLabel(BriefTrainer.suggestions[i].strokes)
                             BriefTrainer.sug_translation[i].SetLabel(BriefTrainer.suggestions[i].phrase)
                             BriefTrainer.sug_row[i].RecalcSizes
                         print(suggestion)

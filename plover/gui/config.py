@@ -505,7 +505,6 @@ class DisplayConfig(wx.Panel):
         BriefTrainer.enabled = self.brief_suggestions.GetValue()
         plover.gui.predictions.enabled = self.show_predictions.GetValue()
 
-
     def on_show_strokes(self, event):
         StrokeDisplayDialog.display(self.GetParent(), self.config)
 

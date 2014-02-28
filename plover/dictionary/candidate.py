@@ -4,6 +4,9 @@ class Candidate:
         self.strokes = strokes
         self.phrase = phrase
 
+    def __str__(self):
+        return("("+str(self.strokes) + ") : " + self.phrase)
+
     def phrase(self):
         return self.phrase
 
