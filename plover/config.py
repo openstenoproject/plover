@@ -48,6 +48,10 @@ DEFAULT_STROKE_DISPLAY_X = -1
 STROKE_DISPLAY_Y_OPTION = 'y'
 DEFAULT_STROKE_DISPLAY_Y = -1
 
+OUTPUT_CONFIG_SECTION = 'Output Configuration'
+OUTPUT_CONFIG_SPACE_PLACEMENT_OPTION = 'space_placement'
+DEFAULT_OUTPUT_CONFIG_SPACE_PLACEMENT = 'Before Output'
+
 CONFIG_FRAME_SECTION = 'Config Frame'
 CONFIG_FRAME_X_OPTION = 'x'
 DEFAULT_CONFIG_FRAME_X = -1
@@ -207,6 +211,13 @@ class Config(object):
     def get_show_stroke_display(self):
         return self._get_bool(STROKE_DISPLAY_SECTION, 
             STROKE_DISPLAY_SHOW_OPTION, DEFAULT_STROKE_DISPLAY_SHOW)
+
+    def get_space_placement(self):
+        return self._get(OUTPUT_CONFIG_SECTION, OUTPUT_CONFIG_SPACE_PLACEMENT_OPTION, 
+                         DEFAULT_OUTPUT_CONFIG_SPACE_PLACEMENT)
+
+    def set_space_placement(self, s):
+        self._set(OUTPUT_CONFIG_SECTION, OUTPUT_CONFIG_SPACE_PLACEMENT_OPTION, s)
 
     def set_stroke_display_on_top(self, b):
         self._set(STROKE_DISPLAY_SECTION, STROKE_DISPLAY_ON_TOP_OPTION, b)
