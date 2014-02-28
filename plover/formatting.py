@@ -48,6 +48,13 @@ class Formatter(object):
         fields = output_type._fields
         self._output = output_type(*[getattr(output, f, noop) for f in fields])
 
+    def set_space_placement(self, s):
+        """Set whether spaces will be inserted before the output or after the output"""
+        if s == 'After Output':
+            self.spaces_after = True
+        else:
+            self.spaces_after = False
+
     def format(self, undo, do, prev):
         """Format the given translations.
 
@@ -68,9 +75,9 @@ class Formatter(object):
         for t in do:
             last_action = _get_last_action(prev.formatting if prev else None)
             if t.english:
-                t.formatting = _translation_to_actions(t.english, last_action)
+                t.formatting = _translation_to_actions(t.english, last_action, self.spaces_after)
             else:
-                t.formatting = _raw_to_actions(t.rtfcre[0], last_action)
+                t.formatting = _raw_to_actions(t.rtfcre[0], last_action, self.spaces_after)
             prev = t
 
         old = [a for t in undo for a in t.formatting]
@@ -258,7 +265,7 @@ META_RE = re.compile(r"""(?:%s%s|%s%s|[^%s%s])+ # One or more of anything
 #                                   # doesn't contain unescaped { or }
 #             """, re.VERBOSE)
 
-def _translation_to_actions(translation, last_action):
+def _translation_to_actions(translation, last_action, spaces_after):
     """Create actions for a translation.
     
     Arguments:
@@ -284,7 +291,7 @@ def _translation_to_actions(translation, last_action):
         return [last_action.copy_state()]
 
     for atom in atoms:
-        action = _atom_to_action(atom, last_action)
+        action = _atom_to_action(atom, last_action, spaces_after)
         actions.append(action)
         last_action = action
 
@@ -302,7 +309,7 @@ META_ATTACH_FLAG = '^'
 META_KEY_COMBINATION = '#'
 META_COMMAND = 'PLOVER:'
 
-def _raw_to_actions(stroke, last_action):
+def _raw_to_actions(stroke, last_action, spaces_after):
     """Turn a raw stroke into actions.
 
     Arguments:
@@ -319,11 +326,14 @@ def _raw_to_actions(stroke, last_action):
     # output the raw stroke as is.
     no_dash = stroke.replace('-', '', 1)
     if no_dash.isdigit():
-        return _translation_to_actions(no_dash, last_action)
+        return _translation_to_actions(no_dash, last_action, spaces_after)
     else:
-        return [_Action(text=(SPACE + stroke), word=stroke)]
+        if spaces_after:
+            return [_Action(text=(stroke + SPACE), word=stroke)]
+        else:
+            return [_Action(text=(SPACE + stroke), word=stroke)]
 
-def _atom_to_action(atom, last_action):
+def _atom_to_action(atom, last_action, spaces_after):
     """Convert an atom into an action.
 
     Arguments:
@@ -337,6 +347,26 @@ def _atom_to_action(atom, last_action):
     Returns: An action for the atom.
 
     """
+    if spaces_after:
+        return _atom_to_action_spaces_after(atom, last_action)
+    else:
+        return _atom_to_action_spaces_before(atom, last_action)
+    
+def _atom_to_action_spaces_before(atom, last_action):
+    """Convert an atom into an action.
+
+    Arguments:
+
+    atom -- A string holding an atom. An atom is an irreducible string that is
+    either entirely a single meta command or entirely text containing no meta
+    commands.
+
+    last_action -- The context in which the new action takes place.
+
+    Returns: An action for the atom.
+
+    """
+    
     action = _Action()
     last_word = last_action.word
     last_glue = last_action.glue
@@ -415,6 +445,127 @@ def _atom_to_action(atom, last_action):
             text = _lower(text)
         space = NO_SPACE if last_attach else SPACE
         action.text = space + text
+        action.word = _rightmost_word(text)
+    return action
+
+def _atom_to_action_spaces_after(atom, last_action):
+    """Convert an atom into an action.
+
+    Arguments:
+
+    atom -- A string holding an atom. An atom is an irreducible string that is
+    either entirely a single meta command or entirely text containing no meta
+    commands.
+
+    last_action -- The context in which the new action takes place.
+
+    Returns: An action for the atom.
+
+    """
+    
+    action = _Action()
+    last_word = last_action.word
+    last_glue = last_action.glue
+    last_attach = last_action.attach
+    last_capitalize = last_action.capitalize
+    last_lower = last_action.lower
+    last_orthography = last_action.orthography
+    last_space = SPACE if SPACE in last_action.text else NO_SPACE
+    meta = _get_meta(atom)
+    if meta is not None:
+        meta = _unescape_atom(meta)
+        if meta in META_COMMAS:
+            action.text = meta + SPACE
+            if last_action.text != '':
+                action.replace = SPACE
+            if last_attach:
+                action.replace = NO_SPACE
+        elif meta in META_STOPS:
+            action.text = meta + SPACE
+            action.capitalize = True
+            action.lower = False
+            if last_action.text != '':
+                action.replace = SPACE
+            if last_attach:
+                action.replace = NO_SPACE
+        elif meta == META_CAPITALIZE:
+            action = last_action.copy_state()
+            action.capitalize = True
+            action.lower = False
+        elif meta == META_LOWER:
+            action = last_action.copy_state()
+            action.lower = True
+            action.capitalize = False
+        elif meta.startswith(META_COMMAND):
+            action = last_action.copy_state()
+            action.command = meta[len(META_COMMAND):]
+        elif meta.startswith(META_GLUE_FLAG):
+            action.glue = True
+            text = meta[len(META_GLUE_FLAG):]
+            if last_capitalize:
+                text = _capitalize(text)
+            if last_lower:
+                text = _lower(text)
+            action.text = text + SPACE
+            action.word = _rightmost_word(text)
+            if last_glue:
+                action.replace = SPACE
+                action.word = _rightmost_word(last_word + text)
+            if last_attach:
+                action.replace = NO_SPACE
+                action.word = _rightmost_word(last_word + text)
+        elif (meta.startswith(META_ATTACH_FLAG) or 
+              meta.endswith(META_ATTACH_FLAG)):
+            begin = meta.startswith(META_ATTACH_FLAG)
+            end = meta.endswith(META_ATTACH_FLAG)
+            if begin:
+                meta = meta[len(META_ATTACH_FLAG):]
+            if end and len(meta) >= len(META_ATTACH_FLAG):
+                meta = meta[:-len(META_ATTACH_FLAG)]
+                
+            space = NO_SPACE if end else SPACE
+            replace_space = NO_SPACE if last_attach else SPACE
+            
+            if end:
+                action.attach = True
+            if begin and end and meta == '':
+                # We use an empty connection to indicate a "break" in the 
+                # application of orthography rules. This allows the stenographer 
+                # to tell plover not to auto-correct a word.
+                action.orthography = False
+                if last_action.text != '':
+                    action.replace = replace_space
+            if (((begin and not end) or (begin and end and ' ' in meta)) and 
+                last_orthography):
+                new = orthography.add_suffix(last_word.lower(), meta)
+                common = commonprefix([last_word.lower(), new])
+                if last_action.text == '':
+                    replace_space = NO_SPACE
+                action.replace = last_word[len(common):] + replace_space
+                meta = new[len(common):]
+            if begin and end:
+                if last_action.text != '':
+                    action.replace = replace_space
+            if last_capitalize:
+                meta = _capitalize(meta)
+            if last_lower:
+                meta = _lower(meta)
+            action.text = meta + space
+            action.word = _rightmost_word(
+                last_word[:len(last_word + last_space)-len(action.replace)] + meta)
+            if end and not begin and last_space == SPACE:
+                action.word = _rightmost_word(meta)
+        elif meta.startswith(META_KEY_COMBINATION):
+            action = last_action.copy_state()
+            action.combo = meta[len(META_KEY_COMBINATION):]
+    else:
+        text = _unescape_atom(atom)
+        if last_capitalize:
+            text = _capitalize(text)
+        if last_lower:
+            text = _lower(text)
+            
+        action.text = text + SPACE
         action.word = _rightmost_word(text)
     return action
 
