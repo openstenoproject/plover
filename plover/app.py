@@ -61,6 +61,7 @@ def init_engine(engine, config):
 
     engine.enable_stroke_logging(config.get_enable_stroke_logging())
     engine.enable_translation_logging(config.get_enable_translation_logging())
+    engine.set_space_placement(config.get_space_placement())
     
     engine.set_is_running(config.get_auto_start())
 
@@ -109,6 +110,10 @@ def update_engine(engine, old, new):
     enable_translation_logging = new.get_enable_translation_logging()
     if old.get_enable_translation_logging() != enable_translation_logging:
         engine.enable_translation_logging(enable_translation_logging)
+
+    space_placement = new.get_space_placement()
+    if old.get_space_placement() != space_placement:
+        engine.set_space_placement(space_placement)
 
 def same_thread_hook(fn, *args):
     fn(*args)
@@ -239,6 +244,10 @@ class StenoEngine(object):
     def enable_stroke_logging(self, b):
         """Turn stroke logging on or off."""
         self.logger.enable_stroke_logging(b)
+
+    def set_space_placement(self, s):
+        """Set whether spaces will be inserted before the output or after the output."""
+        self.formatter.set_space_placement(s)
         
     def enable_translation_logging(self, b):
         """Turn translation logging on or off."""
