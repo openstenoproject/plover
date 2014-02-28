@@ -13,6 +13,7 @@ from wx.lib.scrolledpanel import ScrolledPanel
 import plover.config as conf
 from plover.gui.serial_config import SerialConfigDialog
 import plover.gui.add_translation
+import plover.gui.lookup
 from plover.app import update_engine
 from plover.machine.registry import machine_registry
 from plover.exception import InvalidConfigurationError
@@ -22,6 +23,7 @@ from plover.gui.keyboard_config import KeyboardConfigDialog
 
 ADD_TRANSLATION_BUTTON_NAME = "Add Translation"
 ADD_DICTIONARY_BUTTON_NAME = "Add Dictionary"
+LOOKUP_BUTTON_NAME = "Lookup"
 MACHINE_CONFIG_TAB_NAME = "Machine"
 DISPLAY_CONFIG_TAB_NAME = "Display"
 DICTIONARY_CONFIG_TAB_NAME = "Dictionary"
@@ -282,9 +284,12 @@ class DictionaryConfig(ScrolledPanel):
         button.Bind(wx.EVT_BUTTON, self.show_add_translation)
         
         button = wx.Button(self, wx.ID_ANY, ADD_DICTIONARY_BUTTON_NAME)
-        button_sizer.Add(button, border=UI_BORDER, 
-                                 flag=wx.TOP | wx.BOTTOM | wx.RIGHT)
+        button_sizer.Add(button, border=UI_BORDER, flag=wx.ALL)
         button.Bind(wx.EVT_BUTTON, self.add_dictionary)
+
+        button = wx.Button(self, wx.ID_ANY, LOOKUP_BUTTON_NAME)
+        button_sizer.Add(button, border=UI_BORDER, flag=wx.ALL)
+        button.Bind(wx.EVT_BUTTON, self.show_lookup)
         
         main_sizer.Add(button_sizer)
         
@@ -320,6 +325,9 @@ class DictionaryConfig(ScrolledPanel):
             if path not in all_dicts:
                 self.add_row(path)
         dlg.Destroy()
+
+    def show_lookup(self, event):
+        plover.gui.lookup.Show(self, self.engine, self.config)
         
     def add_row(self, filename):
         dict_manager.start_loading(filename)
