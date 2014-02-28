@@ -51,5 +51,5 @@ class TestCase(unittest.TestCase):
 	r = tst.prefixMatch("auntie")
 	self.assertEquals(r.qsize(), 0)
 	
-        self.assertFalse(True)
+
 

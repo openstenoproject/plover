@@ -12,6 +12,7 @@ import os
 import wx
 import wx.animate
 import plover.gui.predictions
+import plover.dictionary.lookup_table
 from wx.lib.utils import AdjustRectToScreen
 import plover.app as app
 from plover.config import ASSETS_DIR, SPINNER_FILE
@@ -20,7 +21,6 @@ import plover.gui.add_translation
 from plover.oslayer.keyboardcontrol import KeyboardEmulation
 from plover.machine.base import STATE_ERROR, STATE_INITIALIZING, STATE_RUNNING
 from plover.machine.registry import machine_registry
-from plover.dictionary.lookup_table import LookupTable
 from plover.exception import InvalidConfigurationError
 from plover.gui.paper_tape import StrokeDisplayDialog
 from plover.gui.speed_report import SpeedReportDialog
@@ -204,14 +204,14 @@ class MainFrame(wx.Frame):
 
         self.steno_engine.formatter.add_output_listener(plover.gui.predictions.output_handler)
         if self.config.get_show_predictions():
-            LookupTable.load(self.steno_engine.translator.get_dictionary())
+            plover.dictionary.lookup_table.load(self.steno_engine.translator.get_dictionary())
             plover.gui.predictions.enabled = True
             plover.gui.predictions.display(self, self.config)
 
         self.steno_engine.add_stroke_listener(BriefTrainer.stroke_handler)
         self.steno_engine.formatter.add_output_listener(BriefTrainer.output_handler)
         if self.config.get_show_brief_suggestions():
-            LookupTable.load(self.steno_engine.translator.get_dictionary())
+            plover.dictionary.lookup_table.load(self.steno_engine.translator.get_dictionary())
             BriefTrainer.enabled = True;
             BriefTrainer.display(self, self.config)
 

@@ -10,7 +10,7 @@ from wx.lib.utils import AdjustRectToScreen
 from collections import namedtuple
 import wx.lib.filebrowsebutton as filebrowse
 from wx.lib.scrolledpanel import ScrolledPanel
-from plover.dictionary.lookup_table import LookupTable
+import plover.dictionary.lookup_table
 from plover.gui.brief_trainer import BriefTrainer
 import plover.config as conf
 from plover.gui.serial_config import SerialConfigDialog
@@ -501,7 +501,7 @@ class DisplayConfig(wx.Panel):
                 SpeedReportDialog.display(self.GetParent(), self.config)
         self.config.set_show_brief_suggestions(self.brief_suggestions.GetValue())
         if (self.brief_suggestions.GetValue() or self.show_predictions.GetValue()):
-            LookupTable.load(self.engine.get_dictionary())
+            plover.dictionary.lookup_table.load(self.engine.get_dictionary())
         BriefTrainer.enabled = self.brief_suggestions.GetValue()
         plover.gui.predictions.enabled = self.show_predictions.GetValue()
 
