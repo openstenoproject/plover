@@ -7,9 +7,11 @@ import wx
 import plover.dictionary.lookup_table
 from plover.dictionary.candidate import Candidate
 
+TITLE = "Stroke Helper"
 WORD_LIMIT=50
 MIN_LENGTH=2
-enabled = True
+
+enabled = False
 backspaces = 0
 text = ""
 candidates = []
@@ -17,7 +19,9 @@ deleted_candidates = []
 output = []
 
 def output_handler(bs, txt):
-    global backspaces, text, candidates, deleted_candidates
+    global backspaces, text, candidates, deleted_candidates, enabled
+    if not enabled:
+        return
     backspaces = bs
     text = txt
     if (not text):
@@ -78,7 +82,8 @@ class Dialog(wx.Dialog):
     controls = []
 
     def __init__(self, parent, config):
-        TITLE = "Stroke Helper"
+        global TITLE, enabled
+        enabled = True
         self.config = config
         style = wx.DEFAULT_DIALOG_STYLE | wx.STAY_ON_TOP
         pos = (config.get_predictions_x(), config.get_predictions_y())

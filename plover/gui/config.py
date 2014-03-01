@@ -516,6 +516,6 @@ class DisplayConfig(wx.Panel):
         plover.gui.predictions.display(self.GetParent(), self.config)
 
     def on_show_brief_suggestions(self, event):
-        BriefTrainer.enabled=True
-        BriefTrainer.display(self.GetParent(), self.config)
+        plover.gui.brief_trainer.enabled=True
+        plover.gui.brief_trainer.display(self.GetParent(), self.config)
 
