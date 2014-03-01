@@ -512,10 +512,12 @@ class DisplayConfig(wx.Panel):
         SpeedReportDialog.display(self.GetParent(), self.config)
 
     def on_show_predictions(self, event):
+        plover.dictionary.lookup_table.load(self.engine.get_dictionary())
         plover.gui.predictions.enabled=True
         plover.gui.predictions.display(self.GetParent(), self.config)
 
     def on_show_brief_suggestions(self, event):
+        plover.dictionary.lookup_table.load(self.engine.get_dictionary())
         plover.gui.brief_trainer.enabled=True
         plover.gui.brief_trainer.display(self.GetParent(), self.config)
 
