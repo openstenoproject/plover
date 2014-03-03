@@ -470,7 +470,7 @@ def _atom_to_action_spaces_after(atom, last_action):
     last_capitalize = last_action.capitalize
     last_lower = last_action.lower
     last_orthography = last_action.orthography
-    last_space = SPACE if SPACE in last_action.text else NO_SPACE
+    last_space = SPACE if last_action.text.endswith(SPACE) else NO_SPACE
     meta = _get_meta(atom)
     if meta is not None:
         meta = _unescape_atom(meta)
