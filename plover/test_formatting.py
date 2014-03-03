@@ -260,6 +260,18 @@ class FormatterTestCase(unittest.TestCase):
           action(word='equip', attach=True, orthography=False),
           action(text='ed', word='equiped'),
          ]),
+         
+         (('{prefix^} test {^ing}', action(), False),
+         [action(text=' prefix', word='prefix', attach=True),
+          action(text='test', word='test'),
+          action(text='ing', word='testing'),
+         ]),
+
+        (('{two prefix^} test {^ing}', action(), False),
+         [action(text=' two prefix', word='prefix', attach=True),
+          action(text='test', word='test'),
+          action(text='ing', word='testing'),
+         ]),
 
 
         (('test', action(), True), 
@@ -314,6 +326,18 @@ class FormatterTestCase(unittest.TestCase):
          [action(text='equip ', word='equip'),
           action(word='equip', attach=True, orthography=False, replace=' '),
           action(text='ed ', word='equiped'),
+         ]),
+         
+         (('{prefix^} test {^ing}', action(), True),
+         [action(text='prefix', word='prefix', attach=True),
+          action(text='test ', word='test'),
+          action(text='ing ', word='testing', replace=' '),
+         ]),
+
+        (('{two prefix^} test {^ing}', action(), True),
+         [action(text='two prefix', word='prefix', attach=True),
+          action(text='test ', word='test'),
+          action(text='ing ', word='testing', replace=' '),
          ]),
         ]
         self.check_arglist(formatting._translation_to_actions, cases)
