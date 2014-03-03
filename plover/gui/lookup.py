@@ -79,8 +79,8 @@ class LookupDialog(wx.Dialog):
     other_instances = []
     
     def __init__(self, parent, engine, config):
-        pos = (config.get_translation_frame_x(), 
-               config.get_translation_frame_y())
+        pos = (config.get_lookup_frame_x(), 
+               config.get_lookup_frame_y())
         wx.Dialog.__init__(self, parent, wx.ID_ANY, TITLE, 
                            pos, wx.DefaultSize, 
                            wx.DEFAULT_DIALOG_STYLE, wx.DialogNameStr)
@@ -194,8 +194,8 @@ class LookupDialog(wx.Dialog):
 
     def on_move(self, event):
         pos = self.GetScreenPositionTuple()
-        self.config.set_translation_frame_x(pos[0]) 
-        self.config.set_translation_frame_y(pos[1])
+        self.config.set_lookup_frame_x(pos[0]) 
+        self.config.set_lookup_frame_y(pos[1])
         event.Skip()
 
     def _normalized_strokes(self):
