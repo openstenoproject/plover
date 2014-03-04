@@ -72,6 +72,7 @@ class MainFrame(wx.Frame):
     COMMAND_RESUME = 'RESUME'
     COMMAND_TOGGLE = 'TOGGLE'
     COMMAND_CONFIGURE = 'CONFIGURE'
+    COMMAND_RESET_SPEED = 'RESET_SPEED'
     COMMAND_FOCUS = 'FOCUS'
     COMMAND_QUIT = 'QUIT'
 
@@ -224,6 +225,9 @@ class MainFrame(wx.Frame):
             return True
         elif command == self.COMMAND_CONFIGURE:
             wx.CallAfter(self._show_config_dialog)
+            return True
+        elif command == self.COMMAND_RESET_SPEED:
+            SpeedReportDialog.reset()
             return True
         elif command == self.COMMAND_FOCUS:
             def f():
