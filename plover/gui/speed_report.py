@@ -43,10 +43,10 @@ class SpeedReportDialog(wx.Dialog):
 
         sizer = wx.BoxSizer(wx.VERTICAL)
         line = wx.BoxSizer(wx.HORIZONTAL)
-        line.Add(self.c_speed_text, flag=wx.RIGHT | wx.BOTTOM, border=UI_BORDER)
-        line.Add(self.a_speed_text, flag=wx.RIGHT | wx.BOTTOM, border=UI_BORDER)
-        line.Add(self.m_speed_text, flag=wx.RIGHT | wx.BOTTOM , border=UI_BORDER)
-        line.Add(self.ratio_text, flag=wx.RIGHT | wx.BOTTOM, border=UI_BORDER)
+        line.Add(self.c_speed_text, flag=wx.ALL, border=UI_BORDER)
+        line.Add(self.a_speed_text, flag=wx.ALL, border=UI_BORDER)
+        line.Add(self.m_speed_text, flag=wx.ALL , border=UI_BORDER)
+        line.Add(self.ratio_text, flag=wx.ALL, border=UI_BORDER)
 
         reset_button = wx.Button(self, label=RESET_SPEED_TEXT)
         reset_button.Bind(wx.EVT_BUTTON, self.on_reset)
