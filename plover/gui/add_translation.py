@@ -5,7 +5,7 @@ import wx
 from wx.lib.utils import AdjustRectToScreen
 import sys
 from plover.steno import normalize_steno
-import plover.gui.util
+import plover.gui.util as util
 
 TITLE = 'Plover: Add Translation'
 
@@ -25,8 +25,6 @@ class AddTranslationDialog(wx.Dialog):
                            wx.DEFAULT_DIALOG_STYLE, wx.DialogNameStr)
 
         self.config = config
-
-        self.util = plover.gui.util.Util()
 
         # components
         self.strokes_text = wx.TextCtrl(self, style=wx.TE_PROCESS_ENTER)
@@ -111,7 +109,7 @@ class AddTranslationDialog(wx.Dialog):
         self.translation_state = self.engine.translator.get_state()
         self.engine.translator.set_state(self.previous_state)
         
-        self.last_window = self.util.GetForegroundWindow()
+        self.last_window = util.GetForegroundWindow()
         
         # Now that we saved the last window we'll close other instances. This 
         # may restore their original window but we've already saved ours so it's 
@@ -133,7 +131,7 @@ class AddTranslationDialog(wx.Dialog):
     def on_close(self, event=None):
         self.engine.translator.set_state(self.previous_state)
         try:
-            self.util.SetForegroundWindow(self.last_window)
+            util.SetForegroundWindow(self.last_window)
         except:
             pass
         self.other_instances.remove(self)
@@ -211,4 +209,4 @@ def Show(parent, engine, config):
     dialog_instance.Show()
     dialog_instance.Raise()
     dialog_instance.strokes_text.SetFocus()
-    dialog_instance.util.SetTopApp()
+    util.SetTopApp()
