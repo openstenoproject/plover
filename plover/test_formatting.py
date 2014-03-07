@@ -185,6 +185,7 @@ class FormatterTestCase(unittest.TestCase):
             output = CaptureOutput()
             formatter = formatting.Formatter()
             formatter.set_output(output)
+            formatter.set_space_placement('Before Output')
             undo, do, prev = args
             formatter.format(undo, do, prev)
             for i in xrange(len(do)):
@@ -206,24 +207,24 @@ class FormatterTestCase(unittest.TestCase):
 
     def test_translation_to_actions(self):
         cases = [
-        (('test', action()), 
+        (('test', action(), False), 
          [action(text=' test', word='test')]),
         
-        (('{^^}', action()), [action(attach=True, orthography=False)]),
+        (('{^^}', action(), False), [action(attach=True, orthography=False)]),
          
-        (('1-9', action()), 
+        (('1-9', action(), False), 
          [action(word='1-9', text=' 1-9')]),
          
-        (('32', action()), 
+        (('32', action(), False), 
          [action(word='32', text=' 32', glue=True)]),
          
-        (('', action(text=' test', word='test', attach=True)),
+        (('', action(text=' test', word='test', attach=True), False),
          [action(word='test', attach=True)]),
          
-        (('  ', action(text=' test', word='test', attach=True)),
+        (('  ', action(text=' test', word='test', attach=True), False),
          [action(word='test', attach=True)]),
          
-        (('{^} {.} hello {.} {#ALT_L(Grave)}{^ ^}', action()),
+        (('{^} {.} hello {.} {#ALT_L(Grave)}{^ ^}', action(), False),
          [action(attach=True, orthography=False), 
           action(text='.', capitalize=True), 
           action(text=' Hello', word='Hello'), 
@@ -232,32 +233,111 @@ class FormatterTestCase(unittest.TestCase):
           action(text=' ', attach=True)
          ]),
          
-         (('{-|} equip {^s}', action()),
+         (('{-|} equip {^s}', action(), False),
           [action(capitalize=True),
            action(text=' Equip', word='Equip'),
            action(text='s', word='Equips'),
           ]),
 
-        (('{-|} equip {^ed}', action()),
+        (('{-|} equip {^ed}', action(), False),
          [action(capitalize=True),
           action(text=' Equip', word='Equip'),
           action(text='ped', word='Equipped'),
          ]),
 
-        (('{>} Equip', action()),
+        (('{>} Equip', action(), False),
          [action(lower=True),
           action(text=' equip', word='equip')
          ]),
 
-        (('{>} equip', action()),
+        (('{>} equip', action(), False),
          [action(lower=True),
           action(text=' equip', word='equip')
          ]),
          
-        (('equip {^} {^ed}', action()),
+        (('equip {^} {^ed}', action(), False),
          [action(text=' equip', word='equip'),
           action(word='equip', attach=True, orthography=False),
           action(text='ed', word='equiped'),
+         ]),
+         
+         (('{prefix^} test {^ing}', action(), False),
+         [action(text=' prefix', word='prefix', attach=True),
+          action(text='test', word='test'),
+          action(text='ing', word='testing'),
+         ]),
+
+        (('{two prefix^} test {^ing}', action(), False),
+         [action(text=' two prefix', word='prefix', attach=True),
+          action(text='test', word='test'),
+          action(text='ing', word='testing'),
+         ]),
+
+
+        (('test', action(), True), 
+         [action(text='test ', word='test')]),
+        
+        (('{^^}', action(), True), [action(attach=True, orthography=False)]),
+         
+        (('1-9', action(), True), 
+         [action(word='1-9', text='1-9 ')]),
+         
+        (('32', action(), True), 
+         [action(word='32', text='32 ', glue=True)]),
+         
+        (('', action(text='test ', word='test', attach=True), True),
+         [action(word='test', attach=True)]),
+         
+        (('  ', action(text='test ', word='test', attach=True), True),
+         [action(word='test', attach=True)]),
+         
+        (('{^} {.} hello {.} {#ALT_L(Grave)}{^ ^}', action(), True),
+         [action(attach=True, orthography=False), 
+          action(text='. ', capitalize=True), 
+          action(text='Hello ', word='Hello'), 
+          action(text='. ', capitalize=True, replace=' '), 
+          action(combo='ALT_L(Grave)', capitalize=True),
+          action(text=' ', attach=True)
+         ]),
+         
+         (('{-|} equip {^s}', action(), True),
+          [action(capitalize=True),
+           action(text='Equip ', word='Equip'),
+           action(text='s ', word='Equips', replace=' '),
+          ]),
+
+        (('{-|} equip {^ed}', action(), True),
+         [action(capitalize=True),
+          action(text='Equip ', word='Equip'),
+          action(text='ped ', word='Equipped', replace=' '),
+         ]),
+
+        (('{>} Equip', action(), True),
+         [action(lower=True),
+          action(text='equip ', word='equip')
+         ]),
+
+        (('{>} equip', action(), True),
+         [action(lower=True),
+          action(text='equip ', word='equip')
+         ]),
+         
+        (('equip {^} {^ed}', action(), True),
+         [action(text='equip ', word='equip'),
+          action(word='equip', attach=True, orthography=False, replace=' '),
+          action(text='ed ', word='equiped'),
+         ]),
+         
+         (('{prefix^} test {^ing}', action(), True),
+         [action(text='prefix', word='prefix', attach=True),
+          action(text='test ', word='test'),
+          action(text='ing ', word='testing', replace=' '),
+         ]),
+
+        (('{two prefix^} test {^ing}', action(), True),
+         [action(text='two prefix', word='prefix', attach=True),
+          action(text='test ', word='test'),
+          action(text='ing ', word='testing', replace=' '),
          ]),
         ]
         self.check_arglist(formatting._translation_to_actions, cases)
@@ -266,28 +346,28 @@ class FormatterTestCase(unittest.TestCase):
         cases = (
 
         (
-         ('2-6', action()),
+         ('2-6', action(), False),
          [action(glue=True, text=' 26', word='26')]
         ),
 
         (
-         ('2', action()),
+         ('2', action(), False),
          [action(glue=True, text=' 2', word='2')]
         ),
 
         (
-         ('-8', action()),
+         ('-8', action(), False),
          [action(glue=True, text=' 8', word='8')]
         ),
 
 
         (
-         ('-68', action()),
+         ('-68', action(), False),
          [action(glue=True, text=' 68', word='68')]
         ),
 
         (
-         ('S-T', action()),
+         ('S-T', action(), False),
          [action(text=' S-T', word='S-T')]
         ),
 
@@ -295,7 +375,7 @@ class FormatterTestCase(unittest.TestCase):
         )
         self.check_arglist(formatting._raw_to_actions, cases)
 
-    def test_atom_to_action(self):
+    def test_atom_to_action_spaces_before(self):
         cases = [
         (('{^ed}', action(word='test')), 
          action(text='ed', replace='', word='tested')),
@@ -382,7 +462,95 @@ class FormatterTestCase(unittest.TestCase):
          action(text=' some text', word='text')),
 
         ]
-        self.check_arglist(formatting._atom_to_action, cases)
+        self.check_arglist(formatting._atom_to_action_spaces_before, cases)
+
+    def test_atom_to_action_spaces_after(self):
+        cases = [
+        (('{^ed}', action(word='test', text='test ')), 
+         action(text='ed ', replace=' ', word='tested')),
+
+        (('{^ed}', action(word='carry', text='carry ')), 
+         action(text='ied ', replace='y ', word='carried')),
+
+        (('{^er}', action(word='test', text='test ')), 
+         action(text='er ', replace=' ', word='tester')),
+
+        (('{^er}', action(word='carry', text='carry ')), 
+         action(text='ier ', replace='y ', word='carrier')),
+
+        (('{^ing}', action(word='test', text='test ')), 
+         action(text='ing ', replace=' ', word='testing')),
+
+        (('{^ing}', action(word='begin', text='begin ')), 
+         action(text='ning ', replace=' ', word='beginning')),
+
+        (('{^ing}', action(word='parade', text='parade ')), 
+         action(text='ing ', replace='e ', word='parading')),
+
+        (('{^s}', action(word='test', text='test ')), 
+         action(text='s ', replace=' ', word='tests')),
+
+        (('{,}', action(word='test', text='test ')), action(text=', ', replace=' ')),
+
+        (('{:}', action(word='test', text='test ')), action(text=': ', replace=' ')),
+         
+        (('{;}', action(word='test', text='test ')), action(text='; ', replace=' ')),
+
+        (('{.}', action(word='test', text='test ')), 
+         action(text='. ', replace=' ', capitalize=True)),
+
+        (('{?}', action(word='test', text='test ')),
+         action(text='? ', replace=' ', capitalize=True)),
+
+        (('{!}', action(word='test', text='test ')),
+         action(text='! ', replace=' ', capitalize=True)),
+
+        (('{-|}', action(word='test', text='test ')),
+         action(capitalize=True, word='test')),
+
+        (('{>}', action(word='test', text='test ')),
+         action(lower=True, word='test')),
+
+        (('{PLOVER:test_command}', action(word='test', text='test ')),
+         action(word='test', command='test_command')),
+        
+        (('{&glue_text}', action(word='test', text='test ')),
+         action(text='glue_text ', word='glue_text', glue=True)),
+        
+        (('{&glue_text}', action(word='test', text='test ', glue=True)),
+         action(text='glue_text ', word='testglue_text', replace=' ', glue=True)),
+        
+        (('{&glue_text}', action(word='test', text='test', attach=True)),
+         action(text='glue_text ', word='testglue_text', glue=True)),
+
+        (('{^attach_text}', action(word='test', text='test ')),
+         action(text='attach_text ', word='testattach_text', replace=' ')),
+
+        (('{^attach_text^}', action(word='test', text='test ')),
+         action(text='attach_text', word='testattach_text', replace=' ', attach=True)),
+
+        (('{attach_text^}', action(word='test', text='test ')),
+         action(text='attach_text', word='attach_text', attach=True)),
+
+        (('{#ALT_L(A)}', action(word='test', text='test ')), 
+         action(combo='ALT_L(A)', word='test')),
+
+        (('text', action(word='test', text='test ')), 
+         action(text='text ', word='text')),
+
+        (('text', action(word='test', text='test ', glue=True)), 
+         action(text='text ', word='text')),
+
+        (('text2', action(word='test2', text='test2', attach=True)), 
+         action(text='text2 ', word='text2', replace='')),
+
+        (('text', action(word='test', text='test ', capitalize=True)), 
+         action(text='Text ', word='Text')),
+
+        (('some text', action(word='test', text='test ')), 
+         action(text='some text ', word='text')),
+        ]
+        self.check_arglist(formatting._atom_to_action_spaces_after, cases)        
     
     def test_get_meta(self):
         cases = [('', None), ('{abc}', 'abc'), ('abc', None)]
