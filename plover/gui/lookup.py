@@ -7,19 +7,18 @@ import sys
 from plover.steno import normalize_steno
 import plover.gui.util as util
 
-TITLE = 'Plover: Add Translation'
+TITLE = 'Plover: Lookup'
 
-class AddTranslationDialog(wx.Dialog):
-    
+class LookupDialog(wx.Dialog):
+
     BORDER = 3
-    STROKES_TEXT = 'Strokes:'
-    TRANSLATION_TEXT = 'Translation:'
+    TRANSLATION_TEXT = 'Text:'
     
     other_instances = []
     
     def __init__(self, parent, engine, config):
-        pos = (config.get_translation_frame_x(), 
-               config.get_translation_frame_y())
+        pos = (config.get_lookup_frame_x(), 
+               config.get_lookup_frame_y())
         wx.Dialog.__init__(self, parent, wx.ID_ANY, TITLE, 
                            pos, wx.DefaultSize, 
                            wx.DEFAULT_DIALOG_STYLE, wx.DialogNameStr)
@@ -27,31 +26,19 @@ class AddTranslationDialog(wx.Dialog):
         self.config = config
 
         # components
-        self.strokes_text = wx.TextCtrl(self, style=wx.TE_PROCESS_ENTER)
         self.translation_text = wx.TextCtrl(self, style=wx.TE_PROCESS_ENTER)
-        button = wx.Button(self, id=wx.ID_OK, label='Add to dictionary')
         cancel = wx.Button(self, id=wx.ID_CANCEL)
-        self.stroke_mapping_text = wx.StaticText(self)
-        self.translation_mapping_text = wx.StaticText(self)
+        self.listbox = wx.ListBox(self, size=wx.Size(210, 200))
         
         # layout
         global_sizer = wx.BoxSizer(wx.VERTICAL)
         
         sizer = wx.BoxSizer(wx.HORIZONTAL)
-        label = wx.StaticText(self, label=self.STROKES_TEXT)
-        sizer.Add(label, flag=wx.ALL | wx.ALIGN_CENTER_VERTICAL, 
-                  border=self.BORDER)
-        sizer.Add(self.strokes_text, 
-                  flag=wx.TOP | wx.RIGHT | wx.BOTTOM | wx.ALIGN_CENTER_VERTICAL, 
-                  border=self.BORDER)
         label = wx.StaticText(self, label=self.TRANSLATION_TEXT)
         sizer.Add(label, 
-                  flag=wx.TOP | wx.RIGHT | wx.BOTTOM | wx.ALIGN_CENTER_VERTICAL, 
+                  flag=wx.TOP | wx.LEFT | wx.RIGHT | wx.BOTTOM | wx.ALIGN_CENTER_VERTICAL, 
                   border=self.BORDER)
-        sizer.Add(self.translation_text          , 
-                  flag=wx.TOP | wx.RIGHT | wx.BOTTOM | wx.ALIGN_CENTER_VERTICAL, 
-                  border=self.BORDER)
-        sizer.Add(button, 
+        sizer.Add(self.translation_text, 
                   flag=wx.TOP | wx.RIGHT | wx.BOTTOM | wx.ALIGN_CENTER_VERTICAL, 
                   border=self.BORDER)
         sizer.Add(cancel, 
@@ -60,15 +47,10 @@ class AddTranslationDialog(wx.Dialog):
         global_sizer.Add(sizer)
         
         sizer = wx.BoxSizer(wx.HORIZONTAL)
-        sizer.Add(self.stroke_mapping_text, 
-                  flag= wx.ALL | wx.ALIGN_CENTER_VERTICAL,
+        sizer.Add(self.listbox,
+                  flag=wx.ALL | wx.FIXED_MINSIZE,
                   border=self.BORDER)
-        global_sizer.Add(sizer)
-        
-        sizer = wx.BoxSizer(wx.HORIZONTAL)
-        sizer.Add(self.translation_mapping_text, 
-                  flag= wx.ALL | wx.ALIGN_CENTER_VERTICAL,
-                  border=self.BORDER)
+
         global_sizer.Add(sizer)
         
         self.SetAutoLayout(True)
@@ -79,7 +61,7 @@ class AddTranslationDialog(wx.Dialog):
         self.SetRect(AdjustRectToScreen(self.GetRect()))
         
         # events
-        button.Bind(wx.EVT_BUTTON, self.on_add_translation)
+
         # The reason for the focus event here is to skip focus on tab traversal
         # of the buttons. But it seems that on windows this prevents the button
         # from being pressed. Leave this commented out until that problem is
@@ -87,14 +69,10 @@ class AddTranslationDialog(wx.Dialog):
         #button.Bind(wx.EVT_SET_FOCUS, self.on_button_gained_focus)
         cancel.Bind(wx.EVT_BUTTON, self.on_close)
         #cancel.Bind(wx.EVT_SET_FOCUS, self.on_button_gained_focus)
-        self.strokes_text.Bind(wx.EVT_TEXT, self.on_strokes_change)
         self.translation_text.Bind(wx.EVT_TEXT, self.on_translation_change)
-        self.strokes_text.Bind(wx.EVT_SET_FOCUS, self.on_strokes_gained_focus)
-        self.strokes_text.Bind(wx.EVT_KILL_FOCUS, self.on_strokes_lost_focus)
-        self.strokes_text.Bind(wx.EVT_TEXT_ENTER, self.on_add_translation)
         self.translation_text.Bind(wx.EVT_SET_FOCUS, self.on_translation_gained_focus)
         self.translation_text.Bind(wx.EVT_KILL_FOCUS, self.on_translation_lost_focus)
-        self.translation_text.Bind(wx.EVT_TEXT_ENTER, self.on_add_translation)
+        self.translation_text.Bind(wx.EVT_TEXT_ENTER, self.on_close)
         self.Bind(wx.EVT_CLOSE, self.on_close)
         self.Bind(wx.EVT_MOVE, self.on_move)
         
@@ -103,8 +81,6 @@ class AddTranslationDialog(wx.Dialog):
         # TODO: add functions on engine for state
         self.previous_state = self.engine.translator.get_state()
         # TODO: use state constructor?
-        self.engine.translator.clear_state()
-        self.strokes_state = self.engine.translator.get_state()
         self.engine.translator.clear_state()
         self.translation_state = self.engine.translator.get_state()
         self.engine.translator.set_state(self.previous_state)
@@ -118,15 +94,6 @@ class AddTranslationDialog(wx.Dialog):
             instance.Close()
         del self.other_instances[:]
         self.other_instances.append(self)
-    
-    def on_add_translation(self, event=None):
-        d = self.engine.get_dictionary()
-        strokes = self._normalized_strokes()
-        translation = self.translation_text.GetValue().strip()
-        if strokes and translation:
-            d.set(strokes, translation)
-            d.save()
-        self.Close()
 
     def on_close(self, event=None):
         self.engine.translator.set_state(self.previous_state)
@@ -137,45 +104,22 @@ class AddTranslationDialog(wx.Dialog):
         self.other_instances.remove(self)
         self.Destroy()
 
-    def on_strokes_change(self, event):
-        key = self._normalized_strokes()
-        if key:
-            d = self.engine.get_dictionary()
-            translation = d.raw_lookup(key)
-            strokes = '/'.join(key)
-            if translation:
-                label = '%s maps to %s' % (strokes, translation)
-            else:
-                label = '%s is not in the dictionary' % strokes
-        else:
-            label = ''
-        self.stroke_mapping_text.SetLabel(label)
-        self.GetSizer().Layout()
-
     def on_translation_change(self, event):
         # TODO: normalize dict entries to make reverse lookup more reliable with 
         # whitespace.
         translation = event.GetString().strip()
+        self.listbox.Clear()
         if translation:
             d = self.engine.get_dictionary()
             strokes_list = d.reverse_lookup(translation)
             if strokes_list:
-                strokes = ', '.join('/'.join(x) for x in strokes_list)
-                label = '%s is mapped from %s' % (translation, strokes)
+                entries = ('/'.join(x) for x in strokes_list)
+                for str in entries:
+                    self.listbox.Append(str)
             else:
-                label = '%s is not in the dictionary' % translation
-        else:
-            label = ''
-        self.translation_mapping_text.SetLabel(label)
+                self.listbox.Append('No entries')
+                
         self.GetSizer().Layout()
-        
-    def on_strokes_gained_focus(self, event):
-        self.engine.get_dictionary().add_filter(self.stroke_dict_filter)
-        self.engine.translator.set_state(self.strokes_state)
-        
-    def on_strokes_lost_focus(self, event):
-        self.engine.get_dictionary().remove_filter(self.stroke_dict_filter)
-        self.engine.translator.set_state(self.previous_state)
 
     def on_translation_gained_focus(self, event):
         self.engine.translator.set_state(self.translation_state)
@@ -185,18 +129,11 @@ class AddTranslationDialog(wx.Dialog):
 
     def on_button_gained_focus(self, event):
         self.strokes_text.SetFocus()
-        
-    def stroke_dict_filter(self, key, value):
-        # Only allow translations with special entries. Do this by looking for 
-        # braces but take into account escaped braces and slashes.
-        escaped = value.replace('\\\\', '').replace('\\{', '')
-        special = '{#'  in escaped or '{PLOVER:' in escaped
-        return not special
 
     def on_move(self, event):
         pos = self.GetScreenPositionTuple()
-        self.config.set_translation_frame_x(pos[0]) 
-        self.config.set_translation_frame_y(pos[1])
+        self.config.set_lookup_frame_x(pos[0]) 
+        self.config.set_lookup_frame_y(pos[1])
         event.Skip()
 
     def _normalized_strokes(self):
@@ -205,8 +142,8 @@ class AddTranslationDialog(wx.Dialog):
         return strokes
 
 def Show(parent, engine, config):
-    dialog_instance = AddTranslationDialog(parent, engine, config)
+    dialog_instance = LookupDialog(parent, engine, config)
     dialog_instance.Show()
     dialog_instance.Raise()
-    dialog_instance.strokes_text.SetFocus()
+    dialog_instance.translation_text.SetFocus()
     util.SetTopApp()
