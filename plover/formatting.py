@@ -76,7 +76,7 @@ class Formatter(object):
 
         old = [a for t in undo for a in t.formatting]
         new = [a for t in do for a in t.formatting]
-
+        
         min_length = min(len(old), len(new))
         for i in xrange(min_length):
             if old[i] != new[i]:
@@ -337,7 +337,7 @@ def _raw_to_actions(stroke, last_action):
     if no_dash.isdigit():
         return _translation_to_actions(no_dash, last_action)
     else:
-        return [_Action(text=(stroke + SPACE), word=stroke)]
+        return [_Action(text=(SPACE + stroke), word=stroke)]
 
 def _atom_to_action(atom, last_action):
     """Convert an atom into an action.
@@ -353,7 +353,6 @@ def _atom_to_action(atom, last_action):
     Returns: An action for the atom.
 
     """
-
     action = _Action()
     last_word = last_action.word
     last_glue = last_action.glue
@@ -361,24 +360,15 @@ def _atom_to_action(atom, last_action):
     last_capitalize = last_action.capitalize
     last_lower = last_action.lower
     last_orthography = last_action.orthography
-    last_space = SPACE if SPACE in last_action.text else NO_SPACE
     meta = _get_meta(atom)
     if meta is not None:
         meta = _unescape_atom(meta)
         if meta in META_COMMAS:
-            action.text = meta + SPACE
-            if last_action.text != '':
-                action.replace = SPACE
-            if last_attach:
-                action.replace = NO_SPACE
+            action.text = meta
         elif meta in META_STOPS:
-            action.text = meta + SPACE
+            action.text = meta
             action.capitalize = True
             action.lower = False
-            if last_action.text != '':
-                action.replace = SPACE
-            if last_attach:
-                action.replace = NO_SPACE
         elif meta == META_CAPITALIZE:
             action = last_action.copy_state()
             action.capitalize = True
@@ -392,19 +382,15 @@ def _atom_to_action(atom, last_action):
             action.command = meta[len(META_COMMAND):]
         elif meta.startswith(META_GLUE_FLAG):
             action.glue = True
-            glue = last_glue
+            glue = last_glue or last_attach
+            space = NO_SPACE if glue else SPACE
             text = meta[len(META_GLUE_FLAG):]
             if last_capitalize:
                 text = _capitalize(text)
             if last_lower:
                 text = _lower(text)
-            action.text = text + SPACE
-            action.word = _rightmost_word(text)
-            if last_space != SPACE:
-                action.word = _rightmost_word(last_word + text)
-            if glue:
-                action.replace = SPACE
-                action.word = _rightmost_word(last_word + text)
+            action.text = space + text
+            action.word = _rightmost_word(last_word + action.text)
         elif (meta.startswith(META_ATTACH_FLAG) or 
               meta.endswith(META_ATTACH_FLAG)):
             begin = meta.startswith(META_ATTACH_FLAG)
@@ -413,10 +399,7 @@ def _atom_to_action(atom, last_action):
                 meta = meta[len(META_ATTACH_FLAG):]
             if end and len(meta) >= len(META_ATTACH_FLAG):
                 meta = meta[:-len(META_ATTACH_FLAG)]
-
-            space = NO_SPACE if end else SPACE
-            replace_space = NO_SPACE if last_attach else SPACE
-
+            space = NO_SPACE if begin or last_attach else SPACE
             if end:
                 action.attach = True
             if begin and end and meta == '':
@@ -424,29 +407,19 @@ def _atom_to_action(atom, last_action):
                 # application of orthography rules. This allows the stenographer 
                 # to tell plover not to auto-correct a word.
                 action.orthography = False
-                if last_action.text != '':
-                    action.replace = replace_space
-            if (((begin and not end) or (begin and end and ' ' in meta)) and
+            if (((begin and not end) or (begin and end and ' ' in meta)) and 
                 last_orthography):
                 new = orthography.add_suffix(last_word.lower(), meta)
                 common = commonprefix([last_word.lower(), new])
-                if last_action.text == '':
-                    replace_space = NO_SPACE
-                action.replace = last_word[len(common):] + replace_space
+                action.replace = last_word[len(common):]
                 meta = new[len(common):]
-            if begin and end:
-                if last_action.text != '':
-                    action.replace = replace_space
             if last_capitalize:
                 meta = _capitalize(meta)
             if last_lower:
                 meta = _lower(meta)
-            action.text = meta + space
+            action.text = space + meta
             action.word = _rightmost_word(
-                last_word[:len(last_word + last_space)-len(action.replace)] + meta)
-            if end and not begin and last_space == SPACE:
-                action.word = _rightmost_word(meta)
-
+                last_word[:len(last_word)-len(action.replace)] + action.text)
         elif meta.startswith(META_KEY_COMBINATION):
             action = last_action.copy_state()
             action.combo = meta[len(META_KEY_COMBINATION):]
@@ -456,11 +429,9 @@ def _atom_to_action(atom, last_action):
             text = _capitalize(text)
         if last_lower:
             text = _lower(text)
-        action.text = text + SPACE
+        space = NO_SPACE if last_attach else SPACE
+        action.text = space + text
         action.word = _rightmost_word(text)
-        if last_attach:
-            action.word = _rightmost_word(last_word + text)
-
     return action
 
 def _get_meta(atom):
