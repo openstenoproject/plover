@@ -11,6 +11,8 @@ resumes stenotype translation and allows for application configuration.
 import os
 import wx
 import wx.animate
+import plover.gui.predictions
+import plover.dictionary.lookup_table
 from wx.lib.utils import AdjustRectToScreen
 import plover.app as app
 from plover.config import ASSETS_DIR, SPINNER_FILE
@@ -22,6 +24,7 @@ from plover.machine.base import STATE_ERROR, STATE_INITIALIZING, STATE_RUNNING
 from plover.machine.registry import machine_registry
 from plover.exception import InvalidConfigurationError
 from plover.gui.paper_tape import StrokeDisplayDialog
+from plover.gui.speed_report import SpeedReportDialog
 
 from plover import __name__ as __software_name__
 from plover import __version__
@@ -73,6 +76,7 @@ class MainFrame(wx.Frame):
     COMMAND_RESUME = 'RESUME'
     COMMAND_TOGGLE = 'TOGGLE'
     COMMAND_CONFIGURE = 'CONFIGURE'
+    COMMAND_RESET_SPEED = 'RESET_SPEED'
     COMMAND_FOCUS = 'FOCUS'
     COMMAND_QUIT = 'QUIT'
 
@@ -194,7 +198,25 @@ class MainFrame(wx.Frame):
             StrokeDisplayDialog.stroke_handler)
         if self.config.get_show_stroke_display():
             StrokeDisplayDialog.display(self, self.config)
-            
+
+        self.steno_engine.add_stroke_listener(SpeedReportDialog.stroke_handler)
+        self.steno_engine.formatter.add_output_listener(SpeedReportDialog.output_handler)
+        if self.config.get_show_speed_report():
+            SpeedReportDialog.display(self, self.config)
+
+        self.steno_engine.formatter.add_output_listener(plover.gui.predictions.output_handler)
+        if self.config.get_show_predictions():
+            plover.dictionary.lookup_table.load(self.steno_engine.translator.get_dictionary())
+            plover.gui.predictions.enabled = True
+            plover.gui.predictions.display(self, self.config)
+
+        self.steno_engine.add_stroke_listener(plover.gui.brief_trainer.stroke_handler)
+        self.steno_engine.formatter.add_output_listener(plover.gui.brief_trainer.output_handler)
+        if self.config.get_show_brief_suggestions():
+            plover.dictionary.lookup_table.load(self.steno_engine.translator.get_dictionary())
+            plover.gui.brief_trainer.enabled = True;
+            plover.gui.brief_trainer.display(self, self.config)
+
         pos = (config.get_main_frame_x(), config.get_main_frame_y())
         self.SetPosition(pos)
 
@@ -220,6 +242,9 @@ class MainFrame(wx.Frame):
             return True
         elif command == self.COMMAND_CONFIGURE:
             wx.CallAfter(self._show_config_dialog)
+            return True
+        elif command == self.COMMAND_RESET_SPEED:
+            SpeedReportDialog.reset()
             return True
         elif command == self.COMMAND_FOCUS:
             def f():
