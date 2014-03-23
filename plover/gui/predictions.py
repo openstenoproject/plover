@@ -82,7 +82,7 @@ class Dialog(wx.Dialog):
         global TITLE, enabled
         enabled = True
         self.config = config
-        style = wx.DEFAULT_DIALOG_STYLE | wx.STAY_ON_TOP
+        style = wx.DEFAULT_DIALOG_STYLE | wx.STAY_ON_TOP | wx.RESIZE_BORDER
         pos = (config.get_predictions_x(), config.get_predictions_y())
         wx.Dialog.__init__(self, parent, title=TITLE, style=style, pos=pos)
         self.Bind(wx.EVT_MOVE, self.on_move)
