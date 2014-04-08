@@ -60,8 +60,8 @@ RULES = [
     (re.compile(r'^(.+)te \^ en$', re.I),
         r'\1tten'),
     # free + ed = freed 
-    (re.compile(r'^(.+)ee \^ ed$', re.I),
-        r'\1eed'),
+    (re.compile(r'^(.+e)e \^ (e.+)$', re.I),
+        r'\1\2'),
     # narrate + ing = narrating (silent e)
     (re.compile(r'^(.+[bcdfghjklmnpqrstuvwxz])e \^ ([aeiouy].*)$', re.I),
         r'\1\2'),
