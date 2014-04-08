@@ -22,6 +22,16 @@ RULES = [
     # artistic + ly = artistically
     (re.compile(r'^(.*[aeiou]c) \^ ly$', re.I),
         r'\1ally'),
+        
+    # == +ry ==      
+    # statute + ry = statutory
+    (re.compile(r'^(.*t)e \^ ry$', re.I),
+        r'\1ory'),
+        
+    # == nt +cy ==      
+    # frequent + cy = frequency
+    (re.compile(r'^(.*)nt \^ cy$', re.I),
+        r'\1ncy'),
 
     # == +s ==
     # establish + s = establishes (sibilant pluralization)
@@ -47,9 +57,11 @@ RULES = [
 
     # == e ==
     # write + en = written
-    (re.compile(r'^(.+)([t])e \^ en$', re.I), r'\1\2\2en'),
-
-
+    (re.compile(r'^(.+)te \^ en$', re.I),
+        r'\1tten'),
+    # free + ed = freed 
+    (re.compile(r'^(.+)ee \^ ed$', re.I),
+        r'\1eed'),
     # narrate + ing = narrating (silent e)
     (re.compile(r'^(.+[bcdfghjklmnpqrstuvwxz])e \^ ([aeiouy].*)$', re.I),
         r'\1\2'),
