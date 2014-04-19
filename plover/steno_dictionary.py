@@ -30,6 +30,7 @@ class StenoDictionary(collections.MutableMapping):
         self.filters = []
         self.update(*args, **kw)
         self.save = None
+        self._path = ''
 
     @property
     def longest_key(self):
@@ -73,6 +74,12 @@ class StenoDictionary(collections.MutableMapping):
             if f(key, value):
                 return False
         return True
+
+    def set_path(self, path):
+        self._path = path    
+
+    def get_path(self):
+        return self._path    
 
     def iterkeys(self):
         return self._dict.iterkeys()
@@ -156,6 +163,15 @@ class StenoDictionaryCollection(object):
     def save(self):
         if self.dicts:
             self.dicts[0].save()
+
+    def save_all(self):
+        for dict in self.dicts:
+            dict.save()
+
+    def get_by_path(self, path):
+        for d in self.dicts:
+            if d.get_path() == path:
+                return d
 
     def add_filter(self, f):
         self.filters.append(f)
