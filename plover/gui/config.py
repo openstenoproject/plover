@@ -10,6 +10,8 @@ from wx.lib.utils import AdjustRectToScreen
 from collections import namedtuple
 import wx.lib.filebrowsebutton as filebrowse
 from wx.lib.scrolledpanel import ScrolledPanel
+import plover.dictionary.lookup_table
+from plover.gui.brief_trainer import BriefTrainer
 import plover.config as conf
 from plover.gui.serial_config import SerialConfigDialog
 import plover.gui.add_translation
@@ -20,6 +22,7 @@ from plover.machine.registry import machine_registry
 from plover.exception import InvalidConfigurationError
 from plover.dictionary.loading_manager import manager as dict_manager
 from plover.gui.paper_tape import StrokeDisplayDialog
+from plover.gui.speed_report import SpeedReportDialog
 from plover.gui.keyboard_config import KeyboardConfigDialog
 
 EDIT_BUTTON_NAME = "Edit"
@@ -27,7 +30,7 @@ ADD_TRANSLATION_BUTTON_NAME = "Add Translation"
 ADD_DICTIONARY_BUTTON_NAME = "Add Dictionary"
 LOOKUP_BUTTON_NAME = "Lookup"
 MACHINE_CONFIG_TAB_NAME = "Machine"
-DISPLAY_CONFIG_TAB_NAME = "Display"
+DISPLAY_CONFIG_TAB_NAME = "Training"
 OUTPUT_CONFIG_TAB_NAME = "Output"
 DICTIONARY_CONFIG_TAB_NAME = "Dictionary"
 LOGGING_CONFIG_TAB_NAME = "Logging"
@@ -97,15 +100,15 @@ class ConfigurationDialog(wx.Dialog):
         self.dictionary_config = DictionaryConfig(self.engine, self.config, 
                                                   notebook)
         self.logging_config = LoggingConfig(self.config, notebook)
-        self.display_config = DisplayConfig(self.config, notebook)
+        self.display_config = DisplayConfig(self.engine, self.config, notebook)
         self.output_config = OutputConfig(self.config, notebook)
 
         # Adding each tab
         notebook.AddPage(self.machine_config, MACHINE_CONFIG_TAB_NAME)
         notebook.AddPage(self.dictionary_config, DICTIONARY_CONFIG_TAB_NAME)
+        notebook.AddPage(self.output_config, OUTPUT_CONFIG_TAB_NAME)
         notebook.AddPage(self.logging_config, LOGGING_CONFIG_TAB_NAME)
         notebook.AddPage(self.display_config, DISPLAY_CONFIG_TAB_NAME)
-        notebook.AddPage(self.output_config, OUTPUT_CONFIG_TAB_NAME)
 
         sizer.Add(notebook, proportion=1, flag=wx.EXPAND)
 
@@ -160,9 +163,9 @@ class ConfigurationDialog(wx.Dialog):
         self.machine_config.save()
         self.dictionary_config.save()
         self.logging_config.save()
-        self.display_config.save()
         self.output_config.save()
-
+        self.display_config.save()
+ 
         try:
             update_engine(self.engine, old_config, self.config)
         except InvalidConfigurationError as e:
@@ -448,11 +451,19 @@ class LoggingConfig(wx.Panel):
 
 class DisplayConfig(wx.Panel):
     
-    SHOW_STROKES_TEXT = "Open strokes display on startup"
-    SHOW_STROKES_BUTTON_TEXT = "Open stroke display"
+    SHOW_STROKES_TEXT = "Show strokes display on startup"
+    SHOW_STROKES_BUTTON_TEXT = "Show"
+    SHOW_SPEED_TEXT = "Show typing speed on startup"
+    SHOW_SPEED_BUTTON_TEXT = "Show"
+    SHOW_PREDICTIONS_TEXT = "Show stroke trainer on startup"
+    SHOW_PREDICTIONS_BUTTON_TEXT = "Show"
+    PREDICTIONS_LIMIT_TEXT = "Max. suggestions"
+    SHOW_BRIEF_SUGGESTIONS_TEXT = "Show brief suggestions on startup"
+    SHOW_BRIEF_SUGGESTIONS_BUTTON_TEXT = "Show"
+
     
     """Display configuration graphical user interface."""
-    def __init__(self, config, parent):
+    def __init__(self, engine, config, parent):
         """Create a configuration component based on the given Config.
 
         Arguments:
@@ -464,26 +475,77 @@ class DisplayConfig(wx.Panel):
         """
         wx.Panel.__init__(self, parent, size=CONFIG_PANEL_SIZE)
         self.config = config
+        self.engine = engine
         sizer = wx.BoxSizer(wx.VERTICAL)
-        
-        show_strokes_button = wx.Button(self, 
-                                        label=self.SHOW_STROKES_BUTTON_TEXT)
-        show_strokes_button.Bind(wx.EVT_BUTTON, self.on_show_strokes)
-        sizer.Add(show_strokes_button, border=UI_BORDER, flag=wx.ALL)
-        
+
+        stroke_sizer = wx.BoxSizer(wx.HORIZONTAL)
         self.show_strokes = wx.CheckBox(self, label=self.SHOW_STROKES_TEXT)
         self.show_strokes.SetValue(config.get_show_stroke_display())
-        sizer.Add(self.show_strokes, border=UI_BORDER, 
-                  flag=wx.LEFT | wx.RIGHT | wx.BOTTOM)
+        show_strokes_button = wx.Button(self, label=self.SHOW_STROKES_BUTTON_TEXT)
+        show_strokes_button.Bind(wx.EVT_BUTTON, self.on_show_strokes)
+        stroke_sizer.Add(show_strokes_button, border=UI_BORDER, flag=wx.ALL)
+        stroke_sizer.Add(self.show_strokes, border=UI_BORDER,flag=wx.ALL)
+        sizer.Add(stroke_sizer, border=UI_BORDER)
+        
+        speed_sizer = wx.BoxSizer(wx.HORIZONTAL)
+        self.show_speed = wx.CheckBox(self, label=self.SHOW_SPEED_TEXT)
+        self.show_speed.SetValue(config.get_show_speed_report())
+        show_speed_button = wx.Button(self, label=self.SHOW_SPEED_BUTTON_TEXT)
+        show_speed_button.Bind(wx.EVT_BUTTON, self.on_show_speed)
+        speed_sizer.Add(show_speed_button, border=UI_BORDER, flag=wx.ALL)
+        speed_sizer.Add(self.show_speed, border=UI_BORDER, flag=wx.ALL)
+        sizer.Add(speed_sizer, border=UI_BORDER)
+
+        predictions_sizer = wx.BoxSizer(wx.HORIZONTAL)
+        self.show_predictions = wx.CheckBox(self, label=self.SHOW_PREDICTIONS_TEXT)
+        self.show_predictions.SetValue(config.get_show_predictions())
+        show_predictions_button = wx.Button(self, label=self.SHOW_PREDICTIONS_BUTTON_TEXT)
+        show_predictions_button.Bind(wx.EVT_BUTTON, self.on_show_predictions)
+        predictions_sizer.Add(show_predictions_button, border=UI_BORDER, flag=wx.ALL)
+        predictions_sizer.Add(self.show_predictions, border=UI_BORDER, flag=wx.ALL)
+        sizer.Add(predictions_sizer, border=UI_BORDER)
+
+        brief_sizer = wx.BoxSizer(wx.HORIZONTAL)
+        self.brief_suggestions = wx.CheckBox(self, label=self.SHOW_BRIEF_SUGGESTIONS_TEXT)
+        self.brief_suggestions.SetValue(config.get_show_brief_suggestions())
+        show_brief_suggestions_button = wx.Button(self, label=self.SHOW_BRIEF_SUGGESTIONS_BUTTON_TEXT)
+        show_brief_suggestions_button.Bind(wx.EVT_BUTTON, self.on_show_brief_suggestions)
+        brief_sizer.Add(show_brief_suggestions_button, border=UI_BORDER, flag=wx.ALL)
+        brief_sizer.Add(self.brief_suggestions, border=UI_BORDER, flag=wx.ALL)
+        sizer.Add(brief_sizer, border=UI_BORDER)
 
         self.SetSizer(sizer)
 
     def save(self):
         """Write all parameters to the config."""
+        self.config.set_show_predictions(self.show_predictions.GetValue())
         self.config.set_show_stroke_display(self.show_strokes.GetValue())
+        self.config.set_show_speed_report(self.show_speed.GetValue())
+        if (self.show_speed.GetValue()):
+            if (not SpeedReportDialog.instances):
+                SpeedReportDialog.display(self.GetParent(), self.config)
+        self.config.set_show_brief_suggestions(self.brief_suggestions.GetValue())
+        if (self.brief_suggestions.GetValue() or self.show_predictions.GetValue()):
+            plover.dictionary.lookup_table.load(self.engine.get_dictionary())
+        BriefTrainer.enabled = self.brief_suggestions.GetValue()
+        plover.gui.predictions.enabled = self.show_predictions.GetValue()
 
     def on_show_strokes(self, event):
         StrokeDisplayDialog.display(self.GetParent(), self.config)
+
+    def on_show_speed(self, event):
+        SpeedReportDialog.display(self.GetParent(), self.config)
+
+    def on_show_predictions(self, event):
+        plover.dictionary.lookup_table.load(self.engine.get_dictionary())
+        plover.gui.predictions.enabled=True
+        plover.gui.predictions.display(self.GetParent(), self.config)
+
+    def on_show_brief_suggestions(self, event):
+        plover.dictionary.lookup_table.load(self.engine.get_dictionary())
+        plover.gui.brief_trainer.enabled=True
+        plover.gui.brief_trainer.display(self.GetParent(), self.config)
+
 
 class OutputConfig(wx.Panel):
 

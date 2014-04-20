@@ -40,6 +40,7 @@ class Formatter(object):
 
     def __init__(self):
         self.set_output(None)
+        self.output_listeners = []
 
     def set_output(self, output):
         """Set the output class."""
@@ -90,7 +91,15 @@ class Formatter(object):
         else:
             i = min_length
 
-        OutputHelper(self._output).render(old[i:], new[i:])
+        OutputHelper(self._output, self.output_listeners).render(old[i:], new[i:])
+
+
+    def add_output_listener(self, listener):
+        self.output_listeners.append(listener)
+
+    def remove_output_listener(self, listener):
+        self.output_listeners.remove(listener)
+
 
 class OutputHelper(object):
     """A helper class for minimizing the amount of change on output.
@@ -99,17 +108,24 @@ class OutputHelper(object):
     optimizes away extra backspaces and typing.
 
     """
-    def __init__(self, output):
+    def __init__(self, output, listeners):
         self.before = ''
         self.after = ''
         self.output = output
+        self.listeners = listeners
         
     def commit(self):
         offset = len(commonprefix([self.before, self.after]))
+        backspaces=0
+        text=""
         if self.before[offset:]:
-            self.output.send_backspaces(len(self.before[offset:]))
+            backspaces = len(self.before[offset:])
+            self.output.send_backspaces(backspaces)
         if self.after[offset:]:
-            self.output.send_string(self.after[offset:])
+            text=self.after[offset:]
+            self.output.send_string(text)
+        for listener in self.listeners:
+            listener(backspaces, text)
         self.before = ''
         self.after = ''
 
