@@ -35,7 +35,7 @@ def process():
     if not (enabled and plover.dictionary.lookup_table.loaded):
         return
     output = []
-    clear_labels()
+    Dialog.listbox.DeleteAllItems()
     i=0
     if (text):
         candidates.append(Candidate(1, ""))
@@ -49,8 +49,9 @@ def process():
                         while (not lookup.empty()) and (i<WORD_LIMIT):
                             phrase = lookup.get()
                             stroke = plover.dictionary.lookup_table.lookup(phrase)
-                            Dialog.controls[(i*2)].SetLabel(str(stroke))
-                            Dialog.controls[(i*2)+1].SetLabel(phrase)
+                            joined_stroke = '/'.join(stroke)
+                            Dialog.listbox.InsertStringItem(i, joined_stroke)
+                            Dialog.listbox.SetStringItem(i, 1, phrase)
                             #suggestion=(Candidate(stroke, phrase))
                             #output.append(suggestion)
                             #print(suggestion)
@@ -69,35 +70,29 @@ def display(parent, config):
         return
     Dialog(parent, config)
 
-def clear_labels():
-    for control in Dialog.controls:
-        control.SetLabel("")
-
 def refresh():
     for instance in Dialog.instances:
         instance.GetSizer().Fit(instance)
 
 class Dialog(wx.Dialog):
     instances = []
-    controls = []
+    listbox = {}
 
     def __init__(self, parent, config):
         global TITLE, enabled
         enabled = True
         self.config = config
-        style = wx.DEFAULT_DIALOG_STYLE | wx.STAY_ON_TOP
+        style = wx.DEFAULT_DIALOG_STYLE | wx.STAY_ON_TOP | wx.RESIZE_BORDER
         pos = (config.get_predictions_x(), config.get_predictions_y())
         wx.Dialog.__init__(self, parent, title=TITLE, style=style, pos=pos)
         self.Bind(wx.EVT_MOVE, self.on_move)
 
-        main_sizer = wx.GridSizer(WORD_LIMIT, 2, 0, 10)
-        for i in range(WORD_LIMIT):
-            stroke = wx.StaticText(self, label="                                  ", style=wx.ALIGN_LEFT)
-            main_sizer.Add(stroke, 0, wx.EXPAND)
-            Dialog.controls.append(stroke)
-            translation = wx.StaticText(self, label="", style=wx.ALIGN_RIGHT)
-            main_sizer.Add(translation, 0, wx.EXPAND)
-            Dialog.controls.append(translation)
+        main_sizer = wx.GridSizer(1, 1)
+        
+        Dialog.listbox = wx.ListCtrl(self, size=wx.Size(400, 400), style=wx.LC_REPORT)
+        Dialog.listbox.InsertColumn(0, 'Stroke', width=200)
+        Dialog.listbox.InsertColumn(1, 'Translation', width=190)
+        main_sizer.Add(Dialog.listbox)
 
         for instance in Dialog.instances:
             instance.Close()

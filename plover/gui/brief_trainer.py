@@ -18,6 +18,7 @@ text = ""
 candidates = []
 deleted_candidates = []
 suggestions = []
+current_index = 0
 
 def stroke_handler(stroke):
     global strokes, candidates, deleted_candidates
@@ -41,7 +42,7 @@ def display(parent, config):
     BriefTrainer(parent, config)
 
 def process():
-    global enabled, candidates, suggestions, deleted_candidates, strokes, backspaces, text, MAX_SUGGESTIONS
+    global enabled, candidates, suggestions, deleted_candidates, strokes, backspaces, text, MAX_SUGGESTIONS, current_index
     # add this text to all candidates,
     # exclude the ones without translations
     # notify if translation exists with fewer strokes
@@ -53,14 +54,20 @@ def process():
             lookup = plover.dictionary.lookup_table.lookup(candidate.phrase)
             if (lookup):
                 if (len(lookup) < candidate.strokes):
-                    suggestion = Candidate(str(lookup), candidate.phrase)
+                    BriefTrainer.listbox.DeleteAllItems()
+                    joined_stroke = '/'.join(lookup)
+                    suggestion = Candidate(joined_stroke, candidate.phrase)
                     suggestions = [s for s in suggestions if s.phrase != candidate.phrase]
                     suggestions.append(suggestion)
                     while (len(suggestions) > MAX_SUGGESTIONS):
                         suggestions.remove(suggestions[0])
                     for i in range(len(suggestions)):
-                        BriefTrainer.controls[(i*2)].SetLabel(suggestions[i].strokes)
-                        BriefTrainer.controls[(i*2)+1].SetLabel(suggestions[i].phrase)
+                        #print current_index
+                        BriefTrainer.listbox.InsertStringItem(i, suggestions[i].strokes)
+                        BriefTrainer.listbox.SetStringItem(i, 1, suggestions[i].phrase)
+                        current_index+=1
+                        if current_index > MAX_SUGGESTIONS:
+                            current_index = MAX_SUGGESTIONS
                     #print(suggestion)
 
             else:
@@ -76,29 +83,25 @@ def process():
 class BriefTrainer(wx.Dialog):
     #Lookup better briefs for multi-stroke words
     instances = []
-    controls = []
+    listbox = {}
 
     def __init__(self, parent, config):
         global MAX_SUGGESTIONS, TITLE
         self.config = config
         BriefTrainer.enabled = True
-        style = wx.DEFAULT_DIALOG_STYLE | wx.STAY_ON_TOP
+        style = wx.DEFAULT_DIALOG_STYLE | wx.STAY_ON_TOP | wx.RESIZE_BORDER
         pos = (config.get_brief_suggestions_x(), config.get_brief_suggestions_y())
         wx.Dialog.__init__(self, parent, title=TITLE, style=style, pos=pos)
         self.Bind(wx.EVT_MOVE, self.on_move)
 
-        main_sizer = wx.GridSizer(MAX_SUGGESTIONS, 2, 3, 10)
-        for i in range(MAX_SUGGESTIONS):
-            stroke = wx.StaticText(self, label='                            ', style=wx.ALIGN_LEFT)
-            BriefTrainer.controls.append(stroke)
-            main_sizer.Add(stroke, 0, wx.EXPAND)
-            translation = wx.StaticText(self, label=' ', style=wx.ALIGN_RIGHT)
-            BriefTrainer.controls.append(translation)
-            main_sizer.Add(translation, 0, wx.EXPAND)
+        main_sizer = wx.GridSizer(1, 1)
+
+        BriefTrainer.listbox = wx.ListCtrl(self, size=wx.Size(400, 220), style=wx.LC_REPORT)
+        BriefTrainer.listbox.InsertColumn(0, 'Stroke', width=200)
+        BriefTrainer.listbox.InsertColumn(1, 'Translation', width=190)
+        main_sizer.Add(BriefTrainer.listbox)
 
         self.SetSizer(main_sizer)
-        #self.SetAutoLayout(True)
-        #sizer.Layout()
         main_sizer.Fit(self)
         self.Show()
 
