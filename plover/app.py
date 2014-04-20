@@ -255,7 +255,7 @@ class StenoEngine(object):
 
     def add_stroke_listener(self, listener):
         self.stroke_listeners.append(listener)
-        
+
     def remove_stroke_listener(self, listener):
         self.stroke_listeners.remove(listener)
 
