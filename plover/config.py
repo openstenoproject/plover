@@ -106,6 +106,12 @@ DEFAULT_LOOKUP_FRAME_X = -1
 LOOKUP_FRAME_Y_OPTION = 'y'
 DEFAULT_LOOKUP_FRAME_Y = -1
 
+DICTIONARY_EDITOR_FRAME_SECTION = 'Dictionary Editor Frame'
+DICTIONARY_EDITOR_FRAME_X_OPTION = 'x'
+DEFAULT_DICTIONARY_EDITOR_FRAME_X = -1
+DICTIONARY_EDITOR_FRAME_Y_OPTION = 'y'
+DEFAULT_DICTIONARY_EDITOR_FRAME_Y = -1
+
 SERIAL_CONFIG_FRAME_SECTION = 'Serial Config Frame'
 SERIAL_CONFIG_FRAME_X_OPTION = 'x'
 DEFAULT_SERIAL_CONFIG_FRAME_X = -1
@@ -416,6 +422,22 @@ class Config(object):
         return self._get_int(LOOKUP_FRAME_SECTION, 
                              LOOKUP_FRAME_Y_OPTION,
                              DEFAULT_LOOKUP_FRAME_Y)
+
+    def set_dictionary_editor_frame_x(self, x):
+        self._set(DICTIONARY_EDITOR_FRAME_SECTION, DICTIONARY_EDITOR_FRAME_X_OPTION, x)
+
+    def get_dictionary_editor_frame_x(self):
+        return self._get_int(DICTIONARY_EDITOR_FRAME_SECTION,
+                             DICTIONARY_EDITOR_FRAME_X_OPTION,
+                             DEFAULT_DICTIONARY_EDITOR_FRAME_X)
+
+    def set_dictionary_editor_frame_y(self, y):
+        self._set(DICTIONARY_EDITOR_FRAME_SECTION, DICTIONARY_EDITOR_FRAME_Y_OPTION, y)
+
+    def get_dictionary_editor_frame_y(self):
+        return self._get_int(DICTIONARY_EDITOR_FRAME_SECTION,
+                             DICTIONARY_EDITOR_FRAME_Y_OPTION,
+                             DEFAULT_DICTIONARY_EDITOR_FRAME_Y)
     
     def set_serial_config_frame_x(self, x):
         self._set(SERIAL_CONFIG_FRAME_SECTION, SERIAL_CONFIG_FRAME_X_OPTION, x)
@@ -450,8 +472,7 @@ class Config(object):
         return self._get_int(KEYBOARD_CONFIG_FRAME_SECTION, 
                              KEYBOARD_CONFIG_FRAME_Y_OPTION,
                              DEFAULT_KEYBOARD_CONFIG_FRAME_Y)
-    
-    
+
     def _set(self, section, option, value):
         if not self._config.has_section(section):
             self._config.add_section(section)

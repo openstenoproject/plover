@@ -16,6 +16,7 @@ import plover.config as conf
 from plover.gui.serial_config import SerialConfigDialog
 import plover.gui.add_translation
 import plover.gui.lookup
+import plover.gui.dictionary_editor
 from plover.app import update_engine
 from plover.machine.registry import machine_registry
 from plover.exception import InvalidConfigurationError
@@ -24,6 +25,7 @@ from plover.gui.paper_tape import StrokeDisplayDialog
 from plover.gui.speed_report import SpeedReportDialog
 from plover.gui.keyboard_config import KeyboardConfigDialog
 
+EDIT_BUTTON_NAME = "Edit"
 ADD_TRANSLATION_BUTTON_NAME = "Add Translation"
 ADD_DICTIONARY_BUTTON_NAME = "Add Dictionary"
 LOOKUP_BUTTON_NAME = "Lookup"
@@ -289,6 +291,10 @@ class DictionaryConfig(ScrolledPanel):
         main_sizer = wx.BoxSizer(wx.VERTICAL)
         
         button_sizer = wx.BoxSizer(wx.HORIZONTAL)
+
+        button = wx.Button(self, wx.ID_ANY, EDIT_BUTTON_NAME)
+        button_sizer.Add(button, border=UI_BORDER, flag=wx.ALL)
+        button.Bind(wx.EVT_BUTTON, self.show_edit)
         
         button = wx.Button(self, wx.ID_ANY, ADD_TRANSLATION_BUTTON_NAME)
         button_sizer.Add(button, border=UI_BORDER, flag=wx.ALL)
@@ -329,7 +335,10 @@ class DictionaryConfig(ScrolledPanel):
 
     def show_lookup(self, event):
         plover.gui.lookup.Show(self, self.engine, self.config)
-        
+
+    def show_edit(self, event):
+        plover.gui.dictionary_editor.Show(self, self.engine, self.config)
+
     def add_dictionary(self, event):
         dlg = wx.FileDialog(self, "Choose a file", os.getcwd(), "", self.mask, 
                             wx.OPEN)
