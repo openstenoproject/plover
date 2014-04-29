@@ -214,7 +214,7 @@ class MainFrame(wx.Frame):
         self.steno_engine.formatter.add_output_listener(plover.gui.brief_trainer.output_handler)
         if self.config.get_show_brief_suggestions():
             plover.dictionary.lookup_table.load(self.steno_engine.translator.get_dictionary())
-            plover.gui.brief_trainer.enabled = True;
+            plover.gui.brief_trainer.enabled = True
             plover.gui.brief_trainer.display(self, self.config)
 
         pos = (config.get_main_frame_x(), config.get_main_frame_y())
