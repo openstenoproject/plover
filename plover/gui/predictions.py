@@ -11,75 +11,17 @@ TITLE = "Stroke Helper"
 WORD_LIMIT=50
 MIN_LENGTH=2
 
-enabled = False
-backspaces = 0
-text = ""
-candidates = []
-deleted_candidates = []
-output = []
-
-def output_handler(bs, txt):
-    global backspaces, text, candidates, deleted_candidates, enabled
-    if not enabled:
-        return
-    backspaces = bs
-    text = txt
-    if (not text):
-        candidates.extend(deleted_candidates)
-    else:
-        deleted_candidates = []
-    process()
-
-def process():
-    global enabled, backspaces, text, candidates, deleted_candidates, output, WORD_LIMIT
-    if not (enabled and plover.dictionary.lookup_table.loaded):
-        return
+class Predictions(wx.Dialog):
+    enabled = False
+    backspaces = 0
+    text = ""
+    candidates = []
+    deleted_candidates = []
     output = []
-    Dialog.listbox.DeleteAllItems()
-    i=0
-    if (text):
-        candidates.append(Candidate(1, ""))
-        for candidate in (candidates): #reverse the order to prioritize longest matches
-            candidate.addWord(1, backspaces, text)
-            #print("processing: "+candidate.phrase)
-            if (candidate.phrase):
-                if (len(candidate.phrase) >= MIN_LENGTH):
-                    lookup = plover.dictionary.lookup_table.prefixMatch(candidate.phrase.strip())
-                    if (not lookup.empty()):
-                        while (not lookup.empty()) and (i<WORD_LIMIT):
-                            phrase = lookup.get()
-                            stroke = plover.dictionary.lookup_table.lookup(phrase)
-                            joined_stroke = '/'.join(stroke)
-                            Dialog.listbox.InsertStringItem(i, joined_stroke)
-                            Dialog.listbox.SetStringItem(i, 1, phrase)
-                            #suggestion=(Candidate(stroke, phrase))
-                            #output.append(suggestion)
-                            #print(suggestion)
-                            i+=1
-                    else:
-                        #print("lookup not found, marking: "+candidate.phrase)
-                        deleted_candidates.append(candidate)
-            else:
-                #print("deleting blank marking")
-                deleted_candidates.append(candidate)
-        for del_candidate in deleted_candidates:
-            candidates.remove(del_candidate)
-
-def display(parent, config):
-    if (Dialog.instances):
-        return
-    Dialog(parent, config)
-
-def refresh():
-    for instance in Dialog.instances:
-        instance.GetSizer().Fit(instance)
-
-class Dialog(wx.Dialog):
     instances = []
     listbox = {}
 
     def __init__(self, parent, config):
-        global TITLE, enabled
         enabled = True
         self.config = config
         style = wx.DEFAULT_DIALOG_STYLE | wx.STAY_ON_TOP | wx.RESIZE_BORDER
@@ -88,15 +30,15 @@ class Dialog(wx.Dialog):
         self.Bind(wx.EVT_MOVE, self.on_move)
 
         main_sizer = wx.GridSizer(1, 1)
-        
-        Dialog.listbox = wx.ListCtrl(self, size=wx.Size(400, 400), style=wx.LC_REPORT)
-        Dialog.listbox.InsertColumn(0, 'Stroke', width=200)
-        Dialog.listbox.InsertColumn(1, 'Translation', width=190)
-        main_sizer.Add(Dialog.listbox)
 
-        for instance in Dialog.instances:
+        Predictions.listbox = wx.ListCtrl(self, size=wx.Size(400, 400), style=wx.LC_REPORT)
+        Predictions.listbox.InsertColumn(0, 'Stroke', width=200)
+        Predictions.listbox.InsertColumn(1, 'Translation', width=190)
+        main_sizer.Add(Predictions.listbox)
+
+        for instance in Predictions.instances:
             instance.Close()
-        Dialog.instances.append(self)
+        Predictions.instances.append(self)
 
         self.SetSizer(main_sizer)
         main_sizer.Fit(self)
@@ -107,3 +49,62 @@ class Dialog(wx.Dialog):
         self.config.set_predictions_x(pos[0])
         self.config.set_predictions_y(pos[1])
         event.Skip()
+
+    @staticmethod
+    def process():
+        if not (Predictions.enabled and plover.dictionary.lookup_table.loaded):
+            return
+        output = []
+        Predictions.listbox.DeleteAllItems()
+        i=0
+        if (Predictions.text):
+            Predictions.candidates.append(Candidate(1, ""))
+            for candidate in (Predictions.candidates): #reverse the order to prioritize longest matches
+                candidate.addWord(1, Predictions.backspaces, Predictions.text)
+                #print("processing: "+candidate.phrase)
+                if (candidate.phrase):
+                    if (len(candidate.phrase) >= MIN_LENGTH):
+                        lookup = plover.dictionary.lookup_table.prefixMatch(candidate.phrase.strip())
+                        if (not lookup.empty()):
+                            while (not lookup.empty()) and (i<WORD_LIMIT):
+                                phrase = lookup.get()
+                                stroke = plover.dictionary.lookup_table.lookup(phrase)
+                                joined_stroke = '/'.join(stroke)
+                                Predictions.listbox.InsertStringItem(i, joined_stroke)
+                                Predictions.listbox.SetStringItem(i, 1, phrase)
+                                #suggestion=(Candidate(stroke, phrase))
+                                #output.append(suggestion)
+                                #print(suggestion)
+                                i+=1
+                        else:
+                            #print("lookup not found, marking: "+candidate.phrase)
+                            Predictions.deleted_candidates.append(candidate)
+                else:
+                    #print("deleting blank marking")
+                    Predictions.deleted_candidates.append(candidate)
+            for del_candidate in Predictions.deleted_candidates:
+                Predictions.candidates.remove(del_candidate)
+
+
+    @staticmethod
+    def output_handler(bs, txt):
+        if not Predictions.enabled:
+            return
+        Predictions.backspaces = bs
+        text = txt
+        if (not text):
+            Predictions.candidates.extend(Predictions.deleted_candidates)
+        else:
+            Predictions.deleted_candidates = []
+        Predictions.process()
+
+    @staticmethod
+    def display(parent, config):
+        if (Predictions.instances):
+            return
+        Predictions(parent, config)
+
+    @staticmethod
+    def refresh():
+        for instance in Predictions.instances:
+            instance.GetSizer().Fit(instance)

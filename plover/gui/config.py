@@ -11,7 +11,6 @@ from collections import namedtuple
 import wx.lib.filebrowsebutton as filebrowse
 from wx.lib.scrolledpanel import ScrolledPanel
 import plover.dictionary.lookup_table
-from plover.gui.brief_trainer import BriefTrainer
 import plover.config as conf
 from plover.gui.serial_config import SerialConfigDialog
 import plover.gui.add_translation
@@ -23,6 +22,8 @@ from plover.exception import InvalidConfigurationError
 from plover.dictionary.loading_manager import manager as dict_manager
 from plover.gui.paper_tape import StrokeDisplayDialog
 from plover.gui.speed_report import SpeedReportDialog
+from plover.gui.brief_trainer import BriefTrainer
+from plover.gui.predictions import Predictions
 from plover.gui.keyboard_config import KeyboardConfigDialog
 
 EDIT_BUTTON_NAME = "Edit"
@@ -528,7 +529,7 @@ class DisplayConfig(wx.Panel):
         if (self.brief_suggestions.GetValue() or self.show_predictions.GetValue()):
             plover.dictionary.lookup_table.load(self.engine.get_dictionary())
         BriefTrainer.enabled = self.brief_suggestions.GetValue()
-        plover.gui.predictions.enabled = self.show_predictions.GetValue()
+        Predictions.enabled = self.show_predictions.GetValue()
 
     def on_show_strokes(self, event):
         StrokeDisplayDialog.display(self.GetParent(), self.config)
@@ -538,13 +539,13 @@ class DisplayConfig(wx.Panel):
 
     def on_show_predictions(self, event):
         plover.dictionary.lookup_table.load(self.engine.get_dictionary())
-        plover.gui.predictions.enabled=True
-        plover.gui.predictions.display(self.GetParent(), self.config)
+        Predictions.enabled=True
+        Predictions.display(self.GetParent(), self.config)
 
     def on_show_brief_suggestions(self, event):
         plover.dictionary.lookup_table.load(self.engine.get_dictionary())
-        plover.gui.brief_trainer.enabled=True
-        plover.gui.brief_trainer.display(self.GetParent(), self.config)
+        BriefTrainer.enabled=True
+        BriefTrainer.display(self.GetParent(), self.config)
 
 
 class OutputConfig(wx.Panel):

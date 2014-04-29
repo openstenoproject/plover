@@ -25,6 +25,8 @@ from plover.machine.registry import machine_registry
 from plover.exception import InvalidConfigurationError
 from plover.gui.paper_tape import StrokeDisplayDialog
 from plover.gui.speed_report import SpeedReportDialog
+from plover.gui.brief_trainer import BriefTrainer
+from plover.gui.predictions import Predictions
 
 from plover import __name__ as __software_name__
 from plover import __version__
@@ -204,18 +206,18 @@ class MainFrame(wx.Frame):
         if self.config.get_show_speed_report():
             SpeedReportDialog.display(self, self.config)
 
-        self.steno_engine.formatter.add_output_listener(plover.gui.predictions.output_handler)
+        self.steno_engine.formatter.add_output_listener(Predictions.output_handler)
         if self.config.get_show_predictions():
             plover.dictionary.lookup_table.load(self.steno_engine.translator.get_dictionary())
-            plover.gui.predictions.enabled = True
-            plover.gui.predictions.display(self, self.config)
+            Predictions.enabled = True
+            Predictions.display(self, self.config)
 
-        self.steno_engine.add_stroke_listener(plover.gui.brief_trainer.stroke_handler)
-        self.steno_engine.formatter.add_output_listener(plover.gui.brief_trainer.output_handler)
+        self.steno_engine.add_stroke_listener(BriefTrainer.stroke_handler)
+        self.steno_engine.formatter.add_output_listener(BriefTrainer.output_handler)
         if self.config.get_show_brief_suggestions():
             plover.dictionary.lookup_table.load(self.steno_engine.translator.get_dictionary())
-            plover.gui.brief_trainer.enabled = True
-            plover.gui.brief_trainer.display(self, self.config)
+            BriefTrainer.enabled = True
+            BriefTrainer.display(self, self.config)
 
         pos = (config.get_main_frame_x(), config.get_main_frame_y())
         self.SetPosition(pos)

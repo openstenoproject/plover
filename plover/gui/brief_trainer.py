@@ -24,7 +24,6 @@ class BriefTrainer(wx.Dialog):
     listbox = {}
 
     def __init__(self, parent, config):
-        global MAX_SUGGESTIONS, TITLE
         self.config = config
         BriefTrainer.enabled = True
         style = wx.DEFAULT_DIALOG_STYLE | wx.STAY_ON_TOP | wx.RESIZE_BORDER
