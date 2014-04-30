@@ -19,6 +19,7 @@ MAX_SPEED_TEXT = "maximum"
 RATIO_TEXT = "strokes per word"
 RESET_SPEED_TEXT = "reset"
 
+
 class SpeedReportDialog(wx.Dialog):
 
     instances = []
@@ -83,7 +84,7 @@ class SpeedReportDialog(wx.Dialog):
         event.Skip()
 
     def run(self):
-        if (not self.disabled):
+        if not self.disabled:
             threading.Timer(1.0, self.run).start()
             wx.CallAfter(self.update_display)
         else:
@@ -111,12 +112,12 @@ class SpeedReportDialog(wx.Dialog):
         oldest_item = self.history[0]
         words_in_history = (total_words-oldest_item.get_words())
         minutes_in_history = (current_time-oldest_item.get_time())/float(60)
-        if (minutes_in_history<=0):
+        if minutes_in_history <= 0:
             return
         current_speed =  words_in_history/minutes_in_history
 
-        if (current_speed > self.maximum_speed):
-            if (len(self.history) > 10):
+        if current_speed > self.maximum_speed:
+            if len(self.history) > 10:
                 self.maximum_speed = current_speed
 
         ratio = self.total_strokes/float(total_words)
@@ -127,8 +128,6 @@ class SpeedReportDialog(wx.Dialog):
         self.ratio_text.SetLabel(RATIO_TEXT+": "+str(round(ratio,2)))
 
         self.Show()
-
-
 
     def handle_on_top(self, event):
         self.config.set_speed_report_on_top(event.IsChecked())
@@ -143,7 +142,7 @@ class SpeedReportDialog(wx.Dialog):
 
     @staticmethod
     def display(parent, config):
-        if (SpeedReportDialog.instances):
+        if SpeedReportDialog.instances:
             return
         SpeedReportDialog(parent, config)
 

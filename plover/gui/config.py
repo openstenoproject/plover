@@ -31,7 +31,7 @@ ADD_TRANSLATION_BUTTON_NAME = "Add Translation"
 ADD_DICTIONARY_BUTTON_NAME = "Add Dictionary"
 LOOKUP_BUTTON_NAME = "Lookup"
 MACHINE_CONFIG_TAB_NAME = "Machine"
-DISPLAY_CONFIG_TAB_NAME = "Training"
+TRAINING_CONFIG_TAB_NAME = "Training"
 OUTPUT_CONFIG_TAB_NAME = "Output"
 DICTIONARY_CONFIG_TAB_NAME = "Dictionary"
 LOGGING_CONFIG_TAB_NAME = "Logging"
@@ -101,7 +101,7 @@ class ConfigurationDialog(wx.Dialog):
         self.dictionary_config = DictionaryConfig(self.engine, self.config, 
                                                   notebook)
         self.logging_config = LoggingConfig(self.config, notebook)
-        self.display_config = DisplayConfig(self.engine, self.config, notebook)
+        self.training_config = TrainingConfig(self.engine, self.config, notebook)
         self.output_config = OutputConfig(self.config, notebook)
 
         # Adding each tab
@@ -109,7 +109,7 @@ class ConfigurationDialog(wx.Dialog):
         notebook.AddPage(self.dictionary_config, DICTIONARY_CONFIG_TAB_NAME)
         notebook.AddPage(self.output_config, OUTPUT_CONFIG_TAB_NAME)
         notebook.AddPage(self.logging_config, LOGGING_CONFIG_TAB_NAME)
-        notebook.AddPage(self.display_config, DISPLAY_CONFIG_TAB_NAME)
+        notebook.AddPage(self.training_config, TRAINING_CONFIG_TAB_NAME)
 
         sizer.Add(notebook, proportion=1, flag=wx.EXPAND)
 
@@ -165,7 +165,7 @@ class ConfigurationDialog(wx.Dialog):
         self.dictionary_config.save()
         self.logging_config.save()
         self.output_config.save()
-        self.display_config.save()
+        self.training_config.save()
  
         try:
             update_engine(self.engine, old_config, self.config)
@@ -450,7 +450,7 @@ class LoggingConfig(wx.Panel):
         self.config.set_enable_translation_logging(
             self.log_translations_checkbox.GetValue())
 
-class DisplayConfig(wx.Panel):
+class TrainingConfig(wx.Panel):
     
     SHOW_STROKES_TEXT = "Show strokes display on startup"
     SHOW_STROKES_BUTTON_TEXT = "Show"

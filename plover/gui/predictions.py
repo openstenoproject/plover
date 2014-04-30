@@ -11,18 +11,18 @@ TITLE = "Stroke Helper"
 WORD_LIMIT=50
 MIN_LENGTH=2
 
+
 class Predictions(wx.Dialog):
     enabled = False
     backspaces = 0
     text = ""
     candidates = []
     deleted_candidates = []
-    output = []
     instances = []
     listbox = {}
 
     def __init__(self, parent, config):
-        enabled = True
+        Predictions.enabled = True
         self.config = config
         style = wx.DEFAULT_DIALOG_STYLE | wx.STAY_ON_TOP | wx.RESIZE_BORDER
         pos = (config.get_predictions_x(), config.get_predictions_y())
@@ -54,33 +54,26 @@ class Predictions(wx.Dialog):
     def process():
         if not (Predictions.enabled and plover.dictionary.lookup_table.loaded):
             return
-        output = []
         Predictions.listbox.DeleteAllItems()
         i=0
-        if (Predictions.text):
+        if Predictions.text:
             Predictions.candidates.append(Candidate(1, ""))
-            for candidate in (Predictions.candidates): #reverse the order to prioritize longest matches
+            for candidate in Predictions.candidates: # reverse the order to prioritize longest matches
                 candidate.addWord(1, Predictions.backspaces, Predictions.text)
-                #print("processing: "+candidate.phrase)
-                if (candidate.phrase):
-                    if (len(candidate.phrase) >= MIN_LENGTH):
+                if candidate.phrase:
+                    if len(candidate.phrase) >= MIN_LENGTH:
                         lookup = plover.dictionary.lookup_table.prefixMatch(candidate.phrase.strip())
-                        if (not lookup.empty()):
-                            while (not lookup.empty()) and (i<WORD_LIMIT):
+                        if not lookup.empty():
+                            while (not lookup.empty()) and (i < WORD_LIMIT):
                                 phrase = lookup.get()
                                 stroke = plover.dictionary.lookup_table.lookup(phrase)
                                 joined_stroke = '/'.join(stroke)
                                 Predictions.listbox.InsertStringItem(i, joined_stroke)
                                 Predictions.listbox.SetStringItem(i, 1, phrase)
-                                #suggestion=(Candidate(stroke, phrase))
-                                #output.append(suggestion)
-                                #print(suggestion)
-                                i+=1
+                                i += 1
                         else:
-                            #print("lookup not found, marking: "+candidate.phrase)
                             Predictions.deleted_candidates.append(candidate)
                 else:
-                    #print("deleting blank marking")
                     Predictions.deleted_candidates.append(candidate)
             for del_candidate in Predictions.deleted_candidates:
                 Predictions.candidates.remove(del_candidate)
@@ -91,8 +84,8 @@ class Predictions(wx.Dialog):
         if not Predictions.enabled:
             return
         Predictions.backspaces = bs
-        text = txt
-        if (not text):
+        Predictions.text = txt
+        if not Predictions.text:
             Predictions.candidates.extend(Predictions.deleted_candidates)
         else:
             Predictions.deleted_candidates = []
@@ -100,7 +93,7 @@ class Predictions(wx.Dialog):
 
     @staticmethod
     def display(parent, config):
-        if (Predictions.instances):
+        if Predictions.instances:
             return
         Predictions(parent, config)
 

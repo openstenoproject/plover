@@ -10,6 +10,7 @@ import wx
 TITLE = "Brief Trainer"
 MAX_SUGGESTIONS = 10
 
+
 class BriefTrainer(wx.Dialog):
     #Lookup better briefs for multi-stroke words
     enabled = False
@@ -64,25 +65,23 @@ class BriefTrainer(wx.Dialog):
             if candidate.phrase:
                 lookup = plover.dictionary.lookup_table.lookup(candidate.phrase)
                 if lookup:
-                    if (len(lookup) < candidate.strokes):
+                    if len(lookup) < candidate.strokes:
                         BriefTrainer.listbox.DeleteAllItems()
                         joined_stroke = '/'.join(lookup)
                         suggestion = Candidate(joined_stroke, candidate.phrase)
-                        suggestions = [s for s in suggestions if s.phrase != candidate.phrase]
-                        suggestions.append(suggestion)
-                        while len(suggestions) > MAX_SUGGESTIONS:
-                            suggestions.remove(suggestions[0])
-                        for i in range(len(suggestions)):
-                            #print current_index
-                            BriefTrainer.listbox.InsertStringItem(i, suggestions[i].strokes)
-                            BriefTrainer.listbox.SetStringItem(i, 1, suggestions[i].phrase)
-                            current_index+=1
-                            if current_index > MAX_SUGGESTIONS:
-                                current_index = MAX_SUGGESTIONS
-                                #print(suggestion)
+                        BriefTrainer.suggestions = [s for s in BriefTrainer.suggestions if s.phrase != candidate.phrase]
+                        BriefTrainer.suggestions.append(suggestion)
+                        while len(BriefTrainer.suggestions) > MAX_SUGGESTIONS:
+                            BriefTrainer.suggestions.remove(BriefTrainer.suggestions[0])
+                        for i in range(len(BriefTrainer.suggestions)):
+                            BriefTrainer.listbox.InsertStringItem(i, BriefTrainer.suggestions[i].strokes)
+                            BriefTrainer.listbox.SetStringItem(i, 1, BriefTrainer.suggestions[i].phrase)
+                            BriefTrainer.current_index+=1
+                            if BriefTrainer.current_index > MAX_SUGGESTIONS:
+                                BriefTrainer.current_index = MAX_SUGGESTIONS
 
                 else:
-                    if not (BriefTrainer.backspaces==1): # don't delete if fingerspelling or suffix
+                    if not (BriefTrainer.backspaces==1):  # don't delete if fingerspelling or suffix
                         BriefTrainer.deleted_candidates.append(candidate)
                         BriefTrainer.candidates.remove(candidate)
             else:
@@ -108,7 +107,7 @@ class BriefTrainer(wx.Dialog):
 
     @staticmethod
     def display(parent, config):
-        if (BriefTrainer.instances):
+        if BriefTrainer.instances:
             return
         BriefTrainer(parent, config)
 
