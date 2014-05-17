@@ -41,15 +41,25 @@ class TestCase(unittest.TestCase):
         tst.put("aunt", "AUNT")
         r = tst.prefixMatch("ant");
         self.assertEquals(r.qsize(), 3)
-	self.assertEquals(r.get(), "ant")
+        self.assertEquals(r.get(), "ant")
         self.assertEquals(r.get(), "anterior")
         self.assertEquals(r.get(), "antidisassembly")
-	r = tst.prefixMatch("bob");
-	self.assertEquals(r.qsize(), 0)
-	r = tst.prefixMatch("aunt");
-	self.assertEquals(r.qsize(), 1)
-	r = tst.prefixMatch("auntie")
-	self.assertEquals(r.qsize(), 0)
-	
+        r = tst.prefixMatch("bob");
+        self.assertEquals(r.qsize(), 0)
+        r = tst.prefixMatch("aunt");
+        self.assertEquals(r.qsize(), 1)
+        r = tst.prefixMatch("auntie")
+        self.assertEquals(r.qsize(), 0)
+
+    def test_delete(self):
+        tst = TST()
+        tst.put("a", "A")
+        self.assertEquals(1, len(tst))
+        self.assertEquals("A", tst.get("a"))
+        tst.delete("b")
+        self.assertEquals(1, len(tst))
+        tst.delete("a")
+        self.assertEquals(1, len(tst))
+        self.assertIsNone(tst.get("a"))
 
 

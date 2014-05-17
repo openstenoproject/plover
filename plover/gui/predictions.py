@@ -4,7 +4,6 @@
 # hints about words that begin with what was already typed
 
 import wx
-import plover.dictionary.lookup_table
 from plover.dictionary.candidate import Candidate
 
 TITLE = "Stroke Helper"
@@ -20,8 +19,11 @@ class Predictions(wx.Dialog):
     deleted_candidates = []
     instances = []
     listbox = {}
+    dictionary = None
 
-    def __init__(self, parent, config):
+    def __init__(self, parent, dict, config):
+        global dictionary
+        dictionary = dict
         Predictions.enabled = True
         self.config = config
         style = wx.DEFAULT_DIALOG_STYLE | wx.STAY_ON_TOP | wx.RESIZE_BORDER
@@ -52,7 +54,8 @@ class Predictions(wx.Dialog):
 
     @staticmethod
     def process():
-        if not (Predictions.enabled and plover.dictionary.lookup_table.loaded):
+        global dictionary
+        if not (Predictions.enabled):
             return
         Predictions.listbox.DeleteAllItems()
         i=0
@@ -62,11 +65,11 @@ class Predictions(wx.Dialog):
                 candidate.addWord(1, Predictions.backspaces, Predictions.text)
                 if candidate.phrase:
                     if len(candidate.phrase) >= MIN_LENGTH:
-                        lookup = plover.dictionary.lookup_table.prefixMatch(candidate.phrase.strip())
+                        lookup = dictionary.prefix_match(candidate.phrase.strip())
                         if not lookup.empty():
                             while (not lookup.empty()) and (i < WORD_LIMIT):
                                 phrase = lookup.get()
-                                stroke = plover.dictionary.lookup_table.lookup(phrase)
+                                stroke = dictionary.lookup(phrase)
                                 joined_stroke = '/'.join(stroke)
                                 Predictions.listbox.InsertStringItem(i, joined_stroke)
                                 Predictions.listbox.SetStringItem(i, 1, phrase)

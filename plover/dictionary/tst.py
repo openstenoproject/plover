@@ -40,6 +40,12 @@ class TST:
         else:
             return x
 
+    def delete(self, key):
+        if (key is None or key.__len__()==0):
+            raise Exception("Null or empty key")
+        if self.contains(key):
+            self.put(key, None);
+
     def contains(self, key):
         return not (self.get(key) is None)
 

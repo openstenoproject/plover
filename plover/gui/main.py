@@ -12,7 +12,6 @@ import os
 import wx
 import wx.animate
 import plover.gui.predictions
-import plover.dictionary.lookup_table
 from wx.lib.utils import AdjustRectToScreen
 import plover.app as app
 from plover.config import ASSETS_DIR, SPINNER_FILE
@@ -208,14 +207,12 @@ class MainFrame(wx.Frame):
 
         self.steno_engine.formatter.add_output_listener(Predictions.output_handler)
         if self.config.get_show_predictions():
-            plover.dictionary.lookup_table.load(self.steno_engine.translator.get_dictionary())
             Predictions.enabled = True
             Predictions.display(self, self.config)
 
         self.steno_engine.add_stroke_listener(BriefTrainer.stroke_handler)
         self.steno_engine.formatter.add_output_listener(BriefTrainer.output_handler)
         if self.config.get_show_brief_suggestions():
-            plover.dictionary.lookup_table.load(self.steno_engine.translator.get_dictionary())
             BriefTrainer.enabled = True
             BriefTrainer.display(self, self.config)
 
