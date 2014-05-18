@@ -207,12 +207,14 @@ class MainFrame(wx.Frame):
 
         self.steno_engine.formatter.add_output_listener(Predictions.output_handler)
         if self.config.get_show_predictions():
+            predictions = Predictions(self, self.steno_engine.translator.get_dictionary(), self.config)
             Predictions.enabled = True
             Predictions.display(self, self.config)
 
         self.steno_engine.add_stroke_listener(BriefTrainer.stroke_handler)
         self.steno_engine.formatter.add_output_listener(BriefTrainer.output_handler)
         if self.config.get_show_brief_suggestions():
+            briefTrainer = BriefTrainer(self, self.steno_engine.translator.get_dictionary(), self.config)
             BriefTrainer.enabled = True
             BriefTrainer.display(self, self.config)
 

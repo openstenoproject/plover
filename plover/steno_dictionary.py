@@ -9,6 +9,7 @@ A steno dictionary maps sequences of steno strokes to translations.
 
 import collections
 import itertools
+import threading
 from steno import normalize_steno
 from plover.dictionary.tst import TST
 class StenoDictionary(collections.MutableMapping):
@@ -24,7 +25,6 @@ class StenoDictionary(collections.MutableMapping):
     """
     def __init__(self, *args, **kw):
         self._dict = {}
-        self._trie = TST()
         self._longest_key_length = 0
         self._longest_listener_callbacks = set()
         self.reverse = collections.defaultdict(list)
@@ -55,13 +55,6 @@ class StenoDictionary(collections.MutableMapping):
         self._longest_key = max(self._longest_key, len(key))
         self._dict.__setitem__(key, value)
         self.reverse[value].append(key)
-        if (key) and (value):
-            existing_key = self.lookup(value)
-            if (existing_key):
-                key = __shortest_of__(key, existing_key)
-                if (key == existing_key):
-                    return
-            self._trie.put(value, key)
 
     def __delitem__(self, key):
         value = self._dict[key]
@@ -72,8 +65,6 @@ class StenoDictionary(collections.MutableMapping):
                 self._longest_key = max(len(x) for x in self._dict.iterkeys())
             else:
                 self._longest_key = 0
-        if (key):
-            self._trie.delete(key)
 
     def __contains__(self, key):
         contained = self._dict.__contains__(key)
@@ -84,23 +75,6 @@ class StenoDictionary(collections.MutableMapping):
             if f(key, value):
                 return False
         return True
-
-    @staticmethod
-    def __shortest_of__(key1, key2):
-        #compare strokes by existence, then number of strokes, then absolute length
-        if (not (key1 or key2)):
-            return ""
-        if (not key2):
-            return key1
-        if (not key1):
-            return key2
-        if (len(key1) < len(key2)):
-            return key1
-        if (len(key1) > len(key2)):
-            return key2
-        if (len(str(key1)) < len(str(key2))):
-            return key1
-        return key2
 
     def set_path(self, path):
         self._path = path    
@@ -145,24 +119,17 @@ class StenoDictionary(collections.MutableMapping):
         """Bypass filters."""
         return self._dict.get(key, default)
 
-    def lookup(self, value):
-        if not value.strip():
-            return
-        return self._trie.get(value.strip())
-
-    def prefix_match(self, value):
-        if not value.strip():
-            return
-        return self._trie.prefixMatch(value)
 
 
 
 class StenoDictionaryCollection(object):
     def __init__(self):
         self.dicts = []
+        self._trie = TST()
         self.filters = []
         self.longest_key = 0
         self.longest_key_callbacks = set()
+        self.trie_loaded=False
 
     def set_dicts(self, dicts):
         for d in self.dicts:
@@ -172,6 +139,41 @@ class StenoDictionaryCollection(object):
         for d in dicts:
             d.add_longest_key_listener(self._longest_key_listener)
         self._longest_key_listener()
+        background=threading.Thread(target=self.load_trie_in_background, args=[])
+        background.start()
+
+    def load_trie_in_background(self):
+        for dict in self.dicts:
+            for item in dict.iteritems():
+                self.add_item_to_trie(item[0], item[1])
+        self.trie_loaded = True
+
+    def add_item_to_trie(self, key, value):
+        if (key) and (value):
+            existing_key = self.lookup(value)
+            if (existing_key):
+                key = StenoDictionary.shortest_of(key, existing_key)
+                if (key == existing_key):
+                    return
+            self._trie.put(value, key)
+
+    @staticmethod
+    def shortest_of(key1, key2):
+        #compare strokes by existence, then number of strokes, then absolute length
+        return key1
+        if (not (key1 or key2)):
+            return ""
+        if (not key2):
+            return key1
+        if (not key1):
+            return key2
+        if (len(key1) < len(key2)):
+            return key1
+        if (len(key1) > len(key2)):
+            return key2
+        if (len(str(key1)) < len(str(key2))):
+            return key1
+        return key2
 
     def lookup(self, key):
         for d in self.dicts:
@@ -193,6 +195,16 @@ class StenoDictionaryCollection(object):
             key = d.reverse.get(value, None)
             if key:
                 return key
+
+    def trie_lookup(self, value):
+        if not value.strip():
+            return
+        return self._trie.get(value.strip())
+
+    def prefix_match(self, value):
+        if not value.strip():
+            return
+        return self._trie.prefixMatch(value)
 
     def set(self, key, value):
         if self.dicts:

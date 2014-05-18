@@ -55,7 +55,7 @@ class Predictions(wx.Dialog):
     @staticmethod
     def process():
         global dictionary
-        if not (Predictions.enabled):
+        if not (Predictions.enabled and dictionary.trie_loaded):
             return
         Predictions.listbox.DeleteAllItems()
         i=0
@@ -69,7 +69,7 @@ class Predictions(wx.Dialog):
                         if not lookup.empty():
                             while (not lookup.empty()) and (i < WORD_LIMIT):
                                 phrase = lookup.get()
-                                stroke = dictionary.lookup(phrase)
+                                stroke = dictionary.trie_lookup(phrase)
                                 joined_stroke = '/'.join(stroke)
                                 Predictions.listbox.InsertStringItem(i, joined_stroke)
                                 Predictions.listbox.SetStringItem(i, 1, phrase)
