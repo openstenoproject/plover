@@ -55,9 +55,12 @@ class Predictions(wx.Dialog):
     @staticmethod
     def process():
         global dictionary
-        if not (Predictions.enabled and dictionary.trie_loaded):
+        if not (Predictions.enabled):
             return
         Predictions.listbox.DeleteAllItems()
+        if (not dictionary.trie_loaded):
+            Predictions.listbox.InsertStringItem(0, "Initializing...")
+            return
         i=0
         if Predictions.text:
             Predictions.candidates.append(Candidate(1, ""))

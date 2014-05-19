@@ -61,7 +61,11 @@ class BriefTrainer(wx.Dialog):
         # exclude the ones without translations
         # notify if translation exists with fewer strokes
         global dictionary
-        if not (BriefTrainer.enabled and dictionary.trie_loaded):
+        if not (BriefTrainer.enabled):
+            return
+        if (not dictionary.trie_loaded):
+            BriefTrainer.listbox.DeleteAllItems()
+            BriefTrainer.listbox.InsertStringItem(0, "Initializing...")
             return
         for candidate in list(BriefTrainer.candidates):
             candidate.addWord(BriefTrainer.strokes, BriefTrainer.backspaces, BriefTrainer.text)

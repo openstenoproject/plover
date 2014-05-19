@@ -210,6 +210,7 @@ class MainFrame(wx.Frame):
             predictions = Predictions(self, self.steno_engine.translator.get_dictionary(), self.config)
             Predictions.enabled = True
             Predictions.display(self, self.config)
+            self.steno_engine.get_dictionary().load_trie()
 
         self.steno_engine.add_stroke_listener(BriefTrainer.stroke_handler)
         self.steno_engine.formatter.add_output_listener(BriefTrainer.output_handler)
@@ -217,6 +218,7 @@ class MainFrame(wx.Frame):
             briefTrainer = BriefTrainer(self, self.steno_engine.translator.get_dictionary(), self.config)
             BriefTrainer.enabled = True
             BriefTrainer.display(self, self.config)
+            self.steno_engine.get_dictionary().load_trie()
 
         pos = (config.get_main_frame_x(), config.get_main_frame_y())
         self.SetPosition(pos)
