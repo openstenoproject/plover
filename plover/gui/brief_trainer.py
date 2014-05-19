@@ -3,7 +3,6 @@
 
 # analyze output, and suggest when a brief in the dictionary would save strokes
 
-import plover.dictionary.lookup_table
 from plover.dictionary.candidate import Candidate
 import wx
 
@@ -23,8 +22,11 @@ class BriefTrainer(wx.Dialog):
     current_index = 0
     instances = []
     listbox = {}
+    dictionary = None
 
-    def __init__(self, parent, config):
+    def __init__(self, parent, dict, config):
+        global dictionary
+        dictionary = dict
         self.config = config
         BriefTrainer.enabled = True
         style = wx.DEFAULT_DIALOG_STYLE | wx.STAY_ON_TOP | wx.RESIZE_BORDER
@@ -58,12 +60,13 @@ class BriefTrainer(wx.Dialog):
         # add this text to all candidates,
         # exclude the ones without translations
         # notify if translation exists with fewer strokes
-        if not (BriefTrainer.enabled and plover.dictionary.lookup_table.loaded):
+        global dictionary
+        if not (BriefTrainer.enabled and dictionary.trie_loaded):
             return
         for candidate in list(BriefTrainer.candidates):
             candidate.addWord(BriefTrainer.strokes, BriefTrainer.backspaces, BriefTrainer.text)
             if candidate.phrase:
-                lookup = plover.dictionary.lookup_table.lookup(candidate.phrase)
+                lookup = dictionary.trie_lookup(candidate.phrase)
                 if lookup:
                     if len(lookup) < candidate.strokes:
                         BriefTrainer.listbox.DeleteAllItems()

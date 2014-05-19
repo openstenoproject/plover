@@ -12,6 +12,9 @@ import itertools
 import threading
 from steno import normalize_steno
 from plover.dictionary.tst import TST
+from plover.gui.brief_trainer import BriefTrainer
+from plover.gui.predictions import Predictions
+
 class StenoDictionary(collections.MutableMapping):
     """A steno dictionary.
 
@@ -129,7 +132,9 @@ class StenoDictionaryCollection(object):
         self.filters = []
         self.longest_key = 0
         self.longest_key_callbacks = set()
+        self.trie_loading=False
         self.trie_loaded=False
+        self.trie_loading_interrupt = False
 
     def set_dicts(self, dicts):
         for d in self.dicts:
@@ -139,13 +144,30 @@ class StenoDictionaryCollection(object):
         for d in dicts:
             d.add_longest_key_listener(self._longest_key_listener)
         self._longest_key_listener()
-        background=threading.Thread(target=self.load_trie_in_background, args=[])
-        background.start()
+        if (self.trie_loading):
+            self.trie_loading_interrupt=True
+        self.trie_loaded = False
+        self._trie.release()
+        if (Predictions.enabled or BriefTrainer.enabled):
+            self.load_trie()
+
+    def load_trie(self):
+        if not (self.trie_loading or self.trie_loaded):
+            self.trie_loading=True
+            background=threading.Thread(target=self.load_trie_in_background, args=[])
+            background.start()
 
     def load_trie_in_background(self):
         for dict in self.dicts:
             for item in dict.iteritems():
+                if self.trie_loading_interrupt:
+                    self.trie_loading_interrupt=False
+                    self.trie_loading = False
+                    self.trie_loaded - False
+                    self.trie.release()
+                    return
                 self.add_item_to_trie(item[0], item[1])
+        self.trie_loading = False
         self.trie_loaded = True
 
     def add_item_to_trie(self, key, value):

@@ -527,6 +527,8 @@ class TrainingConfig(wx.Panel):
         self.config.set_show_brief_suggestions(self.brief_suggestions.GetValue())
         BriefTrainer.enabled = self.brief_suggestions.GetValue()
         Predictions.enabled = self.show_predictions.GetValue()
+        if (BriefTrainer.enabled or Predictions.Enabled):
+            self.engine.get_dictionary().load_trie()
 
     def on_show_strokes(self, event):
         StrokeDisplayDialog.display(self.GetParent(), self.config)
@@ -537,10 +539,12 @@ class TrainingConfig(wx.Panel):
     def on_show_predictions(self, event):
         Predictions.enabled=True
         Predictions.display(self.GetParent(), self.engine.get_dictionary(), self.config)
+        self.engine.get_dictionary().load_trie()
 
     def on_show_brief_suggestions(self, event):
         BriefTrainer.enabled=True
         BriefTrainer.display(self.GetParent(), self.engine.get_dictionary(), self.config)
+        self.engine.get_dictionary().load_trie()
 
 
 class OutputConfig(wx.Panel):

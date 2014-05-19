@@ -46,6 +46,10 @@ class TST:
         if self.contains(key):
             self.put(key, None);
 
+    def release(self):
+        self.root = None
+        self.N = 0
+
     def contains(self, key):
         return not (self.get(key) is None)
 
