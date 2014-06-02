@@ -63,15 +63,15 @@ class FormatterTestCase(unittest.TestCase):
         
         (
          ([], 
-          [translation(rtfcre=('S'), english='hello')], 
-          translation(rtfcre=('T'), english='a', formatting=[action(text='f')])
+          [translation(rtfcre='S', english='hello')],
+          translation(rtfcre='T', english='a', formatting=[action(text='f')])
          ),
          ([action(text=' hello', word='hello')],),
          [('s', ' hello')]
         ),
         
         (
-         ([], [translation(rtfcre=('S'), english='hello')], None),
+         ([], [translation(rtfcre='S', english='hello')], None),
          ([action(text=' hello', word='hello')],),
          [('s', ' hello')]
         ),

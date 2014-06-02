@@ -62,7 +62,7 @@ class TranslationConverter(object):
             if match:
                 newpos = match.end()
                 result = f(match)
-                return (newpos, result)
+                return newpos, result
             return None
         return handler
 
@@ -251,12 +251,12 @@ class TranslationConverter(object):
                     pos = cxc_end + 1
                     continue
                 return None
-            return (endpos + 1, self(last))
+            return endpos + 1, self(last)
             
         if ignore:
-            return (endpos + 1, '')
+            return endpos + 1, ''
         else:
-            return (endpos + 1, self(s[command_match.end():endpos]))
+            return endpos + 1, self(s[command_match.end():endpos])
 
     def __call__(self, s):
         self.seen_par = False

@@ -421,7 +421,7 @@ def _atom_to_action_spaces_before(atom, last_action):
                 # application of orthography rules. This allows the stenographer 
                 # to tell plover not to auto-correct a word.
                 action.orthography = False
-            if (((begin and not end) or (begin and end and ' ' in meta)) and 
+            if ((begin and not end or begin and end and ' ' in meta) and
                 last_orthography):
                 new = orthography.add_suffix(last_word.lower(), meta)
                 common = commonprefix([last_word.lower(), new])
@@ -535,7 +535,7 @@ def _atom_to_action_spaces_after(atom, last_action):
                 action.orthography = False
                 if last_action.text != '':
                     action.replace = replace_space
-            if (((begin and not end) or (begin and end and ' ' in meta)) and 
+            if ((begin and not end or begin and end and ' ' in meta) and
                 last_orthography):
                 new = orthography.add_suffix(last_word.lower(), meta)
                 common = commonprefix([last_word.lower(), new])

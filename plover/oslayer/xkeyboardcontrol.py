@@ -391,8 +391,8 @@ class KeyboardEmulation(object):
                 for i, mod_keycodes in enumerate(self.modifier_mapping):
                     if keycode in mod_keycodes:
                         modifiers |= (1 << i)
-            return (keycode, modifiers)
-        return (None, None)
+            return keycode, modifiers
+        return None, None
 
 
 
