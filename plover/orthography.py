@@ -15,7 +15,7 @@ try:
         pairs.sort(reverse=True, key=lambda x: int(x[1]))
         WORDS = {p[0].lower(): int(p[1]) for p in pairs}
 except IOError as e:
-    print e
+    print(e)
 
 RULES = [
     # == +ly ==

@@ -114,7 +114,8 @@ if __name__ == '__main__':
     from plover.steno import Stroke
     import time
     def callback(s):
-        print Stroke(s).rtfcre
+        print(Stroke(s).rtfcre)
+
     machine = Stenotype()
     machine.add_callback(callback)
     machine.start_capture()

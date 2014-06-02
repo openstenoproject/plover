@@ -49,7 +49,7 @@ class FormatterTestCase(unittest.TestCase):
         for inputs, expected in cases:
             actual = f(*inputs)
             if actual != expected:
-                print actual, '!=', expected, 'for', inputs
+                print(actual, '!=', expected, 'for', inputs)
             self.assertEqual(actual, expected)
 
     def test_formatter(self):

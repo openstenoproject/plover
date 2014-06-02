@@ -379,12 +379,12 @@ class TestApp(wx.App):
                     'rtscts': False,
                 })
         ser = SerialConfig()
-        print 'Before:', ser.__dict__
+        print('Before:', ser.__dict__)
         serial_config_dialog = SerialConfigDialog(ser, None)
         self.SetTopWindow(serial_config_dialog)
         result = serial_config_dialog.ShowModal()
-        print 'After:', ser.__dict__
-        print 'Result:', result
+        print('After:', ser.__dict__)
+        print('Result:', result)
         return True
 
 if __name__ == "__main__":

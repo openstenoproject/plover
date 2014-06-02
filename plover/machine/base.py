@@ -158,7 +158,7 @@ class SerialStenotypeBase(ThreadedStenotypeBase):
         try:
             self.serial_port = serial.Serial(**self.serial_params)
         except (serial.SerialException, OSError) as e:
-            print e
+            print(e)
             self._error()
             return
         if self.serial_port is None or not self.serial_port.isOpen():

@@ -92,7 +92,7 @@ class TestCase(unittest.TestCase):
                 failed.append((before, after))
                 
         for before, after in failed:
-            print 'convert(%s) != %s: %s' % (before, after, convert(before))
+            print('convert(%s) != %s: %s' % (before, after, convert(before)))
 
         self.assertEqual(len(failed), 0)
     
@@ -197,8 +197,8 @@ class TestCase(unittest.TestCase):
             result = format_translation(before)
             if result != expected:
                 failed = True
-                print format_str.format(before, expected, result)
-            
+                print(format_str.format(before, expected, result))
+
         self.assertFalse(failed)
         
     def test_save_dictionary(self):

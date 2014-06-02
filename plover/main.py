@@ -29,7 +29,7 @@ def show_error(title, message):
 
     This shows a graphical error and prints the same to the terminal.
     """
-    print message
+    print(message)
     app = wx.PySimpleApp()
     alert_dialog = wx.MessageDialog(None,
                                     message,

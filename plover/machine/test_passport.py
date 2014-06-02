@@ -75,7 +75,7 @@ class TestCase(unittest.TestCase):
                 result = (len(expected) == len(actual) and 
                           all(starmap(cmp_keys, zip(actual, expected))))
                 if not result:
-                    print actual, '!=', expected
+                    print(actual, '!=', expected)
                 results.append(result)
                 
         self.assertTrue(all(results))

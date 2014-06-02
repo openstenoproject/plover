@@ -197,13 +197,13 @@ if __name__ == '__main__':
     ke = KeyboardEmulation()
 
     def test(event):
-        print event.keystring
+        print(event.keystring)
         ke.send_backspaces(1)
         ke.send_string(' you pressed: "' + event.keystring + '" ')
 
     kc.key_up = test
     kc.start()
-    print 'Press CTRL-c to quit.'
+    print('Press CTRL-c to quit.')
     try:
         while True:
             pass

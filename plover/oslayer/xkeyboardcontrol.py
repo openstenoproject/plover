@@ -440,7 +440,7 @@ if __name__ == '__main__':
     def test(event):
         if not event.keycode:
             return
-        print event
+        print(event)
         time.sleep(0.1)
         keycode_events = ke.send_key_combination('Alt_L(Tab)')
         #ke.send_backspaces(5)
@@ -449,7 +449,7 @@ if __name__ == '__main__':
     #kc.key_down = test
     kc.key_up = test
     kc.start()
-    print 'Press CTRL-c to quit.'
+    print('Press CTRL-c to quit.')
     try:
         while True:
             pass
