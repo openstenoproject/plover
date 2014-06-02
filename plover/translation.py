@@ -301,7 +301,7 @@ def _find_translation_helper(translations, dictionary, stroke, suffixes):
         strokes = list(itertools.chain(*[t.strokes for t in replaced]))
         strokes.append(stroke)
         mapping = _lookup(strokes, dictionary, suffixes)
-        if mapping != None:
+        if mapping is not None:
             t = Translation(strokes, mapping)
             t.replaced = replaced
             return t
@@ -309,21 +309,21 @@ def _find_translation_helper(translations, dictionary, stroke, suffixes):
 def _lookup(strokes, dictionary, suffixes):
     dict_key = tuple(s.rtfcre for s in strokes)
     result = dictionary.lookup(dict_key)
-    if result != None:
+    if result is not None:
         return result
 
     for key in suffixes:
         if key in strokes[-1].steno_keys:
             dict_key = (Stroke([key]).rtfcre,)
             suffix_mapping = dictionary.lookup(dict_key)
-            if suffix_mapping == None: continue
+            if suffix_mapping is None: continue
             keys = strokes[-1].steno_keys[:]
             keys.remove(key)
             copy = strokes[:]
             copy[-1] = Stroke(keys)
             dict_key = tuple(s.rtfcre for s in copy)
             main_mapping = dictionary.lookup(dict_key)
-            if main_mapping == None: continue
+            if main_mapping is None: continue
             return main_mapping + ' ' + suffix_mapping
 
     return None
