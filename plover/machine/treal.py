@@ -3,7 +3,7 @@
 
 # TODO: add tests
 
-"Thread-based monitoring of a stenotype machine using the Treal machine."
+"""Thread-based monitoring of a stenotype machine using the Treal machine."""
 
 import sys
 

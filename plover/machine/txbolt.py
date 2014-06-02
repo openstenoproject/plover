@@ -1,7 +1,7 @@
 # Copyright (c) 2011 Hesky Fisher
 # See LICENSE.txt for details.
 
-"Thread-based monitoring of a stenotype machine using the TX Bolt protocol."
+"""Thread-based monitoring of a stenotype machine using the TX Bolt protocol."""
 
 import plover.machine.base
 

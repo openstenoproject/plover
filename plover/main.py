@@ -1,7 +1,7 @@
 # Copyright (c) 2013 Hesky Fisher
 # See LICENSE.txt for details.
 
-"Launch the plover application."
+"""Launch the plover application."""
 
 import os
 import shutil

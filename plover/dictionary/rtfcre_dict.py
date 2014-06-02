@@ -67,35 +67,35 @@ class TranslationConverter(object):
         return handler
 
     def _re_handle_escapedchar(self, m):
-        r'\\([-\\{}])'
+        r"""\\([-\\{}])"""
         return m.group(1)
         
     def _re_handle_hardspace(self, m):
-        r'\\~'
+        r"""\\~"""
         return '{^ ^}'
         
     def _re_handle_dash(self, m):
-        r'\\_'
+        r"""\\_"""
         return '-'
         
     def _re_handle_escaped_newline(self, m):
-        r'\\\r|\\\n'
+        r"""\\\r|\\\n"""
         return '{#Return}{#Return}'
         
     def _re_handle_infix(self, m):
-        r'\\cxds ([^{}\\\r\n]+)\\cxds ?'
+        r"""\\cxds ([^{}\\\r\n]+)\\cxds ?"""
         return '{^%s^}' % m.group(1)
         
     def _re_handle_suffix(self, m):
-        r'\\cxds ([^{}\\\r\n ]+)'
+        r"""\\cxds ([^{}\\\r\n ]+)"""
         return '{^%s}' % m.group(1)
 
     def _re_handle_prefix(self, m):
-        r'([^{}\\\r\n ]+)\\cxds ?'
+        r"""([^{}\\\r\n ]+)\\cxds ?"""
         return '{%s^}' % m.group(1)
 
     def _re_handle_commands(self, m):
-        r'(\\\*)?\\([a-z]+)(-?[0-9]+)? ?'
+        r"""(\\\*)?\\([a-z]+)(-?[0-9]+)? ?"""
         
         ignore = bool(m.group(1))
         command = m.group(2)
@@ -129,7 +129,7 @@ class TranslationConverter(object):
         return ''
 
     def _re_handle_simple_command_group(self, m):
-        r'{(\\\*)?\\([a-z]+)(-?[0-9]+)?[ ]?([^{}]*)}'
+        r"""{(\\\*)?\\([a-z]+)(-?[0-9]+)?[ ]?([^{}]*)}"""
         
         ignore = bool(m.group(1))
         command = m.group(2)
@@ -175,13 +175,13 @@ class TranslationConverter(object):
             return self(contents)
 
     def _re_handle_eclipse_command(self, m):
-        r'({[^\\][^{}]*})'
+        r"""({[^\\][^{}]*})"""
         return m.group()
 
     # caseCATalyst doesn't put punctuation in \cxp so we will treat any 
     # isolated punctuation at the beginning of the translation as special.
     def _re_handle_punctuation(self, m):
-        r'^([.?!:;,])(?=\s|$)'
+        r"""^([.?!:;,])(?=\s|$)"""
         if self._whitespace:
             result = '{%s}' % m.group(1)
         else:
@@ -189,7 +189,7 @@ class TranslationConverter(object):
         return result
 
     def _re_handle_text(self, m):
-        r'[^{}\\\r\n]+'
+        r"""[^{}\\\r\n]+"""
         text = m.group()
         if self._whitespace:
             text = self._multiple_whitespace_pattern.sub(r'{^\1^}', text)

@@ -4,7 +4,7 @@
 # TODO: add options to remap keys
 # TODO: look into programmatically pasting into other applications
 
-"For use with a Microsoft Sidewinder X4 keyboard used as stenotype machine."
+"""For use with a Microsoft Sidewinder X4 keyboard used as stenotype machine."""
 
 # TODO: Change name to NKRO Keyboard.
 

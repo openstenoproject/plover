@@ -1,7 +1,7 @@
 # Copyright (c) 2013 Hesky Fisher
 # See LICENSE.txt for details.
 
-"Manager for stenotype machines types."
+"""Manager for stenotype machines types."""
 
 from plover.machine.geminipr import Stenotype as geminipr
 from plover.machine.txbolt import Stenotype as txbolt

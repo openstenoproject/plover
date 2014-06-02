@@ -17,7 +17,7 @@ SERIAL_PORT_EXCEPTION_MESSAGE = ("Either the stenotype machine is not "
 
 
 class InvalidConfigurationError(Exception):
-    "Raised when there is something wrong in the configuration."
+    """Raised when there is something wrong in the configuration."""
     pass
 
 
