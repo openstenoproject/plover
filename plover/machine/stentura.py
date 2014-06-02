@@ -658,5 +658,5 @@ class Stenotype(plover.machine.base.SerialStenotypeBase):
             _loop(self.serial_port, self.finished, self._notify, self._ready)
         except _StopException:
             pass
-        except _ConnectionLostException, _ProtocolViolationException:
+        except _ConnectionLostException as _ProtocolViolationException:
             self._error()
