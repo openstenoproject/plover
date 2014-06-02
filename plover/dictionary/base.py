@@ -21,10 +21,11 @@ dictionaries = {
     RTF_EXTENSION.lower(): rtfcre_dict,
 }
 
+
 def load_dictionary(filename):
     """Load a dictionary from a file."""
     extension = splitext(filename)[1].lower()
-    
+
     try:
         dict_type = dictionaries[extension]
     except KeyError:
@@ -39,9 +40,10 @@ def load_dictionary(filename):
             d = loader(f.read())
     except IOError as e:
         raise DictionaryLoaderException(unicode(e))
-        
+
     d.save = ThreadedSaver(d, filename, dict_type.save_dictionary)
     return d
+
 
 def save_dictionary(d, filename, saver):
     # Write the new file to a temp location.
@@ -51,22 +53,24 @@ def save_dictionary(d, filename, saver):
 
     # Then move the new file to the final location.
     shutil.move(tmp, filename)
-    
+
+
 class ThreadedSaver(object):
     """A callable that saves a dictionary in the background.
     
     Also makes sure that there is only one active call at a time.
     """
+
     def __init__(self, d, filename, saver):
         self.d = d
         self.filename = filename
         self.saver = saver
         self.lock = threading.Lock()
-        
+
     def __call__(self):
         t = threading.Thread(target=self.save)
         t.start()
-        
+
     def save(self):
         with self.lock:
             save_dictionary(self.d, self.filename, self.saver)

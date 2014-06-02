@@ -10,14 +10,13 @@ import sys
 
 
 class LockNotAcquiredException(Exception):
-
     pass
+
 
 if sys.platform.startswith('win32'):
     import win32event
     import win32api
     import winerror
-
 
     class PloverLock(object):
         # A GUID from http://createguid.com/
@@ -50,7 +49,6 @@ else:
     import os
     import tempfile
 
-
     class PloverLock(object):
         def __init__(self):
             # Check the environment for items to make the lockfile unique
@@ -69,6 +67,7 @@ else:
                 hostname = os.uname()[1]
             else:
                 import socket
+
                 hostname = socket.gethostname()
 
             lock_file_name = os.path.expanduser(

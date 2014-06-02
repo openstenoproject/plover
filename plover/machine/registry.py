@@ -1,7 +1,7 @@
 # Copyright (c) 2013 Hesky Fisher
 # See LICENSE.txt for details.
 
-"Manager for stenotype machines types."
+"""Manager for stenotype machines types."""
 
 from plover.machine.geminipr import Stenotype as geminipr
 from plover.machine.txbolt import Stenotype as txbolt
@@ -14,12 +14,14 @@ try:
 except:
     treal = None
 
+
 class NoSuchMachineException(Exception):
     def __init__(self, id):
         self._id = id
 
     def __str__(self):
         return 'Unrecognized machine type: {}'.format(self._id)
+
 
 class Registry(object):
     def __init__(self):
@@ -40,12 +42,13 @@ class Registry(object):
 
     def get_all_names(self):
         return self._machines.keys()
-        
+
     def resolve_alias(self, name):
         try:
             return self._aliases[name]
         except KeyError:
             return name
+
 
 machine_registry = Registry()
 machine_registry.register('NKRO Keyboard', sidewinder)

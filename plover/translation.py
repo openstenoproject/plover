@@ -20,6 +20,7 @@ from plover.steno import Stroke
 from plover.steno_dictionary import StenoDictionaryCollection
 import itertools
 
+
 class Translation(object):
     """A data model for the mapping between a sequence of Strokes and a string.
 
@@ -78,6 +79,7 @@ class Translation(object):
             return len(self.strokes)
         return 0
 
+
 class Translator(object):
     """Converts a stenotype key stream to a translation stream.
 
@@ -108,6 +110,7 @@ class Translator(object):
     output to every function that has registered via the add_callback method.
 
     """
+
     def __init__(self):
         self._undo_length = 0
         self._dictionary = None
@@ -127,7 +130,7 @@ class Translator(object):
             self._dictionary.remove_longest_key_listener(callback)
         self._dictionary = d
         d.add_longest_key_listener(callback)
-        
+
     def get_dictionary(self):
         return self._dictionary
 
@@ -167,18 +170,19 @@ class Translator(object):
 
     def _dict_callback(self, value):
         self._resize_translations()
-        
+
     def get_state(self):
         """Get the state of the translator."""
         return self._state
-        
+
     def set_state(self, state):
         """Set the state of the translator."""
         self._state = state
-        
+
     def clear_state(self):
         """Reset the sate of the translator."""
         self._state = _State()
+
 
 class _State(object):
     """An object representing the current state of the translator state machine.
@@ -190,6 +194,7 @@ class _State(object):
     tail -- The oldest translation still saved but is no longer undoable.
 
     """
+
     def __init__(self):
         self.translations = []
         self.tail = None
@@ -214,6 +219,7 @@ class _State(object):
             self.tail = self.translations[translation_index - 1]
         del self.translations[:translation_index]
 
+
 def has_undo(t):
     # If there is no formatting then we're not dealing with a formatter so all 
     # translations can be undone.
@@ -225,6 +231,7 @@ def has_undo(t):
         if a.text or a.replace:
             return True
     return False
+
 
 def _translate_stroke(stroke, state, dictionary, callback):
     """Process a stroke.
@@ -245,10 +252,10 @@ def _translate_stroke(stroke, state, dictionary, callback):
     is the context for the new translations.
 
     """
-    
+
     undo = []
     do = []
-    
+
     # TODO: Test the behavior of undoing until a translation is undoable.
     if stroke.is_correction:
         for t in reversed(state.translations):
@@ -273,12 +280,14 @@ def _translate_stroke(stroke, state, dictionary, callback):
         t = _find_translation(translations, dictionary, stroke)
         do.append(t)
         undo.extend(t.replaced)
-    
+
     del state.translations[len(state.translations) - len(undo):]
     callback(undo, do, state.last())
     state.translations.extend(do)
 
+
 SUFFIX_KEYS = ['-S', '-G', '-Z', '-D']
+
 
 def _find_translation(translations, dictionary, stroke):
     t = _find_translation_helper(translations, dictionary, stroke, [])
@@ -292,6 +301,7 @@ def _find_translation(translations, dictionary, stroke):
         return t
     return Translation([stroke], _lookup([stroke], dictionary, SUFFIX_KEYS))
 
+
 def _find_translation_helper(translations, dictionary, stroke, suffixes):
     # The new stroke can either create a new translation or replace
     # existing translations by matching a longer entry in the
@@ -301,29 +311,31 @@ def _find_translation_helper(translations, dictionary, stroke, suffixes):
         strokes = list(itertools.chain(*[t.strokes for t in replaced]))
         strokes.append(stroke)
         mapping = _lookup(strokes, dictionary, suffixes)
-        if mapping != None:
+        if mapping is not None:
             t = Translation(strokes, mapping)
             t.replaced = replaced
             return t
 
+
 def _lookup(strokes, dictionary, suffixes):
     dict_key = tuple(s.rtfcre for s in strokes)
     result = dictionary.lookup(dict_key)
-    if result != None:
+    if result is not None:
         return result
 
     for key in suffixes:
         if key in strokes[-1].steno_keys:
             dict_key = (Stroke([key]).rtfcre,)
             suffix_mapping = dictionary.lookup(dict_key)
-            if suffix_mapping == None: continue
+            if suffix_mapping is None:
+                continue
             keys = strokes[-1].steno_keys[:]
             keys.remove(key)
             copy = strokes[:]
             copy[-1] = Stroke(keys)
             dict_key = tuple(s.rtfcre for s in copy)
             main_mapping = dictionary.lookup(dict_key)
-            if main_mapping == None: continue
+            if main_mapping is None: continue
             return main_mapping + ' ' + suffix_mapping
 
     return None

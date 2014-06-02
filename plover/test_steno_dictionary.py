@@ -6,16 +6,17 @@
 import unittest
 from steno_dictionary import StenoDictionary, StenoDictionaryCollection
 
-class StenoDictionaryTestCase(unittest.TestCase):
 
+class StenoDictionaryTestCase(unittest.TestCase):
     def test_dictionary(self):
         notifications = []
+
         def listener(longest_key):
             notifications.append(longest_key)
-        
+
         d = StenoDictionary()
         self.assertEqual(d.longest_key, 0)
-        
+
         d.add_longest_key_listener(listener)
         d[('S',)] = 'a'
         self.assertEqual(d.longest_key, 1)
@@ -36,15 +37,15 @@ class StenoDictionaryTestCase(unittest.TestCase):
         d.clear()
         self.assertEqual(d.longest_key, 0)
         self.assertEqual(notifications, [1, 4, 2, 0])
-        
+
         d.remove_longest_key_listener(listener)
         d[('S', 'S')] = 'c'
         self.assertEqual(d.longest_key, 2)
         self.assertEqual(notifications, [1, 4, 2, 0])
-        
+
         self.assertEqual(StenoDictionary([('a', 'b')]).items(), [('a', 'b')])
         self.assertEqual(StenoDictionary(a='b').items(), [('a', 'b')])
-        
+
     def test_dictionary_collection(self):
         dc = StenoDictionaryCollection()
         d1 = StenoDictionary()
@@ -64,17 +65,18 @@ class StenoDictionaryTestCase(unittest.TestCase):
         self.assertEqual(dc.lookup(('W',)), 'd')
         self.assertEqual(dc.lookup(('T',)), 'b')
         self.assertEqual(dc.reverse_lookup('c'), [('S',)])
-        
+
         dc.remove_filter(f)
         self.assertEqual(dc.lookup(('S',)), 'c')
         self.assertEqual(dc.lookup(('W',)), 'd')
         self.assertEqual(dc.lookup(('T',)), 'b')
-        
+
         self.assertEqual(dc.reverse_lookup('c'), [('S',)])
-        
+
         dc.set(('S',), 'e')
         self.assertEqual(dc.lookup(('S',)), 'e')
         self.assertEqual(d2[('S',)], 'e')
-        
+
+
 if __name__ == '__main__':
     unittest.main()

@@ -17,27 +17,22 @@ interface.
 
 
 # Import plover modules.
-import plover.config as conf
 import plover.formatting as formatting
-import plover.oslayer.keyboardcontrol as keyboardcontrol
-import plover.steno as steno
 import plover.machine.base
 import plover.machine.sidewinder
-import plover.steno_dictionary as steno_dictionary
 import plover.steno as steno
 import plover.translation as translation
-from plover.dictionary.base import load_dictionary
-from plover.exception import InvalidConfigurationError,DictionaryLoaderException
-import plover.dictionary.json_dict as json_dict
-import plover.dictionary.rtfcre_dict as rtfcre_dict
+from plover.exception import InvalidConfigurationError, DictionaryLoaderException
 from plover.machine.registry import machine_registry, NoSuchMachineException
 from plover.logger import Logger
 from plover.dictionary.loading_manager import manager as dict_manager
+
 
 # Because 2.7 doesn't have this yet.
 class SimpleNamespace(object):
     def __init__(self, **kwargs):
         self.__dict__.update(kwargs)
+
     def __repr__(self):
         keys = sorted(self.__dict__)
         items = ("{}={!r}".format(k, self.__dict__[k]) for k in keys)
@@ -47,7 +42,7 @@ class SimpleNamespace(object):
 def init_engine(engine, config):
     """Initialize a StenoEngine from a config object."""
     reset_machine(engine, config)
-    
+
     dictionary_file_names = config.get_dictionary_file_names()
     try:
         dicts = dict_manager.load(dictionary_file_names)
@@ -62,8 +57,9 @@ def init_engine(engine, config):
     engine.enable_stroke_logging(config.get_enable_stroke_logging())
     engine.enable_translation_logging(config.get_enable_translation_logging())
     engine.set_space_placement(config.get_space_placement())
-    
+
     engine.set_is_running(config.get_auto_start())
+
 
 def reset_machine(engine, config):
     """Set the machine on the engine based on config."""
@@ -75,6 +71,7 @@ def reset_machine(engine, config):
         raise InvalidConfigurationError(unicode(e))
     engine.set_machine(instance)
 
+
 def update_engine(engine, old, new):
     """Modify a StenoEngine using a before and after config object.
     
@@ -83,8 +80,8 @@ def update_engine(engine, old, new):
     """
     machine_type = new.get_machine_type()
     machine_options = new.get_machine_specific_options(machine_type)
-    if (old.get_machine_type() != machine_type or 
-        old.get_machine_specific_options(machine_type) != machine_options):
+    if (old.get_machine_type() != machine_type or
+                old.get_machine_specific_options(machine_type) != machine_options):
         try:
             machine_class = machine_registry.get(machine_type)
         except NoSuchMachineException as e:
@@ -115,8 +112,10 @@ def update_engine(engine, old, new):
     if old.get_space_placement() != space_placement:
         engine.set_space_placement(space_placement)
 
+
 def same_thread_hook(fn, *args):
     fn(*args)
+
 
 class StenoEngine(object):
     """Top-level class for using a stenotype machine for text input.
@@ -236,7 +235,7 @@ class StenoEngine(object):
 
         """
         self.subscribers.append(callback)
-        
+
     def set_log_file_name(self, filename):
         """Set the file name for log output."""
         self.logger.set_filename(filename)
@@ -248,14 +247,14 @@ class StenoEngine(object):
     def set_space_placement(self, s):
         """Set whether spaces will be inserted before the output or after the output."""
         self.formatter.set_space_placement(s)
-        
+
     def enable_translation_logging(self, b):
         """Turn translation logging on or off."""
         self.logger.enable_translation_logging(b)
 
     def add_stroke_listener(self, listener):
         self.stroke_listeners.append(listener)
-        
+
     def remove_stroke_listener(self, listener):
         self.stroke_listeners.remove(listener)
 

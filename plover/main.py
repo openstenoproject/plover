@@ -1,7 +1,7 @@
 # Copyright (c) 2013 Hesky Fisher
 # See LICENSE.txt for details.
 
-"Launch the plover application."
+"""Launch the plover application."""
 
 import os
 import shutil
@@ -11,6 +11,7 @@ import traceback
 WXVER = '2.8'
 if not hasattr(sys, 'frozen'):
     import wxversion
+
     wxversion.ensureMinimal(WXVER)
 
 import wx
@@ -24,12 +25,13 @@ import plover.oslayer.processlock
 from plover.oslayer.config import CONFIG_DIR, ASSETS_DIR
 from plover.config import CONFIG_FILE, DEFAULT_DICTIONARY_FILE, Config
 
+
 def show_error(title, message):
     """Report error to the user.
 
     This shows a graphical error and prints the same to the terminal.
     """
-    print message
+    print(message)
     app = wx.PySimpleApp()
     alert_dialog = wx.MessageDialog(None,
                                     message,
@@ -37,6 +39,7 @@ def show_error(title, message):
                                     wx.OK | wx.ICON_INFORMATION)
     alert_dialog.ShowModal()
     alert_dialog.Destroy()
+
 
 def init_config_dir():
     """Creates plover's config dir.
@@ -81,6 +84,7 @@ def main():
     except:
         show_error('Unexpected error', traceback.format_exc())
     os._exit(1)
+
 
 if __name__ == '__main__':
     main()

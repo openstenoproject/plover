@@ -19,7 +19,7 @@ emulate keyboard input.
 import sys
 
 KEYBOARDCONTROL_NOT_FOUND_FOR_OS = \
-        "No keyboard control module was found for os %s" % sys.platform
+    "No keyboard control module was found for os %s" % sys.platform
 
 if sys.platform.startswith('linux'):
     import xkeyboardcontrol as keyboardcontrol
@@ -46,7 +46,7 @@ if __name__ == '__main__':
     ke = KeyboardEmulation()
 
     def test(event):
-        print event
+        print(event)
         ke.send_backspaces(3)
         ke.send_string('foo')
 
@@ -56,7 +56,7 @@ if __name__ == '__main__':
     kc.key_down = test
     kc.key_up = test
     kc.start()
-    print 'Press CTRL-c to quit.'
+    print('Press CTRL-c to quit.')
     try:
         while True:
             pass

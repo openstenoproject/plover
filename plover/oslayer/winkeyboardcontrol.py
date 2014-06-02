@@ -24,19 +24,20 @@ import win32api
 import win32con
 from pywinauto.SendKeysCtypes import SendKeys as _SendKeys
 
+
 def SendKeys(s):
     _SendKeys(s, with_spaces=True, pause=0)
 
 # For the purposes of this class, we'll only report key presses that
 # result in these outputs in order to exclude special key combos.
 KEY_TO_ASCII = {
-    41: '`', 2: '1', 3: '2', 4: '3', 5: '4', 6: '5', 7: '6', 8: '7', 
-    9: '8', 10: '9', 11: '0', 12: '-', 13: '=', 16: 'q', 
+    41: '`', 2: '1', 3: '2', 4: '3', 5: '4', 6: '5', 7: '6', 8: '7',
+    9: '8', 10: '9', 11: '0', 12: '-', 13: '=', 16: 'q',
     17: 'w', 18: 'e', 19: 'r', 20: 't', 21: 'y', 22: 'u', 23: 'i',
     24: 'o', 25: 'p', 26: '[', 27: ']', 43: '\\',
     30: 'a', 31: 's', 32: 'd', 33: 'f', 34: 'g', 35: 'h', 36: 'j',
     37: 'k', 38: 'l', 39: ';', 40: '\'', 44: 'z', 45: 'x',
-    46: 'c', 47: 'v', 48: 'b', 49: 'n', 50: 'm', 51: ',', 
+    46: 'c', 47: 'v', 48: 'b', 49: 'n', 50: 'm', 51: ',',
     52: '.', 53: '/', 57: ' ',
 }
 
@@ -44,15 +45,15 @@ KEY_TO_ASCII = {
 class KeyboardCapture(threading.Thread):
     """Listen to all keyboard events."""
 
-    CONTROL_KEYS = set(('Lcontrol', 'Rcontrol'))
-    SHIFT_KEYS = set(('Lshift', 'Rshift'))
-    ALT_KEYS = set(('Lmenu', 'Rmenu'))
-    
+    CONTROL_KEYS = {'Lcontrol', 'Rcontrol'}
+    SHIFT_KEYS = {'Lshift', 'Rshift'}
+    ALT_KEYS = {'Lmenu', 'Rmenu'}
+
     def __init__(self):
         threading.Thread.__init__(self)
 
         self.suppress_keyboard(True)
-        
+
         self.shift = False
         self.ctrl = False
         self.alt = False
@@ -71,7 +72,7 @@ class KeyboardCapture(threading.Thread):
                 if ascii and not self.ctrl and not self.alt and not self.shift:
                     getattr(self, func_name, lambda x: True)(KeyboardEvent(ascii))
                     return not self.is_keyboard_suppressed()
-            
+
             return True
 
         self.hm = pyHook.HookManager()
@@ -98,7 +99,7 @@ class KeyboardCapture(threading.Thread):
 
 
 class KeyboardEmulation:
-    "Mapping found here: http://msdn.microsoft.com/en-us/library/8c6yea83"
+    """Mapping found here: http://msdn.microsoft.com/en-us/library/8c6yea83"""
     ''' Need to test: I can't generate any of these sequences via querty '''
     keymap_multi = {
         "Alt_L": "%",
@@ -107,7 +108,7 @@ class KeyboardEmulation:
         "Control_R": "^",
         "Shift_L": "+",
         "Shift_R": "+",
-        }
+    }
 
     keymap_single = {
         # This library doesn't do anything with just keypresses for alt, ctrl
@@ -163,7 +164,7 @@ class KeyboardEmulation:
     }
 
     SPECIAL_CHARS_PATTERN = re.compile(r'([]{}()+^%~[])')
-    
+
     def send_backspaces(self, number_of_backspaces):
         for _ in xrange(number_of_backspaces):
             SendKeys(self.keymap_single['BackSpace'])
@@ -192,18 +193,19 @@ class KeyboardEvent(object):
     def __init__(self, char):
         self.keystring = char
 
+
 if __name__ == '__main__':
     kc = KeyboardCapture()
     ke = KeyboardEmulation()
 
     def test(event):
-        print event.keystring
+        print(event.keystring)
         ke.send_backspaces(1)
         ke.send_string(' you pressed: "' + event.keystring + '" ')
 
     kc.key_up = test
     kc.start()
-    print 'Press CTRL-c to quit.'
+    print('Press CTRL-c to quit.')
     try:
         while True:
             pass

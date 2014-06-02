@@ -56,7 +56,7 @@ class Stenotype(plover.machine.base.SerialStenotypeBase):
             steno_keys = []
             for i, b in enumerate(raw):
                 for j in range(1, 8):
-                    if (b & (0x80 >> j)):
+                    if b & (0x80 >> j):
                         steno_keys.append(STENO_KEY_CHART[i * 7 + j - 1])
 
             # Notify all subscribers.

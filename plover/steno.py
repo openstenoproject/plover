@@ -16,6 +16,7 @@ import re
 STROKE_DELIMITER = '/'
 IMPLICIT_HYPHENS = set('AOEU*50')
 
+
 def normalize_steno(strokes_string):
     """Convert steno strings to one common form."""
     strokes = strokes_string.split(STROKE_DELIMITER)
@@ -32,6 +33,7 @@ def normalize_steno(strokes_string):
             stroke = stroke[:-1]
         normalized_strokes.append(stroke)
     return tuple(normalized_strokes)
+
 
 STENO_KEY_NUMBERS = {'S-': '1-',
                      'T-': '2-',
@@ -82,9 +84,9 @@ class Stroke:
 
     """
 
-    IMPLICIT_HYPHEN = set(('A-', 'O-', '5-', '0-', '-E', '-U', '*'))
+    IMPLICIT_HYPHEN = {'A-', 'O-', '5-', '0-', '-E', '-U', '*'}
 
-    def __init__(self, steno_keys) :
+    def __init__(self, steno_keys):
         """Create a steno stroke by formatting steno keys.
 
         Arguments:
@@ -99,7 +101,7 @@ class Stroke:
 
         # Order the steno keys so comparisons can be made.
         steno_keys.sort(key=lambda x: STENO_KEY_ORDER.get(x, -1))
-         
+
         # Convert strokes involving the number bar to numbers.
         if '#' in steno_keys:
             numeral = False
@@ -109,12 +111,12 @@ class Stroke:
                     numeral = True
             if numeral:
                 steno_keys.remove('#')
-        
+
         if steno_keys_set & self.IMPLICIT_HYPHEN:
             self.rtfcre = ''.join(key.strip('-') for key in steno_keys)
         else:
-            pre = ''.join(k.strip('-') for k in steno_keys if k[-1] == '-' or 
-                          k == '#')
+            pre = ''.join(k.strip('-') for k in steno_keys if k[-1] == '-' or
+                                                              k == '#')
             post = ''.join(k.strip('-') for k in steno_keys if k[0] == '-')
             self.rtfcre = '-'.join([pre, post]) if post else pre
 

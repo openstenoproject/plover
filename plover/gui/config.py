@@ -51,6 +51,7 @@ DOWN_IMAGE_FILE = os.path.join(conf.ASSETS_DIR, 'down.png')
 REMOVE_IMAGE_FILE = os.path.join(conf.ASSETS_DIR, 'remove.png')
 TITLE = "Plover Configuration"
 
+
 class ConfigurationDialog(wx.Dialog):
     """A GUI for viewing and editing Plover configuration files.
 
@@ -59,10 +60,10 @@ class ConfigurationDialog(wx.Dialog):
     application, which is typically after an application restart.
 
     """
-    
+
     # Keep track of other instances of ConfigurationDialog.
     other_instances = []
-    
+
     def __init__(self, engine, config, parent):
         """Create a configuration GUI based on the given config file.
 
@@ -73,9 +74,9 @@ class ConfigurationDialog(wx.Dialog):
         won't tell the user that Plover needs to be restarted.
         """
         pos = (config.get_config_frame_x(), config.get_config_frame_y())
-        size = wx.Size(config.get_config_frame_width(), 
+        size = wx.Size(config.get_config_frame_width(),
                        config.get_config_frame_height())
-        wx.Dialog.__init__(self, parent, title=TITLE, pos=pos, size=size, 
+        wx.Dialog.__init__(self, parent, title=TITLE, pos=pos, size=size,
                            style=wx.DEFAULT_DIALOG_STYLE | wx.RESIZE_BORDER)
         self.engine = engine
         self.config = config
@@ -94,7 +95,7 @@ class ConfigurationDialog(wx.Dialog):
 
         # Configuring each tab
         self.machine_config = MachineConfig(self.config, notebook)
-        self.dictionary_config = DictionaryConfig(self.engine, self.config, 
+        self.dictionary_config = DictionaryConfig(self.engine, self.config,
                                                   notebook)
         self.logging_config = LoggingConfig(self.config, notebook)
         self.display_config = DisplayConfig(self.config, notebook)
@@ -123,24 +124,24 @@ class ConfigurationDialog(wx.Dialog):
         button_sizer.Realize()
 
         sizer.Add(button_sizer, flag=wx.ALL | wx.ALIGN_RIGHT, border=UI_BORDER)
-        
+
         self.SetSizer(sizer)
         self.SetAutoLayout(True)
         sizer.Layout()
         #sizer.Fit(self)
-        
+
         self.SetRect(AdjustRectToScreen(self.GetRect()))
-        
+
         # Binding the save button to the self._save callback
         self.Bind(wx.EVT_BUTTON, self._save, save_button)
-        
+
         self.Bind(wx.EVT_MOVE, self.on_move)
         self.Bind(wx.EVT_SIZE, self.on_size)
         self.Bind(wx.EVT_CLOSE, self.on_close)
-        
+
     def on_move(self, event):
         pos = self.GetScreenPositionTuple()
-        self.config.set_config_frame_x(pos[0]) 
+        self.config.set_config_frame_x(pos[0])
         self.config.set_config_frame_y(pos[1])
         event.Skip()
 
@@ -149,14 +150,14 @@ class ConfigurationDialog(wx.Dialog):
         self.config.set_config_frame_width(size.GetWidth())
         self.config.set_config_frame_height(size.GetHeight())
         event.Skip()
-        
+
     def on_close(self, event):
         self.other_instances.remove(self)
         event.Skip()
 
     def _save(self, event):
         old_config = self.config.clone()
-        
+
         self.machine_config.save()
         self.dictionary_config.save()
         self.logging_config.save()
@@ -234,13 +235,14 @@ class MachineConfig(wx.Panel):
         auto_start = self.auto_start_checkbox.GetValue()
         self.config.set_auto_start(auto_start)
         if self.advanced_options:
-            self.config.set_machine_specific_options(machine_type, 
+            self.config.set_machine_specific_options(machine_type,
                                                      self.advanced_options)
 
     def _advanced_config(self, event=None):
         class Struct(object):
             def __init__(self, **kwargs):
                 self.__dict__.update(kwargs)
+
         config_instance = Struct(**self.advanced_options)
         dialog = None
         if 'port' in self.advanced_options:
@@ -261,11 +263,11 @@ class MachineConfig(wx.Panel):
 
 
 class DictionaryConfig(ScrolledPanel):
-    
-    DictionaryControls = namedtuple('DictionaryControls', 
+    DictionaryControls = namedtuple('DictionaryControls',
                                     'sizer up down remove label')
-    
+
     """Dictionary configuration graphical user interface."""
+
     def __init__(self, engine, config, parent):
         """Create a configuration component based on the given ConfigParser.
 
@@ -280,23 +282,23 @@ class DictionaryConfig(ScrolledPanel):
         self.engine = engine
         self.config = config
         dictionaries = config.get_dictionary_file_names()
-        
+
         self.up_bitmap = wx.Bitmap(UP_IMAGE_FILE, wx.BITMAP_TYPE_PNG)
         self.down_bitmap = wx.Bitmap(DOWN_IMAGE_FILE, wx.BITMAP_TYPE_PNG)
         self.remove_bitmap = wx.Bitmap(REMOVE_IMAGE_FILE, wx.BITMAP_TYPE_PNG)
-        
+
         main_sizer = wx.BoxSizer(wx.VERTICAL)
-        
+
         button_sizer = wx.BoxSizer(wx.HORIZONTAL)
 
         button = wx.Button(self, wx.ID_ANY, EDIT_BUTTON_NAME)
         button_sizer.Add(button, border=UI_BORDER, flag=wx.ALL)
         button.Bind(wx.EVT_BUTTON, self.show_edit)
-        
+
         button = wx.Button(self, wx.ID_ANY, ADD_TRANSLATION_BUTTON_NAME)
         button_sizer.Add(button, border=UI_BORDER, flag=wx.ALL)
         button.Bind(wx.EVT_BUTTON, self.show_add_translation)
-        
+
         button = wx.Button(self, wx.ID_ANY, ADD_DICTIONARY_BUTTON_NAME)
         button_sizer.Add(button, border=UI_BORDER, flag=wx.ALL)
         button.Bind(wx.EVT_BUTTON, self.add_dictionary)
@@ -304,21 +306,21 @@ class DictionaryConfig(ScrolledPanel):
         button = wx.Button(self, wx.ID_ANY, LOOKUP_BUTTON_NAME)
         button_sizer.Add(button, border=UI_BORDER, flag=wx.ALL)
         button.Bind(wx.EVT_BUTTON, self.show_lookup)
-        
+
         main_sizer.Add(button_sizer)
-        
+
         self.dictionary_controls = []
         self.dicts_sizer = wx.BoxSizer(wx.VERTICAL)
         for filename in dictionaries:
             self.add_row(filename)
 
         main_sizer.Add(self.dicts_sizer)
-        
+
         self.mask = 'Json files (*%s)|*%s|RTF/CRE files (*%s)|*%s' % (
-            conf.JSON_EXTENSION, conf.JSON_EXTENSION, 
-            conf.RTF_EXTENSION, conf.RTF_EXTENSION, 
+            conf.JSON_EXTENSION, conf.JSON_EXTENSION,
+            conf.RTF_EXTENSION, conf.RTF_EXTENSION,
         )
-        
+
         self.SetSizer(main_sizer)
         self.SetupScrolling()
 
@@ -326,7 +328,7 @@ class DictionaryConfig(ScrolledPanel):
         """Write all parameters to the config."""
         filenames = [x.label.GetLabel() for x in self.dictionary_controls]
         self.config.set_dictionary_file_names(filenames)
-        
+
     def show_add_translation(self, event):
         plover.gui.add_translation.Show(self, self.engine, self.config)
 
@@ -337,7 +339,7 @@ class DictionaryConfig(ScrolledPanel):
         plover.gui.dictionary_editor.Show(self, self.engine, self.config)
 
     def add_dictionary(self, event):
-        dlg = wx.FileDialog(self, "Choose a file", os.getcwd(), "", self.mask, 
+        dlg = wx.FileDialog(self, "Choose a file", os.getcwd(), "", self.mask,
                             wx.OPEN)
         if dlg.ShowModal() == wx.ID_OK:
             path = dlg.GetPath()
@@ -345,13 +347,13 @@ class DictionaryConfig(ScrolledPanel):
             if path not in all_dicts:
                 self.add_row(path)
         dlg.Destroy()
-        
+
     def add_row(self, filename):
         dict_manager.start_loading(filename)
         index = len(self.dictionary_controls)
         sizer = wx.BoxSizer(wx.HORIZONTAL)
         up = wx.BitmapButton(self, bitmap=self.up_bitmap)
-        up.Bind(wx.EVT_BUTTON, lambda e: self.move_row_down(index-1))
+        up.Bind(wx.EVT_BUTTON, lambda e: self.move_row_down(index - 1))
         if len(self.dictionary_controls) == 0:
             up.Disable()
         else:
@@ -362,7 +364,7 @@ class DictionaryConfig(ScrolledPanel):
         down.Disable()
         sizer.Add(down)
         remove = wx.BitmapButton(self, bitmap=self.remove_bitmap)
-        remove.Bind(wx.EVT_BUTTON, 
+        remove.Bind(wx.EVT_BUTTON,
                     lambda e: wx.CallAfter(self.remove_row, index))
         sizer.Add(remove)
         label = wx.StaticText(self, label=filename)
@@ -374,8 +376,8 @@ class DictionaryConfig(ScrolledPanel):
             self.GetSizer().Layout()
 
     def remove_row(self, index):
-        names = [self.dictionary_controls[i].label.GetLabel() 
-                 for i in range(index+1, len(self.dictionary_controls))]
+        names = [self.dictionary_controls[i].label.GetLabel()
+                 for i in range(index + 1, len(self.dictionary_controls))]
         for i, name in enumerate(names, start=index):
             self.dictionary_controls[i].label.SetLabel(name)
         controls = self.dictionary_controls[-1]
@@ -386,17 +388,19 @@ class DictionaryConfig(ScrolledPanel):
         if self.dictionary_controls:
             self.dictionary_controls[-1].down.Disable()
         self.GetSizer().Layout()
-        
+
     def move_row_down(self, index):
         top_label = self.dictionary_controls[index].label
-        bottom_label = self.dictionary_controls[index+1].label
+        bottom_label = self.dictionary_controls[index + 1].label
         tmp = bottom_label.GetLabel()
         bottom_label.SetLabel(top_label.GetLabel())
         top_label.SetLabel(tmp)
         self.GetSizer().Layout()
-        
+
+
 class LoggingConfig(wx.Panel):
     """Logging configuration graphical user interface."""
+
     def __init__(self, config, parent):
         """Create a configuration component based on the given Config.
 
@@ -414,14 +418,14 @@ class LoggingConfig(wx.Panel):
         log_file = os.path.join(conf.CONFIG_DIR, log_file)
         log_dir = os.path.split(log_file)[0]
         self.file_browser = filebrowse.FileBrowseButton(
-                                            self,
-                                            labelText=LOG_FILE_LABEL,
-                                            fileMask='*' + conf.LOG_EXTENSION,
-                                            fileMode=wx.SAVE,
-                                            dialogTitle=LOG_FILE_DIALOG_TITLE,
-                                            initialValue=log_file,
-                                            startDirectory=log_dir,
-                                            )
+            self,
+            labelText=LOG_FILE_LABEL,
+            fileMask='*' + conf.LOG_EXTENSION,
+            fileMode=wx.SAVE,
+            dialogTitle=LOG_FILE_DIALOG_TITLE,
+            initialValue=log_file,
+            startDirectory=log_dir,
+        )
         sizer.Add(self.file_browser, border=UI_BORDER, flag=wx.ALL | wx.EXPAND)
         self.log_strokes_checkbox = wx.CheckBox(self, label=LOG_STROKES_LABEL)
         stroke_logging = config.get_enable_stroke_logging()
@@ -430,7 +434,7 @@ class LoggingConfig(wx.Panel):
                   border=UI_BORDER,
                   flag=wx.ALL | wx.EXPAND)
         self.log_translations_checkbox = wx.CheckBox(self,
-                                                 label=LOG_TRANSLATIONS_LABEL)
+                                                     label=LOG_TRANSLATIONS_LABEL)
         translation_logging = config.get_enable_translation_logging()
         self.log_translations_checkbox.SetValue(translation_logging)
         sizer.Add(self.log_translations_checkbox,
@@ -446,12 +450,13 @@ class LoggingConfig(wx.Panel):
         self.config.set_enable_translation_logging(
             self.log_translations_checkbox.GetValue())
 
+
 class DisplayConfig(wx.Panel):
-    
     SHOW_STROKES_TEXT = "Open strokes display on startup"
     SHOW_STROKES_BUTTON_TEXT = "Open stroke display"
-    
+
     """Display configuration graphical user interface."""
+
     def __init__(self, config, parent):
         """Create a configuration component based on the given Config.
 
@@ -465,15 +470,15 @@ class DisplayConfig(wx.Panel):
         wx.Panel.__init__(self, parent, size=CONFIG_PANEL_SIZE)
         self.config = config
         sizer = wx.BoxSizer(wx.VERTICAL)
-        
-        show_strokes_button = wx.Button(self, 
+
+        show_strokes_button = wx.Button(self,
                                         label=self.SHOW_STROKES_BUTTON_TEXT)
         show_strokes_button.Bind(wx.EVT_BUTTON, self.on_show_strokes)
         sizer.Add(show_strokes_button, border=UI_BORDER, flag=wx.ALL)
-        
+
         self.show_strokes = wx.CheckBox(self, label=self.SHOW_STROKES_TEXT)
         self.show_strokes.SetValue(config.get_show_stroke_display())
-        sizer.Add(self.show_strokes, border=UI_BORDER, 
+        sizer.Add(self.show_strokes, border=UI_BORDER,
                   flag=wx.LEFT | wx.RIGHT | wx.BOTTOM)
 
         self.SetSizer(sizer)
@@ -485,9 +490,10 @@ class DisplayConfig(wx.Panel):
     def on_show_strokes(self, event):
         StrokeDisplayDialog.display(self.GetParent(), self.config)
 
-class OutputConfig(wx.Panel):
 
+class OutputConfig(wx.Panel):
     """Display configuration graphical user interface."""
+
     def __init__(self, config, parent):
         """Create a configuration component based on the given Config.
 
@@ -501,7 +507,7 @@ class OutputConfig(wx.Panel):
         wx.Panel.__init__(self, parent, size=CONFIG_PANEL_SIZE)
         self.config = config
         sizer = wx.BoxSizer(wx.VERTICAL)
-        
+
         box = wx.BoxSizer(wx.HORIZONTAL)
         box.Add(wx.StaticText(self, label=SPACE_PLACEMENTS_LABEL),
                 border=COMPONENT_SPACE,
@@ -509,7 +515,7 @@ class OutputConfig(wx.Panel):
         self.choice = wx.Choice(self, choices=SPACE_PLACEMENTS)
         self.choice.SetStringSelection(self.config.get_space_placement())
         box.Add(self.choice, proportion=1, flag=wx.EXPAND)
-        sizer.Add(box, border=UI_BORDER, flag=wx.ALL | wx.EXPAND)        
+        sizer.Add(box, border=UI_BORDER, flag=wx.ALL | wx.EXPAND)
 
         self.SetSizer(sizer)
 

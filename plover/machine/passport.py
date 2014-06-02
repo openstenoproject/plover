@@ -1,7 +1,7 @@
 # Copyright (c) 2013 Hesky Fisher
 # See LICENSE.txt for details.
 
-"Thread-based monitoring of a stenotype machine using the passport protocol."
+"""Thread-based monitoring of a stenotype machine using the passport protocol."""
 
 from plover.machine.base import SerialStenotypeBase
 from itertools import izip_longest
@@ -88,7 +88,7 @@ class Stenotype(SerialStenotypeBase):
         bool_converter = lambda s: s == 'True'
         sb = lambda s: int(float(s)) if float(s).is_integer() else float(s)
         return {
-            'port': (None, str), # TODO: make first port default
+            'port': (None, str),  # TODO: make first port default
             'baudrate': (38400, int),
             'bytesize': (8, int),
             'parity': ('N', str),
@@ -100,7 +100,7 @@ class Stenotype(SerialStenotypeBase):
 
 
 def grouper(iterable, n, fillvalue=None):
-    "Collect data into fixed-length chunks or blocks"
+    """Collect data into fixed-length chunks or blocks"""
     # grouper('ABCDEFG', 3, 'x') --> ABC DEF Gxx
     args = [iter(iterable)] * n
     return izip_longest(fillvalue=fillvalue, *args)

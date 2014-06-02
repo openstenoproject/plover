@@ -15,9 +15,8 @@ SERIAL_PORT_EXCEPTION_MESSAGE = ("Either the stenotype machine is not "
                                  "configuration.")
 
 
-
 class InvalidConfigurationError(Exception):
-    "Raised when there is something wrong in the configuration."
+    """Raised when there is something wrong in the configuration."""
     pass
 
 
@@ -27,6 +26,7 @@ class SerialPortException(InvalidConfigurationError):
     def __init__(self, *args):
         """Override the constructor to include a default message."""
         Exception.__init__(self, SERIAL_PORT_EXCEPTION_MESSAGE, *args)
+
 
 class DictionaryLoaderException(Exception):
     """Dictionary file could not be loaded."""

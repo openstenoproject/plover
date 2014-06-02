@@ -14,7 +14,7 @@ if hasattr(sys, 'frozen') and hasattr(sys, '_MEIPASS'):
     ASSETS_DIR = sys._MEIPASS
     PROGRAM_DIR = dirname(sys.executable)
 # If plover is run from an app bundle on Mac.
-elif (sys.platform.startswith('darwin') and '.app' in realpath(__file__)):
+elif sys.platform.startswith('darwin') and '.app' in realpath(__file__):
     ASSETS_DIR = os.getcwd()
     PROGRAM_DIR = abspath(join(dirname(sys.executable), *[pardir] * 3))
 else:

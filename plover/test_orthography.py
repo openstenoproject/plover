@@ -4,11 +4,11 @@
 from orthography import add_suffix
 import unittest
 
-class OrthographyTestCase(unittest.TestCase):
 
+class OrthographyTestCase(unittest.TestCase):
     def test_add_suffix(self):
         cases = (
-        
+
             ('artistic', 'ly', 'artistically'),
             ('cosmetic', 'ly', 'cosmetically'),
             ('establish', 's', 'establishes'),
@@ -97,18 +97,19 @@ class OrthographyTestCase(unittest.TestCase):
             ('white', 'er', 'whiter'),
             ('crap', 'y', 'crappy'),
             ('lad', 'er', 'ladder'),
-        
+
         )
-        
+
         failed = []
         for word, suffix, expected in cases:
             if add_suffix(word, suffix) != expected:
                 failed.append((word, suffix, expected))
-                
+
         for word, suffix, expected in failed:
-            print 'add_suffix(%s, %s) is %s not %s' % (word, suffix, add_suffix(word, suffix),expected)
-            
+            print('add_suffix(%s, %s) is %s not %s' % (word, suffix, add_suffix(word, suffix), expected))
+
         self.assertEqual(len(failed), 0)
-        
+
+
 if __name__ == '__main__':
     unittest.main()

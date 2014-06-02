@@ -1,7 +1,7 @@
 # Copyright (c) 2011 Hesky Fisher
 # See LICENSE.txt for details.
 
-"Thread-based monitoring of a stenotype machine using the TX Bolt protocol."
+"""Thread-based monitoring of a stenotype machine using the TX Bolt protocol."""
 
 import plover.machine.base
 
@@ -25,9 +25,9 @@ import plover.machine.base
 # send a zero byte every few seconds.
 
 STENO_KEY_CHART = ("S-", "T-", "K-", "P-", "W-", "H-",  # 00
-                   "R-", "A-", "O-", "*", "-E", "-U",   # 01
+                   "R-", "A-", "O-", "*", "-E", "-U",  # 01
                    "-F", "-R", "-P", "-B", "-L", "-G",  # 10
-                   "-T", "-S", "-D", "-Z", "#")         # 11
+                   "-T", "-S", "-D", "-Z", "#")  # 11
 
 
 class Stenotype(plover.machine.base.SerialStenotypeBase):
@@ -54,13 +54,13 @@ class Stenotype(plover.machine.base.SerialStenotypeBase):
     def run(self):
         """Overrides base class run method. Do not call directly."""
         settings = self.serial_port.getSettingsDict()
-        settings['timeout'] = 0.1 # seconds
+        settings['timeout'] = 0.1  # seconds
         self.serial_port.applySettingsDict(settings)
         self._ready()
         while not self.finished.isSet():
             # Grab data from the serial port, or wait for timeout if none available.
             raw = self.serial_port.read(max(1, self.serial_port.inWaiting()))
-            
+
             # XXX : work around for python 3.1 and python 2.6 differences
             if isinstance(raw, str):
                 raw = [ord(x) for x in raw]
@@ -75,7 +75,7 @@ class Stenotype(plover.machine.base.SerialStenotypeBase):
                     and len(self._pressed_keys) > 0):
                     self._finish_stroke()
                 self._last_key_set = key_set
-                for i in xrange(6):
+                for i in range(6):
                     if (byte >> i) & 1:
                         self._pressed_keys.append(
                             STENO_KEY_CHART[(key_set * 6) + i])

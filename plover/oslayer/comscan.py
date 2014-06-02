@@ -4,7 +4,8 @@ try:
     from plover.oslayer.list_ports_posix import comports as alternative_comports
 except ImportError:
     alternative_comports = lambda: []
-    
+
+
 def comports():
     try:
         return serial_comports()

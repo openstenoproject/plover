@@ -16,6 +16,7 @@ STATE_INITIALIZING = 'initializing'
 STATE_RUNNING = 'connected'
 STATE_ERROR = 'disconnected'
 
+
 class StenotypeBase(object):
     """The base class for all Stenotype classes."""
 
@@ -56,7 +57,7 @@ class StenotypeBase(object):
 
     def add_state_callback(self, callback):
         self.state_subscribers.append(callback)
-        
+
     def remove_state_callback(self, callback):
         self.state_subscribers.remove(callback)
 
@@ -71,7 +72,7 @@ class StenotypeBase(object):
             callback(steno_keys)
         if self.suppress:
             self._post_suppress(self.suppress, steno_keys)
-            
+
     def _post_suppress(self, suppress, steno_keys):
         """This is a complicated way for the application to tell the machine to 
         suppress this stroke after the fact. This only currently has meaning for 
@@ -93,7 +94,7 @@ class StenotypeBase(object):
 
     def _ready(self):
         self._set_state(STATE_RUNNING)
-            
+
     def _error(self):
         self._set_state(STATE_ERROR)
 
@@ -102,11 +103,13 @@ class StenotypeBase(object):
         """Get the default options for this machine."""
         return {}
 
+
 class ThreadedStenotypeBase(StenotypeBase, threading.Thread):
     """Base class for thread based machines.
     
     Subclasses should override run.
     """
+
     def __init__(self):
         threading.Thread.__init__(self)
         StenotypeBase.__init__(self)
@@ -130,6 +133,7 @@ class ThreadedStenotypeBase(StenotypeBase, threading.Thread):
         except RuntimeError:
             pass
         self._stopped()
+
 
 class SerialStenotypeBase(ThreadedStenotypeBase):
     """For use with stenotype machines that connect via serial port.
@@ -158,7 +162,7 @@ class SerialStenotypeBase(ThreadedStenotypeBase):
         try:
             self.serial_port = serial.Serial(**self.serial_params)
         except (serial.SerialException, OSError) as e:
-            print e
+            print(e)
             self._error()
             return
         if self.serial_port is None or not self.serial_port.isOpen():
@@ -178,7 +182,7 @@ class SerialStenotypeBase(ThreadedStenotypeBase):
         bool_converter = lambda s: s == 'True'
         sb = lambda s: int(float(s)) if float(s).is_integer() else float(s)
         return {
-            'port': (None, str), # TODO: make first port default
+            'port': (None, str),  # TODO: make first port default
             'baudrate': (9600, int),
             'bytesize': (8, int),
             'parity': ('N', str),

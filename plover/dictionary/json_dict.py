@@ -13,7 +13,7 @@ try:
     import simplejson as json
 except ImportError:
     import json
-    
+
 
 def load_dictionary(data):
     """Load a json dictionary from a string."""
@@ -28,7 +28,8 @@ def load_dictionary(data):
             return json.loads(data, 'latin-1', object_pairs_hook=h)
     except ValueError:
         raise DictionaryLoaderException('Dictionary is not valid json.')
-        
+
+
 # TODO: test this
 def save_dictionary(d, fp):
     d = dict(('/'.join(k), v) for k, v in d.iteritems())

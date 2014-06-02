@@ -221,7 +221,7 @@ KEYCODE_TO_CHAR = {
 class KeyboardCapture(threading.Thread):
     """Implementation of KeyboardCapture for OSX."""
 
-    _KEYBOARD_EVENTS = set([kCGEventKeyDown, kCGEventKeyUp])
+    _KEYBOARD_EVENTS = {kCGEventKeyDown, kCGEventKeyUp}
 
     def __init__(self):
         threading.Thread.__init__(self)
@@ -300,9 +300,11 @@ CGEventKeyboardSetUnicodeString = ctypes.cdll.LoadLibrary(ctypes.util.find_libra
 CGEventKeyboardSetUnicodeString.restype = None
 native_utf16 = 'utf-16-le' if sys.byteorder == 'little' else 'utf-16-be'
 
+
 def set_string(event, s):
     buf = s.encode(native_utf16)
     CGEventKeyboardSetUnicodeString(objc.pyobjc_id(event), len(buf) / 2, buf)
+
 
 class KeyboardEmulation(object):
 
