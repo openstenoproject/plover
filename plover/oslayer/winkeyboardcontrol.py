@@ -44,9 +44,9 @@ KEY_TO_ASCII = {
 class KeyboardCapture(threading.Thread):
     """Listen to all keyboard events."""
 
-    CONTROL_KEYS = set(('Lcontrol', 'Rcontrol'))
-    SHIFT_KEYS = set(('Lshift', 'Rshift'))
-    ALT_KEYS = set(('Lmenu', 'Rmenu'))
+    CONTROL_KEYS = {'Lcontrol', 'Rcontrol'}
+    SHIFT_KEYS = {'Lshift', 'Rshift'}
+    ALT_KEYS = {'Lmenu', 'Rmenu'}
     
     def __init__(self):
         threading.Thread.__init__(self)

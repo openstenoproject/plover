@@ -82,7 +82,7 @@ class Stroke:
 
     """
 
-    IMPLICIT_HYPHEN = set(('A-', 'O-', '5-', '0-', '-E', '-U', '*'))
+    IMPLICIT_HYPHEN = {'A-', 'O-', '5-', '0-', '-E', '-U', '*'}
 
     def __init__(self, steno_keys) :
         """Create a steno stroke by formatting steno keys.
