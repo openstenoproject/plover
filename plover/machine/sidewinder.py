@@ -48,8 +48,7 @@ KEYSTRING_TO_STENO_KEY = {"a": "S-",
                           "9": "#",
                           "0": "#",
                           "-": "#",
-                          "=": "#",
-                         }
+                          "=": "#"}
 
 
 class Stenotype(StenotypeBase):
@@ -109,7 +108,7 @@ class Stenotype(StenotypeBase):
 
     def _key_up(self, event):
         """Called when a key is released."""
-        if event.keystring in KEYSTRING_TO_STENO_KEY:            
+        if event.keystring in KEYSTRING_TO_STENO_KEY:
             # Process the newly released key.
             self._released_keys.add(event.keystring)
             # Remove invalid released keys.
@@ -117,7 +116,7 @@ class Stenotype(StenotypeBase):
 
         # A stroke is complete if all pressed keys have been released.
         # If we are in arpeggiate mode then only send stroke when spacebar is pressed.
-        send_strokes = bool(self._down_keys and 
+        send_strokes = bool(self._down_keys and
                             self._down_keys == self._released_keys)
         if self.arpeggiate:
             send_strokes &= event.keystring == ' '

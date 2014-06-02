@@ -88,7 +88,7 @@ class Stenotype(SerialStenotypeBase):
         bool_converter = lambda s: s == 'True'
         sb = lambda s: int(float(s)) if float(s).is_integer() else float(s)
         return {
-            'port': (None, str), # TODO: make first port default
+            'port': (None, str),  # TODO: make first port default
             'baudrate': (38400, int),
             'bytesize': (8, int),
             'parity': ('N', str),

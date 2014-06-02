@@ -41,6 +41,7 @@ def enumerate_ports():
     """Enumerates available ports"""
     return sorted(x[0] for x in comports())
 
+
 class SerialConfigDialog(wx.Dialog):
     """Serial port configuration dialog."""
 
@@ -59,7 +60,7 @@ class SerialConfigDialog(wx.Dialog):
 
         """
         self.config = config
-        pos = (config.get_serial_config_frame_x(), 
+        pos = (config.get_serial_config_frame_x(),
                config.get_serial_config_frame_y())
         wx.Dialog.__init__(self, parent, title=DIALOG_TITLE, pos=pos)
 
@@ -74,9 +75,9 @@ class SerialConfigDialog(wx.Dialog):
         outline_sizer = wx.StaticBoxSizer(static_box, wx.VERTICAL)
         sizer = wx.BoxSizer(wx.HORIZONTAL)
         sizer.Add(wx.StaticText(self, label=PORT_STR),
-                    proportion=1,
-                    flag=wx.ALL | wx.ALIGN_CENTER_VERTICAL,
-                    border=LABEL_BORDER)
+                  proportion=1,
+                  flag=wx.ALL | wx.ALIGN_CENTER_VERTICAL,
+                  border=LABEL_BORDER)
         self.port_combo_box = wx.ComboBox(self,
                                           choices=[],
                                           style=wx.CB_DROPDOWN)
@@ -194,14 +195,14 @@ class SerialConfigDialog(wx.Dialog):
         global_sizer.SetSizeHints(self)
         self.Layout()
         self.SetRect(AdjustRectToScreen(self.GetRect()))
-        
+
         self.Bind(wx.EVT_MOVE, self.on_move)
         self.Bind(wx.EVT_CLOSE, self._on_cancel)
-        
+
         self._update()
         self.scan_pending = False
         self.closed = False
-        
+
         if serial.port and serial.port != 'None':
             self.port_combo_box.SetValue(serial.port)
         else:
@@ -248,7 +249,7 @@ class SerialConfigDialog(wx.Dialog):
             self.serial.timeout = None
         self.EndModal(wx.ID_OK)
         self._destroy()
-        
+
     def _on_cancel(self, event):
         # Dismiss the dialog without making any changes.
         self.EndModal(wx.ID_CANCEL)
@@ -260,7 +261,7 @@ class SerialConfigDialog(wx.Dialog):
             self.timeout_text_ctrl.Enable(True)
         else:
             self.timeout_text_ctrl.Enable(False)
-            
+
     def _on_scan(self, event=None):
         self.scan_button.Hide()
         self.port_combo_box.Hide()
@@ -300,12 +301,13 @@ class SerialConfigDialog(wx.Dialog):
             self.closed = True
         else:
             self.Destroy()
-            
+
     def on_move(self, event):
         pos = self.GetScreenPositionTuple()
-        self.config.set_serial_config_frame_x(pos[0]) 
+        self.config.set_serial_config_frame_x(pos[0])
         self.config.set_serial_config_frame_y(pos[1])
         event.Skip()
+
 
 class FloatValidator(wx.PyValidator):
     """Validates that a string can be converted to a float."""
@@ -351,7 +353,7 @@ class FloatValidator(wx.PyValidator):
             event.Skip()
             return
         if ((char in string.digits) or
-            (char == '.' and char not in current_value)):
+                (char == '.' and char not in current_value)):
             event.Skip()
             return
         if not wx.Validator_IsSilent():
@@ -365,6 +367,7 @@ class TestApp(wx.App):
     Serial port information is printed both before and after the
     dialog is dismissed.
     """
+
     def OnInit(self):
         class SerialConfig(object):
             def __init__(self):
@@ -378,6 +381,7 @@ class TestApp(wx.App):
                     'xonxoff': False,
                     'rtscts': False,
                 })
+
         ser = SerialConfig()
         print('Before:', ser.__dict__)
         serial_config_dialog = SerialConfigDialog(ser, None)
@@ -386,6 +390,7 @@ class TestApp(wx.App):
         print('After:', ser.__dict__)
         print('Result:', result)
         return True
+
 
 if __name__ == "__main__":
     app = TestApp(0)

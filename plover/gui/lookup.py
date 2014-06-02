@@ -9,18 +9,18 @@ import plover.gui.util as util
 
 TITLE = 'Plover: Lookup'
 
-class LookupDialog(wx.Dialog):
 
+class LookupDialog(wx.Dialog):
     BORDER = 3
     TRANSLATION_TEXT = 'Text:'
-    
+
     other_instances = []
-    
+
     def __init__(self, parent, engine, config):
-        pos = (config.get_lookup_frame_x(), 
+        pos = (config.get_lookup_frame_x(),
                config.get_lookup_frame_y())
-        wx.Dialog.__init__(self, parent, wx.ID_ANY, TITLE, 
-                           pos, wx.DefaultSize, 
+        wx.Dialog.__init__(self, parent, wx.ID_ANY, TITLE,
+                           pos, wx.DefaultSize,
                            wx.DEFAULT_DIALOG_STYLE, wx.DialogNameStr)
 
         self.config = config
@@ -29,37 +29,37 @@ class LookupDialog(wx.Dialog):
         self.translation_text = wx.TextCtrl(self, style=wx.TE_PROCESS_ENTER)
         cancel = wx.Button(self, id=wx.ID_CANCEL)
         self.listbox = wx.ListBox(self, size=wx.Size(210, 200))
-        
+
         # layout
         global_sizer = wx.BoxSizer(wx.VERTICAL)
-        
+
         sizer = wx.BoxSizer(wx.HORIZONTAL)
         label = wx.StaticText(self, label=self.TRANSLATION_TEXT)
-        sizer.Add(label, 
-                  flag=wx.TOP | wx.LEFT | wx.RIGHT | wx.BOTTOM | wx.ALIGN_CENTER_VERTICAL, 
+        sizer.Add(label,
+                  flag=wx.TOP | wx.LEFT | wx.RIGHT | wx.BOTTOM | wx.ALIGN_CENTER_VERTICAL,
                   border=self.BORDER)
-        sizer.Add(self.translation_text, 
-                  flag=wx.TOP | wx.RIGHT | wx.BOTTOM | wx.ALIGN_CENTER_VERTICAL, 
+        sizer.Add(self.translation_text,
+                  flag=wx.TOP | wx.RIGHT | wx.BOTTOM | wx.ALIGN_CENTER_VERTICAL,
                   border=self.BORDER)
-        sizer.Add(cancel, 
-                  flag=wx.TOP | wx.RIGHT | wx.BOTTOM | wx.ALIGN_CENTER_VERTICAL, 
+        sizer.Add(cancel,
+                  flag=wx.TOP | wx.RIGHT | wx.BOTTOM | wx.ALIGN_CENTER_VERTICAL,
                   border=self.BORDER)
         global_sizer.Add(sizer)
-        
+
         sizer = wx.BoxSizer(wx.HORIZONTAL)
         sizer.Add(self.listbox,
                   flag=wx.ALL | wx.FIXED_MINSIZE,
                   border=self.BORDER)
 
         global_sizer.Add(sizer)
-        
+
         self.SetAutoLayout(True)
         self.SetSizer(global_sizer)
         global_sizer.Fit(self)
         global_sizer.SetSizeHints(self)
         self.Layout()
         self.SetRect(AdjustRectToScreen(self.GetRect()))
-        
+
         # events
 
         # The reason for the focus event here is to skip focus on tab traversal
@@ -75,18 +75,18 @@ class LookupDialog(wx.Dialog):
         self.translation_text.Bind(wx.EVT_TEXT_ENTER, self.on_close)
         self.Bind(wx.EVT_CLOSE, self.on_close)
         self.Bind(wx.EVT_MOVE, self.on_move)
-        
+
         self.engine = engine
-        
+
         # TODO: add functions on engine for state
         self.previous_state = self.engine.translator.get_state()
         # TODO: use state constructor?
         self.engine.translator.clear_state()
         self.translation_state = self.engine.translator.get_state()
         self.engine.translator.set_state(self.previous_state)
-        
+
         self.last_window = util.GetForegroundWindow()
-        
+
         # Now that we saved the last window we'll close other instances. This 
         # may restore their original window but we've already saved ours so it's 
         # fine.
@@ -118,12 +118,12 @@ class LookupDialog(wx.Dialog):
                     self.listbox.Append(str)
             else:
                 self.listbox.Append('No entries')
-                
+
         self.GetSizer().Layout()
 
     def on_translation_gained_focus(self, event):
         self.engine.translator.set_state(self.translation_state)
-        
+
     def on_translation_lost_focus(self, event):
         self.engine.translator.set_state(self.previous_state)
 
@@ -132,7 +132,7 @@ class LookupDialog(wx.Dialog):
 
     def on_move(self, event):
         pos = self.GetScreenPositionTuple()
-        self.config.set_lookup_frame_x(pos[0]) 
+        self.config.set_lookup_frame_x(pos[0])
         self.config.set_lookup_frame_y(pos[1])
         event.Skip()
 
@@ -140,6 +140,7 @@ class LookupDialog(wx.Dialog):
         strokes = self.strokes_text.GetValue().upper().replace('/', ' ').split()
         strokes = normalize_steno('/'.join(strokes))
         return strokes
+
 
 def Show(parent, engine, config):
     dialog_instance = LookupDialog(parent, engine, config)

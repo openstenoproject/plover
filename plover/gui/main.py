@@ -46,8 +46,10 @@ class PloverGUI(wx.App):
         frame.Show()
         return True
 
+
 def gui_thread_hook(fn, *args):
     wx.CallAfter(fn, *args)
+
 
 class MainFrame(wx.Frame):
     """The top-level GUI element of the Plover application."""
@@ -78,7 +80,7 @@ class MainFrame(wx.Frame):
 
     def __init__(self, config):
         self.config = config
-        
+
         pos = wx.DefaultPosition
         size = wx.DefaultSize
         wx.Frame.__init__(self, None, title=self.TITLE, pos=pos, size=size,
@@ -107,11 +109,11 @@ class MainFrame(wx.Frame):
         self.spinner.GetPlayer().UseBackgroundColour(True)
         self.spinner.Hide()
 
-        self.connected_bitmap = wx.Bitmap(self.CONNECTED_IMAGE_FILE, 
+        self.connected_bitmap = wx.Bitmap(self.CONNECTED_IMAGE_FILE,
                                           wx.BITMAP_TYPE_PNG)
-        self.disconnected_bitmap = wx.Bitmap(self.DISCONNECTED_IMAGE_FILE, 
+        self.disconnected_bitmap = wx.Bitmap(self.DISCONNECTED_IMAGE_FILE,
                                              wx.BITMAP_TYPE_PNG)
-        self.connection_ctrl = wx.StaticBitmap(self, 
+        self.connection_ctrl = wx.StaticBitmap(self,
                                                bitmap=self.disconnected_bitmap)
 
         # Layout.
@@ -131,37 +133,37 @@ class MainFrame(wx.Frame):
 
         sizer = wx.BoxSizer(wx.HORIZONTAL)
         sizer.Add(self.spinner,
-                  flag=(wx.LEFT | wx.BOTTOM | wx.RIGHT | 
-                        wx.ALIGN_CENTER_VERTICAL), 
+                  flag=(wx.LEFT | wx.BOTTOM | wx.RIGHT |
+                        wx.ALIGN_CENTER_VERTICAL),
                   border=self.BORDER)
-        sizer.Add(self.connection_ctrl, 
-                  flag=(wx.LEFT | wx.BOTTOM | wx.RIGHT | 
-                        wx.ALIGN_CENTER_VERTICAL), 
+        sizer.Add(self.connection_ctrl,
+                  flag=(wx.LEFT | wx.BOTTOM | wx.RIGHT |
+                        wx.ALIGN_CENTER_VERTICAL),
                   border=self.BORDER)
         longest_machine = max(machine_registry.get_all_names(), key=len)
-        longest_state = max((STATE_ERROR, STATE_INITIALIZING, STATE_RUNNING), 
+        longest_state = max((STATE_ERROR, STATE_INITIALIZING, STATE_RUNNING),
                             key=len)
         longest_status = '%s: %s' % (longest_machine, longest_state)
         self.machine_status_text = wx.StaticText(self, label=longest_status)
-        sizer.Add(self.machine_status_text, 
+        sizer.Add(self.machine_status_text,
                   flag=wx.BOTTOM | wx.RIGHT | wx.ALIGN_CENTER_VERTICAL,
                   border=self.BORDER)
-        refresh_bitmap = wx.Bitmap(self.REFRESH_IMAGE_FILE, wx.BITMAP_TYPE_PNG)          
+        refresh_bitmap = wx.Bitmap(self.REFRESH_IMAGE_FILE, wx.BITMAP_TYPE_PNG)
         self.reconnect_button = wx.BitmapButton(self, bitmap=refresh_bitmap)
-        sizer.Add(self.reconnect_button, 
-                  flag=wx.BOTTOM | wx.RIGHT | wx.ALIGN_CENTER_VERTICAL, 
+        sizer.Add(self.reconnect_button,
+                  flag=wx.BOTTOM | wx.RIGHT | wx.ALIGN_CENTER_VERTICAL,
                   border=self.BORDER)
         self.machine_status_sizer = sizer
         global_sizer.Add(sizer)
         self.SetSizer(global_sizer)
         global_sizer.Fit(self)
-        
+
         self.SetRect(AdjustRectToScreen(self.GetRect()))
 
         self.Bind(wx.EVT_CLOSE, self._quit)
         self.Bind(wx.EVT_MOVE, self.on_move)
-        self.reconnect_button.Bind(wx.EVT_BUTTON, 
-            lambda e: app.reset_machine(self.steno_engine, self.config))
+        self.reconnect_button.Bind(wx.EVT_BUTTON,
+                                   lambda e: app.reset_machine(self.steno_engine, self.config))
 
         try:
             with open(config.target_file, 'rb') as f:
@@ -189,12 +191,12 @@ class MainFrame(wx.Frame):
                 if ret == wx.ID_CANCEL:
                     self._quit()
                     return
-                    
+
         self.steno_engine.add_stroke_listener(
             StrokeDisplayDialog.stroke_handler)
         if self.config.get_show_stroke_display():
             StrokeDisplayDialog.display(self, self.config)
-            
+
         pos = (config.get_main_frame_x(), config.get_main_frame_y())
         self.SetPosition(pos)
 
@@ -225,17 +227,18 @@ class MainFrame(wx.Frame):
             def f():
                 self.Raise()
                 self.Iconize(False)
+
             wx.CallAfter(f)
             return True
         elif command == self.COMMAND_ADD_TRANSLATION:
-            wx.CallAfter(plover.gui.add_translation.Show, 
+            wx.CallAfter(plover.gui.add_translation.Show,
                          self, self.steno_engine, self.config)
             return True
         elif command == self.COMMAND_LOOKUP:
-            wx.CallAfter(plover.gui.lookup.Show, 
+            wx.CallAfter(plover.gui.lookup.Show,
                          self, self.steno_engine, self.config)
             return True
-            
+
         return False
 
     def _update_status(self, state):
@@ -305,10 +308,10 @@ class MainFrame(wx.Frame):
 
     def on_move(self, event):
         pos = self.GetScreenPositionTuple()
-        self.config.set_main_frame_x(pos[0]) 
+        self.config.set_main_frame_x(pos[0])
         self.config.set_main_frame_y(pos[1])
         event.Skip()
-        
+
 
 class Output(object):
     def __init__(self, engine_command_callback, engine):

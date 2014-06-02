@@ -4,10 +4,10 @@
 import json
 import unittest
 
-DICT_PATH='plover/assets/dict.json'
+DICT_PATH = 'plover/assets/dict.json'
+
 
 class TestCase(unittest.TestCase):
-    
     def test_no_duplicates(self):
         def read_key_pairs(pairs):
             d = {}
@@ -19,9 +19,9 @@ class TestCase(unittest.TestCase):
                     d[key] = holder
                 holder.append(value)
             return d
-            
+
         d = json.load(open(DICT_PATH), object_pairs_hook=read_key_pairs)
-        
+
         msg_list = []
         has_duplicate = False
         for key, value_list in d.items():

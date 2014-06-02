@@ -21,32 +21,35 @@ from plover.steno_dictionary import StenoDictionary
 from plover.formatting import META_RE
 
 # A regular expression to capture an individual entry in the dictionary.
-DICT_ENTRY_PATTERN = re.compile(r'(?s)(?<!\\){\\\*\\cxs (?P<steno>[^}]+)}' + 
-                                r'(?P<translation>.*?)(?:(?<!\\)(?:\r\n|\n))*?'+
+DICT_ENTRY_PATTERN = re.compile(r'(?s)(?<!\\){\\\*\\cxs (?P<steno>[^}]+)}' +
+                                r'(?P<translation>.*?)(?:(?<!\\)(?:\r\n|\n))*?' +
                                 r'(?=(?:(?<!\\){\\\*\\cxs [^}]+})|' +
                                 r'(?:(?:(?<!\\)(?:\r\n|\n)\s*)*}\s*\Z))')
 
+
 class TranslationConverter(object):
     """Convert an RTF/CRE translation into plover's internal format."""
-    
+
     def __init__(self, styles={}):
         self.styles = styles
-        
+
         def linenumber(f):
             return f[1].im_func.func_code.co_firstlineno
-        
+
         handler_funcs = inspect.getmembers(self, inspect.ismethod)
         handler_funcs.sort(key=linenumber)
         handlers = [self._make_re_handler(f.__doc__, f)
-                    for name, f in handler_funcs 
+                    for name, f in handler_funcs
                     if name.startswith('_re_handle_')]
         handlers.append(self._match_nested_command_group)
+
         def handler(s, pos):
             for handler in handlers:
                 result = handler(s, pos)
                 if result:
                     return result
             return None
+
         self._handler = handler
         self._command_pattern = re.compile(
             r'(\\\*)?\\([a-z]+)(-?[0-9]+)?[ ]?')
@@ -54,9 +57,10 @@ class TranslationConverter(object):
         # This poorly named variable indicates whether the current context is
         # one where commands can be inserted (True) or not (False).
         self._whitespace = True
-    
+
     def _make_re_handler(self, pattern, f):
         pattern = re.compile(pattern)
+
         def handler(s, pos):
             match = pattern.match(s, pos)
             if match:
@@ -64,28 +68,29 @@ class TranslationConverter(object):
                 result = f(match)
                 return newpos, result
             return None
+
         return handler
 
     def _re_handle_escapedchar(self, m):
         r"""\\([-\\{}])"""
         return m.group(1)
-        
+
     def _re_handle_hardspace(self, m):
         r"""\\~"""
         return '{^ ^}'
-        
+
     def _re_handle_dash(self, m):
         r"""\\_"""
         return '-'
-        
+
     def _re_handle_escaped_newline(self, m):
         r"""\\\r|\\\n"""
         return '{#Return}{#Return}'
-        
+
     def _re_handle_infix(self, m):
         r"""\\cxds ([^{}\\\r\n]+)\\cxds ?"""
         return '{^%s^}' % m.group(1)
-        
+
     def _re_handle_suffix(self, m):
         r"""\\cxds ([^{}\\\r\n ]+)"""
         return '{^%s}' % m.group(1)
@@ -96,16 +101,16 @@ class TranslationConverter(object):
 
     def _re_handle_commands(self, m):
         r"""(\\\*)?\\([a-z]+)(-?[0-9]+)? ?"""
-        
+
         ignore = bool(m.group(1))
         command = m.group(2)
         arg = m.group(3)
         if arg:
             arg = int(arg)
-        
+
         if command == 'cxds':
             return '{^}'
-        
+
         if command == 'cxfc':
             return '{-|}'
 
@@ -115,7 +120,7 @@ class TranslationConverter(object):
         if command == 'par':
             self.seen_par = True
             return '{#Return}{#Return}'
-            
+
         if command == 's':
             result = []
             if not self.seen_par:
@@ -130,7 +135,7 @@ class TranslationConverter(object):
 
     def _re_handle_simple_command_group(self, m):
         r"""{(\\\*)?\\([a-z]+)(-?[0-9]+)?[ ]?([^{}]*)}"""
-        
+
         ignore = bool(m.group(1))
         command = m.group(2)
         contents = m.group(4)
@@ -140,14 +145,14 @@ class TranslationConverter(object):
         if command == 'cxstit':
             # Plover doesn't support stitching.
             return self(contents)
-        
+
         if command == 'cxfing':
             prev = self._whitespace
             self._whitespace = False
             result = '{&' + contents + '}'
             self._whitespace = prev
             return result
-            
+
         if command == 'cxp':
             prev = self._whitespace
             self._whitespace = False
@@ -164,10 +169,10 @@ class TranslationConverter(object):
                 return '{^' + contents + '^}'
             # Show unknown punctuation as given.
             return '{^' + contents + '^}'
-        
+
         if command == 'cxsvatdictflags' and 'N' in contents:
             return '{-|}'
-        
+
         # unrecognized commands
         if ignore:
             return ''
@@ -230,7 +235,7 @@ class TranslationConverter(object):
 
         ignore = bool(command_match.group(1))
         command = command_match.group(2)
-        
+
         if command == 'cxconf':
             pos = command_match.end()
             last = ''
@@ -252,7 +257,7 @@ class TranslationConverter(object):
                     continue
                 return None
             return endpos + 1, self(last)
-            
+
         if ignore:
             return endpos + 1, ''
         else:
@@ -260,7 +265,7 @@ class TranslationConverter(object):
 
     def __call__(self, s):
         self.seen_par = False
-        
+
         pos = 0
         tokens = []
         handler = self._handler
@@ -276,11 +281,14 @@ class TranslationConverter(object):
             tokens.append(token)
         return ''.join(tokens)
 
+
 STYLESHEET_RE = re.compile(r'(?s){\\s([0-9]+).*?((?:\b\w+\b\s*)+);}')
+
 
 def load_stylesheet(s):
     """Returns a dictionary mapping a number to a style name."""
     return dict((int(k), v) for k, v in STYLESHEET_RE.findall(s))
+
 
 def load_dictionary(s):
     """Load an RTF/CRE dictionary."""
@@ -299,9 +307,10 @@ def load_dictionary(s):
 HEADER = ("{\\rtf1\\ansi{\\*\\cxrev100}\\cxdict{\\*\\cxsystem Plover}" +
           "{\\stylesheet{\\s0 Normal;}}\r\n")
 
+
 def format_translation(t):
     t = ' '.join([x.strip() for x in META_RE.findall(t) if x.strip()])
-    
+
     t = re.sub(r'{\.}', '{\\cxp. }', t)
     t = re.sub(r'{!}', '{\\cxp! }', t)
     t = re.sub(r'{\?}', '{\\cxp? }', t)
@@ -319,9 +328,9 @@ def format_translation(t):
     t = re.sub(r'{#([^}]+)}', '\\{#\\1\\}', t)
     t = re.sub(r'{PLOVER:([a-zA-Z]+)}', '\\{PLOVER:\\1\\}', t)
     t = re.sub(r'\\"', '"', t)
-    
+
     return t
-    
+
 
 # TODO: test this
 def save_dictionary(d, fp):

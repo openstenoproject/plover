@@ -10,13 +10,13 @@ from mock import patch
 from plover.machine.passport import Stenotype
 import time
 
+
 class MockSerial(object):
-    
     inputs = []
     index = 0
-    
+
     def __init__(self, **params):
-      MockSerial.index = 0
+        MockSerial.index = 0
 
     def isOpen(self):
         return True
@@ -34,7 +34,7 @@ class MockSerial(object):
         result = [ord(x) for x in self._get()]
         MockSerial.index += 1
         return result
-        
+
     def close(self):
         pass
 
@@ -42,18 +42,19 @@ class MockSerial(object):
 def cmp_keys(a, b):
     return all(starmap(eq, zip(a, b)))
 
+
 class TestCase(unittest.TestCase):
     def test_pasport(self):
-        
+
         def p(s):
             return '<123/%s/something>' % s
-        
+
         cases = (
             # Test all keys
             (('!f#f+f*fAfCfBfEfDfGfFfHfKfLfOfNfQfPfSfRfUfTfWfYfXfZf^f~f',),
-            (('#', '*', 'A-', 'S-', '-B', '-E', '-D', '-G', '-F', 'H-', 'K-', 
-              '-L', 'O-', '-P', '-R', 'P-', 'S-', 'R-', '-U', 'T-', 'W-', '-T', 
-              '-S', '-Z', '*'),)),
+             (('#', '*', 'A-', 'S-', '-B', '-E', '-D', '-G', '-F', 'H-', 'K-',
+               '-L', 'O-', '-P', '-R', 'P-', 'S-', 'R-', '-U', 'T-', 'W-', '-T',
+               '-S', '-Z', '*'),)),
             # Anything below 8 is not registered
             (('S9T8A7',), (('S-', 'T-'),)),
             # Sequence of strokes
@@ -72,13 +73,14 @@ class TestCase(unittest.TestCase):
                 while mock.index < len(mock.inputs):
                     time.sleep(0.00001)
                 m.stop_capture()
-                result = (len(expected) == len(actual) and 
+                result = (len(expected) == len(actual) and
                           all(starmap(cmp_keys, zip(actual, expected))))
                 if not result:
                     print(actual, '!=', expected)
                 results.append(result)
-                
+
         self.assertTrue(all(results))
+
 
 if __name__ == '__main__':
     unittest.main()

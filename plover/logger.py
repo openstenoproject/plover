@@ -11,6 +11,7 @@ LOG_FORMAT = '%(asctime)s %(message)s'
 LOG_MAX_BYTES = 10000000
 LOG_COUNT = 9
 
+
 class Logger(object):
     def __init__(self):
         self._logger = logging.getLogger(LOGGER_NAME)
@@ -25,7 +26,7 @@ class Logger(object):
         handler = None
         if filename:
             handler = RotatingFileHandler(filename, maxBytes=LOG_MAX_BYTES,
-                                          backupCount=LOG_COUNT,)
+                                          backupCount=LOG_COUNT, )
             handler.setFormatter(logging.Formatter(LOG_FORMAT))
             self._logger.addHandler(handler)
         self._handler = handler

@@ -74,6 +74,7 @@ KEYCODE_TO_PSEUDOKEY = {38: ord("a"),
                         20: ord("-"),
                         21: ord("=")}
 
+
 class KeyboardCapture(threading.Thread):
     """Listen to keyboard press and release events."""
 
@@ -98,18 +99,18 @@ class KeyboardCapture(threading.Thread):
             sys.exit(1)
         # Create a recording context for key events.
         self.context = self.record_display.record_create_context(
-                                 0,
-                                 [record.AllClients],
-                                 [{'core_requests': (0, 0),
-                                   'core_replies': (0, 0),
-                                   'ext_requests': (0, 0, 0, 0),
-                                   'ext_replies': (0, 0, 0, 0),
-                                   'delivered_events': (0, 0),
-                                   'device_events': (X.KeyPress, X.KeyRelease),
-                                   'errors': (0, 0),
-                                   'client_started': False,
-                                   'client_died': False,
-                                   }])
+            0,
+            [record.AllClients],
+            [{'core_requests': (0, 0),
+              'core_replies': (0, 0),
+              'ext_requests': (0, 0, 0, 0),
+              'ext_replies': (0, 0, 0, 0),
+              'delivered_events': (0, 0),
+              'device_events': (X.KeyPress, X.KeyRelease),
+              'errors': (0, 0),
+              'client_started': False,
+              'client_died': False,
+             }])
 
         # This method returns only after record_disable_context is
         # called. Until then, the callback function will be called
@@ -157,7 +158,7 @@ class KeyboardCapture(threading.Thread):
         data = reply.data
         while len(data):
             event, data = rq.EventField(None).parse_binary_value(data,
-                                       self.record_display.display, None, None)
+                                                                 self.record_display.display, None, None)
             keycode = event.detail
             modifiers = event.state & ~0b10000 & 0xFF
             keysym = self.local_display.keycode_to_keysym(keycode, modifiers)
@@ -168,7 +169,7 @@ class KeyboardCapture(threading.Thread):
             if self.key_events_to_ignore:
                 ignore_keycode, ignore_event_type = self.key_events_to_ignore[0]
                 if (keycode == ignore_keycode and
-                    event.type == ignore_event_type):
+                            event.type == ignore_event_type):
                     self.key_events_to_ignore.pop(0)
                     continue
             # ...or pass it on to a callback method.
@@ -208,7 +209,7 @@ class KeyboardEmulation(object):
         # Determine the backspace keycode.
         backspace_keysym = XK.string_to_keysym('BackSpace')
         self.backspace_keycode, mods = self._keysym_to_keycode_and_modifiers(
-                                                backspace_keysym)
+            backspace_keysym)
         self.time = 0
 
     def send_backspaces(self, number_of_backspaces):
@@ -353,17 +354,16 @@ class KeyboardEmulation(object):
         # avoid an application thinking its an auto-repeat.
         self.time = (self.time + 1) % 4294967295
         key_event = event_class(detail=keycode,
-                                 time=self.time,
-                                 root=self.display.screen().root,
-                                 window=target_window,
-                                 child=X.NONE,
-                                 root_x=1,
-                                 root_y=1,
-                                 event_x=1,
-                                 event_y=1,
-                                 state=modifiers,
-                                 same_screen=1
-                                 )
+                                time=self.time,
+                                root=self.display.screen().root,
+                                window=target_window,
+                                child=X.NONE,
+                                root_x=1,
+                                root_y=1,
+                                event_x=1,
+                                event_y=1,
+                                state=modifiers,
+                                same_screen=1)
         target_window.send_event(key_event)
 
     def _keysym_to_keycode_and_modifiers(self, keysym):
@@ -393,7 +393,6 @@ class KeyboardEmulation(object):
                         modifiers |= (1 << i)
             return keycode, modifiers
         return None, None
-
 
 
 class XKeyEvent(object):
@@ -429,7 +428,8 @@ class XKeyEvent(object):
 
     def __str__(self):
         return ' '.join([('%s: %s' % (k, str(v)))
-                                      for k, v in self.__dict__.items()])
+                         for k, v in self.__dict__.items()])
+
 
 if __name__ == '__main__':
     kc = KeyboardCapture()

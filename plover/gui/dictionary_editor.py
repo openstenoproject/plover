@@ -16,8 +16,8 @@ DELETE_BUTTON_NAME = 'Delete Selected'
 SAVE_BUTTON_NAME = 'Save and Close'
 CANCEL_BUTTON_NAME = 'Cancel'
 
-class DictionaryEditor(wx.Dialog):
 
+class DictionaryEditor(wx.Dialog):
     BORDER = 3
 
     other_instances = []
@@ -26,7 +26,7 @@ class DictionaryEditor(wx.Dialog):
         pos = (config.get_dictionary_editor_frame_x(),
                config.get_dictionary_editor_frame_y())
         wx.Dialog.__init__(self, parent, wx.ID_ANY, TITLE,
-                           pos, wx.DefaultSize, 
+                           pos, wx.DefaultSize,
                            wx.DEFAULT_DIALOG_STYLE | wx.RESIZE_BORDER, wx.DialogNameStr)
 
         self.config = config
@@ -41,18 +41,18 @@ class DictionaryEditor(wx.Dialog):
         filter_left_sizer = wx.FlexGridSizer(2, 2, 4, 10)
 
         label = wx.StaticText(self, label=FILTER_BY_STROKE_TEXT)
-        filter_left_sizer.Add(label, 
-                  flag=wx.ALIGN_CENTER_VERTICAL, 
-                  border=self.BORDER)
-        
+        filter_left_sizer.Add(label,
+                              flag=wx.ALIGN_CENTER_VERTICAL,
+                              border=self.BORDER)
+
         self.filter_by_stroke = wx.TextCtrl(self, style=wx.TE_PROCESS_ENTER, size=wx.Size(200, 20))
         self.Bind(wx.EVT_TEXT_ENTER, self._do_filter, self.filter_by_stroke)
         filter_left_sizer.Add(self.filter_by_stroke)
 
         label = wx.StaticText(self, label=FILTER_BY_TRANSLATION_TEXT)
-        filter_left_sizer.Add(label, 
-                  flag=wx.ALIGN_CENTER_VERTICAL, 
-                  border=self.BORDER)
+        filter_left_sizer.Add(label,
+                              flag=wx.ALIGN_CENTER_VERTICAL,
+                              border=self.BORDER)
 
         self.filter_by_translation = wx.TextCtrl(self, style=wx.TE_PROCESS_ENTER, size=wx.Size(200, 20))
         self.Bind(wx.EVT_TEXT_ENTER, self._do_filter, self.filter_by_translation)
@@ -62,7 +62,7 @@ class DictionaryEditor(wx.Dialog):
 
         do_filter_button = wx.Button(self, label=DO_FILTER_BUTTON_NAME)
         self.Bind(wx.EVT_BUTTON, self._do_filter, do_filter_button)
-        
+
         filter_sizer.Add(do_filter_button, flag=wx.EXPAND | wx.ALL, border=self.BORDER)
 
         global_sizer.Add(filter_sizer, flag=wx.ALL, border=self.BORDER)
@@ -112,9 +112,9 @@ class DictionaryEditor(wx.Dialog):
         global_sizer.SetSizeHints(self)
         self.Layout()
         self.SetRect(AdjustRectToScreen(self.GetRect()))
-        
+
         self.last_window = util.GetForegroundWindow()
-        
+
         # Now that we saved the last window we'll close other instances. This 
         # may restore their original window but we've already saved ours so it's 
         # fine.
@@ -154,7 +154,8 @@ class DictionaryEditor(wx.Dialog):
     def _on_close(self, event=None):
         result = wx.ID_YES
         if self.show_closing_prompt:
-            dlg = wx.MessageDialog(self, "You will lose your changes. Are you sure?", "Cancel", wx.YES_NO | wx.ICON_QUESTION)
+            dlg = wx.MessageDialog(self, "You will lose your changes. Are you sure?", "Cancel",
+                                   wx.YES_NO | wx.ICON_QUESTION)
             result = dlg.ShowModal()
             dlg.Destroy()
         if result == wx.ID_YES:
@@ -164,6 +165,7 @@ class DictionaryEditor(wx.Dialog):
                 pass
             self.other_instances.remove(self)
             self.Destroy()
+
 
 class DictionaryEditorGrid(wx.grid.Grid):
     """ Dictionary Manager's grid """
@@ -234,10 +236,12 @@ class DictionaryEditorGrid(wx.grid.Grid):
         for i in range(3):
             self._table.SetColLabelValue(i, self.GRID_LABELS[i] + (directionLabel if column == i else ""))
 
+
 class DictionaryEditorGridTable(PyGridTableBase):
     """
     A custom wx.Grid Table using user supplied data
     """
+
     def __init__(self, store):
         """ Init GridTableBase with a Store. """
 
@@ -275,14 +279,16 @@ class DictionaryEditorGridTable(PyGridTableBase):
         grid.BeginBatch()
 
         for current, new, delmsg, addmsg in [
-            (self._rows, self.GetNumberRows(), wx.grid.GRIDTABLE_NOTIFY_ROWS_DELETED, wx.grid.GRIDTABLE_NOTIFY_ROWS_APPENDED),
-            (self._cols, self.GetNumberCols(), wx.grid.GRIDTABLE_NOTIFY_COLS_DELETED, wx.grid.GRIDTABLE_NOTIFY_COLS_APPENDED)
+            (self._rows, self.GetNumberRows(), wx.grid.GRIDTABLE_NOTIFY_ROWS_DELETED,
+             wx.grid.GRIDTABLE_NOTIFY_ROWS_APPENDED),
+            (self._cols, self.GetNumberCols(), wx.grid.GRIDTABLE_NOTIFY_COLS_DELETED,
+             wx.grid.GRIDTABLE_NOTIFY_COLS_APPENDED)
         ]:
             if new < current:
-                msg = wx.grid.GridTableMessage(self,delmsg,new,current-new)
+                msg = wx.grid.GridTableMessage(self, delmsg, new, current - new)
                 grid.ProcessTableMessage(msg)
             elif new > current:
-                msg = wx.grid.GridTableMessage(self,addmsg,new-current)
+                msg = wx.grid.GridTableMessage(self, addmsg, new - current)
                 grid.ProcessTableMessage(msg)
                 self.UpdateValues(grid)
 
@@ -299,6 +305,7 @@ class DictionaryEditorGridTable(PyGridTableBase):
         # This sends an event to the grid table to update all of the values
         msg = wx.grid.GridTableMessage(self, wx.grid.GRIDTABLE_REQUEST_VIEW_GET_VALUES)
         grid.ProcessTableMessage(msg)
+
 
 def Show(parent, engine, config):
     dialog_instance = DictionaryEditor(parent, engine, config)

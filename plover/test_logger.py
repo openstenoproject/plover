@@ -7,30 +7,30 @@ from logging import Handler
 from collections import defaultdict
 from plover.logger import Logger
 
+
 class FakeHandler(Handler):
-    
     outputs = defaultdict(list)
-    
+
     def __init__(self, filename, maxBytes=0, backupCount=0):
         Handler.__init__(self)
         self.filename = filename
-        
+
     def emit(self, record):
         FakeHandler.outputs[self.filename].append(record.getMessage())
-        
+
     @staticmethod
     def get_output():
         d = dict(FakeHandler.outputs)
         FakeHandler.outputs.clear()
         return d
 
-class LoggerTestCase(unittest.TestCase):
 
+class LoggerTestCase(unittest.TestCase):
     def setUp(self):
         self.patcher = patch('plover.logger.RotatingFileHandler', FakeHandler)
         self.patcher.start()
         self.logger = Logger()
-            
+
     def tearDown(self):
         self.logger.set_filename(None)
         self.patcher.stop()
@@ -43,7 +43,7 @@ class LoggerTestCase(unittest.TestCase):
         self.logger.log_stroke(('T',))
         self.logger.set_filename(None)
         self.logger.log_stroke(('P',))
-        self.assertEqual(FakeHandler.get_output(), {'fn1': ['Stroke(S)'], 
+        self.assertEqual(FakeHandler.get_output(), {'fn1': ['Stroke(S)'],
                                                     'fn2': ['Stroke(T)']})
 
     def test_log_stroke(self):
@@ -56,8 +56,8 @@ class LoggerTestCase(unittest.TestCase):
         self.logger.set_filename('fn')
         self.logger.enable_translation_logging(True)
         self.logger.log_translation(['a', 'b'], ['c', 'd'], None)
-        self.assertEqual(FakeHandler.get_output(), 
-                        {'fn': ['*a', '*b', 'c', 'd']})
+        self.assertEqual(FakeHandler.get_output(),
+                         {'fn': ['*a', '*b', 'c', 'd']})
 
     def test_enable_stroke_logging(self):
         self.logger.set_filename('fn')
@@ -76,6 +76,7 @@ class LoggerTestCase(unittest.TestCase):
         self.logger.enable_translation_logging(False)
         self.logger.log_translation(['e'], ['f'], None)
         self.assertEqual(FakeHandler.get_output(), {'fn': ['*c', 'd']})
+
 
 if __name__ == '__main__':
     unittest.main()

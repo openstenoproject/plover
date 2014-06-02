@@ -110,8 +110,8 @@ class TestCase(unittest.TestCase):
         self.assertItemsEqual(stentura._parse_stroke(a, b, c, d),
                               ['S-', 'A-', '-T'])
 
-# 11^#STKP 11WHRAO* 11EUFRPB 11LGTSDZ
-# PRAOERBGS
+    # 11^#STKP 11WHRAO* 11EUFRPB 11LGTSDZ
+    # PRAOERBGS
     def test_parse_strokes(self):
         data = []
         # SAT
@@ -458,7 +458,7 @@ class TestCase(unittest.TestCase):
         port = MockPacketPort(responses)
         with self.assertRaises(stentura._ConnectionLostException):
             stentura._send_receive(port, event, request, buf, max_tries,
-            timeout=0.0001)
+                                   timeout=0.0001)
         self.assertEqual(max_tries, port.writes)
 
         # Wrong action.
@@ -507,7 +507,7 @@ class TestCase(unittest.TestCase):
             seq = stentura._SequenceCounter()
             block, byte = 0, 0
             block, byte, response = stentura._read(port, event, seq, request_buf,
-                                      response_buf, stroke_buf, block, byte)
+                                                   response_buf, stroke_buf, block, byte)
             self.assertEqual(data, str(response))
             self.assertEqual(block, len(data) / 512)
             self.assertEqual(byte, len(data) % 512)
@@ -518,7 +518,7 @@ class TestCase(unittest.TestCase):
                 self.count = count
                 self.data = data
                 self.stop = stop
-                
+
             def __repr__(self):
                 return '<{}, {}, {}>'.format(self.count, self.data, self.stop)
 
@@ -598,11 +598,12 @@ class TestCase(unittest.TestCase):
 
             port = test[0]
             expected = test[1]
-            
+
             ready_called = [False]
+
             def ready():
                 ready_called[0] = True
-            
+
             try:
                 ready_called[0] = False
                 stentura._loop(port, port.event, callback, ready, 0.001)

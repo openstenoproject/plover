@@ -11,6 +11,7 @@ import collections
 import itertools
 from steno import normalize_steno
 
+
 class StenoDictionary(collections.MutableMapping):
     """A steno dictionary.
 
@@ -22,6 +23,7 @@ class StenoDictionary(collections.MutableMapping):
     save -- If set, is a function that will save this dictionary.
 
     """
+
     def __init__(self, *args, **kw):
         self._dict = {}
         self._longest_key_length = 0
@@ -39,7 +41,7 @@ class StenoDictionary(collections.MutableMapping):
 
     def __len__(self):
         return self._dict.__len__()
-        
+
     def __iter__(self):
         return self._dict.__iter__()
 
@@ -76,17 +78,17 @@ class StenoDictionary(collections.MutableMapping):
         return True
 
     def set_path(self, path):
-        self._path = path    
+        self._path = path
 
     def get_path(self):
-        return self._path    
+        return self._path
 
     def iterkeys(self):
         return self._dict.iterkeys()
 
     def itervalues(self):
         return self._dict.itervalues()
-        
+
     def iteritems(self):
         return self._dict.iteritems()
 
@@ -110,10 +112,10 @@ class StenoDictionary(collections.MutableMapping):
 
     def add_filter(self, f):
         self.filters.append(f)
-        
+
     def remove_filter(self, f):
         self.filters.remove(f)
-    
+
     def raw_get(self, key, default):
         """Bypass filters."""
         return self._dict.get(key, default)
@@ -184,7 +186,7 @@ class StenoDictionaryCollection(object):
 
     def remove_longest_key_listener(self, callback):
         self.longest_key_callbacks.remove(callback)
-    
+
     def _longest_key_listener(self, ignored=None):
         new_longest_key = max(d.longest_key for d in self.dicts)
         if new_longest_key != self.longest_key:

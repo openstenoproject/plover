@@ -19,7 +19,7 @@ emulate keyboard input.
 import sys
 
 KEYBOARDCONTROL_NOT_FOUND_FOR_OS = \
-        "No keyboard control module was found for os %s" % sys.platform
+    "No keyboard control module was found for os %s" % sys.platform
 
 if sys.platform.startswith('linux'):
     import xkeyboardcontrol as keyboardcontrol

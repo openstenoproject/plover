@@ -12,6 +12,7 @@ from collections import namedtuple
 import orthography
 import re
 
+
 class Formatter(object):
     """Convert translations into output.
 
@@ -35,7 +36,7 @@ class Formatter(object):
     """
 
     output_type = namedtuple(
-        'output', ['send_backspaces', 'send_string', 'send_key_combination', 
+        'output', ['send_backspaces', 'send_string', 'send_key_combination',
                    'send_engine_command'])
 
     def __init__(self):
@@ -82,7 +83,7 @@ class Formatter(object):
 
         old = [a for t in undo for a in t.formatting]
         new = [a for t in do for a in t.formatting]
-        
+
         min_length = min(len(old), len(new))
         for i in xrange(min_length):
             if old[i] != new[i]:
@@ -92,6 +93,7 @@ class Formatter(object):
 
         OutputHelper(self._output).render(old[i:], new[i:])
 
+
 class OutputHelper(object):
     """A helper class for minimizing the amount of change on output.
 
@@ -99,11 +101,12 @@ class OutputHelper(object):
     optimizes away extra backspaces and typing.
 
     """
+
     def __init__(self, output):
         self.before = ''
         self.after = ''
         self.output = output
-        
+
     def commit(self):
         offset = len(commonprefix([self.before, self.after]))
         if self.before[offset:]:
@@ -124,17 +127,17 @@ class OutputHelper(object):
                 self.before += a.text
 
         self.after = self.before
-        
+
         for a in reversed(undo):
             if a.text:
                 self.after = self.after[:-len(a.text)]
             if a.replace:
                 self.after += a.replace
-        
+
         for a in do:
             if a.replace:
                 if len(a.replace) > len(self.after):
-                    self.before = a.replace[:len(a.replace)-len(self.after)] + self.before
+                    self.before = a.replace[:len(a.replace) - len(self.after)] + self.before
                     self.after = ''
                 else:
                     self.after = self.after[:-len(a.replace)]
@@ -148,9 +151,11 @@ class OutputHelper(object):
                 self.output.send_engine_command(a.command)
         self.commit()
 
+
 def _get_last_action(actions):
     """Return last action in actions if possible or return a blank action."""
     return actions[-1] if actions else _Action()
+
 
 class _Action(object):
     """A hybrid class that stores instructions and resulting state.
@@ -160,8 +165,9 @@ class _Action(object):
     context to render future translations.
 
     """
-    def __init__(self, attach=False, glue=False, word='', capitalize=False, 
-                 lower=False, orthography=True, text='', replace='', combo='', 
+
+    def __init__(self, attach=False, glue=False, word='', capitalize=False,
+                 lower=False, orthography=True, text='', replace='', combo='',
                  command=''):
         """Initialize a new action.
 
@@ -200,13 +206,13 @@ class _Action(object):
         self.capitalize = capitalize
         self.lower = lower
         self.orthography = orthography
-                
+
         # Instruction variables
         self.text = text
         self.replace = replace
         self.combo = combo
         self.command = command
-        
+
     def copy_state(self):
         """Clone this action but only clone the state variables."""
         a = _Action()
@@ -217,7 +223,7 @@ class _Action(object):
         a.lower = self.lower
         a.orthography = self.orthography
         return a
-        
+
     def __eq__(self, other):
         return self.__dict__ == other.__dict__
 
@@ -309,6 +315,7 @@ META_ATTACH_FLAG = '^'
 META_KEY_COMBINATION = '#'
 META_COMMAND = 'PLOVER:'
 
+
 def _raw_to_actions(stroke, last_action, spaces_after):
     """Turn a raw stroke into actions.
 
@@ -333,6 +340,7 @@ def _raw_to_actions(stroke, last_action, spaces_after):
         else:
             return [_Action(text=(SPACE + stroke), word=stroke)]
 
+
 def _atom_to_action(atom, last_action, spaces_after):
     """Convert an atom into an action.
 
@@ -351,7 +359,8 @@ def _atom_to_action(atom, last_action, spaces_after):
         return _atom_to_action_spaces_after(atom, last_action)
     else:
         return _atom_to_action_spaces_before(atom, last_action)
-    
+
+
 def _atom_to_action_spaces_before(atom, last_action):
     """Convert an atom into an action.
 
@@ -366,7 +375,7 @@ def _atom_to_action_spaces_before(atom, last_action):
     Returns: An action for the atom.
 
     """
-    
+
     action = _Action()
     last_word = last_action.word
     last_glue = last_action.glue
@@ -405,8 +414,8 @@ def _atom_to_action_spaces_before(atom, last_action):
                 text = _lower(text)
             action.text = space + text
             action.word = _rightmost_word(last_word + action.text)
-        elif (meta.startswith(META_ATTACH_FLAG) or 
-              meta.endswith(META_ATTACH_FLAG)):
+        elif (meta.startswith(META_ATTACH_FLAG) or
+                  meta.endswith(META_ATTACH_FLAG)):
             begin = meta.startswith(META_ATTACH_FLAG)
             end = meta.endswith(META_ATTACH_FLAG)
             if begin:
@@ -422,7 +431,7 @@ def _atom_to_action_spaces_before(atom, last_action):
                 # to tell plover not to auto-correct a word.
                 action.orthography = False
             if ((begin and not end or begin and end and ' ' in meta) and
-                last_orthography):
+                    last_orthography):
                 new = orthography.add_suffix(last_word.lower(), meta)
                 common = commonprefix([last_word.lower(), new])
                 action.replace = last_word[len(common):]
@@ -433,7 +442,7 @@ def _atom_to_action_spaces_before(atom, last_action):
                 meta = _lower(meta)
             action.text = space + meta
             action.word = _rightmost_word(
-                last_word[:len(last_word)-len(action.replace)] + action.text)
+                last_word[:len(last_word) - len(action.replace)] + action.text)
         elif meta.startswith(META_KEY_COMBINATION):
             action = last_action.copy_state()
             action.combo = meta[len(META_KEY_COMBINATION):]
@@ -447,6 +456,7 @@ def _atom_to_action_spaces_before(atom, last_action):
         action.text = space + text
         action.word = _rightmost_word(text)
     return action
+
 
 def _atom_to_action_spaces_after(atom, last_action):
     """Convert an atom into an action.
@@ -462,7 +472,7 @@ def _atom_to_action_spaces_after(atom, last_action):
     Returns: An action for the atom.
 
     """
-    
+
     action = _Action()
     last_word = last_action.word
     last_glue = last_action.glue
@@ -514,18 +524,18 @@ def _atom_to_action_spaces_after(atom, last_action):
             if last_attach:
                 action.replace = NO_SPACE
                 action.word = _rightmost_word(last_word + text)
-        elif (meta.startswith(META_ATTACH_FLAG) or 
-              meta.endswith(META_ATTACH_FLAG)):
+        elif (meta.startswith(META_ATTACH_FLAG) or
+                  meta.endswith(META_ATTACH_FLAG)):
             begin = meta.startswith(META_ATTACH_FLAG)
             end = meta.endswith(META_ATTACH_FLAG)
             if begin:
                 meta = meta[len(META_ATTACH_FLAG):]
             if end and len(meta) >= len(META_ATTACH_FLAG):
                 meta = meta[:-len(META_ATTACH_FLAG)]
-                
+
             space = NO_SPACE if end else SPACE
             replace_space = NO_SPACE if last_attach else SPACE
-            
+
             if end:
                 action.attach = True
             if begin and end and meta == '':
@@ -536,7 +546,7 @@ def _atom_to_action_spaces_after(atom, last_action):
                 if last_action.text != '':
                     action.replace = replace_space
             if ((begin and not end or begin and end and ' ' in meta) and
-                last_orthography):
+                    last_orthography):
                 new = orthography.add_suffix(last_word.lower(), meta)
                 common = commonprefix([last_word.lower(), new])
                 if last_action.text == '':
@@ -552,7 +562,7 @@ def _atom_to_action_spaces_after(atom, last_action):
                 meta = _lower(meta)
             action.text = meta + space
             action.word = _rightmost_word(
-                last_word[:len(last_word + last_space)-len(action.replace)] + meta)
+                last_word[:len(last_word + last_space) - len(action.replace)] + meta)
             if end and not begin and last_space == SPACE:
                 action.word = _rightmost_word(meta)
         elif meta.startswith(META_KEY_COMBINATION):
@@ -564,43 +574,50 @@ def _atom_to_action_spaces_after(atom, last_action):
             text = _capitalize(text)
         if last_lower:
             text = _lower(text)
-            
+
         action.text = text + SPACE
         action.word = _rightmost_word(text)
     return action
 
+
 def _get_meta(atom):
     """Return the meta command, if any, without surrounding meta markups."""
     if (atom is not None and
-        atom.startswith(META_START) and
-        atom.endswith(META_END)):
+            atom.startswith(META_START) and
+            atom.endswith(META_END)):
         return atom[len(META_START):-len(META_END)]
     return None
+
 
 def _apply_glue(s):
     """Mark the given string as a glue stroke."""
     return META_START + META_GLUE_FLAG + s + META_END
+
 
 def _unescape_atom(atom):
     """Replace escaped meta markups with unescaped meta markups."""
     return atom.replace(META_ESC_START, META_START).replace(META_ESC_END,
                                                             META_END)
 
+
 def _get_engine_command(atom):
     """Return the steno engine command, if any, represented by the atom."""
     if (atom and
-        atom.startswith(META_START + META_COMMAND) and
-        atom.endswith(META_END)):
+            atom.startswith(META_START + META_COMMAND) and
+            atom.endswith(META_END)):
         return atom[len(META_START) + len(META_COMMAND):-len(META_END)]
     return None
+
 
 def _capitalize(s):
     """Capitalize the first letter of s."""
     return s[0:1].upper() + s[1:]
 
+
 def _lower(s):
     """Lowercase the first letter of s."""
     return s[0:1].lower() + s[1:]
+
 
 def _rightmost_word(s):
     """Get the rightmost word in s."""

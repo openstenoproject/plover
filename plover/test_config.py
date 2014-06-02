@@ -10,83 +10,83 @@ import plover.config as config
 from cStringIO import StringIO
 from plover.machine.registry import Registry
 
-class ConfigTestCase(unittest.TestCase):
 
+class ConfigTestCase(unittest.TestCase):
     def test_simple_fields(self):
-        Case = namedtuple('Case', ['field', 'section', 'option', 'default', 
+        Case = namedtuple('Case', ['field', 'section', 'option', 'default',
                                    'value1', 'value2', 'value3'])
 
         cases = (
-        ('machine_type', config.MACHINE_CONFIG_SECTION, 
-         config.MACHINE_TYPE_OPTION, config.DEFAULT_MACHINE_TYPE, 'foo', 'bar', 
-         'blee'),
-        ('log_file_name', config.LOGGING_CONFIG_SECTION, config.LOG_FILE_OPTION, 
-         config.DEFAULT_LOG_FILE, 'l1', 'log', 'sawzall'),
-        ('enable_stroke_logging', config.LOGGING_CONFIG_SECTION, 
-         config.ENABLE_STROKE_LOGGING_OPTION, 
-         config.DEFAULT_ENABLE_STROKE_LOGGING, False, True, False),
-        ('enable_translation_logging', config.LOGGING_CONFIG_SECTION, 
-         config.ENABLE_TRANSLATION_LOGGING_OPTION, 
-         config.DEFAULT_ENABLE_TRANSLATION_LOGGING, False, True, False),
-        ('auto_start', config.MACHINE_CONFIG_SECTION, 
-         config.MACHINE_AUTO_START_OPTION, config.DEFAULT_MACHINE_AUTO_START, 
-         True, False, True),
-        ('show_stroke_display', config.STROKE_DISPLAY_SECTION, 
-         config.STROKE_DISPLAY_SHOW_OPTION, config.DEFAULT_STROKE_DISPLAY_SHOW, 
-         True, False, True),
-        ('space_placement', config.OUTPUT_CONFIG_SECTION, 
-         config.OUTPUT_CONFIG_SPACE_PLACEMENT_OPTION, config.DEFAULT_OUTPUT_CONFIG_SPACE_PLACEMENT, 
-         'Before Output', 'After Output', 'None'),
-        ('stroke_display_on_top', config.STROKE_DISPLAY_SECTION, 
-         config.STROKE_DISPLAY_ON_TOP_OPTION, 
-         config.DEFAULT_STROKE_DISPLAY_ON_TOP, False, True, False),
-        ('stroke_display_style', config.STROKE_DISPLAY_SECTION, 
-         config.STROKE_DISPLAY_STYLE_OPTION, 
-         config.DEFAULT_STROKE_DISPLAY_STYLE, 'Raw', 'Paper', 'Pseudo'),
-        ('stroke_display_x', config.STROKE_DISPLAY_SECTION, 
-         config.STROKE_DISPLAY_X_OPTION, config.DEFAULT_STROKE_DISPLAY_X, 1, 2, 
-         3),
-        ('stroke_display_y', config.STROKE_DISPLAY_SECTION, 
-         config.STROKE_DISPLAY_Y_OPTION, config.DEFAULT_STROKE_DISPLAY_Y, 1, 2, 
-         3),
-        ('config_frame_x', config.CONFIG_FRAME_SECTION, 
-         config.CONFIG_FRAME_X_OPTION, config.DEFAULT_CONFIG_FRAME_X, 1, 2, 3),
-        ('config_frame_y', config.CONFIG_FRAME_SECTION, 
-         config.CONFIG_FRAME_Y_OPTION, config.DEFAULT_CONFIG_FRAME_Y, 1, 2, 3),
-        ('config_frame_width', config.CONFIG_FRAME_SECTION, 
-         config.CONFIG_FRAME_WIDTH_OPTION, config.DEFAULT_CONFIG_FRAME_WIDTH, 1, 
-         2, 3),
-        ('config_frame_height', config.CONFIG_FRAME_SECTION, 
-         config.CONFIG_FRAME_HEIGHT_OPTION, config.DEFAULT_CONFIG_FRAME_HEIGHT, 
-         1, 2, 3),
-        ('main_frame_x', config.MAIN_FRAME_SECTION, 
-         config.MAIN_FRAME_X_OPTION, config.DEFAULT_MAIN_FRAME_X, 1, 2, 3),
-        ('main_frame_y', config.MAIN_FRAME_SECTION, 
-         config.MAIN_FRAME_Y_OPTION, config.DEFAULT_MAIN_FRAME_Y, 1, 2, 3),
-        ('translation_frame_x', config.TRANSLATION_FRAME_SECTION, 
-         config.TRANSLATION_FRAME_X_OPTION, config.DEFAULT_TRANSLATION_FRAME_X, 
-         1, 2, 3),
-        ('translation_frame_y', config.TRANSLATION_FRAME_SECTION, 
-         config.TRANSLATION_FRAME_Y_OPTION, config.DEFAULT_TRANSLATION_FRAME_Y, 
-         1, 2, 3),
-        ('lookup_frame_x', config.LOOKUP_FRAME_SECTION, 
-         config.LOOKUP_FRAME_X_OPTION, config.DEFAULT_LOOKUP_FRAME_X, 
-         1, 2, 3),
-        ('lookup_frame_y', config.LOOKUP_FRAME_SECTION, 
-         config.LOOKUP_FRAME_Y_OPTION, config.DEFAULT_LOOKUP_FRAME_Y, 
-         1, 2, 3),
-        ('dictionary_editor_frame_x', config.DICTIONARY_EDITOR_FRAME_SECTION,
-         config.DICTIONARY_EDITOR_FRAME_X_OPTION, config.DEFAULT_DICTIONARY_EDITOR_FRAME_X,
-         1, 2, 3),
-        ('dictionary_editor_frame_y', config.DICTIONARY_EDITOR_FRAME_SECTION,
-         config.DICTIONARY_EDITOR_FRAME_Y_OPTION, config.DEFAULT_DICTIONARY_EDITOR_FRAME_Y,
-         1, 2, 3),
-        ('serial_config_frame_x', config.SERIAL_CONFIG_FRAME_SECTION, 
-         config.SERIAL_CONFIG_FRAME_X_OPTION, 
-         config.DEFAULT_SERIAL_CONFIG_FRAME_X, 1, 2, 3),
-        ('serial_config_frame_y', config.SERIAL_CONFIG_FRAME_SECTION, 
-         config.SERIAL_CONFIG_FRAME_Y_OPTION, 
-         config.DEFAULT_SERIAL_CONFIG_FRAME_Y, 1, 2, 3),
+            ('machine_type', config.MACHINE_CONFIG_SECTION,
+             config.MACHINE_TYPE_OPTION, config.DEFAULT_MACHINE_TYPE, 'foo', 'bar',
+             'blee'),
+            ('log_file_name', config.LOGGING_CONFIG_SECTION, config.LOG_FILE_OPTION,
+             config.DEFAULT_LOG_FILE, 'l1', 'log', 'sawzall'),
+            ('enable_stroke_logging', config.LOGGING_CONFIG_SECTION,
+             config.ENABLE_STROKE_LOGGING_OPTION,
+             config.DEFAULT_ENABLE_STROKE_LOGGING, False, True, False),
+            ('enable_translation_logging', config.LOGGING_CONFIG_SECTION,
+             config.ENABLE_TRANSLATION_LOGGING_OPTION,
+             config.DEFAULT_ENABLE_TRANSLATION_LOGGING, False, True, False),
+            ('auto_start', config.MACHINE_CONFIG_SECTION,
+             config.MACHINE_AUTO_START_OPTION, config.DEFAULT_MACHINE_AUTO_START,
+             True, False, True),
+            ('show_stroke_display', config.STROKE_DISPLAY_SECTION,
+             config.STROKE_DISPLAY_SHOW_OPTION, config.DEFAULT_STROKE_DISPLAY_SHOW,
+             True, False, True),
+            ('space_placement', config.OUTPUT_CONFIG_SECTION,
+             config.OUTPUT_CONFIG_SPACE_PLACEMENT_OPTION, config.DEFAULT_OUTPUT_CONFIG_SPACE_PLACEMENT,
+             'Before Output', 'After Output', 'None'),
+            ('stroke_display_on_top', config.STROKE_DISPLAY_SECTION,
+             config.STROKE_DISPLAY_ON_TOP_OPTION,
+             config.DEFAULT_STROKE_DISPLAY_ON_TOP, False, True, False),
+            ('stroke_display_style', config.STROKE_DISPLAY_SECTION,
+             config.STROKE_DISPLAY_STYLE_OPTION,
+             config.DEFAULT_STROKE_DISPLAY_STYLE, 'Raw', 'Paper', 'Pseudo'),
+            ('stroke_display_x', config.STROKE_DISPLAY_SECTION,
+             config.STROKE_DISPLAY_X_OPTION, config.DEFAULT_STROKE_DISPLAY_X, 1, 2,
+             3),
+            ('stroke_display_y', config.STROKE_DISPLAY_SECTION,
+             config.STROKE_DISPLAY_Y_OPTION, config.DEFAULT_STROKE_DISPLAY_Y, 1, 2,
+             3),
+            ('config_frame_x', config.CONFIG_FRAME_SECTION,
+             config.CONFIG_FRAME_X_OPTION, config.DEFAULT_CONFIG_FRAME_X, 1, 2, 3),
+            ('config_frame_y', config.CONFIG_FRAME_SECTION,
+             config.CONFIG_FRAME_Y_OPTION, config.DEFAULT_CONFIG_FRAME_Y, 1, 2, 3),
+            ('config_frame_width', config.CONFIG_FRAME_SECTION,
+             config.CONFIG_FRAME_WIDTH_OPTION, config.DEFAULT_CONFIG_FRAME_WIDTH, 1,
+             2, 3),
+            ('config_frame_height', config.CONFIG_FRAME_SECTION,
+             config.CONFIG_FRAME_HEIGHT_OPTION, config.DEFAULT_CONFIG_FRAME_HEIGHT,
+             1, 2, 3),
+            ('main_frame_x', config.MAIN_FRAME_SECTION,
+             config.MAIN_FRAME_X_OPTION, config.DEFAULT_MAIN_FRAME_X, 1, 2, 3),
+            ('main_frame_y', config.MAIN_FRAME_SECTION,
+             config.MAIN_FRAME_Y_OPTION, config.DEFAULT_MAIN_FRAME_Y, 1, 2, 3),
+            ('translation_frame_x', config.TRANSLATION_FRAME_SECTION,
+             config.TRANSLATION_FRAME_X_OPTION, config.DEFAULT_TRANSLATION_FRAME_X,
+             1, 2, 3),
+            ('translation_frame_y', config.TRANSLATION_FRAME_SECTION,
+             config.TRANSLATION_FRAME_Y_OPTION, config.DEFAULT_TRANSLATION_FRAME_Y,
+             1, 2, 3),
+            ('lookup_frame_x', config.LOOKUP_FRAME_SECTION,
+             config.LOOKUP_FRAME_X_OPTION, config.DEFAULT_LOOKUP_FRAME_X,
+             1, 2, 3),
+            ('lookup_frame_y', config.LOOKUP_FRAME_SECTION,
+             config.LOOKUP_FRAME_Y_OPTION, config.DEFAULT_LOOKUP_FRAME_Y,
+             1, 2, 3),
+            ('dictionary_editor_frame_x', config.DICTIONARY_EDITOR_FRAME_SECTION,
+             config.DICTIONARY_EDITOR_FRAME_X_OPTION, config.DEFAULT_DICTIONARY_EDITOR_FRAME_X,
+             1, 2, 3),
+            ('dictionary_editor_frame_y', config.DICTIONARY_EDITOR_FRAME_SECTION,
+             config.DICTIONARY_EDITOR_FRAME_Y_OPTION, config.DEFAULT_DICTIONARY_EDITOR_FRAME_Y,
+             1, 2, 3),
+            ('serial_config_frame_x', config.SERIAL_CONFIG_FRAME_SECTION,
+             config.SERIAL_CONFIG_FRAME_X_OPTION,
+             config.DEFAULT_SERIAL_CONFIG_FRAME_X, 1, 2, 3),
+            ('serial_config_frame_y', config.SERIAL_CONFIG_FRAME_SECTION,
+             config.SERIAL_CONFIG_FRAME_Y_OPTION,
+             config.DEFAULT_SERIAL_CONFIG_FRAME_Y, 1, 2, 3),
         )
 
         for case in cases:
@@ -112,12 +112,12 @@ class ConfigTestCase(unittest.TestCase):
             # ...save it...
             c.save(f)
             # ...and make sure it's right.
-            self.assertEqual(f.getvalue(), 
+            self.assertEqual(f.getvalue(),
                              '[%s]\n%s = %s\n\n' % (case.section, case.option,
                                                     case.value3))
 
     def test_clone(self):
-        s = '[%s]%s = %s\n\n' % (config.MACHINE_CONFIG_SECTION, 
+        s = '[%s]%s = %s\n\n' % (config.MACHINE_CONFIG_SECTION,
                                  config.MACHINE_TYPE_OPTION, 'foo')
         c = config.Config()
         c.load(StringIO(s))
@@ -141,6 +141,7 @@ class ConfigTestCase(unittest.TestCase):
                     'booloption1': (True, bool_converter),
                     'booloption2': (False, bool_converter)
                 }
+
         defaults = {k: v[0] for k, v in FakeMachine.get_option_info().items()}
 
         machine_name = 'machine foo'
@@ -148,7 +149,7 @@ class ConfigTestCase(unittest.TestCase):
         registry.register(machine_name, FakeMachine)
         with patch('plover.config.machine_registry', registry):
             c = config.Config()
-            
+
             # Check default value.
             actual = c.get_machine_specific_options(machine_name)
             self.assertEqual(actual, defaults)
@@ -164,10 +165,10 @@ class ConfigTestCase(unittest.TestCase):
             actual = c.get_machine_specific_options(machine_name)
             expected = dict(defaults.items() + options.items())
             self.assertEqual(actual, expected)
-            
+
             # Test loading a file. Unknown option is ignored.
-            s = '\n'.join(('[machine foo]', 'stroption1 = foo', 
-                           'intoption1 = 3', 'booloption1 = True', 
+            s = '\n'.join(('[machine foo]', 'stroption1 = foo',
+                           'intoption1 = 3', 'booloption1 = True',
                            'booloption2 = False', 'unknown = True'))
             f = StringIO(s)
             c.load(f)
@@ -180,14 +181,14 @@ class ConfigTestCase(unittest.TestCase):
             expected = dict(defaults.items() + expected.items())
             actual = c.get_machine_specific_options(machine_name)
             self.assertEqual(actual, expected)
-            
+
             # Test saving a file.
             f = StringIO()
             c.save(f)
             self.assertEqual(f.getvalue(), s + '\n\n')
-            
+
             # Test reading invalid values.
-            s = '\n'.join(['[machine foo]', 'floatoption1 = None', 
+            s = '\n'.join(['[machine foo]', 'floatoption1 = None',
                            'booloption2 = True'])
             f = StringIO(s)
             c.load(f)
@@ -204,7 +205,7 @@ class ConfigTestCase(unittest.TestCase):
         section = config.DICTIONARY_CONFIG_SECTION
         option = config.DICTIONARY_FILE_OPTION
         # Check the default value.
-        self.assertEqual(c.get_dictionary_file_names(), 
+        self.assertEqual(c.get_dictionary_file_names(),
                          [config.DEFAULT_DICTIONARY_FILE])
         # Set a value...
         names = ['b', 'a', 'd', 'c']
@@ -217,25 +218,26 @@ class ConfigTestCase(unittest.TestCase):
         # ..and make sure the right value is set.
         self.assertEqual(c.get_dictionary_file_names(), ['some_file'])
         # Load from a file encoded the new way...
-        filenames = '\n'.join('%s%d: %s' % (option, d, v) 
+        filenames = '\n'.join('%s%d: %s' % (option, d, v)
                               for d, v in enumerate(names, start=1))
         f = StringIO('[%s]\n%s' % (section, filenames))
         c.load(f)
         # ...and make sure the right value is set.
         self.assertEqual(c.get_dictionary_file_names(), names)
-        
+
         names.reverse()
-        
+
         # Set a value...
         c.set_dictionary_file_names(names)
         f = StringIO()
         # ...save it...
         c.save(f)
         # ...and make sure it's right.
-        filenames = '\n'.join('%s%d = %s' % (option, d, v) 
+        filenames = '\n'.join('%s%d = %s' % (option, d, v)
                               for d, v in enumerate(names, start=1))
-        self.assertEqual(f.getvalue(), 
+        self.assertEqual(f.getvalue(),
                          '[%s]\n%s\n\n' % (section, filenames))
+
 
 if __name__ == '__main__':
     unittest.main()

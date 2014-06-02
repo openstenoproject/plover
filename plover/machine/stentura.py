@@ -260,8 +260,8 @@ def _write_to_buffer(buf, offset, data):
 
 # Helper table for parsing strokes of the form:
 # 11^#STKP 11WHRAO* 11EUFRPB 11LGTSDZ
-_STENO_KEY_CHART = ('^', '#', 'S-', 'T-', 'K-', 'P-',    # Byte #1
-                    'W-', 'H-', 'R-', 'A-', 'O-', '*',   # Byte #2
+_STENO_KEY_CHART = ('^', '#', 'S-', 'T-', 'K-', 'P-',  # Byte #1
+                    'W-', 'H-', 'R-', 'A-', 'O-', '*',  # Byte #2
                     '-E', '-U', '-F', '-R', '-P', '-B',  # Byte #3
                     '-L', '-G', '-T', '-S', '-D', '-Z')  # Byte #4
 
@@ -549,6 +549,7 @@ def _send_receive(port, stop, packet, buf, max_tries=3, timeout=1):
 
 class _SequenceCounter(object):
     """A mod 256 counter."""
+
     def __init__(self, seq=0):
         """Init a new counter starting at seq."""
         self.seq = seq
@@ -584,10 +585,10 @@ def _read(port, stop, seq, request_buf, response_buf, stroke_buf, block, byte, t
     while True:
         packet = _make_read(request_buf, seq(), block, byte, length=512)
         response = _send_receive(port, stop, packet, response_buf,
-                   timeout=timeout)
+                                 timeout=timeout)
         p1 = _SHORT_STRUCT.unpack(buffer(response, 8, 2))[0]
         if not ((p1 == 0 and len(response) == 14) or  # No data.
-                (p1 == len(response) - 16)):          # Data.
+                    (p1 == len(response) - 16)):  # Data.
             raise _ProtocolViolationException()
         if p1 == 0:
             return block, byte, buffer(stroke_buf, 0, bytes_read)
@@ -598,6 +599,7 @@ def _read(port, stop, seq, request_buf, response_buf, stroke_buf, block, byte, t
         if byte >= 512:
             block += 1
             byte -= 512
+
 
 def _loop(port, stop, callback, ready_callback, timeout=1):
     """Enter into a loop talking to the machine and returning strokes.

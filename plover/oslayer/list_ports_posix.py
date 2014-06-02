@@ -39,7 +39,7 @@ try:
 except ImportError:
     def popen(argv):
         try:
-            si, so =  os.popen4(' '.join(argv))
+            si, so = os.popen4(' '.join(argv))
             return so.read().strip()
         except:
             raise IOError('lsusb failed')
@@ -60,6 +60,7 @@ else:
 # try to detect the OS so that a device can be selected...
 plat = sys.platform.lower()
 
+
 def read_line(filename):
     """help function to read a single line from a file. returns none"""
     try:
@@ -70,6 +71,7 @@ def read_line(filename):
     except IOError:
         return None
 
+
 def re_group(regexp, text):
     """search for regexp in text, return 1st group on match"""
     if sys.version < '3':
@@ -77,26 +79,27 @@ def re_group(regexp, text):
     else:
         # text is bytes-like
         m = re.search(regexp, text.decode('ascii', 'replace'))
-    if m: return m.group(1)
+    if m:
+        return m.group(1)
 
 
-if   plat[:5] == 'linux':    # Linux (confirmed)
+if plat[:5] == 'linux':  # Linux (confirmed)
     # try to extract descriptions from sysfs. this was done by experimenting,
     # no guarantee that it works for all devices or in the future...
 
     def usb_sysfs_hw_string(sysfs_path):
         """given a path to a usb device in sysfs, return a string describing it"""
         bus, dev = os.path.basename(os.path.realpath(sysfs_path)).split('-')
-        snr = read_line(sysfs_path+'/serial')
+        snr = read_line(sysfs_path + '/serial')
         if snr:
             snr_txt = ' SNR=%s' % (snr,)
         else:
             snr_txt = ''
         return 'USB VID:PID=%s:%s%s' % (
-                read_line(sysfs_path+'/idVendor'),
-                read_line(sysfs_path+'/idProduct'),
-                snr_txt
-                )
+            read_line(sysfs_path + '/idVendor'),
+            read_line(sysfs_path + '/idProduct'),
+            snr_txt
+        )
 
     def usb_lsusb_string(sysfs_path):
         base = os.path.basename(os.path.realpath(sysfs_path))
@@ -153,60 +156,60 @@ if   plat[:5] == 'linux':    # Linux (confirmed)
                 sys_dev_path = '/sys/class/tty/%s/device' % (base,)
                 if os.path.exists(sys_dev_path):
                     return usb_sysfs_hw_string(sys_dev_path + '/..')
-        return 'n/a'    # XXX directly remove these from the list?
+        return 'n/a'  # XXX directly remove these from the list?
 
     def comports():
         devices = glob.glob('/dev/ttyS*') + glob.glob('/dev/ttyUSB*') + glob.glob('/dev/ttyACM*')
         return [(d, describe(d), hwinfo(d)) for d in devices]
 
-elif plat == 'cygwin':       # cygwin/win32
+elif plat == 'cygwin':  # cygwin/win32
     def comports():
         devices = glob.glob('/dev/com*')
         return [(d, d, d) for d in devices]
 
-elif plat[:7] == 'openbsd':    # OpenBSD
+elif plat[:7] == 'openbsd':  # OpenBSD
     def comports():
         devices = glob.glob('/dev/cua*')
         return [(d, d, d) for d in devices]
 
-elif plat[:3] == 'bsd' or  \
-        plat[:7] == 'freebsd':
+elif plat[:3] == 'bsd' or \
+                plat[:7] == 'freebsd':
 
     def comports():
         devices = glob.glob('/dev/cuad*')
         return [(d, d, d) for d in devices]
 
-elif plat[:6] == 'darwin':   # OS X (confirmed)
+elif plat[:6] == 'darwin':  # OS X (confirmed)
     def comports():
         """scan for available ports. return a list of device names."""
         devices = glob.glob('/dev/tty.*')
         return [(d, d, d) for d in devices]
 
-elif plat[:6] == 'netbsd':   # NetBSD
+elif plat[:6] == 'netbsd':  # NetBSD
     def comports():
         """scan for available ports. return a list of device names."""
         devices = glob.glob('/dev/dty*')
         return [(d, d, d) for d in devices]
 
-elif plat[:4] == 'irix':     # IRIX
+elif plat[:4] == 'irix':  # IRIX
     def comports():
         """scan for available ports. return a list of device names."""
         devices = glob.glob('/dev/ttyf*')
         return [(d, d, d) for d in devices]
 
-elif plat[:2] == 'hp':       # HP-UX (not tested)
+elif plat[:2] == 'hp':  # HP-UX (not tested)
     def comports():
         """scan for available ports. return a list of device names."""
         devices = glob.glob('/dev/tty*p0')
         return [(d, d, d) for d in devices]
 
-elif plat[:5] == 'sunos':    # Solaris/SunOS
+elif plat[:5] == 'sunos':  # Solaris/SunOS
     def comports():
         """scan for available ports. return a list of device names."""
         devices = glob.glob('/dev/tty*c')
         return [(d, d, d) for d in devices]
 
-elif plat[:3] == 'aix':      # AIX
+elif plat[:3] == 'aix':  # AIX
     def comports():
         """scan for available ports. return a list of device names."""
         devices = glob.glob('/dev/tty*')
