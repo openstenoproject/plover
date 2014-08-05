@@ -60,6 +60,7 @@ class Translation(object):
         self.english = translation
         self.replaced = []
         self.formatting = None
+        self.is_retrospective_command = False
 
     def __eq__(self, other):
         return self.rtfcre == other.rtfcre and self.english == other.english
@@ -270,21 +271,86 @@ def _translate_stroke(stroke, state, dictionary, callback):
             translation_count += 1
         translation_index = len(state.translations) - translation_count
         translations = state.translations[translation_index:]
+
+        mapping = _lookup([stroke], dictionary, [])
+
+        if mapping == '{*}':
+            # Toggle asterisk of previous stroke
+            new_stroke = _toggle_asterisk(translations, undo, do)
+            if new_stroke is not None:
+                stroke = new_stroke
+
         t = _find_translation(translations, dictionary, stroke)
-        do.append(t)
-        undo.extend(t.replaced)
-    
+        if t is not None:
+            do.append(t)
+            undo.extend(t.replaced)
     del state.translations[len(state.translations) - len(undo):]
     callback(undo, do, state.last())
     state.translations.extend(do)
 
 SUFFIX_KEYS = ['-S', '-G', '-Z', '-D']
 
+def _toggle_asterisk(translations, undo, do):
+    replaced = translations[len(translations)-1:]
+    if len(replaced) < 1:
+        return
+    undo.extend(replaced)
+    redo = replaced[0].replaced
+    do.extend(redo)
+    translations.remove(replaced[0])
+    translations.extend(redo)
+    last_stroke = replaced[0].strokes[len(replaced[0].strokes)-1]
+    keys = last_stroke.steno_keys[:]
+    if '*' in keys:
+        keys.remove('*')
+    else:
+        keys.append('*')
+    return Stroke(keys)
+
 def _find_translation(translations, dictionary, stroke):
+
     t = _find_translation_helper(translations, dictionary, stroke, [])
     if t:
         return t
+
     mapping = _lookup([stroke], dictionary, [])
+
+    if mapping == '{*?}':
+        # Retrospective insert space
+        replaced = translations[len(translations)-1:]
+        if len(replaced) < 1:
+            return
+        if replaced[0].is_retrospective_command:
+            return
+        lookup_stroke = replaced[0].strokes[len(replaced[0].strokes)-1]
+        english = []
+        for t in replaced:
+            for r in t.replaced:
+                english.append(r.english)
+        if len(english) > 0:
+            english.append(_lookup([lookup_stroke], dictionary, []))
+            t = Translation([stroke], ' '.join(english))
+            t.replaced = replaced
+            t.is_retrospective_command = True
+            return t
+
+    if mapping == '{*!}':
+        # Retrospective delete space
+        replaced = translations[len(translations)-2:]
+        if len(replaced) < 2:
+            return
+        if replaced[1].is_retrospective_command:
+            return
+        english = []
+        for t in replaced:
+            if t.english is not None:
+                english.append(t.english)
+        if len(english) > 1:
+            t = Translation([stroke], ''.join(english))
+            t.replaced = replaced
+            t.is_retrospective_command = True
+            return t
+
     if mapping is not None:  # Could be the empty string.
         return Translation([stroke], mapping)
     t = _find_translation_helper(translations, dictionary, stroke, SUFFIX_KEYS)
@@ -305,6 +371,7 @@ def _find_translation_helper(translations, dictionary, stroke, suffixes):
             t = Translation(strokes, mapping)
             t.replaced = replaced
             return t
+
 
 def _lookup(strokes, dictionary, suffixes):
     dict_key = tuple(s.rtfcre for s in strokes)
