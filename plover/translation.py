@@ -279,8 +279,9 @@ def _translate_stroke(stroke, state, dictionary, callback):
             new_stroke = _toggle_asterisk(translations, undo, do)
             if new_stroke is not None:
                 stroke = new_stroke
+                mapping = _lookup([stroke], dictionary, [])
 
-        t = _find_translation(translations, dictionary, stroke)
+        t = _find_translation(translations, dictionary, stroke, mapping)
         if t is not None:
             do.append(t)
             undo.extend(t.replaced)
@@ -307,13 +308,11 @@ def _toggle_asterisk(translations, undo, do):
         keys.append('*')
     return Stroke(keys)
 
-def _find_translation(translations, dictionary, stroke):
+def _find_translation(translations, dictionary, stroke, mapping):
 
     t = _find_translation_helper(translations, dictionary, stroke, [])
     if t:
         return t
-
-    mapping = _lookup([stroke], dictionary, [])
 
     if mapping == '{*?}':
         # Retrospective insert space
