@@ -622,6 +622,18 @@ class TranslateStrokeTestCase(unittest.TestCase):
         self.assertTranslations(do)
         self.assertOutput(undo, do, None)
 
+    def test_retrospective_toggle_asterisk(self):
+        self.define('T/E/S/T', 'a longer key')
+        self.define('S', 'see')
+        self.define('S*', 'sea')
+        self.define('A*', '{*}')
+        self.translate(stroke('S'))
+        self.translate(stroke('A*'))
+        undo = self.lt('S')
+        do = self.lt('S*')
+        self.assertTranslations(do)
+        self.assertOutput(undo, do, None)
+
 
 if __name__ == '__main__':
     unittest.main()
