@@ -181,7 +181,7 @@ class _Action(object):
         lower -- True if the next action should be lower cased.
 
         upper -- True if the entire next action should be uppercase.
-        
+
         upper_carry -- True if we are uppercasing the current word.
 
         othography -- True if orthography rules should be applies when adding
@@ -315,6 +315,7 @@ META_UPPER = '<'
 META_RETRO_CAPITALIZE = '*-|'
 META_RETRO_LOWER = '*>'
 META_RETRO_UPPER = '*<'
+META_RETRO_FORMAT = '*('
 META_GLUE_FLAG = '&'
 META_ATTACH_FLAG = '^'
 META_KEY_COMBINATION = '#'
@@ -440,6 +441,27 @@ def _atom_to_action_spaces_before(atom, last_action):
             else:
                 action.replace = last_action.text
                 action.text = _upper(last_action.text)
+        elif meta.startswith(META_RETRO_FORMAT):
+            if (meta.startswith(META_RETRO_FORMAT) and meta.endswith(')')):
+                dict_format = meta[len(META_RETRO_FORMAT):-len(')')]
+                action = last_action.copy_state()
+                action.replace = last_action.word
+                try:
+                    float(last_action.word)
+                except ValueError:
+                    pass
+                else:
+                    format = dict_format.replace('c', '{:,.2f}')
+                    cast_input = float(last_action.word)
+                try:
+                    int(last_action.word)
+                except ValueError:
+                    pass
+                else:
+                    format = dict_format.replace('c', '{:,}')
+                    cast_input = int(last_action.word)
+                action.text = format.format(cast_input)
+                action.word = action.text
         elif meta.startswith(META_COMMAND):
             action = last_action.copy_state()
             action.command = meta[len(META_COMMAND):]
@@ -562,8 +584,8 @@ def _atom_to_action_spaces_after(atom, last_action):
             action = last_action.copy_state()
             action.word = _capitalize(action.word)
             if len(last_action.text) < len(last_action.word):
-                action.replace = last_action.word + ' '
-                action.text = _capitalize(last_action.word + ' ')
+                action.replace = last_action.word + SPACE
+                action.text = _capitalize(last_action.word + SPACE)
             else:
                 action.replace = last_action.text
                 action.text = _capitalize_nowhitespace(last_action.text)
@@ -571,21 +593,42 @@ def _atom_to_action_spaces_after(atom, last_action):
             action = last_action.copy_state()
             action.word = _lower(action.word)
             if len(last_action.text) < len(last_action.word):
-                action.replace = last_action.word + ' '
-                action.text = _lower(last_action.word + ' ')
+                action.replace = last_action.word + SPACE
+                action.text = _lower(last_action.word + SPACE)
             else:
                 action.replace = last_action.text
                 action.text = _lower_nowhitespace(last_action.text)
         elif meta == META_RETRO_UPPER:
             action = last_action.copy_state()
-            action.word = (action.word)
+            action.word = _upper(action.word)
             action.upper_carry = True
             if len(last_action.text) < len(last_action.word):
-                action.replace = last_action.word + ' '
-                action.text = _upper(last_action.word + ' ')
+                action.replace = last_action.word + SPACE
+                action.text = _upper(last_action.word + SPACE)
             else:
                 action.replace = last_action.text
                 action.text = _upper(last_action.text)
+        elif meta.startswith(META_RETRO_FORMAT):
+            if (meta.startswith(META_RETRO_FORMAT) and meta.endswith(')')):
+                dict_format = meta[len(META_RETRO_FORMAT):-len(')')]
+                action = last_action.copy_state()
+                action.replace = last_action.word + SPACE
+                try:
+                    float(last_action.word)
+                except ValueError:
+                    pass
+                else:
+                    format = dict_format.replace('c', '{:,.2f}')
+                    cast_input = float(last_action.word)
+                try:
+                    int(last_action.word)
+                except ValueError:
+                    pass
+                else:
+                    format = dict_format.replace('c', '{:,}')
+                    cast_input = int(last_action.word)
+                action.text = format.format(cast_input) + SPACE
+                action.word = format.format(cast_input)
         elif meta.startswith(META_COMMAND):
             action = last_action.copy_state()
             action.command = meta[len(META_COMMAND):]
