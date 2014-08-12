@@ -304,6 +304,31 @@ class FormatterTestCase(unittest.TestCase):
           action(text='EQUIPPED', word='EQUIPPED', replace='equipped', upper_carry=True),
          ]),
 
+        (('1234 {*($c)}', action(), False),
+         [action(text=' 1234', word='1234'),
+          action(text='$1,234', word='$1,234', replace='1234'),
+         ]),
+
+        (('1234567 {*($c)}', action(), False),
+         [action(text=' 1234567', word='1234567'),
+          action(text='$1,234,567', word='$1,234,567', replace='1234567'),
+         ]),
+
+        (('1234.5 {*($c)}', action(), False),
+         [action(text=' 1234.5', word='1234.5'),
+          action(text='$1,234.50', word='$1,234.50', replace='1234.5'),
+         ]),
+
+        (('1234.56 {*($c)}', action(), False),
+         [action(text=' 1234.56', word='1234.56'),
+          action(text='$1,234.56', word='$1,234.56', replace='1234.56'),
+         ]),
+
+        (('1234.567 {*($c)}', action(), False),
+         [action(text=' 1234.567', word='1234.567'),
+          action(text='$1,234.57', word='$1,234.57', replace='1234.567'),
+         ]),
+
         (('equip {^} {^ed}', action(), False),
          [action(text=' equip', word='equip'),
           action(word='equip', attach=True, orthography=False),
@@ -418,6 +443,31 @@ class FormatterTestCase(unittest.TestCase):
          [action(text='equip ', word='equip'),
           action(text='ped ', word='equipped', replace=' '),
           action(text='EQUIPPED ', word='EQUIPPED', replace='equipped ', upper_carry=True),
+         ]),
+
+        (('1234 {*($c)}', action(), True),
+         [action(text='1234 ', word='1234'),
+          action(text='$1,234 ', word='$1,234', replace='1234 '),
+         ]),
+
+        (('1234567 {*($c)}', action(), True),
+         [action(text='1234567 ', word='1234567'),
+          action(text='$1,234,567 ', word='$1,234,567', replace='1234567 '),
+         ]),
+
+        (('1234.5 {*($c)}', action(), True),
+         [action(text='1234.5 ', word='1234.5'),
+          action(text='$1,234.50 ', word='$1,234.50', replace='1234.5 '),
+         ]),
+
+        (('1234.56 {*($c)}', action(), True),
+         [action(text='1234.56 ', word='1234.56'),
+          action(text='$1,234.56 ', word='$1,234.56', replace='1234.56 '),
+         ]),
+
+        (('1234.567 {*($c)}', action(), True),
+         [action(text='1234.567 ', word='1234.567'),
+          action(text='$1,234.57 ', word='$1,234.57', replace='1234.567 '),
          ]),
          
         (('equip {^} {^ed}', action(), True),
