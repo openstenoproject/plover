@@ -22,10 +22,7 @@ import pythoncom
 import threading
 import win32api
 import win32con
-from pywinauto.SendKeysCtypes import SendKeys as _SendKeys
-
-def SendKeys(s):
-    _SendKeys(s, with_spaces=True, pause=0)
+import win32com.client
 
 # For the purposes of this class, we'll only report key presses that
 # result in these outputs in order to exclude special key combos.
@@ -163,13 +160,15 @@ class KeyboardEmulation:
     }
 
     SPECIAL_CHARS_PATTERN = re.compile(r'([]{}()+^%~[])')
+
+    shell = win32com.client.Dispatch('WScript.Shell')
     
     def send_backspaces(self, number_of_backspaces):
         for _ in xrange(number_of_backspaces):
-            SendKeys(self.keymap_single['BackSpace'])
+            self.shell.SendKeys(self.keymap_single['BackSpace'])
 
     def send_string(self, s):
-        SendKeys(re.sub(self.SPECIAL_CHARS_PATTERN, r'{\1}', s))
+        self.shell.SendKeys(re.sub(self.SPECIAL_CHARS_PATTERN, r'{\1}', s))
 
     def send_key_combination(self, s):
         combo = []
@@ -183,7 +182,7 @@ class KeyboardEmulation:
                 pass
             else:
                 combo.append(token)
-        SendKeys(''.join(combo))
+        self.shell.SendKeys(''.join(combo))
 
 
 class KeyboardEvent(object):
