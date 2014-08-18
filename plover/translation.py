@@ -281,6 +281,13 @@ def _translate_stroke(stroke, state, dictionary, callback):
                 stroke = new_stroke
                 mapping = _lookup([stroke], dictionary, [])
 
+        elif mapping == '{*+}':
+            # Repeat last stroke
+            new_stroke = _repeat_last_stroke(translations)
+            if new_stroke is not None:
+                stroke = new_stroke
+                mapping = _lookup([stroke], dictionary, [])
+
         t = _find_translation(translations, dictionary, stroke, mapping)
         if t is not None:
             do.append(t)
@@ -306,6 +313,14 @@ def _toggle_asterisk(translations, undo, do):
         keys.remove('*')
     else:
         keys.append('*')
+    return Stroke(keys)
+
+def _repeat_last_stroke(translations):
+    replaced = translations[len(translations)-1:]
+    if len(replaced) < 1:
+        return
+    last_stroke = replaced[0].strokes[len(replaced[0].strokes)-1]
+    keys = last_stroke.steno_keys[:]
     return Stroke(keys)
 
 def _find_translation(translations, dictionary, stroke, mapping):
