@@ -634,6 +634,29 @@ class TranslateStrokeTestCase(unittest.TestCase):
         self.assertTranslations(do)
         self.assertOutput(undo, do, None)
 
+    def test_repeat_last_stroke1(self):
+        self.define('T/E/S/T', 'a longer key')
+        self.define('TH', 'this')
+        self.define('R*', '{*+}')
+        self.translate(stroke('TH'))
+        self.translate(stroke('R*'))
+        undo = []
+        do = self.lt('TH')
+        state = self.lt('TH TH')
+        self.assertTranslations(state)
+        self.assertOutput(undo, do, do[0])
+
+    def test_repeat_last_stroke2(self):
+        self.define('T/E/S/T', 'a longer key')
+        self.define('THA', 'that')
+        self.define('R*', '{*+}')
+        self.translate(stroke('THA'))
+        self.translate(stroke('R*'))
+        undo = []
+        do = self.lt('THA')
+        state = self.lt('THA THA')
+        self.assertTranslations(state)
+        self.assertOutput(undo, do, do[0])
 
 if __name__ == '__main__':
     unittest.main()
