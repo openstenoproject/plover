@@ -40,6 +40,7 @@ class Formatter(object):
 
     def __init__(self):
         self.set_output(None)
+        self.spaces_after = False
 
     def set_output(self, output):
         """Set the output class."""
