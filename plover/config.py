@@ -52,6 +52,32 @@ OUTPUT_CONFIG_SECTION = 'Output Configuration'
 OUTPUT_CONFIG_SPACE_PLACEMENT_OPTION = 'space_placement'
 DEFAULT_OUTPUT_CONFIG_SPACE_PLACEMENT = 'Before Output'
 
+SPEED_REPORT_SECTION = 'Speed Report'
+SPEED_REPORT_SHOW_OPTION = 'show'
+DEFAULT_SPEED_REPORT_SHOW = False
+SPEED_REPORT_DISPLAY_X_OPTION = 'x'
+DEFAULT_SPEED_REPORT_X = -1
+SPEED_REPORT_DISPLAY_Y_OPTION = 'y'
+DEFAULT_SPEED_REPORT_Y = -1
+
+PREDICTIONS_SECTION = 'Predictions'
+SHOW_PREDICTIONS_OPTION = 'enable'
+DEFAULT_SHOW_PREDICTIONS = False
+PREDICTIONS_DISPLAY_X_OPTION = 'x'
+DEFAULT_PREDICTIONS_DISPLAY_X = -1
+PREDICTIONS_DISPLAY_Y_OPTION = 'y'
+DEFAULT_PREDICTIONS_DISPLAY_Y = -1
+NUMBER_OF_PREDICTIONS_OPTION = 'limit'
+DEFAULT_NUMBER_OF_PREDICTIONS = 25
+
+BRIEF_SUGGESTION_SECTION = 'Brief Suggestions'
+SHOW_BRIEF_SUGGESTIONS_OPTION = 'enable'
+DEFAULT_SHOW_BRIEF_SUGGESTION = False
+BRIEF_SUGGESTION_DISPLAY_X_OPTION = 'x'
+DEFAULT_BRIEF_SUGGESTION_X = -1
+BRIEF_SUGGESTION_DISPLAY_Y_OPTION = 'y'
+DEFAULT_BRIEF_SUGGESTION_Y = -1
+
 CONFIG_FRAME_SECTION = 'Config Frame'
 CONFIG_FRAME_X_OPTION = 'x'
 DEFAULT_CONFIG_FRAME_X = -1
@@ -258,6 +284,70 @@ class Config(object):
     def get_stroke_display_y(self):
         return self._get_int(STROKE_DISPLAY_SECTION, STROKE_DISPLAY_Y_OPTION, 
                              DEFAULT_STROKE_DISPLAY_Y)
+
+    def set_show_speed_report(self, b):
+        self._set(SPEED_REPORT_SECTION, SPEED_REPORT_SHOW_OPTION, b)
+
+    def get_show_speed_report(self):
+        return self._get_bool(SPEED_REPORT_SECTION,
+              SPEED_REPORT_SHOW_OPTION, DEFAULT_SPEED_REPORT_SHOW)
+
+    def set_speed_report_x(self, x):
+        self._set(SPEED_REPORT_SECTION, SPEED_REPORT_DISPLAY_X_OPTION, x)
+
+    def get_speed_report_x(self):
+        return self._get_int(SPEED_REPORT_SECTION, SPEED_REPORT_DISPLAY_X_OPTION,
+                             DEFAULT_SPEED_REPORT_X)
+
+    def set_speed_report_y(self, y):
+        self._set(SPEED_REPORT_SECTION, SPEED_REPORT_DISPLAY_Y_OPTION, y)
+
+    def get_speed_report_y(self):
+        return self._get_int(SPEED_REPORT_SECTION, SPEED_REPORT_DISPLAY_Y_OPTION,
+                             DEFAULT_SPEED_REPORT_Y)
+
+    def set_show_predictions(self, b):
+        self._set(PREDICTIONS_SECTION, SHOW_PREDICTIONS_OPTION, b)
+
+    def get_show_predictions(self):
+        return self._get_bool(PREDICTIONS_SECTION, SHOW_PREDICTIONS_OPTION, DEFAULT_SHOW_PREDICTIONS)
+
+    def set_predictions_x(self, x):
+        self._set(PREDICTIONS_SECTION, PREDICTIONS_DISPLAY_X_OPTION, x)
+
+    def get_predictions_x(self):
+        return self._get_int(PREDICTIONS_SECTION, PREDICTIONS_DISPLAY_X_OPTION, DEFAULT_PREDICTIONS_DISPLAY_X)
+
+    def set_predictions_y(self, y):
+        self._set(PREDICTIONS_SECTION, PREDICTIONS_DISPLAY_Y_OPTION, y)
+
+    def get_predictions_y(self):
+        return self._get_int(PREDICTIONS_SECTION, PREDICTIONS_DISPLAY_Y_OPTION, DEFAULT_PREDICTIONS_DISPLAY_Y)
+
+    def set_predictions_limit(self, limit):
+        self._set(PREDICTIONS_SECTION, NUMBER_OF_PREDICTIONS_OPTION, limit)
+
+    def get_predictions_limit(self):
+        return self._get_int(PREDICTIONS_SECTION, NUMBER_OF_PREDICTIONS_OPTION, DEFAULT_NUMBER_OF_PREDICTIONS)
+
+    def set_show_brief_suggestions(self, b):
+        self._set(BRIEF_SUGGESTION_SECTION, SHOW_BRIEF_SUGGESTIONS_OPTION, b)
+
+    def get_show_brief_suggestions(self):
+        return self._get_bool(BRIEF_SUGGESTION_SECTION, SHOW_BRIEF_SUGGESTIONS_OPTION,
+                              DEFAULT_SHOW_BRIEF_SUGGESTION)
+
+    def set_brief_suggestions_x(self, x):
+        self._set(BRIEF_SUGGESTION_SECTION, BRIEF_SUGGESTION_DISPLAY_X_OPTION, x)
+
+    def get_brief_suggestions_x(self):
+        return self._get_int(BRIEF_SUGGESTION_SECTION, BRIEF_SUGGESTION_DISPLAY_X_OPTION, DEFAULT_BRIEF_SUGGESTION_X)
+
+    def set_brief_suggestions_y(self, y):
+        self._set(BRIEF_SUGGESTION_SECTION, BRIEF_SUGGESTION_DISPLAY_Y_OPTION, y)
+
+    def get_brief_suggestions_y(self):
+        return self._get_int(BRIEF_SUGGESTION_SECTION, BRIEF_SUGGESTION_DISPLAY_Y_OPTION, DEFAULT_BRIEF_SUGGESTION_Y)
 
     def set_config_frame_x(self, x):
         self._set(CONFIG_FRAME_SECTION, CONFIG_FRAME_X_OPTION, x)

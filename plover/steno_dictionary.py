@@ -9,7 +9,11 @@ A steno dictionary maps sequences of steno strokes to translations.
 
 import collections
 import itertools
+import threading
 from steno import normalize_steno
+from plover.dictionary.tst import TST
+from plover.gui.brief_trainer import BriefTrainer
+from plover.gui.predictions import Predictions
 
 class StenoDictionary(collections.MutableMapping):
     """A steno dictionary.
@@ -119,12 +123,18 @@ class StenoDictionary(collections.MutableMapping):
         return self._dict.get(key, default)
 
 
+
+
 class StenoDictionaryCollection(object):
     def __init__(self):
         self.dicts = []
+        self._trie = TST()
         self.filters = []
         self.longest_key = 0
         self.longest_key_callbacks = set()
+        self.trie_loading=False
+        self.trie_loaded=False
+        self.trie_loading_interrupt = False
 
     def set_dicts(self, dicts):
         for d in self.dicts:
@@ -134,6 +144,58 @@ class StenoDictionaryCollection(object):
         for d in dicts:
             d.add_longest_key_listener(self._longest_key_listener)
         self._longest_key_listener()
+        if (self.trie_loading):
+            self.trie_loading_interrupt=True
+        self.trie_loaded = False
+        self._trie.release()
+        if (Predictions.enabled or BriefTrainer.enabled):
+            self.load_trie()
+
+    def load_trie(self):
+        if not (self.trie_loading or self.trie_loaded):
+            self.trie_loading=True
+            background=threading.Thread(target=self.load_trie_in_background, args=[])
+            background.start()
+
+    def load_trie_in_background(self):
+        for dict in self.dicts:
+            for item in dict.iteritems():
+                if self.trie_loading_interrupt:
+                    self.trie_loading_interrupt=False
+                    self.trie_loading = False
+                    self.trie_loaded - False
+                    self.trie.release()
+                    return
+                self.add_item_to_trie(item[0], item[1])
+        self.trie_loading = False
+        self.trie_loaded = True
+
+    def add_item_to_trie(self, key, value):
+        if (key) and (value):
+            existing_key = self.lookup(value)
+            if (existing_key):
+                key = StenoDictionary.shortest_of(key, existing_key)
+                if (key == existing_key):
+                    return
+            self._trie.put(value, key)
+
+    @staticmethod
+    def shortest_of(key1, key2):
+        #compare strokes by existence, then number of strokes, then absolute length
+        return key1
+        if (not (key1 or key2)):
+            return ""
+        if (not key2):
+            return key1
+        if (not key1):
+            return key2
+        if (len(key1) < len(key2)):
+            return key1
+        if (len(key1) > len(key2)):
+            return key2
+        if (len(str(key1)) < len(str(key2))):
+            return key1
+        return key2
 
     def lookup(self, key):
         for d in self.dicts:
@@ -155,6 +217,16 @@ class StenoDictionaryCollection(object):
             key = d.reverse.get(value, None)
             if key:
                 return key
+
+    def trie_lookup(self, value):
+        if not value.strip():
+            return
+        return self._trie.get(value.strip())
+
+    def prefix_match(self, value):
+        if not value.strip():
+            return
+        return self._trie.prefixMatch(value)
 
     def set(self, key, value):
         if self.dicts:

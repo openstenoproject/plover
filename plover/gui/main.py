@@ -11,6 +11,7 @@ resumes stenotype translation and allows for application configuration.
 import os
 import wx
 import wx.animate
+import plover.gui.predictions
 from wx.lib.utils import AdjustRectToScreen
 import plover.app as app
 from plover.config import ASSETS_DIR, SPINNER_FILE
@@ -22,6 +23,9 @@ from plover.machine.base import STATE_ERROR, STATE_INITIALIZING, STATE_RUNNING
 from plover.machine.registry import machine_registry
 from plover.exception import InvalidConfigurationError
 from plover.gui.paper_tape import StrokeDisplayDialog
+from plover.gui.speed_report import SpeedReportDialog
+from plover.gui.brief_trainer import BriefTrainer
+from plover.gui.predictions import Predictions
 
 from plover import __name__ as __software_name__
 from plover import __version__
@@ -73,6 +77,7 @@ class MainFrame(wx.Frame):
     COMMAND_RESUME = 'RESUME'
     COMMAND_TOGGLE = 'TOGGLE'
     COMMAND_CONFIGURE = 'CONFIGURE'
+    COMMAND_RESET_SPEED = 'RESET_SPEED'
     COMMAND_FOCUS = 'FOCUS'
     COMMAND_QUIT = 'QUIT'
 
@@ -194,7 +199,27 @@ class MainFrame(wx.Frame):
             StrokeDisplayDialog.stroke_handler)
         if self.config.get_show_stroke_display():
             StrokeDisplayDialog.display(self, self.config)
-            
+
+        self.steno_engine.add_stroke_listener(SpeedReportDialog.stroke_handler)
+        self.steno_engine.formatter.add_output_listener(SpeedReportDialog.output_handler)
+        if self.config.get_show_speed_report():
+            SpeedReportDialog.display(self, self.config)
+
+        self.steno_engine.formatter.add_output_listener(Predictions.output_handler)
+        if self.config.get_show_predictions():
+            predictions = Predictions(self, self.steno_engine.translator.get_dictionary(), self.config)
+            Predictions.enabled = True
+            Predictions.display(self, self.config)
+            self.steno_engine.get_dictionary().load_trie()
+
+        self.steno_engine.add_stroke_listener(BriefTrainer.stroke_handler)
+        self.steno_engine.formatter.add_output_listener(BriefTrainer.output_handler)
+        if self.config.get_show_brief_suggestions():
+            briefTrainer = BriefTrainer(self, self.steno_engine.translator.get_dictionary(), self.config)
+            BriefTrainer.enabled = True
+            BriefTrainer.display(self, self.config)
+            self.steno_engine.get_dictionary().load_trie()
+
         pos = (config.get_main_frame_x(), config.get_main_frame_y())
         self.SetPosition(pos)
 
@@ -220,6 +245,9 @@ class MainFrame(wx.Frame):
             return True
         elif command == self.COMMAND_CONFIGURE:
             wx.CallAfter(self._show_config_dialog)
+            return True
+        elif command == self.COMMAND_RESET_SPEED:
+            SpeedReportDialog.reset()
             return True
         elif command == self.COMMAND_FOCUS:
             def f():
