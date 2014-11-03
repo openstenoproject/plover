@@ -37,7 +37,7 @@ cd cython-hidapi
 python setup-mac.py install
 
 Fix a bug in py2app or modulegraph:
-There is a bug right now between py2app and modulegraph: 
+There is a bug right now between py2app and modulegraph: https://bitbucket.org/ronaldoussoren/modulegraph/issue/22/scan_code-in-modulegraphpy-contains-a
 Until it’s fixed, we need to fix it ourselves. A quick fix that you can run from the root of the virtualenv:
 sed -i .bak -e 's/\.scan_code/._scan_code/' -e 's/\.load_module/._load_module/' lib/python2.7/site-packages/py2app/recipes/virtualenv.py
 
