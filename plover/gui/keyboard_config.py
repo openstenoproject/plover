@@ -3,12 +3,19 @@
 
 import wx
 from wx.lib.utils import AdjustRectToScreen
+import sys
 
 DIALOG_TITLE = 'Keyboard Configuration'
 ARPEGGIATE_LABEL = "Arpeggiate"
 ARPEGGIATE_INSTRUCTIONS = """Arpeggiate allows using non-NKRO keyboards.
 Each key can be pressed separately and the space bar
 is pressed to send the stroke."""
+GRAB_KEYBOARD_LABEL = "Grab keyboard"
+GRAB_KEYBOARD_INSTRUCTIONS = """On Linux, grab keyboard lets us capture keystrokes
+without outputting them first (and deleting them afterwards).  This can
+fix bugs on some applications which do not support delete.  However, for
+many text widgets this will cause the text cursor to become invisible while
+using Plover."""
 UI_BORDER = 4
 
 class KeyboardConfigDialog(wx.Dialog):
@@ -30,6 +37,17 @@ class KeyboardConfigDialog(wx.Dialog):
         self.arpeggiate_option.SetValue(options.arpeggiate)
         sizer.Add(self.arpeggiate_option, border=UI_BORDER, 
                   flag=wx.LEFT | wx.RIGHT | wx.BOTTOM)
+
+        # ToDo: arguably this is an abstraction boundary violation, and
+        # the set of available options should be handled by the oslayer
+        # itself, but for now, bake it into the keyboard.
+        if sys.platform.startswith('linux'):
+            sizer.Add(wx.StaticText(self, label=GRAB_KEYBOARD_INSTRUCTIONS),
+                    border=UI_BORDER, flag=wx.ALL)
+            self.grab_keyboard_option = wx.CheckBox(self, label=GRAB_KEYBOARD_LABEL)
+            self.grab_keyboard_option.SetValue(options.grab_keyboard)
+            sizer.Add(self.grab_keyboard_option, border=UI_BORDER,
+                      flag=wx.LEFT | wx.RIGHT | wx.BOTTOM)
         
         ok_button = wx.Button(self, id=wx.ID_OK)
         ok_button.SetDefault()
@@ -56,6 +74,7 @@ class KeyboardConfigDialog(wx.Dialog):
 
     def on_ok(self, event):
         self.options.arpeggiate = self.arpeggiate_option.GetValue()
+        self.options.grab_keyboard = self.grab_keyboard_option.GetValue()
         self.EndModal(wx.ID_OK)
     
     def on_cancel(self, event):

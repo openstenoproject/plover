@@ -65,7 +65,7 @@ class Stenotype(StenotypeBase):
         """Monitor a Microsoft Sidewinder X4 keyboard via X events."""
         StenotypeBase.__init__(self)
         self._keyboard_emulation = keyboardcontrol.KeyboardEmulation()
-        self._keyboard_capture = keyboardcontrol.KeyboardCapture()
+        self._keyboard_capture = keyboardcontrol.KeyboardCapture(params)
         self._keyboard_capture.key_down = self._key_down
         self._keyboard_capture.key_up = self._key_up
         self.suppress_keyboard(True)
@@ -134,4 +134,5 @@ class Stenotype(StenotypeBase):
         bool_converter = lambda s: s == 'True'
         return {
             'arpeggiate': (False, bool_converter),
+            'grab_keyboard': (False, bool_converter),
         }
