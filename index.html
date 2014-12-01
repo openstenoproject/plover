@@ -101,6 +101,16 @@ cd plover-{{latest_version | limitTo:(-latest_version.length + 1)}}
 sudo python setup.py install</pre>
               <p>Once this is done then you should be able to run plover from the applications menu or from the command line with:</p>
               <pre>/usr/local/bin/plover</pre>
+
+              <h3>Fedora</h3>
+              <p>
+                To install plover along with the dependencies on Fedora 20 and above, run the following commands:
+              </p>
+
+              <pre>
+                sudo yum install -y wxPython pyserial python-lockfile python-serial python-xlib
+                sudo pip install plover
+              </pre>
           </div>
           
           <div class="tab-pane" id="source">
