@@ -3,6 +3,8 @@
 
 import wx
 from wx.lib.utils import AdjustRectToScreen
+import wx.lib.mixins.listctrl as listmix
+from plover.machine.keymap import Keymap
 
 DIALOG_TITLE = 'Keyboard Configuration'
 ARPEGGIATE_LABEL = "Arpeggiate"
@@ -10,6 +12,35 @@ ARPEGGIATE_INSTRUCTIONS = """Arpeggiate allows using non-NKRO keyboards.
 Each key can be pressed separately and the space bar
 is pressed to send the stroke."""
 UI_BORDER = 4
+
+class EditableListCtrl(wx.ListCtrl, listmix.TextEditMixin, listmix.ListCtrlAutoWidthMixin):
+    """Editable list with automatically sized columns."""
+    def __init__(self, parent, ID=wx.ID_ANY, pos=wx.DefaultPosition,
+                 size=wx.DefaultSize, style=0):
+        wx.ListCtrl.__init__(self, parent, ID, pos, size, style)
+        listmix.ListCtrlAutoWidthMixin.__init__(self)
+        listmix.TextEditMixin.__init__(self)
+        self.Bind(wx.EVT_LIST_BEGIN_LABEL_EDIT, self.restrict_editing)
+
+    def restrict_editing(self, event):
+        """Disallow editing of first column."""
+        if event.m_col == 0:
+            event.Veto()
+        else:
+            event.Skip()
+
+    def get_all_rows(self):
+        """Return all items as a list of lists of strings."""
+        rowCount = self.GetItemCount()
+        colCount = self.GetColumnCount()
+        rows = []
+        for rowId in range(rowCount):
+            row = []
+            for colId in range(colCount):
+                item = self.GetItem(itemId=rowId, col=colId)
+                row.append(item.GetText())
+            rows.append(row)
+        return rows
 
 class KeyboardConfigDialog(wx.Dialog):
     """Keyboard configuration dialog."""
@@ -31,6 +62,19 @@ class KeyboardConfigDialog(wx.Dialog):
         sizer.Add(self.arpeggiate_option, border=UI_BORDER, 
                   flag=wx.LEFT | wx.RIGHT | wx.BOTTOM)
         
+        # editable list for keymap bindings
+        self.keymap_list_ctrl = EditableListCtrl(self, style=wx.LC_REPORT, size=(300,200))
+        self.keymap_list_ctrl.InsertColumn(0, 'Steno Key')
+        self.keymap_list_ctrl.InsertColumn(1, 'Keys')
+
+        keymap = options.keymap.get()
+        stenoKeys = keymap.keys()
+        rows = map(lambda x: (x, ' '.join(keymap[x])), stenoKeys)
+        for index, row in enumerate(rows):
+            self.keymap_list_ctrl.InsertStringItem(index, row[0])
+            self.keymap_list_ctrl.SetStringItem(index, 1, row[1])
+        sizer.Add(self.keymap_list_ctrl, flag=wx.EXPAND)
+
         ok_button = wx.Button(self, id=wx.ID_OK)
         ok_button.SetDefault()
         cancel_button = wx.Button(self, id=wx.ID_CANCEL)
@@ -56,6 +100,7 @@ class KeyboardConfigDialog(wx.Dialog):
 
     def on_ok(self, event):
         self.options.arpeggiate = self.arpeggiate_option.GetValue()
+        self.options.keymap = Keymap.from_rows(self.keymap_list_ctrl.get_all_rows())
         self.EndModal(wx.ID_OK)
     
     def on_cancel(self, event):
