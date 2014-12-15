@@ -37,7 +37,9 @@ from plover import log
 
 # Enable support for media keys.
 XK.load_keysym_group('xf86')
-
+# Load non-us keyboard related keysyms.
+XK.load_keysym_group('xkb')
+   
 # Create case insensitive mapping of keyname to keysym.
 KEY_TO_KEYSYM = {}
 for symbol in sorted(dir(XK)): # Sorted so XK_a is preferred over XK_A.
