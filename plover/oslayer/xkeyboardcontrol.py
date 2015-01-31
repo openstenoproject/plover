@@ -77,11 +77,13 @@ KEYCODE_TO_PSEUDOKEY = {38: ord("a"),
 class KeyboardCapture(threading.Thread):
     """Listen to keyboard press and release events."""
 
-    def __init__(self):
+    def __init__(self, params):
         """Prepare to listen for keyboard events."""
         threading.Thread.__init__(self)
         self.context = None
         self.key_events_to_ignore = []
+        self._suppress_keyboard = False
+        self.grab_keyboard = params['grab_keyboard']
 
         # Assign default callback functions.
         self.key_down = lambda x: True
@@ -133,13 +135,20 @@ class KeyboardCapture(threading.Thread):
             keyboard_capture_instances.remove(self)
 
     def can_suppress_keyboard(self):
-        return False
+        return self.grab_keyboard
 
     def suppress_keyboard(self, suppress):
-        pass
+        if not self.grab_keyboard: return
+        if suppress:
+            self.local_display.screen().root.grab_keyboard(True, X.GrabModeAsync, X.GrabModeAsync, X.CurrentTime)
+            self.local_display.sync()
+        elif not suppress:
+            self.local_display.ungrab_keyboard(X.CurrentTime)
+            self.local_display.sync()
+        self._suppress_keyboard = suppress;
 
     def is_keyboard_suppressed(self):
-        return False
+        return self.grab_keyboard and self._suppress_keyboard;
 
     def process_events(self, reply):
         """Handle keyboard events.
