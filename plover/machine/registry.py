@@ -6,6 +6,7 @@
 from plover.machine.geminipr import Stenotype as geminipr
 from plover.machine.txbolt import Stenotype as txbolt
 from plover.machine.sidewinder import Stenotype as sidewinder
+from plover.machine.kinesis import Stenotype as kinesis
 from plover.machine.stentura import Stenotype as stentura
 from plover.machine.passport import Stenotype as passport
 
@@ -49,6 +50,7 @@ class Registry(object):
 
 machine_registry = Registry()
 machine_registry.register('NKRO Keyboard', sidewinder)
+machine_registry.register('Kinesis Advantage', kinesis)
 machine_registry.register('Gemini PR', geminipr)
 machine_registry.register('TX Bolt', txbolt)
 machine_registry.register('Stentura', stentura)
