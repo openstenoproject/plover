@@ -1,7 +1,6 @@
 # Copyright (c) 2010 Joshua Harlan Lifton.
 # See LICENSE.txt for details.
 
-# TODO: add options to remap keys
 # TODO: look into programmatically pasting into other applications
 
 "For use with a Microsoft Sidewinder X4 keyboard used as stenotype machine."
@@ -9,47 +8,8 @@
 # TODO: Change name to NKRO Keyboard.
 
 from plover.machine.base import StenotypeBase
+from plover.machine.keymap import Keymap
 from plover.oslayer import keyboardcontrol
-
-KEYSTRING_TO_STENO_KEY = {"a": "S-",
-                          "q": "S-",
-                          "w": "T-",
-                          "s": "K-",
-                          "e": "P-",
-                          "d": "W-",
-                          "r": "H-",
-                          "f": "R-",
-                          "c": "A-",
-                          "v": "O-",
-                          "t": "*",
-                          "g": "*",
-                          "y": "*",
-                          "h": "*",
-                          "n": "-E",
-                          "m": "-U",
-                          "u": "-F",
-                          "j": "-R",
-                          "i": "-P",
-                          "k": "-B",
-                          "o": "-L",
-                          "l": "-G",
-                          "p": "-T",
-                          ";": "-S",
-                          "[": "-D",
-                          "'": "-Z",
-                          "1": "#",
-                          "2": "#",
-                          "3": "#",
-                          "4": "#",
-                          "5": "#",
-                          "6": "#",
-                          "7": "#",
-                          "8": "#",
-                          "9": "#",
-                          "0": "#",
-                          "-": "#",
-                          "=": "#",
-                         }
 
 
 class Stenotype(StenotypeBase):
@@ -72,6 +32,7 @@ class Stenotype(StenotypeBase):
         self._down_keys = set()
         self._released_keys = set()
         self.arpeggiate = params['arpeggiate']
+        self.keymap = params['keymap'].to_dict()
 
     def start_capture(self):
         """Begin listening for output from the stenotype machine."""
@@ -93,7 +54,7 @@ class Stenotype(StenotypeBase):
             and event.keystring is not None
             and not self._keyboard_capture.is_keyboard_suppressed()):
             self._keyboard_emulation.send_backspaces(1)
-        if event.keystring in KEYSTRING_TO_STENO_KEY:
+        if event.keystring in self.keymap:
             self._down_keys.add(event.keystring)
 
     def _post_suppress(self, suppress, steno_keys):
@@ -109,7 +70,7 @@ class Stenotype(StenotypeBase):
 
     def _key_up(self, event):
         """Called when a key is released."""
-        if event.keystring in KEYSTRING_TO_STENO_KEY:            
+        if event.keystring in self.keymap:
             # Process the newly released key.
             self._released_keys.add(event.keystring)
             # Remove invalid released keys.
@@ -122,8 +83,8 @@ class Stenotype(StenotypeBase):
         if self.arpeggiate:
             send_strokes &= event.keystring == ' '
         if send_strokes:
-            steno_keys = [KEYSTRING_TO_STENO_KEY[k] for k in self._down_keys
-                          if k in KEYSTRING_TO_STENO_KEY]
+            steno_keys = [self.keymap[k] for k in self._down_keys
+                          if k in self.keymap]
             if steno_keys:
                 self._down_keys.clear()
                 self._released_keys.clear()
@@ -132,6 +93,8 @@ class Stenotype(StenotypeBase):
     @staticmethod
     def get_option_info():
         bool_converter = lambda s: s == 'True'
+        keymap_converter = lambda s: Keymap.from_string(s)
         return {
             'arpeggiate': (False, bool_converter),
+            'keymap':     (Keymap.default(), keymap_converter),
         }
