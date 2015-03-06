@@ -14,8 +14,12 @@ import threading
 import re
 import select
 import socket
+import pyudev
+import itertools
 from evdev import InputDevice, uinput, ecodes as e, events
 import evdev
+import errno
+import functools
 
 uinput_options = {
     'name' : 'plover-uinput',
@@ -182,26 +186,78 @@ class KeyboardCapture(threading.Thread):
         self.key_down = lambda x: True
         self.key_up   = lambda x: True
 
-        # Capture the input device for key events.  Right now,
-        # we grab just SideWinder devices
-        self.inputs = []
+        # Get the initial list of valid inputs
+        self.inputs = {}
         for fn in evdev.list_devices():
             cand = InputDevice(fn)
-            if "SiderWinder" in cand.name:
-                self.inputs.append(cand)
+            if self._filterDevice(cand):
+                self.inputs[cand.fn] = cand
+
+    def _filterDevice(self, cand):
+        return "SiderWinder" in cand.name or "Arduino Leonardo" in cand.name
 
     def run(self):
         self.interject, self.interrupt = socket.socketpair()
 
+        context = pyudev.Context()
+        monitor = pyudev.Monitor.from_netlink(context)
+        monitor.filter_by(subsystem='input')
+        monitor.start()
+
+        # Update devices
+        for fn in evdev.list_devices():
+            cand = InputDevice(fn)
+            if self._filterDevice(cand) and cand.fn not in self.inputs:
+                self.inputs[cand.fn] = cand
+                if self._suppress_keyboard:
+                    try:
+                        cand.grab()
+                    except IOError:
+                        pass
+
         running = True
         while running:
-            rs,ws,xs = select.select(self.inputs + [self.interrupt], [], [])
+            rs,ws,xs = select.select(self.inputs.values() + [self.interrupt, monitor], [], [])
             for r in rs:
-                if r.fileno() == self.interrupt.fileno():
+                if r.fileno() == monitor.fileno():
+                    # Unconditionally ping monitor; if this is spurious this
+                    # will no-op because we pass a zero timeout.  Note that
+                    # it takes some time for udev events to get to us.
+                    for udev in iter(functools.partial(monitor.poll, 0), None):
+                        if not udev.device_node: break
+                        if udev.action == 'add':
+                            if udev.device_node not in self.inputs:
+                                try:
+                                    cand = evdev.InputDevice(udev.device_node)
+                                    self.inputs[udev.device_node] = cand
+                                    if self._suppress_keyboard:
+                                        try:
+                                            cand.grab()
+                                        except IOError:
+                                            pass
+                                except IOError, e:
+                                    # udev reports MORE devices than are accessible from
+                                    # evdev; a simple way to check is see if the devinfo
+                                    # ioctl fails
+                                    if e.errno != errno.ENOTTY: raise
+                                    pass
+                        elif udev.action == 'remove':
+                            # NB: This code path isn't exercised very frequently,
+                            # because select() will trigger a read immediately when file
+                            # descriptor goes away, whereas the udev event takes some
+                            # time to propagate to us.
+                            if udev.device_node in self.inputs:
+                                del self.inputs[udev.device_node]
+                elif r.fileno() == self.interrupt.fileno():
                     running = False
                     break
-                for event in r.read():
-                    self.process_events(event)
+                else:
+                    try:
+                        for event in r.read():
+                            self.process_events(event)
+                    except IOError, e:
+                        if e.errno != errno.ENODEV: raise
+                        del self.inputs[r.fn]
 
         self.interject.shutdown(socket.SHUT_RDWR)
         self.interrupt.shutdown(socket.SHUT_RDWR)
@@ -222,10 +278,13 @@ class KeyboardCapture(threading.Thread):
 
     def suppress_keyboard(self, suppress):
         if suppress:
-            for i in self.inputs:
-                i.grab()
+            for i in self.inputs.values():
+                try:
+                    i.grab()
+                except IOError:
+                    pass
         else:
-            for i in self.inputs:
+            for i in self.inputs.values():
                 try:
                     i.ungrab()
                 except IOError:
