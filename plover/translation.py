@@ -222,7 +222,7 @@ def has_undo(t):
     if not t.formatting:
         return True
     for a in t.formatting:
-        if a.text or a.replace:
+        if a.text or a.replace or a.combo:
             return True
     return False
 

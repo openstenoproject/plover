@@ -36,7 +36,7 @@ class Formatter(object):
 
     output_type = namedtuple(
         'output', ['send_backspaces', 'send_string', 'send_key_combination', 
-                   'send_engine_command'])
+                   'send_engine_command', 'render_key_combination'])
 
     def __init__(self):
         self.set_output(None)
@@ -123,6 +123,10 @@ class OutputHelper(object):
                     self.before = self.before[:-len(a.replace)]
             if a.text:
                 self.before += a.text
+            if a.combo:
+                r = self.output.render_key_combination(a.combo)
+                if r is not None:
+                    self.before += r
 
         self.after = self.before
         
@@ -131,6 +135,10 @@ class OutputHelper(object):
                 self.after = self.after[:-len(a.text)]
             if a.replace:
                 self.after += a.replace
+            if a.combo:
+                r = self.output.render_key_combination(a.combo)
+                if r is not None:
+                    self.after = self.after[:-len(r)]
         
         for a in do:
             if a.replace:

@@ -20,6 +20,7 @@ from evdev import InputDevice, uinput, ecodes as e, events
 import evdev
 import errno
 import functools
+from Xlib import XK
 
 uinput_options = {
     'name' : 'plover-uinput',
@@ -131,6 +132,7 @@ upperchar_to_scancode = {
     'Y':e.KEY_Y,
     'Z':e.KEY_Z,
 }
+scancode_to_upperchar = dict(zip(upperchar_to_scancode.values(), upperchar_to_scancode.keys()))
 
 keymap_multi = {
     "Alt_L":e.KEY_LEFTALT,
@@ -355,24 +357,33 @@ class KeyboardEmulation:
 
         self._send_keycodes(keycode_list)
 
-    def send_key_combination(self, combo_string):
-        """Emulate a sequence of key combinations.
-
-        Argument:
-
-        combo_string -- A string representing a sequence of key
-        combinations. Keys are represented by their names in the
-        Xlib.XK module, without the 'XK_' prefix. For example, the
-        left Alt key is represented by 'Alt_L'. Keys are either
-        separated by a space or a left or right parenthesis.
-        Parentheses must be properly formed in pairs and may be
-        nested. A key immediately followed by a parenthetical
-        indicates that the key is pressed down while all keys enclosed
-        in the parenthetical are pressed and released in turn. For
-        example, Alt_L(Tab) means to hold the left Alt key down, press
-        and release the Tab key, and then release the left Alt key.
-
+    def render_key_combination(self, combo_string):
+        """Instead of sending the key combo to evdev, this function
+        simulates the key combo, attempting to calculate a string
+        which have been produced when rendering into a reasonable
+        text editor.  It returns None if it can't figure it out,
+        in which case the combo is assumed to have been zero-length.
         """
+        keycode_list = self._render_key_combination(combo_string)
+        # Conservatively, we will only claim to understand combo
+        # strings that contain some combination of shifts and
+        # translatable keycodes.
+        result = ""
+        shift = False
+        for keycode in keycode_list:
+            if type(keycode) is list:
+                if keycode[0] != e.KEY_LEFTSHIFT: return None
+                shift = keycode[1] == KEY_DOWN
+            else:
+                if shift:
+                    if keycode not in scancode_to_upperchar: return None
+                    result += scancode_to_upperchar[keycode]
+                else:
+                    if keycode not in scancode_to_char: return None
+                    result += scancode_to_char[keycode]
+        return result
+
+    def _render_key_combination(self, combo_string):
         # Convert the argument into a sequence of keycodes
         # that, if executed in order, would emulate the key
         # combination represented by the argument.
@@ -411,6 +422,10 @@ class KeyboardEmulation:
                 keycode_list.append(keymap_single[token])
 
             else:
+                # HAAAAACK
+                xkeysym = XK.string_to_keysym(token)
+                if xkeysym != 0:
+                    token = XK.keysym_to_string(XK.string_to_keysym(token))
                 # Oh, a normal string? How rare.
                 for char in token:
                     code = upperchar_to_scancode.get(char, None)
@@ -427,6 +442,28 @@ class KeyboardEmulation:
         if last_command:
             keycode_list.append(last_command)
             last_command = None
+
+        return keycode_list
+
+    def send_key_combination(self, combo_string):
+        """Emulate a sequence of key combinations.
+
+        Argument:
+
+        combo_string -- A string representing a sequence of key
+        combinations. Keys are represented by their names in the
+        Xlib.XK module, without the 'XK_' prefix. For example, the
+        left Alt key is represented by 'Alt_L'. Keys are either
+        separated by a space or a left or right parenthesis.
+        Parentheses must be properly formed in pairs and may be
+        nested. A key immediately followed by a parenthetical
+        indicates that the key is pressed down while all keys enclosed
+        in the parenthetical are pressed and released in turn. For
+        example, Alt_L(Tab) means to hold the left Alt key down, press
+        and release the Tab key, and then release the left Alt key.
+
+        """
+        keycode_list = self._render_key_combination(combo_string)
 
         if keycode_list:
             self._send_keycodes(keycode_list)
