@@ -14,7 +14,7 @@ UI_BORDER = 4
 ALL_KEYS = ''.join(x[0].strip('-') for x in 
                    sorted(STENO_KEY_ORDER.items(), key=lambda x: x[1]))
 REVERSE_NUMBERS = {v: k for k, v in STENO_KEY_NUMBERS.items()}
-STROKE_LINES = 30
+MAX_STROKE_LINES = 38
 STYLE_TEXT = 'Style:'
 STYLE_PAPER = 'Paper'
 STYLE_RAW = 'Raw'
@@ -23,7 +23,7 @@ STYLES = [STYLE_PAPER, STYLE_RAW]
 class StrokeDisplayDialog(wx.Dialog):
     
     other_instances = []
-    strokes = deque(maxlen=STROKE_LINES)
+    strokes = deque(maxlen=MAX_STROKE_LINES)
 
     def __init__(self, parent, config):
         self.config = config        
@@ -33,11 +33,11 @@ class StrokeDisplayDialog(wx.Dialog):
             style |= wx.STAY_ON_TOP
         pos = (config.get_stroke_display_x(), config.get_stroke_display_y())
         wx.Dialog.__init__(self, parent, title=TITLE, style=style, pos=pos)
-                
+
         self.SetBackgroundColour(wx.WHITE)
-                
+
         sizer = wx.BoxSizer(wx.VERTICAL)
-        
+
         self.on_top = wx.CheckBox(self, label=ON_TOP_TEXT)
         self.on_top.SetValue(config.get_stroke_display_on_top())
         self.on_top.Bind(wx.EVT_CHECKBOX, self.handle_on_top)
@@ -62,16 +62,14 @@ class StrokeDisplayDialog(wx.Dialog):
                   border=UI_BORDER)
         sizer.Add(wx.StaticLine(self), flag=wx.EXPAND)
 
-        self.labels = []
-        for i in range(STROKE_LINES):
-            label = MyStaticText(self, label=' ')
-            self.labels.append(label)
-            font = label.GetFont()
-            font.SetFaceName("Courier")
-            font.SetWeight(wx.FONTWEIGHT_NORMAL)
-            label.SetFont(font)
-            sizer.Add(label, border=UI_BORDER, 
-                      flag=wx.LEFT | wx.RIGHT | wx.BOTTOM)
+        self.listbox = wx.ListBox(self, size=wx.Size(210, 500))
+        font = self.listbox.GetFont()
+        font.SetFaceName("Courier")
+        self.listbox.SetFont(font)
+
+        sizer.Add(self.listbox,
+                  flag=wx.ALL | wx.FIXED_MINSIZE,
+                  border=3)
         
         self.SetSizer(sizer)
         self.SetAutoLayout(True)
@@ -99,9 +97,8 @@ class StrokeDisplayDialog(wx.Dialog):
         event.Skip()
         
     def show_text(self, text):
-        for i in range(len(self.labels) - 1):
-            self.labels[i].SetLabel(self.labels[i + 1].GetLabel())
-        self.labels[-1].SetLabel(text)
+        self.listbox.Append(text)
+        self.listbox.SetSelection(self.listbox.Count-1)
         
     def show_stroke(self, stroke):
         self.show_text(self.formatter(stroke))
@@ -113,6 +110,7 @@ class StrokeDisplayDialog(wx.Dialog):
     def on_style(self, event=None):
         format = self.choice.GetStringSelection()
         self.formatter = getattr(self, format.lower() + '_format')
+        self.listbox.Clear()
         for stroke in self.strokes:
             self.show_stroke(stroke)
         self.header.SetLabel(ALL_KEYS if format == STYLE_PAPER else ' ')
@@ -152,8 +150,6 @@ class StrokeDisplayDialog(wx.Dialog):
         StrokeDisplayDialog(parent, config)
 
 
-# This class exists solely so that the text doesn't get grayed out when the
-# window is not in focus.
 # This class exists solely so that the text doesn't get grayed out when the
 # window is not in focus.
 class MyStaticText(wx.PyControl):
