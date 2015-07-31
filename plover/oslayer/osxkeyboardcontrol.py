@@ -5,8 +5,10 @@ from Quartz import (
     CFRunLoopRun,
     CFRunLoopStop,
     CGEventCreateKeyboardEvent,
+    CGEventCreateCopy,
     CGEventGetFlags,
     CGEventGetIntegerValueField,
+    CGEventKeyboardSetUnicodeString,
     CGEventMaskBit,
     CGEventPost,
     CGEventSetFlags,
@@ -296,14 +298,6 @@ def characters(s):
         character = encoded[start:end].decode('utf-32-be')
         yield character
 
-CGEventKeyboardSetUnicodeString = ctypes.cdll.LoadLibrary(ctypes.util.find_library('ApplicationServices')).CGEventKeyboardSetUnicodeString
-CGEventKeyboardSetUnicodeString.restype = None
-native_utf16 = 'utf-16-le' if sys.byteorder == 'little' else 'utf-16-be'
-
-def set_string(event, s):
-    buf = s.encode(native_utf16)
-    CGEventKeyboardSetUnicodeString(objc.pyobjc_id(event), len(buf) / 2, buf)
-
 class KeyboardEmulation(object):
 
     def __init__(self):
@@ -319,10 +313,10 @@ class KeyboardEmulation(object):
     def send_string(self, s):
         for c in characters(s):
             event = CGEventCreateKeyboardEvent(MY_EVENT_SOURCE, 0, True)
-            set_string(event, c)
+            CGEventKeyboardSetUnicodeString(event, len(c), c)
             CGEventPost(kCGSessionEventTap, event)
             event = CGEventCreateKeyboardEvent(MY_EVENT_SOURCE, 0, False)
-            set_string(event, c)
+            CGEventKeyboardSetUnicodeString(event, len(c), c)
             CGEventPost(kCGSessionEventTap, event)
 
     def send_key_combination(self, combo_string):
