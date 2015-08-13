@@ -106,11 +106,17 @@ class OutputHelper(object):
         self.output = output
         
     def commit(self):
-        offset = len(commonprefix([self.before, self.after]))
-        if self.before[offset:]:
-            self.output.send_backspaces(len(self.before[offset:]))
-        if self.after[offset:]:
-            self.output.send_string(self.after[offset:])
+        # Python narrow Unicode is useless for long characters
+        # UTF-32 is a good container to count characters
+        before_32 = self.before.encode('utf-32-be')
+        after_32 = self.after.encode('utf-32-be')
+        # Get the closest multiple of 4 for length
+        offset = len(commonprefix([before_32, after_32]))/4*4
+        if before_32[offset:]:
+            self.output.send_backspaces(len(before_32[offset:])/4)
+        if after_32[offset:]:
+            # Convert back to Unicode for the send_string method
+            self.output.send_string(after_32[offset:].decode('utf-32-be'))
         self.before = ''
         self.after = ''
 
