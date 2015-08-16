@@ -98,7 +98,7 @@ class ConfigurationDialog(wx.Dialog):
         self.dictionary_config = DictionaryConfig(self.engine, self.config, 
                                                   notebook)
         self.logging_config = LoggingConfig(self.config, notebook)
-        self.display_config = DisplayConfig(self.config, notebook)
+        self.display_config = DisplayConfig(self.config, notebook, self.engine)
         self.output_config = OutputConfig(self.config, notebook)
 
         # Adding each tab
@@ -455,7 +455,7 @@ class DisplayConfig(wx.Panel):
     SHOW_SUGGESTIONS_BUTTON_TEXT = "Open stroke suggestions"
     
     """Display configuration graphical user interface."""
-    def __init__(self, config, parent):
+    def __init__(self, config, parent, engine):
         """Create a configuration component based on the given Config.
 
         Arguments:
@@ -467,6 +467,7 @@ class DisplayConfig(wx.Panel):
         """
         wx.Panel.__init__(self, parent, size=CONFIG_PANEL_SIZE)
         self.config = config
+        self.engine = engine
         sizer = wx.BoxSizer(wx.VERTICAL)
         
         show_strokes_button = wx.Button(self, 
