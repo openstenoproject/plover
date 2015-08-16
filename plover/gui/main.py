@@ -22,6 +22,7 @@ from plover.machine.base import STATE_ERROR, STATE_INITIALIZING, STATE_RUNNING
 from plover.machine.registry import machine_registry
 from plover.exception import InvalidConfigurationError
 from plover.gui.paper_tape import StrokeDisplayDialog
+from plover.gui.suggestions import SuggestionsDisplayDialog
 
 from plover import __name__ as __software_name__
 from plover import __version__
@@ -194,6 +195,11 @@ class MainFrame(wx.Frame):
             StrokeDisplayDialog.stroke_handler)
         if self.config.get_show_stroke_display():
             StrokeDisplayDialog.display(self, self.config)
+
+        self.steno_engine.formatter.add_listener(
+            SuggestionsDisplayDialog.stroke_handler)
+        if self.config.get_show_suggestions_display():
+            SuggestionsDisplayDialog.display(self, self.config, self.steno_engine)
             
         pos = (config.get_main_frame_x(), config.get_main_frame_y())
         self.SetPosition(pos)

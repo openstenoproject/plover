@@ -20,6 +20,7 @@ from plover.machine.registry import machine_registry
 from plover.exception import InvalidConfigurationError
 from plover.dictionary.loading_manager import manager as dict_manager
 from plover.gui.paper_tape import StrokeDisplayDialog
+from plover.gui.suggestions import SuggestionsDisplayDialog
 from plover.gui.keyboard_config import KeyboardConfigDialog
 
 EDIT_BUTTON_NAME = "Edit"
@@ -97,7 +98,7 @@ class ConfigurationDialog(wx.Dialog):
         self.dictionary_config = DictionaryConfig(self.engine, self.config, 
                                                   notebook)
         self.logging_config = LoggingConfig(self.config, notebook)
-        self.display_config = DisplayConfig(self.config, notebook)
+        self.display_config = DisplayConfig(self.config, notebook, self.engine)
         self.output_config = OutputConfig(self.config, notebook)
 
         # Adding each tab
@@ -450,9 +451,11 @@ class DisplayConfig(wx.Panel):
     
     SHOW_STROKES_TEXT = "Open strokes display on startup"
     SHOW_STROKES_BUTTON_TEXT = "Open stroke display"
+    SHOW_SUGGESTIONS_TEXT = "Open stroke suggestions on startup"
+    SHOW_SUGGESTIONS_BUTTON_TEXT = "Open stroke suggestions"
     
     """Display configuration graphical user interface."""
-    def __init__(self, config, parent):
+    def __init__(self, config, parent, engine):
         """Create a configuration component based on the given Config.
 
         Arguments:
@@ -464,6 +467,7 @@ class DisplayConfig(wx.Panel):
         """
         wx.Panel.__init__(self, parent, size=CONFIG_PANEL_SIZE)
         self.config = config
+        self.engine = engine
         sizer = wx.BoxSizer(wx.VERTICAL)
         
         show_strokes_button = wx.Button(self, 
@@ -476,14 +480,28 @@ class DisplayConfig(wx.Panel):
         sizer.Add(self.show_strokes, border=UI_BORDER, 
                   flag=wx.LEFT | wx.RIGHT | wx.BOTTOM)
 
+        show_suggestions_button = wx.Button(self,
+                                        label=self.SHOW_SUGGESTIONS_BUTTON_TEXT)
+        show_suggestions_button.Bind(wx.EVT_BUTTON, self.on_show_suggestions)
+        sizer.Add(show_suggestions_button, border=UI_BORDER, flag=wx.ALL)
+
+        self.show_suggestions = wx.CheckBox(self, label=self.SHOW_SUGGESTIONS_TEXT)
+        self.show_suggestions.SetValue(config.get_show_suggestions_display())
+        sizer.Add(self.show_suggestions, border=UI_BORDER,
+                  flag=wx.LEFT | wx.RIGHT | wx.BOTTOM)
+
         self.SetSizer(sizer)
 
     def save(self):
         """Write all parameters to the config."""
         self.config.set_show_stroke_display(self.show_strokes.GetValue())
+        self.config.set_show_suggestions_display(self.show_suggestions.GetValue())
 
     def on_show_strokes(self, event):
         StrokeDisplayDialog.display(self.GetParent(), self.config)
+
+    def on_show_suggestions(self, event):
+        SuggestionsDisplayDialog.display(self.GetParent(), self.config, self.engine)
 
 class OutputConfig(wx.Panel):
 
