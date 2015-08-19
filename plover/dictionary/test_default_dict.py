@@ -4,7 +4,7 @@
 import json
 import unittest
 
-DICT_PATH='plover/assets/dict.json'
+DICT_PATH='plover/assets/dict_unsorted.json'
 
 class TestCase(unittest.TestCase):
     
