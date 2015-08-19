@@ -254,7 +254,81 @@ class FormatterTestCase(unittest.TestCase):
          [action(lower=True),
           action(text=' equip', word='equip')
          ]),
-         
+
+        (('{<} equip', action(), False),
+         [action(upper=True),
+          action(text=' EQUIP', word='EQUIP', upper_carry=True)
+         ]),
+
+        (('{<} EQUIP', action(), False),
+         [action(upper=True),
+          action(text=' EQUIP', word='EQUIP', upper_carry=True)
+         ]),
+
+        (('{<} equip {^ed}', action(), True),
+         [action(upper=True),
+          action(text='EQUIP ', word='EQUIP', upper_carry=True),
+          action(text='PED ', word='EQUIPPED', replace=' ', upper_carry=True)
+         ]),
+
+        (('equip {*-|}', action(), False),
+         [action(text=' equip', word='equip'),
+          action(text=' Equip', word='Equip', replace=' equip'),
+         ]),
+
+        (('equip {^ed} {*-|}', action(), False),
+         [action(text=' equip', word='equip'),
+          action(text='ped', word='equipped'),
+          action(text='Equipped', word='Equipped', replace='equipped'),
+         ]),
+
+        (('Equip {*>}', action(), False),
+         [action(text=' Equip', word='Equip'),
+          action(text=' equip', word='equip', replace=' Equip'),
+         ]),
+
+        (('Equip {^ed} {*>}', action(), False),
+         [action(text=' Equip', word='Equip'),
+          action(text='ped', word='Equipped'),
+          action(text='equipped', word='equipped', replace='Equipped'),
+         ]),
+
+        (('equip {*<}', action(), False),
+         [action(text=' equip', word='equip'),
+          action(text=' EQUIP', word='EQUIP', replace=' equip', upper_carry=True),
+         ]),
+
+        (('equip {^ed} {*<}', action(), False),
+         [action(text=' equip', word='equip'),
+          action(text='ped', word='equipped'),
+          action(text='EQUIPPED', word='EQUIPPED', replace='equipped', upper_carry=True),
+         ]),
+
+        (('1234 {*($c)}', action(), False),
+         [action(text=' 1234', word='1234'),
+          action(text='$1,234', word='$1,234', replace='1234'),
+         ]),
+
+        (('1234567 {*($c)}', action(), False),
+         [action(text=' 1234567', word='1234567'),
+          action(text='$1,234,567', word='$1,234,567', replace='1234567'),
+         ]),
+
+        (('1234.5 {*($c)}', action(), False),
+         [action(text=' 1234.5', word='1234.5'),
+          action(text='$1,234.50', word='$1,234.50', replace='1234.5'),
+         ]),
+
+        (('1234.56 {*($c)}', action(), False),
+         [action(text=' 1234.56', word='1234.56'),
+          action(text='$1,234.56', word='$1,234.56', replace='1234.56'),
+         ]),
+
+        (('1234.567 {*($c)}', action(), False),
+         [action(text=' 1234.567', word='1234.567'),
+          action(text='$1,234.57', word='$1,234.57', replace='1234.567'),
+         ]),
+
         (('equip {^} {^ed}', action(), False),
          [action(text=' equip', word='equip'),
           action(word='equip', attach=True, orthography=False),
@@ -320,6 +394,80 @@ class FormatterTestCase(unittest.TestCase):
         (('{>} equip', action(), True),
          [action(lower=True),
           action(text='equip ', word='equip')
+         ]),
+
+        (('{<} equip', action(), True),
+         [action(upper=True),
+          action(text='EQUIP ', word='EQUIP', upper_carry=True)
+         ]),
+
+        (('{<} EQUIP', action(), True),
+         [action(upper=True),
+          action(text='EQUIP ', word='EQUIP', upper_carry=True)
+         ]),
+
+        (('{<} equip {^ed}', action(), True),
+         [action(upper=True),
+          action(text='EQUIP ', word='EQUIP', upper_carry=True),
+          action(text='PED ', word='EQUIPPED', replace=' ', upper_carry=True)
+         ]),
+
+        (('equip {*-|}', action(), True),
+         [action(text='equip ', word='equip'),
+          action(text='Equip ', word='Equip', replace='equip '),
+         ]),
+
+        (('equip {^ed} {*-|}', action(), True),
+         [action(text='equip ', word='equip'),
+          action(text='ped ', word='equipped', replace=' '),
+          action(text='Equipped ', word='Equipped', replace='equipped '),
+         ]),
+
+        (('Equip {*>}', action(), True),
+         [action(text='Equip ', word='Equip'),
+          action(text='equip ', word='equip', replace='Equip '),
+         ]),
+
+        (('Equip {^ed} {*>}', action(), True),
+         [action(text='Equip ', word='Equip'),
+          action(text='ped ', word='Equipped', replace=' '),
+          action(text='equipped ', word='equipped', replace='Equipped '),
+         ]),
+
+        (('equip {*<}', action(), True),
+         [action(text='equip ', word='equip'),
+          action(text='EQUIP ', word='EQUIP', replace='equip ', upper_carry=True),
+         ]),
+
+        (('equip {^ed} {*<}', action(), True),
+         [action(text='equip ', word='equip'),
+          action(text='ped ', word='equipped', replace=' '),
+          action(text='EQUIPPED ', word='EQUIPPED', replace='equipped ', upper_carry=True),
+         ]),
+
+        (('1234 {*($c)}', action(), True),
+         [action(text='1234 ', word='1234'),
+          action(text='$1,234 ', word='$1,234', replace='1234 '),
+         ]),
+
+        (('1234567 {*($c)}', action(), True),
+         [action(text='1234567 ', word='1234567'),
+          action(text='$1,234,567 ', word='$1,234,567', replace='1234567 '),
+         ]),
+
+        (('1234.5 {*($c)}', action(), True),
+         [action(text='1234.5 ', word='1234.5'),
+          action(text='$1,234.50 ', word='$1,234.50', replace='1234.5 '),
+         ]),
+
+        (('1234.56 {*($c)}', action(), True),
+         [action(text='1234.56 ', word='1234.56'),
+          action(text='$1,234.56 ', word='$1,234.56', replace='1234.56 '),
+         ]),
+
+        (('1234.567 {*($c)}', action(), True),
+         [action(text='1234.567 ', word='1234.567'),
+          action(text='$1,234.57 ', word='$1,234.57', replace='1234.567 '),
          ]),
          
         (('equip {^} {^ed}', action(), True),
@@ -421,6 +569,18 @@ class FormatterTestCase(unittest.TestCase):
 
         (('{>}', action(word='test')),
          action(lower=True, word='test')),
+
+        (('{<}', action(word='test')),
+         action(upper=True, word='test')),
+
+        (('{*-|}', action(word='test')),
+         action(word='Test', text='Test', replace='test')),
+
+        (('{*>}', action(word='test')),
+         action(word='test', text='test', replace='test')),
+
+        (('{*<}', action(word='test')),
+         action(word='TEST', text='TEST', replace='test', upper_carry=True)),
           
         (('{PLOVER:test_command}', action(word='test')),
          action(word='test', command='test_command')),
@@ -510,6 +670,18 @@ class FormatterTestCase(unittest.TestCase):
 
         (('{>}', action(word='test', text='test ')),
          action(lower=True, word='test')),
+
+        (('{<}', action(word='test', text='test ')),
+         action(upper=True, word='test')),
+
+        (('{*-|}', action(word='test', text='test ')),
+         action(word='Test', text='Test ', replace='test ')),
+
+        (('{*>}', action(word='test', text='test ')),
+         action(word='test', text='test ', replace='test ')),
+
+        (('{*<}', action(word='test', text='test ')),
+         action(word='TEST', text='TEST ', replace='test ', upper_carry=True)),
 
         (('{PLOVER:test_command}', action(word='test', text='test ')),
          action(word='test', command='test_command')),

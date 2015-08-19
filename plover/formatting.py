@@ -168,7 +168,7 @@ class _Action(object):
 
     """
     def __init__(self, attach=False, glue=False, word='', capitalize=False, 
-                 lower=False, orthography=True, text='', replace='', combo='', 
+                 lower=False, upper=False, upper_carry=False, orthography=True, text='', replace='', combo='',
                  command=''):
         """Initialize a new action.
 
@@ -186,6 +186,10 @@ class _Action(object):
         capitalize -- True if the next action should be capitalized.
 
         lower -- True if the next action should be lower cased.
+
+        upper -- True if the entire next action should be uppercase.
+
+        upper_carry -- True if we are uppercasing the current word.
 
         othography -- True if orthography rules should be applies when adding
         a suffix to this action.
@@ -206,6 +210,8 @@ class _Action(object):
         self.word = word
         self.capitalize = capitalize
         self.lower = lower
+        self.upper = upper
+        self.upper_carry = upper_carry
         self.orthography = orthography
                 
         # Instruction variables
@@ -222,6 +228,8 @@ class _Action(object):
         a.word = self.word
         a.capitalize = self.capitalize
         a.lower = self.lower
+        a.upper = self.upper
+        a.upper_carry = self.upper_carry
         a.orthography = self.orthography
         return a
         
@@ -301,7 +309,6 @@ def _translation_to_actions(translation, last_action, spaces_after):
         action = _atom_to_action(atom, last_action, spaces_after)
         actions.append(action)
         last_action = action
-
     return actions
 
 
@@ -311,6 +318,11 @@ META_STOPS = ('.', '!', '?')
 META_COMMAS = (',', ':', ';')
 META_CAPITALIZE = '-|'
 META_LOWER = '>'
+META_UPPER = '<'
+META_RETRO_CAPITALIZE = '*-|'
+META_RETRO_LOWER = '*>'
+META_RETRO_UPPER = '*<'
+META_RETRO_FORMAT = '*('
 META_GLUE_FLAG = '&'
 META_ATTACH_FLAG = '^'
 META_KEY_COMBINATION = '#'
@@ -380,6 +392,8 @@ def _atom_to_action_spaces_before(atom, last_action):
     last_attach = last_action.attach
     last_capitalize = last_action.capitalize
     last_lower = last_action.lower
+    last_upper = last_action.upper
+    last_upper_carry = last_action.upper_carry
     last_orthography = last_action.orthography
     meta = _get_meta(atom)
     if meta is not None:
@@ -390,14 +404,71 @@ def _atom_to_action_spaces_before(atom, last_action):
             action.text = meta
             action.capitalize = True
             action.lower = False
+            action.upper = False
         elif meta == META_CAPITALIZE:
             action = last_action.copy_state()
             action.capitalize = True
             action.lower = False
+            action.upper = False
         elif meta == META_LOWER:
             action = last_action.copy_state()
             action.lower = True
+            action.upper = False
             action.capitalize = False
+        elif meta == META_UPPER:
+            action = last_action.copy_state()
+            action.lower = False
+            action.upper = True
+            action.capitalize = False
+        elif meta == META_RETRO_CAPITALIZE:
+            action = last_action.copy_state()
+            action.word = _capitalize(action.word)
+            if len(last_action.text) < len(last_action.word):
+                action.replace = last_action.word
+                action.text = _capitalize(last_action.word)
+            else:
+                action.replace = last_action.text
+                action.text = _capitalize_nowhitespace(last_action.text)
+        elif meta == META_RETRO_LOWER:
+            action = last_action.copy_state()
+            action.word = _lower(action.word)
+            if len(last_action.text) < len(last_action.word):
+                action.replace = last_action.word
+                action.text = _lower(last_action.word)
+            else:
+                action.replace = last_action.text
+                action.text = _lower_nowhitespace(last_action.text)
+        elif meta == META_RETRO_UPPER:
+            action = last_action.copy_state()
+            action.word = _upper(action.word)
+            action.upper_carry = True
+            if len(last_action.text) < len(last_action.word):
+                action.replace = last_action.word
+                action.text = _upper(last_action.word)
+            else:
+                action.replace = last_action.text
+                action.text = _upper(last_action.text)
+        elif meta.startswith(META_RETRO_FORMAT):
+            if (meta.startswith(META_RETRO_FORMAT) and meta.endswith(')')):
+                dict_format = meta[len(META_RETRO_FORMAT):-len(')')]
+                action = last_action.copy_state()
+                action.replace = last_action.word
+                try:
+                    float(last_action.word)
+                except ValueError:
+                    pass
+                else:
+                    format = dict_format.replace('c', '{:,.2f}')
+                    cast_input = float(last_action.word)
+                try:
+                    int(last_action.word)
+                except ValueError:
+                    pass
+                else:
+                    format = dict_format.replace('c', '{:,}')
+                    cast_input = int(last_action.word)
+                action.text = format.format(cast_input)
+                action.word = action.text
         elif meta.startswith(META_COMMAND):
             action = last_action.copy_state()
             action.command = meta[len(META_COMMAND):]
@@ -438,6 +509,9 @@ def _atom_to_action_spaces_before(atom, last_action):
                 meta = _capitalize(meta)
             if last_lower:
                 meta = _lower(meta)
+            if last_upper_carry:
+                meta = _upper(meta)
+                action.upper_carry = True
             action.text = space + meta
             action.word = _rightmost_word(
                 last_word[:len(last_word)-len(action.replace)] + action.text)
@@ -450,6 +524,9 @@ def _atom_to_action_spaces_before(atom, last_action):
             text = _capitalize(text)
         if last_lower:
             text = _lower(text)
+        if last_upper:
+            text = _upper(text)
+            action.upper_carry = True
         space = NO_SPACE if last_attach else SPACE
         action.text = space + text
         action.word = _rightmost_word(text)
@@ -476,6 +553,8 @@ def _atom_to_action_spaces_after(atom, last_action):
     last_attach = last_action.attach
     last_capitalize = last_action.capitalize
     last_lower = last_action.lower
+    last_upper = last_action.upper
+    last_upper_carry = last_action.upper_carry
     last_orthography = last_action.orthography
     last_space = SPACE if last_action.text.endswith(SPACE) else NO_SPACE
     meta = _get_meta(atom)
@@ -503,6 +582,60 @@ def _atom_to_action_spaces_after(atom, last_action):
             action = last_action.copy_state()
             action.lower = True
             action.capitalize = False
+        elif meta == META_UPPER:
+            action = last_action.copy_state()
+            action.lower = False
+            action.upper = True
+            action.capitalize = False
+        elif meta == META_RETRO_CAPITALIZE:
+            action = last_action.copy_state()
+            action.word = _capitalize(action.word)
+            if len(last_action.text) < len(last_action.word):
+                action.replace = last_action.word + SPACE
+                action.text = _capitalize(last_action.word + SPACE)
+            else:
+                action.replace = last_action.text
+                action.text = _capitalize_nowhitespace(last_action.text)
+        elif meta == META_RETRO_LOWER:
+            action = last_action.copy_state()
+            action.word = _lower(action.word)
+            if len(last_action.text) < len(last_action.word):
+                action.replace = last_action.word + SPACE
+                action.text = _lower(last_action.word + SPACE)
+            else:
+                action.replace = last_action.text
+                action.text = _lower_nowhitespace(last_action.text)
+        elif meta == META_RETRO_UPPER:
+            action = last_action.copy_state()
+            action.word = _upper(action.word)
+            action.upper_carry = True
+            if len(last_action.text) < len(last_action.word):
+                action.replace = last_action.word + SPACE
+                action.text = _upper(last_action.word + SPACE)
+            else:
+                action.replace = last_action.text
+                action.text = _upper(last_action.text)
+        elif meta.startswith(META_RETRO_FORMAT):
+            if (meta.startswith(META_RETRO_FORMAT) and meta.endswith(')')):
+                dict_format = meta[len(META_RETRO_FORMAT):-len(')')]
+                action = last_action.copy_state()
+                action.replace = last_action.word + SPACE
+                try:
+                    float(last_action.word)
+                except ValueError:
+                    pass
+                else:
+                    format = dict_format.replace('c', '{:,.2f}')
+                    cast_input = float(last_action.word)
+                try:
+                    int(last_action.word)
+                except ValueError:
+                    pass
+                else:
+                    format = dict_format.replace('c', '{:,}')
+                    cast_input = int(last_action.word)
+                action.text = format.format(cast_input) + SPACE
+                action.word = format.format(cast_input)
         elif meta.startswith(META_COMMAND):
             action = last_action.copy_state()
             action.command = meta[len(META_COMMAND):]
@@ -557,6 +690,9 @@ def _atom_to_action_spaces_after(atom, last_action):
                 meta = _capitalize(meta)
             if last_lower:
                 meta = _lower(meta)
+            if last_upper_carry:
+                meta = _upper(meta)
+                action.upper_carry = True
             action.text = meta + space
             action.word = _rightmost_word(
                 last_word[:len(last_word + last_space)-len(action.replace)] + meta)
@@ -571,6 +707,9 @@ def _atom_to_action_spaces_after(atom, last_action):
             text = _capitalize(text)
         if last_lower:
             text = _lower(text)
+        if last_upper:
+            text = _upper(text)
+            action.upper_carry = True
             
         action.text = text + SPACE
         action.word = _rightmost_word(text)
@@ -608,6 +747,37 @@ def _capitalize(s):
 def _lower(s):
     """Lowercase the first letter of s."""
     return s[0:1].lower() + s[1:]
+
+def _capitalize_nowhitespace(s):
+    """Capitalize the first letter of s (ignoring spaces)."""
+    word_list = s.split(' ')
+    final_list = []
+    first_word = True
+    for word in word_list:
+        if len(word) > 0:
+            if first_word == True:
+                word = word[0:1].upper() + word[1:]
+                first_word = False
+        final_list.append(word)
+    return ' '.join(final_list)
+
+def _lower_nowhitespace(s):
+    """Lowercase the first letter of s (ignoring spaces)."""
+    word_list = s.split(' ')
+    final_list = []
+    first_word = True
+    for word in word_list:
+        if len(word) > 0:
+            if first_word == True:
+                word = word[0:1].lower() + word[1:]
+                first_word = False
+        final_list.append(word)
+    return ' '.join(final_list)
+    #return s[0:1].lower() + s[1:]
+
+def _upper(s):
+    """Uppercase the entire s."""
+    return s.upper()
 
 def _rightmost_word(s):
     """Get the rightmost word in s."""

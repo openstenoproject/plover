@@ -586,7 +586,77 @@ class TranslateStrokeTestCase(unittest.TestCase):
         self.assertEqual(lt[0].english, None)
         self.translate(stroke('K-LG'))
         self.assertTranslations(lt)
-    
+
+    def test_retrospective_insert_space(self):
+        self.define('T/E/S/T', 'a longer key')
+        self.define('PER', 'perfect')
+        self.define('SWAEUGS', 'situation')
+        self.define('PER/SWAEUGS', 'persuasion')
+        self.define('SP*', '{*?}')
+        self.translate(stroke('PER'))
+        self.translate(stroke('SWAEUGS'))
+        self.translate(stroke('SP*'))
+        lt = self.lt('PER')
+        undo = self.lt('PER/SWAEUGS')
+        undo[0].replaced = lt
+        do = self.lt('SP*')
+        do[0].english = 'perfect situation'
+        do[0].is_retrospective_command = True
+        do[0].replaced = undo
+        self.assertTranslations(do)
+        self.assertOutput(undo, do, None)
+
+    def test_retrospective_delete_space(self):
+        self.define('T/E/S/T', 'a longer key')
+        self.define('K', 'kick')
+        self.define('B', 'back')
+        self.define('SP*', '{*!}')
+        self.translate(stroke('K'))
+        self.translate(stroke('B'))
+        self.translate(stroke('SP*'))
+        undo = self.lt('K B')
+        do = self.lt('SP*')
+        do[0].english = 'kickback'
+        do[0].is_retrospective_command = True
+        do[0].replaced = undo
+        self.assertTranslations(do)
+        self.assertOutput(undo, do, None)
+
+    def test_retrospective_toggle_asterisk(self):
+        self.define('T/E/S/T', 'a longer key')
+        self.define('S', 'see')
+        self.define('S*', 'sea')
+        self.define('A*', '{*}')
+        self.translate(stroke('S'))
+        self.translate(stroke('A*'))
+        undo = self.lt('S')
+        do = self.lt('S*')
+        self.assertTranslations(do)
+        self.assertOutput(undo, do, None)
+
+    def test_repeat_last_stroke1(self):
+        self.define('T/E/S/T', 'a longer key')
+        self.define('TH', 'this')
+        self.define('R*', '{*+}')
+        self.translate(stroke('TH'))
+        self.translate(stroke('R*'))
+        undo = []
+        do = self.lt('TH')
+        state = self.lt('TH TH')
+        self.assertTranslations(state)
+        self.assertOutput(undo, do, do[0])
+
+    def test_repeat_last_stroke2(self):
+        self.define('T/E/S/T', 'a longer key')
+        self.define('THA', 'that')
+        self.define('R*', '{*+}')
+        self.translate(stroke('THA'))
+        self.translate(stroke('R*'))
+        undo = []
+        do = self.lt('THA')
+        state = self.lt('THA THA')
+        self.assertTranslations(state)
+        self.assertOutput(undo, do, do[0])
 
 if __name__ == '__main__':
     unittest.main()
