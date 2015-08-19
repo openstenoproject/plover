@@ -25,8 +25,6 @@ class DictionaryLoadingManagerTestCase(unittest.TestCase):
         loader = MockLoader(files)
         with patch('plover.dictionary.loading_manager.load_dictionary', loader):
             manager = loading_manager.DictionaryLoadingManager()
-            manager.start_loading('a')
-            manager.start_loading('b')
             results = manager.load(['c', 'b'])
             # Returns the right values in the right order.
             self.assertEqual(results, ['ccccc', 'bbbbb'])
