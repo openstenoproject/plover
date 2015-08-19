@@ -25,6 +25,7 @@ class SuggestionsDisplayDialog(wx.Dialog):
         self.words = ''
         on_top = config.get_suggestions_display_on_top()
         style = wx.DEFAULT_DIALOG_STYLE
+        style |= wx.RESIZE_BORDER
         if on_top:
             style |= wx.STAY_ON_TOP
         pos = (config.get_suggestions_display_x(), config.get_suggestions_display_y())
@@ -55,7 +56,8 @@ class SuggestionsDisplayDialog(wx.Dialog):
         self.listbox.SetFont(font)
 
         sizer.Add(self.listbox,
-                  flag=wx.ALL | wx.FIXED_MINSIZE,
+                  proportion=1,
+                  flag=wx.ALL | wx.FIXED_MINSIZE | wx.EXPAND,
                   border=3)
 
         self.SetSizer(sizer)
