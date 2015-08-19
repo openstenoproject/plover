@@ -39,7 +39,8 @@ def load_dictionary(filename):
             d = loader(f.read())
     except IOError as e:
         raise DictionaryLoaderException(unicode(e))
-        
+
+    d.set_path(filename)
     d.save = ThreadedSaver(d, filename, dict_type.save_dictionary)
     return d
 
