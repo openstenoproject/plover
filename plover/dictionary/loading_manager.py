@@ -42,7 +42,6 @@ class DictionaryLoadingOperation(object):
     def load(self):
         try:
             self.dictionary = load_dictionary(self.filename)
-            self.dictionary.set_path(self.filename)
         except DictionaryLoaderException as e:
             self.exception = e
         
