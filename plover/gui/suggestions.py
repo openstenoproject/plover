@@ -109,14 +109,17 @@ class SuggestionsDisplayDialog(wx.Dialog):
         for action in old:
             remove = len(action.text)
             self.words = self.words[:-remove]
+            self.words = self.words + action.replace
 
         for action in new:
+            remove = len(action.replace)
+            if remove > 0:
+                self.words = self.words[:-remove]
             self.words = self.words + action.text
 
         # Limit phrasing memory to 100 characters, because most phrases probably
         # don't exceed this length
         self.words = self.words[-100:]
-
 
         split_words = PAT.findall(self.words)
         interp_phrase = split_words[-1:]
