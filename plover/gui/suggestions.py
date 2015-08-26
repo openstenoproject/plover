@@ -139,7 +139,7 @@ class SuggestionsDisplayDialog(wx.Dialog):
 
     def handle_on_top(self, event):
         self.config.set_suggestions_display_on_top(event.IsChecked())
-        self.display(self.GetParent(), self.config)
+        self.display(self.GetParent(), self.config, self.engine)
 
     @staticmethod
     def tails(ls):
