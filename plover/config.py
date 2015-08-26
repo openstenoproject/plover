@@ -48,6 +48,16 @@ DEFAULT_STROKE_DISPLAY_X = -1
 STROKE_DISPLAY_Y_OPTION = 'y'
 DEFAULT_STROKE_DISPLAY_Y = -1
 
+SUGGESTIONS_DISPLAY_SECTION = 'Suggestions Display'
+SUGGESTIONS_DISPLAY_SHOW_OPTION = 'show'
+DEFAULT_SUGGESTIONS_DISPLAY_SHOW = False
+SUGGESTIONS_DISPLAY_ON_TOP_OPTION = 'on_top'
+DEFAULT_SUGGESTIONS_DISPLAY_ON_TOP = True
+SUGGESTIONS_DISPLAY_X_OPTION = 'x'
+DEFAULT_SUGGESTIONS_DISPLAY_X = -1
+SUGGESTIONS_DISPLAY_Y_OPTION = 'y'
+DEFAULT_SUGGESTIONS_DISPLAY_Y = -1
+
 OUTPUT_CONFIG_SECTION = 'Output Configuration'
 OUTPUT_CONFIG_SPACE_PLACEMENT_OPTION = 'space_placement'
 DEFAULT_OUTPUT_CONFIG_SPACE_PLACEMENT = 'Before Output'
@@ -224,6 +234,13 @@ class Config(object):
         return self._get_bool(STROKE_DISPLAY_SECTION, 
             STROKE_DISPLAY_SHOW_OPTION, DEFAULT_STROKE_DISPLAY_SHOW)
 
+    def set_show_suggestions_display(self, b):
+        self._set(SUGGESTIONS_DISPLAY_SECTION, SUGGESTIONS_DISPLAY_SHOW_OPTION, b)
+
+    def get_show_suggestions_display(self):
+        return self._get_bool(SUGGESTIONS_DISPLAY_SECTION,
+            SUGGESTIONS_DISPLAY_SHOW_OPTION, DEFAULT_SUGGESTIONS_DISPLAY_SHOW)
+
     def get_space_placement(self):
         return self._get(OUTPUT_CONFIG_SECTION, OUTPUT_CONFIG_SPACE_PLACEMENT_OPTION, 
                          DEFAULT_OUTPUT_CONFIG_SPACE_PLACEMENT)
@@ -237,6 +254,13 @@ class Config(object):
     def get_stroke_display_on_top(self):
         return self._get_bool(STROKE_DISPLAY_SECTION, 
             STROKE_DISPLAY_ON_TOP_OPTION, DEFAULT_STROKE_DISPLAY_ON_TOP)
+
+    def set_suggestions_display_on_top(self, b):
+        self._set(SUGGESTIONS_DISPLAY_SECTION, SUGGESTIONS_DISPLAY_ON_TOP_OPTION, b)
+
+    def get_suggestions_display_on_top(self):
+        return self._get_bool(SUGGESTIONS_DISPLAY_SECTION,
+            SUGGESTIONS_DISPLAY_ON_TOP_OPTION, DEFAULT_SUGGESTIONS_DISPLAY_ON_TOP)
 
     def set_stroke_display_style(self, s):
         self._set(STROKE_DISPLAY_SECTION, STROKE_DISPLAY_STYLE_OPTION, s)
@@ -258,6 +282,20 @@ class Config(object):
     def get_stroke_display_y(self):
         return self._get_int(STROKE_DISPLAY_SECTION, STROKE_DISPLAY_Y_OPTION, 
                              DEFAULT_STROKE_DISPLAY_Y)
+
+    def set_suggestions_display_x(self, x):
+        self._set(SUGGESTIONS_DISPLAY_SECTION, SUGGESTIONS_DISPLAY_X_OPTION, x)
+
+    def get_suggestions_display_x(self):
+        return self._get_int(SUGGESTIONS_DISPLAY_SECTION, SUGGESTIONS_DISPLAY_X_OPTION,
+                             DEFAULT_SUGGESTIONS_DISPLAY_X)
+
+    def set_suggestions_display_y(self, y):
+        self._set(SUGGESTIONS_DISPLAY_SECTION, SUGGESTIONS_DISPLAY_Y_OPTION, y)
+
+    def get_suggestions_display_y(self):
+        return self._get_int(SUGGESTIONS_DISPLAY_SECTION, SUGGESTIONS_DISPLAY_Y_OPTION,
+                             DEFAULT_SUGGESTIONS_DISPLAY_Y)
 
     def set_config_frame_x(self, x):
         self._set(CONFIG_FRAME_SECTION, CONFIG_FRAME_X_OPTION, x)

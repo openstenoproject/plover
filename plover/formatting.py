@@ -41,6 +41,23 @@ class Formatter(object):
     def __init__(self):
         self.set_output(None)
         self.spaces_after = False
+        self._listeners = set()
+
+    def add_listener(self, callback):
+        """Add a listener for translation outputs.
+
+        Arguments:
+
+        callback -- A function that takes: a list of translations to undo, a
+        list of new translations to render, and a translation that is the
+        context for the new translations.
+
+        """
+        self._listeners.add(callback)
+
+    def remove_listener(self, callback):
+        """Remove a listener added by add_listener."""
+        self._listeners.remove(callback)
 
     def set_output(self, output):
         """Set the output class."""
@@ -90,6 +107,9 @@ class Formatter(object):
                 break
         else:
             i = min_length
+
+        for callback in self._listeners:
+            callback(old, new)
 
         OutputHelper(self._output).render(old[i:], new[i:])
 
