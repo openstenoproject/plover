@@ -44,6 +44,7 @@ SPACE_PLACEMENTS_LABEL = "Space Placement:"
 SPACE_PLACEMENT_BEFORE = "Before Output"
 SPACE_PLACEMENT_AFTER = "After Output"
 SPACE_PLACEMENTS = [SPACE_PLACEMENT_BEFORE, SPACE_PLACEMENT_AFTER]
+TRANSLATION_TRANSPARENCY_LABEL = "Add Translations Dialog Transparency"
 CONFIG_PANEL_SIZE = (-1, -1)
 UI_BORDER = 4
 COMPONENT_SPACE = 3
@@ -469,26 +470,59 @@ class DisplayConfig(wx.Panel):
         self.config = config
         self.engine = engine
         sizer = wx.BoxSizer(wx.VERTICAL)
+
+        show_strokes_sizer = wx.BoxSizer(wx.VERTICAL)
         
-        show_strokes_button = wx.Button(self, 
-                                        label=self.SHOW_STROKES_BUTTON_TEXT)
+        show_strokes_button = wx.Button(self, label=self.SHOW_STROKES_BUTTON_TEXT)
         show_strokes_button.Bind(wx.EVT_BUTTON, self.on_show_strokes)
-        sizer.Add(show_strokes_button, border=UI_BORDER, flag=wx.ALL)
+        show_strokes_sizer.Add(show_strokes_button, border=UI_BORDER, flag=wx.ALL)
         
         self.show_strokes = wx.CheckBox(self, label=self.SHOW_STROKES_TEXT)
         self.show_strokes.SetValue(config.get_show_stroke_display())
-        sizer.Add(self.show_strokes, border=UI_BORDER, 
-                  flag=wx.LEFT | wx.RIGHT | wx.BOTTOM)
+        show_strokes_sizer.Add(self.show_strokes, border=UI_BORDER,
+                flag=wx.LEFT | wx.RIGHT | wx.BOTTOM)
 
-        show_suggestions_button = wx.Button(self,
-                                        label=self.SHOW_SUGGESTIONS_BUTTON_TEXT)
+        sizer.Add(show_strokes_sizer, border=UI_BORDER, flag=wx.BOTTOM)
+
+        show_suggestions_sizer = wx.BoxSizer(wx.VERTICAL)
+
+        show_suggestions_button = wx.Button(self, label=self.SHOW_SUGGESTIONS_BUTTON_TEXT)
         show_suggestions_button.Bind(wx.EVT_BUTTON, self.on_show_suggestions)
-        sizer.Add(show_suggestions_button, border=UI_BORDER, flag=wx.ALL)
+        show_suggestions_sizer.Add(show_suggestions_button, border=UI_BORDER, flag=wx.ALL)
 
         self.show_suggestions = wx.CheckBox(self, label=self.SHOW_SUGGESTIONS_TEXT)
         self.show_suggestions.SetValue(config.get_show_suggestions_display())
-        sizer.Add(self.show_suggestions, border=UI_BORDER,
-                  flag=wx.LEFT | wx.RIGHT | wx.BOTTOM)
+        show_suggestions_sizer.Add(self.show_suggestions, border=UI_BORDER,
+                flag=wx.LEFT | wx.RIGHT | wx.BOTTOM)
+
+        sizer.Add(show_suggestions_sizer, border=UI_BORDER, flag=wx.BOTTOM)
+
+        translation_transparency_sizer = wx.BoxSizer(wx.VERTICAL)
+
+        translation_transparency_label = wx.StaticText(self, label=TRANSLATION_TRANSPARENCY_LABEL)
+        translation_transparency_sizer.Add(translation_transparency_label,
+                border=COMPONENT_SPACE,
+                flag=wx.ALL)
+
+        translation_transparency_slider_sizer = wx.BoxSizer(wx.HORIZONTAL)
+
+        self.translation_transparency_slider = wx.Slider(self)
+        self.translation_transparency_slider.SetMin(0)
+        self.translation_transparency_slider.SetMax(100)
+        self.translation_transparency_slider.SetTick(1)
+        self.translation_transparency_slider.SetValue(self.config.get_translation_frame_transparency())
+        self.translation_transparency_slider.Bind(wx.EVT_SLIDER, self.on_transparency_slider_move)
+
+        translation_transparency_slider_sizer.Add(self.translation_transparency_slider)
+
+        self.translation_transparency_value = wx.StaticText(self,
+                label=str(self.config.get_translation_frame_transparency()))
+
+        translation_transparency_slider_sizer.Add(self.translation_transparency_value)
+
+        translation_transparency_sizer.Add(translation_transparency_slider_sizer)
+
+        sizer.Add(translation_transparency_sizer)
 
         self.SetSizer(sizer)
 
@@ -496,12 +530,16 @@ class DisplayConfig(wx.Panel):
         """Write all parameters to the config."""
         self.config.set_show_stroke_display(self.show_strokes.GetValue())
         self.config.set_show_suggestions_display(self.show_suggestions.GetValue())
+        self.config.set_translation_frame_transparency(self.translation_transparency_slider.GetValue())
 
     def on_show_strokes(self, event):
         StrokeDisplayDialog.display(self.GetParent(), self.config)
 
     def on_show_suggestions(self, event):
         SuggestionsDisplayDialog.display(self.GetParent(), self.config, self.engine)
+
+    def on_transparency_slider_move(self, event):
+        self.translation_transparency_value.SetLabel(str(self.translation_transparency_slider.GetValue()))
 
 class OutputConfig(wx.Panel):
 

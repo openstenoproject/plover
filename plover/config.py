@@ -83,6 +83,8 @@ TRANSLATION_FRAME_X_OPTION = 'x'
 DEFAULT_TRANSLATION_FRAME_X = -1
 TRANSLATION_FRAME_Y_OPTION = 'y'
 DEFAULT_TRANSLATION_FRAME_Y = -1
+TRANSLATION_FRAME_TRANSPARENCY_OPTION = 'transparency'
+DEFAULT_TRANSLATION_FRAME_TRANSPARENCY = 0
 
 LOOKUP_FRAME_SECTION = 'Lookup Frame'
 LOOKUP_FRAME_X_OPTION = 'x'
@@ -354,6 +356,14 @@ class Config(object):
         return self._get_int(TRANSLATION_FRAME_SECTION, 
                              TRANSLATION_FRAME_Y_OPTION,
                              DEFAULT_TRANSLATION_FRAME_Y)
+
+    def set_translation_frame_transparency(self, transparency):
+        self._set(TRANSLATION_FRAME_SECTION, TRANSLATION_FRAME_TRANSPARENCY_OPTION, transparency)
+
+    def get_translation_frame_transparency(self):
+        return self._get_int(TRANSLATION_FRAME_SECTION,
+                             TRANSLATION_FRAME_TRANSPARENCY_OPTION,
+                             DEFAULT_TRANSLATION_FRAME_TRANSPARENCY)
                              
     def set_lookup_frame_x(self, x):
         self._set(LOOKUP_FRAME_SECTION, LOOKUP_FRAME_X_OPTION, x)

@@ -24,6 +24,10 @@ class AddTranslationDialog(wx.Dialog):
                            pos, wx.DefaultSize, 
                            wx.DEFAULT_DIALOG_STYLE, wx.DialogNameStr)
 
+        transparency = config.get_translation_frame_transparency()
+
+        self.SetTransparent(255 - (2.55 * transparency))
+
         self.config = config
 
         # components
@@ -48,7 +52,7 @@ class AddTranslationDialog(wx.Dialog):
         sizer.Add(label, 
                   flag=wx.TOP | wx.RIGHT | wx.BOTTOM | wx.ALIGN_CENTER_VERTICAL, 
                   border=self.BORDER)
-        sizer.Add(self.translation_text          , 
+        sizer.Add(self.translation_text,
                   flag=wx.TOP | wx.RIGHT | wx.BOTTOM | wx.ALIGN_CENTER_VERTICAL, 
                   border=self.BORDER)
         sizer.Add(button, 
