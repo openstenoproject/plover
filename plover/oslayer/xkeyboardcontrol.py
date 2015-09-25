@@ -420,9 +420,12 @@ class KeyboardEmulation(object):
         if len(keycodes) > 0:
             keycode, offset = keycodes[0]
             modifiers = 0
-            if offset == 1 or offset == 3:
+            if offset == 1 or offset == 3 or offset == 5:
                 # The keycode needs the Shift modifier.
                 modifiers |= X.ShiftMask
+            if offset == 4 or offset == 5:
+                # 3rd (AltGr) level.
+                modifiers |= X.Mod5Mask
             if offset == 2 or offset == 3:
                 # The keysym is in group Group 2 instead of Group 1.
                 for i, mod_keycodes in enumerate(self.modifier_mapping):
