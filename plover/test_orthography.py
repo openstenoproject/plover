@@ -99,8 +99,10 @@ class OrthographyTestCase(unittest.TestCase):
             ('lad', 'er', 'ladder'),
             ('translucent', 'cy', 'translucency'),
             ('bankrupt', 'cy', 'bankruptcy'),
-            ('inadequate', 'cy', 'inadequatecy'), # TODO: inadequacy
-            ('secret', 'cy', 'secretcy'), # TODO: secrecy
+            ('inadequate', 'cy', 'inadequacy'),
+            ('secret', 'cy', 'secrecy'),
+            ('impolite', 'cy', 'impolicy'),
+            ('idiot', 'cy', 'idiocy'),
             ('free', 'ed', 'freed'),
             ('free', 'er', 'freer'),
             ('regulate', 'ry', 'regulatory'),
