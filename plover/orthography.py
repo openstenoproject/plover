@@ -28,10 +28,10 @@ RULES = [
     (re.compile(r'^(.*t)e \^ ry$', re.I),
         r'\1ory'),
         
-    # == nt +cy ==      
-    # frequent + cy = frequency
-    (re.compile(r'^(.*)nt \^ cy$', re.I),
-        r'\1ncy'),
+    # == t +cy ==      
+    # frequent + cy = frequency (tcy/tecy removal)
+    (re.compile(r'^(.*[naeiou])te? \^ cy$', re.I),
+        r'\1cy'),
 
     # == +s ==
     # establish + s = establishes (sibilant pluralization)
