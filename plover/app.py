@@ -23,6 +23,7 @@ import plover.oslayer.keyboardcontrol as keyboardcontrol
 import plover.steno as steno
 import plover.machine.base
 import plover.machine.sidewinder
+import plover.machine.kinesis
 import plover.steno_dictionary as steno_dictionary
 import plover.steno as steno
 import plover.translation as translation
@@ -202,7 +203,8 @@ class StenoEngine(object):
         else:
             self.translator.clear_state()
             self.formatter.set_output(self.command_only_output)
-        if isinstance(self.machine, plover.machine.sidewinder.Stenotype):
+        if (isinstance(self.machine, plover.machine.sidewinder.Stenotype)
+            or isinstance(self.machine, plover.machine.kinesis.Stenotype)):
             self.machine.suppress_keyboard(self.is_running)
         for callback in self.subscribers:
             callback(None)
