@@ -331,6 +331,10 @@ class Output(object):
     def send_key_combination(self, c):
         wx.CallAfter(self.keyboard_control.send_key_combination, c)
 
+    def render_key_combination(self, c):
+        if not self.keyboard_control.render_key_combination: return None
+        return self.keyboard_control.render_key_combination(c)
+
     # TODO: test all the commands now
     def send_engine_command(self, c):
         result = self.engine_command_callback(c)
