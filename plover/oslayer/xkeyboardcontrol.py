@@ -35,44 +35,61 @@ but could not be found."
 
 keyboard_capture_instances = []
 
-KEYCODE_TO_PSEUDOKEY = {38: ord("a"),
-                        24: ord("q"),
-                        25: ord("w"),
-                        39: ord("s"),
-                        26: ord("e"),
-                        40: ord("d"),
-                        27: ord("r"),
-                        41: ord("f"),
-                        54: ord("c"),
-                        55: ord("v"),
-                        28: ord("t"),
-                        42: ord("g"),
-                        29: ord("y"),
-                        43: ord("h"),
-                        57: ord("n"),
-                        58: ord("m"),
-                        30: ord("u"),
-                        44: ord("j"),
-                        31: ord("i"),
-                        45: ord("k"),
-                        32: ord("o"),
-                        46: ord("l"),
-                        33: ord("p"),
-                        47: ord(";"),
-                        34: ord("["),
-                        48: ord("'"),
-                        10: ord("1"),
-                        11: ord("2"),
-                        12: ord("3"),
-                        13: ord("4"),
-                        14: ord("5"),
-                        15: ord("6"),
-                        16: ord("7"),
-                        17: ord("8"),
-                        18: ord("9"),
-                        19: ord("0"),
-                        20: ord("-"),
-                        21: ord("=")}
+KEYCODE_TO_PSEUDOKEY = {
+    # Number row.
+    49: ord("`"),
+    10: ord("1"),
+    11: ord("2"),
+    12: ord("3"),
+    13: ord("4"),
+    14: ord("5"),
+    15: ord("6"),
+    16: ord("7"),
+    17: ord("8"),
+    18: ord("9"),
+    19: ord("0"),
+    20: ord("-"),
+    21: ord("="),
+    51: ord("\\"),
+    # Upper row.
+    24: ord("q"),
+    25: ord("w"),
+    26: ord("e"),
+    27: ord("r"),
+    28: ord("t"),
+    29: ord("y"),
+    30: ord("u"),
+    31: ord("i"),
+    32: ord("o"),
+    33: ord("p"),
+    34: ord("["),
+    35: ord("]"),
+    # Home row.
+    38: ord("a"),
+    39: ord("s"),
+    40: ord("d"),
+    41: ord("f"),
+    42: ord("g"),
+    43: ord("h"),
+    44: ord("j"),
+    45: ord("k"),
+    46: ord("l"),
+    47: ord(";"),
+    48: ord("'"),
+    # Bottom row.
+    52: ord("z"),
+    53: ord("x"),
+    54: ord("c"),
+    55: ord("v"),
+    56: ord("b"),
+    57: ord("n"),
+    58: ord("m"),
+    59: ord(","),
+    60: ord("."),
+    61: ord("/"),
+    # Space bar.
+    65: ord(" "),
+}
 
 class KeyboardCapture(threading.Thread):
     """Listen to keyboard press and release events."""
@@ -90,6 +107,9 @@ class KeyboardCapture(threading.Thread):
         # Get references to the display.
         self.local_display = display.Display()
         self.record_display = display.Display()
+
+        self.is_suppressed = False
+        self.grab_window = self.local_display.screen().root
 
     def run(self):
         # Check if the extension is present
@@ -132,14 +152,31 @@ class KeyboardCapture(threading.Thread):
         if self in keyboard_capture_instances:
             keyboard_capture_instances.remove(self)
 
+    def grab_key(self, keycode):
+        for modifiers in (0, X.Mod2Mask):
+            self.grab_window.grab_key(keycode, modifiers, False, X.GrabModeAsync, X.GrabModeAsync)
+
+    def ungrab_key(self, keycode):
+        for modifiers in (0, X.Mod2Mask):
+            self.grab_window.ungrab_key(keycode, modifiers)
+
     def can_suppress_keyboard(self):
-        return False
+        return True
 
     def suppress_keyboard(self, suppress):
-        pass
+        if self.is_suppressed == suppress:
+            return
+        if suppress:
+            fn = self.grab_key
+        else:
+            fn = self.ungrab_key
+        for keycode in KEYCODE_TO_PSEUDOKEY.keys():
+            fn(keycode)
+        self.local_display.sync()
+        self.is_suppressed = suppress
 
     def is_keyboard_suppressed(self):
-        return False
+        return self.is_suppressed
 
     def process_events(self, reply):
         """Handle keyboard events.
