@@ -278,6 +278,9 @@ class KeyboardEmulation(object):
                 self._send_keycode(keycode, modifiers)
                 self.display.sync()
 
+        # prevent screensaver from activating.
+        self.send_key_combination('Shift_L')
+
     def send_key_combination(self, combo_string):
         """Emulate a sequence of key combinations.
 
