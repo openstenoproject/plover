@@ -97,7 +97,16 @@ class OrthographyTestCase(unittest.TestCase):
             ('white', 'er', 'whiter'),
             ('crap', 'y', 'crappy'),
             ('lad', 'er', 'ladder'),
-        
+            ('translucent', 'cy', 'translucency'),
+            ('bankrupt', 'cy', 'bankruptcy'),
+            ('inadequate', 'cy', 'inadequacy'),
+            ('secret', 'cy', 'secrecy'),
+            ('impolite', 'cy', 'impolicy'),
+            ('idiot', 'cy', 'idiocy'),
+            ('free', 'ed', 'freed'),
+            ('free', 'er', 'freer'),
+            ('regulate', 'ry', 'regulatory'),
+            
         )
         
         failed = []
