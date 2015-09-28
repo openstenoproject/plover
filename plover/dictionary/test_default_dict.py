@@ -6,19 +6,8 @@ import unittest
 
 DICT_PATH='plover/assets/dict.json'
 
-DICT_PATH_NUMBER_DECIMAL='plover/assets/dict_number_decimal.json'
-DICT_PATH_NUMBER_FRACTIONS='plover/assets/dict_number_fractions.json'
-DICT_PATH_NUMBER_INTEGERS='plover/assets/dict_number_integers.json'
-DICT_PATH_NUMBER_MONEY='plover/assets/dict_number_money.json'
-DICT_PATH_NUMBER_PERCENT='plover/assets/dict_number_percent.json'
-DICT_PATH_NUMBER_S='plover/assets/dict_number_s.json'
-DICT_PATH_NUMBER_TH='plover/assets/dict_number_th.json'
-DICT_PATH_NUMBER_TIME='plover/assets/dict_number_time.json'
-DICT_PATH_NUMBER_X='plover/assets/dict_number_x.json'
-DICT_PATH_PREFIX='plover/assets/dict_prefix.json'
-DICT_PATH_PREFIX_MISSTROKE='plover/assets/dict_prefix_misstroke.json'
-DICT_PATH_SUFFIX='plover/assets/dict_suffix.json'
-DICT_PATH_SUFFIX_MISSTROKE='plover/assets/dict_suffix_misstroke.json'
+DICT_PATH_MAIN='plover/assets/main.json'
+DICT_PATH_COMMANDS='plover/assets/commands.json'
 
 def read_key_pairs(pairs):
     d = {}
@@ -50,19 +39,8 @@ class TestCase(unittest.TestCase):
 
     def test_no_duplicates_categorized_files(self):
 
-        d = json.load(open(DICT_PATH_NUMBER_DECIMAL), object_pairs_hook=read_key_pairs)
-        d.update(json.load(open(DICT_PATH_NUMBER_FRACTIONS), object_pairs_hook=read_key_pairs))
-        d.update(json.load(open(DICT_PATH_NUMBER_INTEGERS), object_pairs_hook=read_key_pairs))
-        d.update(json.load(open(DICT_PATH_NUMBER_MONEY), object_pairs_hook=read_key_pairs))
-        d.update(json.load(open(DICT_PATH_NUMBER_PERCENT), object_pairs_hook=read_key_pairs))
-        d.update(json.load(open(DICT_PATH_NUMBER_S), object_pairs_hook=read_key_pairs))
-        d.update(json.load(open(DICT_PATH_NUMBER_TH), object_pairs_hook=read_key_pairs))
-        d.update(json.load(open(DICT_PATH_NUMBER_TIME), object_pairs_hook=read_key_pairs))
-        d.update(json.load(open(DICT_PATH_NUMBER_X), object_pairs_hook=read_key_pairs))
-        d.update(json.load(open(DICT_PATH_PREFIX), object_pairs_hook=read_key_pairs))
-        d.update(json.load(open(DICT_PATH_PREFIX_MISSTROKE), object_pairs_hook=read_key_pairs))
-        d.update(json.load(open(DICT_PATH_SUFFIX), object_pairs_hook=read_key_pairs))
-        d.update(json.load(open(DICT_PATH_SUFFIX_MISSTROKE), object_pairs_hook=read_key_pairs))
+        d = json.load(open(DICT_PATH_MAIN), object_pairs_hook=read_key_pairs)
+        d.update(json.load(open(DICT_PATH_COMMANDS), object_pairs_hook=read_key_pairs))
 
         msg_list = []
         has_duplicate = False
