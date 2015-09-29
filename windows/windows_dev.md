@@ -5,7 +5,8 @@
 It is best to develop using 32 bit tools for Plover.
 
 - Python 2.7 x86_32
-  Python 2.7.9+ come with pip
+
+*Note: Python 2.7.9+ comes with pip*
 
 ### Pip Packages
 
