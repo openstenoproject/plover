@@ -45,15 +45,12 @@ class KeyboardCapture():
     CONTROL_KEYS = set(('Lcontrol', 'Rcontrol'))
     SHIFT_KEYS = set(('Lshift', 'Rshift'))
     ALT_KEYS = set(('Lmenu', 'Rmenu'))
+    PASSTHROUGH_KEYS = CONTROL_KEYS | SHIFT_KEYS | ALT_KEYS
     
     def __init__(self):
 
         self.suppress_keyboard(True)
-        
-        self.shift = False
-        self.ctrl = False
-        self.alt = False
-
+        self.passthrough_down_keys = set()
         self.alive = False
 
         # NOTE(hesky): Does this need to be more efficient and less
@@ -61,13 +58,12 @@ class KeyboardCapture():
         def on_key_event(func_name, event):
             ascii = KEY_TO_ASCII.get(event.ScanCode, None)
             if not event.Injected:
-                if event.Key in self.CONTROL_KEYS:
-                    self.ctrl = func_name == 'key_down'
-                if event.Key in self.SHIFT_KEYS:
-                    self.shift = func_name == 'key_down'
-                if event.Key in self.ALT_KEYS:
-                    self.alt = func_name == 'key_down'
-                if ascii and not self.ctrl and not self.alt and not self.shift:
+                if event.Key in self.PASSTHROUGH_KEYS:
+                    if func_name == 'key_down':
+                        self.passthrough_down_keys.add(event.Key)
+                    if func_name == 'key_up':
+                        self.passthrough_down_keys.discard(event.Key)
+                if ascii and not self.passthrough_down_keys:
                     getattr(self, func_name, lambda x: True)(KeyboardEvent(ascii))
                     return not self.is_keyboard_suppressed()
             
@@ -87,6 +83,8 @@ class KeyboardCapture():
     def cancel(self):
         if self.alive:
             self.hm.UnhookKeyboard()
+            # guard against active passthrough key depressions on capture cancel
+            self.passthrough_down_keys.clear()
             self.alive = False
 
     def can_suppress_keyboard(self):
