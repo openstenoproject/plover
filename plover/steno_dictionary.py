@@ -27,6 +27,7 @@ class StenoDictionary(collections.MutableMapping):
         self._longest_key_length = 0
         self._longest_listener_callbacks = set()
         self.reverse = collections.defaultdict(list)
+        self.casereverse = collections.defaultdict(set)
         self.filters = []
         self.update(*args, **kw)
         self.save = None
@@ -54,6 +55,8 @@ class StenoDictionary(collections.MutableMapping):
         self._longest_key = max(self._longest_key, len(key))
         self._dict.__setitem__(key, value)
         self.reverse[value].append(key)
+        # Case-insensitive reverse dict
+        self.casereverse[value.lower()].add(value)
 
     def __delitem__(self, key):
         value = self._dict[key]
@@ -153,6 +156,12 @@ class StenoDictionaryCollection(object):
     def reverse_lookup(self, value):
         for d in self.dicts:
             key = d.reverse.get(value, None)
+            if key:
+                return key
+
+    def casereverse_lookup(self, value):
+        for d in self.dicts:
+            key = d.casereverse.get(value, None)
             if key:
                 return key
 
