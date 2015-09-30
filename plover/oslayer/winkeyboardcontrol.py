@@ -45,7 +45,8 @@ class KeyboardCapture():
     CONTROL_KEYS = set(('Lcontrol', 'Rcontrol'))
     SHIFT_KEYS = set(('Lshift', 'Rshift'))
     ALT_KEYS = set(('Lmenu', 'Rmenu'))
-    PASSTHROUGH_KEYS = CONTROL_KEYS | SHIFT_KEYS | ALT_KEYS
+    WIN_KEYS = set(('Lwin', 'Rwin'))
+    PASSTHROUGH_KEYS = CONTROL_KEYS | SHIFT_KEYS | ALT_KEYS | WIN_KEYS
     
     def __init__(self):
 
