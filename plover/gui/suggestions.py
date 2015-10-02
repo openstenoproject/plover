@@ -155,7 +155,7 @@ class SuggestionsDisplayDialog(wx.Dialog):
             interp_phrase = DEFAULT_LAST_WORD
             self.listbox.Append('No suggestions')
 
-        self.header.SetLabel(LAST_WORD_TEXT % interp_phrase)
+        self.header.SetLabel(LAST_WORD_TEXT % split_words[-1])
 
     def handle_on_top(self, event):
         self.config.set_suggestions_display_on_top(event.IsChecked())
