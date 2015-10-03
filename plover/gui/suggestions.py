@@ -13,7 +13,7 @@ ON_TOP_TEXT = "Always on top"
 UI_BORDER = 4
 MAX_STROKE_LINES = 38
 LAST_WORD_TEXT = 'Last Word: %s'
-DEFAULT_LAST_WORD = '[]'
+DEFAULT_LAST_WORD = 'N/A'
 
 class SuggestionsDisplayDialog(wx.Dialog):
 
@@ -84,7 +84,6 @@ class SuggestionsDisplayDialog(wx.Dialog):
         event.Skip()
 
     def lookup_suggestions(self, phrase):
-        found = False
         ''' Return stroke suggestions for a given phrase, if it exists
 
             If we can't find an entry, we start manipulating the phrase to see if we
@@ -93,17 +92,28 @@ class SuggestionsDisplayDialog(wx.Dialog):
 
         '''
 
+        suggestions = []
+
         mods  = ['%s', '{^%s}', '{^%s^}', '{%s^}', '{&%s}']
         d     = self.engine.get_dictionary()
-        for x in [mod % phrase for mod in mods]:
-            strokes_list = d.reverse_lookup(x)
-            if not strokes_list:
-                continue
-            else:
-                # Return list of suggestions, sorted by amount of keys used
-                return True, x, sorted(strokes_list, lambda x, y: cmp(sum(map(len, x)), sum(map(len, y))))
 
-        return False, phrase, []
+        similar_words = d.casereverse_lookup(phrase.lower())
+        if similar_words:
+            similar_words_list = list(similar_words - set([phrase]))
+        else:
+            similar_words_list = []
+
+
+        for p in [phrase] + similar_words_list:
+            for x in [mod % p for mod in mods]:
+                strokes_list = d.reverse_lookup(x)
+                if not strokes_list:
+                    continue
+                else:
+                    # Return list of suggestions, sorted by fewest strokes, then fewest keys
+                    suggestions.append((x, sorted(strokes_list, key=lambda x: len(x) * 32 + sum(map(len, x)))))
+
+        return suggestions
 
     def show_stroke(self, old, new):
         for action in old:
@@ -122,20 +132,30 @@ class SuggestionsDisplayDialog(wx.Dialog):
         self.words = self.words[-100:]
 
         split_words = PAT.findall(self.words)
-        interp_phrase = split_words[-1:]
+        interp_phrase = ''
         self.listbox.Clear()
         for phrase in SuggestionsDisplayDialog.tails(split_words):
             phrase = ' '.join(phrase)
-            found, interp_phrase, suggestions = self.lookup_suggestions(phrase)
-            if found:
-                # Limit arbitrarily to 10 suggestions
-                for suggestion in suggestions[:10]:
-                    self.listbox.Append('/'.join(suggestion))
-                break
-        else:
+            suggestions_list = self.lookup_suggestions(phrase)
+            if not suggestions_list:
+                continue
+
+            for x, suggestions in suggestions_list:
+                # Word name. Style differently
+                self.listbox.Append(x)
+                # Limit arbitrarily to 10 suggestions per word
+                for strokes in suggestions[:10]:
+                    self.listbox.Append(' ' * 4 + '/'.join(strokes))
+
+            # Set interp_phrase on first found suggestions for given phrase
+            if suggestions_list and not interp_phrase:
+                interp_phrase = phrase
+
+        if not interp_phrase:
+            interp_phrase = DEFAULT_LAST_WORD
             self.listbox.Append('No suggestions')
 
-        self.header.SetLabel(LAST_WORD_TEXT % interp_phrase)
+        self.header.SetLabel(LAST_WORD_TEXT % split_words[-1])
 
     def handle_on_top(self, event):
         self.config.set_suggestions_display_on_top(event.IsChecked())
