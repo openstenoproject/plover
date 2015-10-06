@@ -19,6 +19,7 @@ emits one or more Translation objects based on a greedy conversion algorithm.
 from plover.steno import Stroke
 from plover.steno_dictionary import StenoDictionaryCollection
 import itertools
+import sys
 
 class Translation(object):
     """A data model for the mapping between a sequence of Strokes and a string.
@@ -249,16 +250,23 @@ def _translate_stroke(stroke, state, dictionary, callback):
     
     undo = []
     do = []
-    
+
     # TODO: Test the behavior of undoing until a translation is undoable.
     if stroke.is_correction:
+        empty = True
         for t in reversed(state.translations):
             undo.append(t)
             if has_undo(t):
+                empty = False
                 break
         undo.reverse()
         for t in undo:
             do.extend(t.replaced)
+        if empty:
+            # There is no more buffer to delete from -- remove undo and add a
+            # stroke that removes last word on the user's OS
+            undo = []
+            do = [Translation([stroke], _back_string())]
     else:
         # Figure out how much of the translation buffer can be involved in this
         # stroke and build the stroke list for translation.
@@ -297,6 +305,16 @@ def _translate_stroke(stroke, state, dictionary, callback):
     state.translations.extend(do)
 
 SUFFIX_KEYS = ['-S', '-G', '-Z', '-D']
+
+def _back_string():
+    # Provides the correct translation to undo a word
+    # depending on the operating system and stores it
+    if 'mapping' not in _back_string.__dict__:
+        if sys.platform.startswith('darwin'):
+            _back_string.mapping = '{#Alt_L(BackSpace)}{^}'
+        else:
+            _back_string.mapping = '{#Control_L(BackSpace)}{^}'
+    return _back_string.mapping
 
 def _toggle_asterisk(translations, undo, do):
     replaced = translations[len(translations)-1:]
