@@ -16,6 +16,7 @@ import re
 STROKE_DELIMITER = '/'
 IMPLICIT_HYPHENS = set('AOEU*50')
 
+
 def normalize_steno(strokes_string):
     """Convert steno strings to one common form."""
     strokes = strokes_string.split(STROKE_DELIMITER)
@@ -25,6 +26,10 @@ def normalize_steno(strokes_string):
             stroke = stroke.replace('#', '')
             if not re.search('[0-9]', stroke):
                 stroke = '#' + stroke
+        # Insert dash when dealing with 'explicit' numbers
+        if re.search('[1-4][6-9]', stroke):
+            start = re.search('[6-9]', stroke).start()
+            stroke = stroke[:start] + '-' + stroke[start:]
         has_implicit_dash = bool(set(stroke) & IMPLICIT_HYPHENS)
         if has_implicit_dash:
             stroke = stroke.replace('-', '')
