@@ -3,6 +3,9 @@ import wx
 from wx.lib.utils import AdjustRectToScreen
 import plover.gui.util as util
 from plover.dictionary_editor_store import DictionaryEditorStore
+from plover.dictionary_editor_store import COL_STROKE
+from plover.dictionary_editor_store import COL_TRANSLATION
+from plover.dictionary_editor_store import COL_DICTIONARY
 from wx.grid import EVT_GRID_LABEL_LEFT_CLICK
 from wx.grid import PyGridTableBase
 
@@ -71,7 +74,9 @@ class DictionaryEditor(wx.Dialog):
         do_filter_button = wx.Button(self, label=DO_FILTER_BUTTON_NAME)
         self.Bind(wx.EVT_BUTTON, self._do_filter, do_filter_button)
 
-        filter_sizer.Add(do_filter_button, flag=wx.EXPAND | wx.ALL, border=self.BORDER)
+        filter_sizer.Add(do_filter_button,
+                         flag=wx.EXPAND | wx.ALL,
+                         border=self.BORDER)
 
         global_sizer.Add(filter_sizer, flag=wx.ALL, border=self.BORDER)
 
@@ -79,10 +84,13 @@ class DictionaryEditor(wx.Dialog):
 
         # Grid
         self.grid = DictionaryEditorGrid(self, size=wx.Size(800, 600))
-        self.grid.CreateGrid(self.store, 0, 3)
-        self.grid.SetColSize(0, 250)
-        self.grid.SetColSize(1, 250)
-        self.grid.SetColSize(2, 180)
+        self.grid.CreateGrid(self.store, 0, NUM_COLS)
+
+        self.grid.SetRowLabelSize(wx.grid.GRID_AUTOSIZE)
+
+        self.grid.SetColSize(COL_STROKE, 250)
+        self.grid.SetColSize(COL_TRANSLATION, 250)
+        self.grid.SetColSize(COL_DICTIONARY, 180)
         global_sizer.Add(self.grid, 1, wx.EXPAND)
 
         buttons_sizer = wx.BoxSizer(wx.HORIZONTAL)
@@ -186,9 +194,10 @@ class DictionaryEditorGrid(wx.grid.Grid):
     GRID_LABEL_STROKE = "Stroke"
     GRID_LABEL_TRANSLATION = "Translation"
     GRID_LABEL_DICTIONARY = "Dictionary"
-    GRID_LABELS = [GRID_LABEL_STROKE,
-                   GRID_LABEL_TRANSLATION,
-                   GRID_LABEL_DICTIONARY]
+    sorted_labels = sorted([[COL_STROKE, GRID_LABEL_STROKE],
+                            [COL_TRANSLATION, GRID_LABEL_TRANSLATION],
+                            [COL_DICTIONARY, GRID_LABEL_DICTIONARY]])
+    grid_labels = [pair[1] for pair in sorted_labels]
 
     def __init__(self, *args, **kwargs):
         wx.grid.Grid.__init__(self, *args, **kwargs)
@@ -250,7 +259,7 @@ class DictionaryEditorGrid(wx.grid.Grid):
         if mode is not None:
             directionLabel = " (asc)" if mode else " (desc)"
         for i in range(3):
-            label = (self.GRID_LABELS[i] +
+            label = (self.grid_labels[i] +
                      (directionLabel if column == i else ""))
             self._table.SetColLabelValue(i, label)
 
@@ -265,7 +274,10 @@ class DictionaryEditorGridTable(PyGridTableBase):
         # The base class must be initialized *first*
         PyGridTableBase.__init__(self)
         self.store = store
-        self.col_names = ["Stroke", "Translation", "Dictionary"]
+        cols = sorted([[COL_STROKE, "Stroke"],
+                       [COL_TRANSLATION, "Translation"],
+                       [COL_DICTIONARY, "Dictionary"]])
+        self.col_names = [pair[1] for pair in cols]
 
         self._rows = self.GetNumberRows()
         self._cols = self.GetNumberCols()

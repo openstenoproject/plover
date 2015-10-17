@@ -1,5 +1,9 @@
 from plover.steno import normalize_steno
 
+COL_STROKE = 0
+COL_TRANSLATION = 1
+COL_DICTIONARY = 2
+
 
 class DictionaryItem():
 
@@ -56,11 +60,12 @@ class DictionaryEditorStore():
 
     def GetValue(self, row, col):
         item = self.sorted_keys[row]
-        if col == 0:
+        result = ""
+        if col == COL_STROKE:
             result = item.stroke
-        elif col == 1:
+        elif col == COL_TRANSLATION:
             result = item.translation
-        else:
+        elif col == COL_DICTIONARY:
             result = item.dictionary
         return result
 
@@ -70,9 +75,9 @@ class DictionaryEditorStore():
             editing_item = self._getAddedItem(item.id)
         else:
             editing_item = self.all_keys[item.id]
-        if col == 0:
+        if col == COL_STROKE:
             editing_item.stroke = value
-        elif col == 1:
+        elif col == COL_DICTIONARY:
             editing_item.translation = value
         if item.id >= 0:
             if item.id not in self.modified_items:
@@ -141,7 +146,7 @@ class DictionaryEditorStore():
         self.engine.get_dictionary().save_all()
 
     def Sort(self, column):
-        if column == 2:
+        if column == COL_DICTIONARY:
             return
 
         if self.sorting_column == column:
@@ -194,11 +199,11 @@ class DictionaryEditorStore():
     def _applySort(self):
         if self.sorting_mode is not None:
             reverse_sort = not self.sorting_mode
-            if self.sorting_column == 0:
+            if self.sorting_column == COL_STROKE:
                 self.sorted_keys = sorted(self.filtered_keys,
                                           key=lambda x: x.stroke.lower(),
                                           reverse=reverse_sort)
-            elif self.sorting_column == 1:
+            elif self.sorting_column == COL_TRANSLATION:
                 self.sorted_keys = sorted(self.filtered_keys,
                                           key=lambda x: x.translation.lower(),
                                           reverse=reverse_sort)
