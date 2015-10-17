@@ -1,12 +1,13 @@
 from plover.steno import normalize_steno
 
+
 class DictionaryItem():
 
     def __init__(self, stroke, translation, dictionary, id):
 
         if translation is None:
             translation = ''
-            
+
         self.stroke = stroke
         self.translation = translation
         self.dictionary = dictionary
@@ -14,16 +15,16 @@ class DictionaryItem():
 
 
 class DictionaryEditorStore():
-    
+
     def __init__(self, engine, config):
 
         self.config = config
         self.engine = engine
-        
+
         self.all_keys = []
         self.filtered_keys = []
         self.sorted_keys = []
-        
+
         self.modified_items = []
         self.added_items = []
         self.deleted_items = []
@@ -40,7 +41,10 @@ class DictionaryEditorStore():
             for dk in dict.keys():
                 joined = '/'.join(dk)
                 translation = self.engine.get_dictionary().lookup(dk)
-                item = DictionaryItem(joined, translation, dict.get_path(), item_id)
+                item = DictionaryItem(joined,
+                                      translation,
+                                      dict.get_path(),
+                                      item_id)
                 self.all_keys.append(item)
                 item_id += 1
             dict_index -= 1
@@ -88,7 +92,9 @@ class DictionaryEditorStore():
                 self.filtered_keys.append(di)
         for di in self.all_keys:
             if di not in self.deleted_items:
-                if self._itemMatchesFilter(di, stroke_filter, translation_filter):
+                if self._itemMatchesFilter(di,
+                                           stroke_filter,
+                                           translation_filter):
                     self.filtered_keys.append(di)
         self._applySort()
 
@@ -110,18 +116,26 @@ class DictionaryEditorStore():
     def SaveChanges(self):
         # Creates
         for added_item in self.added_items:
-            dict = self.engine.get_dictionary().get_by_path(added_item.dictionary)
-            dict.__setitem__(self._splitStrokes(added_item.stroke), added_item.translation)
+            dict = (self.engine
+                        .get_dictionary()
+                        .get_by_path(added_item.dictionary))
+            dict.__setitem__(self._splitStrokes(added_item.stroke),
+                             added_item.translation)
 
         # Updates
         for modified_item_id in self.modified_items:
             modified_item = self.all_keys[modified_item_id]
-            dict = self.engine.get_dictionary().get_by_path(modified_item.dictionary)
-            dict.__setitem__(self._splitStrokes(modified_item.stroke), modified_item.translation)
+            dict = (self.engine
+                        .get_dictionary()
+                        .get_by_path(modified_item.dictionary))
+            dict.__setitem__(self._splitStrokes(modified_item.stroke),
+                             modified_item.translation)
 
         # Deletes
         for deleted_item in self.deleted_items:
-            dict = self.engine.get_dictionary().get_by_path(deleted_item.dictionary)
+            dict = (self.engine
+                        .get_dictionary()
+                        .get_by_path(deleted_item.dictionary))
             dict.__delitem__(self._splitStrokes(deleted_item.stroke))
 
         self.engine.get_dictionary().save_all()
@@ -129,15 +143,15 @@ class DictionaryEditorStore():
     def Sort(self, column):
         if column == 2:
             return
-        
+
         if self.sorting_column == column:
-            #Already sorting on this column
-            #Next sorting mode
+            # Already sorting on this column
+            # Next sorting mode
             self.sorting_mode = self._cycleNextSortMode(self.sorting_mode)
         else:
-            #Different column than the one currently being sorted
+            # Different column than the one currently being sorted
             self.sorting_column = column
-            #First sorting mode
+            # First sorting mode
             self.sorting_mode = True
         self._applySort()
 
@@ -181,9 +195,13 @@ class DictionaryEditorStore():
         if self.sorting_mode is not None:
             reverse_sort = not self.sorting_mode
             if self.sorting_column == 0:
-                self.sorted_keys = sorted(self.filtered_keys, key=lambda x: x.stroke.lower(), reverse=reverse_sort)
+                self.sorted_keys = sorted(self.filtered_keys,
+                                          key=lambda x: x.stroke.lower(),
+                                          reverse=reverse_sort)
             elif self.sorting_column == 1:
-                self.sorted_keys = sorted(self.filtered_keys, key=lambda x: x.translation.lower(), reverse=reverse_sort)
+                self.sorted_keys = sorted(self.filtered_keys,
+                                          key=lambda x: x.translation.lower(),
+                                          reverse=reverse_sort)
         else:
             self.sorted_keys = self.filtered_keys[:]
 
