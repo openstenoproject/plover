@@ -1,8 +1,20 @@
 from plover.steno import normalize_steno
 
-COL_STROKE = 0
-COL_TRANSLATION = 1
-COL_DICTIONARY = 2
+STROKE = "STROKE"
+TRANSLATION = "TRANSLATION"
+DICTIONARY = "DICTIONARY"
+SPACER = "SPACER"
+
+# GUI will respect the order here:
+COLUMNS = [STROKE,
+           TRANSLATION,
+           DICTIONARY,
+           SPACER]
+
+COL_STROKE = COLUMNS.index(STROKE)
+COL_TRANSLATION = COLUMNS.index(TRANSLATION)
+COL_DICTIONARY = COLUMNS.index(DICTIONARY)
+COL_SPACER = COLUMNS.index(SPACER)
 
 
 class DictionaryItem():
@@ -61,11 +73,11 @@ class DictionaryEditorStore():
     def GetValue(self, row, col):
         item = self.sorted_keys[row]
         result = ""
-        if col == COL_STROKE:
+        if col is COL_STROKE:
             result = item.stroke
-        elif col == COL_TRANSLATION:
+        elif col is COL_TRANSLATION:
             result = item.translation
-        elif col == COL_DICTIONARY:
+        elif col is COL_DICTIONARY:
             result = item.dictionary
         return result
 
@@ -75,9 +87,9 @@ class DictionaryEditorStore():
             editing_item = self._getAddedItem(item.id)
         else:
             editing_item = self.all_keys[item.id]
-        if col == COL_STROKE:
+        if col is COL_STROKE:
             editing_item.stroke = value
-        elif col == COL_DICTIONARY:
+        elif col is COL_TRANSLATION:
             editing_item.translation = value
         if item.id >= 0:
             if item.id not in self.modified_items:
@@ -146,7 +158,7 @@ class DictionaryEditorStore():
         self.engine.get_dictionary().save_all()
 
     def Sort(self, column):
-        if column == COL_DICTIONARY:
+        if column is not COL_STROKE and column is not COL_TRANSLATION:
             return
 
         if self.sorting_column == column:
@@ -199,11 +211,11 @@ class DictionaryEditorStore():
     def _applySort(self):
         if self.sorting_mode is not None:
             reverse_sort = not self.sorting_mode
-            if self.sorting_column == COL_STROKE:
+            if self.sorting_column is COL_STROKE:
                 self.sorted_keys = sorted(self.filtered_keys,
                                           key=lambda x: x.stroke.lower(),
                                           reverse=reverse_sort)
-            elif self.sorting_column == COL_TRANSLATION:
+            elif self.sorting_column is COL_TRANSLATION:
                 self.sorted_keys = sorted(self.filtered_keys,
                                           key=lambda x: x.translation.lower(),
                                           reverse=reverse_sort)
