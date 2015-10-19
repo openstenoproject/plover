@@ -19,7 +19,7 @@ DO_FILTER_BUTTON_NAME = 'Filter'
 INSERT_BUTTON_NAME = 'New Entry'
 DELETE_BUTTON_NAME = 'Delete Selected'
 SAVE_BUTTON_NAME = 'Save and Close'
-CANCEL_BUTTON_NAME = 'Cancel'
+CANCEL_BUTTON_NAME = 'Close'
 
 NUM_COLS = len(COLUMNS)
 
@@ -39,8 +39,6 @@ class DictionaryEditor(wx.Dialog):
                            wx.DialogNameStr)
 
         self.config = config
-
-        self.show_closing_prompt = True
 
         # layout
         global_sizer = wx.BoxSizer(wx.VERTICAL)
@@ -168,12 +166,10 @@ class DictionaryEditor(wx.Dialog):
         self.grid.DeleteSelected()
 
     def _save_close(self, event=None):
-        self.show_closing_prompt = False
         self.store.SaveChanges()
         self.Close()
 
     def _cancel_close(self, event=None):
-        self.show_closing_prompt = True
         self.Close()
 
     def _on_move(self, event):
@@ -184,7 +180,7 @@ class DictionaryEditor(wx.Dialog):
 
     def _on_close(self, event=None):
         result = wx.ID_YES
-        if self.show_closing_prompt:
+        if self.store.pending_changes:
             dlg = wx.MessageDialog(self,
                                    "You will lose your changes. Are you sure?",
                                    "Cancel",

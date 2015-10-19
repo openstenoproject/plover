@@ -51,6 +51,8 @@ class DictionaryEditorStore():
         item_id = 0
         self.new_id = -1
 
+        self.pending_changes = False
+
         dict_index = len(self.engine.get_dictionary().dicts) - 1
         while dict_index >= 0:
             dict = self.engine.get_dictionary().dicts[dict_index]
@@ -104,6 +106,7 @@ class DictionaryEditorStore():
         return result
 
     def SetValue(self, row, col, value):
+        self.pending_changes = True
         item = self.sorted_keys[row]
         if item.id < 0:
             editing_item = self._getAddedItem(item.id)
@@ -138,6 +141,7 @@ class DictionaryEditorStore():
         self._applySort()
 
     def InsertNew(self, row):
+        self.pending_changes = True
         selected_item = self.sorted_keys[row]
         item = DictionaryItem('', '', selected_item.dictionary, self.new_id)
         self.added_items.append(item)
@@ -145,6 +149,7 @@ class DictionaryEditorStore():
         self.new_id -= 1
 
     def DeleteSelected(self, row):
+        self.pending_changes = True
         item = self.sorted_keys[row]
         if item.id < 0:
             self.added_items.remove(item)
@@ -153,6 +158,8 @@ class DictionaryEditorStore():
         self.sorted_keys.remove(item)
 
     def SaveChanges(self):
+        self.pending_changes = False
+
         # Creates
         for added_item in self.added_items:
             dict = (self.engine
