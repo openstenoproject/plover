@@ -96,7 +96,8 @@ class DictionaryEditorStore():
                         if (len(character) <= 3):
                             word += character
                         else:
-                            word += '□'
+                            # Replace with white box
+                            word += unichr(9634)
                     return word
                 s = shorten_unicode(s)
             result = s
