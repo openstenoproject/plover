@@ -19,9 +19,7 @@ class LookupDialog(wx.Dialog):
     def __init__(self, parent, engine, config):
         pos = (config.get_lookup_frame_x(), 
                config.get_lookup_frame_y())
-        wx.Dialog.__init__(self, parent, wx.ID_ANY, TITLE, 
-                           pos, wx.DefaultSize, 
-                           wx.DEFAULT_DIALOG_STYLE, wx.DialogNameStr)
+        wx.Dialog.__init__(self, parent, title=TITLE, pos=pos)
 
         self.config = config
 
