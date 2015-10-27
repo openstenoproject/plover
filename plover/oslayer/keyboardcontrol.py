@@ -1,4 +1,4 @@
-#!/usr/bin/env python
+#!/usr/bin/env python2
 # Copyright (c) 2010 Joshua Harlan Lifton.
 # See LICENSE.txt for details.
 #
