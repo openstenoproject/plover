@@ -1,5 +1,5 @@
 # -*- mode: python -*-
-a = Analysis(['..\\application\\plover'],
+a = Analysis(['..\\launch.py'],
              pathex=['..'],
              hiddenimports=[],
              hookspath=None)

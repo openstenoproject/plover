@@ -22,14 +22,9 @@ os.chdir(os.path.dirname(os.path.realpath(__file__)))
 assets_dir = os.path.realpath('../plover/assets')
 resources = ','.join('/'.join([assets_dir, x]) for x in os.listdir(assets_dir))
 
-# py2app doesn't understand that a python script doesn't have to end in .py so
-# we need to make a launch script for it.
-launch_file = os.path.realpath('../launch.py')
-shutil.copyfile(os.path.realpath('../application/plover'), launch_file)
-
 setup(name='Plover',
       setup_requires=['py2app'],
-      app=[launch_file],
+      app=['../launch.py'],
       options = dict(py2app=dict(argv_emulation=True,
       iconfile='plover.icns',
       resources=resources))
