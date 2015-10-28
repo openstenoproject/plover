@@ -31,10 +31,8 @@ class DictionaryEditor(wx.Dialog):
     def __init__(self, parent, engine, config, on_exit):
         pos = (config.get_dictionary_editor_frame_x(),
                config.get_dictionary_editor_frame_y())
-        wx.Dialog.__init__(self, parent, wx.ID_ANY, TITLE,
-                           pos, wx.DefaultSize,
-                           wx.DEFAULT_DIALOG_STYLE | wx.RESIZE_BORDER,
-                           wx.DialogNameStr)
+        wx.Dialog.__init__(self, parent, title=TITLE, pos=pos,
+                           style=wx.DEFAULT_DIALOG_STYLE | wx.RESIZE_BORDER)
 
         self.config = config
         self.on_exit = on_exit
