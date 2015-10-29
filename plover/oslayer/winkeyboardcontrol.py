@@ -1,4 +1,3 @@
-#!/usr/bin/env python
 # Copyright (c) 2011 Hesky Fisher.
 # See LICENSE.txt for details.
 #
@@ -186,21 +185,3 @@ class KeyboardEmulation:
                 combo.append(token)
         SendKeys(''.join(combo))
 
-
-if __name__ == '__main__':
-    kc = KeyboardCapture()
-    ke = KeyboardEmulation()
-
-    def test(event):
-        print event.keystring
-        ke.send_backspaces(1)
-        ke.send_string(' you pressed: "' + event.keystring + '" ')
-
-    kc.key_up = test
-    kc.start()
-    print 'Press CTRL-c to quit.'
-    try:
-        while True:
-            pass
-    except KeyboardInterrupt:
-        kc.cancel()

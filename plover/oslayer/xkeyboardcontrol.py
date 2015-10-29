@@ -1,4 +1,3 @@
-#!/usr/bin/env python
 # Copyright (c) 2010 Joshua Harlan Lifton.
 # See LICENSE.txt for details.
 #
@@ -435,28 +434,3 @@ class KeyboardEmulation(object):
             return (keycode, modifiers)
         return (None, None)
 
-
-if __name__ == '__main__':
-    kc = KeyboardCapture()
-    ke = KeyboardEmulation()
-
-    import time
-
-    def test(event):
-        if not event.keycode:
-            return
-        print event
-        time.sleep(0.1)
-        keycode_events = ke.send_key_combination('Alt_L(Tab)')
-        #ke.send_backspaces(5)
-        #ke.send_string('Foo:~')
-
-    #kc.key_down = test
-    kc.key_up = test
-    kc.start()
-    print 'Press CTRL-c to quit.'
-    try:
-        while True:
-            pass
-    except KeyboardInterrupt:
-        kc.cancel()
