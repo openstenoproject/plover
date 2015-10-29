@@ -48,14 +48,14 @@ class Stenotype(StenotypeBase):
         self._is_keyboard_suppressed = suppress
         self._keyboard_capture.suppress_keyboard(suppress)
 
-    def _key_down(self, event):
+    def _key_down(self, key):
         """Called when a key is pressed."""
         if (self._is_keyboard_suppressed
-            and event.keystring is not None
+            and key is not None
             and not self._keyboard_capture.is_keyboard_suppressed()):
             self._keyboard_emulation.send_backspaces(1)
-        if event.keystring in self.keymap:
-            self._down_keys.add(event.keystring)
+        if key in self.keymap:
+            self._down_keys.add(key)
 
     def _post_suppress(self, suppress, steno_keys):
         """Backspace the last stroke since it matched a command.
@@ -68,20 +68,20 @@ class Stenotype(StenotypeBase):
             n += 1
         suppress(n)
 
-    def _key_up(self, event):
+    def _key_up(self, key):
         """Called when a key is released."""
-        if event.keystring in self.keymap:
+        if key in self.keymap:
             # Process the newly released key.
-            self._released_keys.add(event.keystring)
+            self._released_keys.add(key)
             # Remove invalid released keys.
             self._released_keys = self._released_keys.intersection(self._down_keys)
 
         # A stroke is complete if all pressed keys have been released.
         # If we are in arpeggiate mode then only send stroke when spacebar is pressed.
-        send_strokes = bool(self._down_keys and 
+        send_strokes = bool(self._down_keys and
                             self._down_keys == self._released_keys)
         if self.arpeggiate:
-            send_strokes &= event.keystring == ' '
+            send_strokes &= key == ' '
         if send_strokes:
             steno_keys = [self.keymap[k] for k in self._down_keys
                           if k in self.keymap]

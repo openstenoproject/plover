@@ -27,7 +27,7 @@ def SendKeys(s):
 
 # For the purposes of this class, we'll only report key presses that
 # result in these outputs in order to exclude special key combos.
-KEY_TO_ASCII = {
+SCANCODE_TO_KEY = {
     41: '`', 2: '1', 3: '2', 4: '3', 5: '4', 6: '5', 7: '6', 8: '7', 
     9: '8', 10: '9', 11: '0', 12: '-', 13: '=', 16: 'q', 
     17: 'w', 18: 'e', 19: 'r', 20: 't', 21: 'y', 22: 'u', 23: 'i',
@@ -57,15 +57,15 @@ class KeyboardCapture():
         # NOTE(hesky): Does this need to be more efficient and less
         # general if it will be called for every keystroke?
         def on_key_event(func_name, event):
-            ascii = KEY_TO_ASCII.get(event.ScanCode, None)
+            key = SCANCODE_TO_KEY.get(event.ScanCode, None)
             if not event.Injected:
                 if event.Key in self.PASSTHROUGH_KEYS:
                     if func_name == 'key_down':
                         self.passthrough_down_keys.add(event.Key)
                     if func_name == 'key_up':
                         self.passthrough_down_keys.discard(event.Key)
-                if ascii and not self.passthrough_down_keys:
-                    getattr(self, func_name, lambda x: True)(KeyboardEvent(ascii))
+                if key is not None and not self.passthrough_down_keys:
+                    getattr(self, func_name, lambda x: True)(key)
                     return not self.is_keyboard_suppressed()
             
             return True
@@ -186,12 +186,6 @@ class KeyboardEmulation:
                 combo.append(token)
         SendKeys(''.join(combo))
 
-
-class KeyboardEvent(object):
-    """A keyboard event."""
-
-    def __init__(self, char):
-        self.keystring = char
 
 if __name__ == '__main__':
     kc = KeyboardCapture()
