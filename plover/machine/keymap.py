@@ -2,22 +2,53 @@ import json
 from collections import OrderedDict
 
 class Keymap():
+
+    DEFAULT = [
+        ["S-", ["a","q"]],
+        ["T-", ["w"]],
+        ["K-", ["s"]],
+        ["P-", ["e"]],
+        ["W-", ["d"]],
+        ["H-", ["r"]],
+        ["R-", ["f"]],
+        ["A-", ["c"]],
+        ["O-", ["v"]],
+        ["*" , ["t","g","y","h"]],
+        ["-E", ["n"]],
+        ["-U", ["m"]],
+        ["-F", ["u"]],
+        ["-R", ["j"]],
+        ["-P", ["i"]],
+        ["-B", ["k"]],
+        ["-L", ["o"]],
+        ["-G", ["l"]],
+        ["-T", ["p"]],
+        ["-S", [";"]],
+        ["-D", ["["]],
+        ["-Z", ["'"]],
+        ["#" , ["1","2","3","4","5","6","7","8","9","0","-","="]],
+    ]
+
     def __init__(self, assignments):
-        self.keymap = OrderedDict(assignments)
-        self.assignments = assignments
+        assignments = dict(assignments)
+        self.keymap = OrderedDict()
+        # Keep only valid entries, and add missing entries.
+        for action, keys in Keymap.DEFAULT:
+            keys = assignments.get(action, ())
+            self.keymap[action] = keys
 
     def get(self):
         return self.keymap
 
     def __str__(self):
-        return json.dumps(self.assignments)
+        return json.dumps(self.keymap.items())
 
     def to_dict(self):
-        """Return a dictionary from keys to steno keys."""
+        """Return a dictionary from keys to actions."""
         result = {}
-        for stenoKey, producers in self.keymap.items():
-            for key in producers:
-                result[key] = stenoKey
+        for action, keys in self.keymap.items():
+            for k in keys:
+                result[k] = action
         return result
 
     @staticmethod
@@ -30,35 +61,11 @@ class Keymap():
         """Convert a nested list of strings (e.g. from a ListCtrl) to a keymap."""
         assignments = []
         for row in rows:
-            stenoKey = row[0]
+            action = row[0]
             keylist = row[1].strip().split()
-            assignments.append([stenoKey, keylist])
+            assignments.append((action, keylist))
         return Keymap(assignments)
 
     @staticmethod
     def default():
-        return Keymap([
-            ["S-", ["a","q"]],
-            ["T-", ["w"]],
-            ["K-", ["s"]],
-            ["P-", ["e"]],
-            ["W-", ["d"]],
-            ["H-", ["r"]],
-            ["R-", ["f"]],
-            ["A-", ["c"]],
-            ["O-", ["v"]],
-            ["*" , ["t","g","y","h"]],
-            ["-E", ["n"]],
-            ["-U", ["m"]],
-            ["-F", ["u"]],
-            ["-R", ["j"]],
-            ["-P", ["i"]],
-            ["-B", ["k"]],
-            ["-L", ["o"]],
-            ["-G", ["l"]],
-            ["-T", ["p"]],
-            ["-S", [";"]],
-            ["-D", ["["]],
-            ["-Z", ["'"]],
-            ["#" , ["1","2","3","4","5","6","7","8","9","0","-","="]]
-        ])
+        return Keymap(Keymap.DEFAULT)
