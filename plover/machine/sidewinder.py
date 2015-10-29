@@ -26,9 +26,13 @@ class Stenotype(StenotypeBase):
         StenotypeBase.__init__(self)
         self.arpeggiate = params['arpeggiate']
         self.keymap = params['keymap'].to_dict()
+        self._arpeggiate_key = None
         for key, mapping in self.keymap.items():
             if 'no-op' == mapping:
                 self.keymap[key] = None
+            if 'arpeggiate' == mapping:
+                self.keymap[key] = None
+                self._arpeggiate_key = key
         self._down_keys = set()
         self._released_keys = set()
         self._keyboard_emulation = keyboardcontrol.KeyboardEmulation()
@@ -86,7 +90,7 @@ class Stenotype(StenotypeBase):
         send_strokes = bool(self._down_keys and
                             self._down_keys == self._released_keys)
         if self.arpeggiate:
-            send_strokes &= key == ' '
+            send_strokes &= key == self._arpeggiate_key
         if send_strokes:
             steno_keys = list(self._down_keys)
             if steno_keys:

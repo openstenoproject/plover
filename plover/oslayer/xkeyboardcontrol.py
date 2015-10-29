@@ -100,7 +100,7 @@ KEYCODE_TO_KEY = {
     60: ".",
     61: "/",
     # Space bar.
-    65: " ",
+    65: "space",
 }
 
 KEY_TO_KEYCODE = dict(zip(KEYCODE_TO_KEY.values(), KEYCODE_TO_KEY.keys()))

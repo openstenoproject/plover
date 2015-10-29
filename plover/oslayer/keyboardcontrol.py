@@ -45,6 +45,7 @@ if __name__ == '__main__':
     import time
 
     keys = [chr(n) for n in range(ord('a'), ord('z'))]
+    keys.append('space')
     kc = KeyboardCapture(keys)
     ke = KeyboardEmulation()
 
