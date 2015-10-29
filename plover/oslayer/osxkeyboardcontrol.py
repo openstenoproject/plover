@@ -224,10 +224,11 @@ class KeyboardCapture(threading.Thread):
 
     _KEYBOARD_EVENTS = set([kCGEventKeyDown, kCGEventKeyUp])
 
-    def __init__(self):
+    def __init__(self, suppressed_keys):
         threading.Thread.__init__(self)
         self._running_thread = None
         self.suppress_keyboard(True)
+        self.suppressed_keys = suppressed_keys
 
         # Returning the event means that it is passed on for further processing by others. 
         # Returning None means that the event is intercepted.
@@ -244,7 +245,7 @@ class KeyboardCapture(threading.Thread):
                 return event
             keycode = CGEventGetIntegerValueField(event, kCGKeyboardEventKeycode)
             key = KEYCODE_TO_KEY.get(keycode, None)
-            if key is not None:
+            if key in self.suppressed_keys:
                 handler_name = 'key_up' if event_type == kCGEventKeyUp else 'key_down'
                 handler = getattr(self, handler_name, lambda event: None)
                 handler(key)

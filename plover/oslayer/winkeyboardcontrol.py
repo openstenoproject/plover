@@ -49,11 +49,12 @@ class KeyboardCapture():
     WIN_KEYS = set(('Lwin', 'Rwin'))
     PASSTHROUGH_KEYS = CONTROL_KEYS | SHIFT_KEYS | ALT_KEYS | WIN_KEYS
     
-    def __init__(self):
+    def __init__(self, suppressed_keys):
 
         self.suppress_keyboard(True)
         self.passthrough_down_keys = set()
         self.alive = False
+        self.suppressed_keys = suppressed_keys
 
         # NOTE(hesky): Does this need to be more efficient and less
         # general if it will be called for every keystroke?
@@ -65,7 +66,7 @@ class KeyboardCapture():
                         self.passthrough_down_keys.add(event.Key)
                     if func_name == 'key_up':
                         self.passthrough_down_keys.discard(event.Key)
-                if key is not None and not self.passthrough_down_keys:
+                if key in self.suppressed_keys and not self.passthrough_down_keys:
                     getattr(self, func_name, lambda x: True)(key)
                     return not self.is_keyboard_suppressed()
             

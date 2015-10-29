@@ -44,7 +44,8 @@ class KeyboardEmulation(keyboardcontrol.KeyboardEmulation):
 if __name__ == '__main__':
     import time
 
-    kc = KeyboardCapture()
+    keys = [chr(n) for n in range(ord('a'), ord('z'))]
+    kc = KeyboardCapture(keys)
     ke = KeyboardEmulation()
 
     pressed = set()

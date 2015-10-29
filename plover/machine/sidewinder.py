@@ -24,15 +24,18 @@ class Stenotype(StenotypeBase):
     def __init__(self, params):
         """Monitor a Microsoft Sidewinder X4 keyboard via X events."""
         StenotypeBase.__init__(self)
+        self.arpeggiate = params['arpeggiate']
+        self.keymap = params['keymap'].to_dict()
+        for key, mapping in self.keymap.items():
+            if 'no-op' == mapping:
+                self.keymap[key] = None
+        self._down_keys = set()
+        self._released_keys = set()
         self._keyboard_emulation = keyboardcontrol.KeyboardEmulation()
-        self._keyboard_capture = keyboardcontrol.KeyboardCapture()
+        self._keyboard_capture = keyboardcontrol.KeyboardCapture(self.keymap.keys())
         self._keyboard_capture.key_down = self._key_down
         self._keyboard_capture.key_up = self._key_up
         self.suppress_keyboard(True)
-        self._down_keys = set()
-        self._released_keys = set()
-        self.arpeggiate = params['arpeggiate']
-        self.keymap = params['keymap'].to_dict()
 
     def start_capture(self):
         """Begin listening for output from the stenotype machine."""
@@ -54,8 +57,9 @@ class Stenotype(StenotypeBase):
             and key is not None
             and not self._keyboard_capture.is_keyboard_suppressed()):
             self._keyboard_emulation.send_backspaces(1)
-        if key in self.keymap:
-            self._down_keys.add(key)
+        steno_key = self.keymap.get(key, None)
+        if steno_key is not None:
+            self._down_keys.add(steno_key)
 
     def _post_suppress(self, suppress, steno_keys):
         """Backspace the last stroke since it matched a command.
@@ -70,9 +74,10 @@ class Stenotype(StenotypeBase):
 
     def _key_up(self, key):
         """Called when a key is released."""
-        if key in self.keymap:
+        steno_key = self.keymap.get(key, None)
+        if steno_key is not None:
             # Process the newly released key.
-            self._released_keys.add(key)
+            self._released_keys.add(steno_key)
             # Remove invalid released keys.
             self._released_keys = self._released_keys.intersection(self._down_keys)
 
@@ -83,8 +88,7 @@ class Stenotype(StenotypeBase):
         if self.arpeggiate:
             send_strokes &= key == ' '
         if send_strokes:
-            steno_keys = [self.keymap[k] for k in self._down_keys
-                          if k in self.keymap]
+            steno_keys = list(self._down_keys)
             if steno_keys:
                 self._down_keys.clear()
                 self._released_keys.clear()

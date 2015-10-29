@@ -103,14 +103,17 @@ KEYCODE_TO_KEY = {
     65: " ",
 }
 
+KEY_TO_KEYCODE = dict(zip(KEYCODE_TO_KEY.values(), KEYCODE_TO_KEY.keys()))
+
 class KeyboardCapture(threading.Thread):
     """Listen to keyboard press and release events."""
 
-    def __init__(self):
+    def __init__(self, suppressed_keys):
         """Prepare to listen for keyboard events."""
         threading.Thread.__init__(self)
         self.context = None
         self.key_events_to_ignore = []
+        self.suppressed_keys = suppressed_keys
 
         # Assign default callback functions.
         self.key_down = lambda x: True
@@ -182,8 +185,8 @@ class KeyboardCapture(threading.Thread):
             fn = self.grab_key
         else:
             fn = self.ungrab_key
-        for keycode in KEYCODE_TO_KEY.keys():
-            fn(keycode)
+        for key in self.suppressed_keys:
+            fn(KEY_TO_KEYCODE[key])
         self.local_display.sync()
         self.is_suppressed = suppress
 
@@ -221,8 +224,8 @@ class KeyboardCapture(threading.Thread):
             if modifiers != 0:
                 continue
             key = KEYCODE_TO_KEY.get(keycode, None)
-            if key is None:
-                # Not a supported key, ignore...
+            if not key in self.suppressed_keys:
+                # Not a supported/suppressed key, ignore...
                 continue
             # ...or pass it on to a callback method.
             if event.type == X.KeyPress:
