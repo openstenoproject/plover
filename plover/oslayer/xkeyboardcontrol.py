@@ -35,6 +35,19 @@ but could not be found."
 keyboard_capture_instances = []
 
 KEYCODE_TO_KEY = {
+    # Function row.
+    67: "F1",
+    68: "F2",
+    69: "F3",
+    70: "F4",
+    71: "F5",
+    72: "F6",
+    73: "F7",
+    74: "F8",
+    75: "F9",
+    76: "F10",
+    95: "F11",
+    96: "F12",
     # Number row.
     49: "`",
     10: "1",

@@ -27,6 +27,8 @@ def SendKeys(s):
 # For the purposes of this class, we'll only report key presses that
 # result in these outputs in order to exclude special key combos.
 SCANCODE_TO_KEY = {
+    59: 'F1', 60: 'F2', 61: 'F3', 62: 'F4', 63: 'F5', 64: 'F6',
+    65: 'F7', 66: 'F8', 67: 'F9', 68: 'F10', 87: 'F11', 88: 'F12',
     41: '`', 2: '1', 3: '2', 4: '3', 5: '4', 6: '5', 7: '6', 8: '7', 
     9: '8', 10: '9', 11: '0', 12: '-', 13: '=', 16: 'q', 
     17: 'w', 18: 'e', 19: 'r', 20: 't', 21: 'y', 22: 'u', 23: 'i',
