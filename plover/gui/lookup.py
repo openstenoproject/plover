@@ -95,12 +95,13 @@ class LookupDialog(wx.Dialog):
 
     def on_close(self, event=None):
         self.engine.translator.set_state(self.previous_state)
+        self.other_instances.remove(self)
+        self.Destroy()
+        self.Update()  # confirm dialog is removed before setting fg window
         try:
             util.SetForegroundWindow(self.last_window)
         except:
             pass
-        self.other_instances.remove(self)
-        self.Destroy()
 
     def on_translation_change(self, event):
         # TODO: normalize dict entries to make reverse lookup more reliable with 
@@ -116,7 +117,6 @@ class LookupDialog(wx.Dialog):
                     self.listbox.Append(str)
             else:
                 self.listbox.Append('No entries')
-                
         self.GetSizer().Layout()
 
     def on_translation_gained_focus(self, event):
@@ -130,7 +130,7 @@ class LookupDialog(wx.Dialog):
 
     def on_move(self, event):
         pos = self.GetScreenPositionTuple()
-        self.config.set_lookup_frame_x(pos[0]) 
+        self.config.set_lookup_frame_x(pos[0])
         self.config.set_lookup_frame_y(pos[1])
         event.Skip()
 
@@ -139,9 +139,10 @@ class LookupDialog(wx.Dialog):
         strokes = normalize_steno('/'.join(strokes))
         return strokes
 
+
 def Show(parent, engine, config):
     dialog_instance = LookupDialog(parent, engine, config)
     dialog_instance.Show()
     dialog_instance.Raise()
     dialog_instance.translation_text.SetFocus()
-    util.SetTopApp()
+    util.SetTopApp(dialog_instance)
