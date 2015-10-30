@@ -212,7 +212,6 @@ class KeyboardCapture(threading.Thread):
                                        self.record_display.display, None, None)
             keycode = event.detail
             modifiers = event.state & ~0b10000 & 0xFF
-            keysym = self.local_display.keycode_to_keysym(keycode, modifiers)
             # Either ignore the event...
             if self.key_events_to_ignore:
                 ignore_keycode, ignore_event_type = self.key_events_to_ignore[0]
