@@ -8,6 +8,7 @@ resumes stenotype translation and allows for application configuration.
 
 """
 
+import sys
 import os
 import wx
 import wx.animate
@@ -38,7 +39,13 @@ class PloverGUI(wx.App):
 
     def __init__(self, config):
         self.config = config
-        wx.App.__init__(self, redirect=False)
+        # Override sys.argv[0] so X11 windows class is correctly set.
+        argv = sys.argv
+        try:
+            sys.argv = [__software_name__] + argv[:1]
+            wx.App.__init__(self, redirect=False)
+        finally:
+            sys.argv = argv
 
     def OnInit(self):
         """Called just before the application starts."""
@@ -54,7 +61,7 @@ class MainFrame(wx.Frame):
     """The top-level GUI element of the Plover application."""
 
     # Class constants.
-    TITLE = "Plover"
+    TITLE = __software_name__.capitalize()
     ALERT_DIALOG_TITLE = TITLE
     ON_IMAGE_FILE = os.path.join(ASSETS_DIR, 'plover_on.png')
     OFF_IMAGE_FILE = os.path.join(ASSETS_DIR, 'plover_off.png')
