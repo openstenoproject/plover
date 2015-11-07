@@ -12,7 +12,22 @@ from plover import (
     __license__,
 )
 
+import sys
 import setuptools
+
+setup_requires = []
+options = {}
+kwargs = {}
+
+if sys.platform.startswith('darwin'):
+    setup_requires.append('py2app')
+    options['py2app'] = {
+        'argv_emulation': True,
+        'iconfile': 'osx/plover.icns',
+        'resources': 'plover/assets/',
+    }
+    # Py2app will not look at entry_points.
+    kwargs['app'] = 'launch.py',
 
 setuptools.setup(
     name=__software_name__.capitalize(),
@@ -27,6 +42,8 @@ setuptools.setup(
     maintainer='Joshua Harlan Lifton',
     maintainer_email='joshua.harlan.lifton@gmail.com',
     zip_safe=True,
+    options=options,
+    setup_requires=setup_requires,
     install_requires=[
         'setuptools',
         'pyserial>=2.7',
@@ -44,6 +61,12 @@ setuptools.setup(
         ],
         ':"linux" in sys_platform': [
             'python-xlib>=0.14',
+            'wxPython>=2.8',
+        ],
+        ':"darwin" in sys_platform': [
+            'pyobjc-core>=3.0.3',
+            'pyobjc-framework-Cocoa>=3.0.3',
+            'pyobjc-framework-Quartz>=3.0.3',
             'wxPython>=2.8',
         ],
     },
@@ -77,4 +100,5 @@ setuptools.setup(
         'Topic :: Adaptive Technologies',
         'Topic :: Desktop Environment',
     ],
+    **kwargs
 )
