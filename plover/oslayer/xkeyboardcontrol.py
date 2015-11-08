@@ -1,4 +1,3 @@
-#!/usr/bin/env python
 # Copyright (c) 2010 Joshua Harlan Lifton.
 # See LICENSE.txt for details.
 #
@@ -35,70 +34,86 @@ but could not be found."
 
 keyboard_capture_instances = []
 
-KEYCODE_TO_PSEUDOKEY = {
+KEYCODE_TO_KEY = {
+    # Function row.
+    67: "F1",
+    68: "F2",
+    69: "F3",
+    70: "F4",
+    71: "F5",
+    72: "F6",
+    73: "F7",
+    74: "F8",
+    75: "F9",
+    76: "F10",
+    95: "F11",
+    96: "F12",
     # Number row.
-    49: ord("`"),
-    10: ord("1"),
-    11: ord("2"),
-    12: ord("3"),
-    13: ord("4"),
-    14: ord("5"),
-    15: ord("6"),
-    16: ord("7"),
-    17: ord("8"),
-    18: ord("9"),
-    19: ord("0"),
-    20: ord("-"),
-    21: ord("="),
-    51: ord("\\"),
+    49: "`",
+    10: "1",
+    11: "2",
+    12: "3",
+    13: "4",
+    14: "5",
+    15: "6",
+    16: "7",
+    17: "8",
+    18: "9",
+    19: "0",
+    20: "-",
+    21: "=",
+    51: "\\",
     # Upper row.
-    24: ord("q"),
-    25: ord("w"),
-    26: ord("e"),
-    27: ord("r"),
-    28: ord("t"),
-    29: ord("y"),
-    30: ord("u"),
-    31: ord("i"),
-    32: ord("o"),
-    33: ord("p"),
-    34: ord("["),
-    35: ord("]"),
+    24: "q",
+    25: "w",
+    26: "e",
+    27: "r",
+    28: "t",
+    29: "y",
+    30: "u",
+    31: "i",
+    32: "o",
+    33: "p",
+    34: "[",
+    35: "]",
     # Home row.
-    38: ord("a"),
-    39: ord("s"),
-    40: ord("d"),
-    41: ord("f"),
-    42: ord("g"),
-    43: ord("h"),
-    44: ord("j"),
-    45: ord("k"),
-    46: ord("l"),
-    47: ord(";"),
-    48: ord("'"),
+    38: "a",
+    39: "s",
+    40: "d",
+    41: "f",
+    42: "g",
+    43: "h",
+    44: "j",
+    45: "k",
+    46: "l",
+    47: ";",
+    48: "'",
     # Bottom row.
-    52: ord("z"),
-    53: ord("x"),
-    54: ord("c"),
-    55: ord("v"),
-    56: ord("b"),
-    57: ord("n"),
-    58: ord("m"),
-    59: ord(","),
-    60: ord("."),
-    61: ord("/"),
+    52: "z",
+    53: "x",
+    54: "c",
+    55: "v",
+    56: "b",
+    57: "n",
+    58: "m",
+    59: ",",
+    60: ".",
+    61: "/",
     # Space bar.
-    65: ord(" "),
+    65: "space",
 }
+
+KEY_TO_KEYCODE = dict(zip(KEYCODE_TO_KEY.values(), KEYCODE_TO_KEY.keys()))
 
 class KeyboardCapture(threading.Thread):
     """Listen to keyboard press and release events."""
 
-    def __init__(self):
+    def __init__(self, suppressed_keys):
         """Prepare to listen for keyboard events."""
         threading.Thread.__init__(self)
         self.context = None
         self.key_events_to_ignore = []
+        self.suppressed_keys = suppressed_keys
 
         # Assign default callback functions.
         self.key_down = lambda x: True
@@ -170,8 +185,8 @@ class KeyboardCapture(threading.Thread):
             fn = self.grab_key
         else:
             fn = self.ungrab_key
-        for keycode in KEYCODE_TO_PSEUDOKEY.keys():
-            fn(keycode)
+        for key in self.suppressed_keys:
+            fn(KEY_TO_KEYCODE[key])
         self.local_display.sync()
         self.is_suppressed = suppress
 
@@ -197,10 +212,6 @@ class KeyboardCapture(threading.Thread):
                                        self.record_display.display, None, None)
             keycode = event.detail
             modifiers = event.state & ~0b10000 & 0xFF
-            keysym = self.local_display.keycode_to_keysym(keycode, modifiers)
-            if modifiers == 0:
-                keysym = KEYCODE_TO_PSEUDOKEY.get(keycode, keysym)
-            key_event = XKeyEvent(keycode, modifiers, keysym)
             # Either ignore the event...
             if self.key_events_to_ignore:
                 ignore_keycode, ignore_event_type = self.key_events_to_ignore[0]
@@ -208,11 +219,18 @@ class KeyboardCapture(threading.Thread):
                     event.type == ignore_event_type):
                     self.key_events_to_ignore.pop(0)
                     continue
+            # Ignore event if a modifier is set.
+            if modifiers != 0:
+                continue
+            key = KEYCODE_TO_KEY.get(keycode, None)
+            if not key in self.suppressed_keys:
+                # Not a supported/suppressed key, ignore...
+                continue
             # ...or pass it on to a callback method.
             if event.type == X.KeyPress:
-                self.key_down(key_event)
+                self.key_down(key)
             elif event.type == X.KeyRelease:
-                self.key_up(key_event)
+                self.key_up(key)
 
     def ignore_key_events(self, key_events):
         """A sequence of keycode, event type tuples to ignore.
@@ -434,64 +452,3 @@ class KeyboardEmulation(object):
             return (keycode, modifiers)
         return (None, None)
 
-
-
-class XKeyEvent(object):
-    """A class to hold all the information about a key event."""
-
-    def __init__(self, keycode, modifiers, keysym):
-        """Create an event instance.
-
-        Arguments:
-
-        keycode -- The keycode that identifies a physical key.
-
-        modifiers -- An 8-bit mask. A set bit means the corresponding
-        modifier is active. See Xlib.X.ShiftMask, Xlib.X.LockMask,
-        Xlib.X.ControlMask, and Xlib.X.Mod1Mask through
-        Xlib.X.Mod5Mask.
-
-        keysym -- The symbol obtained when the key corresponding to
-        keycode without any modifiers. The KeyboardEmulation class
-        does not track modifiers such as Shift and Control.
-
-        """
-        self.keycode = keycode
-        self.modifiers = modifiers
-        self.keysym = keysym
-        # Only want printable characters.
-        if keysym < 255 or keysym in (XK.XK_Return, XK.XK_Tab):
-            self.keystring = XK.keysym_to_string(keysym)
-            if self.keystring == '\x00':
-                self.keystring = None
-        else:
-            self.keystring = None
-
-    def __str__(self):
-        return ' '.join([('%s: %s' % (k, str(v)))
-                                      for k, v in self.__dict__.items()])
-
-if __name__ == '__main__':
-    kc = KeyboardCapture()
-    ke = KeyboardEmulation()
-
-    import time
-
-    def test(event):
-        if not event.keycode:
-            return
-        print event
-        time.sleep(0.1)
-        keycode_events = ke.send_key_combination('Alt_L(Tab)')
-        #ke.send_backspaces(5)
-        #ke.send_string('Foo:~')
-
-    #kc.key_down = test
-    kc.key_up = test
-    kc.start()
-    print 'Press CTRL-c to quit.'
-    try:
-        while True:
-            pass
-    except KeyboardInterrupt:
-        kc.cancel()

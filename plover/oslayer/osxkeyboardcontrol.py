@@ -210,12 +210,13 @@ MY_EVENT_SOURCE = CGEventSourceCreate(0xFFFFFFFF)  # 32 bit -1
 MY_EVENT_SOURCE_ID = CGEventSourceGetSourceStateID(MY_EVENT_SOURCE)
 
 # For the purposes of this class, we're only watching these keys.
-KEYCODE_TO_CHAR = {
+KEYCODE_TO_KEY = {
+    122: 'F1', 120: 'F2', 99: 'F3', 118: 'F4', 96: 'F5', 97: 'F6', 98: 'F7', 100: 'F8', 101: 'F9', 109: 'F10', 103: 'F11', 111: 'F12',
     50: '`', 29: '0', 18: '1', 19: '2', 20: '3', 21: '4', 23: '5', 22: '6', 26: '7', 28: '8', 25: '9', 27: '-', 24: '=',
     12: 'q', 13: 'w', 14: 'e', 15: 'r', 17: 't', 16: 'y', 32: 'u', 34: 'i', 31: 'o',  35: 'p', 33: '[', 30: ']', 42: '\\',
     0: 'a', 1: 's', 2: 'd', 3: 'f', 5: 'g', 4: 'h', 38: 'j', 40: 'k', 37: 'l', 41: ';', 39: '\'',
     6: 'z', 7: 'x', 8: 'c', 9: 'v', 11: 'b', 45: 'n', 46: 'm', 43: ',', 47: '.', 44: '/',
-    49: ' ',
+    49: 'space',
 }
 
 class KeyboardCapture(threading.Thread):
@@ -223,10 +224,11 @@ class KeyboardCapture(threading.Thread):
 
     _KEYBOARD_EVENTS = set([kCGEventKeyDown, kCGEventKeyUp])
 
-    def __init__(self):
+    def __init__(self, suppressed_keys):
         threading.Thread.__init__(self)
         self._running_thread = None
         self.suppress_keyboard(True)
+        self.suppressed_keys = suppressed_keys
 
         # Returning the event means that it is passed on for further processing by others. 
         # Returning None means that the event is intercepted.
@@ -242,13 +244,15 @@ class KeyboardCapture(threading.Thread):
             if CGEventGetFlags(event) & ~kCGEventFlagMaskNonCoalesced:
                 return event
             keycode = CGEventGetIntegerValueField(event, kCGKeyboardEventKeycode)
-            if keycode not in KEYCODE_TO_CHAR:
-                return event
-            char = KEYCODE_TO_CHAR[keycode]
-            handler_name = 'key_up' if event_type == kCGEventKeyUp else 'key_down'
-            handler = getattr(self, handler_name, lambda event: None)
-            handler(KeyboardEvent(char))
-            return None if self.is_keyboard_suppressed() else event
+            key = KEYCODE_TO_KEY.get(keycode, None)
+            if key in self.suppressed_keys:
+                handler_name = 'key_up' if event_type == kCGEventKeyUp else 'key_down'
+                handler = getattr(self, handler_name, lambda event: None)
+                handler(key)
+                if self.is_keyboard_suppressed():
+                    # Supress event.
+                    event = None
+            return event
 
         self._tap = CGEventTapCreate(
             kCGSessionEventTap,
@@ -400,9 +404,3 @@ class KeyboardEmulation(object):
             if key_down and keycode in MODIFIER_KEYS_TO_MASKS:
                 event_mask |= MODIFIER_KEYS_TO_MASKS[keycode]
 
-
-class KeyboardEvent(object):
-    """A keyboard event."""
-
-    def __init__(self, char):
-        self.keystring = char

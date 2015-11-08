@@ -1,4 +1,3 @@
-#!/usr/bin/env python
 # Copyright (c) 2011 Hesky Fisher.
 # See LICENSE.txt for details.
 #
@@ -27,7 +26,9 @@ def SendKeys(s):
 
 # For the purposes of this class, we'll only report key presses that
 # result in these outputs in order to exclude special key combos.
-KEY_TO_ASCII = {
+SCANCODE_TO_KEY = {
+    59: 'F1', 60: 'F2', 61: 'F3', 62: 'F4', 63: 'F5', 64: 'F6',
+    65: 'F7', 66: 'F8', 67: 'F9', 68: 'F10', 87: 'F11', 88: 'F12',
     41: '`', 2: '1', 3: '2', 4: '3', 5: '4', 6: '5', 7: '6', 8: '7', 
     9: '8', 10: '9', 11: '0', 12: '-', 13: '=', 16: 'q', 
     17: 'w', 18: 'e', 19: 'r', 20: 't', 21: 'y', 22: 'u', 23: 'i',
@@ -35,7 +36,7 @@ KEY_TO_ASCII = {
     30: 'a', 31: 's', 32: 'd', 33: 'f', 34: 'g', 35: 'h', 36: 'j',
     37: 'k', 38: 'l', 39: ';', 40: '\'', 44: 'z', 45: 'x',
     46: 'c', 47: 'v', 48: 'b', 49: 'n', 50: 'm', 51: ',', 
-    52: '.', 53: '/', 57: ' ',
+    52: '.', 53: '/', 57: 'space',
 }
 
 
@@ -48,24 +49,25 @@ class KeyboardCapture():
     WIN_KEYS = set(('Lwin', 'Rwin'))
     PASSTHROUGH_KEYS = CONTROL_KEYS | SHIFT_KEYS | ALT_KEYS | WIN_KEYS
     
-    def __init__(self):
+    def __init__(self, suppressed_keys):
 
         self.suppress_keyboard(True)
         self.passthrough_down_keys = set()
         self.alive = False
+        self.suppressed_keys = suppressed_keys
 
         # NOTE(hesky): Does this need to be more efficient and less
         # general if it will be called for every keystroke?
         def on_key_event(func_name, event):
-            ascii = KEY_TO_ASCII.get(event.ScanCode, None)
+            key = SCANCODE_TO_KEY.get(event.ScanCode, None)
             if not event.Injected:
                 if event.Key in self.PASSTHROUGH_KEYS:
                     if func_name == 'key_down':
                         self.passthrough_down_keys.add(event.Key)
                     if func_name == 'key_up':
                         self.passthrough_down_keys.discard(event.Key)
-                if ascii and not self.passthrough_down_keys:
-                    getattr(self, func_name, lambda x: True)(KeyboardEvent(ascii))
+                if key in self.suppressed_keys and not self.passthrough_down_keys:
+                    getattr(self, func_name, lambda x: True)(key)
                     return not self.is_keyboard_suppressed()
             
             return True
@@ -186,27 +188,3 @@ class KeyboardEmulation:
                 combo.append(token)
         SendKeys(''.join(combo))
 
-
-class KeyboardEvent(object):
-    """A keyboard event."""
-
-    def __init__(self, char):
-        self.keystring = char
-
-if __name__ == '__main__':
-    kc = KeyboardCapture()
-    ke = KeyboardEmulation()
-
-    def test(event):
-        print event.keystring
-        ke.send_backspaces(1)
-        ke.send_string(' you pressed: "' + event.keystring + '" ')
-
-    kc.key_up = test
-    kc.start()
-    print 'Press CTRL-c to quit.'
-    try:
-        while True:
-            pass
-    except KeyboardInterrupt:
-        kc.cancel()

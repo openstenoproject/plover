@@ -42,23 +42,40 @@ class KeyboardEmulation(keyboardcontrol.KeyboardEmulation):
 
 
 if __name__ == '__main__':
-    kc = KeyboardCapture()
+    import time
+
+    keys = [chr(n) for n in range(ord('a'), ord('z') + 1)]
+    for n in range(12):
+        keys.append('F%u' % (n + 1))
+    for c in '`1234567890-=[];\',./\\':
+        keys.append(c)
+    keys.append('space')
+    kc = KeyboardCapture(keys)
     ke = KeyboardEmulation()
 
-    def test(event):
-        print event
-        ke.send_backspaces(3)
-        ke.send_string('foo')
+    pressed = set()
+    status = 'pressed: '
 
-    # For the windows version
-    kc._create_own_pump = True
+    def test(key, action):
+        global pressed, status
+        print key, action
+        if 'pressed' == action:
+            pressed.add(key)
+        elif key in pressed:
+            pressed.remove(key)
+        new_status = 'pressed: ' + '+'.join(pressed)
+        if status != new_status:
+            ke.send_backspaces(len(status))
+            ke.send_string(new_status)
+            status = new_status
 
-    kc.key_down = test
-    kc.key_up = test
+    kc.key_down = lambda k: test(k, 'pressed')
+    kc.key_up = lambda k: test(k, 'released')
+    kc.suppress_keyboard(True)
     kc.start()
     print 'Press CTRL-c to quit.'
     try:
         while True:
-            pass
+            time.sleep(1)
     except KeyboardInterrupt:
         kc.cancel()
