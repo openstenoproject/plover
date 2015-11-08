@@ -8,7 +8,6 @@
 
 import serial
 import threading
-from plover.exception import SerialPortException
 import collections
 
 STATE_STOPPED = 'closed'
