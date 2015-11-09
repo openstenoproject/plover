@@ -51,13 +51,7 @@ class KeyboardEmulation(keyboardcontrol.KeyboardEmulation):
 if __name__ == '__main__':
     import time
 
-    keys = [chr(n) for n in range(ord('a'), ord('z') + 1)]
-    for n in range(12):
-        keys.append('F%u' % (n + 1))
-    for c in '`1234567890-=[];\',./\\':
-        keys.append(c)
-    keys.append('space')
-    kc = KeyboardCapture(keys)
+    kc = KeyboardCapture(KeyboardCapture.SUPPORTED_KEYS)
     ke = KeyboardEmulation()
 
     pressed = set()
