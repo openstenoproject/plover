@@ -35,8 +35,6 @@ class StrokeDisplayDialog(wx.Dialog):
         pos = (config.get_stroke_display_x(), config.get_stroke_display_y())
         wx.Dialog.__init__(self, parent, title=TITLE, style=style, pos=pos)
 
-        self.SetBackgroundColour(wx.WHITE)
-
         sizer = wx.BoxSizer(wx.VERTICAL)
 
         self.on_top = wx.CheckBox(self, label=ON_TOP_TEXT)
