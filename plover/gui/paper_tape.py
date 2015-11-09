@@ -7,6 +7,7 @@ import wx
 from wx.lib.utils import AdjustRectToScreen
 from collections import deque
 from plover.steno import STENO_KEY_ORDER, STENO_KEY_NUMBERS
+from plover.gui.util import find_fixed_width_font
 
 TITLE = 'Plover: Stroke Display'
 ON_TOP_TEXT = "Always on top"
@@ -53,19 +54,17 @@ class StrokeDisplayDialog(wx.Dialog):
         box.Add(self.choice, proportion=1)
         sizer.Add(box, flag=wx.LEFT | wx.RIGHT | wx.BOTTOM | wx.EXPAND, 
                   border=UI_BORDER)
-        
+
+        fixed_font = find_fixed_width_font()
+
         self.header = MyStaticText(self, label=ALL_KEYS)
-        font = self.header.GetFont()
-        font.SetFaceName("Courier")
-        self.header.SetFont(font)
+        self.header.SetFont(fixed_font)
         sizer.Add(self.header, flag=wx.LEFT | wx.RIGHT | wx.BOTTOM, 
                   border=UI_BORDER)
         sizer.Add(wx.StaticLine(self), flag=wx.EXPAND)
 
         self.listbox = wx.ListBox(self, size=wx.Size(210, 500))
-        font = self.listbox.GetFont()
-        font.SetFaceName("Courier")
-        self.listbox.SetFont(font)
+        self.listbox.SetFont(fixed_font)
 
         sizer.Add(self.listbox,
                   flag=wx.ALL | wx.FIXED_MINSIZE,
