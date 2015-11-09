@@ -57,6 +57,13 @@ class StrokeDisplayDialog(wx.Dialog):
 
         fixed_font = find_fixed_width_font()
 
+        # Calculate required width and height.
+        # Extra spaces added to compensate for
+        # left margin and scroll bar width...
+        dc = wx.MemoryDC()
+        dc.SetFont(fixed_font)
+        text_width, text_height = dc.GetTextExtent(ALL_KEYS + 3 * ' ')
+
         # Default text style.
         text_style = wx.TextAttr()
         # Add a left margin.
@@ -72,7 +79,8 @@ class StrokeDisplayDialog(wx.Dialog):
 
         self.listbox = wx.TextCtrl(self,
                                    style=wx.TE_MULTILINE|wx.TE_READONLY|wx.TE_DONTWRAP|wx.BORDER_NONE,
-                                   size=wx.Size(210, 500))
+                                   # Will show 30 lines (+1 for inter-line spacings...).
+                                   size=wx.Size(text_width, text_height * 31))
         self.listbox.SetDefaultStyle(text_style)
         self.listbox.SetFont(fixed_font)
 
