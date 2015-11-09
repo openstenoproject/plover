@@ -2,6 +2,8 @@
 # See LICENSE.txt for details.
 
 import sys
+import wx
+
 
 if sys.platform.startswith('win32'):
     import win32gui
@@ -69,3 +71,24 @@ else:
 
     def SetTopApp(w):
         pass
+
+
+def find_fixed_width_font(point_size=None,
+                          family=wx.FONTFAMILY_DEFAULT,
+                          style=wx.FONTSTYLE_NORMAL,
+                          weight=wx.FONTWEIGHT_NORMAL):
+    '''Look for a suitable fixed width font.'''
+    if point_size is None:
+        point_size = wx.SystemSettings.GetFont(wx.SYS_ANSI_FIXED_FONT).GetPointSize()
+    for face in (
+        'monospace',
+        'Courier',
+        'Courier New',
+    ):
+        fixed_font = wx.Font(point_size, family, style, weight, face=face)
+        if fixed_font.IsFixedWidth():
+            break
+    # If no suitable font was found, the closest
+    # match to Courier New is returned.
+    return fixed_font
+
