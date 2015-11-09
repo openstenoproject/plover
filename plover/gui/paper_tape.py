@@ -120,8 +120,12 @@ class StrokeDisplayDialog(wx.Dialog):
         self.show_text(self.formatter(stroke))
 
     def handle_on_top(self, event):
-        self.config.set_stroke_display_on_top(event.IsChecked())
-        self.display(self.GetParent(), self.config)
+        on_top = event.IsChecked()
+        self.config.set_stroke_display_on_top(on_top)
+        style = wx.DEFAULT_DIALOG_STYLE
+        if on_top:
+            style |= wx.STAY_ON_TOP
+        self.SetWindowStyleFlag(style)
 
     def on_style(self, event=None):
         format = self.choice.GetStringSelection()
