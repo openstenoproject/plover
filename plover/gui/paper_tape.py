@@ -57,19 +57,29 @@ class StrokeDisplayDialog(wx.Dialog):
 
         fixed_font = find_fixed_width_font()
 
-        self.header = MyStaticText(self, label=ALL_KEYS)
+        # Default text style.
+        text_style = wx.TextAttr()
+        # Add a left margin.
+        text_style.SetLeftIndent(10)
+
+        self.header = wx.TextCtrl(self, style=wx.TE_READONLY|wx.TE_DONTWRAP|wx.BORDER_NONE)
+        self.header.SetDefaultStyle(text_style)
         self.header.SetFont(fixed_font)
-        sizer.Add(self.header, flag=wx.LEFT | wx.RIGHT | wx.BOTTOM, 
-                  border=UI_BORDER)
+        self.header.AppendText(ALL_KEYS)
+        sizer.Add(self.header, flag=wx.ALL|wx.EXPAND|wx.FIXED_MINSIZE, border=UI_BORDER)
+
         sizer.Add(wx.StaticLine(self), flag=wx.EXPAND)
 
-        self.listbox = wx.ListBox(self, size=wx.Size(210, 500))
+        self.listbox = wx.TextCtrl(self,
+                                   style=wx.TE_MULTILINE|wx.TE_READONLY|wx.TE_DONTWRAP|wx.BORDER_NONE,
+                                   size=wx.Size(210, 500))
+        self.listbox.SetDefaultStyle(text_style)
         self.listbox.SetFont(fixed_font)
 
         sizer.Add(self.listbox,
-                  flag=wx.ALL | wx.FIXED_MINSIZE,
-                  border=3)
-        
+                  flag=wx.ALL|wx.EXPAND,
+                  border=UI_BORDER)
+
         self.SetSizer(sizer)
         self.SetAutoLayout(True)
         sizer.Layout()
@@ -96,8 +106,7 @@ class StrokeDisplayDialog(wx.Dialog):
         event.Skip()
         
     def show_text(self, text):
-        self.listbox.Append(text)
-        self.listbox.SetSelection(self.listbox.Count-1)
+        self.listbox.AppendText(text + '\n')
         
     def show_stroke(self, stroke):
         self.show_text(self.formatter(stroke))
@@ -112,7 +121,10 @@ class StrokeDisplayDialog(wx.Dialog):
         self.listbox.Clear()
         for stroke in self.strokes:
             self.show_stroke(stroke)
-        self.header.SetLabel(ALL_KEYS if format == STYLE_PAPER else ' ')
+        if STYLE_PAPER == format:
+            self.header.Show()
+        else:
+            self.header.Hide()
         self.config.set_stroke_display_style(format)
 
     def paper_format(self, stroke):
@@ -148,87 +160,6 @@ class StrokeDisplayDialog(wx.Dialog):
         # StrokeDisplayDialog shows itself.
         StrokeDisplayDialog(parent, config)
 
-
-# This class exists solely so that the text doesn't get grayed out when the
-# window is not in focus.
-class MyStaticText(wx.PyControl):
-    def __init__(self, parent, id=wx.ID_ANY, label="", 
-                 pos=wx.DefaultPosition, size=wx.DefaultSize, 
-                 style=0, validator=wx.DefaultValidator, 
-                 name="MyStaticText"):
-        wx.PyControl.__init__(self, parent, id, pos, size, style|wx.NO_BORDER,
-                              validator, name)
-        wx.PyControl.SetLabel(self, label)
-        self.InheritAttributes()
-        self.SetInitialSize(size)
-        self.Bind(wx.EVT_PAINT, self.OnPaint)
-        self.Bind(wx.EVT_ERASE_BACKGROUND, self.OnEraseBackground)
-        
-    def OnPaint(self, event):
-        dc = wx.BufferedPaintDC(self)
-        self.Draw(dc)
-
-    def Draw(self, dc):
-        width, height = self.GetClientSize()
-
-        if not width or not height:
-            return
-
-        backBrush = wx.Brush(wx.WHITE, wx.SOLID)
-        dc.SetBackground(backBrush)
-        dc.Clear()
-            
-        dc.SetTextForeground(wx.BLACK)
-        dc.SetFont(self.GetFont())
-        label = self.GetLabel()
-        dc.DrawText(label, 0, 0)
-
-    def OnEraseBackground(self, event):
-        pass
-
-    def SetLabel(self, label):
-        wx.PyControl.SetLabel(self, label)
-        self.InvalidateBestSize()
-        self.SetSize(self.GetBestSize())
-        self.Refresh()
-        
-    def SetFont(self, font):
-        wx.PyControl.SetFont(self, font)
-        self.InvalidateBestSize()
-        self.SetSize(self.GetBestSize())
-        self.Refresh()
-        
-    def DoGetBestSize(self):
-        label = self.GetLabel()
-        font = self.GetFont()
-
-        if not font:
-            font = wx.SystemSettings.GetFont(wx.SYS_DEFAULT_GUI_FONT)
-
-        dc = wx.ClientDC(self)
-        dc.SetFont(font)
-
-        textWidth, textHeight = dc.GetTextExtent(label)
-        best = wx.Size(textWidth, textHeight)
-        self.CacheBestSize(best)
-        return best
-    
-    def AcceptsFocus(self):
-        return False
-
-    def SetForegroundColour(self, colour):
-        wx.PyControl.SetForegroundColour(self, colour)
-        self.Refresh()
-
-    def SetBackgroundColour(self, colour):
-        wx.PyControl.SetBackgroundColour(self, colour)
-        self.Refresh()
-
-    def GetDefaultAttributes(self):
-        return wx.StaticText.GetClassDefaultAttributes()
-    
-    def ShouldInheritColours(self):
-        return True
 
 class fake_config(object):
     def __init__(self):
