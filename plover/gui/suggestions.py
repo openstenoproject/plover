@@ -6,6 +6,7 @@
 import wx
 import re
 from wx.lib.utils import AdjustRectToScreen
+from plover.gui.util import find_fixed_width_font
 
 PAT = re.compile(r'[-\'"\w]+|[^\w\s]')
 TITLE = 'Plover: Suggestions Display'
@@ -42,18 +43,16 @@ class SuggestionsDisplayDialog(wx.Dialog):
 
         box = wx.BoxSizer(wx.HORIZONTAL)
 
+        fixed_font = find_fixed_width_font()
+
         self.header = MyStaticText(self, label=LAST_WORD_TEXT % DEFAULT_LAST_WORD)
-        font = self.header.GetFont()
-        font.SetFaceName("Courier")
-        self.header.SetFont(font)
+        self.header.SetFont(fixed_font)
         sizer.Add(self.header, flag=wx.LEFT | wx.RIGHT | wx.BOTTOM,
                   border=UI_BORDER)
         sizer.Add(wx.StaticLine(self), flag=wx.EXPAND)
 
         self.listbox = wx.ListBox(self, size=wx.Size(210, 500))
-        font = self.listbox.GetFont()
-        font.SetFaceName("Courier")
-        self.listbox.SetFont(font)
+        self.listbox.SetFont(fixed_font)
 
         sizer.Add(self.listbox,
                   proportion=1,
