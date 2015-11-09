@@ -33,7 +33,14 @@ else:
 
 class KeyboardCapture(keyboardcontrol.KeyboardCapture):
     """Listen to keyboard events."""
-    pass
+
+    """Supported keys."""
+    SUPPORTED_KEYS = [chr(n) for n in range(ord('a'), ord('z') + 1)]
+    for n in range(12):
+        SUPPORTED_KEYS.append('F%u' % (n + 1))
+    for c in '`1234567890-=[];\',./\\':
+        SUPPORTED_KEYS.append(c)
+    SUPPORTED_KEYS.append('space')
 
 
 class KeyboardEmulation(keyboardcontrol.KeyboardEmulation):
