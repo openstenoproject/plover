@@ -160,8 +160,12 @@ class SuggestionsDisplayDialog(wx.Dialog):
             self.header.SetLabel(LAST_WORD_TEXT % DEFAULT_LAST_WORD)
 
     def handle_on_top(self, event):
-        self.config.set_suggestions_display_on_top(event.IsChecked())
-        self.display(self.GetParent(), self.config, self.engine)
+        on_top = event.IsChecked()
+        self.config.set_suggestions_display_on_top(on_top)
+        style = wx.DEFAULT_DIALOG_STYLE
+        if on_top:
+            style |= wx.STAY_ON_TOP
+        self.SetWindowStyleFlag(style)
 
     @staticmethod
     def tails(ls):
