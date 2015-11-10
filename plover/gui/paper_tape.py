@@ -15,7 +15,7 @@ UI_BORDER = 4
 ALL_KEYS = ''.join(x[0].strip('-') for x in 
                    sorted(STENO_KEY_ORDER.items(), key=lambda x: x[1]))
 REVERSE_NUMBERS = {v: k for k, v in STENO_KEY_NUMBERS.items()}
-MAX_STROKE_LINES = 38
+MAX_STROKE_LINES = 30
 STYLE_TEXT = 'Style:'
 STYLE_PAPER = 'Paper'
 STYLE_RAW = 'Raw'
@@ -56,11 +56,10 @@ class StrokeDisplayDialog(wx.Dialog):
         fixed_font = find_fixed_width_font()
 
         # Calculate required width and height.
-        # Extra spaces added to compensate for
-        # left margin and scroll bar width...
+        # Extra space to compensate for left margin...
         dc = wx.MemoryDC()
         dc.SetFont(fixed_font)
-        text_width, text_height = dc.GetTextExtent(ALL_KEYS + 3 * ' ')
+        text_width, text_height = dc.GetTextExtent(ALL_KEYS + ' ')
 
         # Default text style.
         text_style = wx.TextAttr()
@@ -77,8 +76,8 @@ class StrokeDisplayDialog(wx.Dialog):
 
         self.listbox = wx.TextCtrl(self,
                                    style=wx.TE_MULTILINE|wx.TE_READONLY|wx.TE_DONTWRAP|wx.BORDER_NONE,
-                                   # Will show 30 lines (+1 for inter-line spacings...).
-                                   size=wx.Size(text_width, text_height * 31))
+                                   # Will show MAX_STROKE_LINES lines (+1 for inter-line spacings...).
+                                   size=wx.Size(text_width, text_height * (MAX_STROKE_LINES + 1)))
         self.listbox.SetDefaultStyle(text_style)
         self.listbox.SetFont(fixed_font)
 
@@ -112,7 +111,13 @@ class StrokeDisplayDialog(wx.Dialog):
         event.Skip()
         
     def show_text(self, text):
-        self.listbox.AppendText(text + '\n')
+        if len(self.line_lengths) == MAX_STROKE_LINES:
+            self.listbox.Remove(0, self.line_lengths.pop(0))
+        if self.listbox.IsEmpty():
+            self.listbox.AppendText(text)
+        else:
+            self.listbox.AppendText('\n' + text)
+        self.line_lengths.append(len(text) + 1)
         
     def show_stroke(self, stroke):
         self.show_text(self.formatter(stroke))
@@ -129,6 +134,7 @@ class StrokeDisplayDialog(wx.Dialog):
         format = self.choice.GetStringSelection()
         self.formatter = getattr(self, format.lower() + '_format')
         self.listbox.Clear()
+        self.line_lengths = []
         for stroke in self.strokes:
             self.show_stroke(stroke)
         if STYLE_PAPER == format:
