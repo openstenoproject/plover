@@ -22,9 +22,7 @@ Most dependencies can be retrieve with pip:
 
 ### Running Plover in Development
 
-To run in development, you must have the root of Plover's Git repository in the `PYTHONPATH` environment variable.
-
-Then, from the root of the Git repository, you can run `python application\plover`.
+To run from source, from the root of the Git repository, use `python launch.py`.
 
 ### Building
 
