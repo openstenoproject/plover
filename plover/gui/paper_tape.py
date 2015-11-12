@@ -54,15 +54,16 @@ class StrokeDisplayDialog(wx.Dialog):
         sizer.Add(box, flag=wx.LEFT | wx.RIGHT | wx.BOTTOM | wx.EXPAND, 
                   border=UI_BORDER)
         
-        self.header = MyStaticText(self, label=ALL_KEYS)
+        self.header = MyStaticText(self, label=ALL_KEYS+"  ")
         font = self.header.GetFont()
         font.SetFaceName("Courier")
         self.header.SetFont(font)
         sizer.Add(self.header, flag=wx.LEFT | wx.RIGHT | wx.BOTTOM, 
-                  border=UI_BORDER)
+                  border=UI_BORDER + 4)
         sizer.Add(wx.StaticLine(self), flag=wx.EXPAND)
 
-        self.listbox = wx.ListBox(self, size=wx.Size(210, 500))
+        listboxwidth = self.header.DoGetBestSize().GetWidth() + 3
+        self.listbox = wx.ListBox(self, size=wx.Size(listboxwidth, 500))
         font = self.listbox.GetFont()
         font.SetFaceName("Courier")
         self.listbox.SetFont(font)
