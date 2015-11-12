@@ -12,9 +12,11 @@ PAT = re.compile(r'[-\'"\w]+|[^\w\s]')
 TITLE = 'Plover: Suggestions Display'
 ON_TOP_TEXT = "Always on top"
 UI_BORDER = 4
-MAX_STROKE_LINES = 38
 LAST_WORD_TEXT = 'Last Word: %s'
 DEFAULT_LAST_WORD = 'N/A'
+HISTORY_SIZE = 10
+MAX_DISPLAY_LINES = 20
+DISPLAY_WIDTH = 30
 
 class SuggestionsDisplayDialog(wx.Dialog):
 
@@ -39,23 +41,54 @@ class SuggestionsDisplayDialog(wx.Dialog):
         self.on_top.Bind(wx.EVT_CHECKBOX, self.handle_on_top)
         sizer.Add(self.on_top, flag=wx.ALL, border=UI_BORDER)
 
-        box = wx.BoxSizer(wx.HORIZONTAL)
-
-        fixed_font = find_fixed_width_font()
-
-        self.header = wx.StaticText(self, label=LAST_WORD_TEXT % DEFAULT_LAST_WORD)
-        self.header.SetFont(fixed_font)
-        sizer.Add(self.header, flag=wx.LEFT | wx.RIGHT | wx.BOTTOM,
-                  border=UI_BORDER)
         sizer.Add(wx.StaticLine(self), flag=wx.EXPAND)
 
-        self.listbox = wx.ListBox(self, size=wx.Size(210, 500))
-        self.listbox.SetFont(fixed_font)
+        self.listbox = wx.TextCtrl(self, style=wx.TE_MULTILINE|wx.TE_READONLY|wx.TE_DONTWRAP|wx.BORDER_NONE)
+
+        standard_font = self.listbox.GetFont()
+        fixed_font = find_fixed_width_font()
+
+        # Calculate required width and height.
+        dc = wx.ScreenDC()
+        dc.SetFont(fixed_font)
+        fixed_text_size = dc.GetTextExtent(' ' * DISPLAY_WIDTH)
+        dc.SetFont(standard_font)
+        standard_text_size = dc.GetTextExtent(' ' * DISPLAY_WIDTH)
+
+        text_width, text_height = [max(d1, d2) for d1, d2 in
+                                   zip(fixed_text_size, standard_text_size)]
+
+        # Will show MAX_DISPLAY_LINES lines (+1 for inter-line spacings...).
+        self.listbox.SetSize(wx.Size(text_width, text_height * (MAX_DISPLAY_LINES + 1)))
+
+        self.history = []
 
         sizer.Add(self.listbox,
                   proportion=1,
                   flag=wx.ALL | wx.FIXED_MINSIZE | wx.EXPAND,
-                  border=3)
+                  border=UI_BORDER)
+
+        dc.SetMapMode(wx.MM_METRIC)
+        strokes_margin = dc.DeviceToLogicalX(fixed_text_size[0] / 8) * 10
+
+        self.word_style = wx.TextAttr()
+        self.word_style.SetFont(standard_font)
+        self.word_style.SetFontStyle(wx.FONTSTYLE_NORMAL)
+        self.word_style.SetFontWeight(wx.FONTWEIGHT_BOLD)
+        self.word_style.SetAlignment(wx.TEXT_ALIGNMENT_LEFT)
+        self.word_style.SetLeftIndent(0)
+        self.stroke_style = wx.TextAttr()
+        self.stroke_style.SetFont(fixed_font)
+        self.stroke_style.SetFontStyle(wx.FONTSTYLE_NORMAL)
+        self.stroke_style.SetFontWeight(wx.FONTWEIGHT_NORMAL)
+        self.stroke_style.SetAlignment(wx.TEXT_ALIGNMENT_LEFT)
+        self.stroke_style.SetLeftIndent(strokes_margin)
+        self.no_suggestion_style = wx.TextAttr()
+        self.no_suggestion_style.SetFont(standard_font)
+        self.no_suggestion_style.SetFontStyle(wx.FONTSTYLE_ITALIC)
+        self.no_suggestion_style.SetFontWeight(wx.FONTWEIGHT_NORMAL)
+        self.no_suggestion_style.SetAlignment(wx.TEXT_ALIGNMENT_LEFT)
+        self.no_suggestion_style.SetLeftIndent(strokes_margin)
 
         self.SetSizer(sizer)
         self.SetAutoLayout(True)
@@ -128,9 +161,16 @@ class SuggestionsDisplayDialog(wx.Dialog):
         # don't exceed this length
         self.words = self.words[-100:]
 
+        # Limit history.
+        if len(self.history) == HISTORY_SIZE:
+            length = self.history.pop(0)
+            last_position = self.listbox.GetLastPosition()
+            self.listbox.Remove(last_position - length, last_position)
+        # Insert last entry on top.
+        self.listbox.SetInsertionPoint(0)
+
         split_words = PAT.findall(self.words)
         interp_phrase = ''
-        self.listbox.Clear()
         for phrase in SuggestionsDisplayDialog.tails(split_words):
             phrase = ' '.join(phrase)
             suggestions_list = self.lookup_suggestions(phrase)
@@ -138,11 +178,12 @@ class SuggestionsDisplayDialog(wx.Dialog):
                 continue
 
             for x, suggestions in suggestions_list:
-                # Word name. Style differently
-                self.listbox.Append(x)
+                self.listbox.SetDefaultStyle(self.word_style)
+                self.listbox.WriteText(x + '\n')
+                self.listbox.SetDefaultStyle(self.stroke_style)
                 # Limit arbitrarily to 10 suggestions per word
-                for strokes in suggestions[:10]:
-                    self.listbox.Append(' ' * 4 + '/'.join(strokes))
+                for n, strokes in enumerate(suggestions[:10]):
+                    self.listbox.WriteText('/'.join(strokes) + '\n')
 
             # Set interp_phrase on first found suggestions for given phrase
             if suggestions_list and not interp_phrase:
@@ -150,12 +191,21 @@ class SuggestionsDisplayDialog(wx.Dialog):
 
         if not interp_phrase:
             interp_phrase = DEFAULT_LAST_WORD
-            self.listbox.Append('No suggestions')
+            if len(split_words) > 0:
+                self.listbox.SetDefaultStyle(self.word_style)
+                self.listbox.WriteText(split_words[-1] + '\n')
+                self.listbox.SetDefaultStyle(self.no_suggestion_style)
+                self.listbox.WriteText('No suggestions\n')
 
-        if len(split_words) > 0:
-            self.header.SetLabel(LAST_WORD_TEXT % split_words[-1])
-        else:
-            self.header.SetLabel(LAST_WORD_TEXT % DEFAULT_LAST_WORD)
+        length = self.listbox.GetInsertionPoint()
+        if length:
+            self.history.append(length)
+            # Reset style after final \n, so following
+            # word is correctly displayed.
+            self.listbox.SetDefaultStyle(self.word_style)
+            self.listbox.WriteText('')
+            # Make sure first line is shown.
+            self.listbox.ShowPosition(0)
 
     def handle_on_top(self, event):
         on_top = event.IsChecked()
