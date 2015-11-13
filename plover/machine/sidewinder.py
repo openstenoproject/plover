@@ -31,8 +31,12 @@ class Stenotype(StenotypeBase):
             if 'no-op' == mapping:
                 self.keymap[key] = None
             if 'arpeggiate' == mapping:
-                self.keymap[key] = None
-                self._arpeggiate_key = key
+                if self.arpeggiate:
+                    self.keymap[key] = None
+                    self._arpeggiate_key = key
+                else:
+                    # Don't suppress arpeggiate key if it's not used.
+                    del self.keymap[key]
         self._down_keys = set()
         self._released_keys = set()
         self._keyboard_emulation = keyboardcontrol.KeyboardEmulation()
