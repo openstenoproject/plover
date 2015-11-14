@@ -8,7 +8,7 @@ import shutil
 import sys
 import traceback
 
-WXVER = '2.8'
+WXVER = '3.0'
 if not hasattr(sys, 'frozen'):
     import wxversion
     wxversion.ensureMinimal(WXVER)

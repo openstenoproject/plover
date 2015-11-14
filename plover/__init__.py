@@ -4,9 +4,9 @@
 """Plover: Open Source Stenography Software"""
 
 __version__ = '2.5.8'
-__copyright__ = '(C) 2010-2011 Joshua Harlan Lifton'
-__url__ = 'http://stenoknight.com/plover'
-__download_url__ = 'https://github.com/plover/plover'
+__copyright__ = '(C) Open Steno Project'
+__url__ = 'http://www.openstenoproject.org/'
+__download_url__ = 'http://www.openstenoproject.org/plover'
 __credits__ = ['Stenographer: Mirabai Knight',
                'Coder: Joshua Harlan Lifton',
                'Contributors: Hesky Fisher']
