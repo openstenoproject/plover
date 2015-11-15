@@ -18,6 +18,13 @@ class StenoTestCase(unittest.TestCase):
         ('-ES', 'ES'),
         ('TW-EPBL', 'TWEPBL'),
         ('TWEPBL', 'TWEPBL'),
+        ('19', '1-9'),
+        ('14', '14'),
+        ('146', '14-6'),
+        ('67', '67'),
+        ('46', '4-6'),
+        ('456', '456'),
+        ('S46', 'S4-6'),
         )
         
         for arg, expected in cases:
@@ -29,6 +36,7 @@ class StenoTestCase(unittest.TestCase):
         self.assertEqual(Stroke(['T-', 'S-']).rtfcre, 'ST')
         self.assertEqual(Stroke(['-P', '-P']).rtfcre, '-P')
         self.assertEqual(Stroke(['-P', 'X-']).rtfcre, 'X-P')
+        self.assertEqual(Stroke(['#', 'S-', '-T']).rtfcre, '1-9')
 
 if __name__ == '__main__':
     unittest.main()
