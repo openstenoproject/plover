@@ -10,6 +10,7 @@ from plover import (
     __url__,
     __download_url__,
     __license__,
+    __copyright__,
 )
 
 import sys
@@ -22,10 +23,18 @@ kwargs = {}
 if sys.platform.startswith('darwin'):
     setup_requires.append('py2app')
     options['py2app'] = {
-        'argv_emulation': True,
+        'argv_emulation': False,
         'iconfile': 'osx/plover.icns',
         'resources': 'plover/assets/',
-    }
+        'plist': {
+            'CFBundleName': __software_name__.capitalize(),
+            'CFBundleShortVersionString': __version__,
+            'CFBundleVersion': __version__,
+            'CFBundleIdentifier': 'org.openstenoproject.plover',
+            'NSHumanReadableCopyright': __copyright__,
+            'CFBundleDevelopmentRegion': 'English',
+            }
+        }
     # Py2app will not look at entry_points.
     kwargs['app'] = 'launch.py',
 
@@ -39,8 +48,8 @@ setuptools.setup(
     license=__license__,
     author='Joshua Harlan Lifton',
     author_email='joshua.harlan.lifton@gmail.com',
-    maintainer='Joshua Harlan Lifton',
-    maintainer_email='joshua.harlan.lifton@gmail.com',
+    maintainer='Ted Morin',
+    maintainer_email='morinted@gmail.com',
     zip_safe=True,
     options=options,
     setup_requires=setup_requires,
@@ -48,9 +57,6 @@ setuptools.setup(
         'setuptools',
         'pyserial>=2.7',
         'appdirs>=1.4.0',
-        # Don't add wxPython because it cannot be installed through PIP,
-        # and may not appears as present when it is installed (Windows...).
-        # 'wxPython>=2.8',
     ],
     extras_require={
         ':"win32" in sys_platform': [
@@ -58,28 +64,29 @@ setuptools.setup(
             'pywin32>=219',
             'pywinauto>=0.5.3',
             'pywinusb>=0.4.0',
+            # Can't reliably require wxPython
         ],
         ':"linux" in sys_platform': [
             'python-xlib>=0.14',
-            'wxPython>=2.8',
+            'wxPython>=3.0',
         ],
         ':"darwin" in sys_platform': [
             'pyobjc-core>=3.0.3',
             'pyobjc-framework-Cocoa>=3.0.3',
             'pyobjc-framework-Quartz>=3.0.3',
-            'wxPython>=2.8',
+            'wxPython>=3.0',
         ],
     },
     entry_points={
-        'console_scripts' : ['plover=plover.main:main'],
-        'setuptools.installation' : ['eggsecutable=plover.main:main'],
+        'console_scripts': ['plover=plover.main:main'],
+        'setuptools.installation': ['eggsecutable=plover.main:main'],
     },
     packages=[
         'plover', 'plover.machine', 'plover.gui',
         'plover.oslayer', 'plover.dictionary',
     ],
     package_data={
-        'plover' : ['assets/*'],
+        'plover': ['assets/*'],
     },
     data_files=[
         ('share/applications', ['application/Plover.desktop']),

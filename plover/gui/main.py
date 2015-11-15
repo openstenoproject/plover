@@ -54,6 +54,7 @@ class PloverGUI(wx.App):
         frame.Show()
         return True
 
+
 def gui_thread_hook(fn, *args):
     wx.CallAfter(fn, *args)
 
@@ -103,6 +104,10 @@ class MainFrame(wx.Frame):
         self.configure_button = wx.Button(self,
                                           label=self.CONFIGURE_BUTTON_LABEL)
         self.configure_button.Bind(wx.EVT_BUTTON, self._show_config_dialog)
+
+        # Menu Bar
+        MenuBar = wx.MenuBar()
+        self.SetMenuBar(MenuBar)
 
         # About button.
         self.about_button = wx.Button(self, label=self.ABOUT_BUTTON_LABEL)
@@ -165,7 +170,7 @@ class MainFrame(wx.Frame):
 
         self.Bind(wx.EVT_CLOSE, self._quit)
         self.Bind(wx.EVT_MOVE, self.on_move)
-        self.reconnect_button.Bind(wx.EVT_BUTTON, 
+        self.reconnect_button.Bind(wx.EVT_BUTTON,
             lambda e: app.reset_machine(self.steno_engine, self.config))
 
         try:
@@ -315,10 +320,10 @@ class MainFrame(wx.Frame):
 
     def on_move(self, event):
         pos = self.GetScreenPositionTuple()
-        self.config.set_main_frame_x(pos[0]) 
+        self.config.set_main_frame_x(pos[0])
         self.config.set_main_frame_y(pos[1])
         event.Skip()
-        
+
 
 class Output(object):
     def __init__(self, engine_command_callback, engine):
