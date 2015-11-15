@@ -7,6 +7,7 @@ import wx
 import re
 from wx.lib.utils import AdjustRectToScreen
 from plover.gui.util import find_fixed_width_font
+from plover.steno import STENO_KEY_ORDER
 
 PAT = re.compile(r'[-\'"\w]+|[^\w\s]')
 TITLE = 'Plover: Suggestions Display'
@@ -16,7 +17,8 @@ LAST_WORD_TEXT = 'Last Word: %s'
 DEFAULT_LAST_WORD = 'N/A'
 HISTORY_SIZE = 10
 MAX_DISPLAY_LINES = 20
-DISPLAY_WIDTH = 30
+STROKE_INDENT = 4
+DISPLAY_WIDTH = len(STENO_KEY_ORDER) + STROKE_INDENT + 1 # extra +1 for /
 
 class SuggestionsDisplayDialog(wx.Dialog):
 
@@ -68,27 +70,24 @@ class SuggestionsDisplayDialog(wx.Dialog):
                   flag=wx.ALL | wx.FIXED_MINSIZE | wx.EXPAND,
                   border=UI_BORDER)
 
-        dc.SetMapMode(wx.MM_METRIC)
-        strokes_margin = dc.DeviceToLogicalX(fixed_text_size[0] / 8) * 10
-
         self.word_style = wx.TextAttr()
         self.word_style.SetFont(standard_font)
         self.word_style.SetFontStyle(wx.FONTSTYLE_NORMAL)
         self.word_style.SetFontWeight(wx.FONTWEIGHT_BOLD)
         self.word_style.SetAlignment(wx.TEXT_ALIGNMENT_LEFT)
-        self.word_style.SetLeftIndent(0)
         self.stroke_style = wx.TextAttr()
         self.stroke_style.SetFont(fixed_font)
         self.stroke_style.SetFontStyle(wx.FONTSTYLE_NORMAL)
         self.stroke_style.SetFontWeight(wx.FONTWEIGHT_NORMAL)
         self.stroke_style.SetAlignment(wx.TEXT_ALIGNMENT_LEFT)
-        self.stroke_style.SetLeftIndent(strokes_margin)
         self.no_suggestion_style = wx.TextAttr()
         self.no_suggestion_style.SetFont(standard_font)
         self.no_suggestion_style.SetFontStyle(wx.FONTSTYLE_ITALIC)
         self.no_suggestion_style.SetFontWeight(wx.FONTWEIGHT_NORMAL)
         self.no_suggestion_style.SetAlignment(wx.TEXT_ALIGNMENT_LEFT)
-        self.no_suggestion_style.SetLeftIndent(strokes_margin)
+        self.strokes_indent = ' ' * STROKE_INDENT
+        self.no_suggestion_indent = self.strokes_indent
+        self.no_suggestion_indent *= (fixed_text_size[0] / standard_text_size[0])
 
         self.SetSizer(sizer)
         self.SetAutoLayout(True)
@@ -183,6 +182,7 @@ class SuggestionsDisplayDialog(wx.Dialog):
                 self.listbox.SetDefaultStyle(self.stroke_style)
                 # Limit arbitrarily to 10 suggestions per word
                 for n, strokes in enumerate(suggestions[:10]):
+                    self.listbox.WriteText(self.strokes_indent)
                     self.listbox.WriteText('/'.join(strokes) + '\n')
 
             # Set interp_phrase on first found suggestions for given phrase
@@ -195,6 +195,7 @@ class SuggestionsDisplayDialog(wx.Dialog):
                 self.listbox.SetDefaultStyle(self.word_style)
                 self.listbox.WriteText(split_words[-1] + '\n')
                 self.listbox.SetDefaultStyle(self.no_suggestion_style)
+                self.listbox.WriteText(self.no_suggestion_indent)
                 self.listbox.WriteText('No suggestions\n')
 
         length = self.listbox.GetInsertionPoint()
