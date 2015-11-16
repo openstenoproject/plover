@@ -16,7 +16,7 @@ UI_BORDER = 4
 
 class EditKeysDialog(wx.Dialog):
 
-    def __init__(self, parent, keys):
+    def __init__(self, parent, action, keys):
         super(EditKeysDialog, self).__init__(parent)
         self.sizer = wx.BoxSizer(wx.VERTICAL)
         instructions = wx.StaticText(self, label='Press on the key you want to add/remove.')
@@ -27,7 +27,9 @@ class EditKeysDialog(wx.Dialog):
         self.sizer.Add(buttons, border=UI_BORDER, flag=wx.ALL|wx.ALIGN_CENTER_HORIZONTAL)
         self.SetSizer(self.sizer)
         self.sizer.Fit(self)
+        self.action = action
         self.keys = set(keys)
+        self.original_keys = self.keys.copy()
         self.capture = KeyboardCapture(KeyboardCapture.SUPPORTED_KEYS)
         self.capture.key_down = lambda key: wx.CallAfter(self.on_capture_key, key)
 
@@ -43,7 +45,17 @@ class EditKeysDialog(wx.Dialog):
         return code
 
     def update_message(self):
-        message = ' '.join(sorted(self.keys))
+        message = '\nKeys for %s: ' % self.action
+        message += ' '.join(sorted(self.keys)) if self.keys else 'None'
+        message += '\n\nChanges: '
+        changes = []
+        for key in sorted(self.keys.union(self.original_keys)):
+            if key not in self.original_keys:
+                changes.append('+' + key)
+            elif key not in self.keys:
+                changes.append('-' + key)
+        message += ' '.join(changes) if changes else 'None'
+        message += '\n'
         self.message.SetLabelText(message)
         self.sizer.Fit(self)
         self.sizer.Layout()
@@ -65,9 +77,11 @@ class EditableListCtrl(wx.ListCtrl, listmix.ListCtrlAutoWidthMixin):
 
     def edit_item(self, event):
         # Disallow editing of first column.
+        item = self.GetItem(itemId=event.m_itemIndex, col=0)
+        action = item.GetText()
         item = self.GetItem(itemId=event.m_itemIndex, col=1)
         keys = item.GetText().split()
-        dlg = EditKeysDialog(self, keys)
+        dlg = EditKeysDialog(self, action, keys)
         if wx.ID_OK != dlg.ShowModal():
             # Cancel.
             return
