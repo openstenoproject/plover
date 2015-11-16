@@ -1,34 +1,20 @@
 
-from plover import log, __name__ as __software_name__
-import logging
-import wx
+import sys
+from plover import log
 
 
-def _notify(level, message):
-    nm = wx.NotificationMessage()
-    nm.SetTitle(__software_name__.capitalize())
-    nm.SetMessage(message)
-    if level <= log.INFO:
-        flags = wx.ICON_INFORMATION
-    elif level <= log.WARNING:
-        flags = wx.ICON_WARNING
-    else:
-        flags = wx.ICON_ERROR
-    nm.SetFlags(flags)
-    nm.Show()
+handler = None
 
-class WxNotificationHandler(logging.Handler):
-    """ Handler using wx.NotificationMessage to show messages. """
+try:
+    if sys.platform.startswith('linux'):
+        from plover.gui.log_dbus import DbusNotificationHandler
+        handler = DbusNotificationHandler
+except Exception as e:
+    log.info('could not import platform gui log', exc_info=e)
 
-    def __init__(self):
-        super(WxNotificationHandler, self).__init__()
-        self.setLevel(log.WARNING)
-        self.setFormatter(logging.Formatter('%(levelname)s: %(message)s'))
+if handler is None:
+    from plover.gui.log_wx import WxNotificationHandler
+    handler = WxNotificationHandler
 
-    def emit(self, record):
-        level = record.levelno
-        message = self.format(record)
-        wx.CallAfter(_notify, level, message)
-
-log.add_handler(WxNotificationHandler())
+log.add_handler(handler())
 
