@@ -49,6 +49,8 @@ class PloverGUI(wx.App):
 
     def OnInit(self):
         """Called just before the application starts."""
+        # Enable GUI logging.
+        from plover.gui import log as gui_log
         frame = MainFrame(self.config)
         self.SetTopWindow(frame)
         frame.Show()
