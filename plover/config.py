@@ -24,9 +24,12 @@ DEFAULT_MACHINE_TYPE = 'NKRO Keyboard'
 MACHINE_AUTO_START_OPTION = 'auto_start'
 DEFAULT_MACHINE_AUTO_START = False
 
+DEFAULT_DICTIONARIES = ['main.json',
+                        'commands.json',
+                        'user.json']
+
 DICTIONARY_CONFIG_SECTION = 'Dictionary Configuration'
 DICTIONARY_FILE_OPTION = 'dictionary_file'
-DEFAULT_DICTIONARY_FILE = os.path.join(CONFIG_DIR, 'dict.json')
 
 LOGGING_CONFIG_SECTION = 'Logging Configuration'
 LOG_FILE_OPTION = 'log_file'
@@ -191,10 +194,11 @@ class Config(object):
             options = filter(lambda x: x.startswith(DICTIONARY_FILE_OPTION),
                              self._config.options(DICTIONARY_CONFIG_SECTION))
             options.sort(key=_dict_entry_key)
-            filenames = [self._config.get(DICTIONARY_CONFIG_SECTION, o) 
+            filenames = [self._config.get(DICTIONARY_CONFIG_SECTION, o)
                          for o in options]
-        if not filenames or filenames == ['dict.json']:
-            filenames = [DEFAULT_DICTIONARY_FILE]
+        if not filenames:
+            filenames = map(lambda x: os.path.join(CONFIG_DIR, x),
+                            DEFAULT_DICTIONARIES)
         return filenames
 
     def set_log_file_name(self, filename):

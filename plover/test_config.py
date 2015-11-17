@@ -6,6 +6,7 @@
 import unittest
 from mock import patch
 from collections import namedtuple
+import os
 import plover.config as config
 from cStringIO import StringIO
 from plover.machine.registry import Registry
@@ -203,9 +204,11 @@ class ConfigTestCase(unittest.TestCase):
         c = config.Config()
         section = config.DICTIONARY_CONFIG_SECTION
         option = config.DICTIONARY_FILE_OPTION
+
         # Check the default value.
-        self.assertEqual(c.get_dictionary_file_names(), 
-                         [config.DEFAULT_DICTIONARY_FILE])
+        self.assertEqual(c.get_dictionary_file_names(),
+                         map(lambda x: os.path.join(config.CONFIG_DIR, x),
+                             config.DEFAULT_DICTIONARIES))
         # Set a value...
         names = ['b', 'a', 'd', 'c']
         c.set_dictionary_file_names(names)

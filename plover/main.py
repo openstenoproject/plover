@@ -22,7 +22,7 @@ from collections import OrderedDict
 import plover.gui.main
 import plover.oslayer.processlock
 from plover.oslayer.config import CONFIG_DIR, ASSETS_DIR
-from plover.config import CONFIG_FILE, DEFAULT_DICTIONARY_FILE, Config
+from plover.config import CONFIG_FILE, DEFAULT_DICTIONARIES, Config
 
 def show_error(title, message):
     """Report error to the user.
@@ -48,14 +48,18 @@ def init_config_dir():
         os.makedirs(CONFIG_DIR)
 
     # Copy the default dictionary to the configuration directory.
-    if not os.path.exists(DEFAULT_DICTIONARY_FILE):
-        unified_dict = {}
-        dict_filenames = glob.glob(os.path.join(ASSETS_DIR, '*.json'))
-        for dict_filename in dict_filenames:
-            unified_dict.update(json.load(open(dict_filename, 'rb')))
-        ordered = OrderedDict(sorted(unified_dict.iteritems(), key=lambda x: x[1]))
-        outfile = open(DEFAULT_DICTIONARY_FILE, 'wb')
-        json.dump(ordered, outfile, indent=0, separators=(',', ': '))
+    def copy_dictionary_to_config(name):
+        source_path = os.path.join(ASSETS_DIR, name)
+        out_path = os.path.join(CONFIG_DIR, name)
+        if not os.path.exists(out_path):
+            unsorted_dict = json.load(open(source_path, 'rb'))
+            ordered = OrderedDict(sorted(unsorted_dict.iteritems(),
+                                         key=lambda x: x[1]))
+            outfile = open(out_path, 'wb')
+            json.dump(ordered, outfile, indent=0, separators=(',', ': '))
+
+    for dictionary in DEFAULT_DICTIONARIES:
+        copy_dictionary_to_config(dictionary)
 
     # Create a default configuration file if one doesn't already
     # exist.
