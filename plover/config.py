@@ -33,7 +33,7 @@ DICTIONARY_FILE_OPTION = 'dictionary_file'
 
 LOGGING_CONFIG_SECTION = 'Logging Configuration'
 LOG_FILE_OPTION = 'log_file'
-DEFAULT_LOG_FILE = os.path.join(CONFIG_DIR, 'strokes.log')
+DEFAULT_LOG_FILE = 'strokes.log'
 ENABLE_STROKE_LOGGING_OPTION = 'enable_stroke_logging'
 DEFAULT_ENABLE_STROKE_LOGGING = True
 ENABLE_TRANSLATION_LOGGING_OPTION = 'enable_translation_logging'
@@ -127,6 +127,29 @@ class Config(object):
         # A convenient place for other code to store a file name.
         self.target_file = None
 
+    def _path_to_config_value(self, path):
+        ''' Return config value for a path.
+
+            If the path is below CONFIG_DIR, a relative path to it is returned,
+            otherwise, an absolute path is returned.
+
+            Note: relative path are automatically assumed to be relative to CONFIG_DIR.
+        '''
+        path = os.path.realpath(os.path.join(CONFIG_DIR, path))
+        config_dir = os.path.realpath(CONFIG_DIR) + os.sep
+        if path.startswith(config_dir):
+            return path[len(config_dir):]
+        else:
+            return path
+
+    def _path_from_config_value(self, value):
+        ''' Return a path from a config value.
+
+            If value is an absolute path, it is returned as is
+            otherwise, an absolute path relative to CONFIG_DIR is returned.
+        '''
+        return os.path.realpath(os.path.join(CONFIG_DIR, value))
+
     def load(self, fp):
         self._config = RawConfigParser()
         try:
@@ -184,6 +207,7 @@ class Config(object):
         if self._config.has_section(DICTIONARY_CONFIG_SECTION):
             self._config.remove_section(DICTIONARY_CONFIG_SECTION)
         self._config.add_section(DICTIONARY_CONFIG_SECTION)
+        filenames = [self._path_to_config_value(path) for path in filenames]
         for ordinal, filename in enumerate(filenames, start=1):
             option = DICTIONARY_FILE_OPTION + str(ordinal)
             self._config.set(DICTIONARY_CONFIG_SECTION, option, filename)
@@ -197,16 +221,18 @@ class Config(object):
             filenames = [self._config.get(DICTIONARY_CONFIG_SECTION, o)
                          for o in options]
         if not filenames:
-            filenames = map(lambda x: os.path.join(CONFIG_DIR, x),
-                            DEFAULT_DICTIONARIES)
+            filenames = DEFAULT_DICTIONARIES
+        filenames = [self._path_from_config_value(path) for path in filenames]
         return filenames
 
     def set_log_file_name(self, filename):
+        filename = self._path_to_config_value(filename)
         self._set(LOGGING_CONFIG_SECTION, LOG_FILE_OPTION, filename)
 
     def get_log_file_name(self):
-        return self._get(LOGGING_CONFIG_SECTION, LOG_FILE_OPTION, 
-                         DEFAULT_LOG_FILE)
+        filename = self._get(LOGGING_CONFIG_SECTION, LOG_FILE_OPTION,
+                             DEFAULT_LOG_FILE)
+        return self._path_from_config_value(filename)
 
     def set_enable_stroke_logging(self, log):
         self._set(LOGGING_CONFIG_SECTION, ENABLE_STROKE_LOGGING_OPTION, log)
