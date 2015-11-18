@@ -5,6 +5,7 @@
 
 import wx
 import re
+from collections import namedtuple
 from wx.lib.utils import AdjustRectToScreen
 from plover.gui.util import find_fixed_width_font
 from plover.steno import STENO_KEY_ORDER
@@ -23,6 +24,8 @@ DISPLAY_WIDTH = len(STENO_KEY_ORDER) + 2 * STROKE_INDENT + 1 # extra +1 for /
 class SuggestionsDisplayDialog(wx.Dialog):
 
     other_instances = []
+
+    Suggestion = namedtuple('Suggestion', 'text steno_list')
 
     def __init__(self, parent, config, engine):
         self.config = config
@@ -101,6 +104,16 @@ class SuggestionsDisplayDialog(wx.Dialog):
         self.SetRect(AdjustRectToScreen(self.GetRect()))
 
         self.Bind(wx.EVT_MOVE, self.on_move)
+        self.Bind(wx.EVT_SIZE, self.on_resize)
+
+    def on_resize(self, event):
+        self.Layout()
+        # Reflow suggestions text on resize.
+        history = self.history
+        self.history = []
+        self.listbox.Clear()
+        for suggestion_list, _ in history:
+            self.show_suggestions(suggestion_list)
 
     def on_move(self, event):
         pos = self.GetScreenPositionTuple()
@@ -121,7 +134,7 @@ class SuggestionsDisplayDialog(wx.Dialog):
 
         '''
 
-        suggestions = []
+        suggestion_list = []
 
         mods  = ['%s', '{^%s}', '{^%s^}', '{%s^}', '{&%s}']
         d     = self.engine.get_dictionary()
@@ -138,11 +151,63 @@ class SuggestionsDisplayDialog(wx.Dialog):
                 strokes_list = d.reverse_lookup(x)
                 if not strokes_list:
                     continue
-                else:
-                    # Return list of suggestions, sorted by fewest strokes, then fewest keys
-                    suggestions.append((x, sorted(strokes_list, key=lambda x: len(x) * 32 + sum(map(len, x)))))
+                # Return list of suggestions, sorted by fewest strokes, then fewest keys
+                strokes_list = sorted(strokes_list, key=lambda x: len(x) * 32 + sum(map(len, x)))
+                suggestion = self.Suggestion(x, strokes_list)
+                suggestion_list.append(suggestion)
 
-        return suggestions
+        return suggestion_list
+
+    def show_suggestions(self, suggestion_list):
+
+        # Limit history.
+        if len(self.history) == HISTORY_SIZE:
+            _, text_length = self.history.pop(0)
+            last_position = self.listbox.GetLastPosition()
+            self.listbox.Remove(last_position - text_length, last_position)
+        # Insert last entry on top.
+        self.listbox.SetInsertionPoint(0)
+
+        # Find available text width.
+        max_width = self.listbox.Size[0]
+        # Yes, 2 times the scrollbar width, because...
+        max_width -= 2 * wx.SystemSettings.GetMetric(wx.SYS_VSCROLL_X)
+        dc = wx.ScreenDC()
+        dc.SetFont(self.stroke_style.GetFont())
+
+        for suggestion in suggestion_list:
+            self.listbox.SetDefaultStyle(self.word_style)
+            self.listbox.WriteText(suggestion.text + '\n')
+            if not suggestion.steno_list:
+                self.listbox.SetDefaultStyle(self.no_suggestion_style)
+                self.listbox.WriteText(self.no_suggestion_indent)
+                self.listbox.WriteText('No suggestions\n')
+                continue
+            self.listbox.SetDefaultStyle(self.stroke_style)
+            # Limit arbitrarily to 10 suggestions per word.
+            for stroke_list in suggestion.steno_list[:10]:
+                line_text = None
+                for n, stroke in enumerate(stroke_list):
+                    if 0 == n:
+                        line_text = text = self.strokes_indent + stroke
+                    else:
+                        text = '/' + stroke
+                        line_text += text
+                        if dc.GetTextExtent(line_text)[0] >= max_width:
+                            line_text = 2 * self.strokes_indent + text
+                            text = '\n' + line_text
+                    self.listbox.WriteText(text)
+                self.listbox.WriteText('\n')
+
+        length = self.listbox.GetInsertionPoint()
+        assert length
+        self.history.append((suggestion_list, length))
+        # Reset style after final \n, so following
+        # word is correctly displayed.
+        self.listbox.SetDefaultStyle(self.word_style)
+        self.listbox.WriteText('')
+        # Make sure first line is shown.
+        self.listbox.ShowPosition(0)
 
     def show_stroke(self, old, new):
         for action in old:
@@ -160,69 +225,17 @@ class SuggestionsDisplayDialog(wx.Dialog):
         # don't exceed this length
         self.words = self.words[-100:]
 
-        # Limit history.
-        if len(self.history) == HISTORY_SIZE:
-            length = self.history.pop(0)
-            last_position = self.listbox.GetLastPosition()
-            self.listbox.Remove(last_position - length, last_position)
-        # Insert last entry on top.
-        self.listbox.SetInsertionPoint(0)
-
+        suggestion_list = []
         split_words = PAT.findall(self.words)
-        interp_phrase = ''
         for phrase in SuggestionsDisplayDialog.tails(split_words):
             phrase = ' '.join(phrase)
-            suggestions_list = self.lookup_suggestions(phrase)
-            if not suggestions_list:
-                continue
+            suggestion_list.extend(self.lookup_suggestions(phrase))
 
-            for x, suggestions in suggestions_list:
-                self.listbox.SetDefaultStyle(self.word_style)
-                self.listbox.WriteText(x + '\n')
-                self.listbox.SetDefaultStyle(self.stroke_style)
-                # Limit arbitrarily to 10 suggestions per word
-                for stroke_list in suggestions[:10]:
-                    line_length = 0
-                    for n, stroke in enumerate(stroke_list):
-                        if 0 == n:
-                            text = stroke
-                            indent = self.strokes_indent
-                        else:
-                            text = '/' + stroke
-                            indent = 2 * self.strokes_indent
-                        if 0 == line_length:
-                            text = indent + text
-                            line_length = len(text)
-                        elif (len(text) + line_length) > DISPLAY_WIDTH:
-                            text = '\n' + indent + text
-                            line_length = len(text)
-                        else:
-                            line_length += len(text)
-                        self.listbox.WriteText(text)
-                    self.listbox.WriteText('\n')
+        if not suggestion_list and split_words:
+            suggestion_list = [self.Suggestion(split_words[-1], [])]
 
-            # Set interp_phrase on first found suggestions for given phrase
-            if suggestions_list and not interp_phrase:
-                interp_phrase = phrase
-
-        if not interp_phrase:
-            interp_phrase = DEFAULT_LAST_WORD
-            if len(split_words) > 0:
-                self.listbox.SetDefaultStyle(self.word_style)
-                self.listbox.WriteText(split_words[-1] + '\n')
-                self.listbox.SetDefaultStyle(self.no_suggestion_style)
-                self.listbox.WriteText(self.no_suggestion_indent)
-                self.listbox.WriteText('No suggestions\n')
-
-        length = self.listbox.GetInsertionPoint()
-        if length:
-            self.history.append(length)
-            # Reset style after final \n, so following
-            # word is correctly displayed.
-            self.listbox.SetDefaultStyle(self.word_style)
-            self.listbox.WriteText('')
-            # Make sure first line is shown.
-            self.listbox.ShowPosition(0)
+        if suggestion_list:
+            self.show_suggestions(suggestion_list)
 
     def handle_on_top(self, event):
         on_top = event.IsChecked()
