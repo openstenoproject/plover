@@ -17,8 +17,8 @@ LAST_WORD_TEXT = 'Last Word: %s'
 DEFAULT_LAST_WORD = 'N/A'
 HISTORY_SIZE = 10
 MAX_DISPLAY_LINES = 20
-STROKE_INDENT = 4
-DISPLAY_WIDTH = len(STENO_KEY_ORDER) + STROKE_INDENT + 1 # extra +1 for /
+STROKE_INDENT = 2
+DISPLAY_WIDTH = len(STENO_KEY_ORDER) + 2 * STROKE_INDENT + 1 # extra +1 for /
 
 class SuggestionsDisplayDialog(wx.Dialog):
 
@@ -181,9 +181,25 @@ class SuggestionsDisplayDialog(wx.Dialog):
                 self.listbox.WriteText(x + '\n')
                 self.listbox.SetDefaultStyle(self.stroke_style)
                 # Limit arbitrarily to 10 suggestions per word
-                for n, strokes in enumerate(suggestions[:10]):
-                    self.listbox.WriteText(self.strokes_indent)
-                    self.listbox.WriteText('/'.join(strokes) + '\n')
+                for stroke_list in suggestions[:10]:
+                    line_length = 0
+                    for n, stroke in enumerate(stroke_list):
+                        if 0 == n:
+                            text = stroke
+                            indent = self.strokes_indent
+                        else:
+                            text = '/' + stroke
+                            indent = 2 * self.strokes_indent
+                        if 0 == line_length:
+                            text = indent + text
+                            line_length = len(text)
+                        elif (len(text) + line_length) > DISPLAY_WIDTH:
+                            text = '\n' + indent + text
+                            line_length = len(text)
+                        else:
+                            line_length += len(text)
+                        self.listbox.WriteText(text)
+                    self.listbox.WriteText('\n')
 
             # Set interp_phrase on first found suggestions for given phrase
             if suggestions_list and not interp_phrase:
