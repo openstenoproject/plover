@@ -59,6 +59,8 @@ class StrokeDisplayDialog(wx.Dialog):
         dc = wx.ScreenDC()
         dc.SetFont(fixed_font)
         text_width, text_height = dc.GetTextExtent(ALL_KEYS)
+        scroll_width = wx.SystemSettings.GetMetric(wx.SYS_VSCROLL_X)
+        scroll_height = wx.SystemSettings.GetMetric(wx.SYS_VSCROLL_X)
 
         self.header = wx.StaticText(self, label=ALL_KEYS)
         self.header.SetFont(fixed_font)
@@ -68,8 +70,9 @@ class StrokeDisplayDialog(wx.Dialog):
 
         self.listbox = wx.TextCtrl(self,
                                    style=wx.TE_MULTILINE|wx.TE_READONLY|wx.TE_DONTWRAP|wx.BORDER_NONE|wx.HSCROLL,
-                                   # Will show MAX_STROKE_LINES lines (+1 for inter-line spacings...).
-                                   size=wx.Size(text_width, text_height * (MAX_STROKE_LINES + 1)))
+                                   # Will show MAX_STROKE_LINES lines.
+                                   size=wx.Size(scroll_width + text_width,
+                                                scroll_height + text_height * MAX_STROKE_LINES))
         self.listbox.SetFont(fixed_font)
 
         sizer.Add(self.listbox,
