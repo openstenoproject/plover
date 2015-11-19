@@ -9,6 +9,7 @@ from mock import patch
 from steno_dictionary import StenoDictionary, StenoDictionaryCollection
 from translation import Translation, Translator, _State, _translate_stroke, _lookup
 import unittest
+import sys
 from plover.steno import Stroke, normalize_steno
 
 def stroke(s):
@@ -26,6 +27,16 @@ def stroke(s):
         else:
             keys.append('-' + k)
     return Stroke(keys)
+
+def _back_string():
+    # Provides the correct translation to undo a word
+    # depending on the operating system and stores it
+    if 'mapping' not in _back_string.__dict__:
+        if sys.platform.startswith('darwin'):
+            _back_string.mapping = '{#Alt_L(BackSpace)}{^}'
+        else:
+            _back_string.mapping = '{#Control_L(BackSpace)}{^}'
+    return _back_string.mapping
 
 class TranslationTestCase(unittest.TestCase):
     def test_no_translation(self):
@@ -243,7 +254,7 @@ class TranslatorTestCase(unittest.TestCase):
         t.translate(stroke('*'))
         self.assertEqual(out.get(), 'S')
         t.translate(stroke('*'))
-        self.assertEqual(out.get(), 'S')  # Undo buffer ran out.
+        self.assertEqual(out.get(), 'S ' + _back_string())  # Undo buffer ran out.
         
         t.set_min_undo_length(3)
         out.clear()
@@ -254,10 +265,8 @@ class TranslatorTestCase(unittest.TestCase):
         t.translate(stroke('*'))
         self.assertEqual(out.get(), 'S')
         t.translate(stroke('*'))
-        self.assertEqual(out.get(), '')
-        t.translate(stroke('*'))
-        self.assertEqual(out.get(), '')  # Undo buffer ran out.
-        
+        self.assertEqual(out.get(), '' )
+
         out.clear()
         d[('S',)] = 't1'
         d[('T',)] = 't2'
@@ -325,7 +334,7 @@ class TranslatorTestCase(unittest.TestCase):
         t.translate(s)
         t.translate(s)
         t.translate(s)
-        self.assertEqual(out.get(), 'S')  # Not enough undo to clear output.
+        self.assertEqual(out.get(), 'S ' + _back_string())  # Not enough undo to clear output.
         
         out.clear()
         t.remove_listener(out.write)
@@ -521,8 +530,8 @@ class TranslateStrokeTestCase(unittest.TestCase):
 
     def test_empty_undo(self):
         self.translate(stroke('*'))
-        self.assertTranslations([])
-        self.assertOutput([], [], None)
+        self.assertEquals(self.s.translations[0].english, _back_string())
+        self.assertOutput([], [Translation([Stroke('*')], _back_string())], None)
 
     def test_undo_translation(self):
         self.define('P/P', 'pop')
@@ -544,8 +553,8 @@ class TranslateStrokeTestCase(unittest.TestCase):
     def test_undo_tail(self):
         self.s.tail = self.t('T/A/I/L')
         self.translate(stroke('*'))
-        self.assertTranslations([])
-        self.assertOutput([], [], self.t('T/A/I/L'))
+        self.assertEquals(self.s.translations[0].english, _back_string())
+        self.assertOutput([], [Translation([Stroke('*')], _back_string())], self.t('T/A/I/L'))
         
     def test_suffix_folding(self):
         self.define('K-L', 'look')
