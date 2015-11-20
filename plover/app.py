@@ -16,6 +16,7 @@ interface.
 """
 
 
+import os
 # Import plover modules.
 import plover.config as conf
 import plover.formatting as formatting
@@ -55,10 +56,7 @@ def init_engine(engine, config):
         raise InvalidConfigurationError(unicode(e))
     engine.get_dictionary().set_dicts(dicts)
 
-    log_file_name = config.get_log_file_name()
-    if log_file_name:
-        engine.set_log_file_name(log_file_name)
-
+    engine.set_log_file_name(config)
     engine.enable_stroke_logging(config.get_enable_stroke_logging())
     engine.enable_translation_logging(config.get_enable_translation_logging())
     engine.set_space_placement(config.get_space_placement())
@@ -101,7 +99,7 @@ def update_engine(engine, old, new):
 
     log_file_name = new.get_log_file_name()
     if old.get_log_file_name() != log_file_name:
-        engine.set_log_file_name(log_file_name)
+        engine.set_log_file_name(new)
 
     enable_stroke_logging = new.get_enable_stroke_logging()
     if old.get_enable_stroke_logging() != enable_stroke_logging:
@@ -236,8 +234,18 @@ class StenoEngine(object):
         """
         self.subscribers.append(callback)
         
-    def set_log_file_name(self, filename):
+    def set_log_file_name(self, config):
         """Set the file name for log output."""
+        filename = config.get_log_file_name()
+        if not filename:
+            return
+        if os.path.realpath(filename) == os.path.realpath(log.LOG_FILENAME):
+            log.warning('stroke logging must use a different file than %s, '
+                        'renaming to %s', log.LOG_FILENAME, conf.DEFAULT_LOG_FILE)
+            filename = conf.DEFAULT_LOG_FILE
+            config.set_log_file_name(filename)
+            with open(config.target_file, 'wb') as f:
+                config.save(f)
         log.set_stroke_filename(filename)
 
     def enable_stroke_logging(self, b):
