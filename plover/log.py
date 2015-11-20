@@ -58,10 +58,8 @@ class Logger(object):
             self._stroke_handler = None
         if filename is None:
             return
+        assert filename != LOG_FILENAME
         filename = os.path.abspath(filename)
-        if os.path.realpath(filename) == os.path.realpath(LOG_FILENAME):
-            self.error('stroke logging must use a different file than %s',
-                       LOG_FILENAME)
         self._stroke_handler = FileHandler(filename=filename,
                                            format=STROKE_LOG_FORMAT)
         self._stroke_logger.addHandler(self._stroke_handler)
