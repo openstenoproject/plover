@@ -31,7 +31,7 @@ from plover.exception import InvalidConfigurationError,DictionaryLoaderException
 import plover.dictionary.json_dict as json_dict
 import plover.dictionary.rtfcre_dict as rtfcre_dict
 from plover.machine.registry import machine_registry, NoSuchMachineException
-from plover.logger import Logger
+from plover import log
 from plover.dictionary.loading_manager import manager as dict_manager
 
 # Because 2.7 doesn't have this yet.
@@ -159,8 +159,7 @@ class StenoEngine(object):
 
         self.translator = translation.Translator()
         self.formatter = formatting.Formatter()
-        self.logger = Logger()
-        self.translator.add_listener(self.logger.log_translation)
+        self.translator.add_listener(log.translation)
         self.translator.add_listener(self.formatter.format)
         # This seems like a reasonable number. If this becomes a problem it can
         # be parameterized.
@@ -176,12 +175,12 @@ class StenoEngine(object):
             self.machine.remove_state_callback(self._machine_state_callback)
             self.machine.remove_stroke_callback(
                 self._translator_machine_callback)
-            self.machine.remove_stroke_callback(self.logger.log_stroke)
+            self.machine.remove_stroke_callback(log.stroke)
             self.machine.stop_capture()
         self.machine = machine
         if self.machine:
             self.machine.add_state_callback(self._machine_state_callback)
-            self.machine.add_stroke_callback(self.logger.log_stroke)
+            self.machine.add_stroke_callback(log.stroke)
             self.machine.add_stroke_callback(self._translator_machine_callback)
             self.machine.start_capture()
             self.set_is_running(self.is_running)
@@ -239,11 +238,11 @@ class StenoEngine(object):
         
     def set_log_file_name(self, filename):
         """Set the file name for log output."""
-        self.logger.set_filename(filename)
+        log.set_stroke_filename(filename)
 
     def enable_stroke_logging(self, b):
         """Turn stroke logging on or off."""
-        self.logger.enable_stroke_logging(b)
+        log.enable_stroke_logging(b)
 
     def set_space_placement(self, s):
         """Set whether spaces will be inserted before the output or after the output."""
@@ -251,7 +250,7 @@ class StenoEngine(object):
         
     def enable_translation_logging(self, b):
         """Turn translation logging on or off."""
-        self.logger.enable_translation_logging(b)
+        log.enable_translation_logging(b)
 
     def add_stroke_listener(self, listener):
         self.stroke_listeners.append(listener)

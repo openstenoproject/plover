@@ -5,7 +5,7 @@ from plover.dictionary.rtfcre_dict import load_dictionary, TranslationConverter,
 import mock
 import re
 import unittest
-from cStringIO import StringIO
+from StringIO import StringIO
 
 class TestCase(unittest.TestCase):
     
@@ -123,8 +123,10 @@ class TestCase(unittest.TestCase):
         footer = '\r\n}'
         
         def make_dict(s):
-            return ''.join((header, s, footer))
-            
+            d = StringIO(''.join((header, s, footer)))
+            d.name = "'%s'" % s
+            return d
+
         def assertEqual(a, b):
             self.assertEqual(a._dict, b)
 

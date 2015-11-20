@@ -33,7 +33,7 @@ DICTIONARY_FILE_OPTION = 'dictionary_file'
 
 LOGGING_CONFIG_SECTION = 'Logging Configuration'
 LOG_FILE_OPTION = 'log_file'
-DEFAULT_LOG_FILE = os.path.join(CONFIG_DIR, 'plover.log')
+DEFAULT_LOG_FILE = os.path.join(CONFIG_DIR, 'strokes.log')
 ENABLE_STROKE_LOGGING_OPTION = 'enable_stroke_logging'
 DEFAULT_ENABLE_STROKE_LOGGING = True
 ENABLE_TRANSLATION_LOGGING_OPTION = 'enable_translation_logging'

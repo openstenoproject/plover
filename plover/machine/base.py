@@ -8,8 +8,8 @@
 
 import serial
 import threading
-from plover.exception import SerialPortException
 import collections
+from plover import log
 
 STATE_STOPPED = 'closed'
 STATE_INITIALIZING = 'initializing'
@@ -158,7 +158,7 @@ class SerialStenotypeBase(ThreadedStenotypeBase):
         try:
             self.serial_port = serial.Serial(**self.serial_params)
         except (serial.SerialException, OSError) as e:
-            print e
+            log.error('Opening serial port: %s', str(e))
             self._error()
             return
         if self.serial_port is None or not self.serial_port.isOpen():
