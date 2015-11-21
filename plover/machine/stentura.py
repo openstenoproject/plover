@@ -150,6 +150,7 @@ import array
 import itertools
 import struct
 import time
+from plover import log
 
 import plover.machine.base
 
@@ -658,5 +659,6 @@ class Stenotype(plover.machine.base.SerialStenotypeBase):
             _loop(self.serial_port, self.finished, self._notify, self._ready)
         except _StopException:
             pass
-        except _ConnectionLostException, _ProtocolViolationException:
+        except Exception as e:
+            log.info("Failure starting Stentura: %s", str(e))
             self._error()
