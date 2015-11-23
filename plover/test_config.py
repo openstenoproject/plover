@@ -3,6 +3,7 @@
 
 """Unit tests for config.py."""
 
+import os.path
 import unittest
 from mock import patch
 from collections import namedtuple
@@ -10,6 +11,7 @@ import os
 import plover.config as config
 from cStringIO import StringIO
 from plover.machine.registry import Registry
+from plover.oslayer.config import CONFIG_DIR
 
 class ConfigTestCase(unittest.TestCase):
 
@@ -22,7 +24,7 @@ class ConfigTestCase(unittest.TestCase):
          config.MACHINE_TYPE_OPTION, config.DEFAULT_MACHINE_TYPE, 'foo', 'bar', 
          'blee'),
         ('log_file_name', config.LOGGING_CONFIG_SECTION, config.LOG_FILE_OPTION, 
-         config.DEFAULT_LOG_FILE, 'l1', 'log', 'sawzall'),
+         os.path.realpath(os.path.join(CONFIG_DIR, config.DEFAULT_LOG_FILE)), '/l1', '/log', '/sawzall'),
         ('enable_stroke_logging', config.LOGGING_CONFIG_SECTION, 
          config.ENABLE_STROKE_LOGGING_OPTION, 
          config.DEFAULT_ENABLE_STROKE_LOGGING, False, True, False),
@@ -204,21 +206,28 @@ class ConfigTestCase(unittest.TestCase):
         c = config.Config()
         section = config.DICTIONARY_CONFIG_SECTION
         option = config.DICTIONARY_FILE_OPTION
-
+        config_dir = os.path.realpath(config.CONFIG_DIR)
         # Check the default value.
         self.assertEqual(c.get_dictionary_file_names(),
-                         map(lambda x: os.path.join(config.CONFIG_DIR, x),
-                             config.DEFAULT_DICTIONARIES))
-        # Set a value...
-        names = ['b', 'a', 'd', 'c']
+                         [os.path.join(config_dir, name)
+                          for name in config.DEFAULT_DICTIONARIES])
+
+        # Relative paths as assumed to be relative to CONFIG_DIR.
+        names = ['b', 'a', 'd/c', 'e/f']
         c.set_dictionary_file_names(names)
-        # ...and make sure it is really set.
+        print c.get_dictionary_file_names()
+        print [os.path.join(config_dir, path) for path in names]
+        self.assertEqual(c.get_dictionary_file_names(),
+                         [os.path.join(config_dir, path) for path in names])
+        # Paths not bellow CONFIG_DIR must be unchanged...
+        names = ['/b', '/a', '/d', '/c']
+        c.set_dictionary_file_names(names)
         self.assertEqual(c.get_dictionary_file_names(), names)
         # Load from a file encoded the old way...
-        f = StringIO('[%s]\n%s: %s' % (section, option, 'some_file'))
+        f = StringIO('[%s]\n%s: %s' % (section, option, '/some_file'))
         c.load(f)
         # ..and make sure the right value is set.
-        self.assertEqual(c.get_dictionary_file_names(), ['some_file'])
+        self.assertEqual(c.get_dictionary_file_names(), ['/some_file'])
         # Load from a file encoded the new way...
         filenames = '\n'.join('%s%d: %s' % (option, d, v) 
                               for d, v in enumerate(names, start=1))
