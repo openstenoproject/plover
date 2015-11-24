@@ -427,7 +427,7 @@ def _validate_response(packet):
 
 
 # Timeout is in seconds, can be a float.
-def _read_data(port, stop, buf, offset, timeout):
+def _read_data(port, stop, buf, offset, num_bytes):
     """Read data off the serial port and into port at offset.
 
     Args:
@@ -435,7 +435,7 @@ def _read_data(port, stop, buf, offset, timeout):
     - stop: An event which, when set, causes this function to stop.
     - buf: The buffer to write.
     - offset: The offset into the buffer to write.
-    - timeout: The amount of time to wait for data.
+    - num_bytes: The number of bytes expected
 
     Returns: The number of bytes read.
 
@@ -444,21 +444,16 @@ def _read_data(port, stop, buf, offset, timeout):
     _TimeoutException: If the timeout is reached with no data read.
 
     """
-    start_time = time.clock()
-    end_time = start_time + timeout
-    while not stop.is_set() and time.clock() < end_time:
-        num_bytes = port.inWaiting()
-        if num_bytes > 0:
-            bytes = port.read(num_bytes)
-            _write_to_buffer(buf, offset, bytes)
-            return num_bytes
+    bytes = port.read(num_bytes)
     if stop.is_set():
         raise _StopException()
-    else:
+    if num_bytes > len(bytes):
         raise _TimeoutException()
+    _write_to_buffer(buf, offset, bytes)
+    return len(bytes)
 
 
-def _read_packet(port, stop, buf, timeout):
+def _read_packet(port, stop, buf):
     """Read a full packet from the port.
 
     Reads from the port until a full packet is received or the stop or timeout
@@ -468,7 +463,6 @@ def _read_packet(port, stop, buf, timeout):
     - port: The port to read.
     - stop: Event object used to request stopping.
     - buf: The buffer to write.
-    - timeout: The amount of time to keep trying.
 
     Returns: A buffer as a slice of buf holding the packet.
 
@@ -478,16 +472,11 @@ def _read_packet(port, stop, buf, timeout):
     _StopException: If a stop was requested.
 
     """
-    start_time = time.clock()
-    end_time = start_time + timeout
     bytes_read = 0
-    while bytes_read < 4:
-        bytes_read += _read_data(port, stop, buf, bytes_read,
-                                 end_time - time.clock())
+    bytes_read += _read_data(port, stop, buf, bytes_read, 4)
     packet_length = _SHORT_STRUCT.unpack_from(buf, 2)[0]
-    while bytes_read < packet_length:
-        bytes_read += _read_data(port, stop, buf, bytes_read,
-                                 end_time - time.clock())
+    bytes_read += _read_data(port, stop, buf, bytes_read,
+                             packet_length - bytes_read)
     packet = buffer(buf, 0, bytes_read)
     if not _validate_response(packet):
         raise _ProtocolViolationException()
@@ -506,7 +495,7 @@ def _write_to_port(port, data):
         data = buffer(data, port.write(data))
 
 
-def _send_receive(port, stop, packet, buf, max_tries=3, timeout=1):
+def _send_receive(port, stop, packet, buf, max_tries=3):
     """Send a packet and return the response.
 
     Send a packet and make sure there is a response and it is for the correct
@@ -520,8 +509,6 @@ def _send_receive(port, stop, packet, buf, max_tries=3, timeout=1):
     - buf: Buffer used to store response.
     - max_tries: The maximum number of times to retry sending the packet and
     reading the response before giving up (default: 3).
-    - timeout: The timeout to give on each retry. Should be one second when
-    dealing with a real machine. (default: 1)
 
     Returns: A buffer as a slice of buf holding the response packet.
 
@@ -535,7 +522,7 @@ def _send_receive(port, stop, packet, buf, max_tries=3, timeout=1):
     for attempt in xrange(max_tries):
         _write_to_port(port, packet)
         try:
-            response = _read_packet(port, stop, buf, timeout)
+            response = _read_packet(port, stop, buf)
             if response[1] != packet[1]:
                 continue  # Wrong sequence number.
             response_action = _SHORT_STRUCT.unpack(buffer(response, 4, 2))[0]
@@ -559,7 +546,7 @@ class _SequenceCounter(object):
         return cur
 
 
-def _read(port, stop, seq, request_buf, response_buf, stroke_buf, block, byte, timeout=1):
+def _read(port, stop, seq, request_buf, response_buf, stroke_buf, block, byte):
     """Read the full contents of the current file from beginning to end.
 
     The file should be opened first.
@@ -571,8 +558,6 @@ def _read(port, stop, seq, request_buf, response_buf, stroke_buf, block, byte, t
     - request_buf: Buffer to use for request packet.
     - response_buf: Buffer to use for response packet.
     - stroke_buf: Buffer to use for strokes read from the file.
-    - timeout: Timeout to use when waiting for a response in seconds. Should be
-    1 when talking to a real machine. (default: 1)
 
     Raises:
     _ProtocolViolationException: If the protocol is violated.
@@ -583,8 +568,7 @@ def _read(port, stop, seq, request_buf, response_buf, stroke_buf, block, byte, t
     bytes_read = 0
     while True:
         packet = _make_read(request_buf, seq(), block, byte, length=512)
-        response = _send_receive(port, stop, packet, response_buf,
-                   timeout=timeout)
+        response = _send_receive(port, stop, packet, response_buf)
         p1 = _SHORT_STRUCT.unpack(buffer(response, 8, 2))[0]
         if not ((p1 == 0 and len(response) == 14) or  # No data.
                 (p1 == len(response) - 16)):          # Data.
@@ -624,6 +608,8 @@ def _loop(port, stop, callback, ready_callback, timeout=1):
         raise _StopException()
     port.flushInput()
     port.flushOutput()
+    # Set serial port timeout to the timeout value
+    port.setTimeout(timeout)
     request_buf, response_buf = array.array('B'), array.array('B')
     stroke_buf = array.array('B')
     seq = _SequenceCounter()
