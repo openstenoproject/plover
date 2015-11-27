@@ -4,7 +4,7 @@
 
 ### Python
 
-You need Python 2.7
+You need Python 2.7, with 32-bit support. `brew install python --universal --framework`
 
 ### XCode Tools
 
@@ -12,13 +12,13 @@ You need XCode commandline tools. Check by running `gcc` in the terminal. You wi
 
 ### wxPython
 
-At the time of writing, wxPython 3.0.2.0 won't install on OS X 10.11 without being built. You can use `brew install wxpython` to alleviate this problem.
+Get wxPython 3+. `brew install wxpython`
 
 ### Pip
 
 Pip dependencies can be grabbed with:
 
-`pip install appdirs pyserial simplejson py2app Cython mock pyobjc-core pyobjc-framework-cocoa pyobjc-framework-quartz`
+`pip install appdirs pyserial simplejson py2app hidapi Cython mock pyobjc-core pyobjc-framework-cocoa pyobjc-framework-quartz`
 
 ### Building
 
@@ -43,14 +43,6 @@ ln -s /Library/Frameworks/Python.framework/Versions/2.7/lib/python2.7/site-packa
 mv bin/python bin/bad_python
 ln -s /Library/Frameworks/Python.framework/Versions/2.7/bin/python bin/python
 echo 'PYTHONHOME=$VIRTUAL_ENV; export PYTHONHOME' >> bin/activate
-```
-
-Install cython-hidapi:
-
-```
-git clone --recursive https://github.com/qdot/cython-hidapi
-cd cython-hidapi
-python setup-mac.py install
 ```
 
 ### Fix a bug in py2app or modulegraph

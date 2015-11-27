@@ -6,6 +6,7 @@
 "Thread-based monitoring of a stenotype machine using the Treal machine."
 
 import sys
+from plover import log
 
 STENO_KEY_CHART = (('K-', 'W-', 'R-', '*', '-R', '-B', '-G', '-S'),
                    ('*', '-F', '-P', '-L', '-T', '-D', '', 'S-'),
@@ -54,18 +55,21 @@ if sys.platform.startswith('win32'):
 
         def start_capture(self):
             """Begin listening for output from the stenotype machine."""
-            devices = hid.HidDeviceFilter(vendor_id = VENDOR_ID).get_devices()
+            devices = hid.HidDeviceFilter(vendor_id=VENDOR_ID).get_devices()
             if len(devices) == 0:
+                log.info('Treal: no devices with vendor id %s',
+                         str(VENDOR_ID))
+                log.warning('Treal not connected')
                 self._error()
                 return
             self._machine = devices[0]
             self._machine.open()
             handler = DataHandler(self._notify)
-            
+
             def callback(p):
                 if len(p) != 6: return
                 handler.update(p[1:])
-            
+
             self._machine.set_raw_data_handler(callback)
             self._ready()
 
@@ -80,7 +84,7 @@ else:
     import hid
 
     class Stenotype(ThreadedStenotypeBase):
-        
+
         def __init__(self, params):
             ThreadedStenotypeBase.__init__(self)
             self._machine = None
@@ -91,6 +95,8 @@ else:
                 self._machine = hid.device(VENDOR_ID, 1)
                 self._machine.set_nonblocking(1)
             except IOError as e:
+                log.info('Treal device not found: %s', str(e))
+                log.warning('Treal is not connected')
                 self._error()
                 return
             return ThreadedStenotypeBase.start_capture(self)

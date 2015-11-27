@@ -8,13 +8,13 @@
 
 import serial
 import threading
-import collections
 from plover import log
 
 STATE_STOPPED = 'closed'
 STATE_INITIALIZING = 'initializing'
 STATE_RUNNING = 'connected'
 STATE_ERROR = 'disconnected'
+
 
 class StenotypeBase(object):
     """The base class for all Stenotype classes."""
@@ -102,6 +102,7 @@ class StenotypeBase(object):
         """Get the default options for this machine."""
         return {}
 
+
 class ThreadedStenotypeBase(StenotypeBase, threading.Thread):
     """Base class for thread based machines.
     
@@ -158,12 +159,19 @@ class SerialStenotypeBase(ThreadedStenotypeBase):
         try:
             self.serial_port = serial.Serial(**self.serial_params)
         except (serial.SerialException, OSError) as e:
-            log.error('Opening serial port: %s', str(e))
+            log.warning('Stentura not connected')
+            log.info('Can\'t open Serial port: %s', str(e))
             self._error()
             return
-        if self.serial_port is None or not self.serial_port.isOpen():
+        if self.serial_port is None:
+            log.warning('Serial port not found: %s', str(e))
             self._error()
             return
+        if not self.serial_port.isOpen():
+            log.warning('Serial port is not open: %s', str(e))
+            self._error()
+            return
+
         return ThreadedStenotypeBase.start_capture(self)
 
     def stop_capture(self):
