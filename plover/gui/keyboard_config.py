@@ -5,6 +5,7 @@ import wx
 from wx.lib.utils import AdjustRectToScreen
 import wx.lib.mixins.listctrl as listmix
 from plover.machine.keymap import Keymap
+from plover.oslayer.keyboardcontrol import KeyboardCapture
 
 DIALOG_TITLE = 'Keyboard Configuration'
 ARPEGGIATE_LABEL = "Arpeggiate"
@@ -13,21 +14,80 @@ Each key can be pressed separately and the space bar
 is pressed to send the stroke."""
 UI_BORDER = 4
 
-class EditableListCtrl(wx.ListCtrl, listmix.TextEditMixin, listmix.ListCtrlAutoWidthMixin):
+class EditKeysDialog(wx.Dialog):
+
+    def __init__(self, parent, action, keys):
+        super(EditKeysDialog, self).__init__(parent)
+        self.sizer = wx.BoxSizer(wx.VERTICAL)
+        instructions = wx.StaticText(self, label='Press on the key you want to add/remove.')
+        self.sizer.Add(instructions, border=UI_BORDER, flag=wx.ALL|wx.ALIGN_CENTER_HORIZONTAL)
+        self.message = wx.StaticText(self)
+        self.sizer.Add(self.message, border=UI_BORDER, flag=wx.ALL|wx.ALIGN_CENTER_HORIZONTAL)
+        buttons = self.CreateButtonSizer(wx.OK|wx.CANCEL)
+        self.sizer.Add(buttons, border=UI_BORDER, flag=wx.ALL|wx.ALIGN_CENTER_HORIZONTAL)
+        self.SetSizer(self.sizer)
+        self.sizer.Fit(self)
+        self.action = action
+        self.keys = set(keys)
+        self.original_keys = self.keys.copy()
+        self.capture = KeyboardCapture(KeyboardCapture.SUPPORTED_KEYS)
+        self.capture.key_down = lambda key: wx.CallAfter(self.on_capture_key, key)
+
+    def ShowModal(self):
+        self.update_message()
+        self.capture.start()
+        self.capture.suppress_keyboard(True)
+        try:
+            code = super(EditKeysDialog, self).ShowModal()
+        finally:
+            self.capture.suppress_keyboard(False)
+        self.capture.cancel()
+        return code
+
+    def update_message(self):
+        message = '\nKeys for %s: ' % self.action
+        message += ' '.join(sorted(self.keys)) if self.keys else 'None'
+        message += '\n\nChanges: '
+        changes = []
+        for key in sorted(self.keys.union(self.original_keys)):
+            if key not in self.original_keys:
+                changes.append('+' + key)
+            elif key not in self.keys:
+                changes.append('-' + key)
+        message += ' '.join(changes) if changes else 'None'
+        message += '\n'
+        self.message.SetLabelText(message)
+        self.sizer.Fit(self)
+        self.sizer.Layout()
+
+    def on_capture_key(self, key):
+        if key in self.keys:
+            self.keys.remove(key)
+        else:
+            self.keys.add(key)
+        self.update_message()
+
+class EditableListCtrl(wx.ListCtrl, listmix.ListCtrlAutoWidthMixin):
     """Editable list with automatically sized columns."""
     def __init__(self, parent, ID=wx.ID_ANY, pos=wx.DefaultPosition,
                  size=wx.DefaultSize, style=0):
         wx.ListCtrl.__init__(self, parent, ID, pos, size, style)
         listmix.ListCtrlAutoWidthMixin.__init__(self)
-        listmix.TextEditMixin.__init__(self)
-        self.Bind(wx.EVT_LIST_BEGIN_LABEL_EDIT, self.restrict_editing)
+        self.Bind(wx.EVT_LIST_ITEM_ACTIVATED, self.edit_item)
 
-    def restrict_editing(self, event):
-        """Disallow editing of first column."""
-        if event.m_col == 0:
-            event.Veto()
-        else:
-            event.Skip()
+    def edit_item(self, event):
+        # Disallow editing of first column.
+        item = self.GetItem(itemId=event.m_itemIndex, col=0)
+        action = item.GetText()
+        item = self.GetItem(itemId=event.m_itemIndex, col=1)
+        keys = item.GetText().split()
+        dlg = EditKeysDialog(self, action, keys)
+        if wx.ID_OK != dlg.ShowModal():
+            # Cancel.
+            return
+        text = ' '.join(sorted(dlg.keys))
+        item.SetText(text)
+        self.SetItem(item)
 
     def get_all_rows(self):
         """Return all items as a list of lists of strings."""

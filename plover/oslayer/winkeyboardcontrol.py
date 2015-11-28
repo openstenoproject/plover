@@ -15,11 +15,68 @@ emulate keyboard input.
 
 import re
 import functools
+import threading
 
 import pyHook
 import win32api
 import win32con
 from pywinauto.SendKeysCtypes import SendKeys as _SendKeys
+
+
+# Global state used by KeyboardCapture to support multiple instances.
+
+class HookManager(object):
+
+    def __init__(self):
+        self._lock = threading.Lock()
+        self._hm = pyHook.HookManager()
+        self._key_down_callbacks = []
+        self._key_up_callbacks = []
+        self._nb_callbacks = 0
+
+        def _on_key_event(callback_list, event):
+            if event.Injected:
+                return True
+            with self._lock:
+                callback_list = list(callback_list)
+            allow = True
+            for callback in callback_list:
+                allow = callback(event) and allow
+            return allow
+
+        self._hm.KeyUp = functools.partial(_on_key_event, self._key_up_callbacks)
+        self._hm.KeyDown = functools.partial(_on_key_event, self._key_down_callbacks)
+
+        def _set_key_callback(callback_list, enable, callback):
+            with self._lock:
+                if enable:
+                    assert callback not in callback_list
+                    callback_list.append(callback)
+                    self._nb_callbacks += 1
+                    if 1 == self._nb_callbacks:
+                        self._hm.HookKeyboard()
+                else:
+                    assert callback in callback_list
+                    callback_list.remove(callback)
+                    self._nb_callbacks -= 1
+                    if 0 == self._nb_callbacks:
+                        self._hm.UnhookKeyboard()
+
+        self.register_key_up = functools.partial(_set_key_callback,
+                                                 self._key_up_callbacks,
+                                                 True)
+        self.unregister_key_up = functools.partial(_set_key_callback,
+                                                   self._key_up_callbacks,
+                                                   False)
+        self.register_key_down = functools.partial(_set_key_callback,
+                                                   self._key_down_callbacks,
+                                                   True)
+        self.unregister_key_down = functools.partial(_set_key_callback,
+                                                     self._key_down_callbacks,
+                                                     False)
+
+_hook_manager = HookManager()
+
 
 def SendKeys(s):
     _SendKeys(s, with_spaces=True, pause=0)
@@ -40,7 +97,7 @@ SCANCODE_TO_KEY = {
 }
 
 
-class KeyboardCapture():
+class KeyboardCapture(object):
     """Listen to all keyboard events."""
 
     CONTROL_KEYS = set(('Lcontrol', 'Rcontrol'))
@@ -48,47 +105,44 @@ class KeyboardCapture():
     ALT_KEYS = set(('Lmenu', 'Rmenu'))
     WIN_KEYS = set(('Lwin', 'Rwin'))
     PASSTHROUGH_KEYS = CONTROL_KEYS | SHIFT_KEYS | ALT_KEYS | WIN_KEYS
-    
+
     def __init__(self, suppressed_keys):
 
-        self.suppress_keyboard(True)
-        self.passthrough_down_keys = set()
-        self.alive = False
-        self.suppressed_keys = suppressed_keys
+        self._suppress_keyboard = False
+        self._passthrough_down_keys = set()
+        self._alive = False
+        self._suppressed_keys = suppressed_keys
 
         # NOTE(hesky): Does this need to be more efficient and less
         # general if it will be called for every keystroke?
         def on_key_event(func_name, event):
             key = SCANCODE_TO_KEY.get(event.ScanCode, None)
-            if not event.Injected:
-                if event.Key in self.PASSTHROUGH_KEYS:
-                    if func_name == 'key_down':
-                        self.passthrough_down_keys.add(event.Key)
-                    if func_name == 'key_up':
-                        self.passthrough_down_keys.discard(event.Key)
-                if key in self.suppressed_keys and not self.passthrough_down_keys:
-                    getattr(self, func_name, lambda x: True)(key)
-                    return not self.is_keyboard_suppressed()
-            
+            if event.Key in self.PASSTHROUGH_KEYS:
+                if func_name == 'key_down':
+                    self._passthrough_down_keys.add(event.Key)
+                elif func_name == 'key_up':
+                    self._passthrough_down_keys.discard(event.Key)
+            if key in self._suppressed_keys and not self._passthrough_down_keys:
+                getattr(self, func_name, lambda key: None)(key)
+                return not self._suppress_keyboard
             return True
 
-        self.hm = pyHook.HookManager()
-        self.hm.KeyDown = functools.partial(on_key_event, 'key_down')
-        self.hm.KeyUp = functools.partial(on_key_event, 'key_up')
+        self._on_key_up = functools.partial(on_key_event, 'key_up')
+        self._on_key_down = functools.partial(on_key_event, 'key_down')
 
     def start(self):
-        self.alive = True
-        self.run()
-
-    def run(self):
-        self.hm.HookKeyboard()
+        _hook_manager.register_key_up(self._on_key_up)
+        _hook_manager.register_key_down(self._on_key_down)
+        self._alive = True
 
     def cancel(self):
-        if self.alive:
-            self.hm.UnhookKeyboard()
-            # guard against active passthrough key depressions on capture cancel
-            self.passthrough_down_keys.clear()
-            self.alive = False
+        if not self._alive:
+            return
+        _hook_manager.unregister_key_up(self._on_key_up)
+        _hook_manager.unregister_key_down(self._on_key_down)
+        # Guard against active passthrough key depressions on capture cancel.
+        self._passthrough_down_keys.clear()
+        self._alive = False
 
     def can_suppress_keyboard(self):
         return True
