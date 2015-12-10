@@ -58,7 +58,8 @@ class StrokeDisplayDialog(wx.Dialog):
         # Calculate required width and height.
         dc = wx.ScreenDC()
         dc.SetFont(fixed_font)
-        text_width, text_height = dc.GetTextExtent(ALL_KEYS)
+        # Extra spaces for Max OS X...
+        text_width, text_height = dc.GetTextExtent(ALL_KEYS + 2 * ' ')
         scroll_width = wx.SystemSettings.GetMetric(wx.SYS_VSCROLL_X)
         scroll_height = wx.SystemSettings.GetMetric(wx.SYS_VSCROLL_X)
 
