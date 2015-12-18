@@ -68,7 +68,7 @@ setuptools.setup(
         ],
         ':"linux" in sys_platform': [
             'python-xlib>=0.14',
-            'wxPython>=3.0',
+            'wxPython>=2.8',
         ],
         ':"darwin" in sys_platform': [
             'pyobjc-core>=3.0.3',
