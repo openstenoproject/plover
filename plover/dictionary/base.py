@@ -13,7 +13,7 @@ import threading
 
 import plover.dictionary.json_dict as json_dict
 import plover.dictionary.rtfcre_dict as rtfcre_dict
-from plover.config import JSON_EXTENSION, RTF_EXTENSION, CONFIG_DIR
+from plover.config import JSON_EXTENSION, RTF_EXTENSION
 from plover.exception import DictionaryLoaderException
 
 dictionaries = {

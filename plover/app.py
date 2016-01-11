@@ -20,17 +20,12 @@ import os
 # Import plover modules.
 import plover.config as conf
 import plover.formatting as formatting
-import plover.oslayer.keyboardcontrol as keyboardcontrol
 import plover.steno as steno
 import plover.machine.base
 import plover.machine.sidewinder
-import plover.steno_dictionary as steno_dictionary
 import plover.steno as steno
 import plover.translation as translation
-from plover.dictionary.base import load_dictionary
 from plover.exception import InvalidConfigurationError,DictionaryLoaderException
-import plover.dictionary.json_dict as json_dict
-import plover.dictionary.rtfcre_dict as rtfcre_dict
 from plover.machine.registry import machine_registry, NoSuchMachineException
 from plover import log
 from plover.dictionary.loading_manager import manager as dict_manager
