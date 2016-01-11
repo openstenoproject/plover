@@ -4,7 +4,6 @@
 "Launch the plover application."
 
 import os
-import shutil
 import sys
 import traceback
 
@@ -15,7 +14,6 @@ if not hasattr(sys, 'frozen'):
 
 import wx
 import json
-import glob
 
 from collections import OrderedDict
 

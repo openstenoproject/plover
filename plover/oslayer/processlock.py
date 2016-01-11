@@ -47,7 +47,6 @@ if sys.platform.startswith('win32'):
 else:
     import fcntl
     import os
-    import tempfile
 
 
     class PloverLock(object):

@@ -18,8 +18,6 @@ import functools
 import threading
 
 import pyHook
-import win32api
-import win32con
 from pywinauto.SendKeysCtypes import SendKeys as _SendKeys
 
 

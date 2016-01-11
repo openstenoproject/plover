@@ -11,7 +11,6 @@ import wx
 import wx.animate
 from wx.lib.utils import AdjustRectToScreen
 from threading import Thread
-import os.path
 
 from plover.config import SPINNER_FILE
 
