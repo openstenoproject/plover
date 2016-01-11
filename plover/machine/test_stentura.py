@@ -8,7 +8,7 @@ import struct
 import threading
 import unittest
 
-import stentura
+from plover.machine import stentura
 
 
 def make_response(seq, action, error=0, p1=0, p2=0, data=None,

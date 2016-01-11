@@ -3,7 +3,6 @@
 
 import wx
 from wx.lib.utils import AdjustRectToScreen
-import sys
 from plover.steno import normalize_steno
 import plover.gui.util as util
 

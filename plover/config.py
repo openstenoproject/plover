@@ -6,7 +6,6 @@
 import ConfigParser
 from ConfigParser import RawConfigParser
 import os
-import shutil
 from cStringIO import StringIO
 from plover.exception import InvalidConfigurationError
 from plover.machine.registry import machine_registry

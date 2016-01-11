@@ -3,7 +3,7 @@
 
 """Unit tests for formatting.py."""
 
-import formatting
+from plover import formatting
 import unittest
 
 # Add tests with partial output specified.

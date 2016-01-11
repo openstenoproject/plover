@@ -23,7 +23,6 @@ import plover.formatting as formatting
 import plover.steno as steno
 import plover.machine.base
 import plover.machine.sidewinder
-import plover.steno as steno
 import plover.translation as translation
 from plover.exception import InvalidConfigurationError,DictionaryLoaderException
 from plover.machine.registry import machine_registry, NoSuchMachineException

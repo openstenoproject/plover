@@ -4,7 +4,7 @@
 """Unit tests for steno.py."""
 
 import unittest
-from steno import normalize_steno, Stroke
+from plover.steno import normalize_steno, Stroke
 
 class StenoTestCase(unittest.TestCase):
     def test_normalize_steno(self):

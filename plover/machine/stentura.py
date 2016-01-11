@@ -149,7 +149,6 @@ Unknown.
 import array
 import itertools
 import struct
-import time
 from plover import log
 
 import plover.machine.base

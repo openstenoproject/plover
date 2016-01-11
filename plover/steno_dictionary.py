@@ -8,8 +8,6 @@ A steno dictionary maps sequences of steno strokes to translations.
 """
 
 import collections
-import itertools
-from steno import normalize_steno
 
 class StenoDictionary(collections.MutableMapping):
     """A steno dictionary.
