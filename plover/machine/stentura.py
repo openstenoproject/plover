@@ -426,7 +426,6 @@ def _validate_response(packet):
     return True
 
 
-# Timeout is in seconds, can be a float.
 def _read_data(port, stop, buf, offset, num_bytes):
     """Read data off the serial port and into port at offset.
 
