@@ -9,7 +9,7 @@ This module defines and implements plover's custom dictionary language.
 
 from os.path import commonprefix
 from collections import namedtuple
-import orthography
+from plover import orthography
 import re
 
 class Formatter(object):

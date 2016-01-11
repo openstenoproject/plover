@@ -5,8 +5,8 @@
 
 import StringIO
 import unittest
-from json_dict import load_dictionary
-from base import DictionaryLoaderException
+from plover.dictionary.json_dict import load_dictionary
+from plover.dictionary.base import DictionaryLoaderException
 
 def make_dict(contents):
     d = StringIO.StringIO(contents)

@@ -4,7 +4,7 @@
 """Unit tests for steno_dictionary.py."""
 
 import unittest
-from steno_dictionary import StenoDictionary, StenoDictionaryCollection
+from plover.steno_dictionary import StenoDictionary, StenoDictionaryCollection
 
 class StenoDictionaryTestCase(unittest.TestCase):
 
