@@ -3,7 +3,6 @@
 
 from plover.dictionary.rtfcre_dict import load_dictionary, TranslationConverter, format_translation, save_dictionary
 import mock
-import re
 import unittest
 from StringIO import StringIO
 
