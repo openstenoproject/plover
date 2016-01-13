@@ -21,6 +21,7 @@ import plover.gui.main
 import plover.oslayer.processlock
 from plover.oslayer.config import CONFIG_DIR, ASSETS_DIR
 from plover.config import CONFIG_FILE, DEFAULT_DICTIONARIES, Config
+from plover import log
 
 def show_error(title, message):
     """Report error to the user.
@@ -72,6 +73,9 @@ def main():
         # Ensure only one instance of Plover is running at a time.
         with plover.oslayer.processlock.PloverLock():
             init_config_dir()
+            # This must be done after calling init_config_dir, so
+            # Plover's configuration directory actually exists.
+            log.setup_logfile()
             config = Config()
             config.target_file = CONFIG_FILE
             gui = plover.gui.main.PloverGUI(config)

@@ -39,17 +39,21 @@ class Logger(object):
     def __init__(self):
         self._print_handler = PrintHandler()
         self._print_handler.setLevel(WARNING)
-        self._file_handler = FileHandler()
-        self._file_handler.setLevel(INFO)
+        self._file_handler = None
         self._logger = logging.getLogger('plover')
         self._logger.addHandler(self._print_handler)
-        self._logger.addHandler(self._file_handler)
         self._logger.setLevel(INFO)
         self._stroke_logger = logging.getLogger('plover-strokes')
         self._stroke_logger.setLevel(INFO)
         self._stroke_handler = None
         self._log_strokes = False
         self._log_translations = False
+
+    def setup_logfile(self):
+        assert self._file_handler is None
+        self._file_handler = FileHandler()
+        self._file_handler.setLevel(INFO)
+        self._logger.addHandler(self._file_handler)
 
     def set_stroke_filename(self, filename=None):
         self.info('set_stroke_filename(%s)', filename)
@@ -108,4 +112,6 @@ stroke = __logger.log_stroke
 translation = __logger.log_translation
 enable_stroke_logging = __logger.enable_stroke_logging
 enable_translation_logging = __logger.enable_translation_logging
+# Logfile support.
+setup_logfile = __logger.setup_logfile
 
