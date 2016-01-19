@@ -10,6 +10,8 @@ resumes stenotype translation and allows for application configuration.
 
 import sys
 import os
+import re
+import time
 import wx
 import wx.animate
 from wx.lib.utils import AdjustRectToScreen
@@ -215,6 +217,8 @@ class MainFrame(wx.Frame):
         if self.config.get_show_suggestions_display():
             SuggestionsDisplayDialog.display(self, self.config, self.steno_engine)
 
+    PAUSE_PATTERN = re.compile(r'PAUSE(:([0-9]+))?')
+
     def consume_command(self, command):
         # The first commands can be used whether plover is active or not.
         if command == self.COMMAND_RESUME:
@@ -232,7 +236,16 @@ class MainFrame(wx.Frame):
             return False
 
         # These commands can only be run when plover is active.
-        if command == self.COMMAND_SUSPEND:
+        pause_match = re.match(self.PAUSE_PATTERN, command)
+        if pause_match:
+            pause_int = pause_match.groups()[1]
+            if pause_int is None:
+                pause_time = 0.05
+            else:
+                pause_time = float(pause_int)/1000
+            time.sleep(pause_time)
+            return True
+        elif command == self.COMMAND_SUSPEND:
             wx.CallAfter(self.steno_engine.set_is_running, False)
             return True
         elif command == self.COMMAND_CONFIGURE:
