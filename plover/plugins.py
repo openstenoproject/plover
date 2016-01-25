@@ -23,3 +23,10 @@ def get_systems():
         pkg_resources.iter_entry_points('plover.plugins.system')
     }
 
+def get_dictionaries():
+    return {
+        entrypoint.name: entrypoint
+        for entrypoint in
+        pkg_resources.iter_entry_points('plover.plugins.dictionary')
+    }
+

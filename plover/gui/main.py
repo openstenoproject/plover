@@ -185,6 +185,7 @@ class MainFrame(wx.Frame):
 
         plugins.load_plugins()
         print 'available systems:', plugins.get_systems().keys()
+        print 'available dictionaries:', plugins.get_dictionaries().keys()
 
         rect = wx.Rect(config.get_main_frame_x(), config.get_main_frame_y(), *self.GetSize())
         self.SetRect(AdjustRectToScreen(rect))
