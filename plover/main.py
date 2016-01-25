@@ -57,14 +57,13 @@ def init_config_dir():
             outfile = open(out_path, 'wb')
             json.dump(ordered, outfile, indent=0, separators=(',', ': '))
 
-    for dictionary in DEFAULT_DICTIONARIES:
-        copy_dictionary_to_config(dictionary)
-
-    # Create a default configuration file if one doesn't already
-    # exist.
+    # Create a default configuration file (and copy default dictionaries)
+    # if one doesn't already exist.
     if not os.path.exists(CONFIG_FILE):
         with open(CONFIG_FILE, 'wb') as f:
             f.close()
+        for dictionary in DEFAULT_DICTIONARIES:
+            copy_dictionary_to_config(dictionary)
 
 
 def main():
