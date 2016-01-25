@@ -16,3 +16,10 @@ def load_plugins():
             sys.path.insert(0, egg)
             pkg_resources.working_set.add_entry(egg)
 
+def get_systems():
+    return {
+        entrypoint.name: entrypoint
+        for entrypoint in
+        pkg_resources.iter_entry_points('plover.plugins.system')
+    }
+

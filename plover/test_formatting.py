@@ -4,7 +4,11 @@
 """Unit tests for formatting.py."""
 
 from plover import formatting
+from plover import system
+
 import unittest
+
+system.setup('English Stenotype')
 
 # Add tests with partial output specified.
 

@@ -77,13 +77,25 @@ setuptools.setup(
             'wxPython>=3.0',
         ],
     },
-    entry_points={
-        'console_scripts': ['plover=plover.main:main'],
-        'setuptools.installation': ['eggsecutable=plover.main:main'],
-    },
+    entry_points="""
+
+    [plover.plugins.system]
+    English Stenotype = plover.system.english_stenotype
+
+    [console_scripts]
+    plover = plover.main:main
+
+    [setuptools.installation]
+    eggsecutable = plover.main:main
+
+    """,
     packages=[
-        'plover', 'plover.machine', 'plover.gui',
-        'plover.oslayer', 'plover.dictionary',
+        'plover',
+        'plover.dictionary',
+        'plover.gui',
+        'plover.machine',
+        'plover.oslayer',
+        'plover.system',
     ],
     package_data={
         'plover': ['assets/*'],

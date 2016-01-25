@@ -110,6 +110,10 @@ DEFAULT_KEYBOARD_CONFIG_FRAME_X = -1
 KEYBOARD_CONFIG_FRAME_Y_OPTION = 'y'
 DEFAULT_KEYBOARD_CONFIG_FRAME_Y = -1
 
+SYSTEM_CONFIG_SECTION = 'System Configuration'
+SYSTEM_NAME_OPTION = 'name'
+DEFAULT_SYSTEM_CONFIG_NAME = 'English Stenotype'
+
 # Dictionary constants.
 JSON_EXTENSION = '.json'
 RTF_EXTENSION = '.rtf'
@@ -449,6 +453,14 @@ class Config(object):
         return self._get_int(KEYBOARD_CONFIG_FRAME_SECTION, 
                              KEYBOARD_CONFIG_FRAME_Y_OPTION,
                              DEFAULT_KEYBOARD_CONFIG_FRAME_Y)
+
+    def set_system_name(self, system):
+        self._set(SYSTEM_CONFIG_SECTION, SYSTEM_NAME_OPTION, system)
+
+    def get_system_name(self):
+        return self._get(SYSTEM_CONFIG_SECTION,
+                         SYSTEM_NAME_OPTION,
+                         DEFAULT_SYSTEM_CONFIG_NAME)
 
     def _set(self, section, option, value):
         if not self._config.has_section(section):

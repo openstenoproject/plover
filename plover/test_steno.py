@@ -5,6 +5,9 @@
 
 import unittest
 from plover.steno import normalize_steno, Stroke
+from plover import system
+
+system.setup('English Stenotype')
 
 class StenoTestCase(unittest.TestCase):
     def test_normalize_steno(self):
