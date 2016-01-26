@@ -443,9 +443,11 @@ def _read_data(port, stop, buf, offset, num_bytes):
     _TimeoutException: If the timeout is reached with no data read.
 
     """
+    assert num_bytes > 0
     bytes = port.read(num_bytes)
     if stop.is_set():
         raise _StopException()
+    assert len(bytes) <= num_bytes
     if num_bytes > len(bytes):
         raise _TimeoutException()
     _write_to_buffer(buf, offset, bytes)
@@ -473,7 +475,10 @@ def _read_packet(port, stop, buf):
     """
     bytes_read = 0
     bytes_read += _read_data(port, stop, buf, bytes_read, 4)
+    assert 4 == bytes_read
     packet_length = _SHORT_STRUCT.unpack_from(buf, 2)[0]
+    if packet_length <= bytes_read:
+        raise _ProtocolViolationException()
     bytes_read += _read_data(port, stop, buf, bytes_read,
                              packet_length - bytes_read)
     packet = buffer(buf, 0, bytes_read)
