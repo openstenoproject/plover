@@ -73,19 +73,20 @@ class MockPacketPort(object):
         self._responses = responses
         self.writes = 0
         self._requests = requests
-
-    def inWaiting(self):
-        return len(self._responses[self.writes - 1])
+        self._current_response_offset = None
 
     def write(self, data):
         self.writes += 1
         if self._requests and self._requests[self.writes - 1] != str(data):
             raise Exception("Wrong packet.")
+        self._current_response_offset = 0
         return len(data)
 
     def read(self, count):
         response = self._responses[self.writes - 1]
-        return response
+        data = buffer(response, self._current_response_offset, count)
+        self._current_response_offset += count
+        return data
 
 
 class TestCase(unittest.TestCase):
@@ -211,9 +212,6 @@ class TestCase(unittest.TestCase):
 
     def test_read_data_simple(self):
         class MockPort(object):
-            def inWaiting(self):
-                return 5
-
             def read(self, count):
                 if count != 5:
                     raise Exception("Incorrect number read.")
@@ -221,41 +219,18 @@ class TestCase(unittest.TestCase):
 
         port = MockPort()
         buf = array.array('B')
-        count = stentura._read_data(port, threading.Event(), buf, 0, 1)
+        count = stentura._read_data(port, threading.Event(), buf, 0, 5)
         self.assertEqual(count, 5)
         self.assertSequenceEqual([chr(b) for b in buf], "12345")
 
         # Test the offset parameter.
-        count = stentura._read_data(port, threading.Event(), buf, 4, 1)
+        count = stentura._read_data(port, threading.Event(), buf, 4, 5)
         self.assertSequenceEqual([chr(b) for b in buf], "123412345")
 
-    def test_read_data_waiting(self):
+    def test_read_data_stop(self):
         class MockPort(object):
-            def __init__(self):
-                self._times = 0
-
-            def inWaiting(self):
-                self._times += 1
-                if self._times == 5:
-                    return 4
-
             def read(self, count):
-                if self._times != 5:
-                    raise Exception("Called read too early.")
-                if count != 4:
-                    raise Exception("Wrong count.")
-
-                return "1234"
-
-        buf = array.array('B')
-        count = stentura._read_data(MockPort(), threading.Event(), buf, 0, 1)
-        self.assertEqual(count, 4)
-        self.assertSequenceEqual([chr(b) for b in buf], "1234")
-
-    def test_read_data_stop_immediately(self):
-        class MockPort(object):
-            def inWaiting(self):
-                return 0
+                return ''
 
         buf = array.array('B')
         event = threading.Event()
@@ -263,79 +238,33 @@ class TestCase(unittest.TestCase):
         with self.assertRaises(stentura._StopException):
             stentura._read_data(MockPort(), event, buf, 0, 1)
 
-    def test_read_data_stop_waiting(self):
-        class MockPort(object):
-            def __init__(self):
-                self.event = threading.Event()
-                self._times = 0
-
-            def inWaiting(self):
-                self._times += 1
-                if self._times < 5:
-                    return 0
-                if self._times == 5:
-                    self.event.set()
-                    return 0
-
-        port = MockPort()
-        buf = array.array('B')
-        with self.assertRaises(stentura._StopException):
-            stentura._read_data(port, port.event, buf, 0, 1)
-
     def test_read_data_timeout(self):
         class MockPort(object):
-            def inWaiting(self):
-                return 0
+            def read(self, count):
+                return ''
 
         port = MockPort()
         buf = array.array('B')
         with self.assertRaises(stentura._TimeoutException):
-            stentura._read_data(port, threading.Event(), buf, 0, 0.001)
+            stentura._read_data(port, threading.Event(), buf, 0, 1)
 
     def test_read_packet_simple(self):
         class MockPort(object):
             def __init__(self, packet):
                 self._packet = packet
-
-            def inWaiting(self):
-                return len(self._packet)
+                self._offset = 0
 
             def read(self, count):
-                return packet
+                data = buffer(self._packet, self._offset, count)
+                self._offset += count
+                return data
 
         buf = array.array('B')
         for packet in [make_response(1, 2, 3, 4, 5),
                        make_response(1, 2, 3, 4, 5, "hello")]:
             port = MockPort(packet)
-            response = stentura._read_packet(port, threading.Event(), buf, 1)
+            response = stentura._read_packet(port, threading.Event(), buf)
             self.assertSequenceEqual(response, packet)
-
-    def test_read_packet_parts(self):
-        class MockPort(object):
-            def __init__(self, packet):
-                self._times = 0
-                self._results = {3: packet[0:2],
-                                 5: packet[2:4],
-                                 7: packet[4:8],
-                                 9: packet[8:]}
-
-            def inWaiting(self):
-                self._times += 1
-                if self._times in self._results:
-                    return len(self._results[self._times])
-
-            def read(self, count):
-                result = self._results[self._times]
-                if len(result) != count:
-                    raise Exception("Wrong count.")
-                return result
-
-        packet = make_response(1, 2, 3, 4, 5)
-        buf = array.array('B')
-        port = MockPort(packet)
-        event = threading.Event()
-        response = stentura._read_packet(port, event, buf, 1)
-        self.assertSequenceEqual(packet, response)
 
     def test_read_packet_fail(self):
         class MockPort(object):
@@ -356,16 +285,6 @@ class TestCase(unittest.TestCase):
                     self._data.append(0)
                 self._data = ''.join([chr(b) for b in self._data])
 
-            def inWaiting(self):
-                length = 0
-                if not self._read1:
-                    length = self._length1
-                elif not self._read2:
-                    length = self._length2
-                if self._wrong:
-                    length += 1
-                return length
-
             def read(self, count):
                 if not self._read1:
                     self._read1 = True
@@ -383,23 +302,23 @@ class TestCase(unittest.TestCase):
 
         with self.assertRaises(stentura._StopException):
             port = MockPort(3, set1=True)
-            stentura._read_packet(port, port.event, buf, 1)
+            stentura._read_packet(port, port.event, buf)
 
         with self.assertRaises(stentura._StopException):
             port = MockPort(6, 20, length=30, set2=True)
-            stentura._read_packet(port, port.event, buf, 1)
+            stentura._read_packet(port, port.event, buf)
 
-        with self.assertRaises(stentura._TimeoutException):
+        with self.assertRaises(stentura._ProtocolViolationException):
             port = MockPort(3)
-            stentura._read_packet(port, port.event, buf, 0.001)
+            stentura._read_packet(port, port.event, buf)
 
         with self.assertRaises(stentura._TimeoutException):
             port = MockPort(6, 20, length=30)
-            stentura._read_packet(port, port.event, buf, 0.001)
+            stentura._read_packet(port, port.event, buf)
 
         with self.assertRaises(stentura._ProtocolViolationException):
-            port = MockPort(18, wrong=True)
-            stentura._read_packet(port, port.event, buf, 1)
+            port = MockPort(4, 14, wrong=True)
+            stentura._read_packet(port, port.event, buf)
 
     def test_write_to_port(self):
         class MockPort(object):
@@ -442,8 +361,7 @@ class TestCase(unittest.TestCase):
         # Timeout once then correct response.
         responses = ['', correct_response]
         port = MockPacketPort(responses)
-        response = stentura._send_receive(port, event, request, buf,
-                                          timeout=0.001)
+        response = stentura._send_receive(port, event, request, buf)
         self.assertSequenceEqual(response, correct_response)
 
         # Wrong sequence number then correct response.
@@ -457,8 +375,7 @@ class TestCase(unittest.TestCase):
         responses = [''] * max_tries
         port = MockPacketPort(responses)
         with self.assertRaises(stentura._ConnectionLostException):
-            stentura._send_receive(port, event, request, buf, max_tries,
-            timeout=0.0001)
+            stentura._send_receive(port, event, request, buf, max_tries)
         self.assertEqual(max_tries, port.writes)
 
         # Wrong action.
@@ -474,7 +391,7 @@ class TestCase(unittest.TestCase):
             stentura._send_receive(port, event, request, buf)
 
         # Stopped.
-        responses = []
+        responses = ['']
         event.set()
         port = MockPacketPort(responses)
         with self.assertRaises(stentura._StopException):
@@ -526,14 +443,15 @@ class TestCase(unittest.TestCase):
             def __init__(self, events=[]):
                 self._file = ''
                 self._out = ''
+                self._offset = 0
                 self._is_open = False
                 self.event = threading.Event()
                 self.count = 0
                 self.events = [Event(*x) for x in
                                sorted(events, key=lambda x: x[0])]
 
-            def inWaiting(self):
-                return len(self._out)
+            def setTimeout(self, timeout):
+                pass
 
             def write(self, request):
                 # Process the packet and put together a response.
@@ -541,6 +459,7 @@ class TestCase(unittest.TestCase):
                 if p['action'] == stentura._OPEN:
                     self._out = make_response(p['seq'], p['action'])
                     self._is_open = True
+                    self._offset = 0
                 elif p['action'] == stentura._READC:
                     if not self._is_open:
                         raise Exception("no open")
@@ -552,6 +471,7 @@ class TestCase(unittest.TestCase):
                     data = self._file[start:end]
                     self._out = make_response(seq, action, p1=len(data),
                                               data=data)
+                    self._offset = 0
                 while self.events and self.events[0].count <= self.count:
                     event = self.events.pop(0)
                     self.append(event.data)
@@ -561,9 +481,9 @@ class TestCase(unittest.TestCase):
                 return len(request)
 
             def read(self, count):
-                if count != len(self._out):
-                    raise Exception("Wrong count.")
-                return self._out
+                data = buffer(self._out, self._offset, count)
+                self._offset += count
+                return data
 
             def append(self, data):
                 self._file += data
@@ -605,7 +525,7 @@ class TestCase(unittest.TestCase):
             
             try:
                 ready_called[0] = False
-                stentura._loop(port, port.event, callback, ready, 0.001)
+                stentura._loop(port, port.event, callback, ready)
             except stentura._StopException:
                 pass
             self.assertEqual(read_data, expected)
