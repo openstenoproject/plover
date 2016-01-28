@@ -73,6 +73,11 @@ if sys.platform.startswith('darwin'):
     # Py2app will not look at entry_points.
     kwargs['app'] = 'launch.py',
 
+setup_requires.extend(('pytest-runner', 'pytest'))
+options['aliases'] = {
+    'test': 'pytest --addopts -ra --addopts plover',
+}
+
 setuptools.setup(
     name=__software_name__.capitalize(),
     version=__version__,
@@ -91,6 +96,9 @@ setuptools.setup(
         'patch_version': PatchVersion,
     },
     setup_requires=setup_requires,
+    tests_require=[
+        'mock',
+    ],
     install_requires=[
         'setuptools',
         'pyserial>=2.7',
