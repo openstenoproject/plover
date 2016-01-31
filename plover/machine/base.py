@@ -159,7 +159,7 @@ class SerialStenotypeBase(ThreadedStenotypeBase):
         try:
             self.serial_port = serial.Serial(**self.serial_params)
         except (serial.SerialException, OSError) as e:
-            log.warning('Stentura not connected')
+            log.warning('Machine not connected')
             log.info('Can\'t open Serial port: %s', str(e))
             self._error()
             return
