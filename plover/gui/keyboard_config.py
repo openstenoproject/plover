@@ -18,14 +18,17 @@ class EditKeysDialog(wx.Dialog):
     def __init__(self, parent, action, keys):
         super(EditKeysDialog, self).__init__(parent)
         self.sizer = wx.BoxSizer(wx.VERTICAL)
+        sizer_flags = wx.SizerFlags().Border(wx.ALL, UI_BORDER).Align(wx.ALIGN_CENTER_HORIZONTAL)
         instructions = wx.StaticText(self, label='Press on the key you want to add/remove.')
-        self.sizer.Add(instructions, border=UI_BORDER, flag=wx.ALL|wx.ALIGN_CENTER_HORIZONTAL)
+        self.sizer.AddF(instructions, sizer_flags)
         self.message = wx.StaticText(self)
-        self.sizer.Add(self.message, border=UI_BORDER, flag=wx.ALL|wx.ALIGN_CENTER_HORIZONTAL)
+        self.sizer.AddF(self.message, sizer_flags)
         buttons = self.CreateButtonSizer(wx.OK|wx.CANCEL)
-        self.sizer.Add(buttons, border=UI_BORDER, flag=wx.ALL|wx.ALIGN_CENTER_HORIZONTAL)
-        self.SetSizer(self.sizer)
-        self.sizer.Fit(self)
+        clear_button = wx.Button(self, id=wx.ID_CLEAR)
+        clear_button.Bind(wx.EVT_BUTTON, self.on_clear)
+        buttons.InsertF(0, clear_button, sizer_flags.Left())
+        self.sizer.AddF(buttons, sizer_flags.Expand())
+        self.SetSizerAndFit(self.sizer)
         self.action = action
         self.keys = set(keys)
         self.original_keys = self.keys.copy()
@@ -58,6 +61,10 @@ class EditKeysDialog(wx.Dialog):
         self.message.SetLabelText(message)
         self.sizer.Fit(self)
         self.sizer.Layout()
+
+    def on_clear(self, event):
+        self.keys.clear()
+        self.update_message()
 
     def on_capture_key(self, key):
         if key in self.keys:
