@@ -89,6 +89,9 @@ class SerialConfigDialog(wx.Dialog):
         self.loading_text.Hide()
         self.gif = wx.animate.GIFAnimationCtrl(self, -1, SPINNER_FILE)
         self.gif.GetPlayer().UseBackgroundColour(True)
+        # Need to call this so the size of the control is not
+        # messed up (100x100 instead of 16x16) on Linux...
+        self.gif.InvalidateBestSize()
         self.gif.Hide()
         sizer.Add(self.gif, flag=wx.ALIGN_CENTER_VERTICAL)
         outline_sizer.Add(sizer, flag=wx.EXPAND)
