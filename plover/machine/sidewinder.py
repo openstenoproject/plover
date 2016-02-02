@@ -61,11 +61,11 @@ class Stenotype(StenotypeBase):
 
     def _key_down(self, key):
         """Called when a key is pressed."""
+        assert key is not None
         if (self._is_keyboard_suppressed
-            and key is not None
             and not self._keyboard_capture.is_keyboard_suppressed()):
             self._keyboard_emulation.send_backspaces(1)
-        steno_key = self.keymap.get(key, None)
+        steno_key = self.keymap.get(key)
         if steno_key is not None:
             self._down_keys.add(steno_key)
 
@@ -82,7 +82,8 @@ class Stenotype(StenotypeBase):
 
     def _key_up(self, key):
         """Called when a key is released."""
-        steno_key = self.keymap.get(key, None)
+        assert key is not None
+        steno_key = self.keymap.get(key)
         if steno_key is not None:
             # Process the newly released key.
             self._released_keys.add(steno_key)
