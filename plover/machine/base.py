@@ -23,7 +23,6 @@ class StenotypeBase(object):
         self.stroke_subscribers = []
         self.state_subscribers = []
         self.state = STATE_STOPPED
-        self.suppress = None
 
     def start_capture(self):
         """Begin listening for output from the stenotype machine."""
@@ -62,22 +61,27 @@ class StenotypeBase(object):
 
     def _notify(self, steno_keys):
         """Invoke the callback of each subscriber with the given argument."""
-        # If the stroke matches a command while the keyboard is not suppressed 
-        # then the stroke needs to be suppressed after the fact. One of the 
-        # handlers will set the suppress function. This function is passed in to 
-        # prevent threading issues with the gui.
-        self.suppress = None
         for callback in self.stroke_subscribers:
             callback(steno_keys)
-        if self.suppress:
-            self._post_suppress(self.suppress)
-            
-    def _post_suppress(self, suppress):
-        """This is a complicated way for the application to tell the machine to 
-        suppress this stroke after the fact. This only currently has meaning for 
-        the keyboard machine so it can backspace over the last stroke when used 
-        to issue a command when plover is 'off'.
-        """
+
+    def set_suppression(self, enabled):
+        '''Enable keyboard suppression.
+
+        This is only of use for the keyboard machine,
+        to suppress the keyboard when then engine is running.
+        '''
+        pass
+
+    def suppress_last_stroke(self, send_backspaces):
+        '''Suppress the last stroke key events after the fact.
+
+        This is only of use for the keyboard machine,
+        and the engine is resumed with a command stroke.
+
+        Argument:
+
+        send_backspaces -- The function to use to send backspaces.
+        '''
         pass
 
     def _set_state(self, state):
