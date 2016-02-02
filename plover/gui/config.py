@@ -44,7 +44,6 @@ SPACE_PLACEMENTS_LABEL = "Space Placement:"
 SPACE_PLACEMENT_BEFORE = "Before Output"
 SPACE_PLACEMENT_AFTER = "After Output"
 SPACE_PLACEMENTS = [SPACE_PLACEMENT_BEFORE, SPACE_PLACEMENT_AFTER]
-CONFIG_PANEL_SIZE = (-1, -1)
 UI_BORDER = 4
 COMPONENT_SPACE = 3
 UP_IMAGE_FILE = os.path.join(conf.ASSETS_DIR, 'up.png')
@@ -125,11 +124,7 @@ class ConfigurationDialog(wx.Dialog):
 
         sizer.Add(button_sizer, flag=wx.ALL | wx.ALIGN_RIGHT, border=UI_BORDER)
         
-        self.SetSizer(sizer)
-        self.SetAutoLayout(True)
-        sizer.Layout()
-        #sizer.Fit(self)
-        
+        self.SetSizerAndFit(sizer)
         self.SetRect(AdjustRectToScreen(self.GetRect()))
         
         # Binding the save button to the self._save callback
@@ -197,7 +192,7 @@ class MachineConfig(wx.Panel):
         parent -- This component's parent component.
 
         """
-        wx.Panel.__init__(self, parent, size=CONFIG_PANEL_SIZE)
+        wx.Panel.__init__(self, parent)
         self.config = config
         sizer = wx.BoxSizer(wx.VERTICAL)
         box = wx.BoxSizer(wx.HORIZONTAL)
@@ -224,7 +219,7 @@ class MachineConfig(wx.Panel):
         sizer.Add(self.auto_start_checkbox,
                   border=UI_BORDER,
                   flag=wx.ALL | wx.EXPAND)
-        self.SetSizer(sizer)
+        self.SetSizerAndFit(sizer)
         self._update()
         self.Bind(wx.EVT_BUTTON, self._advanced_config, self.config_button)
 
@@ -277,7 +272,7 @@ class DictionaryConfig(ScrolledPanel):
         parent -- This component's parent component.
 
         """
-        ScrolledPanel.__init__(self, parent, size=CONFIG_PANEL_SIZE)
+        ScrolledPanel.__init__(self, parent)
         self.engine = engine
         self.config = config
         dictionaries = config.get_dictionary_file_names()
@@ -320,7 +315,7 @@ class DictionaryConfig(ScrolledPanel):
             conf.RTF_EXTENSION, conf.RTF_EXTENSION, 
         )
         
-        self.SetSizer(main_sizer)
+        self.SetSizerAndFit(main_sizer)
         self.SetupScrolling()
 
     def save(self):
@@ -408,7 +403,7 @@ class LoggingConfig(wx.Panel):
         parent -- This component's parent component.
 
         """
-        wx.Panel.__init__(self, parent, size=CONFIG_PANEL_SIZE)
+        wx.Panel.__init__(self, parent)
         self.config = config
         sizer = wx.BoxSizer(wx.VERTICAL)
         log_file = config.get_log_file_name()
@@ -465,7 +460,7 @@ class DisplayConfig(wx.Panel):
         parent -- This component's parent component.
 
         """
-        wx.Panel.__init__(self, parent, size=CONFIG_PANEL_SIZE)
+        wx.Panel.__init__(self, parent)
         self.config = config
         self.engine = engine
         sizer = wx.BoxSizer(wx.VERTICAL)
@@ -516,7 +511,7 @@ class OutputConfig(wx.Panel):
         parent -- This component's parent component.
 
         """
-        wx.Panel.__init__(self, parent, size=CONFIG_PANEL_SIZE)
+        wx.Panel.__init__(self, parent)
         self.config = config
         sizer = wx.BoxSizer(wx.VERTICAL)
         
