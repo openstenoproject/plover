@@ -194,34 +194,30 @@ class MachineConfig(wx.Panel):
         """
         wx.Panel.__init__(self, parent)
         self.config = config
-        sizer = wx.BoxSizer(wx.VERTICAL)
-        box = wx.BoxSizer(wx.HORIZONTAL)
-        box.Add(wx.StaticText(self, label=MACHINE_LABEL),
-                border=COMPONENT_SPACE,
-                flag=wx.ALIGN_RIGHT | wx.ALIGN_CENTER_VERTICAL | wx.RIGHT)
-        machines = machine_registry.get_all_names()
-        value = self.config.get_machine_type()
-        self.choice = wx.Choice(self, choices=machines)
-        self.choice.SetStringSelection(machine_registry.resolve_alias(value))
-        self.Bind(wx.EVT_CHOICE, self._update, self.choice)
-        box.Add(self.choice, proportion=1, flag=wx.EXPAND)
-        self.config_button = wx.Button(self,
-                                       id=wx.ID_PREFERENCES,
-                                       label=CONFIG_BUTTON_NAME)
-        box.Add(self.config_button)
 
-        self.auto_start_checkbox = wx.CheckBox(self,
-                                               label=MACHINE_AUTO_START_LABEL)
+        sizer = wx.FlexGridSizer(2, 3)
+        sizer.AddGrowableCol(1)
+
+        sizer_flags = wx.SizerFlags(1).Align(wx.ALIGN_CENTER_VERTICAL).Border(wx.ALL, UI_BORDER)
+
+        sizer.AddF(wx.StaticText(self, label=MACHINE_LABEL), sizer_flags.Left())
+        machines = machine_registry.get_all_names()
+        current_machine = self.config.get_machine_type()
+        self.choice = wx.Choice(self, choices=machines)
+        self.choice.SetStringSelection(machine_registry.resolve_alias(current_machine))
+        sizer.AddF(self.choice, sizer_flags.Expand())
+        self.Bind(wx.EVT_CHOICE, self._update, self.choice)
+        self.config_button = wx.Button(self, id=wx.ID_PREFERENCES, label=CONFIG_BUTTON_NAME)
+        sizer.AddF(self.config_button, sizer_flags.Right())
+        self.Bind(wx.EVT_BUTTON, self._advanced_config, self.config_button)
+
+        self.auto_start_checkbox = wx.CheckBox(self, label=MACHINE_AUTO_START_LABEL)
         auto_start = config.get_auto_start()
         self.auto_start_checkbox.SetValue(auto_start)
+        sizer.AddF(self.auto_start_checkbox, sizer_flags.Left())
 
-        sizer.Add(box, border=UI_BORDER, flag=wx.ALL | wx.EXPAND)
-        sizer.Add(self.auto_start_checkbox,
-                  border=UI_BORDER,
-                  flag=wx.ALL | wx.EXPAND)
         self.SetSizerAndFit(sizer)
         self._update()
-        self.Bind(wx.EVT_BUTTON, self._advanced_config, self.config_button)
 
     def save(self):
         """Write all parameters to the config."""
@@ -238,14 +234,12 @@ class MachineConfig(wx.Panel):
             def __init__(self, **kwargs):
                 self.__dict__.update(kwargs)
         config_instance = Struct(**self.advanced_options)
-        dialog = None
         if 'port' in self.advanced_options:
             scd = SerialConfigDialog(config_instance, self, self.config)
             scd.ShowModal()  # SerialConfigDialog destroys itself.
         else:
             kbd = KeyboardConfigDialog(config_instance, self, self.config)
             kbd.ShowModal()
-            kbd.Destroy()
         self.advanced_options = config_instance.__dict__
 
     def _update(self, event=None):
