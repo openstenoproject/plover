@@ -275,8 +275,7 @@ class DictionaryConfig(ScrolledPanel):
         ScrolledPanel.__init__(self, parent)
         self.engine = engine
         self.config = config
-        dictionaries = config.get_dictionary_file_names()
-        
+
         self.up_bitmap = wx.Bitmap(UP_IMAGE_FILE, wx.BITMAP_TYPE_PNG)
         self.down_bitmap = wx.Bitmap(DOWN_IMAGE_FILE, wx.BITMAP_TYPE_PNG)
         self.remove_bitmap = wx.Bitmap(REMOVE_IMAGE_FILE, wx.BITMAP_TYPE_PNG)
@@ -305,8 +304,6 @@ class DictionaryConfig(ScrolledPanel):
         
         self.dictionary_controls = []
         self.dicts_sizer = wx.BoxSizer(wx.VERTICAL)
-        for filename in dictionaries:
-            self.add_row(filename)
 
         main_sizer.Add(self.dicts_sizer)
         
@@ -317,6 +314,10 @@ class DictionaryConfig(ScrolledPanel):
         
         self.SetSizerAndFit(main_sizer)
         self.SetupScrolling()
+
+        # Fill in dictionaries *after* setting the minimum client size.
+        for filename in config.get_dictionary_file_names():
+            self.add_row(filename)
 
     def save(self):
         """Write all parameters to the config."""
