@@ -84,7 +84,11 @@ class Stenotype(StenotypeBase):
         def start_capture(self):
             """Begin listening for output from the stenotype machine."""
             try:
-                self._machine = hid.device(VENDOR_ID, 1)
+                if hasattr(hid.device, 'open'):
+                    self._machine = hid.device()
+                    self._machine.open(VENDOR_ID, 1)
+                else:
+                    self._machine = hid.device(VENDOR_ID, 1)
                 self._machine.set_nonblocking(1)
             except IOError as e:
                 log.info('Treal device not found: %s', str(e))
