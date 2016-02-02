@@ -39,7 +39,7 @@ class Stenotype(StenotypeBase):
                     del self.keymap[key]
         self._down_keys = set()
         self._released_keys = set()
-        self._keyboard_capture = KeyboardCapture(self.keymap.keys())
+        self._keyboard_capture = KeyboardCapture()
         self._keyboard_capture.key_down = self._key_down
         self._keyboard_capture.key_up = self._key_up
         self._last_stroke_key_down_count = 0
@@ -55,7 +55,8 @@ class Stenotype(StenotypeBase):
         self._stopped()
 
     def set_suppression(self, enabled):
-        self._keyboard_capture.suppress_keyboard(enabled)
+        suppressed_keys = self.keymap.keys() if enabled else ()
+        self._keyboard_capture.suppress_keyboard(suppressed_keys)
 
     def suppress_last_stroke(self, send_backspaces):
         send_backspaces(self._last_stroke_key_down_count)

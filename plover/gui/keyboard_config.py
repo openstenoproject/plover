@@ -30,18 +30,18 @@ class EditKeysDialog(wx.Dialog):
         self.action = action
         self.keys = set(keys)
         self.original_keys = self.keys.copy()
-        self.capture = KeyboardCapture(KeyboardCapture.SUPPORTED_KEYS)
+        self.capture = KeyboardCapture()
         self.capture.key_down = lambda key: wx.CallAfter(self.on_capture_key, key)
 
     def ShowModal(self):
         self.update_message()
         self.capture.start()
-        self.capture.suppress_keyboard(True)
         try:
+            # Prevent dialog from stealing space key events.
+            self.capture.suppress_keyboard(('space',))
             code = super(EditKeysDialog, self).ShowModal()
         finally:
-            self.capture.suppress_keyboard(False)
-        self.capture.cancel()
+            self.capture.cancel()
         return code
 
     def update_message(self):
