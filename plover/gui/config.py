@@ -366,8 +366,7 @@ class DictionaryConfig(ScrolledPanel):
         controls = self.DictionaryControls(sizer, up, down, remove, label)
         self.dictionary_controls.append(controls)
         self.dicts_sizer.Add(sizer)
-        if self.GetSizer():
-            self.GetSizer().Layout()
+        self.FitInside()
 
     def remove_row(self, index):
         names = [self.dictionary_controls[i].label.GetLabel() 
@@ -381,8 +380,8 @@ class DictionaryConfig(ScrolledPanel):
         del self.dictionary_controls[-1]
         if self.dictionary_controls:
             self.dictionary_controls[-1].down.Disable()
-        self.GetSizer().Layout()
-        
+        self.FitInside()
+
     def move_row_down(self, index):
         top_label = self.dictionary_controls[index].label
         bottom_label = self.dictionary_controls[index+1].label
