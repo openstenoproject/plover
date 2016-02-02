@@ -42,6 +42,7 @@ class Stenotype(StenotypeBase):
         self._keyboard_capture = KeyboardCapture(self.keymap.keys())
         self._keyboard_capture.key_down = self._key_down
         self._keyboard_capture.key_up = self._key_up
+        self._last_stroke_key_down_count = 0
         self.suppress_keyboard(True)
 
     def start_capture(self):
@@ -60,20 +61,19 @@ class Stenotype(StenotypeBase):
     def _key_down(self, key):
         """Called when a key is pressed."""
         assert key is not None
+        if key in self.keymap:
+            self._last_stroke_key_down_count += 1
         steno_key = self.keymap.get(key)
         if steno_key is not None:
             self._down_keys.add(steno_key)
 
-    def _post_suppress(self, suppress, steno_keys):
+    def _post_suppress(self, suppress):
         """Backspace the last stroke since it matched a command.
         
         The suppress function is passed in to prevent threading issues with the 
         gui.
         """
-        n = len(steno_keys)
-        if self.arpeggiate:
-            n += 1
-        suppress(n)
+        suppress(self._last_stroke_key_down_count)
 
     def _key_up(self, key):
         """Called when a key is released."""
@@ -97,6 +97,7 @@ class Stenotype(StenotypeBase):
                 self._down_keys.clear()
                 self._released_keys.clear()
                 self._notify(steno_keys)
+            self._last_stroke_key_down_count = 0
 
     @staticmethod
     def get_option_info():

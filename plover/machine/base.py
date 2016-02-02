@@ -70,9 +70,9 @@ class StenotypeBase(object):
         for callback in self.stroke_subscribers:
             callback(steno_keys)
         if self.suppress:
-            self._post_suppress(self.suppress, steno_keys)
+            self._post_suppress(self.suppress)
             
-    def _post_suppress(self, suppress, steno_keys):
+    def _post_suppress(self, suppress):
         """This is a complicated way for the application to tell the machine to 
         suppress this stroke after the fact. This only currently has meaning for 
         the keyboard machine so it can backspace over the last stroke when used 
