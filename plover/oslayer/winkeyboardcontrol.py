@@ -142,9 +142,6 @@ class KeyboardCapture(object):
         self._passthrough_down_keys.clear()
         self._alive = False
 
-    def can_suppress_keyboard(self):
-        return True
-
     def suppress_keyboard(self, suppress):
         self._suppress_keyboard = suppress
 

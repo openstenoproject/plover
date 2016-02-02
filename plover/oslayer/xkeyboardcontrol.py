@@ -175,9 +175,6 @@ class KeyboardCapture(threading.Thread):
         for modifiers in (0, X.Mod2Mask):
             self.grab_window.ungrab_key(keycode, modifiers)
 
-    def can_suppress_keyboard(self):
-        return True
-
     def suppress_keyboard(self, suppress):
         if self.is_suppressed == suppress:
             return

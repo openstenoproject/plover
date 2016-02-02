@@ -278,9 +278,6 @@ class KeyboardCapture(threading.Thread):
         CGEventTapEnable(self._tap, False)
         CFRunLoopStop(self._running_thread)
 
-    def can_suppress_keyboard(self):
-        return True
-
     def suppress_keyboard(self, suppress):
         self._suppress_keyboard = suppress
 
