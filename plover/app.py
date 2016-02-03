@@ -22,12 +22,18 @@ import plover.config as conf
 import plover.formatting as formatting
 import plover.steno as steno
 import plover.machine.base
-import plover.machine.sidewinder
 import plover.translation as translation
 from plover.exception import InvalidConfigurationError,DictionaryLoaderException
 from plover.machine.registry import machine_registry, NoSuchMachineException
 from plover import log
 from plover.dictionary.loading_manager import manager as dict_manager
+
+
+try:
+    sidewinder = machine_registry.get('NKRO Keyboard')
+except Exception as e:
+    log.warning('keyboard machine could not be loaded!')
+    sidewinder = None
 
 # Because 2.7 doesn't have this yet.
 class SimpleNamespace(object):
@@ -193,7 +199,7 @@ class StenoEngine(object):
         else:
             self.translator.clear_state()
             self.formatter.set_output(self.command_only_output)
-        if isinstance(self.machine, plover.machine.sidewinder.Stenotype):
+        if isinstance(self.machine, sidewinder):
             self.machine.suppress_keyboard(self.is_running)
         for callback in self.subscribers:
             callback(None)

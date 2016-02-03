@@ -3,18 +3,7 @@
 
 "Manager for stenotype machines types."
 
-from plover.machine.geminipr import Stenotype as geminipr
-from plover.machine.txbolt import Stenotype as txbolt
-from plover.machine.sidewinder import Stenotype as sidewinder
-from plover.machine.stentura import Stenotype as stentura
-from plover.machine.passport import Stenotype as passport
 from plover import log
-
-try:
-    from plover.machine.treal import Stenotype as treal
-except Exception as e:
-    log.info('Unable to use Treal on this machine: %s', str(e))
-    treal = None
 
 
 class NoSuchMachineException(Exception):
@@ -29,17 +18,23 @@ class Registry(object):
         self._machines = {}
         self._aliases = {}
 
-    def register(self, name, machine):
-        self._machines[name] = machine
+    def register(self, name, import_spec_or_class):
+        self._machines[name] = import_spec_or_class
 
     def add_alias(self, alias, name):
         self._aliases[alias] = name
 
     def get(self, name):
         try:
-            return self._machines[self.resolve_alias(name)]
+            import_spec_or_class = self._machines[self.resolve_alias(name)]
         except KeyError:
             raise NoSuchMachineException(name)
+        if isinstance(import_spec_or_class, basestring):
+            mod_name, class_name = import_spec_or_class.rsplit('.', 1)
+            mod = __import__(mod_name, globals(), locals(), (class_name,))
+            return getattr(mod, class_name)
+        else:
+            return import_spec_or_class
 
     def get_all_names(self):
         return self._machines.keys()
@@ -51,12 +46,15 @@ class Registry(object):
             return name
 
 machine_registry = Registry()
-machine_registry.register('NKRO Keyboard', sidewinder)
-machine_registry.register('Gemini PR', geminipr)
-machine_registry.register('TX Bolt', txbolt)
-machine_registry.register('Stentura', stentura)
-machine_registry.register('Passport', passport)
-if treal:
-    machine_registry.register('Treal', treal)
+for name, import_spec in (
+    ('NKRO Keyboard', 'sidewinder.Stenotype'),
+    ('Gemini PR'    , 'geminipr.Stenotype'  ),
+    ('TX Bolt'      , 'txbolt.Stenotype'    ),
+    ('Stentura'     , 'stentura.Stenotype'  ),
+    ('Passport'     , 'passport.Stenotype'  ),
+    ('Treal'        , 'treal.Stenotype'     ),
+):
+    machine_registry.register(name, 'plover.machine.%s' % import_spec)
 
 machine_registry.add_alias('Microsoft Sidewinder X4', 'NKRO Keyboard')
+
