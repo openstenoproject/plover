@@ -30,7 +30,7 @@ class SuggestionsDisplayDialog(wx.Dialog):
     def __init__(self, parent, config, engine):
         self.config = config
         self.engine = engine
-        self.words = ''
+        self.words = u''
         on_top = config.get_suggestions_display_on_top()
         style = wx.DEFAULT_DIALOG_STYLE
         style |= wx.RESIZE_BORDER
@@ -88,7 +88,7 @@ class SuggestionsDisplayDialog(wx.Dialog):
         self.no_suggestion_style.SetFontStyle(wx.FONTSTYLE_ITALIC)
         self.no_suggestion_style.SetFontWeight(wx.FONTWEIGHT_NORMAL)
         self.no_suggestion_style.SetAlignment(wx.TEXT_ALIGNMENT_LEFT)
-        self.strokes_indent = ' ' * STROKE_INDENT
+        self.strokes_indent = u' ' * STROKE_INDENT
         self.no_suggestion_indent = self.strokes_indent
         self.no_suggestion_indent *= (fixed_text_size[0] / standard_text_size[0])
 
@@ -136,7 +136,7 @@ class SuggestionsDisplayDialog(wx.Dialog):
 
         suggestion_list = []
 
-        mods  = ['%s', '{^%s}', '{^%s^}', '{%s^}', '{&%s}']
+        mods  = [u'%s', u'{^%s}', u'{^%s^}', u'{%s^}', u'{&%s}']
         d     = self.engine.get_dictionary()
 
         similar_words = d.casereverse_lookup(phrase.lower())
@@ -177,11 +177,11 @@ class SuggestionsDisplayDialog(wx.Dialog):
 
         for suggestion in suggestion_list:
             self.listbox.SetDefaultStyle(self.word_style)
-            self.listbox.WriteText(shorten_unicode(suggestion.text) + '\n')
+            self.listbox.WriteText(shorten_unicode(suggestion.text) + u'\n')
             if not suggestion.steno_list:
                 self.listbox.SetDefaultStyle(self.no_suggestion_style)
                 self.listbox.WriteText(self.no_suggestion_indent)
-                self.listbox.WriteText('No suggestions\n')
+                self.listbox.WriteText(u'No suggestions\n')
                 continue
             self.listbox.SetDefaultStyle(self.stroke_style)
             # Limit arbitrarily to 10 suggestions per word.
@@ -191,13 +191,13 @@ class SuggestionsDisplayDialog(wx.Dialog):
                     if 0 == n:
                         line_text = text = self.strokes_indent + stroke
                     else:
-                        text = '/' + stroke
+                        text = u'/' + stroke
                         line_text += text
                         if dc.GetTextExtent(line_text)[0] >= max_width:
                             line_text = 2 * self.strokes_indent + text
-                            text = '\n' + line_text
+                            text = u'\n' + line_text
                     self.listbox.WriteText(shorten_unicode(text))
-                self.listbox.WriteText('\n')
+                self.listbox.WriteText(u'\n')
 
         length = self.listbox.GetInsertionPoint()
         assert length
@@ -228,7 +228,7 @@ class SuggestionsDisplayDialog(wx.Dialog):
         suggestion_list = []
         split_words = PAT.findall(self.words)
         for phrase in SuggestionsDisplayDialog.tails(split_words):
-            phrase = ' '.join(phrase)
+            phrase = u' '.join(phrase)
             suggestion_list.extend(self.lookup_suggestions(phrase))
 
         if not suggestion_list and split_words:
