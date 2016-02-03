@@ -92,3 +92,22 @@ def find_fixed_width_font(point_size=None,
     # match to Courier New is returned.
     return fixed_font
 
+def shorten_unicode(s):
+    '''Detect and shorten Unicode to prevent crashes on Mac OS X.'''
+    if not sys.platform.startswith('darwin'):
+        return s
+    # Turn into 4 byte chars.
+    encoded = s.encode('utf-32-be')
+    sanitized = ""
+    for n in xrange(0, len(encoded), 4):
+        character = encoded[n:n+4].decode('utf-32-be')
+        # Get 1 Unicode char at a time.
+        character = character.encode('utf-8')
+        # Within range?
+        if len(character) <= 3:
+            sanitized += character
+        else:
+            # Replace with Unicode replacement character.
+            sanitized += unichr(0xfffd)
+    return sanitized
+
