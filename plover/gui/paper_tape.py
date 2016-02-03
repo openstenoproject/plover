@@ -63,7 +63,7 @@ class StrokeDisplayDialog(wx.Dialog):
         scroll_width = wx.SystemSettings.GetMetric(wx.SYS_VSCROLL_X)
         scroll_height = wx.SystemSettings.GetMetric(wx.SYS_VSCROLL_X)
 
-        self.header = wx.StaticText(self, label=ALL_KEYS)
+        self.header = wx.StaticText(self)
         self.header.SetFont(fixed_font)
         sizer.Add(self.header, flag=wx.ALL|wx.EXPAND|wx.ALIGN_LEFT, border=UI_BORDER)
 
@@ -80,13 +80,10 @@ class StrokeDisplayDialog(wx.Dialog):
                   flag=wx.ALL|wx.EXPAND|wx.ALIGN_LEFT,
                   border=UI_BORDER)
 
-        self.SetSizer(sizer)
-        self.SetAutoLayout(True)
-        sizer.Layout()
-        sizer.Fit(self)
-        
         self.on_style()
-            
+
+        self.SetSizerAndFit(sizer)
+
         self.Show()
         self.close_all()
         self.other_instances.append(self)
@@ -131,9 +128,9 @@ class StrokeDisplayDialog(wx.Dialog):
         self.listbox.Clear()
         self.line_lengths = []
         if STYLE_PAPER == format:
-            self.header.Show()
+            self.header.SetLabel(ALL_KEYS)
         else:
-            self.header.Hide()
+            self.header.SetLabel('')
         for stroke in self.strokes:
             self.show_stroke(stroke)
         self.config.set_stroke_display_style(format)
