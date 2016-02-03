@@ -7,7 +7,7 @@ import wx
 import re
 from collections import namedtuple
 from wx.lib.utils import AdjustRectToScreen
-from plover.gui.util import find_fixed_width_font
+from plover.gui.util import find_fixed_width_font, shorten_unicode
 from plover.steno import STENO_KEY_ORDER
 
 PAT = re.compile(r'[-\'"\w]+|[^\w\s]')
@@ -177,7 +177,7 @@ class SuggestionsDisplayDialog(wx.Dialog):
 
         for suggestion in suggestion_list:
             self.listbox.SetDefaultStyle(self.word_style)
-            self.listbox.WriteText(suggestion.text + '\n')
+            self.listbox.WriteText(shorten_unicode(suggestion.text) + '\n')
             if not suggestion.steno_list:
                 self.listbox.SetDefaultStyle(self.no_suggestion_style)
                 self.listbox.WriteText(self.no_suggestion_indent)
@@ -196,7 +196,7 @@ class SuggestionsDisplayDialog(wx.Dialog):
                         if dc.GetTextExtent(line_text)[0] >= max_width:
                             line_text = 2 * self.strokes_indent + text
                             text = '\n' + line_text
-                    self.listbox.WriteText(text)
+                    self.listbox.WriteText(shorten_unicode(text))
                 self.listbox.WriteText('\n')
 
         length = self.listbox.GetInsertionPoint()
