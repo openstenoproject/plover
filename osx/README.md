@@ -14,11 +14,15 @@ You need XCode commandline tools. Check by running `gcc` in the terminal. You wi
 
 Get wxPython 3+. `brew install wxpython`
 
+### cython-hidapi
+
+Installing hidapi through pip only creates a 64-bit binary on my system, so when it is stripped to 32-bit for Plover, you cannot use the module. The workaround for this is to install `hidapi` from another source. I've forked `cython-hidapi` for this purpose. Please [build and install the fork](https://github.com/morinted/cython-hidapi).
+
 ### Pip
 
 Pip dependencies can be grabbed with:
 
-`pip install appdirs pyserial simplejson py2app hidapi Cython mock pyobjc-core pyobjc-framework-cocoa pyobjc-framework-quartz`
+`pip install appdirs pyserial simplejson py2app Cython mock pyobjc-core pyobjc-framework-cocoa pyobjc-framework-quartz`
 
 ### Building
 
