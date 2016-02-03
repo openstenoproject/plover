@@ -13,8 +13,11 @@ from plover import (
     __copyright__,
 )
 
+import os
 import sys
 import setuptools
+
+travis_env = 'TRAVIS' in os.environ
 
 setup_requires = []
 options = {}
@@ -38,27 +41,16 @@ if sys.platform.startswith('darwin'):
     # Py2app will not look at entry_points.
     kwargs['app'] = 'launch.py',
 
-setuptools.setup(
-    name=__software_name__.capitalize(),
-    version=__version__,
-    description=__description__,
-    long_description=__long_description__,
-    url=__url__,
-    download_url=__download_url__,
-    license=__license__,
-    author='Joshua Harlan Lifton',
-    author_email='joshua.harlan.lifton@gmail.com',
-    maintainer='Ted Morin',
-    maintainer_email='morinted@gmail.com',
-    zip_safe=True,
-    options=options,
-    setup_requires=setup_requires,
-    install_requires=[
-        'setuptools',
-        'pyserial>=2.7',
-        'appdirs>=1.4.0',
-    ],
-    extras_require={
+setup_requires.append('pytest-runner')
+options['aliases'] = {
+    'test': 'pytest --addopts -ra',
+}
+
+if travis_env:
+    # Disable stuff we don't use for the tests when run under Travis CI.
+    extras_require = {}
+else:
+    extras_require = {
         ':"win32" in sys_platform': [
             'pyhook>=1.5.1',
             'pywin32>=219',
@@ -76,7 +68,32 @@ setuptools.setup(
             'pyobjc-framework-Quartz>=3.0.3',
             'wxPython>=3.0',
         ],
-    },
+    }
+
+setuptools.setup(
+    name=__software_name__.capitalize(),
+    version=__version__,
+    description=__description__,
+    long_description=__long_description__,
+    url=__url__,
+    download_url=__download_url__,
+    license=__license__,
+    author='Joshua Harlan Lifton',
+    author_email='joshua.harlan.lifton@gmail.com',
+    maintainer='Ted Morin',
+    maintainer_email='morinted@gmail.com',
+    zip_safe=True,
+    options=options,
+    setup_requires=setup_requires,
+    tests_require=[
+        'pytest',
+    ],
+    install_requires=[
+        'setuptools',
+        'pyserial>=2.7',
+        'appdirs>=1.4.0',
+    ],
+    extras_require=extras_require,
     entry_points={
         'console_scripts': ['plover=plover.main:main'],
         'setuptools.installation': ['eggsecutable=plover.main:main'],
@@ -107,5 +124,6 @@ setuptools.setup(
         'Topic :: Adaptive Technologies',
         'Topic :: Desktop Environment',
     ],
+    test_suite="plover",
     **kwargs
 )
