@@ -1,0 +1,7 @@
+language: python
+python:
+  - "2.7"
+# command to install dependencies
+install: "pip install pyserial appdirs svn+https://svn.code.sf.net/p/python-xlib/code/trunk/"
+# command to run tests
+script: python ./run_tests.py
