@@ -13,8 +13,11 @@ from plover import (
     __copyright__,
 )
 
+import os
 import sys
 import setuptools
+
+travis_env = 'TRAVIS' in os.environ
 
 setup_requires = []
 options = {}
@@ -43,6 +46,30 @@ options['aliases'] = {
     'test': 'pytest --addopts -ra',
 }
 
+if travis_env:
+    # Disable stuff we don't use for the tests when run under Travis CI.
+    extras_require = {}
+else:
+    extras_require = {
+        ':"win32" in sys_platform': [
+            'pyhook>=1.5.1',
+            'pywin32>=219',
+            'pywinauto>=0.5.3',
+            'pywinusb>=0.4.0',
+            # Can't reliably require wxPython
+        ],
+        ':"linux" in sys_platform': [
+            'python-xlib>=0.14',
+            'wxPython>=3.0',
+        ],
+        ':"darwin" in sys_platform': [
+            'pyobjc-core>=3.0.3',
+            'pyobjc-framework-Cocoa>=3.0.3',
+            'pyobjc-framework-Quartz>=3.0.3',
+            'wxPython>=3.0',
+        ],
+    }
+
 setuptools.setup(
     name=__software_name__.capitalize(),
     version=__version__,
@@ -66,25 +93,7 @@ setuptools.setup(
         'pyserial>=2.7',
         'appdirs>=1.4.0',
     ],
-    extras_require={
-        ':"win32" in sys_platform': [
-            'pyhook>=1.5.1',
-            'pywin32>=219',
-            'pywinauto>=0.5.3',
-            'pywinusb>=0.4.0',
-            # Can't reliably require wxPython
-        ],
-        ':"linux" in sys_platform': [
-            'python-xlib>=0.14',
-            'wxPython>=3.0',
-        ],
-        ':"darwin" in sys_platform': [
-            'pyobjc-core>=3.0.3',
-            'pyobjc-framework-Cocoa>=3.0.3',
-            'pyobjc-framework-Quartz>=3.0.3',
-            'wxPython>=3.0',
-        ],
-    },
+    extras_require=extras_require,
     entry_points={
         'console_scripts': ['plover=plover.main:main'],
         'setuptools.installation': ['eggsecutable=plover.main:main'],
