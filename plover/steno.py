@@ -74,7 +74,7 @@ STENO_KEY_ORDER = {"#": 0,
                    "-Z": 22}
 
 
-class Stroke:
+class Stroke(object):
     """A standardized data model for stenotype machine strokes.
 
     This class standardizes the representation of a stenotype chord. A stenotype
