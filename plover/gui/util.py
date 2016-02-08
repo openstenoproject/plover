@@ -104,7 +104,7 @@ def shorten_unicode(s):
         # Get 1 Unicode char at a time.
         character = character.encode('utf-8')
         # Within range?
-        if len(character) <= 3:
+        if len(character) <= 2:
             sanitized += character
         else:
             # Replace with Unicode replacement character.
