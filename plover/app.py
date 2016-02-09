@@ -28,6 +28,7 @@ from plover.exception import InvalidConfigurationError,DictionaryLoaderException
 from plover.machine.registry import machine_registry, NoSuchMachineException
 from plover import log
 from plover.dictionary.loading_manager import manager as dict_manager
+from plover import system
 
 # Because 2.7 doesn't have this yet.
 class SimpleNamespace(object):
@@ -41,6 +42,7 @@ class SimpleNamespace(object):
 
 def init_engine(engine, config):
     """Initialize a StenoEngine from a config object."""
+    engine.set_system(config.get_system_name())
     reset_machine(engine, config)
     
     dictionary_file_names = config.get_dictionary_file_names()
@@ -161,6 +163,12 @@ class StenoEngine(object):
         self.command_only_output = SimpleNamespace()
         self.running_state = self.translator.get_state()
         self.set_is_running(False)
+
+    def set_system(self, name):
+        try:
+            system.setup(name)
+        except Exception as e:
+            raise InvalidConfigurationError('could not set system: %s' % unicode(e))
 
     def set_machine(self, machine):
         if self.machine:

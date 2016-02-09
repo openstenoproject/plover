@@ -282,9 +282,10 @@ def load_stylesheet(s):
     """Returns a dictionary mapping a number to a style name."""
     return dict((int(k), v) for k, v in STYLESHEET_RE.findall(s))
 
-def load_dictionary(fp):
+def load_dictionary(filename):
     """Load an RTF/CRE dictionary."""
-    s = fp.read()
+    with open(filename, 'rb') as fp:
+        s = fp.read()
     styles = load_stylesheet(s)
     d = {}
     converter = TranslationConverter(styles)

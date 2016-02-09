@@ -24,6 +24,7 @@ from plover.machine.registry import machine_registry
 from plover.exception import InvalidConfigurationError
 from plover.gui.paper_tape import StrokeDisplayDialog
 from plover.gui.suggestions import SuggestionsDisplayDialog
+from plover import plugins
 
 from plover import __name__ as __software_name__
 from plover import __version__
@@ -181,6 +182,10 @@ class MainFrame(wx.Frame):
         except InvalidConfigurationError as e:
             self._show_alert(unicode(e))
             self.config.clear()
+
+        plugins.load_plugins()
+        print 'available systems:', plugins.get_systems().keys()
+        print 'available dictionaries:', plugins.get_dictionaries().keys()
 
         rect = wx.Rect(config.get_main_frame_x(), config.get_main_frame_y(), *self.GetSize())
         self.SetRect(AdjustRectToScreen(rect))

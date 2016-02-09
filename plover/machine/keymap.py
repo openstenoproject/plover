@@ -1,43 +1,16 @@
 import json
 from collections import OrderedDict
 from plover import log
+from plover import system
 
 class Keymap():
-
-    DEFAULT = [
-        ["S-", ["a","q"]],
-        ["T-", ["w"]],
-        ["K-", ["s"]],
-        ["P-", ["e"]],
-        ["W-", ["d"]],
-        ["H-", ["r"]],
-        ["R-", ["f"]],
-        ["A-", ["c"]],
-        ["O-", ["v"]],
-        ["*" , ["t","g","y","h"]],
-        ["-E", ["n"]],
-        ["-U", ["m"]],
-        ["-F", ["u"]],
-        ["-R", ["j"]],
-        ["-P", ["i"]],
-        ["-B", ["k"]],
-        ["-L", ["o"]],
-        ["-G", ["l"]],
-        ["-T", ["p"]],
-        ["-S", [";"]],
-        ["-D", ["["]],
-        ["-Z", ["'"]],
-        ["#" , ["1","2","3","4","5","6","7","8","9","0","-","="]],
-        ["no-op", ["z","x","b",",",".","/","\\"]],
-        ["arpeggiate", ["space"]],
-    ]
 
     def __init__(self, assignments):
         assignments = dict(assignments)
         self.keymap = OrderedDict()
         bound_keys = {}
         # Keep only valid entries, and add missing entries.
-        for action, _ in Keymap.DEFAULT:
+        for action, _ in system.KEYBOARD_KEYMAP:
             keylist = assignments.get(action, ())
             for key in keylist:
                 if key in bound_keys:
@@ -83,4 +56,5 @@ class Keymap():
 
     @staticmethod
     def default():
-        return Keymap(Keymap.DEFAULT)
+        return Keymap(system.KEYBOARD_KEYMAP)
+

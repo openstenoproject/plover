@@ -15,13 +15,14 @@ except ImportError:
     import json
     
 
-def load_dictionary(fp):
+def load_dictionary(filename):
     """Load a json dictionary from a string."""
 
     def h(pairs):
         return StenoDictionary((normalize_steno(x[0]), x[1]) for x in pairs)
 
-    data = fp.read()
+    with open(filename, 'rb') as fp:
+        data = fp.read()
     try:
         try:
             return json.loads(data, object_pairs_hook=h)

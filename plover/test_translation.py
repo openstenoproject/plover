@@ -3,14 +3,18 @@
 
 """Unit tests for translation.py."""
 
+from plover.steno_dictionary import StenoDictionary, StenoDictionaryCollection
+from plover.translation import Translation, Translator, _State, _translate_stroke, _lookup
+from plover.steno import Stroke, normalize_steno
+from plover import system
+
 from collections import namedtuple
 import copy
 from mock import patch
-from plover.steno_dictionary import StenoDictionary, StenoDictionaryCollection
-from plover.translation import Translation, Translator, _State, _translate_stroke, _lookup
 import unittest
 import sys
-from plover.steno import Stroke, normalize_steno
+
+system.setup('English Stenotype')
 
 def stroke(s):
     keys = []

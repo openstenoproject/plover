@@ -18,6 +18,7 @@ emits one or more Translation objects based on a greedy conversion algorithm.
 
 from plover.steno import Stroke
 from plover.steno_dictionary import StenoDictionaryCollection
+from plover import system
 import itertools
 import sys
 
@@ -304,8 +305,6 @@ def _translate_stroke(stroke, state, dictionary, callback):
     callback(undo, do, state.last())
     state.translations.extend(do)
 
-SUFFIX_KEYS = ['-S', '-G', '-Z', '-D']
-
 def _back_string():
     # Provides the correct translation to undo a word
     # depending on the operating system and stores it
@@ -385,10 +384,10 @@ def _find_translation(translations, dictionary, stroke, mapping):
 
     if mapping is not None:  # Could be the empty string.
         return Translation([stroke], mapping)
-    t = _find_translation_helper(translations, dictionary, stroke, SUFFIX_KEYS)
+    t = _find_translation_helper(translations, dictionary, stroke, system.STENO_KEY_SUFFIXES)
     if t:
         return t
-    return Translation([stroke], _lookup([stroke], dictionary, SUFFIX_KEYS))
+    return Translation([stroke], _lookup([stroke], dictionary, system.STENO_KEY_SUFFIXES))
 
 def _find_translation_helper(translations, dictionary, stroke, suffixes):
     # The new stroke can either create a new translation or replace

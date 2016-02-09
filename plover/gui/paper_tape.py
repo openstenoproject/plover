@@ -6,14 +6,11 @@
 import wx
 from wx.lib.utils import AdjustRectToScreen
 from collections import deque
-from plover.steno import STENO_KEY_ORDER, STENO_KEY_NUMBERS
+from plover import system
 
 TITLE = 'Plover: Stroke Display'
 ON_TOP_TEXT = "Always on top"
 UI_BORDER = 4
-ALL_KEYS = ''.join(x[0].strip('-') for x in 
-                   sorted(STENO_KEY_ORDER.items(), key=lambda x: x[1]))
-REVERSE_NUMBERS = {v: k for k, v in STENO_KEY_NUMBERS.items()}
 MAX_STROKE_LINES = 38
 STYLE_TEXT = 'Style:'
 STYLE_PAPER = 'Paper'
@@ -53,8 +50,13 @@ class StrokeDisplayDialog(wx.Dialog):
         box.Add(self.choice, proportion=1)
         sizer.Add(box, flag=wx.LEFT | wx.RIGHT | wx.BOTTOM | wx.EXPAND, 
                   border=UI_BORDER)
+
+        self.all_keys = ''.join(x[0].strip('-') for x in 
+                                sorted(system.STENO_KEY_ORDER.items(),
+                                       key=lambda x: x[1]))
+        self.reverse_numbers = {v: k for k, v in system.STENO_KEY_NUMBERS.items()}
         
-        self.header = MyStaticText(self, label=ALL_KEYS)
+        self.header = MyStaticText(self, label=self.all_keys)
         font = self.header.GetFont()
         font.SetFaceName("Courier")
         self.header.SetFont(font)
@@ -113,19 +115,19 @@ class StrokeDisplayDialog(wx.Dialog):
         self.listbox.Clear()
         for stroke in self.strokes:
             self.show_stroke(stroke)
-        self.header.SetLabel(ALL_KEYS if format == STYLE_PAPER else ' ')
+        self.header.SetLabel(self.all_keys if format == STYLE_PAPER else ' ')
         self.config.set_stroke_display_style(format)
 
     def paper_format(self, stroke):
-        text = [' '] * len(ALL_KEYS)
+        text = [' '] * len(self.all_keys)
         keys = stroke.steno_keys[:]
-        if any(key in REVERSE_NUMBERS for key in keys):
+        if any(key in self.reverse_numbers for key in keys):
             keys.append('#')
         for key in keys:
-            if key in REVERSE_NUMBERS:
-                key = REVERSE_NUMBERS[key]
-            index = STENO_KEY_ORDER[key]
-            text[index] = ALL_KEYS[index]
+            if key in self.reverse_numbers:
+                key = self.reverse_numbers[key]
+            index = system.STENO_KEY_ORDER[key]
+            text[index] = self.all_keys[index]
         text = ''.join(text)
         return text        
 
@@ -272,7 +274,7 @@ class TestApp(wx.App):
         #self.SetTopWindow(dlg)
         import random
         from plover.steno import Stroke
-        keys = STENO_KEY_ORDER.keys()
+        keys = system.STENO_KEY_ORDER.keys()
         for i in range(100):
             num = random.randint(1, len(keys))
             StrokeDisplayDialog.stroke_handler(Stroke(random.sample(keys, num)))

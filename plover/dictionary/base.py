@@ -11,32 +11,32 @@ from os.path import splitext
 import shutil
 import threading
 
-import plover.dictionary.json_dict as json_dict
-import plover.dictionary.rtfcre_dict as rtfcre_dict
-from plover.config import JSON_EXTENSION, RTF_EXTENSION
+from plover.dictionary import json_dict, rtfcre_dict, python_dict
+from plover.config import JSON_EXTENSION, RTF_EXTENSION, PYTHON_EXTENSION
 from plover.exception import DictionaryLoaderException
 
 dictionaries = {
     JSON_EXTENSION.lower(): json_dict,
     RTF_EXTENSION.lower(): rtfcre_dict,
+    PYTHON_EXTENSION.lower(): python_dict,
 }
 
 def load_dictionary(filename):
     """Load a dictionary from a file."""
-    extension = splitext(filename)[1].lower()
-    
-    try:
-        dict_type = dictionaries[extension]
-    except KeyError:
-        raise DictionaryLoaderException(
-            'Unsupported extension for dictionary: %s. Supported extensions: %s' %
-            (extension, ', '.join(dictionaries.keys())))
 
-    loader = dict_type.load_dictionary
+    if filename.startswith('plugins:'):
+        dict_type = python_dict
+    else:
+        extension = splitext(filename)[1].lower()
+        try:
+            dict_type = dictionaries[extension]
+        except KeyError:
+            raise DictionaryLoaderException(
+                'Unsupported extension for dictionary: %s. Supported extensions: %s' %
+                (extension, ', '.join(dictionaries.keys())))
 
     try:
-        with open(filename, 'rb') as fp:
-            d = loader(fp)
+        d = dict_type.load_dictionary(filename)
     except IOError as e:
         raise DictionaryLoaderException(unicode(e))
 
