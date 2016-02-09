@@ -1,0 +1,16 @@
+# General requirements
+appdirs  # locating platform-varying libraries like Documents
+pyserial  # connecting to steno machines that use a serial protocol
+mock  # unittest.mock for Python 2.6 through 3.2; in stdlib with 3.3+
+
+
+# Darwin-specific requirements
+hidapi; sys_platform == 'darwin'  # supporting the Treal's USB protocol
+pyobjc-core; sys_platform == 'darwin'  # Notification Center
+pyobjc-framework-quartz; sys_platform == 'darwin'  # accessing the CGEvent API
+py2app; sys_platform == 'darwin'  # building the Plover.app bundle
+
+# Later versions of setuptools appear to lead to `py2app` not bundling
+# the required `six` package with the app. Pinning to 19.2 fixes this.
+# We should revisit this periodically by unpinning and checking in Travis.
+setuptools == 19.2; sys_platform == 'darwin'
