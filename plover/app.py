@@ -22,7 +22,6 @@ import plover.config as conf
 import plover.formatting as formatting
 import plover.steno as steno
 import plover.machine.base
-import plover.machine.sidewinder
 import plover.translation as translation
 from plover.exception import InvalidConfigurationError,DictionaryLoaderException
 from plover.machine.registry import machine_registry, NoSuchMachineException
@@ -163,14 +162,14 @@ class StenoEngine(object):
         self.set_is_running(False)
 
     def set_machine(self, machine):
-        if self.machine:
+        if self.machine is not None:
             self.machine.remove_state_callback(self._machine_state_callback)
             self.machine.remove_stroke_callback(
                 self._translator_machine_callback)
             self.machine.remove_stroke_callback(log.stroke)
             self.machine.stop_capture()
         self.machine = machine
-        if self.machine:
+        if self.machine is not None:
             self.machine.add_state_callback(self._machine_state_callback)
             self.machine.add_stroke_callback(log.stroke)
             self.machine.add_stroke_callback(self._translator_machine_callback)
@@ -193,8 +192,8 @@ class StenoEngine(object):
         else:
             self.translator.clear_state()
             self.formatter.set_output(self.command_only_output)
-        if isinstance(self.machine, plover.machine.sidewinder.Stenotype):
-            self.machine.suppress_keyboard(self.is_running)
+        if self.machine is not None:
+            self.machine.set_suppression(self.is_running)
         for callback in self.subscribers:
             callback(None)
 

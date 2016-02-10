@@ -108,22 +108,19 @@ KEY_TO_KEYCODE = dict(zip(KEYCODE_TO_KEY.values(), KEYCODE_TO_KEY.keys()))
 class KeyboardCapture(threading.Thread):
     """Listen to keyboard press and release events."""
 
-    def __init__(self, suppressed_keys):
+    def __init__(self):
         """Prepare to listen for keyboard events."""
         threading.Thread.__init__(self)
         self.context = None
         self.key_events_to_ignore = []
-        self.suppressed_keys = suppressed_keys
-
-        # Assign default callback functions.
-        self.key_down = lambda x: True
-        self.key_up = lambda x: True
+        self._suppressed_keys = set()
+        self.key_down = lambda key: None
+        self.key_up = lambda key: None
 
         # Get references to the display.
         self.local_display = display.Display()
         self.record_display = display.Display()
 
-        self.is_suppressed = False
         self.grab_window = self.local_display.screen().root
 
     def run(self):
@@ -161,6 +158,7 @@ class KeyboardCapture(threading.Thread):
 
     def cancel(self):
         """Stop listening for keyboard events."""
+        self.suppress_keyboard()
         if self.context is not None:
             self.local_display.record_disable_context(self.context)
         self.local_display.flush()
@@ -175,23 +173,18 @@ class KeyboardCapture(threading.Thread):
         for modifiers in (0, X.Mod2Mask):
             self.grab_window.ungrab_key(keycode, modifiers)
 
-    def can_suppress_keyboard(self):
-        return True
-
-    def suppress_keyboard(self, suppress):
-        if self.is_suppressed == suppress:
+    def suppress_keyboard(self, suppressed_keys=()):
+        suppressed_keys = set(suppressed_keys)
+        if self._suppressed_keys == suppressed_keys:
             return
-        if suppress:
-            fn = self.grab_key
-        else:
-            fn = self.ungrab_key
-        for key in self.suppressed_keys:
-            fn(KEY_TO_KEYCODE[key])
+        for key in self._suppressed_keys - suppressed_keys:
+            self.ungrab_key(KEY_TO_KEYCODE[key])
+            self._suppressed_keys.remove(key)
+        for key in suppressed_keys - self._suppressed_keys:
+            self.grab_key(KEY_TO_KEYCODE[key])
+            self._suppressed_keys.add(key)
+        assert self._suppressed_keys == suppressed_keys
         self.local_display.sync()
-        self.is_suppressed = suppress
-
-    def is_keyboard_suppressed(self):
-        return self.is_suppressed
 
     def process_events(self, reply):
         """Handle keyboard events.
@@ -222,10 +215,10 @@ class KeyboardCapture(threading.Thread):
             # Ignore event if a modifier is set.
             if modifiers != 0:
                 continue
-            key = KEYCODE_TO_KEY.get(keycode, None)
-            if not key in self.suppressed_keys:
-                # Not a supported/suppressed key, ignore...
-                continue
+            key = KEYCODE_TO_KEY.get(keycode)
+            if key is None:
+                # Not a supported key, ignore...
+                return
             # ...or pass it on to a callback method.
             if event.type == X.KeyPress:
                 self.key_down(key)

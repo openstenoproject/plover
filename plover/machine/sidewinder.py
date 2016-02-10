@@ -9,7 +9,7 @@
 
 from plover.machine.base import StenotypeBase
 from plover.machine.keymap import Keymap
-from plover.oslayer import keyboardcontrol
+from plover.oslayer.keyboardcontrol import KeyboardCapture
 
 
 class Stenotype(StenotypeBase):
@@ -39,11 +39,10 @@ class Stenotype(StenotypeBase):
                     del self.keymap[key]
         self._down_keys = set()
         self._released_keys = set()
-        self._keyboard_emulation = keyboardcontrol.KeyboardEmulation()
-        self._keyboard_capture = keyboardcontrol.KeyboardCapture(self.keymap.keys())
+        self._keyboard_capture = KeyboardCapture()
         self._keyboard_capture.key_down = self._key_down
         self._keyboard_capture.key_up = self._key_up
-        self.suppress_keyboard(True)
+        self._last_stroke_key_down_count = 0
 
     def start_capture(self):
         """Begin listening for output from the stenotype machine."""
@@ -55,34 +54,26 @@ class Stenotype(StenotypeBase):
         self._keyboard_capture.cancel()
         self._stopped()
 
-    def suppress_keyboard(self, suppress):
-        self._is_keyboard_suppressed = suppress
-        self._keyboard_capture.suppress_keyboard(suppress)
+    def set_suppression(self, enabled):
+        suppressed_keys = self.keymap.keys() if enabled else ()
+        self._keyboard_capture.suppress_keyboard(suppressed_keys)
+
+    def suppress_last_stroke(self, send_backspaces):
+        send_backspaces(self._last_stroke_key_down_count)
 
     def _key_down(self, key):
         """Called when a key is pressed."""
-        if (self._is_keyboard_suppressed
-            and key is not None
-            and not self._keyboard_capture.is_keyboard_suppressed()):
-            self._keyboard_emulation.send_backspaces(1)
-        steno_key = self.keymap.get(key, None)
+        assert key is not None
+        if key in self.keymap:
+            self._last_stroke_key_down_count += 1
+        steno_key = self.keymap.get(key)
         if steno_key is not None:
             self._down_keys.add(steno_key)
 
-    def _post_suppress(self, suppress, steno_keys):
-        """Backspace the last stroke since it matched a command.
-        
-        The suppress function is passed in to prevent threading issues with the 
-        gui.
-        """
-        n = len(steno_keys)
-        if self.arpeggiate:
-            n += 1
-        suppress(n)
-
     def _key_up(self, key):
         """Called when a key is released."""
-        steno_key = self.keymap.get(key, None)
+        assert key is not None
+        steno_key = self.keymap.get(key)
         if steno_key is not None:
             # Process the newly released key.
             self._released_keys.add(steno_key)
@@ -101,6 +92,7 @@ class Stenotype(StenotypeBase):
                 self._down_keys.clear()
                 self._released_keys.clear()
                 self._notify(steno_keys)
+            self._last_stroke_key_down_count = 0
 
     @staticmethod
     def get_option_info():

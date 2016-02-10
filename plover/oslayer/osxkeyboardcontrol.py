@@ -224,11 +224,12 @@ class KeyboardCapture(threading.Thread):
 
     _KEYBOARD_EVENTS = set([kCGEventKeyDown, kCGEventKeyUp])
 
-    def __init__(self, suppressed_keys):
+    def __init__(self):
         threading.Thread.__init__(self)
         self._running_thread = None
-        self.suppress_keyboard(True)
-        self.suppressed_keys = suppressed_keys
+        self._suppressed_keys = set()
+        self.key_down = lambda key: None
+        self.key_up = lambda key: None
 
         # Returning the event means that it is passed on for further processing by others. 
         # Returning None means that the event is intercepted.
@@ -244,12 +245,11 @@ class KeyboardCapture(threading.Thread):
             if CGEventGetFlags(event) & ~kCGEventFlagMaskNonCoalesced:
                 return event
             keycode = CGEventGetIntegerValueField(event, kCGKeyboardEventKeycode)
-            key = KEYCODE_TO_KEY.get(keycode, None)
-            if key in self.suppressed_keys:
-                handler_name = 'key_up' if event_type == kCGEventKeyUp else 'key_down'
-                handler = getattr(self, handler_name, lambda event: None)
+            key = KEYCODE_TO_KEY.get(keycode)
+            if key is not None:
+                handler = self.key_up if event_type == kCGEventKeyUp else self.key_down
                 handler(key)
-                if self.is_keyboard_suppressed():
+                if key in self._suppressed_keys:
                     # Supress event.
                     event = None
             return event
@@ -278,14 +278,8 @@ class KeyboardCapture(threading.Thread):
         CGEventTapEnable(self._tap, False)
         CFRunLoopStop(self._running_thread)
 
-    def can_suppress_keyboard(self):
-        return True
-
-    def suppress_keyboard(self, suppress):
-        self._suppress_keyboard = suppress
-
-    def is_keyboard_suppressed(self):
-        return self._suppress_keyboard
+    def suppress_keyboard(self, suppressed_keys=()):
+        self._suppressed_keys = set(suppressed_keys)
 
 
 # "Narrow python" unicode objects store chracters in UTF-16 so we 

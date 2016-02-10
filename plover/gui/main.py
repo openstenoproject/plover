@@ -346,4 +346,4 @@ class Output(object):
     def send_engine_command(self, c):
         result = self.engine_command_callback(c)
         if result and not self.engine.is_running:
-            self.engine.machine.suppress = self.send_backspaces
+            self.engine.machine.suppress_last_stroke(self.send_backspaces)

@@ -104,25 +104,25 @@ class KeyboardCapture(object):
     WIN_KEYS = set(('Lwin', 'Rwin'))
     PASSTHROUGH_KEYS = CONTROL_KEYS | SHIFT_KEYS | ALT_KEYS | WIN_KEYS
 
-    def __init__(self, suppressed_keys):
-
-        self._suppress_keyboard = False
+    def __init__(self):
         self._passthrough_down_keys = set()
         self._alive = False
-        self._suppressed_keys = suppressed_keys
+        self._suppressed_keys = set()
+        self.key_down = lambda key: None
+        self.key_up = lambda key: None
 
         # NOTE(hesky): Does this need to be more efficient and less
         # general if it will be called for every keystroke?
         def on_key_event(func_name, event):
-            key = SCANCODE_TO_KEY.get(event.ScanCode, None)
             if event.Key in self.PASSTHROUGH_KEYS:
                 if func_name == 'key_down':
                     self._passthrough_down_keys.add(event.Key)
                 elif func_name == 'key_up':
                     self._passthrough_down_keys.discard(event.Key)
-            if key in self._suppressed_keys and not self._passthrough_down_keys:
-                getattr(self, func_name, lambda key: None)(key)
-                return not self._suppress_keyboard
+            key = SCANCODE_TO_KEY.get(event.ScanCode)
+            if key is not None and not self._passthrough_down_keys:
+                getattr(self, func_name)(key)
+                return key not in self._suppressed_keys
             return True
 
         self._on_key_up = functools.partial(on_key_event, 'key_up')
@@ -142,14 +142,8 @@ class KeyboardCapture(object):
         self._passthrough_down_keys.clear()
         self._alive = False
 
-    def can_suppress_keyboard(self):
-        return True
-
-    def suppress_keyboard(self, suppress):
-        self._suppress_keyboard = suppress
-
-    def is_keyboard_suppressed(self):
-        return self._suppress_keyboard
+    def suppress_keyboard(self, suppressed_keys=()):
+        self._suppressed_keys = set(suppressed_keys)
 
 
 class KeyboardEmulation(object):
