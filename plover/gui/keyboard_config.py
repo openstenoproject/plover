@@ -86,8 +86,7 @@ class EditableListCtrl(wx.ListCtrl, listmix.ListCtrlAutoWidthMixin):
             # Cancel.
             return
         text = ' '.join(sorted(dlg.keys))
-        item.SetText(text)
-        self.SetItem(item)
+        self.SetStringItem(event.m_itemIndex, 1, text)
 
     def get_all_rows(self):
         """Return all items as a list of lists of strings."""

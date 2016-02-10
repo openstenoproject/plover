@@ -44,7 +44,6 @@ SPACE_PLACEMENTS_LABEL = "Space Placement:"
 SPACE_PLACEMENT_BEFORE = "Before Output"
 SPACE_PLACEMENT_AFTER = "After Output"
 SPACE_PLACEMENTS = [SPACE_PLACEMENT_BEFORE, SPACE_PLACEMENT_AFTER]
-CONFIG_PANEL_SIZE = (-1, -1)
 UI_BORDER = 4
 COMPONENT_SPACE = 3
 UP_IMAGE_FILE = os.path.join(conf.ASSETS_DIR, 'up.png')
@@ -125,11 +124,7 @@ class ConfigurationDialog(wx.Dialog):
 
         sizer.Add(button_sizer, flag=wx.ALL | wx.ALIGN_RIGHT, border=UI_BORDER)
         
-        self.SetSizer(sizer)
-        self.SetAutoLayout(True)
-        sizer.Layout()
-        #sizer.Fit(self)
-        
+        self.SetSizerAndFit(sizer)
         self.SetRect(AdjustRectToScreen(self.GetRect()))
         
         # Binding the save button to the self._save callback
@@ -197,36 +192,32 @@ class MachineConfig(wx.Panel):
         parent -- This component's parent component.
 
         """
-        wx.Panel.__init__(self, parent, size=CONFIG_PANEL_SIZE)
+        wx.Panel.__init__(self, parent)
         self.config = config
-        sizer = wx.BoxSizer(wx.VERTICAL)
-        box = wx.BoxSizer(wx.HORIZONTAL)
-        box.Add(wx.StaticText(self, label=MACHINE_LABEL),
-                border=COMPONENT_SPACE,
-                flag=wx.ALIGN_RIGHT | wx.ALIGN_CENTER_VERTICAL | wx.RIGHT)
-        machines = machine_registry.get_all_names()
-        value = self.config.get_machine_type()
-        self.choice = wx.Choice(self, choices=machines)
-        self.choice.SetStringSelection(machine_registry.resolve_alias(value))
-        self.Bind(wx.EVT_CHOICE, self._update, self.choice)
-        box.Add(self.choice, proportion=1, flag=wx.EXPAND)
-        self.config_button = wx.Button(self,
-                                       id=wx.ID_PREFERENCES,
-                                       label=CONFIG_BUTTON_NAME)
-        box.Add(self.config_button)
 
-        self.auto_start_checkbox = wx.CheckBox(self,
-                                               label=MACHINE_AUTO_START_LABEL)
+        sizer = wx.FlexGridSizer(2, 3)
+        sizer.AddGrowableCol(1)
+
+        sizer_flags = wx.SizerFlags(1).Align(wx.ALIGN_CENTER_VERTICAL).Border(wx.ALL, UI_BORDER)
+
+        sizer.AddF(wx.StaticText(self, label=MACHINE_LABEL), sizer_flags.Left())
+        machines = machine_registry.get_all_names()
+        current_machine = self.config.get_machine_type()
+        self.choice = wx.Choice(self, choices=machines)
+        self.choice.SetStringSelection(machine_registry.resolve_alias(current_machine))
+        sizer.AddF(self.choice, sizer_flags.Expand())
+        self.Bind(wx.EVT_CHOICE, self._update, self.choice)
+        self.config_button = wx.Button(self, id=wx.ID_PREFERENCES, label=CONFIG_BUTTON_NAME)
+        sizer.AddF(self.config_button, sizer_flags.Right())
+        self.Bind(wx.EVT_BUTTON, self._advanced_config, self.config_button)
+
+        self.auto_start_checkbox = wx.CheckBox(self, label=MACHINE_AUTO_START_LABEL)
         auto_start = config.get_auto_start()
         self.auto_start_checkbox.SetValue(auto_start)
+        sizer.AddF(self.auto_start_checkbox, sizer_flags.Left())
 
-        sizer.Add(box, border=UI_BORDER, flag=wx.ALL | wx.EXPAND)
-        sizer.Add(self.auto_start_checkbox,
-                  border=UI_BORDER,
-                  flag=wx.ALL | wx.EXPAND)
-        self.SetSizer(sizer)
+        self.SetSizerAndFit(sizer)
         self._update()
-        self.Bind(wx.EVT_BUTTON, self._advanced_config, self.config_button)
 
     def save(self):
         """Write all parameters to the config."""
@@ -243,14 +234,12 @@ class MachineConfig(wx.Panel):
             def __init__(self, **kwargs):
                 self.__dict__.update(kwargs)
         config_instance = Struct(**self.advanced_options)
-        dialog = None
         if 'port' in self.advanced_options:
             scd = SerialConfigDialog(config_instance, self, self.config)
             scd.ShowModal()  # SerialConfigDialog destroys itself.
         else:
             kbd = KeyboardConfigDialog(config_instance, self, self.config)
             kbd.ShowModal()
-            kbd.Destroy()
         self.advanced_options = config_instance.__dict__
 
     def _update(self, event=None):
@@ -277,11 +266,10 @@ class DictionaryConfig(ScrolledPanel):
         parent -- This component's parent component.
 
         """
-        ScrolledPanel.__init__(self, parent, size=CONFIG_PANEL_SIZE)
+        ScrolledPanel.__init__(self, parent)
         self.engine = engine
         self.config = config
-        dictionaries = config.get_dictionary_file_names()
-        
+
         self.up_bitmap = wx.Bitmap(UP_IMAGE_FILE, wx.BITMAP_TYPE_PNG)
         self.down_bitmap = wx.Bitmap(DOWN_IMAGE_FILE, wx.BITMAP_TYPE_PNG)
         self.remove_bitmap = wx.Bitmap(REMOVE_IMAGE_FILE, wx.BITMAP_TYPE_PNG)
@@ -310,8 +298,6 @@ class DictionaryConfig(ScrolledPanel):
         
         self.dictionary_controls = []
         self.dicts_sizer = wx.BoxSizer(wx.VERTICAL)
-        for filename in dictionaries:
-            self.add_row(filename)
 
         main_sizer.Add(self.dicts_sizer)
         
@@ -320,8 +306,12 @@ class DictionaryConfig(ScrolledPanel):
             conf.RTF_EXTENSION, conf.RTF_EXTENSION, 
         )
         
-        self.SetSizer(main_sizer)
+        self.SetSizerAndFit(main_sizer)
         self.SetupScrolling()
+
+        # Fill in dictionaries *after* setting the minimum client size.
+        for filename in config.get_dictionary_file_names():
+            self.add_row(filename)
 
     def save(self):
         """Write all parameters to the config."""
@@ -371,8 +361,7 @@ class DictionaryConfig(ScrolledPanel):
         controls = self.DictionaryControls(sizer, up, down, remove, label)
         self.dictionary_controls.append(controls)
         self.dicts_sizer.Add(sizer)
-        if self.GetSizer():
-            self.GetSizer().Layout()
+        self.FitInside()
 
     def remove_row(self, index):
         names = [self.dictionary_controls[i].label.GetLabel() 
@@ -386,8 +375,8 @@ class DictionaryConfig(ScrolledPanel):
         del self.dictionary_controls[-1]
         if self.dictionary_controls:
             self.dictionary_controls[-1].down.Disable()
-        self.GetSizer().Layout()
-        
+        self.FitInside()
+
     def move_row_down(self, index):
         top_label = self.dictionary_controls[index].label
         bottom_label = self.dictionary_controls[index+1].label
@@ -408,7 +397,7 @@ class LoggingConfig(wx.Panel):
         parent -- This component's parent component.
 
         """
-        wx.Panel.__init__(self, parent, size=CONFIG_PANEL_SIZE)
+        wx.Panel.__init__(self, parent)
         self.config = config
         sizer = wx.BoxSizer(wx.VERTICAL)
         log_file = config.get_log_file_name()
@@ -465,7 +454,7 @@ class DisplayConfig(wx.Panel):
         parent -- This component's parent component.
 
         """
-        wx.Panel.__init__(self, parent, size=CONFIG_PANEL_SIZE)
+        wx.Panel.__init__(self, parent)
         self.config = config
         self.engine = engine
         sizer = wx.BoxSizer(wx.VERTICAL)
@@ -516,7 +505,7 @@ class OutputConfig(wx.Panel):
         parent -- This component's parent component.
 
         """
-        wx.Panel.__init__(self, parent, size=CONFIG_PANEL_SIZE)
+        wx.Panel.__init__(self, parent)
         self.config = config
         sizer = wx.BoxSizer(wx.VERTICAL)
         
