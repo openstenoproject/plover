@@ -1,4 +1,5 @@
 from plover.steno import normalize_steno
+from plover.gui.util import shorten_unicode
 
 STROKE = "STROKE"
 TRANSLATION = "TRANSLATION"
@@ -79,29 +80,7 @@ class DictionaryEditorStore():
         if col is COL_STROKE:
             result = item.stroke
         elif col is COL_TRANSLATION:
-            s = item.translation
-            # Detect and shorten unicode to prevent crashes
-            if isinstance(s, unicode):
-                def shorten_unicode(s):
-                    # Turn into 4 byte chars
-                    encoded = s.encode('utf-32-be')
-                    word = ""
-                    for i in xrange(len(encoded)/4):
-                        start = i * 4
-                        end = start + 4
-                        character = encoded[start:end].decode('utf-32-be')
-                        # Get 1 unicode char at a time
-                        character = character.encode('utf-8')
-                        # Within range?
-                        if (len(character) <= 3):
-                            word += character
-                        else:
-                            # Replace with white box
-                            word += unichr(9634)
-                    return word
-                s = shorten_unicode(s)
-            result = s
-
+            result = shorten_unicode(item.translation)
         elif col is COL_DICTIONARY:
             result = item.dictionary
         return result

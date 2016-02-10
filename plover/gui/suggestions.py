@@ -5,24 +5,32 @@
 
 import wx
 import re
+from collections import namedtuple
 from wx.lib.utils import AdjustRectToScreen
+from plover.gui.util import find_fixed_width_font, shorten_unicode
+from plover.steno import STENO_KEY_ORDER
 
 PAT = re.compile(r'[-\'"\w]+|[^\w\s]')
 TITLE = 'Plover: Suggestions Display'
 ON_TOP_TEXT = "Always on top"
 UI_BORDER = 4
-MAX_STROKE_LINES = 38
 LAST_WORD_TEXT = 'Last Word: %s'
 DEFAULT_LAST_WORD = 'N/A'
+HISTORY_SIZE = 10
+MAX_DISPLAY_LINES = 20
+STROKE_INDENT = 2
+DISPLAY_WIDTH = len(STENO_KEY_ORDER) + 2 * STROKE_INDENT + 1 # extra +1 for /
 
 class SuggestionsDisplayDialog(wx.Dialog):
 
     other_instances = []
 
+    Suggestion = namedtuple('Suggestion', 'text steno_list')
+
     def __init__(self, parent, config, engine):
         self.config = config
         self.engine = engine
-        self.words = ''
+        self.words = u''
         on_top = config.get_suggestions_display_on_top()
         style = wx.DEFAULT_DIALOG_STYLE
         style |= wx.RESIZE_BORDER
@@ -31,8 +39,6 @@ class SuggestionsDisplayDialog(wx.Dialog):
         pos = (config.get_suggestions_display_x(), config.get_suggestions_display_y())
         wx.Dialog.__init__(self, parent, title=TITLE, style=style, pos=pos)
 
-        self.SetBackgroundColour(wx.WHITE)
-
         sizer = wx.BoxSizer(wx.VERTICAL)
 
         self.on_top = wx.CheckBox(self, label=ON_TOP_TEXT)
@@ -40,25 +46,51 @@ class SuggestionsDisplayDialog(wx.Dialog):
         self.on_top.Bind(wx.EVT_CHECKBOX, self.handle_on_top)
         sizer.Add(self.on_top, flag=wx.ALL, border=UI_BORDER)
 
-        box = wx.BoxSizer(wx.HORIZONTAL)
-
-        self.header = MyStaticText(self, label=LAST_WORD_TEXT % DEFAULT_LAST_WORD)
-        font = self.header.GetFont()
-        font.SetFaceName("Courier")
-        self.header.SetFont(font)
-        sizer.Add(self.header, flag=wx.LEFT | wx.RIGHT | wx.BOTTOM,
-                  border=UI_BORDER)
         sizer.Add(wx.StaticLine(self), flag=wx.EXPAND)
 
-        self.listbox = wx.ListBox(self, size=wx.Size(210, 500))
-        font = self.listbox.GetFont()
-        font.SetFaceName("Courier")
-        self.listbox.SetFont(font)
+        self.listbox = wx.TextCtrl(self, style=wx.TE_MULTILINE|wx.TE_READONLY|wx.TE_DONTWRAP|wx.BORDER_NONE)
+
+        standard_font = self.listbox.GetFont()
+        fixed_font = find_fixed_width_font()
+
+        # Calculate required width and height.
+        dc = wx.ScreenDC()
+        dc.SetFont(fixed_font)
+        fixed_text_size = dc.GetTextExtent(' ' * DISPLAY_WIDTH)
+        dc.SetFont(standard_font)
+        standard_text_size = dc.GetTextExtent(' ' * DISPLAY_WIDTH)
+
+        text_width, text_height = [max(d1, d2) for d1, d2 in
+                                   zip(fixed_text_size, standard_text_size)]
+
+        # Will show MAX_DISPLAY_LINES lines (+1 for inter-line spacings...).
+        self.listbox.SetSize(wx.Size(text_width, text_height * (MAX_DISPLAY_LINES + 1)))
+
+        self.history = []
 
         sizer.Add(self.listbox,
                   proportion=1,
                   flag=wx.ALL | wx.FIXED_MINSIZE | wx.EXPAND,
-                  border=3)
+                  border=UI_BORDER)
+
+        self.word_style = wx.TextAttr()
+        self.word_style.SetFont(standard_font)
+        self.word_style.SetFontStyle(wx.FONTSTYLE_NORMAL)
+        self.word_style.SetFontWeight(wx.FONTWEIGHT_BOLD)
+        self.word_style.SetAlignment(wx.TEXT_ALIGNMENT_LEFT)
+        self.stroke_style = wx.TextAttr()
+        self.stroke_style.SetFont(fixed_font)
+        self.stroke_style.SetFontStyle(wx.FONTSTYLE_NORMAL)
+        self.stroke_style.SetFontWeight(wx.FONTWEIGHT_NORMAL)
+        self.stroke_style.SetAlignment(wx.TEXT_ALIGNMENT_LEFT)
+        self.no_suggestion_style = wx.TextAttr()
+        self.no_suggestion_style.SetFont(standard_font)
+        self.no_suggestion_style.SetFontStyle(wx.FONTSTYLE_ITALIC)
+        self.no_suggestion_style.SetFontWeight(wx.FONTWEIGHT_NORMAL)
+        self.no_suggestion_style.SetAlignment(wx.TEXT_ALIGNMENT_LEFT)
+        self.strokes_indent = u' ' * STROKE_INDENT
+        self.no_suggestion_indent = self.strokes_indent
+        self.no_suggestion_indent *= (fixed_text_size[0] / standard_text_size[0])
 
         self.SetSizer(sizer)
         self.SetAutoLayout(True)
@@ -72,6 +104,16 @@ class SuggestionsDisplayDialog(wx.Dialog):
         self.SetRect(AdjustRectToScreen(self.GetRect()))
 
         self.Bind(wx.EVT_MOVE, self.on_move)
+        self.Bind(wx.EVT_SIZE, self.on_resize)
+
+    def on_resize(self, event):
+        self.Layout()
+        # Reflow suggestions text on resize.
+        history = self.history
+        self.history = []
+        self.listbox.Clear()
+        for suggestion_list, _ in history:
+            self.show_suggestions(suggestion_list)
 
     def on_move(self, event):
         pos = self.GetScreenPositionTuple()
@@ -92,9 +134,9 @@ class SuggestionsDisplayDialog(wx.Dialog):
 
         '''
 
-        suggestions = []
+        suggestion_list = []
 
-        mods  = ['%s', '{^%s}', '{^%s^}', '{%s^}', '{&%s}']
+        mods  = [u'%s', u'{^%s}', u'{^%s^}', u'{%s^}', u'{&%s}']
         d     = self.engine.get_dictionary()
 
         similar_words = d.casereverse_lookup(phrase.lower())
@@ -109,11 +151,63 @@ class SuggestionsDisplayDialog(wx.Dialog):
                 strokes_list = d.reverse_lookup(x)
                 if not strokes_list:
                     continue
-                else:
-                    # Return list of suggestions, sorted by fewest strokes, then fewest keys
-                    suggestions.append((x, sorted(strokes_list, key=lambda x: len(x) * 32 + sum(map(len, x)))))
+                # Return list of suggestions, sorted by fewest strokes, then fewest keys
+                strokes_list = sorted(strokes_list, key=lambda x: len(x) * 32 + sum(map(len, x)))
+                suggestion = self.Suggestion(x, strokes_list)
+                suggestion_list.append(suggestion)
 
-        return suggestions
+        return suggestion_list
+
+    def show_suggestions(self, suggestion_list):
+
+        # Limit history.
+        if len(self.history) == HISTORY_SIZE:
+            _, text_length = self.history.pop(0)
+            last_position = self.listbox.GetLastPosition()
+            self.listbox.Remove(last_position - text_length, last_position)
+        # Insert last entry on top.
+        self.listbox.SetInsertionPoint(0)
+
+        # Find available text width.
+        max_width = self.listbox.Size[0]
+        # Yes, 2 times the scrollbar width, because...
+        max_width -= 2 * wx.SystemSettings.GetMetric(wx.SYS_VSCROLL_X)
+        dc = wx.ScreenDC()
+        dc.SetFont(self.stroke_style.GetFont())
+
+        for suggestion in suggestion_list:
+            self.listbox.SetDefaultStyle(self.word_style)
+            self.listbox.WriteText(shorten_unicode(suggestion.text) + u'\n')
+            if not suggestion.steno_list:
+                self.listbox.SetDefaultStyle(self.no_suggestion_style)
+                self.listbox.WriteText(self.no_suggestion_indent)
+                self.listbox.WriteText(u'No suggestions\n')
+                continue
+            self.listbox.SetDefaultStyle(self.stroke_style)
+            # Limit arbitrarily to 10 suggestions per word.
+            for stroke_list in suggestion.steno_list[:10]:
+                line_text = None
+                for n, stroke in enumerate(stroke_list):
+                    if 0 == n:
+                        line_text = text = self.strokes_indent + stroke
+                    else:
+                        text = u'/' + stroke
+                        line_text += text
+                        if dc.GetTextExtent(line_text)[0] >= max_width:
+                            line_text = 2 * self.strokes_indent + text
+                            text = u'\n' + line_text
+                    self.listbox.WriteText(shorten_unicode(text))
+                self.listbox.WriteText(u'\n')
+
+        length = self.listbox.GetInsertionPoint()
+        assert length
+        self.history.append((suggestion_list, length))
+        # Reset style after final \n, so following
+        # word is correctly displayed.
+        self.listbox.SetDefaultStyle(self.word_style)
+        self.listbox.WriteText('')
+        # Make sure first line is shown.
+        self.listbox.ShowPosition(0)
 
     def show_stroke(self, old, new):
         for action in old:
@@ -131,38 +225,25 @@ class SuggestionsDisplayDialog(wx.Dialog):
         # don't exceed this length
         self.words = self.words[-100:]
 
+        suggestion_list = []
         split_words = PAT.findall(self.words)
-        interp_phrase = ''
-        self.listbox.Clear()
         for phrase in SuggestionsDisplayDialog.tails(split_words):
-            phrase = ' '.join(phrase)
-            suggestions_list = self.lookup_suggestions(phrase)
-            if not suggestions_list:
-                continue
+            phrase = u' '.join(phrase)
+            suggestion_list.extend(self.lookup_suggestions(phrase))
 
-            for x, suggestions in suggestions_list:
-                # Word name. Style differently
-                self.listbox.Append(x)
-                # Limit arbitrarily to 10 suggestions per word
-                for strokes in suggestions[:10]:
-                    self.listbox.Append(' ' * 4 + '/'.join(strokes))
+        if not suggestion_list and split_words:
+            suggestion_list = [self.Suggestion(split_words[-1], [])]
 
-            # Set interp_phrase on first found suggestions for given phrase
-            if suggestions_list and not interp_phrase:
-                interp_phrase = phrase
-
-        if not interp_phrase:
-            interp_phrase = DEFAULT_LAST_WORD
-            self.listbox.Append('No suggestions')
-
-        if len(split_words) > 0:
-            self.header.SetLabel(LAST_WORD_TEXT % split_words[-1])
-        else:
-            self.header.SetLabel(LAST_WORD_TEXT % DEFAULT_LAST_WORD)
+        if suggestion_list:
+            self.show_suggestions(suggestion_list)
 
     def handle_on_top(self, event):
-        self.config.set_suggestions_display_on_top(event.IsChecked())
-        self.display(self.GetParent(), self.config, self.engine)
+        on_top = event.IsChecked()
+        self.config.set_suggestions_display_on_top(on_top)
+        style = wx.DEFAULT_DIALOG_STYLE
+        if on_top:
+            style |= wx.STAY_ON_TOP
+        self.SetWindowStyleFlag(style)
 
     @staticmethod
     def tails(ls):
@@ -193,84 +274,3 @@ class SuggestionsDisplayDialog(wx.Dialog):
         # SuggestionsDisplayDialog shows itself.
         SuggestionsDisplayDialog(parent, config, engine)
 
-
-# This class exists solely so that the text doesn't get grayed out when the
-# window is not in focus.
-class MyStaticText(wx.PyControl):
-    def __init__(self, parent, id=wx.ID_ANY, label="",
-                 pos=wx.DefaultPosition, size=wx.DefaultSize,
-                 style=0, validator=wx.DefaultValidator,
-                 name="MyStaticText"):
-        wx.PyControl.__init__(self, parent, id, pos, size, style|wx.NO_BORDER,
-                              validator, name)
-        wx.PyControl.SetLabel(self, label)
-        self.InheritAttributes()
-        self.SetInitialSize(size)
-        self.Bind(wx.EVT_PAINT, self.OnPaint)
-        self.Bind(wx.EVT_ERASE_BACKGROUND, self.OnEraseBackground)
-
-    def OnPaint(self, event):
-        dc = wx.BufferedPaintDC(self)
-        self.Draw(dc)
-
-    def Draw(self, dc):
-        width, height = self.GetClientSize()
-
-        if not width or not height:
-            return
-
-        backBrush = wx.Brush(wx.WHITE, wx.SOLID)
-        dc.SetBackground(backBrush)
-        dc.Clear()
-
-        dc.SetTextForeground(wx.BLACK)
-        dc.SetFont(self.GetFont())
-        label = self.GetLabel()
-        dc.DrawText(label, 0, 0)
-
-    def OnEraseBackground(self, event):
-        pass
-
-    def SetLabel(self, label):
-        wx.PyControl.SetLabel(self, label)
-        self.InvalidateBestSize()
-        self.SetSize(self.GetBestSize())
-        self.Refresh()
-
-    def SetFont(self, font):
-        wx.PyControl.SetFont(self, font)
-        self.InvalidateBestSize()
-        self.SetSize(self.GetBestSize())
-        self.Refresh()
-
-    def DoGetBestSize(self):
-        label = self.GetLabel()
-        font = self.GetFont()
-
-        if not font:
-            font = wx.SystemSettings.GetFont(wx.SYS_DEFAULT_GUI_FONT)
-
-        dc = wx.ClientDC(self)
-        dc.SetFont(font)
-
-        textWidth, textHeight = dc.GetTextExtent(label)
-        best = wx.Size(textWidth, textHeight)
-        self.CacheBestSize(best)
-        return best
-
-    def AcceptsFocus(self):
-        return False
-
-    def SetForegroundColour(self, colour):
-        wx.PyControl.SetForegroundColour(self, colour)
-        self.Refresh()
-
-    def SetBackgroundColour(self, colour):
-        wx.PyControl.SetBackgroundColour(self, colour)
-        self.Refresh()
-
-    def GetDefaultAttributes(self):
-        return wx.StaticText.GetClassDefaultAttributes()
-
-    def ShouldInheritColours(self):
-        return True

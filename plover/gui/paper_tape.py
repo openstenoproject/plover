@@ -7,6 +7,7 @@ import wx
 from wx.lib.utils import AdjustRectToScreen
 from collections import deque
 from plover.steno import STENO_KEY_ORDER, STENO_KEY_NUMBERS
+from plover.gui.util import find_fixed_width_font
 
 TITLE = 'Plover: Stroke Display'
 ON_TOP_TEXT = "Always on top"
@@ -14,7 +15,7 @@ UI_BORDER = 4
 ALL_KEYS = ''.join(x[0].strip('-') for x in 
                    sorted(STENO_KEY_ORDER.items(), key=lambda x: x[1]))
 REVERSE_NUMBERS = {v: k for k, v in STENO_KEY_NUMBERS.items()}
-MAX_STROKE_LINES = 38
+MAX_STROKE_LINES = 30
 STYLE_TEXT = 'Style:'
 STYLE_PAPER = 'Paper'
 STYLE_RAW = 'Raw'
@@ -34,8 +35,6 @@ class StrokeDisplayDialog(wx.Dialog):
         pos = (config.get_stroke_display_x(), config.get_stroke_display_y())
         wx.Dialog.__init__(self, parent, title=TITLE, style=style, pos=pos)
 
-        self.SetBackgroundColour(wx.WHITE)
-
         sizer = wx.BoxSizer(wx.VERTICAL)
 
         self.on_top = wx.CheckBox(self, label=ON_TOP_TEXT)
@@ -53,31 +52,38 @@ class StrokeDisplayDialog(wx.Dialog):
         box.Add(self.choice, proportion=1)
         sizer.Add(box, flag=wx.LEFT | wx.RIGHT | wx.BOTTOM | wx.EXPAND, 
                   border=UI_BORDER)
-        
-        self.header = MyStaticText(self, label=ALL_KEYS)
-        font = self.header.GetFont()
-        font.SetFaceName("Courier")
-        self.header.SetFont(font)
-        sizer.Add(self.header, flag=wx.LEFT | wx.RIGHT | wx.BOTTOM, 
-                  border=UI_BORDER)
+
+        fixed_font = find_fixed_width_font()
+
+        # Calculate required width and height.
+        dc = wx.ScreenDC()
+        dc.SetFont(fixed_font)
+        # Extra spaces for Max OS X...
+        text_width, text_height = dc.GetTextExtent(ALL_KEYS + 2 * ' ')
+        scroll_width = wx.SystemSettings.GetMetric(wx.SYS_VSCROLL_X)
+        scroll_height = wx.SystemSettings.GetMetric(wx.SYS_VSCROLL_X)
+
+        self.header = wx.StaticText(self)
+        self.header.SetFont(fixed_font)
+        sizer.Add(self.header, flag=wx.ALL|wx.EXPAND|wx.ALIGN_LEFT, border=UI_BORDER)
+
         sizer.Add(wx.StaticLine(self), flag=wx.EXPAND)
 
-        self.listbox = wx.ListBox(self, size=wx.Size(210, 500))
-        font = self.listbox.GetFont()
-        font.SetFaceName("Courier")
-        self.listbox.SetFont(font)
+        self.listbox = wx.TextCtrl(self,
+                                   style=wx.TE_MULTILINE|wx.TE_READONLY|wx.TE_DONTWRAP|wx.BORDER_NONE|wx.HSCROLL,
+                                   # Will show MAX_STROKE_LINES lines.
+                                   size=wx.Size(scroll_width + text_width,
+                                                scroll_height + text_height * MAX_STROKE_LINES))
+        self.listbox.SetFont(fixed_font)
 
         sizer.Add(self.listbox,
-                  flag=wx.ALL | wx.FIXED_MINSIZE,
-                  border=3)
-        
-        self.SetSizer(sizer)
-        self.SetAutoLayout(True)
-        sizer.Layout()
-        sizer.Fit(self)
-        
+                  flag=wx.ALL|wx.EXPAND|wx.ALIGN_LEFT,
+                  border=UI_BORDER)
+
         self.on_style()
-            
+
+        self.SetSizerAndFit(sizer)
+
         self.Show()
         self.close_all()
         self.other_instances.append(self)
@@ -97,23 +103,36 @@ class StrokeDisplayDialog(wx.Dialog):
         event.Skip()
         
     def show_text(self, text):
-        self.listbox.Append(text)
-        self.listbox.SetSelection(self.listbox.Count-1)
-        
+        if len(self.line_lengths) == MAX_STROKE_LINES:
+            self.listbox.Remove(0, self.line_lengths.pop(0))
+        if self.listbox.IsEmpty():
+            self.listbox.AppendText(text)
+        else:
+            self.listbox.AppendText('\n' + text)
+        self.line_lengths.append(len(text) + 1)
+
     def show_stroke(self, stroke):
         self.show_text(self.formatter(stroke))
 
     def handle_on_top(self, event):
-        self.config.set_stroke_display_on_top(event.IsChecked())
-        self.display(self.GetParent(), self.config)
+        on_top = event.IsChecked()
+        self.config.set_stroke_display_on_top(on_top)
+        style = wx.DEFAULT_DIALOG_STYLE
+        if on_top:
+            style |= wx.STAY_ON_TOP
+        self.SetWindowStyleFlag(style)
 
     def on_style(self, event=None):
         format = self.choice.GetStringSelection()
         self.formatter = getattr(self, format.lower() + '_format')
         self.listbox.Clear()
+        self.line_lengths = []
+        if STYLE_PAPER == format:
+            self.header.SetLabel(ALL_KEYS)
+        else:
+            self.header.SetLabel('')
         for stroke in self.strokes:
             self.show_stroke(stroke)
-        self.header.SetLabel(ALL_KEYS if format == STYLE_PAPER else ' ')
         self.config.set_stroke_display_style(format)
 
     def paper_format(self, stroke):
@@ -149,87 +168,6 @@ class StrokeDisplayDialog(wx.Dialog):
         # StrokeDisplayDialog shows itself.
         StrokeDisplayDialog(parent, config)
 
-
-# This class exists solely so that the text doesn't get grayed out when the
-# window is not in focus.
-class MyStaticText(wx.PyControl):
-    def __init__(self, parent, id=wx.ID_ANY, label="", 
-                 pos=wx.DefaultPosition, size=wx.DefaultSize, 
-                 style=0, validator=wx.DefaultValidator, 
-                 name="MyStaticText"):
-        wx.PyControl.__init__(self, parent, id, pos, size, style|wx.NO_BORDER,
-                              validator, name)
-        wx.PyControl.SetLabel(self, label)
-        self.InheritAttributes()
-        self.SetInitialSize(size)
-        self.Bind(wx.EVT_PAINT, self.OnPaint)
-        self.Bind(wx.EVT_ERASE_BACKGROUND, self.OnEraseBackground)
-        
-    def OnPaint(self, event):
-        dc = wx.BufferedPaintDC(self)
-        self.Draw(dc)
-
-    def Draw(self, dc):
-        width, height = self.GetClientSize()
-
-        if not width or not height:
-            return
-
-        backBrush = wx.Brush(wx.WHITE, wx.SOLID)
-        dc.SetBackground(backBrush)
-        dc.Clear()
-            
-        dc.SetTextForeground(wx.BLACK)
-        dc.SetFont(self.GetFont())
-        label = self.GetLabel()
-        dc.DrawText(label, 0, 0)
-
-    def OnEraseBackground(self, event):
-        pass
-
-    def SetLabel(self, label):
-        wx.PyControl.SetLabel(self, label)
-        self.InvalidateBestSize()
-        self.SetSize(self.GetBestSize())
-        self.Refresh()
-        
-    def SetFont(self, font):
-        wx.PyControl.SetFont(self, font)
-        self.InvalidateBestSize()
-        self.SetSize(self.GetBestSize())
-        self.Refresh()
-        
-    def DoGetBestSize(self):
-        label = self.GetLabel()
-        font = self.GetFont()
-
-        if not font:
-            font = wx.SystemSettings.GetFont(wx.SYS_DEFAULT_GUI_FONT)
-
-        dc = wx.ClientDC(self)
-        dc.SetFont(font)
-
-        textWidth, textHeight = dc.GetTextExtent(label)
-        best = wx.Size(textWidth, textHeight)
-        self.CacheBestSize(best)
-        return best
-    
-    def AcceptsFocus(self):
-        return False
-
-    def SetForegroundColour(self, colour):
-        wx.PyControl.SetForegroundColour(self, colour)
-        self.Refresh()
-
-    def SetBackgroundColour(self, colour):
-        wx.PyControl.SetBackgroundColour(self, colour)
-        self.Refresh()
-
-    def GetDefaultAttributes(self):
-        return wx.StaticText.GetClassDefaultAttributes()
-    
-    def ShouldInheritColours(self):
-        return True
 
 class fake_config(object):
     def __init__(self):
