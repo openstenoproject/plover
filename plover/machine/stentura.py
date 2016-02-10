@@ -106,7 +106,7 @@ My guess would be that the other filenames would exist at a fixed offset of
 etc. There seems to be some meta data stored after the filename but I don't
 know what it means.
 
-ELETE (0x3):
+DELETE (0x3):
 Deletes the specified files. NOP on realtime file.
 p1 is set to the ASCII value corresponding to the drive letter, e.g. 'A'.
 The filename is specified in the data section.
@@ -453,7 +453,7 @@ def _read_data(port, stop, buf, offset, num_bytes):
     _write_to_buffer(buf, offset, read_bytes)
     return len(read_bytes)
 
-
+MINIMUM_PACKET_LENGTH = 14
 def _read_packet(port, stop, buf):
     """Read a full packet from the port.
 
@@ -478,7 +478,7 @@ def _read_packet(port, stop, buf):
     assert 4 == bytes_read
     packet_length = _SHORT_STRUCT.unpack_from(buf, 2)[0]
     # Packet length should always be at least 14 bytes long
-    if packet_length < 14:
+    if packet_length < MINIMUM_PACKET_LENGTH:
         raise _ProtocolViolationException()
     bytes_read += _read_data(port, stop, buf, bytes_read,
                              packet_length - bytes_read)
