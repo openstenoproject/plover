@@ -152,7 +152,7 @@ class KeyboardCapture(object):
         return self._suppress_keyboard
 
 
-class KeyboardEmulation:
+class KeyboardEmulation(object):
     "Mapping found here: http://msdn.microsoft.com/en-us/library/8c6yea83"
     ''' Need to test: I can't generate any of these sequences via querty '''
     keymap_multi = {

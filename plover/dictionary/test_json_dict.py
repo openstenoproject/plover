@@ -1,3 +1,4 @@
+# -*- coding: utf-8 -*-
 # Copyright (c) 2013 Hesky Fisher
 # See LICENSE.txt for details.
 
@@ -20,9 +21,12 @@ class JsonDictionaryTestCase(unittest.TestCase):
             self.assertEqual(a._dict, b)
 
         for contents, expected in (
-            ('{"S": "a"}'       , {('S', ): 'a'    }),
-            ('{"S": "\xc3\xb1"}', {('S', ): u'\xf1'}),
-            ('{"S": "\xf1"}'    , {('S', ): u'\xf1'}),
+            (u'{"S": "a"}'       , {('S', ): 'a'    }),
+            # Default encoding is utf-8.
+            (u'{"S": "café"}'.encode('utf-8'), {('S', ): u'café'}),
+            # But if that fails, the implementation
+            # must automatically retry with latin-1.
+            (u'{"S": "café"}'.encode('latin-1'), {('S', ): u'café'}),
         ):
             assertEqual(load_dictionary(make_dict(contents)), expected)
         

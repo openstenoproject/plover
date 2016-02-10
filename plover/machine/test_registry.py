@@ -31,9 +31,9 @@ class RegistryClassTestCase(unittest.TestCase):
         registry.add_alias('c', 'b')
         self.assertEqual(['a', 'b'], sorted(registry.get_all_names()))
 
-class MachineRegistryTestCase(object):
+class MachineRegistryTestCase(unittest.TestCase):
     def test_sidewinder(self):
-        self.assertEqual(machine_registery.get("NKRO Keyboard"), 
+        self.assertEqual(machine_registry.get("NKRO Keyboard"), 
                          machine_registry.get('Microsoft Sidewinder X4'))
 
     def test_unknown_machine(self):
