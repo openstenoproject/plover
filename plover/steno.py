@@ -75,6 +75,10 @@ class Stroke:
         # Remove duplicate keys and save local versions of the input 
         # parameters.
         steno_keys_set = set(steno_keys)
+        if not steno_keys_set:
+            self.steno_keys = []
+            self.rtfcre = ''
+            return
         # Order the steno keys so comparisons can be made.
         steno_keys = list(sort_steno_keys(steno_keys_set))
 
