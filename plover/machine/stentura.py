@@ -443,17 +443,17 @@ def _read_data(port, stop, buf, offset, num_bytes):
     _TimeoutException: If the timeout is reached with no data read.
 
     """
+
     assert num_bytes > 0
-    bytes = port.read(num_bytes)
+    read_bytes = port.read(num_bytes)
     if stop.is_set():
         raise _StopException()
-    assert len(bytes) <= num_bytes
-    if num_bytes > len(bytes):
+    if num_bytes > len(read_bytes):
         raise _TimeoutException()
-    _write_to_buffer(buf, offset, bytes)
-    return len(bytes)
+    _write_to_buffer(buf, offset, read_bytes)
+    return len(read_bytes)
 
-
+MINIMUM_PACKET_LENGTH = 14
 def _read_packet(port, stop, buf):
     """Read a full packet from the port.
 
@@ -477,7 +477,8 @@ def _read_packet(port, stop, buf):
     bytes_read += _read_data(port, stop, buf, bytes_read, 4)
     assert 4 == bytes_read
     packet_length = _SHORT_STRUCT.unpack_from(buf, 2)[0]
-    if packet_length <= bytes_read:
+    # Packet length should always be at least 14 bytes long
+    if packet_length < MINIMUM_PACKET_LENGTH:
         raise _ProtocolViolationException()
     bytes_read += _read_data(port, stop, buf, bytes_read,
                              packet_length - bytes_read)
@@ -613,7 +614,7 @@ def _loop(port, stop, callback, ready_callback, timeout=1):
     port.flushInput()
     port.flushOutput()
     # Set serial port timeout to the timeout value
-    port.setTimeout(timeout)
+    port.timeout = timeout
     request_buf, response_buf = array.array('B'), array.array('B')
     stroke_buf = array.array('B')
     seq = _SequenceCounter()

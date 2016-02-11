@@ -227,37 +227,37 @@ class TestCase(unittest.TestCase):
         count = stentura._read_data(port, threading.Event(), buf, 4, 5)
         self.assertSequenceEqual([chr(b) for b in buf], "123412345")
 
-    def test_read_data_stop(self):
+    def test_read_data_stop_set(self):
         class MockPort(object):
             def read(self, count):
-                return ''
-
+                return "0000"
         buf = array.array('B')
         event = threading.Event()
         event.set()
         with self.assertRaises(stentura._StopException):
-            stentura._read_data(MockPort(), event, buf, 0, 1)
+            stentura._read_data(MockPort(), event, buf, 0, 4)
 
     def test_read_data_timeout(self):
         class MockPort(object):
             def read(self, count):
-                return ''
+                # When serial time out occurs read() returns
+                # less characters as requested
+                return "123";
 
         port = MockPort()
         buf = array.array('B')
         with self.assertRaises(stentura._TimeoutException):
-            stentura._read_data(port, threading.Event(), buf, 0, 1)
+            stentura._read_data(port, threading.Event(), buf, 0, 4)
 
     def test_read_packet_simple(self):
         class MockPort(object):
             def __init__(self, packet):
                 self._packet = packet
-                self._offset = 0
 
             def read(self, count):
-                data = buffer(self._packet, self._offset, count)
-                self._offset += count
-                return data
+                requested_bytes = buffer(self._packet, 0, count)
+                self._packet = self._packet[count:]
+                return requested_bytes
 
         buf = array.array('B')
         for packet in [make_response(1, 2, 3, 4, 5),
@@ -268,20 +268,17 @@ class TestCase(unittest.TestCase):
 
     def test_read_packet_fail(self):
         class MockPort(object):
-            def __init__(self, length1, length2=0, length=None, set1=False,
-                         set2=False, wrong=False):
-                self._length1 = length1
-                self._length2 = length2
+            def __init__(self, data_section_length=0, set1=False, set2=False,
+                         give_too_much_data=False, give_timeout=False):
                 self._set1 = set1
                 self._set2 = set2
                 self._read1 = False
                 self._read2 = False
                 self.event = threading.Event()
-                self._wrong = wrong
-                if not length:
-                    length = length1 + length2
-                self._data = [1, 0, length, 0] + ([0] * (length - 4))
-                if wrong:
+                self._give_timeout = give_timeout;
+                self._data = ([1, 0, data_section_length + 4, 0] +
+                              [0] * data_section_length)
+                if give_too_much_data:
                     self._data.append(0)
                 self._data = ''.join([chr(b) for b in self._data])
 
@@ -290,34 +287,40 @@ class TestCase(unittest.TestCase):
                     self._read1 = True
                     if self._set1:
                         self.event.set()
-                    return buffer(self._data, 0, count)
                 elif not self._read2:
                     self._read2 = True
                     if self._set2:
                         self.event.set()
-                    return buffer(self._data, self._length1, count)
-                raise Exception("Alread read data.")
+                else:
+                    raise Exception("Already read data.")
+                if self._give_timeout and len(self._data) == count:
+                    # If read() returns less bytes what was requested,
+                    # it indicates a timeout.
+                    count -= 1
+                requested_bytes = buffer(self._data, 0, count);
+                self._data = self._data[count:]
+                return requested_bytes
 
         buf = array.array('B')
 
         with self.assertRaises(stentura._StopException):
-            port = MockPort(3, set1=True)
+            port = MockPort(set1=True)
             stentura._read_packet(port, port.event, buf)
 
         with self.assertRaises(stentura._StopException):
-            port = MockPort(6, 20, length=30, set2=True)
-            stentura._read_packet(port, port.event, buf)
-
-        with self.assertRaises(stentura._ProtocolViolationException):
-            port = MockPort(3)
+            port = MockPort(data_section_length=30, set2=True)
             stentura._read_packet(port, port.event, buf)
 
         with self.assertRaises(stentura._TimeoutException):
-            port = MockPort(6, 20, length=30)
+            port = MockPort(give_timeout=True)
+            stentura._read_packet(port, port.event, buf)
+
+        with self.assertRaises(stentura._TimeoutException):
+            port = MockPort(data_section_length=30, give_timeout=True)
             stentura._read_packet(port, port.event, buf)
 
         with self.assertRaises(stentura._ProtocolViolationException):
-            port = MockPort(4, 14, wrong=True)
+            port = MockPort(give_too_much_data=True)
             stentura._read_packet(port, port.event, buf)
 
     def test_write_to_port(self):
@@ -443,15 +446,11 @@ class TestCase(unittest.TestCase):
             def __init__(self, events=[]):
                 self._file = ''
                 self._out = ''
-                self._offset = 0
                 self._is_open = False
                 self.event = threading.Event()
                 self.count = 0
                 self.events = [Event(*x) for x in
                                sorted(events, key=lambda x: x[0])]
-
-            def setTimeout(self, timeout):
-                pass
 
             def write(self, request):
                 # Process the packet and put together a response.
@@ -459,7 +458,6 @@ class TestCase(unittest.TestCase):
                 if p['action'] == stentura._OPEN:
                     self._out = make_response(p['seq'], p['action'])
                     self._is_open = True
-                    self._offset = 0
                 elif p['action'] == stentura._READC:
                     if not self._is_open:
                         raise Exception("no open")
@@ -471,7 +469,6 @@ class TestCase(unittest.TestCase):
                     data = self._file[start:end]
                     self._out = make_response(seq, action, p1=len(data),
                                               data=data)
-                    self._offset = 0
                 while self.events and self.events[0].count <= self.count:
                     event = self.events.pop(0)
                     self.append(event.data)
@@ -481,9 +478,9 @@ class TestCase(unittest.TestCase):
                 return len(request)
 
             def read(self, count):
-                data = buffer(self._out, self._offset, count)
-                self._offset += count
-                return data
+                requested_bytes = buffer(self._out,0 , count)
+                self._out = self._out[count:]
+                return requested_bytes
 
             def append(self, data):
                 self._file += data
