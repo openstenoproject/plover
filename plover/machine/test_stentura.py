@@ -268,22 +268,18 @@ class TestCase(unittest.TestCase):
 
     def test_read_packet_fail(self):
         class MockPort(object):
-            def __init__(self, length2=0, length=None, set1=False,
-                         set2=False, wrong=False, give_timeout=False):
-                self._length1 = 4
-                self._length2 = length2
+            def __init__(self, data_section_length=0, set1=False, set2=False,
+                         give_too_much_data=False, give_timeout=False):
                 self._set1 = set1
                 self._set2 = set2
                 self._read1 = False
                 self._read2 = False
                 self.event = threading.Event()
-                self._wrong = wrong
                 self._give_timeout = give_timeout;
-                if not length:
-                    length = self._length1 + length2
-                self._data = [1, 0, length, 0] + ([0] * (length - 4))
-                if wrong:
-                    self._data.append(6)
+                self._data = ([1, 0, data_section_length + 4, 0] +
+                              [0] * data_section_length)
+                if give_too_much_data:
+                    self._data.append(0)
                 self._data = ''.join([chr(b) for b in self._data])
 
             def read(self, count):
@@ -291,19 +287,19 @@ class TestCase(unittest.TestCase):
                     self._read1 = True
                     if self._set1:
                         self.event.set()
-                    if self._give_timeout:
-                        return buffer(self._data, 0, count-1)
-                    else:
-                        return buffer(self._data, 0, count)
                 elif not self._read2:
                     self._read2 = True
                     if self._set2:
                         self.event.set()
-                    if self._give_timeout:
-                        return buffer(self._data, 0, count-1)
-                    else:
-                        return buffer(self._data, self._length1, count)
-                raise Exception("Alread read data.")
+                else:
+                    raise Exception("Already read data.")
+                if self._give_timeout and len(self._data) == count:
+                    # If read() returns less bytes what was requested,
+                    # it indicates a timeout.
+                    count -= 1
+                requested_bytes = buffer(self._data, 0, count);
+                self._data = self._data[count:]
+                return requested_bytes
 
         buf = array.array('B')
 
@@ -312,7 +308,7 @@ class TestCase(unittest.TestCase):
             stentura._read_packet(port, port.event, buf)
 
         with self.assertRaises(stentura._StopException):
-            port = MockPort(20, length=30, set2=True)
+            port = MockPort(data_section_length=30, set2=True)
             stentura._read_packet(port, port.event, buf)
 
         with self.assertRaises(stentura._TimeoutException):
@@ -320,11 +316,11 @@ class TestCase(unittest.TestCase):
             stentura._read_packet(port, port.event, buf)
 
         with self.assertRaises(stentura._TimeoutException):
-            port = MockPort(20, length=30, give_timeout=True)
+            port = MockPort(data_section_length=30, give_timeout=True)
             stentura._read_packet(port, port.event, buf)
 
         with self.assertRaises(stentura._ProtocolViolationException):
-            port = MockPort(wrong=True)
+            port = MockPort(give_too_much_data=True)
             stentura._read_packet(port, port.event, buf)
 
     def test_write_to_port(self):
