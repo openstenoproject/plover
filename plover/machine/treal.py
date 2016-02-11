@@ -89,7 +89,7 @@ class Stenotype(StenotypeBase):
                     self._machine.open(VENDOR_ID, 1)
                 else:
                     self._machine = hid.device(VENDOR_ID, 1)
-                self._machine.set_nonblocking(1)
+                self._machine.set_nonblocking(0)
             except IOError as e:
                 log.info('Treal device not found: %s', str(e))
                 log.warning('Treal is not connected')
