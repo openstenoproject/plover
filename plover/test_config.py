@@ -24,7 +24,8 @@ class ConfigTestCase(unittest.TestCase):
          config.MACHINE_TYPE_OPTION, config.DEFAULT_MACHINE_TYPE, 'foo', 'bar', 
          'blee'),
         ('log_file_name', config.LOGGING_CONFIG_SECTION, config.LOG_FILE_OPTION, 
-         os.path.realpath(os.path.join(CONFIG_DIR, config.DEFAULT_LOG_FILE)), '/l1', '/log', '/sawzall'),
+         os.path.realpath(os.path.join(CONFIG_DIR, config.DEFAULT_LOG_FILE)),
+         os.path.abspath('/l1'), os.path.abspath('/log'), os.path.abspath('/sawzall')),
         ('enable_stroke_logging', config.LOGGING_CONFIG_SECTION, 
          config.ENABLE_STROKE_LOGGING_OPTION, 
          config.DEFAULT_ENABLE_STROKE_LOGGING, False, True, False),
@@ -213,41 +214,43 @@ class ConfigTestCase(unittest.TestCase):
                           for name in config.DEFAULT_DICTIONARIES])
 
         # Relative paths as assumed to be relative to CONFIG_DIR.
-        names = ['b', 'a', 'd/c', 'e/f']
-        c.set_dictionary_file_names(names)
-        print c.get_dictionary_file_names()
-        print [os.path.join(config_dir, path) for path in names]
-        self.assertEqual(c.get_dictionary_file_names(),
-                         [os.path.join(config_dir, path) for path in names])
-        # Paths not bellow CONFIG_DIR must be unchanged...
-        names = ['/b', '/a', '/d', '/c']
-        c.set_dictionary_file_names(names)
-        self.assertEqual(c.get_dictionary_file_names(), names)
+        filenames = [os.path.abspath(os.path.join(config_dir, path))
+                     for path in ('b', 'a', 'd/c', 'e/f')]
+        c.set_dictionary_file_names(filenames)
+        self.assertEqual(c.get_dictionary_file_names(), filenames)
+        # Absolute paths must remain unchanged...
+        filenames = [os.path.abspath(path)
+                     for path in ('/b', '/a', '/d', '/c')]
+        c.set_dictionary_file_names(filenames)
+        self.assertEqual(c.get_dictionary_file_names(), filenames)
         # Load from a file encoded the old way...
-        f = StringIO('[%s]\n%s: %s' % (section, option, '/some_file'))
+        filename = os.path.abspath('/some_file')
+        f = StringIO('[%s]\n%s: %s' % (section, option, filename))
         c.load(f)
         # ..and make sure the right value is set.
-        self.assertEqual(c.get_dictionary_file_names(), ['/some_file'])
+        self.assertEqual(c.get_dictionary_file_names(), [filename])
         # Load from a file encoded the new way...
-        filenames = '\n'.join('%s%d: %s' % (option, d, v) 
-                              for d, v in enumerate(names, start=1))
-        f = StringIO('[%s]\n%s' % (section, filenames))
+        filenames = [os.path.abspath(path)
+                     for path in ('/b', '/a', '/d', '/c')]
+        value = '\n'.join('%s%d: %s' % (option, d, v) 
+                              for d, v in enumerate(filenames, start=1))
+        f = StringIO('[%s]\n%s' % (section, value))
         c.load(f)
         # ...and make sure the right value is set.
-        self.assertEqual(c.get_dictionary_file_names(), names)
+        self.assertEqual(c.get_dictionary_file_names(), filenames)
         
-        names.reverse()
+        filenames.reverse()
         
         # Set a value...
-        c.set_dictionary_file_names(names)
+        c.set_dictionary_file_names(filenames)
         f = StringIO()
         # ...save it...
         c.save(f)
         # ...and make sure it's right.
-        filenames = '\n'.join('%s%d = %s' % (option, d, v) 
-                              for d, v in enumerate(names, start=1))
+        value = '\n'.join('%s%d = %s' % (option, d, v) 
+                              for d, v in enumerate(filenames, start=1))
         self.assertEqual(f.getvalue(), 
-                         '[%s]\n%s\n\n' % (section, filenames))
+                         '[%s]\n%s\n\n' % (section, value))
 
 if __name__ == '__main__':
     unittest.main()

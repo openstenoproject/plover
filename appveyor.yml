@@ -1,0 +1,51 @@
+environment:
+
+  global:
+    PIP_ACCEL_LOG_FORMAT: "%(name)-18s %(levelname)s %(message)s"
+
+  matrix:
+
+    - PYTHON: "C:\\Python27"
+      PYTHON_VERSION: "2.7"
+      PYTHON_ARCH: "32"
+
+cache:
+  # Keep cache of downloaded pip packages.
+  - C:\Users\appveyor\AppData\Local\pip
+  # Keep downloaded packages.
+  - C:\Dist
+
+init:
+  - "ECHO %PYTHON% %PYTHON_VERSION% %PYTHON_ARCH%"
+
+install:
+
+  # Prepend newly installed Python to the PATH of this build (this cannot be
+  # done from inside the powershell script as it would require to restart
+  # the parent CMD process).
+  - "SET PATH=%PYTHON%;%PYTHON%\\Scripts;%PATH%"
+
+  - "python --version"
+
+  # Install wget module.
+  - "pip install --disable-pip-version-check --timeout 5 --retries 2 wget"
+
+  # Setup the rest of the environment.
+  - "python windows\\helper.py setup"
+
+  # Update PATH.
+  - "SET PATH=C:\\Prog\\7-Zip;%PATH%"
+
+build_script:
+  - "ECHO PATH=%PATH%"
+
+after_build:
+  - "python windows\\helper.py dist"
+
+test_script:
+  - "py.test-2.7 -v -ra plover"
+
+artifacts:
+  - path: dist\*.exe
+    name: Plover
+
