@@ -20,6 +20,8 @@ from Quartz import (
     kCGEventFlagMaskControl,
     kCGEventFlagMaskNonCoalesced,
     kCGEventFlagMaskShift,
+    kCGEventFlagMaskSecondaryFn,
+    kCGEventFlagMaskNumericPad,
     kCGEventKeyDown,
     kCGEventKeyUp,
     kCGEventSourceStateID,
@@ -216,7 +218,9 @@ KEYCODE_TO_KEY = {
     12: 'q', 13: 'w', 14: 'e', 15: 'r', 17: 't', 16: 'y', 32: 'u', 34: 'i', 31: 'o',  35: 'p', 33: '[', 30: ']', 42: '\\',
     0: 'a', 1: 's', 2: 'd', 3: 'f', 5: 'g', 4: 'h', 38: 'j', 40: 'k', 37: 'l', 41: ';', 39: '\'',
     6: 'z', 7: 'x', 8: 'c', 9: 'v', 11: 'b', 45: 'n', 46: 'm', 43: ',', 47: '.', 44: '/',
-    49: 'space',
+    49: 'space', 48: "BackSpace", 117: "Delete", 125: "Down", 119: "End",
+    53: "Escape", 115: "Home", 123: "Left", 121: "Page_Down", 116: "Page_Up",
+    36 : "Return", 124: "Right", 48: "Tab", 126: "Up",
 }
 
 class KeyboardCapture(threading.Thread):
@@ -241,8 +245,12 @@ class KeyboardCapture(threading.Thread):
             if (CGEventGetIntegerValueField(event, kCGEventSourceStateID) ==
                 MY_EVENT_SOURCE_ID):
                 return event
-            # Don't intercept the event if it has modifiers.
-            if CGEventGetFlags(event) & ~kCGEventFlagMaskNonCoalesced:
+            # Don't intercept the event if it has modifiers, allow
+            # Fn and Numeric flags so we can suppress the arrow and
+            # extended (home, end, etc...) keys.
+            if CGEventGetFlags(event) & ~(kCGEventFlagMaskNumericPad |
+                                          kCGEventFlagMaskSecondaryFn |
+                                          kCGEventFlagMaskNonCoalesced):
                 return event
             keycode = CGEventGetIntegerValueField(event, kCGKeyboardEventKeycode)
             key = KEYCODE_TO_KEY.get(keycode)
@@ -250,7 +258,7 @@ class KeyboardCapture(threading.Thread):
                 handler = self.key_up if event_type == kCGEventKeyUp else self.key_down
                 handler(key)
                 if key in self._suppressed_keys:
-                    # Supress event.
+                    # Suppress event.
                     event = None
             return event
 

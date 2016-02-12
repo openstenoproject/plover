@@ -38,9 +38,26 @@ class KeyboardCapture(keyboardcontrol.KeyboardCapture):
     SUPPORTED_KEYS = [chr(n) for n in range(ord('a'), ord('z') + 1)]
     for n in range(12):
         SUPPORTED_KEYS.append('F%u' % (n + 1))
-    for c in '`1234567890-=[];\',./\\':
-        SUPPORTED_KEYS.append(c)
-    SUPPORTED_KEYS.append('space')
+        for c in '`1234567890-=[];\',./\\':
+            SUPPORTED_KEYS.append(c)
+            SUPPORTED_KEYS.extend(
+                '''
+                BackSpace
+                Delete
+                Down
+                End
+                Escape
+                Home
+                Insert
+                Left
+                Page_Down
+                Page_Up
+                Return
+                Right
+                Tab
+                Up
+                space
+                '''.split())
 
 
 class KeyboardEmulation(keyboardcontrol.KeyboardEmulation):
