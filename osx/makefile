@@ -18,7 +18,7 @@ dmg: $(DMG)
 
 $(APP):
 	cd $(topdir) && $(PYTHON) setup.py py2app
-	ditto --arch i386 $(APP) $(APP:%.app=%Stripped.app)
+	ditto --arch x86_64 $(APP) $(APP:%.app=%Stripped.app)
 	rm -rf $(APP)
 	mv $(APP:%.app=%Stripped.app) $(APP)
 
