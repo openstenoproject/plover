@@ -51,7 +51,7 @@ class KeyboardEmulation(keyboardcontrol.KeyboardEmulation):
 if __name__ == '__main__':
     import time
 
-    kc = KeyboardCapture(KeyboardCapture.SUPPORTED_KEYS)
+    kc = KeyboardCapture()
     ke = KeyboardEmulation()
 
     pressed = set()
@@ -72,7 +72,6 @@ if __name__ == '__main__':
 
     kc.key_down = lambda k: test(k, 'pressed')
     kc.key_up = lambda k: test(k, 'released')
-    kc.suppress_keyboard(True)
     kc.start()
     print 'Press CTRL-c to quit.'
     try:
