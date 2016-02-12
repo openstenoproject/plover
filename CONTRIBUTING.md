@@ -168,6 +168,12 @@ Read on for more about labels and the review workflow.
 
 
 ### Labels
+The devteam use labels to coordinate work on Plover.
+GitHub permissions limit the ability to add permissions to
+[members of the Open Steno Project organization;](https://github.com/orgs/openstenoproject/people)
+if you're not yet a member, you won't be able to apply or remove labels
+yourself.
+
 #### Pull Request Review Flow
 PRs use very few labels.
 They are not tagged as to whether they are
