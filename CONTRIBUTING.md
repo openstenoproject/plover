@@ -232,16 +232,15 @@ Bug, feature-request, question, task, enhancement, wishlist.
     problems that require special hardware)
   - **confirmed** for bugs that have successfully been reproduced
 
-- **Feature-requests** come around a lot, so you essentially need to assign
-  a priority based on the criteria above.
-  - **Wishlist** is a special type of feature-request that is basically
-    reserved for stuff that Mirabai or other stakeholders request.
-    For example, I might add a wishlist feature if I feel it would greatly
-    assist many people.
-    It's like a "more important" version of a feature-request,
-    because it usually involves expanding Plover's scope.
-  - **Enhancement** is a feature-request that's only asking for something to be
-    improved or modified slightly.
+- A **feature-request** represents a request for a significant new feature
+  to be added to Plover.
+  These will be prioritized as described in the previous section.
+  - An **enhancement** is a feature-request that's only asking for something to
+    be improved or modified slightly.
+  - A [**wishlist** issue](https://github.com/openstenoproject/plover/issues?utf8=%E2%9C%93&q=is%3Aissue+is%3Aopen+label%3Awishlist)
+    is an accepted feature request
+    that the Plover developers would like to implement.
+    This is an excellent label for would-be contributors to review.
 
 - **Task** is something that needs to get done, like documentation, creating
   a testing environment, writing a contributing.md, making a release. Basically
