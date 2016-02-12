@@ -72,6 +72,7 @@ if __name__ == '__main__':
 
     kc.key_down = lambda k: test(k, 'pressed')
     kc.key_up = lambda k: test(k, 'released')
+    kc.suppress_keyboard(KeyboardCapture.SUPPORTED_KEYS)
     kc.start()
     print 'Press CTRL-c to quit.'
     try:
