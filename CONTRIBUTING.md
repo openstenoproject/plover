@@ -95,7 +95,8 @@ OS:
   - uname -a output might also be useful.
 
 - If it's Windows,
-  (Ted/Benoit: Where should someone look for the Windows version?)
+  press the Windows key + PauseBreak key together in order to bring up
+  the Windows version information.
 ```
 
 If helpful, submit screenshots of the issue to help debug.
