@@ -199,10 +199,10 @@ to understand.
     - Feedback comments will have been left on the PR and/or patches
       explaining the changes needed.
 - **blocked-awaiting-external:**
-  This work cannot be merged till another event has occurred.
+  This work cannot be merged until another event has occurred.
   That event might be another issue getting resolved or another PR
   getting merged first.
-  Either way, the labeled issue cannot continue being worked on till something
+  Either way, the labeled issue cannot continue being worked on until something
   else happens first.
     - Please leave a comment stating why you're holding off merging and
       when you expect to merge if you apply this label to an issue.
