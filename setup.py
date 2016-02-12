@@ -13,6 +13,7 @@ from plover import (
     __copyright__,
 )
 
+import os
 import sys
 import setuptools
 
@@ -40,7 +41,7 @@ if sys.platform.startswith('darwin'):
 
 setuptools.setup(
     name=__software_name__.capitalize(),
-    version=__version__,
+    version=os.environ.get('PLOVER_VERSION', __version__),
     description=__description__,
     long_description=__long_description__,
     url=__url__,
