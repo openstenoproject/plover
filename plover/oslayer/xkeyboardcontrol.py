@@ -1162,9 +1162,12 @@ class KeyboardEmulation(object):
         number_of_backspace -- The number of backspaces to emulate.
 
         """
+        target_window = self.display.get_input_focus().focus
         for x in xrange(number_of_backspaces):
-            self._send_keycode(self.backspace_mapping.keycode,
+            self._send_keycode(target_window,
+                               self.backspace_mapping.keycode,
                                self.backspace_mapping.modifiers)
+        self.display.sync()
 
     def send_string(self, s):
         """Emulate the given string.
@@ -1177,12 +1180,16 @@ class KeyboardEmulation(object):
 
         """
         assert isinstance(s, unicode)
+        target_window = self.display.get_input_focus().focus
         for char in s:
             keysym = uchr_to_keysym(char)
             mapping = self._get_mapping(keysym)
             if mapping is None:
                 continue
-            self._send_keycode(mapping.keycode, mapping.modifiers)
+            self._send_keycode(target_window,
+                               mapping.keycode,
+                               mapping.modifiers)
+        self.display.sync()
 
     def send_key_combination(self, combo_string):
         """Emulate a sequence of key combinations.
@@ -1259,10 +1266,12 @@ class KeyboardEmulation(object):
             xtest.fake_input(self.display, event_type, keycode)
         self.display.sync()
 
-    def _send_keycode(self, keycode, modifiers=0):
+    def _send_keycode(self, target_window, keycode, modifiers=0):
         """Emulate a key press and release.
 
         Arguments:
+
+        target_window -- The window to send the event to.
 
         keycode -- An integer in the inclusive range [8-255].
 
@@ -1271,15 +1280,17 @@ class KeyboardEmulation(object):
         and Alt.
 
         """
-        self._send_key_event(keycode, modifiers, event.KeyPress)
-        self._send_key_event(keycode, modifiers, event.KeyRelease)
+        self._send_key_event(target_window, keycode, modifiers, event.KeyPress)
+        self._send_key_event(target_window, keycode, modifiers, event.KeyRelease)
 
-    def _send_key_event(self, keycode, modifiers, event_class):
+    def _send_key_event(self, target_window, keycode, modifiers, event_class):
         """Simulate a key press or release.
 
         These events are not detected by KeyboardCapture.
 
         Arguments:
+
+        target_window -- The window to send the event to.
 
         keycode -- An integer in the inclusive range [8-255].
 
@@ -1291,7 +1302,6 @@ class KeyboardEmulation(object):
         Xlib.protocol.event.KeyRelease.
 
         """
-        target_window = self.display.get_input_focus().focus
         # Make sure every event time is different than the previous one, to
         # avoid an application thinking its an auto-repeat.
         self.time = (self.time + 1) % 4294967295
