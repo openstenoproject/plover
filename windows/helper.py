@@ -293,7 +293,6 @@ class Helper(object):
         ('appdirs'          , 'pip:appdirs'                                                                                                       , None                                      , None, (), None),
         ('mock'             , 'pip:mock'                                                                                                          , None                                      , None, (), None),
         ('pyserial'         , 'pip:pyserial'                                                                                                      , None                                      , None, (), None),
-        ('pywinauto'        , 'pip:pywinauto'                                                                                                     , None                                      , None, (), None),
         ('pywinusb'         , 'pip:pywinusb'                                                                                                      , None                                      , None, (), None),
         ('PyInstaller'      , 'pip:PyInstaller==3.1.1'                                                                                            , None                                      , None, (), None),
         ('PyTest'           , 'pip:pytest'                                                                                                        , None                                      , None, (), None),
