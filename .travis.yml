@@ -1,0 +1,28 @@
+language: python
+matrix:
+  include:
+    - os: osx
+      language: generic
+before_install:
+ - >
+  if [[ "$TRAVIS_OS_NAME" == "osx" ]];
+  then
+    brew update &&
+    brew install python --framework &&
+    brew link --overwrite python &&
+    brew install wxpython &&
+    (cd osx && ./bootstrap.sh); fi
+
+install: true
+script:
+  - python setup.py patch_version
+  - if [[ "$TRAVIS_OS_NAME" == "osx" ]]; then (cd osx && make); fi
+deploy:
+  provider: releases
+  skip_cleanup: true
+  api_key:
+    secure: p1QHOgNToBnHht/Y05+Nr2QdWgwxYeGJwWvhkcPUNKh7YC59v2AKkRx5YeRF0sYgXK6VOPcxDmdnZ9+5ztVpgjMrMsIGhckYoLOVkHVRhXEKqmz2A8Ol0pTmrvvmqalufa2+6l414/C2GciK95yoQJIfZGZT4xA6QO5dWx52azAtRZVbyG6oenrOPuCeSfXrE9UslHSBKe4afoBiHNEEDewObys45yjXvU1KXRR9TRdO0wOSi0i+cZKj4Azpm7MeFU1ftkjALYoLYinIe5swhpYTsrJRv/qyQR1ZCougFD+PbECx4OJB4Ssn5xdfqj4IKKi3Ja1q6FUF3I+6jI8+p62e5YHjSWahsUOVbaIkDQcC7jNDuT85BXIH2pZT1mjFIhec9q4ramP30BR/1IgX1WYwGLk9y0XYfoTOsPmohFoX3i9U5CgZrjmuNsRbelxFZadVKqwRpJffw3Iaeu6D6kwtN4hGHpYskTEpxWY0M9uFoVwTTFBk9qCr13nkTeXRz3ERRfan2NWPfj8n2O2gG/NOd0SCG5eofHY1EDj7ciULVLl3KFyxBlTDAzy8xoK8laz+WCJ5dxlM2RV0G3OCdCPfLl+vqzcNk9eTtBBshb7qInfgk+hg7eviOeeCOTVcRjxCQHGAvMB4mVxwKHa+DNRmTInFw0Z/rCdEH5DaWog=
+  file: "dist/Plover.dmg"
+  on:
+    tags: true
+    repo: openstenoproject/plover
