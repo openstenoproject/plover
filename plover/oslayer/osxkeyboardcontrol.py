@@ -7,6 +7,7 @@ from Quartz import (
     CGEventCreateKeyboardEvent,
     CGEventGetFlags,
     CGEventGetIntegerValueField,
+    CGEventKeyboardSetUnicodeString,
     CGEventMaskBit,
     CGEventPost,
     CGEventSetFlags,
@@ -294,13 +295,11 @@ def characters(s):
         character = encoded[start:end].decode('utf-32-be')
         yield character
 
-CGEventKeyboardSetUnicodeString = ctypes.cdll.LoadLibrary(ctypes.util.find_library('ApplicationServices')).CGEventKeyboardSetUnicodeString
-CGEventKeyboardSetUnicodeString.restype = None
 native_utf16 = 'utf-16-le' if sys.byteorder == 'little' else 'utf-16-be'
 
 def set_string(event, s):
     buf = s.encode(native_utf16)
-    CGEventKeyboardSetUnicodeString(objc.pyobjc_id(event), len(buf) / 2, buf)
+    CGEventKeyboardSetUnicodeString(event, len(buf) / 2, buf)
 
 class KeyboardEmulation(object):
 
