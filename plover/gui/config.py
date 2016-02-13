@@ -15,6 +15,7 @@ from plover.gui.serial_config import SerialConfigDialog
 import plover.gui.add_translation
 import plover.gui.lookup
 import plover.gui.dictionary_editor
+from plover import log
 from plover.app import update_engine
 from plover.machine.registry import machine_registry
 from plover.exception import InvalidConfigurationError
@@ -329,12 +330,17 @@ class DictionaryConfig(ScrolledPanel):
 
     def add_dictionary(self, event):
         dlg = wx.FileDialog(self, "Choose a file", os.getcwd(), "", self.mask, 
-                            wx.OPEN)
+                            wx.MULTIPLE)
         if dlg.ShowModal() == wx.ID_OK:
-            path = dlg.GetPath()
+            paths = dlg.GetPaths()
             all_dicts = [x.label.GetLabel() for x in self.dictionary_controls]
-            if path not in all_dicts:
-                self.add_row(path)
+            for path in paths:
+                if not os.path.isfile(path):
+                    log.warning('"%s" is not a file.', path)
+                elif path in all_dicts:
+                    log.warning('Dictionary already added, "%s"', path)
+                else:
+                    self.add_row(path)
         dlg.Destroy()
         
     def add_row(self, filename):
