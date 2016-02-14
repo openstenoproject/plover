@@ -38,7 +38,6 @@ class Logger(object):
 
     def __init__(self):
         self._print_handler = PrintHandler()
-        self._print_handler.setLevel(WARNING)
         self._file_handler = None
         self._logger = logging.getLogger('plover')
         self._logger.addHandler(self._print_handler)
