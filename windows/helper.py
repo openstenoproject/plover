@@ -35,7 +35,7 @@ APPNAME = __software_name__.capitalize()
 VERSION = __version__
 ICON = os.path.join(WIN_DIR, '%s.ico' % __software_name__)
 if os.path.exists(os.path.join(TOP_DIR, '.git')):
-    VERSION = subprocess.check_output('git describe --tag'.split()).strip()
+    VERSION = subprocess.check_output('git describe --tags --match=v[0-9]*'.split()).strip()
     m = re.match(r'^v(\d[\d.]*)(-\d+-g[a-f0-9]*)?$', VERSION)
     assert m is not None, VERSION
     VERSION = m.group(1)
