@@ -170,19 +170,24 @@ class AddTranslationDialog(wx.Dialog):
     def on_strokes_gained_focus(self, event):
         self.engine.get_dictionary().add_filter(self.stroke_dict_filter)
         self.engine.translator.set_state(self.strokes_state)
+        event.Skip()
         
     def on_strokes_lost_focus(self, event):
         self.engine.get_dictionary().remove_filter(self.stroke_dict_filter)
         self.engine.translator.set_state(self.previous_state)
+        event.Skip()
 
     def on_translation_gained_focus(self, event):
         self.engine.translator.set_state(self.translation_state)
+        event.Skip()
         
     def on_translation_lost_focus(self, event):
         self.engine.translator.set_state(self.previous_state)
+        event.Skip()
 
     def on_button_gained_focus(self, event):
         self.strokes_text.SetFocus()
+        event.Skip()
         
     def stroke_dict_filter(self, key, value):
         # Only allow translations with special entries. Do this by looking for 
