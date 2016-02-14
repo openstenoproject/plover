@@ -51,7 +51,6 @@ class Logger(object):
     def setup_logfile(self):
         assert self._file_handler is None
         self._file_handler = FileHandler()
-        self._file_handler.setLevel(INFO)
         self._logger.addHandler(self._file_handler)
 
     def set_stroke_filename(self, filename=None):
