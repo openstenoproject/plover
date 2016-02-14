@@ -38,7 +38,7 @@ ICON = os.path.join(WIN_DIR, '%s.ico' % __software_name__)
 if os.path.exists(os.path.join(TOP_DIR, '.git')):
     VERSION = subprocess.check_output('git describe --tag'.split()).strip()
     m = re.match('^v(\d[\d.]*)(-\d+-g[a-f0-9]*)?$', VERSION)
-    assert m is not None
+    assert m is not None, VERSION
     VERSION = m.group(1)
     if m.group(2) is not None:
         VERSION += '+' + m.group(2)[1:].replace('-', '.')
