@@ -303,7 +303,7 @@ class MainFrame(wx.Frame):
     def _show_about_dialog(self, event=None):
         """Called when the About... button is clicked."""
         info = wx.AboutDialogInfo()
-        info.Name = __software_name__
+        info.Name = __software_name__.capitalize()
         info.Version = __version__
         info.Copyright = __copyright__
         info.Description = __long_description__
