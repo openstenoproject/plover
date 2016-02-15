@@ -73,9 +73,7 @@ class MainFrame(wx.Frame):
     DISCONNECTED_IMAGE_FILE = os.path.join(ASSETS_DIR, 'disconnected.png')
     REFRESH_IMAGE_FILE = os.path.join(ASSETS_DIR, 'refresh.png')
     BORDER = 5
-    RUNNING_MESSAGE = "running"
-    STOPPED_MESSAGE = "stopped"
-    ERROR_MESSAGE = "error"
+    STATUS_DISCONNECTED, STATUS_OUTPUT_ENABLED, STATUS_OUTPUT_DISABLED = range(3)
     CONFIGURE_BUTTON_LABEL = u"Configure…"
     ABOUT_BUTTON_LABEL = u"About…"
     RECONNECT_BUTTON_LABEL = u"Reconnect…"
@@ -96,15 +94,16 @@ class MainFrame(wx.Frame):
                           style=wx.DEFAULT_FRAME_STYLE & ~(wx.RESIZE_BORDER |
                                                            wx.RESIZE_BOX |
                                                            wx.MAXIMIZE_BOX))
+        self.top_panel = wx.Panel(self, style=wx.DEFAULT_FRAME_STYLE)
 
         # Status button.
         self.on_bitmap = wx.Bitmap(self.ON_IMAGE_FILE, wx.BITMAP_TYPE_PNG)
         self.off_bitmap = wx.Bitmap(self.OFF_IMAGE_FILE, wx.BITMAP_TYPE_PNG)
-        self.status_button = wx.BitmapButton(self, bitmap=self.on_bitmap)
+        self.status_button = wx.BitmapButton(self.top_panel, bitmap=self.on_bitmap)
         self.status_button.Bind(wx.EVT_BUTTON, self._toggle_steno_engine)
 
         # Configure button.
-        self.configure_button = wx.Button(self,
+        self.configure_button = wx.Button(self.top_panel,
                                           label=self.CONFIGURE_BUTTON_LABEL)
         self.configure_button.Bind(wx.EVT_BUTTON, self._show_config_dialog)
 
@@ -113,20 +112,20 @@ class MainFrame(wx.Frame):
         self.SetMenuBar(MenuBar)
 
         # About button.
-        self.about_button = wx.Button(self, label=self.ABOUT_BUTTON_LABEL)
+        self.about_button = wx.Button(self.top_panel, label=self.ABOUT_BUTTON_LABEL)
         self.about_button.Bind(wx.EVT_BUTTON, self._show_about_dialog)
 
         # Machine status.
         # TODO: Figure out why spinner has darker gray background.
-        self.spinner = wx.animate.GIFAnimationCtrl(self, -1, SPINNER_FILE)
+        self.spinner = wx.animate.GIFAnimationCtrl(self.top_panel, -1, SPINNER_FILE)
         self.spinner.GetPlayer().UseBackgroundColour(True)
         self.spinner.Hide()
 
-        self.connected_bitmap = wx.Bitmap(self.CONNECTED_IMAGE_FILE, 
+        self.connected_bitmap = wx.Bitmap(self.CONNECTED_IMAGE_FILE,
                                           wx.BITMAP_TYPE_PNG)
         self.disconnected_bitmap = wx.Bitmap(self.DISCONNECTED_IMAGE_FILE, 
                                              wx.BITMAP_TYPE_PNG)
-        self.connection_ctrl = wx.StaticBitmap(self, 
+        self.connection_ctrl = wx.StaticBitmap(self.top_panel,
                                                bitmap=self.disconnected_bitmap)
 
         # Layout.
@@ -157,18 +156,19 @@ class MainFrame(wx.Frame):
         longest_state = max((STATE_ERROR, STATE_INITIALIZING, STATE_RUNNING), 
                             key=len)
         longest_status = '%s: %s' % (longest_machine, longest_state)
-        self.machine_status_text = wx.StaticText(self, label=longest_status)
-        sizer.Add(self.machine_status_text, 
+        self.machine_status_text = wx.StaticText(self.top_panel, label=longest_status)
+        sizer.Add(self.machine_status_text,
                   flag=wx.BOTTOM | wx.RIGHT | wx.ALIGN_CENTER_VERTICAL,
                   border=self.BORDER)
         refresh_bitmap = wx.Bitmap(self.REFRESH_IMAGE_FILE, wx.BITMAP_TYPE_PNG)          
-        self.reconnect_button = wx.BitmapButton(self, bitmap=refresh_bitmap)
+        self.reconnect_button = wx.BitmapButton(self.top_panel, bitmap=refresh_bitmap)
         sizer.Add(self.reconnect_button, 
                   flag=wx.BOTTOM | wx.RIGHT | wx.ALIGN_CENTER_VERTICAL, 
                   border=self.BORDER)
         self.machine_status_sizer = sizer
         global_sizer.Add(sizer)
         self.SetSizer(global_sizer)
+        global_sizer.Fit(self.top_panel)
         global_sizer.Fit(self)
 
         self.Bind(wx.EVT_CLOSE, self._quit)
@@ -217,7 +217,7 @@ class MainFrame(wx.Frame):
             SuggestionsDisplayDialog.display(self, self.config, self.steno_engine)
 
     def consume_command(self, command):
-        # The first commands can be used whether plover is active or not.
+        # The first commands can be used whether plover has output enabled or not.
         if command == self.COMMAND_RESUME:
             wx.CallAfter(self.steno_engine.set_is_running, True)
             return True
@@ -232,7 +232,7 @@ class MainFrame(wx.Frame):
         if not self.steno_engine.is_running:
             return False
 
-        # These commands can only be run when plover is active.
+        # These commands can only be run when plover has output enabled.
         if command == self.COMMAND_SUSPEND:
             wx.CallAfter(self.steno_engine.set_is_running, False)
             return True
@@ -273,18 +273,28 @@ class MainFrame(wx.Frame):
             elif state == STATE_ERROR:
                 self.connection_ctrl.SetBitmap(self.disconnected_bitmap)
             self.machine_status_sizer.Layout()
-        if self.steno_engine.machine:
-            self.status_button.Enable()
-            if self.steno_engine.is_running:
-                self.status_button.SetBitmapLabel(self.on_bitmap)
-                self.SetTitle("%s: %s" % (self.TITLE, self.RUNNING_MESSAGE))
-            else:
-                self.status_button.SetBitmapLabel(self.off_bitmap)
-                self.SetTitle("%s: %s" % (self.TITLE, self.STOPPED_MESSAGE))
+        if not self.steno_engine.machine or self.steno_engine.machine.state is not STATE_RUNNING:
+            status = self.STATUS_DISCONNECTED
+        elif self.steno_engine.is_running:
+            status = self.STATUS_OUTPUT_ENABLED
         else:
-            self.status_button.Disable()
-            self.status_button.SetBitmapLabel(self.off_bitmap)
-            self.SetTitle("%s: %s" % (self.TITLE, self.ERROR_MESSAGE))
+            status = self.STATUS_OUTPUT_DISABLED
+        self._show_status(status)
+
+    def _show_status(self, status):
+        if status is self.STATUS_DISCONNECTED:
+            enabled = False
+            bitmap = self.off_bitmap
+        elif status is self.STATUS_OUTPUT_DISABLED:
+            enabled = True
+            bitmap = self.off_bitmap
+        elif status is self.STATUS_OUTPUT_ENABLED:
+            enabled = True
+            bitmap = self.on_bitmap
+        else:
+            raise ValueError('invalid status: %s' % str(status))
+        self.status_button.SetBitmapLabel(bitmap)
+        self.status_button.Enable(enabled)
 
     def _quit(self, event=None):
         if self.steno_engine:
