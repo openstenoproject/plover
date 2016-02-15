@@ -1,7 +1,6 @@
 #!/usr/bin/env python2
 
 import argparse
-import glob
 import hashlib
 import inspect
 import json
@@ -37,7 +36,7 @@ VERSION = __version__
 ICON = os.path.join(WIN_DIR, '%s.ico' % __software_name__)
 if os.path.exists(os.path.join(TOP_DIR, '.git')):
     VERSION = subprocess.check_output('git describe --tag'.split()).strip()
-    m = re.match('^v(\d[\d.]*)(-\d+-g[a-f0-9]*)?$', VERSION)
+    m = re.match(r'^v(\d[\d.]*)(-\d+-g[a-f0-9]*)?$', VERSION)
     assert m is not None, VERSION
     VERSION = m.group(1)
     if m.group(2) is not None:
@@ -73,10 +72,11 @@ else:
 class CommandExecutionException(Exception):
 
     def __init__(self, args, exitcode, stdout='', stderr=''):
+        super(Exception, self).__init__()
         self.args = args
         self.exitcode = exitcode
         self.stdout = stdout
-        self.stderr= stderr
+        self.stderr = stderr
 
 
 class Environment(object):
@@ -179,9 +179,9 @@ class WineEnvironment(Environment):
         tempdir = self.get_realpath(TEMP_DIR)
         progdir = self.get_realpath(PROG_DIR)
         distdir = self.get_distdir()
-        for dir in (tempdir, progdir, distdir):
-            if not os.path.exists(dir):
-                os.makedirs(dir)
+        for directory in (tempdir, progdir, distdir):
+            if not os.path.exists(directory):
+                os.makedirs(directory)
 
     def get_realpath(self, path):
         path = path.replace('\\', '/')
@@ -257,9 +257,9 @@ class Win32Environment(Environment):
         tempdir = self.get_realpath(TEMP_DIR)
         progdir = self.get_realpath(PROG_DIR)
         distdir = self.get_distdir()
-        for dir in (tempdir, progdir, distdir):
-            if not os.path.exists(dir):
-                os.makedirs(dir)
+        for directory in (tempdir, progdir, distdir):
+            if not os.path.exists(directory):
+                os.makedirs(directory)
 
     def get_distdir(self):
         return r'C:\Dist'
@@ -339,7 +339,6 @@ class Helper(object):
                     name_or_flags = (a,)
                     action = None
                 else:
-                    metavar = None
                     name = '--' + a
                     short_name = '-' + a[0]
                     if short_name not in short_opts:
