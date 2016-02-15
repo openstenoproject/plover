@@ -31,9 +31,6 @@ from Quartz import (
 )
 import threading
 import collections
-import ctypes
-import ctypes.util
-import objc
 import sys
 
 
