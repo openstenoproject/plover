@@ -114,7 +114,7 @@ class FormatterTestCase(unittest.TestCase):
          ([action(text=' driving', word='driving')],),
          [('b', 1), ('s', 'ing')]
         ),
-        
+
         (
          ([translation(formatting=[action(text=' drive')])],
          [translation(english='{#c}driving')],
@@ -524,6 +524,7 @@ class FormatterTestCase(unittest.TestCase):
         self.check_arglist(formatting._raw_to_actions, cases)
 
     def test_atom_to_action_spaces_before(self):
+        an_action = action()
         cases = [
         (('{^ed}', action(word='test')), 
          action(text='ed', replace='', word='tested')),
@@ -621,42 +622,76 @@ class FormatterTestCase(unittest.TestCase):
         (('some text', action(word='test')), 
          action(text=' some text', word='text')),
 
+        (('some text', action(word='test',
+                              case=an_action.CASE_TITLE,
+                              space_char='')),
+            action(text='SomeText', word='text',
+                   case=an_action.CASE_TITLE,
+                   space_char='')),
+
+        (('some text', action(word='test', # This is camel case
+                              case=an_action.CASE_TITLE,
+                              space_char='', lower=True)),
+            action(text='someText', word='text',
+                   case=an_action.CASE_TITLE,
+                   space_char='')),
+
+        (('some text', action(word='test', space_char='_')),
+         action(text='_some_text', word='text', space_char='_')),
+
+        (('some text', action(word='test', case=an_action.CASE_UPPER)),
+         action(text=' SOME TEXT', word='text', case=an_action.CASE_UPPER)),
+
+        (('sOme TexT', action(word='test', case=an_action.CASE_LOWER)),
+         action(text=' some text', word='TexT', case=an_action.CASE_LOWER)),
+
+        (('sOme TexT', action(word='test', case=an_action.CASE_TITLE)),
+         action(text=' Some Text', word='TexT', case=an_action.CASE_TITLE)),
+
+        (('{MODE:CAPS}', action(word='test')),
+         action(word='test', case=an_action.CASE_UPPER)),
+
+        (('{MODE:LOWER}', action(word='test')),
+         action(word='test', case=an_action.CASE_LOWER)),
+
         ]
+
         self.check_arglist(formatting._atom_to_action_spaces_before, cases)
 
     def test_atom_to_action_spaces_after(self):
+        an_action = action()
         cases = [
-        (('{^ed}', action(word='test', text='test ')), 
+        (('{^ed}', action(word='test', text='test ')),
          action(text='ed ', replace=' ', word='tested')),
 
-        (('{^ed}', action(word='carry', text='carry ')), 
+        (('{^ed}', action(word='carry', text='carry ')),
          action(text='ied ', replace='y ', word='carried')),
 
-        (('{^er}', action(word='test', text='test ')), 
+        (('{^er}', action(word='test', text='test ')),
          action(text='er ', replace=' ', word='tester')),
 
-        (('{^er}', action(word='carry', text='carry ')), 
+        (('{^er}', action(word='carry', text='carry ')),
          action(text='ier ', replace='y ', word='carrier')),
 
-        (('{^ing}', action(word='test', text='test ')), 
+        (('{^ing}', action(word='test', text='test ')),
          action(text='ing ', replace=' ', word='testing')),
 
-        (('{^ing}', action(word='begin', text='begin ')), 
+        (('{^ing}', action(word='begin', text='begin ')),
          action(text='ning ', replace=' ', word='beginning')),
 
-        (('{^ing}', action(word='parade', text='parade ')), 
+        (('{^ing}', action(word='parade', text='parade ')),
          action(text='ing ', replace='e ', word='parading')),
 
-        (('{^s}', action(word='test', text='test ')), 
+        (('{^s}', action(word='test', text='test ')),
          action(text='s ', replace=' ', word='tests')),
 
         (('{,}', action(word='test', text='test ')), action(text=', ', replace=' ')),
 
         (('{:}', action(word='test', text='test ')), action(text=': ', replace=' ')),
-         
+
         (('{;}', action(word='test', text='test ')), action(text='; ', replace=' ')),
 
-        (('{.}', action(word='test', text='test ')), 
+        (('{.}', action(word='test', text='test ')),
          action(text='. ', replace=' ', capitalize=True)),
 
         (('{?}', action(word='test', text='test ')),
@@ -685,13 +720,13 @@ class FormatterTestCase(unittest.TestCase):
 
         (('{PLOVER:test_command}', action(word='test', text='test ')),
          action(word='test', command='test_command')),
-        
+
         (('{&glue_text}', action(word='test', text='test ')),
          action(text='glue_text ', word='glue_text', glue=True)),
-        
+
         (('{&glue_text}', action(word='test', text='test ', glue=True)),
          action(text='glue_text ', word='testglue_text', replace=' ', glue=True)),
-        
+
         (('{&glue_text}', action(word='test', text='test', attach=True)),
          action(text='glue_text ', word='testglue_text', glue=True)),
 
@@ -704,26 +739,134 @@ class FormatterTestCase(unittest.TestCase):
         (('{attach_text^}', action(word='test', text='test ')),
          action(text='attach_text', word='attach_text', attach=True)),
 
-        (('{#ALT_L(A)}', action(word='test', text='test ')), 
+        (('{#ALT_L(A)}', action(word='test', text='test ')),
          action(combo='ALT_L(A)', word='test')),
 
-        (('text', action(word='test', text='test ')), 
+        (('text', action(word='test', text='test ')),
          action(text='text ', word='text')),
 
-        (('text', action(word='test', text='test ', glue=True)), 
+        (('text', action(word='test', text='test ', glue=True)),
          action(text='text ', word='text')),
 
-        (('text2', action(word='test2', text='test2', attach=True)), 
+        (('text2', action(word='test2', text='test2', attach=True)),
          action(text='text2 ', word='text2', replace='')),
 
-        (('text', action(word='test', text='test ', capitalize=True)), 
+        (('text', action(word='test', text='test ', capitalize=True)),
          action(text='Text ', word='Text')),
 
-        (('some text', action(word='test', text='test ')), 
+        (('some text', action(word='test', text='test ')),
          action(text='some text ', word='text')),
+
+        (('some text', action(word='test',
+                              case=an_action.CASE_TITLE,
+                              space_char='')),
+            action(text='SomeText', word='text',
+                   case=an_action.CASE_TITLE,
+                   space_char='')),
+
+        (('some text', action(word='test', # This is camel case
+                              case=an_action.CASE_TITLE,
+                              space_char='', lower=True)),
+            action(text='someText', word='text',
+                   case=an_action.CASE_TITLE,
+                   space_char='')),
+
+        (('some text', action(word='test', space_char='_')),
+         action(text='some_text_', word='text', space_char='_')),
+
+        (('some text', action(word='test', case=an_action.CASE_UPPER)),
+         action(text='SOME TEXT ', word='text', case=an_action.CASE_UPPER)),
+
+        (('sOme TexT', action(word='test', case=an_action.CASE_LOWER)),
+         action(text='some text ', word='TexT', case=an_action.CASE_LOWER)),
+
+        (('sOme TexT', action(word='test', case=an_action.CASE_TITLE)),
+         action(text='Some Text ', word='TexT', case=an_action.CASE_TITLE)),
+
+        (('{MODE:CAPS}', action(word='test')),
+         action(word='test', case=an_action.CASE_UPPER)),
+
+        (('{MODE:LOWER}', action(word='test')),
+         action(word='test', case=an_action.CASE_LOWER)),
+
         ]
-        self.check_arglist(formatting._atom_to_action_spaces_after, cases)        
-    
+        self.check_arglist(formatting._atom_to_action_spaces_after, cases)
+
+    def test_change_mode(self):
+        an_action = action()
+        cases = [
+            # Undefined
+            (('', action()), (action())),
+            (('ABCD', action()), (action())),
+            # CAPS: Uppercase
+            (('CAPS', action()), (action(case=an_action.CASE_UPPER))),
+            # LOWER: Lowercase
+            (('LOWER', action()), (action(case=an_action.CASE_LOWER))),
+            # TITLE: Titlecase
+            (('TITLE', action()), (action(case=an_action.CASE_TITLE))),
+            # CAMEL: Titlecase without space
+            (('CAMEL', action()), (
+                action(case=an_action.CASE_TITLE, space_char='',
+                       lower=True)
+                )),
+            # SNAKE: Underscore space
+            (('SNAKE', action()), (action(space_char='_'))),
+            # RESET_SPACE: Default space
+            (('RESET_SPACE', action(space_char='ABCD')), (action())),
+            # RESET_CASE: No case
+            (('RESET_CASE', action(
+                case=an_action.CASE_UPPER)), (action())),
+            # SET_SPACE:xy: Set space to xy
+            (('SET_SPACE:', action(space_char='test')),
+                (action(space_char=''))),
+            (('SET_SPACE:-', action(space_char='test')),
+                (action(space_char='-'))),
+            (('SET_SPACE:123 45', action(space_char='test')),
+                (action(space_char='123 45'))),
+            # RESET: No case, default space
+        ]
+
+        self.check_arglist(formatting._change_mode, cases)
+
+    def test_apply_case(self):
+        an_action = action()
+        # case, text, begin
+        test = ' some test '
+        test2 = 'test Me'
+        test3 = ' SOME TEST '
+        cases = [
+            # UNDEFINED
+            ((test, '', False), (test)),
+            ((test, 'TEST', False), (test)),
+            # TITLE
+            ((test, an_action.CASE_TITLE, False), (' Some Test ')),
+            # TITLE will not affect appended output
+            ((test, an_action.CASE_TITLE, True), (' some test ')),
+            ((test2, an_action.CASE_TITLE, True), ('test Me')),
+            # LOWER
+            ((test, an_action.CASE_LOWER, False), (' some test ')),
+            ((test3, an_action.CASE_LOWER, False), (' some test ')),
+            ((test2, an_action.CASE_LOWER, True), ('test me')),
+            # UPPER
+            ((test.upper(), an_action.CASE_UPPER, False), (' SOME TEST ')),
+            ((test3, an_action.CASE_UPPER, False), (' SOME TEST ')),
+            ((test2, an_action.CASE_UPPER, True), ('TEST ME')),
+        ]
+
+        self.check_arglist(formatting._apply_case, cases)
+
+    def test_apply_space_char(self):
+        # (text, space_char)
+        test = ' some text '
+        test2 = "don't"
+        cases = [
+            ((test, '_'), ('_some_text_')),
+            ((test, ''), ('sometext')),
+            ((test2, '_'), (test2)),
+            ((test2, ''), (test2)),
+        ]
+        self.check_arglist(formatting._apply_space_char, cases)
+
     def test_get_meta(self):
         cases = [('', None), ('{abc}', 'abc'), ('abc', None)]
         self.check(formatting._get_meta, cases)
