@@ -1,3 +1,4 @@
+# coding: utf-8
 # Copyright (c) 2010 Joshua Harlan Lifton.
 # See LICENSE.txt for details.
 
@@ -20,7 +21,7 @@ RTS_CTS_STR = 'RTS/CTS'
 XON_XOFF_STR = 'Xon/Xoff'
 OK_STR = 'OK'
 SCAN_STR = "Scan"
-LOADING_STR = "Scanning ports..."
+LOADING_STR = u"Scanning ports…"
 CANCEL_STR = 'Cancel'
 CONNECTION_STR = 'Connection'
 PORT_STR = 'Port'

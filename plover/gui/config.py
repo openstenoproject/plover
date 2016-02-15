@@ -1,3 +1,4 @@
+# coding: utf-8
 # Copyright (c) 2010-2011 Joshua Harlan Lifton.
 # See LICENSE.txt for details.
 
@@ -40,7 +41,7 @@ LOG_FILE_LABEL = "Log File:"
 LOG_STROKES_LABEL = "Log Strokes"
 LOG_TRANSLATIONS_LABEL = "Log Translations"
 LOG_FILE_DIALOG_TITLE = "Select a Log File"
-CONFIG_BUTTON_NAME = "Configure..."
+CONFIG_BUTTON_NAME = u"Configure…"
 SPACE_PLACEMENTS_LABEL = "Space Placement:"
 SPACE_PLACEMENT_BEFORE = "Before Output"
 SPACE_PLACEMENT_AFTER = "After Output"
