@@ -1,11 +1,7 @@
 # Copyright (c) 2010 Joshua Harlan Lifton.
 # See LICENSE.txt for details.
 
-# TODO: look into programmatically pasting into other applications
-
-"For use with a Microsoft Sidewinder X4 keyboard used as stenotype machine."
-
-# TODO: Change name to NKRO Keyboard.
+"For use with a computer keyboard (preferably NKRO) as a steno machine."
 
 from plover.machine.base import StenotypeBase
 from plover.machine.keymap import Keymap
@@ -13,7 +9,7 @@ from plover.oslayer.keyboardcontrol import KeyboardCapture
 
 
 class Stenotype(StenotypeBase):
-    """Standard stenotype interface for a Microsoft Sidewinder X4 keyboard.
+    """Standard stenotype interface for a computer keyboard.
 
     This class implements the three methods necessary for a standard
     stenotype interface: start_capture, stop_capture, and
@@ -22,7 +18,7 @@ class Stenotype(StenotypeBase):
     """
 
     def __init__(self, params):
-        """Monitor a Microsoft Sidewinder X4 keyboard via X events."""
+        """Monitor the keyboard's events."""
         StenotypeBase.__init__(self)
         self.arpeggiate = params['arpeggiate']
         self.keymap = params['keymap'].to_dict()

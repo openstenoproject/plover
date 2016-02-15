@@ -19,7 +19,7 @@ CONFIG_FILE = os.path.join(CONFIG_DIR, 'plover.cfg')
 # General configuration sections, options and defaults.
 MACHINE_CONFIG_SECTION = 'Machine Configuration'
 MACHINE_TYPE_OPTION = 'machine_type'
-DEFAULT_MACHINE_TYPE = 'NKRO Keyboard'
+DEFAULT_MACHINE_TYPE = 'Keyboard'
 MACHINE_AUTO_START_OPTION = 'auto_start'
 DEFAULT_MACHINE_AUTO_START = False
 
