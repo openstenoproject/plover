@@ -5,7 +5,6 @@ import hashlib
 import inspect
 import json
 import os
-import re
 import shutil
 import subprocess
 import sys
@@ -34,14 +33,6 @@ from plover import (
 APPNAME = __software_name__.capitalize()
 VERSION = __version__
 ICON = os.path.join(WIN_DIR, '%s.ico' % __software_name__)
-if os.path.exists(os.path.join(TOP_DIR, '.git')):
-    VERSION = subprocess.check_output('git describe --tags --match=v[0-9]*'.split()).strip()
-    m = re.match(r'^v(\d[\d.]*)(-\d+-g[a-f0-9]*)?$', VERSION)
-    assert m is not None, VERSION
-    VERSION = m.group(1)
-    if m.group(2) is not None:
-        VERSION += '+' + m.group(2)[1:].replace('-', '.')
-    os.environ['PLOVER_VERSION'] = VERSION
 
 
 if sys.stdout.isatty():
