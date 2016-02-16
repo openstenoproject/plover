@@ -29,6 +29,7 @@ from Quartz import (
     kCGKeyboardEventKeycode,
     kCGSessionEventTap,
 )
+import Foundation
 import threading
 import collections
 import sys
@@ -248,7 +249,7 @@ class KeyboardCapture(threading.Thread):
                 handler = self.key_up if event_type == kCGEventKeyUp else self.key_down
                 handler(key)
                 if key in self._suppressed_keys:
-                    # Supress event.
+                    # Suppress event.
                     event = None
             return event
 
@@ -285,18 +286,15 @@ class KeyboardCapture(threading.Thread):
 # let's us iterate over full characters in the string.
 def characters(s):
     encoded = s.encode('utf-32-be')
-    characters = []
-    for i in xrange(len(encoded)/4):
+    for i in xrange(len(encoded) / 4):
         start = i * 4
         end = start + 4
         character = encoded[start:end].decode('utf-32-be')
         yield character
 
-native_utf16 = 'utf-16-le' if sys.byteorder == 'little' else 'utf-16-be'
-
 def set_string(event, s):
-    buf = s.encode(native_utf16)
-    CGEventKeyboardSetUnicodeString(event, len(buf) / 2, buf)
+    buf = Foundation.NSString.stringWithString_(s)
+    CGEventKeyboardSetUnicodeString(event, len(buf), buf)
 
 class KeyboardEmulation(object):
 
