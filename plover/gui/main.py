@@ -1,3 +1,4 @@
+# coding: utf-8
 # Copyright (c) 2010-2011 Joshua Harlan Lifton.
 # See LICENSE.txt for details.
 
@@ -75,9 +76,9 @@ class MainFrame(wx.Frame):
     RUNNING_MESSAGE = "running"
     STOPPED_MESSAGE = "stopped"
     ERROR_MESSAGE = "error"
-    CONFIGURE_BUTTON_LABEL = "Configure..."
-    ABOUT_BUTTON_LABEL = "About..."
-    RECONNECT_BUTTON_LABEL = "Reconnect..."
+    CONFIGURE_BUTTON_LABEL = u"Configure…"
+    ABOUT_BUTTON_LABEL = u"About…"
+    RECONNECT_BUTTON_LABEL = u"Reconnect…"
     COMMAND_SUSPEND = 'SUSPEND'
     COMMAND_ADD_TRANSLATION = 'ADD_TRANSLATION'
     COMMAND_LOOKUP = 'LOOKUP'
