@@ -145,6 +145,7 @@ class AddTranslationDialog(wx.Dialog):
                 label = '%s maps to %s' % (strokes, translation)
             else:
                 label = '%s is not in the dictionary' % strokes
+            label = util.shorten_unicode(label)
         else:
             label = ''
         self.stroke_mapping_text.SetLabel(label)
@@ -162,6 +163,7 @@ class AddTranslationDialog(wx.Dialog):
                 label = '%s is mapped from %s' % (translation, strokes)
             else:
                 label = '%s is not in the dictionary' % translation
+            label = util.shorten_unicode(label)
         else:
             label = ''
         self.translation_mapping_text.SetLabel(label)
