@@ -2,6 +2,13 @@
 # Copyright (c) 2010 Joshua Harlan Lifton.
 # See LICENSE.txt for details.
 
+import os
+import re
+import subprocess
+import sys
+
+import setuptools
+
 from plover import (
     __name__ as __software_name__,
     __version__,
@@ -13,9 +20,36 @@ from plover import (
     __copyright__,
 )
 
-import os
-import sys
-import setuptools
+
+class PatchVersion(setuptools.Command):
+
+    description = 'patch package version from VCS'
+    user_options = []
+
+    def initialize_options(self):
+        pass
+
+    def finalize_options(self):
+        pass
+
+    def run(self):
+        pkgdir = os.path.dirname(__file__)
+        if not os.path.exists(os.path.join(pkgdir, '.git')):
+            return
+        version = subprocess.check_output('git describe --tags --match=v[0-9]*'.split()).strip()
+        m = re.match(r'^v(\d[\d.]*)(-\d+-g[a-f0-9]*)?$', version)
+        assert m is not None, version
+        version = m.group(1)
+        if m.group(2) is not None:
+            version += '+' + m.group(2)[1:].replace('-', '.')
+        version_file = os.path.join(pkgdir, 'plover', '__init__.py')
+        with open(version_file, 'r') as fp:
+            contents = fp.read().split('\n')
+        contents = [re.sub(r'^__version__ = .*$', "__version__ = '%s'" % version, line)
+                    for line in contents]
+        with open(version_file, 'w') as fp:
+            fp.write('\n'.join(contents))
+
 
 setup_requires = []
 options = {}
@@ -41,7 +75,7 @@ if sys.platform.startswith('darwin'):
 
 setuptools.setup(
     name=__software_name__.capitalize(),
-    version=os.environ.get('PLOVER_VERSION', __version__),
+    version=__version__,
     description=__description__,
     long_description=__long_description__,
     url=__url__,
@@ -53,6 +87,9 @@ setuptools.setup(
     maintainer_email='morinted@gmail.com',
     zip_safe=True,
     options=options,
+    cmdclass={
+        'patch_version': PatchVersion,
+    },
     setup_requires=setup_requires,
     install_requires=[
         'setuptools',
