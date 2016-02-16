@@ -63,7 +63,6 @@ setuptools.setup(
         ':"win32" in sys_platform': [
             'pyhook>=1.5.1',
             'pywin32>=219',
-            'pywinauto>=0.5.3',
             'pywinusb>=0.4.0',
             # Can't reliably require wxPython
         ],

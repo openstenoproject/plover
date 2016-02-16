@@ -12,7 +12,7 @@ It is best to develop using 32 bit tools for Plover.
 
 Most dependencies can be retrieve with pip:
 
-`pip install pyserial appdirs pywinusb mock pywinauto`
+`pip install pyserial appdirs pywinusb mock`
 
 ### Externally hosted dependencies
 
