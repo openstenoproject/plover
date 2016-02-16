@@ -29,6 +29,7 @@ from Quartz import (
     kCGKeyboardEventKeycode,
     kCGSessionEventTap,
 )
+import Foundation
 import threading
 import collections
 import sys
@@ -291,11 +292,9 @@ def characters(s):
         character = encoded[start:end].decode('utf-32-be')
         yield character
 
-native_utf16 = 'utf-16-le' if sys.byteorder == 'little' else 'utf-16-be'
-
 def set_string(event, s):
-    buf = s.encode(native_utf16)
-    CGEventKeyboardSetUnicodeString(event, len(buf) / 2, buf)
+    buf = Foundation.NSString.stringWithString_(s)
+    CGEventKeyboardSetUnicodeString(event, len(buf), buf)
 
 class KeyboardEmulation(object):
 
