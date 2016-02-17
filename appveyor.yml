@@ -14,7 +14,7 @@ deploy:
   prerelease: true
   auth_token:
     secure: m8kBg3jFX2k516nlmWkvxNCrBwlQZMaa6hNn7A+rktl781BRTyKssCXQqKAwPJLs
-  artifact: executable, egg
+  artifact: executable
   on:
     branch: weekly
 
@@ -69,7 +69,6 @@ build_script:
 
 after_build:
   - "python windows\\helper.py dist"
-  - "python setup.py bdist_egg"
 
 test_script:
   - "py.test-2.7 -v -ra plover"
@@ -79,5 +78,3 @@ artifacts:
   - path: dist\*.exe
     name: executable
 
-  - path: dist\*.egg
-    name: egg
