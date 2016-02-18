@@ -105,8 +105,22 @@ KEYCODE_TO_KEY = {
     59: ",",
     60: ".",
     61: "/",
-    # Space bar.
-    65: "space",
+    # Other keys.
+    66 : "BackSpace",
+    119: "Delete",
+    116: "Down",
+    115: "End",
+    9  : "Escape",
+    110: "Home",
+    118: "Insert",
+    113: "Left",
+    117: "Page_Down",
+    112: "Page_Up",
+    36 : "Return",
+    114: "Right",
+    23 : "Tab",
+    111: "Up",
+    65 : "space",
 }
 
 KEY_TO_KEYCODE = dict(zip(KEYCODE_TO_KEY.values(), KEYCODE_TO_KEY.keys()))

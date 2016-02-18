@@ -37,8 +37,8 @@ class EditKeysDialog(wx.Dialog):
         self.update_message()
         self.capture.start()
         try:
-            # Prevent dialog from stealing space key events.
-            self.capture.suppress_keyboard(('space',))
+            # Prevent dialog from stealing some key events.
+            self.capture.suppress_keyboard(('space', 'Escape', 'Return', 'Tab'))
             code = super(EditKeysDialog, self).ShowModal()
         finally:
             self.capture.cancel()
