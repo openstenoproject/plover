@@ -24,7 +24,7 @@ class LookupDialog(wx.Dialog):
 
         # components
         self.translation_text = wx.TextCtrl(self, style=wx.TE_PROCESS_ENTER)
-        cancel = wx.Button(self, id=wx.ID_CANCEL)
+        cancel = wx.Button(self, id=wx.ID_CANCEL, label='Cancel')
         self.listbox = wx.ListBox(self, size=wx.Size(210, 200))
         
         # layout
