@@ -60,7 +60,9 @@ build:
   verbosity: minimal
 
 before_build:
+  # Update version number from VCS.
   - "python setup.py patch_version"
+  # And the build number accordingly.
   - ps: "Update-AppveyorBuild -Version \"$(python setup.py --version)\""
   - "ECHO appveyor_build_version: %appveyor_build_version%"
 
