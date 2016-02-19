@@ -71,7 +71,7 @@ after_build:
   - "python windows\\helper.py dist"
 
 test_script:
-  - "py.test-2.7 -v -ra plover"
+  - "python setup.py test"
 
 artifacts:
 
