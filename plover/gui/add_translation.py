@@ -27,7 +27,7 @@ class AddTranslationDialog(wx.Dialog):
         self.strokes_text = wx.TextCtrl(self, style=wx.TE_PROCESS_ENTER)
         self.translation_text = wx.TextCtrl(self, style=wx.TE_PROCESS_ENTER)
         button = wx.Button(self, id=wx.ID_OK, label='Add to dictionary')
-        cancel = wx.Button(self, id=wx.ID_CANCEL)
+        cancel = wx.Button(self, id=wx.ID_CANCEL, label='Cancel')
         self.stroke_mapping_text = wx.StaticText(self)
         self.translation_mapping_text = wx.StaticText(self)
         

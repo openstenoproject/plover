@@ -136,7 +136,7 @@ class KeyboardConfigDialog(wx.Dialog):
 
         ok_button = wx.Button(self, id=wx.ID_OK)
         ok_button.SetDefault()
-        cancel_button = wx.Button(self, id=wx.ID_CANCEL)
+        cancel_button = wx.Button(self, id=wx.ID_CANCEL, label='Cancel')
 
         button_sizer = wx.BoxSizer(wx.HORIZONTAL)
         button_sizer.Add(ok_button, border=UI_BORDER, flag=wx.ALL)

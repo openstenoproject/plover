@@ -120,7 +120,7 @@ class ConfigurationDialog(wx.Dialog):
         button_sizer.AddButton(save_button)
 
         # Configuring and adding the cancel button
-        cancel_button = wx.Button(self, wx.ID_CANCEL)
+        cancel_button = wx.Button(self, wx.ID_CANCEL, label='Cancel')
         button_sizer.AddButton(cancel_button)
         button_sizer.Realize()
 
