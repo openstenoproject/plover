@@ -14,7 +14,7 @@ deploy:
   prerelease: true
   auth_token:
     secure: m8kBg3jFX2k516nlmWkvxNCrBwlQZMaa6hNn7A+rktl781BRTyKssCXQqKAwPJLs
-  artifact: executable, egg
+  artifact: executable
   on:
     branch: weekly
 
@@ -48,10 +48,12 @@ install:
   - "python --version"
 
   # Install wget module.
-  - "pip install --disable-pip-version-check --timeout 5 --retries 2 wget"
+  - "pip --disable-pip-version-check --timeout 5 --retries 2 install wget"
 
   # Setup the rest of the environment.
   - "python windows\\helper.py setup"
+
+  - "pip --disable-pip-version-check list"
 
   # Update PATH.
   - "SET PATH=C:\\Prog\\7-Zip;%PATH%"
@@ -60,7 +62,9 @@ build:
   verbosity: minimal
 
 before_build:
+  # Update version number from VCS.
   - "python setup.py patch_version"
+  # And the build number accordingly.
   - ps: "Update-AppveyorBuild -Version \"$(python setup.py --version)\""
   - "ECHO appveyor_build_version: %appveyor_build_version%"
 
@@ -69,15 +73,12 @@ build_script:
 
 after_build:
   - "python windows\\helper.py dist"
-  - "python setup.py bdist_egg"
 
 test_script:
-  - "py.test-2.7 -v -ra plover"
+  - "python setup.py test"
 
 artifacts:
 
   - path: dist\*.exe
     name: executable
 
-  - path: dist\*.egg
-    name: egg
