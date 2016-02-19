@@ -73,84 +73,113 @@ if sys.platform.startswith('darwin'):
     # Py2app will not look at entry_points.
     kwargs['app'] = 'launch.py',
 
+if sys.platform.startswith('win32'):
+    setup_requires.append('PyInstaller==3.1.1')
+
 setup_requires.extend(('pytest-runner', 'pytest'))
 options['aliases'] = {
     'test': 'pytest --addopts -ra --addopts plover',
 }
 
-setuptools.setup(
-    name=__software_name__.capitalize(),
-    version=__version__,
-    description=__description__,
-    long_description=__long_description__,
-    url=__url__,
-    download_url=__download_url__,
-    license=__license__,
-    author='Joshua Harlan Lifton',
-    author_email='joshua.harlan.lifton@gmail.com',
-    maintainer='Ted Morin',
-    maintainer_email='morinted@gmail.com',
-    zip_safe=True,
-    options=options,
-    cmdclass={
-        'patch_version': PatchVersion,
-    },
-    setup_requires=setup_requires,
-    tests_require=[
-        'mock',
+install_requires = [
+    'setuptools',
+    'pyserial>=2.7',
+    'appdirs>=1.4.0',
+]
+
+extras_require = {
+    ':"win32" in sys_platform': [
+        'pyhook>=1.5.1',
+        'pywin32>=219',
+        'pywinusb>=0.4.0',
+        # Can't reliably require wxPython
     ],
-    install_requires=[
-        'setuptools',
-        'pyserial>=2.7',
-        'appdirs>=1.4.0',
+    ':"linux" in sys_platform': [
+        'python-xlib>=0.14',
+        'wxPython>=3.0',
+        'hidapi',
     ],
-    extras_require={
-        ':"win32" in sys_platform': [
-            'pyhook>=1.5.1',
-            'pywin32>=219',
-            'pywinusb>=0.4.0',
-            # Can't reliably require wxPython
+    ':"darwin" in sys_platform': [
+        'pyobjc-core>=3.0.3',
+        'pyobjc-framework-Cocoa>=3.0.3',
+        'pyobjc-framework-Quartz>=3.0.3',
+        'wxPython>=3.0',
+        'hidapi',
+    ],
+}
+
+tests_require = [
+    'mock',
+]
+
+
+def write_requirements(extra_features=()):
+    requirements = setup_requires + install_requires + tests_require
+    for feature, dependencies in extras_require.items():
+        if feature.startswith(':'):
+            condition = feature[1:]
+            for require in dependencies:
+                requirements.append('%s; %s' % (require, condition))
+        elif feature in extra_features:
+            requirements.extend(dependencies)
+    with open('requirements.txt', 'w') as fp:
+        fp.write('\n'.join(requirements))
+        fp.write('\n')
+
+
+if __name__ == '__main__':
+
+    setuptools.setup(
+        name=__software_name__.capitalize(),
+        version=__version__,
+        description=__description__,
+        long_description=__long_description__,
+        url=__url__,
+        download_url=__download_url__,
+        license=__license__,
+        author='Joshua Harlan Lifton',
+        author_email='joshua.harlan.lifton@gmail.com',
+        maintainer='Ted Morin',
+        maintainer_email='morinted@gmail.com',
+        zip_safe=True,
+        options=options,
+        cmdclass={
+            'patch_version': PatchVersion,
+        },
+        setup_requires=setup_requires,
+        install_requires=install_requires,
+        extras_require=extras_require,
+        tests_require=tests_require,
+        entry_points={
+            'console_scripts': ['plover=plover.main:main'],
+            'setuptools.installation': ['eggsecutable=plover.main:main'],
+        },
+        packages=[
+            'plover', 'plover.machine', 'plover.gui',
+            'plover.oslayer', 'plover.dictionary',
         ],
-        ':"linux" in sys_platform': [
-            'python-xlib>=0.14',
-            'wxPython>=3.0',
+        package_data={
+            'plover': ['assets/*'],
+        },
+        data_files=[
+            ('share/applications', ['application/Plover.desktop']),
+            ('share/pixmaps', ['plover/assets/plover_on.png']),
         ],
-        ':"darwin" in sys_platform': [
-            'pyobjc-core>=3.0.3',
-            'pyobjc-framework-Cocoa>=3.0.3',
-            'pyobjc-framework-Quartz>=3.0.3',
-            'wxPython>=3.0',
+        platforms=[
+            'Operating System :: POSIX :: Linux',
+            'Operating System :: Microsoft :: Windows',
         ],
-    },
-    entry_points={
-        'console_scripts': ['plover=plover.main:main'],
-        'setuptools.installation': ['eggsecutable=plover.main:main'],
-    },
-    packages=[
-        'plover', 'plover.machine', 'plover.gui',
-        'plover.oslayer', 'plover.dictionary',
-    ],
-    package_data={
-        'plover': ['assets/*'],
-    },
-    data_files=[
-        ('share/applications', ['application/Plover.desktop']),
-        ('share/pixmaps', ['plover/assets/plover_on.png']),
-    ],
-    platforms=[
-        'Operating System :: POSIX :: Linux',
-        'Operating System :: Microsoft :: Windows',
-    ],
-    classifiers=[
-        'Programming Language :: Python',
-        'License :: OSI Approved :: GNU General Public License (GPL)',
-        'Development Status :: 4 - Beta',
-        'Environment :: X11 Applications',
-        'Intended Audience :: End Users/Desktop',
-        'Natural Language :: English',
-        'Operating System :: POSIX :: Linux',
-        'Topic :: Adaptive Technologies',
-        'Topic :: Desktop Environment',
-    ],
-    **kwargs
-)
+        classifiers=[
+            'Programming Language :: Python',
+            'License :: OSI Approved :: GNU General Public License (GPL)',
+            'Development Status :: 4 - Beta',
+            'Environment :: X11 Applications',
+            'Intended Audience :: End Users/Desktop',
+            'Natural Language :: English',
+            'Operating System :: POSIX :: Linux',
+            'Topic :: Adaptive Technologies',
+            'Topic :: Desktop Environment',
+        ],
+        **kwargs
+    )
+
