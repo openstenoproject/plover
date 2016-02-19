@@ -48,10 +48,12 @@ install:
   - "python --version"
 
   # Install wget module.
-  - "pip install --disable-pip-version-check --timeout 5 --retries 2 wget"
+  - "pip --disable-pip-version-check --timeout 5 --retries 2 install wget"
 
   # Setup the rest of the environment.
   - "python windows\\helper.py setup"
+
+  - "pip --disable-pip-version-check list"
 
   # Update PATH.
   - "SET PATH=C:\\Prog\\7-Zip;%PATH%"
