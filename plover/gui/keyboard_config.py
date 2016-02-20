@@ -1,10 +1,14 @@
 # Copyright (c) 2013 Hesky Fisher
 # See LICENSE.txt for details.
 
+from collections import OrderedDict
+
 import wx
 from wx.lib.utils import AdjustRectToScreen
 import wx.lib.mixins.listctrl as listmix
+
 from plover.oslayer.keyboardcontrol import KeyboardCapture
+from plover.machine.keyboard import Stenotype as KeyboardMachine
 
 DIALOG_TITLE = 'Keyboard Configuration'
 ARPEGGIATE_LABEL = "Arpeggiate"
@@ -144,10 +148,12 @@ class KeyboardConfigDialog(wx.Dialog):
         ok_button = wx.Button(self, id=wx.ID_OK)
         ok_button.SetDefault()
         cancel_button = wx.Button(self, id=wx.ID_CANCEL, label='Cancel')
+        reset_button = wx.Button(self, id=wx.ID_RESET, label='Reset to default')
 
         button_sizer = wx.BoxSizer(wx.HORIZONTAL)
         button_sizer.Add(ok_button, border=UI_BORDER, flag=wx.ALL)
         button_sizer.Add(cancel_button, border=UI_BORDER, flag=wx.ALL)
+        button_sizer.Add(reset_button, border=UI_BORDER, flag=wx.ALL)
         sizer.Add(button_sizer, flag=wx.ALL | wx.ALIGN_RIGHT, border=UI_BORDER)
                   
         self.SetSizer(sizer)
@@ -155,8 +161,22 @@ class KeyboardConfigDialog(wx.Dialog):
         self.SetRect(AdjustRectToScreen(self.GetRect()))
         
         self.Bind(wx.EVT_MOVE, self.on_move)
-        ok_button.Bind(wx.EVT_BUTTON, self.on_ok)
-        cancel_button.Bind(wx.EVT_BUTTON, self.on_cancel)
+        ok_button.Bind(wx.EVT_BUTTON, lambda e: self.EndModal(wx.ID_OK))
+        cancel_button.Bind(wx.EVT_BUTTON, lambda e: self.EndModal(wx.ID_CANCEL))
+        reset_button.Bind(wx.EVT_BUTTON, self.on_reset)
+
+    def ShowModal(self):
+        code = super(KeyboardConfigDialog, self).ShowModal()
+        if wx.ID_OK == code:
+            self.options.arpeggiate = self.arpeggiate_option.GetValue()
+            mappings = self.keymap_widget.get_mappings()
+            self.options.keymap.set_mappings(mappings)
+        return code
+
+    def on_reset(self, event):
+        mappings = self.keymap_widget.get_mappings()
+        mappings.update(KeyboardMachine.DEFAULT_MAPPINGS)
+        self.keymap_widget.set_mappings(mappings)
 
     def on_move(self, event):
         pos = self.GetScreenPositionTuple()
@@ -164,14 +184,3 @@ class KeyboardConfigDialog(wx.Dialog):
         self.config.set_keyboard_config_frame_y(pos[1])
         event.Skip()
 
-    def on_ok(self, event):
-        self.options.arpeggiate = self.arpeggiate_option.GetValue()
-        mappings = self.keymap_widget.get_mappings()
-        self.options.keymap.set_mappings(mappings)
-        self.EndModal(wx.ID_OK)
-
-    def on_cancel(self, event):
-        self.EndModal(wx.ID_CANCEL)
-        
-        
-        
