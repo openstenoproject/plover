@@ -511,26 +511,8 @@ def _atom_to_action_spaces_before(atom, last_action):
                 action.replace = last_action.text
                 action.text = _upper(last_action.text)
         elif meta.startswith(META_RETRO_FORMAT):
-            if (meta.startswith(META_RETRO_FORMAT) and meta.endswith(')')):
-                dict_format = meta[len(META_RETRO_FORMAT):-len(')')]
-                action = last_action.copy_state()
-                action.replace = last_action.word
-                try:
-                    float(last_action.word)
-                except ValueError:
-                    pass
-                else:
-                    format = dict_format.replace('c', '{:,.2f}')
-                    cast_input = float(last_action.word)
-                try:
-                    int(last_action.word)
-                except ValueError:
-                    pass
-                else:
-                    format = dict_format.replace('c', '{:,}')
-                    cast_input = int(last_action.word)
-                action.text = format.format(cast_input)
-                action.word = action.text
+            if meta.startswith(META_RETRO_FORMAT) and meta.endswith(')'):
+                action = _apply_currency(meta, last_action)
         elif meta.startswith(META_COMMAND):
             action = last_action.copy_state()
             action.command = meta[len(META_COMMAND):]
@@ -695,26 +677,8 @@ def _atom_to_action_spaces_after(atom, last_action):
                 action.replace = last_action.text
                 action.text = _upper(last_action.text)
         elif meta.startswith(META_RETRO_FORMAT):
-            if (meta.startswith(META_RETRO_FORMAT) and meta.endswith(')')):
-                dict_format = meta[len(META_RETRO_FORMAT):-len(')')]
-                action = last_action.copy_state()
-                action.replace = last_action.word + SPACE
-                try:
-                    float(last_action.word)
-                except ValueError:
-                    pass
-                else:
-                    format = dict_format.replace('c', '{:,.2f}')
-                    cast_input = float(last_action.word)
-                try:
-                    int(last_action.word)
-                except ValueError:
-                    pass
-                else:
-                    format = dict_format.replace('c', '{:,}')
-                    cast_input = int(last_action.word)
-                action.text = format.format(cast_input) + SPACE
-                action.word = format.format(cast_input)
+            if meta.startswith(META_RETRO_FORMAT) and meta.endswith(')'):
+                action = _apply_currency(meta, last_action, spaces_after=True)
         elif meta.startswith(META_COMMAND):
             action = last_action.copy_state()
             action.command = meta[len(META_COMMAND):]
@@ -824,6 +788,32 @@ def _apply_mode(text, case, space_char, begin, last_attach,
                 text = _lower(text)
 
     return text
+
+
+def _apply_currency(meta, last_action, spaces_after=False):
+    dict_format = meta[len(META_RETRO_FORMAT):-len(')')]
+    action = last_action.copy_state()
+    cast_input = None
+    try:
+        cast_input = float(last_action.word)
+    except ValueError:
+        pass
+    else:
+        currency_format = dict_format.replace('c', '{:,.2f}')
+    try:
+        cast_input = int(last_action.word)
+    except ValueError:
+        pass
+    else:
+        currency_format = dict_format.replace('c', '{:,}')
+    if cast_input is not None:
+        action.replace = last_action.word
+        action.word = currency_format.format(cast_input)
+        action.text = action.word
+        if spaces_after:
+            action.replace += SPACE
+            action.text += SPACE
+    return action
 
 
 def _change_mode(command, action):

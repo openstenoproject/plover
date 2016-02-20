@@ -304,6 +304,21 @@ class FormatterTestCase(unittest.TestCase):
           action(text='EQUIPPED', word='EQUIPPED', replace='equipped', upper_carry=True),
          ]),
 
+        (('notanumber {*($c)}', action(), False),
+         [action(text=' notanumber', word='notanumber'),
+          action(text='', word='notanumber', replace=''),
+         ]),
+
+        (('0 {*($c)}', action(), False),
+         [action(text=' 0', word='0'),
+          action(text='$0', word='$0', replace='0'),
+         ]),
+
+        (('0.00 {*($c)}', action(), False),
+         [action(text=' 0.00', word='0.00'),
+          action(text='$0.00', word='$0.00', replace='0.00'),
+         ]),
+
         (('1234 {*($c)}', action(), False),
          [action(text=' 1234', word='1234'),
           action(text='$1,234', word='$1,234', replace='1234'),
@@ -443,6 +458,21 @@ class FormatterTestCase(unittest.TestCase):
          [action(text='equip ', word='equip'),
           action(text='ped ', word='equipped', replace=' '),
           action(text='EQUIPPED ', word='EQUIPPED', replace='equipped ', upper_carry=True),
+         ]),
+
+        (('notanumber {*($c)}', action(), True),
+         [action(text='notanumber ', word='notanumber'),
+          action(text='', word='notanumber', replace=''),
+         ]),
+
+        (('0 {*($c)}', action(), True),
+         [action(text='0 ', word='0'),
+          action(text='$0 ', word='$0', replace='0 '),
+         ]),
+
+        (('0.00 {*($c)}', action(), True),
+         [action(text='0.00 ', word='0.00'),
+          action(text='$0.00 ', word='$0.00', replace='0.00 '),
          ]),
 
         (('1234 {*($c)}', action(), True),
