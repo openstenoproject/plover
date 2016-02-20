@@ -205,7 +205,7 @@ class MachineConfig(wx.Panel):
         sizer.AddF(wx.StaticText(self, label=MACHINE_LABEL), sizer_flags.Left())
         machines = machine_registry.get_all_names()
         current_machine = self.config.get_machine_type()
-        self.choice = wx.Choice(self, choices=machines)
+        self.choice = wx.Choice(self, choices=sorted(machines))
         self.choice.SetStringSelection(machine_registry.resolve_alias(current_machine))
         sizer.AddF(self.choice, sizer_flags.Expand())
         self.Bind(wx.EVT_CHOICE, self._update, self.choice)
