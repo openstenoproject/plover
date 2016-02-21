@@ -21,33 +21,6 @@ class Stenotype(SerialStenotypeBase):
         ! ^ +
     '''
 
-    DEFAULT_MAPPINGS = {
-        '#'    : '#',
-        'S-'   : ('S', 'C'),
-        'T-'   : 'T',
-        'K-'   : 'K',
-        'P-'   : 'P',
-        'W-'   : 'W',
-        'H-'   : 'H',
-        'R-'   : 'R',
-        'A-'   : 'A',
-        'O-'   : 'O',
-        '*'    : ('~', '*'),
-        '-E'   : 'E',
-        '-U'   : 'U',
-        '-F'   : 'F',
-        '-R'   : 'Q',
-        '-P'   : 'N',
-        '-B'   : 'B',
-        '-L'   : 'L',
-        '-G'   : 'G',
-        '-T'   : 'Y',
-        '-S'   : 'X',
-        '-D'   : 'D',
-        '-Z'   : 'Z',
-        'no-op': ('!', '^', '+'),
-    }
-
     def __init__(self, params):
         super(Stenotype, self).__init__(params)
         self.packet = []

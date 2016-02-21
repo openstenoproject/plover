@@ -20,40 +20,20 @@ class Stenotype(StenotypeBase):
     KEYS_LAYOUT = KeyboardCapture.SUPPORTED_KEYS_LAYOUT
     ACTIONS = StenotypeBase.ACTIONS + ('arpeggiate',)
 
-    DEFAULT_MAPPINGS = {
-        '#'         : ('1', '2', '3', '4', '5', '6', '7', '8', '9', '0', '-', '='),
-        'S-'        : ('a', 'q'),
-        'T-'        : 'w',
-        'K-'        : 's',
-        'P-'        : 'e',
-        'W-'        : 'd',
-        'H-'        : 'r',
-        'R-'        : 'f',
-        'A-'        : 'c',
-        'O-'        : 'v',
-        '*'         : ('t', 'g', 'y', 'h'),
-        '-E'        : 'n',
-        '-U'        : 'm',
-        '-F'        : 'u',
-        '-R'        : 'j',
-        '-P'        : 'i',
-        '-B'        : 'k',
-        '-L'        : 'o',
-        '-G'        : 'l',
-        '-T'        : 'p',
-        '-S'        : ';',
-        '-D'        : '[',
-        '-Z'        : '\'',
-        'arpeggiate': 'space',
-        # Suppress adjacent keys to prevent miss-strokes.
-        'no-op'     : ('z', 'x', 'b', ',', '.', '/', ']', '\\'),
-    }
-
     def __init__(self, params):
         """Monitor the keyboard's events."""
         super(Stenotype, self).__init__()
         self.arpeggiate = params['arpeggiate']
-        self.keymap = params['keymap']
+        self._bindings = {}
+        self._down_keys = set()
+        self._released_keys = set()
+        self._keyboard_capture = KeyboardCapture()
+        self._keyboard_capture.key_down = self._key_down
+        self._keyboard_capture.key_up = self._key_up
+        self._last_stroke_key_down_count = 0
+        self._update_bindings()
+
+    def _update_bindings(self):
         self._bindings = dict(self.keymap.get_bindings())
         for key, mapping in self._bindings.items():
             if 'no-op' == mapping:
@@ -65,12 +45,10 @@ class Stenotype(StenotypeBase):
                 else:
                     # Don't suppress arpeggiate key if it's not used.
                     del self._bindings[key]
-        self._down_keys = set()
-        self._released_keys = set()
-        self._keyboard_capture = KeyboardCapture()
-        self._keyboard_capture.key_down = self._key_down
-        self._keyboard_capture.key_up = self._key_up
-        self._last_stroke_key_down_count = 0
+
+    def set_mappings(self, mappings):
+        super(Stenotype, self).set_mappings(mappings)
+        self._update_bindings()
 
     def start_capture(self):
         """Begin listening for output from the stenotype machine."""
@@ -125,11 +103,6 @@ class Stenotype(StenotypeBase):
     @classmethod
     def get_option_info(cls):
         bool_converter = lambda s: s == 'True'
-        def keymap_converter(mappings):
-            keymap = Keymap(cls.KEYS_LAYOUT.split(), cls.ACTIONS)
-            keymap.set_mappings(mappings)
-            return keymap
         return {
             'arpeggiate': (False, bool_converter),
-            'keymap':     (keymap_converter(cls.DEFAULT_MAPPINGS), keymap_converter),
         }

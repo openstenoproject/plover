@@ -61,33 +61,6 @@ class Stenotype(StenotypeBase):
                    A- O- X3 -E -U
     '''
 
-    DEFAULT_MAPPINGS = {
-        '#'    : ('#1', '#2', '#3', '#4', '#5', '#6', '#7', '#8', '#9', '#A', '#B'),
-        'S-'   : ('S1-', 'S2-'),
-        'T-'   : 'T-',
-        'K-'   : 'K-',
-        'P-'   : 'P-',
-        'W-'   : 'W-',
-        'H-'   : 'H-',
-        'R-'   : 'R-',
-        'A-'   : 'A-',
-        'O-'   : 'O-',
-        '*'    : ('*1', '*2'),
-        '-E'   : '-E',
-        '-U'   : '-U',
-        '-F'   : '-F',
-        '-R'   : '-R',
-        '-P'   : '-P',
-        '-B'   : '-B',
-        '-L'   : '-L',
-        '-G'   : '-G',
-        '-T'   : '-T',
-        '-S'   : '-S',
-        '-D'   : '-D',
-        '-Z'   : '-Z',
-        'no-op': ('X1-', 'X2-', 'X3'),
-    }
-
     def __init__(self, params):
         super(Stenotype, self).__init__()
         self._machine = None

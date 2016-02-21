@@ -9,6 +9,8 @@ import wx.lib.mixins.listctrl as listmix
 
 from plover.oslayer.keyboardcontrol import KeyboardCapture
 from plover.machine.keyboard import Stenotype as KeyboardMachine
+from plover.machine.keymap import Keymap
+from plover import system
 
 DIALOG_TITLE = 'Keyboard Configuration'
 ARPEGGIATE_LABEL = "Arpeggiate"
@@ -79,9 +81,12 @@ class EditKeysDialog(wx.Dialog):
 
 class EditKeymapWidget(wx.ListCtrl, listmix.ListCtrlAutoWidthMixin):
 
-    def __init__(self, parent, ID=wx.ID_ANY, pos=wx.DefaultPosition,
-                 size=wx.DefaultSize, style=0):
-        wx.ListCtrl.__init__(self, parent, ID, pos, size, style)
+    def __init__(self, parent):
+        wx.ListCtrl.__init__(self, parent,
+                             id=wx.ID_ANY,
+                             pos=wx.DefaultPosition,
+                             size=(300, 200),
+                             style=wx.LC_REPORT)
         listmix.ListCtrlAutoWidthMixin.__init__(self)
         self.Bind(wx.EVT_LIST_ITEM_ACTIVATED, self.edit_item)
         self.InsertColumn(0, 'Steno Keys / Actions')
@@ -132,17 +137,21 @@ class KeyboardConfigDialog(wx.Dialog):
         wx.Dialog.__init__(self, parent, title=DIALOG_TITLE, pos=pos)
 
         sizer = wx.BoxSizer(wx.VERTICAL)
-        
+
         instructions = wx.StaticText(self, label=ARPEGGIATE_INSTRUCTIONS)
         sizer.Add(instructions, border=UI_BORDER, flag=wx.ALL)
         self.arpeggiate_option = wx.CheckBox(self, label=ARPEGGIATE_LABEL)
         self.arpeggiate_option.SetValue(options.arpeggiate)
         sizer.Add(self.arpeggiate_option, border=UI_BORDER, 
                   flag=wx.LEFT | wx.RIGHT | wx.BOTTOM)
-        
+
         # editable list for keymap bindings
-        self.keymap_widget = EditKeymapWidget(self, style=wx.LC_REPORT, size=(300,200))
-        self.keymap_widget.set_mappings(options.keymap.get_mappings())
+        self.keymap = Keymap(KeyboardMachine.KEYS_LAYOUT.split(), KeyboardMachine.ACTIONS)
+        mappings = config.get_system_keymap('Keyboard')
+        if mappings is not None:
+            self.keymap.set_mappings(mappings)
+        self.keymap_widget = EditKeymapWidget(self)
+        self.keymap_widget.set_mappings(self.keymap.get_mappings())
         sizer.Add(self.keymap_widget, flag=wx.EXPAND)
 
         ok_button = wx.Button(self, id=wx.ID_OK)
@@ -169,13 +178,14 @@ class KeyboardConfigDialog(wx.Dialog):
         code = super(KeyboardConfigDialog, self).ShowModal()
         if wx.ID_OK == code:
             self.options.arpeggiate = self.arpeggiate_option.GetValue()
-            mappings = self.keymap_widget.get_mappings()
-            self.options.keymap.set_mappings(mappings)
+            # Validate mappings by updating the keymap object.
+            self.keymap.set_mappings(self.keymap_widget.get_mappings())
+            self.config.set_system_keymap('Keyboard', str(self.keymap))
         return code
 
     def on_reset(self, event):
         mappings = self.keymap_widget.get_mappings()
-        mappings.update(KeyboardMachine.DEFAULT_MAPPINGS)
+        mappings.update(system.KEYMAPS['Keyboard'])
         self.keymap_widget.set_mappings(mappings)
 
     def on_move(self, event):

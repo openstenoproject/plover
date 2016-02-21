@@ -648,33 +648,6 @@ class Stenotype(plover.machine.base.SerialStenotypeBase):
         ^
     '''
 
-    DEFAULT_MAPPINGS = {
-        '#'    : '#',
-        'S-'   : 'S-',
-        'T-'   : 'T-',
-        'K-'   : 'K-',
-        'P-'   : 'P-',
-        'W-'   : 'W-',
-        'H-'   : 'H-',
-        'R-'   : 'R-',
-        'A-'   : 'A-',
-        'O-'   : 'O-',
-        '*'    : '*',
-        '-E'   : '-E',
-        '-U'   : '-U',
-        '-F'   : '-F',
-        '-R'   : '-R',
-        '-P'   : '-P',
-        '-B'   : '-B',
-        '-L'   : '-L',
-        '-G'   : '-G',
-        '-T'   : '-T',
-        '-S'   : '-S',
-        '-D'   : '-D',
-        '-Z'   : '-Z',
-        'no-op': '^',
-    }
-
     def _on_stroke(self, keys):
         steno_keys = self.keymap.keys_to_actions(keys)
         if steno_keys:

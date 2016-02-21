@@ -41,33 +41,6 @@ class Stenotype(plover.machine.base.SerialStenotypeBase):
         res2
     '''
 
-    DEFAULT_MAPPINGS = {
-        '#'         : ('#1', '#2', '#3', '#4', '#5', '#6', '#7', '#8', '#9', '#A', '#B', '#C'),
-        'S-'        : ('S1-', 'S2-'),
-        'T-'        : 'T-',
-        'K-'        : 'K-',
-        'P-'        : 'P-',
-        'W-'        : 'W-',
-        'H-'        : 'H-',
-        'R-'        : 'R-',
-        'A-'        : 'A-',
-        'O-'        : 'O-',
-        '*'         : ('*1', '*2', '*3', '*4'),
-        '-E'        : '-E',
-        '-U'        : '-U',
-        '-F'        : '-F',
-        '-R'        : '-R',
-        '-P'        : '-P',
-        '-B'        : '-B',
-        '-L'        : '-L',
-        '-G'        : '-G',
-        '-T'        : '-T',
-        '-S'        : '-S',
-        '-D'        : '-D',
-        '-Z'        : '-Z',
-        'no-op'     : ('Fn', 'pwr', 'res1', 'res2'),
-    }
-
     def run(self):
         """Overrides base class run method. Do not call directly."""
         self._ready()

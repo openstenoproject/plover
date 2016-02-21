@@ -46,32 +46,6 @@ class Stenotype(plover.machine.base.SerialStenotypeBase):
               A- O-   -E -U
     '''
 
-    DEFAULT_MAPPINGS = {
-        '#'    : '#',
-        'S-'   : 'S-',
-        'T-'   : 'T-',
-        'K-'   : 'K-',
-        'P-'   : 'P-',
-        'W-'   : 'W-',
-        'H-'   : 'H-',
-        'R-'   : 'R-',
-        'A-'   : 'A-',
-        'O-'   : 'O-',
-        '*'    : '*',
-        '-E'   : '-E',
-        '-U'   : '-U',
-        '-F'   : '-F',
-        '-R'   : '-R',
-        '-P'   : '-P',
-        '-B'   : '-B',
-        '-L'   : '-L',
-        '-G'   : '-G',
-        '-T'   : '-T',
-        '-S'   : '-S',
-        '-D'   : '-D',
-        '-Z'   : '-Z',
-    }
-
     def __init__(self, params):
         super(Stenotype, self).__init__(params)
         self._reset_stroke_state()

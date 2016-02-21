@@ -11,7 +11,7 @@ import threading
 
 from plover import log
 from plover.machine.keymap import Keymap
-from plover.steno import STENO_KEY_ORDER
+from plover import system
 
 
 STATE_STOPPED = 'closed'
@@ -27,19 +27,20 @@ class StenotypeBase(object):
     KEYS_LAYOUT = ()
     # And possible actions to map to.
     ACTIONS = (
-        tuple(sorted(STENO_KEY_ORDER.keys(),
-                     key=lambda k: STENO_KEY_ORDER[k]))
+        tuple(sorted(system.KEY_ORDER.keys(),
+                     key=lambda k: system.KEY_ORDER[k]))
         + ('no-op',)
     )
-    # And default mapping of actions (e.g. steno key) to those keys.
-    DEFAULT_MAPPINGS = {}
 
     def __init__(self):
         self.keymap = Keymap(self.KEYS_LAYOUT.split(), self.ACTIONS)
-        self.keymap.set_mappings(self.DEFAULT_MAPPINGS)
         self.stroke_subscribers = []
         self.state_subscribers = []
         self.state = STATE_STOPPED
+
+    def set_mappings(self, mappings):
+        """Setup machine keymap: mappings of action to keys."""
+        self.keymap.set_mappings(mappings)
 
     def start_capture(self):
         """Begin listening for output from the stenotype machine."""

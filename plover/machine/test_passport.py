@@ -5,10 +5,14 @@
 
 from operator import eq
 from itertools import starmap
-import unittest
-from mock import patch
-from plover.machine.passport import Stenotype
 import time
+import unittest
+
+from mock import patch
+
+from plover.machine.passport import Stenotype
+from plover import system
+
 
 class MockSerial(object):
     
@@ -68,6 +72,7 @@ class TestCase(unittest.TestCase):
                 actual = []
                 m = Stenotype(params)
                 m.add_stroke_callback(lambda s: actual.append(s))
+                m.set_mappings(system.KEYMAPS['Passport'])
                 m.start_capture()
                 while mock.index < len(mock.inputs):
                     time.sleep(0.00001)

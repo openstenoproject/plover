@@ -26,6 +26,7 @@ from plover.exception import InvalidConfigurationError,DictionaryLoaderException
 from plover.machine.registry import machine_registry, NoSuchMachineException
 from plover import log
 from plover.dictionary.loading_manager import manager as dict_manager
+from plover import system
 
 # Because 2.7 doesn't have this yet.
 class SimpleNamespace(object):
@@ -61,15 +62,22 @@ def update_engine(engine, old, new, reset_machine=False):
         old = NoneConfig()
 
     machine_type = new.get_machine_type()
+    machine_mappings = new.get_system_keymap(machine_type)
     machine_options = new.get_machine_specific_options(machine_type)
     if (reset_machine or
             old.get_machine_type() != machine_type or
+            old.get_system_keymap(machine_type) != machine_mappings or
             old.get_machine_specific_options(machine_type) != machine_options):
         try:
             machine_class = machine_registry.get(machine_type)
         except NoSuchMachineException as e:
             raise InvalidConfigurationError(unicode(e))
-        engine.set_machine(machine_class(machine_options))
+        machine = machine_class(machine_options)
+        if machine_mappings is None:
+            log.warning('no mappings defined for %s, the machine won\'t be usable', machine_type)
+        else:
+            machine.set_mappings(machine_mappings)
+        engine.set_machine(machine)
 
     dictionary_file_names = new.get_dictionary_file_names()
     if old.get_dictionary_file_names() != dictionary_file_names:
