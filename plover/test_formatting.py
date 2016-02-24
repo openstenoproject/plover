@@ -52,6 +52,45 @@ class FormatterTestCase(unittest.TestCase):
                 print actual, '!=', expected, 'for', inputs
             self.assertEqual(actual, expected)
 
+    def test_starting_stroke(self):
+        # Args: (Capitalized, Attached, Undo, Current, Prev Formatter)
+        cases = (
+            (
+             (True, True, [], [translation(rtfcre=('S'), english='hello')], None),
+             ([action(text='Hello', word='Hello')],),
+             [('s', 'Hello')]
+            ),
+            (
+             (False, False, [], [translation(rtfcre=('S'), english='hello')], None),
+             ([action(text=' hello', word='hello')],),
+             [('s', ' hello')]
+            ),
+            (
+             (True, False, [], [translation(rtfcre=('S'), english='hello')], None),
+             ([action(text=' Hello', word='Hello')],),
+             [('s', ' Hello')]
+            ),
+            (
+             (False, True, [], [translation(rtfcre=('S'), english='hello')], None),
+             ([action(text='hello', word='hello')],),
+             [('s', 'hello')]
+            ),
+        )
+
+        for args, formats, outputs in cases:
+            output = CaptureOutput()
+            formatter = formatting.Formatter()
+            formatter.set_output(output)
+            formatter.set_space_placement('Before Output')
+
+            capitalized, attached, undo, do, prev = args
+            formatter.start_capitalized = capitalized
+            formatter.start_attached = attached
+            formatter.format(undo, do, prev)
+            for i in xrange(len(do)):
+                self.assertEqual(do[i].formatting, formats[i])
+            self.assertEqual(output.instructions, outputs)
+
     def test_formatter(self):
         cases = (
 
@@ -193,10 +232,16 @@ class FormatterTestCase(unittest.TestCase):
             self.assertEqual(output.instructions, outputs)
 
     def test_get_last_action(self):
-        self.assertEqual(formatting._get_last_action(None), action())
-        self.assertEqual(formatting._get_last_action([]), action())
+        formatter = formatting.Formatter()
+        self.assertEqual(formatter._get_last_action(None), action())
+        self.assertEqual(formatter._get_last_action([]), action())
         actions = [action(text='hello'), action(text='world')]
-        self.assertEqual(formatting._get_last_action(actions), actions[-1])
+        self.assertEqual(formatter._get_last_action(actions), actions[-1])
+        formatter.start_attached = True
+        formatter.start_capitalized = True
+        self.assertEqual(formatter._get_last_action(None), action(capitalize=True,
+                                                                  attach=True))
+
 
     def test_action(self):
         self.assertNotEqual(action(word='test'), 
@@ -687,6 +732,7 @@ class FormatterTestCase(unittest.TestCase):
         ]
 
         self.check_arglist(formatting._atom_to_action_spaces_before, cases)
+
 
     def test_atom_to_action_spaces_after(self):
         an_action = action()

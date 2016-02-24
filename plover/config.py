@@ -63,6 +63,10 @@ DEFAULT_SUGGESTIONS_DISPLAY_Y = -1
 OUTPUT_CONFIG_SECTION = 'Output Configuration'
 OUTPUT_CONFIG_SPACE_PLACEMENT_OPTION = 'space_placement'
 DEFAULT_OUTPUT_CONFIG_SPACE_PLACEMENT = 'Before Output'
+OUTPUT_CONFIG_START_CAPITALIZED = 'capitalize_first_stroke'
+DEFAULT_OUTPUT_CONFIG_START_CAPITALIZED = False
+OUTPUT_CONFIG_START_ATTACHED = 'attach_first_stroke'
+DEFAULT_OUTPUT_CONFIG_START_ATTACHED = False
 
 CONFIG_FRAME_SECTION = 'Config Frame'
 CONFIG_FRAME_X_OPTION = 'x'
@@ -276,6 +280,20 @@ class Config(object):
 
     def set_space_placement(self, s):
         self._set(OUTPUT_CONFIG_SECTION, OUTPUT_CONFIG_SPACE_PLACEMENT_OPTION, s)
+
+    def get_start_capitalized(self):
+        return self._get_bool(OUTPUT_CONFIG_SECTION, OUTPUT_CONFIG_START_CAPITALIZED,
+                              DEFAULT_OUTPUT_CONFIG_START_CAPITALIZED)
+
+    def set_start_capitalized(self, b):
+        self._set(OUTPUT_CONFIG_SECTION, OUTPUT_CONFIG_START_CAPITALIZED, b)
+
+    def get_start_attached(self):
+        return self._get_bool(OUTPUT_CONFIG_SECTION, OUTPUT_CONFIG_START_ATTACHED,
+                              DEFAULT_OUTPUT_CONFIG_START_ATTACHED)
+
+    def set_start_attached(self, b):
+        self._set(OUTPUT_CONFIG_SECTION, OUTPUT_CONFIG_START_ATTACHED, b)
 
     def set_stroke_display_on_top(self, b):
         self._set(STROKE_DISPLAY_SECTION, STROKE_DISPLAY_ON_TOP_OPTION, b)

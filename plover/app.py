@@ -52,6 +52,8 @@ def init_engine(engine, config):
     engine.enable_stroke_logging(config.get_enable_stroke_logging())
     engine.enable_translation_logging(config.get_enable_translation_logging())
     engine.set_space_placement(config.get_space_placement())
+    engine.set_starting_stroke_state(capitalize=config.get_start_capitalized(),
+                                     attach=config.get_start_attached())
     
     engine.set_is_running(config.get_auto_start())
 
@@ -104,6 +106,13 @@ def update_engine(engine, old, new):
     space_placement = new.get_space_placement()
     if old.get_space_placement() != space_placement:
         engine.set_space_placement(space_placement)
+
+    start_capitalized = new.get_start_capitalized()
+    start_attached = new.get_start_attached()
+    if (old.get_start_capitalized() != start_capitalized or
+            old.get_start_attached() != start_attached):
+        engine.set_starting_stroke_state(attach=start_attached,
+                                         capitalize=start_capitalized)
 
 def same_thread_hook(fn, *args):
     fn(*args)
@@ -247,6 +256,10 @@ class StenoEngine(object):
     def set_space_placement(self, s):
         """Set whether spaces will be inserted before the output or after the output."""
         self.formatter.set_space_placement(s)
+
+    def set_starting_stroke_state(self, capitalize=False, attach=False):
+        self.formatter.start_attached = attach
+        self.formatter.start_capitalized = capitalize
         
     def enable_translation_logging(self, b):
         """Turn translation logging on or off."""
