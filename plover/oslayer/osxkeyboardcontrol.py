@@ -20,9 +20,9 @@ from Quartz import (
     kCGEventFlagMaskCommand,
     kCGEventFlagMaskControl,
     kCGEventFlagMaskNonCoalesced,
-    kCGEventFlagMaskShift,
-    kCGEventFlagMaskSecondaryFn,
     kCGEventFlagMaskNumericPad,
+    kCGEventFlagMaskSecondaryFn,
+    kCGEventFlagMaskShift,
     kCGEventKeyDown,
     kCGEventKeyUp,
     kCGEventSourceStateID,
@@ -41,6 +41,8 @@ import sys
 # entry represents a sequence of keystrokes that are needed to achieve the
 # given symbol. First, all keydown events are sent, in order, and then all
 # keyup events are send in reverse order.
+BACK_SPACE = 51
+
 KEYNAME_TO_KEYCODE = collections.defaultdict(list, {
     # The order follows that of the plover guide.
     # Keycodes from http://forums.macrumors.com/showthread.php?t=780577
@@ -65,7 +67,7 @@ KEYNAME_TO_KEYCODE = collections.defaultdict(list, {
 
     'Caps_Lock': [57], 'Num_Lock': [], 'Scroll_Lock': [], 'Shift_Lock': [],
 
-    'Return': [36], 'Tab': [48], 'BackSpace': [51], 'Delete': [117],
+    'Return': [36], 'Tab': [48], 'BackSpace': [BACK_SPACE], 'Delete': [117],
     'Escape': [53], 'Break': [], 'Insert': [], 'Pause': [], 'Print': [],
     'Sys_Req': [],
 
@@ -217,10 +219,11 @@ KEYCODE_TO_KEY = {
     12: 'q', 13: 'w', 14: 'e', 15: 'r', 17: 't', 16: 'y', 32: 'u', 34: 'i', 31: 'o',  35: 'p', 33: '[', 30: ']', 42: '\\',
     0: 'a', 1: 's', 2: 'd', 3: 'f', 5: 'g', 4: 'h', 38: 'j', 40: 'k', 37: 'l', 41: ';', 39: '\'',
     6: 'z', 7: 'x', 8: 'c', 9: 'v', 11: 'b', 45: 'n', 46: 'm', 43: ',', 47: '.', 44: '/',
-    49: 'space', 48: "BackSpace", 117: "Delete", 125: "Down", 119: "End",
+    49: 'space', BACK_SPACE: "BackSpace", 117: "Delete", 125: "Down", 119: "End",
     53: "Escape", 115: "Home", 123: "Left", 121: "Page_Down", 116: "Page_Up",
     36 : "Return", 124: "Right", 48: "Tab", 126: "Up",
 }
+
 
 class KeyboardCapture(threading.Thread):
     """Implementation of KeyboardCapture for OSX."""
@@ -242,7 +245,7 @@ class KeyboardCapture(threading.Thread):
                 return None
             # Don't intercept events from this module.
             if (CGEventGetIntegerValueField(event, kCGEventSourceStateID) ==
-                MY_EVENT_SOURCE_ID):
+                    MY_EVENT_SOURCE_ID):
                 return event
             # Don't intercept the event if it has modifiers, allow
             # Fn and Numeric flags so we can suppress the arrow and
@@ -276,8 +279,11 @@ class KeyboardCapture(threading.Thread):
 
     def run(self):
         self._running_thread = CFRunLoopGetCurrent()
-        CFRunLoopAddSource(self._running_thread, self._source,
-            kCFRunLoopCommonModes)
+        CFRunLoopAddSource(
+            self._running_thread,
+            self._source,
+            kCFRunLoopCommonModes
+        )
         CGEventTapEnable(self._tap, True)
         CFRunLoopRun()
 
@@ -289,7 +295,7 @@ class KeyboardCapture(threading.Thread):
         self._suppressed_keys = set(suppressed_keys)
 
 
-# "Narrow python" unicode objects store chracters in UTF-16 so we 
+# "Narrow python" unicode objects store characters in UTF-16 so we
 # can't iterate over characters in the standard way. This workaround 
 # let's us iterate over full characters in the string.
 def characters(s):
@@ -309,12 +315,13 @@ class KeyboardEmulation(object):
     def __init__(self):
         pass
 
-    def send_backspaces(self, number_of_backspaces):
+    @staticmethod
+    def send_backspaces(number_of_backspaces):
         for _ in xrange(number_of_backspaces):
             CGEventPost(kCGSessionEventTap,
-                CGEventCreateKeyboardEvent(MY_EVENT_SOURCE, 51, True))
+                        CGEventCreateKeyboardEvent(MY_EVENT_SOURCE, BACK_SPACE, True))
             CGEventPost(kCGSessionEventTap,
-                CGEventCreateKeyboardEvent(MY_EVENT_SOURCE, 51, False))
+                        CGEventCreateKeyboardEvent(MY_EVENT_SOURCE, BACK_SPACE, False))
 
     def send_string(self, s):
         for c in characters(s):
@@ -328,19 +335,18 @@ class KeyboardEmulation(object):
     def send_key_combination(self, combo_string):
         """Emulate a sequence of key combinations.
 
-        Argument:
-
-        combo_string -- A string representing a sequence of key
-        combinations. Keys are represented by their names in the
-        Xlib.XK module, without the 'XK_' prefix. For example, the
-        left Alt key is represented by 'Alt_L'. Keys are either
-        separated by a space or a left or right parenthesis.
-        Parentheses must be properly formed in pairs and may be
-        nested. A key immediately followed by a parenthetical
-        indicates that the key is pressed down while all keys enclosed
-        in the parenthetical are pressed and released in turn. For
-        example, Alt_L(Tab) means to hold the left Alt key down, press
-        and release the Tab key, and then release the left Alt key.
+        Args:
+            combo_string: A string representing a sequence of key
+                combinations. Keys are represented by their names in the
+                Xlib.XK module, without the 'XK_' prefix. For example, the
+                left Alt key is represented by 'Alt_L'. Keys are either
+                separated by a space or a left or right parenthesis.
+                Parentheses must be properly formed in pairs and may be
+                nested. A key immediately followed by a parenthetical
+                indicates that the key is pressed down while all keys enclosed
+                in the parenthetical are pressed and released in turn. For
+                example, Alt_L(Tab) means to hold the left Alt key down, press
+                and release the Tab key, and then release the left Alt key.
 
         """
 
@@ -371,9 +377,11 @@ class KeyboardEmulation(object):
             else:
                 current_command.append(c)
         # Record final command key.
-        keystring = ''.join(current_command)
-        seq = KEYNAME_TO_KEYCODE[keystring]
-        keycode_events.extend(down_up(seq))
+        if current_command:
+            keystring = ''.join(current_command)
+            seq = _keystring_to_sequence(keystring)
+            keycode_events.extend(down_up(seq))
+
         # Release all keys.
         # Should this be legal in the dict (lack of closing parens)?
         for seq in key_down_stack:
