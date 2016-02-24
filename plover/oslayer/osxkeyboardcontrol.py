@@ -1,3 +1,4 @@
+# coding: utf-8
 from Quartz import (
     CFMachPortCreateRunLoopSource,
     CFRunLoopAddSource,
@@ -34,32 +35,12 @@ from Quartz import (
 import Foundation
 import threading
 import collections
-import sys
+from plover.oslayer import mac_keycode
 
 
-# This mapping only works on keyboards using the ANSI standard layout. Each
-# entry represents a sequence of keystrokes that are needed to achieve the
-# given symbol. First, all keydown events are sent, in order, and then all
-# keyup events are send in reverse order.
 BACK_SPACE = 51
 
 KEYNAME_TO_KEYCODE = collections.defaultdict(list, {
-    # The order follows that of the plover guide.
-    # Keycodes from http://forums.macrumors.com/showthread.php?t=780577
-    '0': [29], '1': [18], '2': [19], '3': [20], '4': [21], '5': [23],
-    '6': [22], '7': [26], '8': [28], '9': [25],
-
-    'a': [0], 'b': [11], 'c': [8], 'd': [2], 'e': [14], 'f': [3], 'g': [5],
-    'h': [4], 'i': [34], 'j': [38], 'k': [40], 'l': [37], 'm': [46], 'n': [45],
-    'o': [31], 'p': [35], 'q': [12], 'r': [15], 's': [1], 't': [17], 'u': [32],
-    'v': [9], 'w': [13], 'x': [7], 'y': [16], 'z': [6],
-
-    'A': [56, 0], 'B': [56, 11], 'C': [56, 8], 'D': [56, 2], 'E': [56, 14],
-    'F': [56, 3], 'G': [56, 5], 'H': [56, 4], 'I': [56, 34], 'J': [56, 38],
-    'K': [56, 40], 'L': [56, 37], 'M': [56, 46], 'N': [56, 45], 'O': [56, 31],
-    'P': [56, 35], 'Q': [56, 12], 'R': [56, 15], 'S': [56, 1], 'T': [56, 17],
-    'U': [56, 32], 'V': [56, 9], 'W': [56, 13], 'X': [56, 7], 'Y': [56, 16],
-    'Z': [56, 6],
 
     'Alt_L': [58], 'Alt_R': [61], 'Control_L': [59], 'Control_R': [62],
     'Hyper_L': [], 'Hyper_R': [], 'Meta_L': [], 'Meta_R': [],
@@ -100,63 +81,23 @@ KEYNAME_TO_KEYCODE = collections.defaultdict(list, {
     'KP_Right': [], 'KP_Separator': [], 'KP_Space': [], 'KP_Subtract': [78],
     'KP_Tab': [], 'KP_Up': [],
 
-    'ampersand': [56, 26], 'apostrophe': [39], 'asciitilde': [56, 50],
-    'asterisk': [56, 28], 'at': [56, 19], 'backslash': [42],
-    'braceleft': [56, 33], 'braceright': [56, 30], 'bracketleft': [33],
-    'bracketright': [30], 'colon': [56, 41], 'comma': [43], 'division': [],
-    'dollar': [56, 21], 'equal': [24], 'exclam': [56, 18], 'greater': [56, 47],
-    'hyphen': [], 'less': [56, 43], 'minus': [27], 'multiply': [],
-    'numbersign': [56, 20], 'parenleft': [56, 25], 'parenright': [56, 29],
-    'percent': [56, 23], 'period': [47], 'plus': [56, 24],
-    'question': [56, 44], 'quotedbl': [56, 39], 'quoteleft': [],
-    'quoteright': [], 'semicolon': [41], 'slash': [44], 'space': [49],
-    'underscore': [56, 27],
-
-    # Many of these are possible but I haven't filled them in because it's a
-    # pain to do so. Others are only possible with multiple keypresses and
-    # releases making it impossible to do as a keycombo.
-
-    'AE': [], 'Aacute': [], 'Acircumflex': [], 'Adiaeresis': [],
-    'Agrave': [], 'Aring': [], 'Atilde': [], 'Ccedilla': [], 'Eacute': [],
-    'Ecircumflex': [], 'Ediaeresis': [], 'Egrave': [], 'Eth': [],
-    'ETH': [], 'Iacute': [], 'Icircumflex': [], 'Idiaeresis': [],
-    'Igrave': [], 'Ntilde': [], 'Oacute': [], 'Ocircumflex': [],
-    'Odiaeresis': [], 'Ograve': [], 'Ooblique': [], 'Otilde': [],
-    'THORN': [], 'Thorn': [], 'Uacute': [], 'Ucircumflex': [],
-    'Udiaeresis': [], 'Ugrave': [], 'Yacute': [],
-
-    'ae': [], 'aacute': [], 'acircumflex': [], 'acute': [],
-    'adiaeresis': [], 'agrave': [], 'aring': [], 'atilde': [],
-    'ccedilla': [], 'eacute': [], 'ecircumflex': [], 'ediaeresis': [],
-    'egrave': [], 'eth': [], 'iacute': [], 'icircumflex': [],
-    'idiaeresis': [], 'igrave': [], 'ntilde': [], 'oacute': [],
-    'ocircumflex': [], 'odiaeresis': [], 'ograve': [], 'oslash': [],
-    'otilde': [], 'thorn': [], 'uacute': [], 'ucircumflex': [],
-    'udiaeresis': [], 'ugrave': [], 'yacute': [], 'ydiaeresis': [],
-
-    'cedilla': [], 'diaeresis': [], 'grave': [50], 'asciicircum': [56, 22],
-    'bar': [56, 42], 'brokenbar': [], 'cent': [], 'copyright': [],
-    'currency': [], 'degree': [], 'exclamdown': [], 'guillemotleft': [],
-    'guillemotright': [], 'macron': [], 'masculine': [], 'mu': [],
-    'nobreakspace': [], 'notsign': [], 'onehalf': [], 'onequarter': [],
-    'onesuperior': [], 'ordfeminine': [], 'paragraph': [],
-    'periodcentered': [], 'plusminus': [], 'questiondown': [],
-    'registered': [], 'script_switch': [], 'section': [], 'ssharp': [],
-    'sterling': [], 'threequarters': [], 'threesuperior': [],
-    'twosuperior': [], 'yen': [],
-
-    'Begin': [], 'Cancel': [], 'Clear': [], 'Execute': [], 'Find': [],
-    'Help': [114], 'Linefeed': [], 'Menu': [], 'Mode_switch': [58],
-    'Multi_key': [], 'MultipleCandidate': [], 'Next': [],
-    'PreviousCandidate': [], 'Prior': [], 'Redo': [], 'Select': [],
-    'SingleCandidate': [], 'Undo': [],
-
-    'Eisu_Shift': [], 'Eisu_toggle': [], 'Hankaku': [], 'Henkan': [],
-    'Henkan_Mode': [], 'Hiragana': [], 'Hiragana_Katakana': [],
-    'Kana_Lock': [], 'Kana_Shift': [], 'Kanji': [], 'Katakana': [],
-    'Mae_Koho': [], 'Massyo': [], 'Muhenkan': [], 'Romaji': [],
-    'Touroku': [], 'Zen_Koho': [], 'Zenkaku': [], 'Zenkaku_Hankaku': [],
 })
+
+KEYNAME_TO_CHAR = {
+    'ampersand': '&', 'apostrophe': '\'', 'asciitilde': '~',
+    'asterisk': '*', 'at': '@', 'backslash': '\'',
+    'braceleft': '{', 'braceright': '}', 'bracketleft': '[',
+    'bracketright': ']', 'colon': ':', 'comma': ',', 'division': '÷',
+    'dollar': '$', 'equal': '=', 'exclam': '!', 'greater': '>',
+    'hyphen': '-', 'less': '<', 'minus': '-', 'multiply': '×',
+    'numbersign': '#', 'parenleft': '(', 'parenright': ')',
+    'percent': '%', 'period': '.', 'plus': '+',
+    'question': '?', 'quotedbl': '"', 'quoteleft': '‘',
+    'quoteright': '’', 'semicolon': ';', 'slash': '/', 'space': ' ',
+    'underscore': '_',
+    'grave': '`', 'asciicircum': '^',
+    'bar': '|',
+}
 
 
 def down(seq):
@@ -213,6 +154,8 @@ MY_EVENT_SOURCE = CGEventSourceCreate(0xFFFFFFFF)  # 32 bit -1
 MY_EVENT_SOURCE_ID = CGEventSourceGetSourceStateID(MY_EVENT_SOURCE)
 
 # For the purposes of this class, we're only watching these keys.
+# We could calculate the keys, but our default layout would be misleading:
+# KEYCODE_TO_KEY = {keycode: mac_keycode.CharForKeycode(keycode) for keycode in range(127)}
 KEYCODE_TO_KEY = {
     122: 'F1', 120: 'F2', 99: 'F3', 118: 'F4', 96: 'F5', 97: 'F6', 98: 'F7', 100: 'F8', 101: 'F9', 109: 'F10', 103: 'F11', 111: 'F12',
     50: '`', 29: '0', 18: '1', 19: '2', 20: '3', 21: '4', 23: '5', 22: '6', 26: '7', 28: '8', 25: '9', 27: '-', 24: '=',
@@ -306,11 +249,10 @@ def characters(s):
         character = encoded[start:end].decode('utf-32-be')
         yield character
 
-def set_string(event, s):
-    buf = Foundation.NSString.stringWithString_(s)
-    CGEventKeyboardSetUnicodeString(event, len(buf), buf)
 
 class KeyboardEmulation(object):
+
+    RAW_PRESS, STRING_PRESS = range(2)
 
     def __init__(self):
         pass
@@ -324,13 +266,66 @@ class KeyboardEmulation(object):
                         CGEventCreateKeyboardEvent(MY_EVENT_SOURCE, BACK_SPACE, False))
 
     def send_string(self, s):
+        """
+
+        Args:
+            s: The string to emulate.
+
+        We can send keys by keycodes or by SetUnicodeString.
+        Setting the string is less ideal, but necessary for things like emoji.
+        We want to try to group modifier presses, where convenient.
+        So, a string like 'THIS dog [dog emoji]' might be processed like:
+        'Raw: Shift down t h i s shift up, Raw: space d o g space, String: [dog emoji]'
+        There are 3 groups, the shifted groud, the spaces and dog string, and the emoji.
+        """
+        # Key plan will store the type of output (raw keycodes versus setting string)
+        # and the list of keycodes or the goal character.
+        key_plan = []
+
+        # apply_raw's properties are used to store the current keycode sequence,
+        # and add the sequence to the key plan when called as a function.
+        def apply_raw():
+            if hasattr(apply_raw, 'sequence') and len(apply_raw.sequence) is not 0:
+                apply_raw.sequence.extend(apply_raw.release_modifiers)
+                key_plan.append((self.RAW_PRESS, apply_raw.sequence))
+            apply_raw.sequence = []
+            apply_raw.release_modifiers = []
+        apply_raw()
+
+        last_modifier = None
         for c in characters(s):
-            event = CGEventCreateKeyboardEvent(MY_EVENT_SOURCE, 0, True)
-            set_string(event, c)
-            CGEventPost(kCGSessionEventTap, event)
-            event = CGEventCreateKeyboardEvent(MY_EVENT_SOURCE, 0, False)
-            set_string(event, c)
-            CGEventPost(kCGSessionEventTap, event)
+            for keycode, modifier in mac_keycode.KeyCodeForChar(c):
+                if keycode is not None:
+                    if modifier is not last_modifier:
+                        # Flush on modifier change.
+                        apply_raw()
+                        last_modifier = modifier
+                        modifier_keycodes = self._modifier_to_keycodes(modifier)
+                        apply_raw.sequence.extend(down(modifier_keycodes))
+                        apply_raw.release_modifiers.extend(up(modifier_keycodes))
+                    apply_raw.sequence.extend(down_up([keycode]))
+                else:
+                    # Flush on type change.
+                    apply_raw()
+                    key_plan.append((self.STRING_PRESS, c))
+        # Flush after string is complete.
+        apply_raw()
+
+        # We have a key plan for the whole string, grouping modifiers.
+        for press_type, sequence in key_plan:
+            if press_type is self.STRING_PRESS:
+                self._send_string_press(sequence)
+            elif press_type is self.RAW_PRESS:
+                self._send_sequence(sequence)
+
+    @staticmethod
+    def _send_string_press(c):
+        event = CGEventCreateKeyboardEvent(MY_EVENT_SOURCE, 0, True)
+        KeyboardEmulation._set_event_string(event, c)
+        CGEventPost(kCGSessionEventTap, event)
+        event = CGEventCreateKeyboardEvent(MY_EVENT_SOURCE, 0, False)
+        KeyboardEmulation._set_event_string(event, c)
+        CGEventPost(kCGSessionEventTap, event)
 
     def send_key_combination(self, combo_string):
         """Emulate a sequence of key combinations.
@@ -353,6 +348,20 @@ class KeyboardEmulation(object):
         # Convert the argument into a sequence of keycode, event type pairs
         # that, if executed in order, would emulate the key combination
         # represented by the argument.
+        def _keystring_to_sequence(keystring):
+            if keystring in KEYNAME_TO_KEYCODE:
+                seq = KEYNAME_TO_KEYCODE[keystring]
+            else:
+                # Convert potential key name to Unicode character
+                if keystring in KEYNAME_TO_CHAR:
+                    keystring = KEYNAME_TO_CHAR[keystring]
+                seq = []
+                for keycode, modifier in mac_keycode.KeyCodeForChar(keystring):
+                    if keycode is not None:
+                        seq.extend(self._modifier_to_keycodes(modifier))
+                        seq.append(keycode)
+            return seq
+
         keycode_events = []
         key_down_stack = []
         current_command = []
@@ -360,7 +369,8 @@ class KeyboardEmulation(object):
             if c in (' ', '(', ')'):
                 keystring = ''.join(current_command)
                 current_command = []
-                seq = KEYNAME_TO_KEYCODE[keystring]
+                seq = _keystring_to_sequence(keystring)
+
                 if c == ' ':
                     # Record press and release for command's keys.
                     keycode_events.extend(down_up(seq))
@@ -390,7 +400,26 @@ class KeyboardEmulation(object):
         # Emulate the key combination by sending key events.
         self._send_sequence(keycode_events)
 
-    def _send_sequence(self, sequence):
+    @staticmethod
+    def _modifier_to_keycodes(modifier):
+        keycodes = []
+        if modifier & 16:
+            keycodes.extend(KEYNAME_TO_KEYCODE['Control_R'])
+        if modifier & 8:
+            keycodes.extend(KEYNAME_TO_KEYCODE['Alt_R'])
+        if modifier & 2:
+            keycodes.extend(KEYNAME_TO_KEYCODE['Shift_R'])
+        if modifier & 1:
+            keycodes.extend(KEYNAME_TO_KEYCODE['Super_R'])
+        return keycodes
+
+    @staticmethod
+    def _set_event_string(event, s):
+        buf = Foundation.NSString.stringWithString_(s)
+        CGEventKeyboardSetUnicodeString(event, len(buf), buf)
+
+    @staticmethod
+    def _send_sequence(sequence):
         # There is a bug in the event system that seems to cause inconsistent
         # modifiers on key events:
         # http://stackoverflow.com/questions/2008126/cgeventpost-possible-bug-when-simulating-keyboard-events
@@ -401,10 +430,18 @@ class KeyboardEmulation(object):
         for keycode, key_down in sequence:
             if not key_down and keycode in MODIFIER_KEYS_TO_MASKS:
                 event_mask &= ~MODIFIER_KEYS_TO_MASKS[keycode]
-            event = CGEventCreateKeyboardEvent(
-                MY_EVENT_SOURCE, keycode, key_down)
-            CGEventSetFlags(event, event_mask)
+
+            event = CGEventCreateKeyboardEvent(MY_EVENT_SOURCE, keycode, key_down)
+
+            # The event comes with flags already, check if they contain our own event_mask.
+            if event_mask and (CGEventGetFlags(event) & event_mask) != event_mask:
+                # If our event_mask is missing from flags, set it.
+                CGEventSetFlags(event, event_mask)
+            elif not event_mask and keycode not in MODIFIER_KEYS_TO_MASKS:
+                # Always set event_mask when it is zero to force release of modifiers.
+                CGEventSetFlags(event, event_mask)
+
             CGEventPost(kCGSessionEventTap, event)
+
             if key_down and keycode in MODIFIER_KEYS_TO_MASKS:
                 event_mask |= MODIFIER_KEYS_TO_MASKS[keycode]
-
