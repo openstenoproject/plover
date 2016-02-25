@@ -128,6 +128,9 @@ class MainFrame(wx.Frame):
         # TODO: Figure out why spinner has darker gray background.
         self.spinner = wx.animate.GIFAnimationCtrl(root, -1, SPINNER_FILE)
         self.spinner.GetPlayer().UseBackgroundColour(True)
+        # Need to call this so the size of the control is not
+        # messed up (100x100 instead of 16x16) on Linux...
+        self.spinner.InvalidateBestSize()
         self.spinner.Hide()
 
         self.connected_bitmap = wx.Bitmap(self.CONNECTED_IMAGE_FILE,
@@ -188,7 +191,7 @@ class MainFrame(wx.Frame):
                          pos=(2, 0),
                          border=self.BORDER,
                          span=(1, 2))
-
+        self.machine_sizer = machine_sizer
         # Add a border around the entire sizer.
         border = wx.BoxSizer()
         border.AddF(global_sizer,
@@ -297,6 +300,7 @@ class MainFrame(wx.Frame):
                 self.connection_ctrl.SetBitmap(self.connected_bitmap)
             elif state == STATE_ERROR:
                 self.connection_ctrl.SetBitmap(self.disconnected_bitmap)
+            self.machine_sizer.Layout()
         if not self.steno_engine.machine or self.steno_engine.machine.state is not STATE_RUNNING:
             status = self.STATUS_DISCONNECTED
         elif self.steno_engine.is_running:
