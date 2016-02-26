@@ -535,7 +535,7 @@ class TranslateStrokeTestCase(unittest.TestCase):
 
     def test_empty_undo(self):
         self.translate(stroke('*'))
-        self.assertEquals(self.s.translations[0].english, _back_string())
+        self.assertTranslations([])
         self.assertOutput([], [Translation([Stroke('*')], _back_string())], None)
 
     def test_undo_translation(self):
@@ -558,7 +558,7 @@ class TranslateStrokeTestCase(unittest.TestCase):
     def test_undo_tail(self):
         self.s.tail = self.t('T/A/I/L')
         self.translate(stroke('*'))
-        self.assertEquals(self.s.translations[0].english, _back_string())
+        self.assertTranslations([])
         self.assertOutput([], [Translation([Stroke('*')], _back_string())], self.t('T/A/I/L'))
         
     def test_suffix_folding(self):

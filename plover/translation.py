@@ -209,6 +209,7 @@ class Translator(object):
 
         undo = []
         do = []
+        add_to_history = True
 
         # TODO: Test the behavior of undoing until a translation is undoable.
         if stroke.is_correction:
@@ -223,8 +224,9 @@ class Translator(object):
                 do.extend(t.replaced)
             if empty:
                 # There is no more buffer to delete from -- remove undo and add a
-                # stroke that removes last word on the user's OS
-                undo = []
+                # stroke that removes last word on the user's OS, but don't add it
+                # to the state history.
+                add_to_history = False
                 do = [Translation([stroke], _back_string())]
         else:
             # Figure out how much of the translation buffer can be involved in this
@@ -261,7 +263,8 @@ class Translator(object):
                 undo.extend(t.replaced)
         del self._state.translations[len(self._state.translations) - len(undo):]
         self._output(undo, do, self._state.last())
-        self._state.translations.extend(do)
+        if add_to_history:
+            self._state.translations.extend(do)
 
     def _find_translation(self, translations, stroke, mapping):
 
