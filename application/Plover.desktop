@@ -1,9 +1,10 @@
 [Desktop Entry]
-Version=1.1
+Version=1.2
 Type=Application
 Terminal=false
 Exec=plover
 Name=Plover
-Icon=plover_on
+Icon=plover
 Categories=Utility;Accessibility;
 Comment=stenographic input and translation
+X-Unity-IconBackgroundColor=#414F4C

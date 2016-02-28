@@ -67,11 +67,10 @@ class MainFrame(wx.Frame):
     # Class constants.
     TITLE = __software_name__.capitalize()
     ALERT_DIALOG_TITLE = TITLE
-    ON_IMAGE_FILE = os.path.join(ASSETS_DIR, 'plover_on.png')
-    OFF_IMAGE_FILE = os.path.join(ASSETS_DIR, 'plover_off.png')
     CONNECTED_IMAGE_FILE = os.path.join(ASSETS_DIR, 'connected.png')
     DISCONNECTED_IMAGE_FILE = os.path.join(ASSETS_DIR, 'disconnected.png')
     REFRESH_IMAGE_FILE = os.path.join(ASSETS_DIR, 'refresh.png')
+    PLOVER_ICON_FILE = os.path.join(ASSETS_DIR, 'plover.ico')
     BORDER = 5
     STATUS_DISCONNECTED, STATUS_OUTPUT_DISABLED, STATUS_OUTPUT_ENABLED = range(-1, 2)
     ENABLE_OUTPUT_LABEL = "Enable"
@@ -104,6 +103,11 @@ class MainFrame(wx.Frame):
         # Menu Bar
         MenuBar = wx.MenuBar()
         self.SetMenuBar(MenuBar)
+
+        # Application icon
+        icon = wx.Icon(self.PLOVER_ICON_FILE,
+                       wx.BITMAP_TYPE_ICO)
+        self.SetIcon(icon)
 
         # Configure button.
         self.configure_button = wx.Button(root,

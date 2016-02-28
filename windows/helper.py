@@ -32,7 +32,7 @@ from plover import (
 
 APPNAME = __software_name__.capitalize()
 VERSION = __version__
-ICON = os.path.join(WIN_DIR, '%s.ico' % __software_name__)
+ICON = os.path.join(TOP_DIR, __software_name__, 'assets', '%s.ico' % __software_name__)
 
 
 if sys.stdout.isatty():

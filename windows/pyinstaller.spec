@@ -15,4 +15,4 @@ exe = EXE(pyz,
           strip=None,
           upx=True,
           console=False,
-          icon='plover.ico')
+          icon=os.path.join('plover/assets', 'plover.ico'))

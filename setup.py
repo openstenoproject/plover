@@ -163,7 +163,7 @@ if __name__ == '__main__':
         },
         data_files=[
             ('share/applications', ['application/Plover.desktop']),
-            ('share/pixmaps', ['plover/assets/plover_on.png']),
+            ('share/pixmaps', ['plover/assets/plover.png']),
         ],
         platforms=[
             'Operating System :: POSIX :: Linux',
