@@ -1263,12 +1263,13 @@ class KeyboardEmulation(object):
             else:
                 current_command.append(c)
         # Record final command key.
-        keystring = ''.join(current_command)
-        keysym = XK.string_to_keysym(keystring)
-        mapping = self._get_mapping(keysym)
-        if mapping is not None:
-            keycode_events.append((mapping.keycode, X.KeyPress))
-            keycode_events.append((mapping.keycode, X.KeyRelease))
+        if current_command:
+            keystring = ''.join(current_command)
+            keysym = XK.string_to_keysym(keystring)
+            mapping = self._get_mapping(keysym)
+            if mapping is not None:
+                keycode_events.append((mapping.keycode, X.KeyPress))
+                keycode_events.append((mapping.keycode, X.KeyRelease))
         # Release all keys.
         for keycode in key_down_stack:
             keycode_events.append((keycode, X.KeyRelease))
