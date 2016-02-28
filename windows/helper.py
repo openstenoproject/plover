@@ -35,7 +35,7 @@ VERSION = __version__
 ICON = os.path.join(TOP_DIR, __software_name__, 'assets', '%s.ico' % __software_name__)
 
 
-if sys.stdout.isatty():
+if sys.stdout.isatty() and not sys.platform.startswith('win32'):
 
     def info(fmt, *args):
         s = fmt % args
