@@ -517,7 +517,7 @@ class Helper(object):
         for name, src, checksum, handler_format, handler_args, path_dir in self.DEPENDENCIES:
             self.install(name, src, checksum, handler_format=handler_format, handler_args=handler_args, path_dir=path_dir)
         info('install requirements')
-        self._env.run(('python.exe', '-c', 'import setup; setup.write_requirements()'))
+        self._env.run(('python.exe', 'setup.py', 'write_requirements'))
         self._pip_install('-r', 'requirements.txt')
 
     def cmd_run(self, executable, *args):
