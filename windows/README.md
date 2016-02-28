@@ -1,6 +1,12 @@
 ## Windows Development
 
-### Python
+### Automatic development environment setup
+
+Everything required for Plover development can automatically be installed by executing: `windows\setup.bat`.
+
+### Manual development environment setup
+
+#### Python
 
 It is best to develop using 32 bit tools for Plover.
 
@@ -8,24 +14,23 @@ It is best to develop using 32 bit tools for Plover.
 
 *Note: Python 2.7.9+ comes with pip*
 
-### Pip Packages
-
-Most dependencies can be retrieve with pip:
-
-`pip install pyserial appdirs pywinusb mock`
-
-### Externally hosted dependencies
+#### Externally hosted dependencies
 
 - [pywin32](http://sourceforge.net/projects/pywin32/)
 - [wxpython](http://www.wxpython.org/index.php)
 - [pyhook](http://sourceforge.net/projects/pyhook/)
 
-### Running Plover in Development
+#### Other dependencies
+
+Most dependencies can be retrieved with pip:
+
+- `python setup.py write_requirements`
+- `pip install -r requirements.txt`
+
+### Running Plover in development
 
 To run from source, from the root of the Git repository, use `python launch.py`.
 
 ### Building
-
-As a prerequesite, ensure that there is a file named `__init__.py` in the pywinusb directory in site-packages. If not, create it (as an empty file)
 
 To build to an `exe`, you can `pip install pyinstaller`. Then, run `python windows\helper.py dist`; the result will be in `dist`.
