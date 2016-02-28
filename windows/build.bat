@@ -1,4 +1,4 @@
 @pushd %~dp0
-python -m compileall ..
-pyinstaller pyinstaller.spec
+python helper.py dist
 @popd
+@pause Press a key to close this window.
