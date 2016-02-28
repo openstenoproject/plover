@@ -1152,7 +1152,10 @@ class KeyboardEmulation(object):
                     modifiers |= X.Mod5Mask
                 mapping = self.Mapping(keycode, modifiers, keysym, custom_mapping)
                 if keysym != X.NoSymbol:
-                    self.keymap[keysym] = mapping
+                    # Some keysym are mapped multiple times, prefer lower modifiers combos.
+                    previous_mapping = self.keymap.get(keysym)
+                    if previous_mapping is None or mapping.modifiers < previous_mapping.modifiers:
+                        self.keymap[keysym] = mapping
                 if custom_mapping is not None:
                     self.custom_mappings_queue.append(mapping)
             keycode += 1
