@@ -10,8 +10,6 @@ import subprocess
 import sys
 import traceback
 
-import wget
-
 
 SITE_DIR = r'C:\Python27\Lib\site-packages'
 WIN_DIR = os.path.dirname(os.path.abspath(__file__))
@@ -448,6 +446,7 @@ class Helper(object):
         self._env.run(cmd)
 
     def _download(self, url, checksum, dst):
+        import wget
         retries = 0
         while retries < 2:
             if not os.path.exists(dst):
@@ -602,6 +601,11 @@ class WineHelper(Helper):
 
 
 class Win32Helper(Helper):
+
+    DEPENDENCIES = (
+        # Install wget first, since we'll be using it for fetching some of the other dependencies.
+        ('wget', 'pip:wget', None, None, (), None),
+    ) + Helper.DEPENDENCIES
 
     def __init__(self):
         super(Win32Helper, self).__init__()
