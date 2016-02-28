@@ -274,8 +274,6 @@ class Win32Environment(Environment):
 class Helper(object):
 
     DEPENDENCIES = (
-        # Install 7zip first, since we'll be using it for extracting/installing some of the other dependencies.
-        ('7zip'             , 'http://www.7-zip.org/a/7z1514.exe'                                                                                 , 'f2e5efd7b47d1fb5b68d355191cfed1a66b82c79', None, ('/S', r'/D=%s\7-Zip' % PROG_DIR), r'%s\7-Zip' % PROG_DIR),
         # Note: we force the installation directory, otherwise the installer gets confused when run under AppVeyor, and installs in the wrong directory...
         ('wxPython'         , 'http://downloads.sourceforge.net/wxpython/wxPython3.0-win32-3.0.2.0-py27.exe'                                      , '864d44e418a0859cabff71614a495bea57738c5d', None, ('/SP-', '/VERYSILENT', '/DIR=%s' % SITE_DIR), None),
         # Note: '--always-unzip' is needed, as pyHook cannot work from a single egg file.
