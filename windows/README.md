@@ -28,4 +28,4 @@ To run from source, from the root of the Git repository, use `python launch.py`.
 
 As a prerequesite, ensure that there is a file named `__init__.py` in the pywinusb directory in site-packages. If not, create it (as an empty file)
 
-To build to an `exe`, you can `pip install pyinstaller`. Then, run `windows\build.bat` passing the relative path to pyinstaller as the first argument.
+To build to an `exe`, you can `pip install pyinstaller`. Then, run `python windows\helper.py dist`; the result will be in `dist`.
