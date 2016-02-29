@@ -39,44 +39,32 @@ class SimpleNamespace(object):
 
 def init_engine(engine, config):
     """Initialize a StenoEngine from a config object."""
-    reset_machine(engine, config)
-    
-    dictionary_file_names = config.get_dictionary_file_names()
-    try:
-        dicts = dict_manager.load(dictionary_file_names)
-    except DictionaryLoaderException as e:
-        raise InvalidConfigurationError(unicode(e))
-    engine.get_dictionary().set_dicts(dicts)
-
-    engine.set_log_file_name(config)
-    engine.enable_stroke_logging(config.get_enable_stroke_logging())
-    engine.enable_translation_logging(config.get_enable_translation_logging())
-    engine.set_space_placement(config.get_space_placement())
-    engine.set_starting_stroke_state(capitalize=config.get_start_capitalized(),
-                                     attach=config.get_start_attached())
-    
+    update_engine(engine, None, config)
     engine.set_is_running(config.get_auto_start())
 
 def reset_machine(engine, config):
     """Set the machine on the engine based on config."""
-    machine_type = config.get_machine_type()
-    machine_options = config.get_machine_specific_options(machine_type)
-    try:
-        instance = machine_registry.get(machine_type)(machine_options)
-    except NoSuchMachineException as e:
-        raise InvalidConfigurationError(unicode(e))
-    engine.set_machine(instance)
+    update_engine(engine, config, config, reset_machine=True)
 
-def update_engine(engine, old, new):
+def update_engine(engine, old, new, reset_machine=False):
     """Modify a StenoEngine using a before and after config object.
     
     Using the before and after allows this function to not make unnecessary 
     changes.
     """
+    if old is None:
+        # Fake config that will return None for each
+        # option, hence triggering an update.
+        class NoneConfig(object):
+            def __getattr__(self, name):
+                return lambda *args: None
+        old = NoneConfig()
+
     machine_type = new.get_machine_type()
     machine_options = new.get_machine_specific_options(machine_type)
-    if (old.get_machine_type() != machine_type or 
-        old.get_machine_specific_options(machine_type) != machine_options):
+    if (reset_machine or
+            old.get_machine_type() != machine_type or
+            old.get_machine_specific_options(machine_type) != machine_options):
         try:
             machine_class = machine_registry.get(machine_type)
         except NoSuchMachineException as e:
