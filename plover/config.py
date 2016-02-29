@@ -139,11 +139,14 @@ class Config(object):
             Note: relative path are automatically assumed to be relative to CONFIG_DIR.
         '''
         path = os.path.realpath(os.path.join(CONFIG_DIR, path))
-        config_dir = os.path.realpath(CONFIG_DIR) + os.sep
+        config_dir = os.path.realpath(CONFIG_DIR)
+        if not config_dir.endswith(os.sep):
+            config_dir += os.sep
         if path.startswith(config_dir):
-            return path[len(config_dir):]
+            value = path[len(config_dir):]
         else:
-            return path
+            value = path
+        return value
 
     def _path_from_config_value(self, value):
         ''' Return a path from a config value.
@@ -151,7 +154,8 @@ class Config(object):
             If value is an absolute path, it is returned as is
             otherwise, an absolute path relative to CONFIG_DIR is returned.
         '''
-        return os.path.realpath(os.path.join(CONFIG_DIR, value))
+        path = os.path.realpath(os.path.join(CONFIG_DIR, value))
+        return path
 
     def load(self, fp):
         self._config = RawConfigParser()
