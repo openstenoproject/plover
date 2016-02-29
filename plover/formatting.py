@@ -39,6 +39,8 @@ class Formatter(object):
     output_type = namedtuple(
         'output', ['send_backspaces', 'send_string', 'send_key_combination',
                    'send_engine_command'])
+    start_capitalized = False
+    start_attached = False
 
     def __init__(self):
         self.set_output(None)
@@ -94,7 +96,7 @@ class Formatter(object):
 
         """
         for t in do:
-            last_action = _get_last_action(prev.formatting if prev else None)
+            last_action = self._get_last_action(prev.formatting if prev else None)
             if t.english:
                 t.formatting = _translation_to_actions(t.english, last_action,
                                                        self.spaces_after)
@@ -117,6 +119,12 @@ class Formatter(object):
             callback(old, new)
 
         OutputHelper(self._output).render(old[i:], new[i:])
+
+    def _get_last_action(self, actions):
+        """Return last action in actions if possible or return a default action."""
+        if actions:
+            return actions[-1]
+        return _Action(attach=self.start_attached, capitalize=self.start_capitalized)
 
 
 class OutputHelper(object):
@@ -181,11 +189,6 @@ class OutputHelper(object):
                 self.commit()
                 self.output.send_engine_command(a.command)
         self.commit()
-
-
-def _get_last_action(actions):
-    """Return last action in actions if possible or return a blank action."""
-    return actions[-1] if actions else _Action()
 
 
 class _Action(object):

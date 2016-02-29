@@ -46,6 +46,10 @@ SPACE_PLACEMENTS_LABEL = "Space Placement:"
 SPACE_PLACEMENT_BEFORE = "Before Output"
 SPACE_PLACEMENT_AFTER = "After Output"
 SPACE_PLACEMENTS = [SPACE_PLACEMENT_BEFORE, SPACE_PLACEMENT_AFTER]
+FIRST_STROKE_LABEL = "First Stroke:"
+START_CAPITALIZED_LABEL = "Start Capitalized"
+START_ATTACHED_LABEL = "Suppress Space"
+
 UI_BORDER = 4
 COMPONENT_SPACE = 3
 UP_IMAGE_FILE = os.path.join(conf.ASSETS_DIR, 'up.png')
@@ -520,13 +524,26 @@ class OutputConfig(wx.Panel):
         box.Add(wx.StaticText(self, label=SPACE_PLACEMENTS_LABEL),
                 border=COMPONENT_SPACE,
                 flag=wx.ALIGN_RIGHT | wx.ALIGN_CENTER_VERTICAL | wx.RIGHT)
-        self.choice = wx.Choice(self, choices=SPACE_PLACEMENTS)
-        self.choice.SetStringSelection(self.config.get_space_placement())
-        box.Add(self.choice, proportion=1, flag=wx.EXPAND)
-        sizer.Add(box, border=UI_BORDER, flag=wx.ALL | wx.EXPAND)        
+        self.space_placement_choice = wx.Choice(self, choices=SPACE_PLACEMENTS)
+        self.space_placement_choice.SetStringSelection(self.config.get_space_placement())
+        box.Add(self.space_placement_choice, proportion=1, flag=wx.EXPAND)
+        sizer.Add(box, border=UI_BORDER, flag=wx.ALL | wx.EXPAND)
+
+        first_stroke_label = wx.StaticText(self, label=FIRST_STROKE_LABEL)
+        self.start_attached = wx.CheckBox(self, label=START_ATTACHED_LABEL)
+        self.start_attached.SetValue(self.config.get_start_attached())
+        self.start_capitalized = wx.CheckBox(self, label=START_CAPITALIZED_LABEL)
+        self.start_capitalized.SetValue(self.config.get_start_capitalized())
+
+        sizer.AddF(first_stroke_label, wx.SizerFlags().Border(wx.ALL, UI_BORDER))
+        checkbox_flags = wx.SizerFlags().Border(wx.LEFT, COMPONENT_SPACE * 6)
+        sizer.AddF(self.start_capitalized, checkbox_flags)
+        sizer.AddF(self.start_attached, checkbox_flags)
 
         self.SetSizer(sizer)
 
     def save(self):
         """Write all parameters to the config."""
-        self.config.set_space_placement(self.choice.GetStringSelection())
+        self.config.set_space_placement(self.space_placement_choice.GetStringSelection())
+        self.config.set_start_attached(self.start_attached.GetValue())
+        self.config.set_start_capitalized(self.start_capitalized.GetValue())
