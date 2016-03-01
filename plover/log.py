@@ -6,9 +6,13 @@
 import os
 import sys
 import logging
+import traceback
+
 from logging.handlers import RotatingFileHandler
 from logging import DEBUG, INFO, WARNING, ERROR
+
 from plover.oslayer.config import CONFIG_DIR
+
 
 LOG_FORMAT = '%(asctime)s %(levelname)s: %(message)s'
 LOG_FILENAME = os.path.join(CONFIG_DIR, 'plover.log')
@@ -16,6 +20,26 @@ LOG_MAX_BYTES = 10000000
 LOG_COUNT = 9
 
 STROKE_LOG_FORMAT = '%(asctime)s %(message)s'
+
+
+class NoExceptionTracebackFormatter(logging.Formatter):
+    """Custom formatter for formatting exceptions without traceback."""
+
+    def format(self, record):
+        # Calls to formatException are cached.
+        # (see http://bugs.python.org/issue1295)
+        orig_exc_text = record.exc_text
+        record.exc_text = None
+        try:
+            return super(NoExceptionTracebackFormatter, self).format(record)
+        finally:
+            record.exc_text = orig_exc_text
+
+    def formatException(self, exc_info):
+        etype, evalue, tb = exc_info
+        lines = traceback.format_exception_only(etype, evalue)
+        return u''.join(lines)
+
 
 class FileHandler(RotatingFileHandler):
 
