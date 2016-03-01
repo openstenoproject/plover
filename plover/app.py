@@ -62,16 +62,16 @@ def update_engine(engine, old, new, reset_machine=False):
         old = NoneConfig()
 
     machine_type = new.get_machine_type()
-    machine_mappings = new.get_system_keymap(machine_type)
-    machine_options = new.get_machine_specific_options(machine_type)
+    try:
+        machine_mappings = new.get_system_keymap(machine_type)
+        machine_options = new.get_machine_specific_options(machine_type)
+    except NoSuchMachineException as e:
+        raise InvalidConfigurationError(unicode(e))
     if (reset_machine or
             old.get_machine_type() != machine_type or
             old.get_system_keymap(machine_type) != machine_mappings or
             old.get_machine_specific_options(machine_type) != machine_options):
-        try:
-            machine_class = machine_registry.get(machine_type)
-        except NoSuchMachineException as e:
-            raise InvalidConfigurationError(unicode(e))
+        machine_class = machine_registry.get(machine_type)
         machine = machine_class(machine_options)
         if machine_mappings is None:
             log.warning('no mappings defined for %s, the machine won\'t be usable', machine_type)
