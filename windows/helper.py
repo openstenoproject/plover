@@ -277,7 +277,6 @@ class Helper(object):
         # Note: '--always-unzip' is needed, as pyHook cannot work from a single egg file.
         ('pyhook'           , 'http://downloads.sourceforge.net/project/pyhook/pyhook/1.5.1/pyHook-1.5.1.win32-py2.7.exe'                         , '9afb7a5b2858a69c6b0f6d2cb1b2eb2a3f4183d2', 'easy_install', ('--always-unzip',), None),
         ('pywin32'          , 'http://downloads.sourceforge.net/project/pywin32/pywin32/Build 219/pywin32-219.win32-py2.7.exe'                    , '8bc39008383c646bed01942584117113ddaefe6b', 'easy_install', (), None),
-        ('pywinusb'         , 'pip:pywinusb'                                                                                                      , None                                      , None, (), None),
     )
 
     def __init__(self):

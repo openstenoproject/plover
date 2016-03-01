@@ -113,26 +113,24 @@ install_requires = [
     'setuptools',
     'pyserial>=2.7',
     'appdirs>=1.4.0',
+    'hidapi',
 ]
 
 extras_require = {
     ':"win32" in sys_platform': [
         'pyhook>=1.5.1',
         'pywin32>=219',
-        'pywinusb>=0.4.0',
         # Can't reliably require wxPython
     ],
     ':"linux" in sys_platform': [
         'python-xlib>=0.14',
         'wxPython>=3.0',
-        'hidapi',
     ],
     ':"darwin" in sys_platform': [
         'pyobjc-core>=3.0.3',
         'pyobjc-framework-Cocoa>=3.0.3',
         'pyobjc-framework-Quartz>=3.0.3',
         'wxPython>=3.0',
-        'hidapi',
     ],
 }
 
