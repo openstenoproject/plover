@@ -19,7 +19,6 @@ import plover.gui.dictionary_editor
 from plover import log
 from plover.app import update_engine
 from plover.machine.registry import machine_registry
-from plover.exception import InvalidConfigurationError
 from plover.dictionary.loading_manager import manager as dict_manager
 from plover.gui.paper_tape import StrokeDisplayDialog
 from plover.gui.suggestions import SuggestionsDisplayDialog
@@ -170,7 +169,7 @@ class ConfigurationDialog(wx.Dialog):
 
         try:
             update_engine(self.engine, old_config, self.config)
-        except InvalidConfigurationError:
+        except Exception:
             log.error('updating engine configuration failed', exc_info=True)
             return
 
@@ -259,7 +258,11 @@ class MachineConfig(wx.Panel):
     def _update(self, event=None):
         # Refreshes the UI to reflect current data.
         machine_name = self.choice.GetStringSelection()
-        options = self.config.get_machine_specific_options(machine_name)
+        try:
+            options = self.config.get_machine_specific_options(machine_name)
+        except Exception:
+            log.error('could not get machine specific options', exc_info=True)
+            options = {}
         self.advanced_options = options
         self.config_button.Enable(bool(options))
 

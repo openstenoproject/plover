@@ -22,7 +22,6 @@ import plover.gui.lookup
 from plover.oslayer.keyboardcontrol import KeyboardEmulation
 from plover.machine.base import STATE_ERROR, STATE_INITIALIZING, STATE_RUNNING
 from plover.machine.registry import machine_registry
-from plover.exception import InvalidConfigurationError
 from plover.gui.paper_tape import StrokeDisplayDialog
 from plover.gui.suggestions import SuggestionsDisplayDialog
 from plover import log
@@ -209,7 +208,7 @@ class MainFrame(wx.Frame):
         try:
             with open(config.target_file, 'rb') as f:
                 self.config.load(f)
-        except InvalidConfigurationError:
+        except Exception:
             log.error('loading configuration failed, reseting to default', exc_info=True)
             self.config.clear()
 
@@ -226,7 +225,7 @@ class MainFrame(wx.Frame):
             try:
                 app.init_engine(self.steno_engine, self.config)
                 break
-            except InvalidConfigurationError as e:
+            except Exception:
                 log.error('engine initialization failed', exc_info=True)
                 dlg = ConfigurationDialog(self.steno_engine,
                                           self.config,
