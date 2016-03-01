@@ -1,3 +1,4 @@
+# -*- coding: utf-8 -*-
 # Copyright (c) 2013 Hesky Fisher
 # See LICENSE.txt for details.
 
@@ -7,6 +8,7 @@
 
 import sys
 from plover import log
+from time import sleep
 
 if sys.platform.startswith('win32'):
     from plover.machine.base import StenotypeBase
@@ -33,6 +35,7 @@ def packet_to_stroke(p):
    return keys
 
 VENDOR_ID = 3526
+PRODUCT_IDS = range(1, 11)
 
 EMPTY = [0] * 5
 
@@ -93,29 +96,58 @@ class Stenotype(StenotypeBase):
 
     else:
 
+        def _connect(self):
+            connected = False
+            for product_id in PRODUCT_IDS:
+                try:
+                    if hasattr(hid.device, 'open'):
+                        self._machine = hid.device()
+                        self._machine.open(VENDOR_ID, product_id)
+                    else:
+                        self._machine = hid.device(VENDOR_ID, product_id)
+                except IOError as e:
+                    self._machine = None
+                else:
+                    self._machine.set_nonblocking(0)
+                    self._ready()
+                    connected = True
+                    break
+
+            return connected
+
         def start_capture(self):
             """Begin listening for output from the stenotype machine."""
-            try:
-                if hasattr(hid.device, 'open'):
-                    self._machine = hid.device()
-                    self._machine.open(VENDOR_ID, 1)
-                else:
-                    self._machine = hid.device(VENDOR_ID, 1)
-                self._machine.set_nonblocking(0)
-            except IOError as e:
-                log.info('Treal device not found: %s', str(e))
+            if not self._connect():
                 log.warning('Treal is not connected')
                 self._error()
                 return
             super(Stenotype, self).start_capture()
 
+        def _reconnect(self):
+            self._machine = None
+            self._initializing()
+
+            connected = self._connect()
+            # Reconnect loop
+            while not self.finished.isSet() and not connected:
+                sleep(0.5)
+                connected = self._connect()
+            return connected
+
         def run(self):
             handler = DataHandler(self._on_stroke)
             self._ready()
             while not self.finished.isSet():
-                packet = self._machine.read(5)
-                if len(packet) != 5: continue
-                handler.update(packet)
+                try:
+                    packet = self._machine.read(5, 50)
+                except IOError:
+                    self._machine.close()
+                    log.warning('Treal disconnected, reconnecting…')
+                    if self._reconnect():
+                        log.warning('Treal reconnected.')
+                else:
+                    if len(packet) is 5:
+                        handler.update(packet)
 
     def stop_capture(self):
         """Stop listening for output from the stenotype machine."""

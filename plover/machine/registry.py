@@ -8,14 +8,7 @@ from plover.machine.txbolt import Stenotype as txbolt
 from plover.machine.keyboard import Stenotype as keyboard
 from plover.machine.stentura import Stenotype as stentura
 from plover.machine.passport import Stenotype as passport
-from plover import log
-
-try:
-    from plover.machine.treal import Stenotype as treal
-except Exception as e:
-    log.info('Unable to use Treal on this machine: %s', str(e))
-    treal = None
-
+from plover.machine.treal import Stenotype as treal
 
 class NoSuchMachineException(Exception):
     def __init__(self, id):
