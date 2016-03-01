@@ -133,6 +133,7 @@ class ConfigurationDialog(wx.Dialog):
         sizer.Add(button_sizer, flag=wx.ALL | wx.ALIGN_RIGHT, border=UI_BORDER)
 
         self.SetSizerAndFit(sizer)
+        self.Layout()
         self.SetRect(AdjustRectToScreen(self.GetRect()))
 
         # Binding the save button to the self._save callback
