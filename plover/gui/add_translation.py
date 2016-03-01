@@ -21,6 +21,9 @@ class AddTranslationDialog(wx.Dialog):
                config.get_translation_frame_y())
         wx.Dialog.__init__(self, parent, title=TITLE, pos=pos)
 
+        opacity = config.get_translation_frame_opacity()
+        self._apply_opacity(opacity)
+
         self.config = config
 
         # components
@@ -45,7 +48,7 @@ class AddTranslationDialog(wx.Dialog):
         sizer.Add(label, 
                   flag=wx.TOP | wx.RIGHT | wx.BOTTOM | wx.ALIGN_CENTER_VERTICAL, 
                   border=self.BORDER)
-        sizer.Add(self.translation_text          , 
+        sizer.Add(self.translation_text,
                   flag=wx.TOP | wx.RIGHT | wx.BOTTOM | wx.ALIGN_CENTER_VERTICAL, 
                   border=self.BORDER)
         sizer.Add(button, 
@@ -203,6 +206,22 @@ class AddTranslationDialog(wx.Dialog):
         self.config.set_translation_frame_x(pos[0]) 
         self.config.set_translation_frame_y(pos[1])
         event.Skip()
+
+    def _apply_opacity(self, opacity):
+        """
+        Given a opacity in range 0 through 100, makes the window that
+        percent opaque. Handles conversion to range 0 through 0xFF.
+        """
+        if not self.CanSetTransparent():
+            return
+
+        # opacity ranges from 0 to 100,
+        # but SetTransparent takes a byte in range 0 through 255.
+        # NOTE: wxWidgets calls opacity transparency,
+        # but 0 still means invisible.
+        fractional_alpha = opacity / 100.0
+        alpha_byte = int(round(0xFF * fractional_alpha)) % 0x100
+        self.SetTransparent(alpha_byte)
 
     def _normalized_strokes(self):
         strokes = self.strokes_text.GetValue().upper().replace('/', ' ').split()

@@ -89,6 +89,8 @@ TRANSLATION_FRAME_X_OPTION = 'x'
 DEFAULT_TRANSLATION_FRAME_X = -1
 TRANSLATION_FRAME_Y_OPTION = 'y'
 DEFAULT_TRANSLATION_FRAME_Y = -1
+TRANSLATION_FRAME_OPACITY_OPTION = 'opacity'
+DEFAULT_TRANSLATION_FRAME_OPACITY = 100
 
 LOOKUP_FRAME_SECTION = 'Lookup Frame'
 LOOKUP_FRAME_X_OPTION = 'x'
@@ -120,6 +122,21 @@ RTF_EXTENSION = '.rtf'
 
 # Logging constants.
 LOG_EXTENSION = '.log'
+
+
+MIN_FRAME_OPACITY = 0
+MAX_FRAME_OPACITY = 100
+
+
+def raise_if_invalid_opacity(opacity):
+    """
+    Raises ValueError if opacity is out of range defined by
+    [MIN_FRAME_OPACITY, MAX_FRAME_OPACITY].
+    """
+    if not (MIN_FRAME_OPACITY <= opacity <= MAX_FRAME_OPACITY):
+        message = "opacity %u out of range [%u, %u]" \
+            % (opacity, MIN_FRAME_OPACITY, MAX_FRAME_OPACITY)
+        raise ValueError(message)
 
 # TODO: Unit test this class
 
@@ -401,7 +418,25 @@ class Config(object):
         return self._get_int(TRANSLATION_FRAME_SECTION, 
                              TRANSLATION_FRAME_Y_OPTION,
                              DEFAULT_TRANSLATION_FRAME_Y)
-                             
+
+    def set_translation_frame_opacity(self, opacity):
+        raise_if_invalid_opacity(opacity)
+        self._set(TRANSLATION_FRAME_SECTION,
+                  TRANSLATION_FRAME_OPACITY_OPTION,
+                  opacity)
+
+    def get_translation_frame_opacity(self):
+        opacity = self._get_int(TRANSLATION_FRAME_SECTION,
+                                TRANSLATION_FRAME_OPACITY_OPTION,
+                                DEFAULT_TRANSLATION_FRAME_OPACITY)
+        try:
+            raise_if_invalid_opacity(opacity)
+        except ValueError as e:
+            log.error("translation %s, reset to %u",
+                      e, DEFAULT_TRANSLATION_FRAME_OPACITY)
+            opacity = DEFAULT_TRANSLATION_FRAME_OPACITY
+        return opacity
+
     def set_lookup_frame_x(self, x):
         self._set(LOOKUP_FRAME_SECTION, LOOKUP_FRAME_X_OPTION, x)
     
