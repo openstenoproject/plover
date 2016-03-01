@@ -25,6 +25,7 @@ from plover.machine.registry import machine_registry
 from plover.exception import InvalidConfigurationError
 from plover.gui.paper_tape import StrokeDisplayDialog
 from plover.gui.suggestions import SuggestionsDisplayDialog
+from plover import log
 
 from plover import __name__ as __software_name__
 from plover import __version__
@@ -208,8 +209,8 @@ class MainFrame(wx.Frame):
         try:
             with open(config.target_file, 'rb') as f:
                 self.config.load(f)
-        except InvalidConfigurationError as e:
-            self._show_alert(unicode(e))
+        except InvalidConfigurationError:
+            log.error('loading configuration failed, reseting to default', exc_info=True)
             self.config.clear()
 
         rect = wx.Rect(config.get_main_frame_x(), config.get_main_frame_y(), *self.GetSize())
@@ -226,7 +227,7 @@ class MainFrame(wx.Frame):
                 app.init_engine(self.steno_engine, self.config)
                 break
             except InvalidConfigurationError as e:
-                self._show_alert(unicode(e))
+                log.error('engine initialization failed', exc_info=True)
                 dlg = ConfigurationDialog(self.steno_engine,
                                           self.config,
                                           parent=self)
@@ -234,7 +235,7 @@ class MainFrame(wx.Frame):
                 if ret == wx.ID_CANCEL:
                     self._quit()
                     return
-                    
+
         self.steno_engine.add_stroke_listener(
             StrokeDisplayDialog.stroke_handler)
         if self.config.get_show_stroke_display():
@@ -351,14 +352,6 @@ class MainFrame(wx.Frame):
         info.Developers = __credits__
         info.License = __license__
         wx.AboutBox(info)
-
-    def _show_alert(self, message):
-        alert_dialog = wx.MessageDialog(self,
-                                        message,
-                                        self.ALERT_DIALOG_TITLE,
-                                        wx.OK | wx.ICON_INFORMATION)
-        alert_dialog.ShowModal()
-        alert_dialog.Destroy()
 
     def on_move(self, event):
         pos = self.GetScreenPositionTuple()

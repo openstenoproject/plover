@@ -170,13 +170,8 @@ class ConfigurationDialog(wx.Dialog):
 
         try:
             update_engine(self.engine, old_config, self.config)
-        except InvalidConfigurationError as e:
-            alert_dialog = wx.MessageDialog(self,
-                                            unicode(e),
-                                            "Configuration error",
-                                            wx.OK | wx.ICON_INFORMATION)
-            alert_dialog.ShowModal()
-            alert_dialog.Destroy()
+        except InvalidConfigurationError:
+            log.error('updating engine configuration failed', exc_info=True)
             return
 
         with open(self.config.target_file, 'wb') as f:
