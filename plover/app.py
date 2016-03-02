@@ -40,8 +40,8 @@ class SimpleNamespace(object):
 
 def init_engine(engine, config):
     """Initialize a StenoEngine from a config object."""
-    update_engine(engine, config)
     engine.set_is_running(config.get_auto_start())
+    update_engine(engine, config)
 
 def reset_machine(engine, config):
     """Set the machine on the engine based on config."""

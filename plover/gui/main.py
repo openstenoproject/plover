@@ -221,20 +221,6 @@ class MainFrame(wx.Frame):
         self.steno_engine.set_output(
             Output(self.consume_command, self.steno_engine))
 
-        while True:
-            try:
-                app.init_engine(self.steno_engine, self.config)
-                break
-            except Exception:
-                log.error('engine initialization failed', exc_info=True)
-                dlg = ConfigurationDialog(self.steno_engine,
-                                          self.config,
-                                          parent=self)
-                ret = dlg.ShowModal()
-                if ret == wx.ID_CANCEL:
-                    self._quit()
-                    return
-
         self.steno_engine.add_stroke_listener(
             StrokeDisplayDialog.stroke_handler)
         if self.config.get_show_stroke_display():
@@ -244,6 +230,12 @@ class MainFrame(wx.Frame):
             SuggestionsDisplayDialog.stroke_handler)
         if self.config.get_show_suggestions_display():
             SuggestionsDisplayDialog.display(self, self.config, self.steno_engine)
+
+        try:
+            app.init_engine(self.steno_engine, self.config)
+        except Exception:
+            log.error('engine initialization failed', exc_info=True)
+            self._show_config_dialog()
 
     def consume_command(self, command):
         # The first commands can be used whether plover has output enabled or not.
