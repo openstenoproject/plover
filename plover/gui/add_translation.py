@@ -233,7 +233,7 @@ class AddTranslationDialog(wx.Dialog):
         self.SetTransparent(alpha_byte)
 
     def _normalized_strokes(self):
-        strokes = self.strokes_text.GetValue().upper().replace('/', ' ').split()
+        strokes = self.strokes_text.GetValue().replace('/', ' ').split()
         strokes = normalize_steno('/'.join(strokes))
         return strokes
 
