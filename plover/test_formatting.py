@@ -407,6 +407,40 @@ class FormatterTestCase(unittest.TestCase):
           action(text='ing', word='testing'),
          ]),
 
+        (('{-|}{^|~|^}', action(), False),
+         [action(capitalize=True),
+          action(word='|~|', text='|~|', attach=True),
+         ]),
+
+        (('{-|}{~|\'^}cause', action(), False),
+         [action(capitalize=True),
+          action(text=' \'', word='\'', attach=True, capitalize=True),
+          action(text='Cause', word='Cause'),
+         ]),
+
+        (('{.}{~|\'^}cuz', action(), False),
+         [action(text='.', word='', capitalize=True),
+          action(text=' \'', word='\'', attach=True, capitalize=True),
+          action(text='Cuz', word='Cuz'),
+         ]),
+
+        (('{.}{~|\'^}cause', action(), True),
+         [action(text='. ', word='', capitalize=True),
+          action(text='\'', word='\'', attach=True, capitalize=True),
+          action(text='Cause ', word='Cause'),
+         ]),
+
+        (('{.}{^~|\"}heyyo', action(), False),
+         [action(text='.', word='', capitalize=True),
+          action(text='"', word='"', capitalize=True),
+          action(text=' Heyyo', word='Heyyo'),
+         ]),
+
+        (('{.}{^~|\"}heyyo', action(), True),
+         [action(text='. ', word='', capitalize=True),
+          action(text='" ', word='"', capitalize=True, replace=' '),
+          action(text='Heyyo ', word='Heyyo'),
+         ]),
 
         (('test', action(), True), 
          [action(text='test ', word='test')]),
@@ -903,6 +937,72 @@ class FormatterTestCase(unittest.TestCase):
         ]
 
         self.check_arglist(formatting._change_mode, cases)
+
+    def test_meta_carry_capitalize(self):
+        spaces_before = False
+        spaces_after = True
+        last_action_normal = action()
+        last_action_capitalized = action(capitalize=True)
+        last_action_attached = action(attach=True)
+
+        # meta, last_action, spaces_after
+        cases = [
+            # Test word handling and space handling, standard.
+            (('~|*', last_action_normal, spaces_before),
+             (action(word='*', text=' *'))
+            ),
+            (('~|*', last_action_normal, spaces_after),
+             (action(word='*', text='* '))
+            ),
+            # With attach flags:
+            (('~|*^', last_action_normal, spaces_before),
+             (action(word='*', text=' *', attach=True))
+            ),
+            (('~|*^', last_action_normal, spaces_after),
+             (action(word='*', text='*', attach=True))
+            ),
+            (('^~|*', last_action_normal, spaces_before),
+             (action(word='*', text='*'))
+            ),
+            (('^~|*', last_action_normal, spaces_after),
+             (action(word='*', text='* '))
+            ),
+            (('^~|*^', last_action_normal, spaces_before),
+             (action(word='*', text='*', attach=True))
+            ),
+            (('^~|*^', last_action_normal, spaces_after),
+             (action(word='*', text='*', attach=True))
+            ),
+            # Should 'do nothing'.
+            (('~|', last_action_capitalized, spaces_before),
+             (last_action_capitalized)
+            ),
+            # Should lose 'attach' flag.
+            (('~|', last_action_attached, spaces_before),
+             (action())
+            ),
+            # Verify capitalize carry.
+            (('^~|^', last_action_capitalized, spaces_before),
+             (action(capitalize=True, attach=True))
+            ),
+            (('^~|aset^', last_action_capitalized, spaces_before),
+             (action(capitalize=True, attach=True, word="aset", text="aset"))
+            ),
+            (('~|aset', last_action_capitalized, spaces_before),
+             (action(capitalize=True, word="aset", text=" aset"))
+            ),
+            (('~|aset', last_action_capitalized, spaces_after),
+             (action(capitalize=True, word="aset", text="aset "))
+            ),
+            # Verify 'attach' flag overriding.
+            (('~|aset', last_action_attached, spaces_after),
+             (action(word="aset", text="aset "))
+            ),
+            (('~|aset^', last_action_attached, spaces_after),
+             (action(word="aset", text="aset", attach=True))
+            ),
+        ]
+        self.check_arglist(formatting._apply_carry_capitalize, cases)
 
     def test_apply_case(self):
         an_action = action()
