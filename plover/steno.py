@@ -40,6 +40,8 @@ def normalize_stroke(stroke):
 
 def normalize_steno(strokes_string):
     """Convert steno strings to one common form."""
+    if not strokes_string:
+        return ()
     return tuple(normalize_stroke(stroke) for stroke
                  in strokes_string.split(STROKE_DELIMITER))
 
