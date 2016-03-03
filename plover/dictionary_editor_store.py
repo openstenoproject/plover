@@ -54,19 +54,15 @@ class DictionaryEditorStore():
 
         self.pending_changes = False
 
-        dict_index = len(self.engine.get_dictionary().dicts) - 1
-        while dict_index >= 0:
-            dict = self.engine.get_dictionary().dicts[dict_index]
-            for dk in dict.keys():
+        for dict in reversed(self.engine.get_dictionary().dicts):
+            for dk, translation in dict.iteritems():
                 joined = '/'.join(dk)
-                translation = self.engine.get_dictionary().lookup(dk)
                 item = DictionaryItem(joined,
                                       translation,
                                       dict.get_path(),
                                       item_id)
                 self.all_keys.append(item)
                 item_id += 1
-            dict_index -= 1
         self.filtered_keys = self.all_keys[:]
         self.sorted_keys = self.filtered_keys[:]
 
