@@ -141,7 +141,7 @@ class DictionaryEditorStore():
             dict = (self.engine
                         .get_dictionary()
                         .get_by_path(added_item.dictionary))
-            dict.__setitem__(self._splitStrokes(added_item.stroke),
+            dict.__setitem__(normalize_steno(added_item.stroke),
                              added_item.translation)
 
         # Updates
@@ -150,7 +150,7 @@ class DictionaryEditorStore():
             dict = (self.engine
                         .get_dictionary()
                         .get_by_path(modified_item.dictionary))
-            dict.__setitem__(self._splitStrokes(modified_item.stroke),
+            dict.__setitem__(normalize_steno(modified_item.stroke),
                              modified_item.translation)
 
         # Deletes
@@ -158,7 +158,7 @@ class DictionaryEditorStore():
             dict = (self.engine
                         .get_dictionary()
                         .get_by_path(deleted_item.dictionary))
-            dict.__delitem__(self._splitStrokes(deleted_item.stroke))
+            dict.__delitem__(normalize_steno(deleted_item.stroke))
 
         self.engine.get_dictionary().save_all()
 
@@ -226,7 +226,3 @@ class DictionaryEditorStore():
                                           reverse=reverse_sort)
         else:
             self.sorted_keys = self.filtered_keys[:]
-
-    def _splitStrokes(self, strokes_string):
-        result = normalize_steno(strokes_string.upper())
-        return result
