@@ -24,7 +24,7 @@ class EditKeysDialog(wx.Dialog):
     def __init__(self, parent, action, keys):
         super(EditKeysDialog, self).__init__(parent)
         self.sizer = wx.BoxSizer(wx.VERTICAL)
-        sizer_flags = wx.SizerFlags().Border(wx.ALL, UI_BORDER).Align(wx.ALIGN_CENTER_HORIZONTAL)
+        sizer_flags = wx.SizerFlags().Border(wx.ALL, UI_BORDER).Center()
         instructions = wx.StaticText(self, label='Press on the key you want to add/remove.')
         self.sizer.AddF(instructions, sizer_flags)
         self.message = wx.StaticText(self)
@@ -86,11 +86,11 @@ class EditKeymapWidget(wx.ListCtrl, listmix.ListCtrlAutoWidthMixin):
                              id=wx.ID_ANY,
                              pos=wx.DefaultPosition,
                              size=(300, 200),
-                             style=wx.LC_REPORT)
+                             style=wx.LC_REPORT|wx.LC_HRULES|wx.LC_VRULES)
         listmix.ListCtrlAutoWidthMixin.__init__(self)
         self.Bind(wx.EVT_LIST_ITEM_ACTIVATED, self.edit_item)
-        self.InsertColumn(0, 'Steno Keys / Actions')
-        self.InsertColumn(1, 'Keys')
+        self.InsertColumn(0, 'Steno Keys / Actions', width=wx.LIST_AUTOSIZE_USEHEADER)
+        self.InsertColumn(1, 'Keys', width=wx.LIST_AUTOSIZE_USEHEADER)
 
     def edit_item(self, event):
         # Disallow editing of first column.
@@ -137,13 +137,13 @@ class KeyboardConfigDialog(wx.Dialog):
         wx.Dialog.__init__(self, parent, title=DIALOG_TITLE, pos=pos)
 
         sizer = wx.BoxSizer(wx.VERTICAL)
+        sizer_flags = wx.SizerFlags().Border(wx.ALL, UI_BORDER).Align(wx.ALIGN_CENTER_HORIZONTAL)
 
         instructions = wx.StaticText(self, label=ARPEGGIATE_INSTRUCTIONS)
-        sizer.Add(instructions, border=UI_BORDER, flag=wx.ALL)
+        sizer.AddF(instructions, sizer_flags.Align(wx.LEFT))
         self.arpeggiate_option = wx.CheckBox(self, label=ARPEGGIATE_LABEL)
         self.arpeggiate_option.SetValue(options.arpeggiate)
-        sizer.Add(self.arpeggiate_option, border=UI_BORDER, 
-                  flag=wx.LEFT | wx.RIGHT | wx.BOTTOM)
+        sizer.AddF(self.arpeggiate_option, sizer_flags)
 
         # editable list for keymap bindings
         self.keymap = Keymap(KeyboardMachine.KEYS_LAYOUT.split(), KeyboardMachine.ACTIONS)
@@ -152,7 +152,7 @@ class KeyboardConfigDialog(wx.Dialog):
             self.keymap.set_mappings(mappings)
         self.keymap_widget = EditKeymapWidget(self)
         self.keymap_widget.set_mappings(self.keymap.get_mappings())
-        sizer.Add(self.keymap_widget, flag=wx.EXPAND)
+        sizer.AddF(self.keymap_widget, sizer_flags.Expand())
 
         ok_button = wx.Button(self, id=wx.ID_OK)
         ok_button.SetDefault()
@@ -160,15 +160,14 @@ class KeyboardConfigDialog(wx.Dialog):
         reset_button = wx.Button(self, id=wx.ID_RESET, label='Reset to default')
 
         button_sizer = wx.BoxSizer(wx.HORIZONTAL)
-        button_sizer.Add(ok_button, border=UI_BORDER, flag=wx.ALL)
-        button_sizer.Add(cancel_button, border=UI_BORDER, flag=wx.ALL)
-        button_sizer.Add(reset_button, border=UI_BORDER, flag=wx.ALL)
-        sizer.Add(button_sizer, flag=wx.ALL | wx.ALIGN_RIGHT, border=UI_BORDER)
-                  
-        self.SetSizer(sizer)
-        sizer.Fit(self)
+        button_sizer.AddF(ok_button, sizer_flags)
+        button_sizer.AddF(cancel_button, sizer_flags)
+        button_sizer.AddF(reset_button, sizer_flags)
+        sizer.AddF(button_sizer, sizer_flags)
+
+        self.SetSizerAndFit(sizer)
         self.SetRect(AdjustRectToScreen(self.GetRect()))
-        
+
         self.Bind(wx.EVT_MOVE, self.on_move)
         ok_button.Bind(wx.EVT_BUTTON, lambda e: self.EndModal(wx.ID_OK))
         cancel_button.Bind(wx.EVT_BUTTON, lambda e: self.EndModal(wx.ID_CANCEL))
