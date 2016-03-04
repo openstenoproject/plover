@@ -15,11 +15,11 @@ else:
     from plover.machine.base import ThreadedStenotypeBase as StenotypeBase
     import hid
 
-STENO_KEY_CHART = (('K-', 'W-', 'R-', '*', '-R', '-B', '-G', '-S'),
-                   ('*', '-F', '-P', '-L', '-T', '-D', '', 'S-'),
-                   ('#', '#', '#', '', 'S-', 'T-', 'P-', 'H-'),
-                   ('#', '#', '#', '#', '#', '#', '#', '#'),
-                   ('', '', '-Z', 'A-', 'O-', '', '-E', '-U'))
+STENO_KEY_CHART = (('K-', 'W-', 'R-', '*2', '-R', '-B', '-G', '-S'),
+                   ('*1', '-F', '-P', '-L', '-T', '-D', 'X2-', 'S2-'),
+                   ('#9', '#A', '#B', 'X1-', 'S1-', 'T-', 'P-', 'H-'),
+                   ('#1', '#2', '#3', '#4', '#5', '#6', '#7', '#8'),
+                   ('', '', '-Z', 'A-', 'O-', 'X3', '-E', '-U'))
 
 def packet_to_stroke(p):
    keys = []
@@ -54,9 +54,21 @@ class DataHandler(object):
 
 class Stenotype(StenotypeBase):
 
+    KEYS_LAYOUT = '''
+        #1  #2  #3 #4 #5 #6 #7 #8 #9 #A #B
+        X1- S1- T- P- H- *1 -F -P -L -T -D
+        X2- S2- K- W- R- *2 -R -B -G -S -Z
+                   A- O- X3 -E -U
+    '''
+
     def __init__(self, params):
         super(Stenotype, self).__init__()
         self._machine = None
+
+    def _on_stroke(self, keys):
+        steno_keys = self.keymap.keys_to_actions(keys)
+        if steno_keys:
+            self._notify(steno_keys)
 
     if sys.platform.startswith('win32'):
 
@@ -70,7 +82,7 @@ class Stenotype(StenotypeBase):
                 return
             self._machine = devices[0]
             self._machine.open()
-            handler = DataHandler(self._notify)
+            handler = DataHandler(self._on_stroke)
 
             def callback(p):
                 if len(p) != 6: return
@@ -98,7 +110,7 @@ class Stenotype(StenotypeBase):
             super(Stenotype, self).start_capture()
 
         def run(self):
-            handler = DataHandler(self._notify)
+            handler = DataHandler(self._on_stroke)
             self._ready()
             while not self.finished.isSet():
                 packet = self._machine.read(5)

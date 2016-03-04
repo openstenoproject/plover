@@ -8,7 +8,7 @@ import re
 from collections import namedtuple
 from wx.lib.utils import AdjustRectToScreen
 from plover.gui.util import find_fixed_width_font, shorten_unicode
-from plover.steno import STENO_KEY_ORDER
+from plover import system
 
 PAT = re.compile(r'[-\'"\w]+|[^\w\s]')
 TITLE = 'Plover: Suggestions Display'
@@ -19,7 +19,6 @@ DEFAULT_LAST_WORD = 'N/A'
 HISTORY_SIZE = 10
 MAX_DISPLAY_LINES = 20
 STROKE_INDENT = 2
-DISPLAY_WIDTH = len(STENO_KEY_ORDER) + 2 * STROKE_INDENT + 1 # extra +1 for /
 
 class SuggestionsDisplayDialog(wx.Dialog):
 
@@ -54,11 +53,12 @@ class SuggestionsDisplayDialog(wx.Dialog):
         fixed_font = find_fixed_width_font()
 
         # Calculate required width and height.
+        display_width = len(system.KEY_ORDER) + 2 * STROKE_INDENT + 1 # extra +1 for /
         dc = wx.ScreenDC()
         dc.SetFont(fixed_font)
-        fixed_text_size = dc.GetTextExtent(' ' * DISPLAY_WIDTH)
+        fixed_text_size = dc.GetTextExtent(' ' * display_width)
         dc.SetFont(standard_font)
-        standard_text_size = dc.GetTextExtent(' ' * DISPLAY_WIDTH)
+        standard_text_size = dc.GetTextExtent(' ' * display_width)
 
         text_width, text_height = [max(d1, d2) for d1, d2 in
                                    zip(fixed_text_size, standard_text_size)]

@@ -39,8 +39,15 @@ class Stenotype(plover.machine.base.SerialStenotypeBase):
 
     """
 
+    KEYS_LAYOUT = '''
+        #  #  #  #  #  #  #  #  #  #
+        S- T- P- H- * -F -P -L -T -D
+        S- K- W- R- * -R -B -G -S -Z
+              A- O-   -E -U
+    '''
+
     def __init__(self, params):
-        plover.machine.base.SerialStenotypeBase.__init__(self, params)
+        super(Stenotype, self).__init__(params)
         self._reset_stroke_state()
 
     def _reset_stroke_state(self):
@@ -48,7 +55,9 @@ class Stenotype(plover.machine.base.SerialStenotypeBase):
         self._last_key_set = 0
 
     def _finish_stroke(self):
-        self._notify(self._pressed_keys)
+        steno_keys = self.keymap.keys_to_actions(self._pressed_keys)
+        if steno_keys:
+            self._notify(self._pressed_keys)
         self._reset_stroke_state()
 
     def run(self):

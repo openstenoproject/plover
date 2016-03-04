@@ -3,49 +3,26 @@
 
 "Thread-based monitoring of a stenotype machine using the passport protocol."
 
-from plover.machine.base import SerialStenotypeBase
 from itertools import izip_longest
+
+from plover.machine.base import SerialStenotypeBase
 
 # Passport protocol is documented here:
 # http://www.eclipsecat.com/?q=system/files/Passport%20protocol_0.pdf
 
-STENO_KEY_CHART = {
-    '!': None,
-    '#': '#',
-    '^': None,
-    '+': None,
-    'S': 'S-',
-    'C': 'S-',
-    'T': 'T-',
-    'K': 'K-',
-    'P': 'P-',
-    'W': 'W-',
-    'H': 'H-',
-    'R': 'R-',
-    '~': '*',
-    '*': '*',
-    'A': 'A-',
-    'O': 'O-',
-    'E': '-E',
-    'U': '-U',
-    'F': '-F',
-    'Q': '-R',
-    'N': '-P',
-    'B': '-B',
-    'L': '-L',
-    'G': '-G',
-    'Y': '-T',
-    'X': '-S',
-    'D': '-D',
-    'Z': '-Z',
-}
-
-
 class Stenotype(SerialStenotypeBase):
     """Passport interface."""
 
+    KEYS_LAYOUT = '''
+        # # # # # # # # # #
+        S T P H ~ F N L Y D
+        C K W R * Q B G X Z
+            A O   E U
+        ! ^ +
+    '''
+
     def __init__(self, params):
-        SerialStenotypeBase.__init__(self, params)
+        super(Stenotype, self).__init__(params)
         self.packet = []
 
     def _read(self, b):
@@ -57,15 +34,14 @@ class Stenotype(SerialStenotypeBase):
 
     def _handle_packet(self, packet):
         encoded = packet.split('/')[1]
-        keys = []
+        steno_keys = []
         for key, shadow in grouper(encoded, 2, 0):
             shadow = int(shadow, base=16)
             if shadow >= 8:
-                key = STENO_KEY_CHART[key]
-                if key:
-                    keys.append(key)
-        if keys:
-            self._notify(keys)
+                steno_keys.append(key)
+        steno_keys = self.keymap.keys_to_actions(steno_keys)
+        if steno_keys:
+            self._notify(steno_keys)
 
     def run(self):
         """Overrides base class run method. Do not call directly."""
@@ -82,8 +58,8 @@ class Stenotype(SerialStenotypeBase):
             for b in raw:
                 self._read(b)
 
-    @staticmethod
-    def get_option_info():
+    @classmethod
+    def get_option_info(cls):
         """Get the default options for this machine."""
         bool_converter = lambda s: s == 'True'
         sb = lambda s: int(float(s)) if float(s).is_integer() else float(s)

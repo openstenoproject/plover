@@ -10,6 +10,7 @@ from cStringIO import StringIO
 from plover.exception import InvalidConfigurationError
 from plover.machine.registry import machine_registry
 from plover.oslayer.config import ASSETS_DIR, CONFIG_DIR
+from plover import system
 
 SPINNER_FILE = os.path.join(ASSETS_DIR, 'spinner.gif')
 
@@ -115,6 +116,10 @@ KEYBOARD_CONFIG_FRAME_X_OPTION = 'x'
 DEFAULT_KEYBOARD_CONFIG_FRAME_X = -1
 KEYBOARD_CONFIG_FRAME_Y_OPTION = 'y'
 DEFAULT_KEYBOARD_CONFIG_FRAME_Y = -1
+
+DEFAULT_SYSTEM = 'English Stenotype'
+SYSTEM_CONFIG_SECTION = 'System: %s'
+SYSTEM_KEYMAP_OPTION = 'keymap[%s]'
 
 # Dictionary constants.
 JSON_EXTENSION = '.json'
@@ -506,6 +511,16 @@ class Config(object):
         return self._get_int(KEYBOARD_CONFIG_FRAME_SECTION, 
                              KEYBOARD_CONFIG_FRAME_Y_OPTION,
                              DEFAULT_KEYBOARD_CONFIG_FRAME_Y)
+
+    def set_system_keymap(self, machine_type, mappings):
+        section = SYSTEM_CONFIG_SECTION % DEFAULT_SYSTEM
+        option = SYSTEM_KEYMAP_OPTION % machine_type
+        self._set(section, option, mappings)
+
+    def get_system_keymap(self, machine_type):
+        section = SYSTEM_CONFIG_SECTION % DEFAULT_SYSTEM
+        option = SYSTEM_KEYMAP_OPTION % machine_type
+        return self._get(section, option, system.KEYMAPS.get(machine_type))
 
     def _set(self, section, option, value):
         if not self._config.has_section(section):
