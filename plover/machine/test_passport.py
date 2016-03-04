@@ -43,7 +43,7 @@ def cmp_keys(a, b):
     return all(starmap(eq, zip(a, b)))
 
 class TestCase(unittest.TestCase):
-    def test_pasport(self):
+    def test_passport(self):
         
         def p(s):
             return '<123/%s/something>' % s

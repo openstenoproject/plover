@@ -17,22 +17,54 @@ class Stenotype(StenotypeBase):
 
     """
 
+    KEYS_LAYOUT = KeyboardCapture.SUPPORTED_KEYS_LAYOUT
+    ACTIONS = StenotypeBase.ACTIONS + ('arpeggiate',)
+
+    DEFAULT_MAPPINGS = {
+        '#'         : ('1', '2', '3', '4', '5', '6', '7', '8', '9', '0', '-', '='),
+        'S-'        : ('a', 'q'),
+        'T-'        : 'w',
+        'K-'        : 's',
+        'P-'        : 'e',
+        'W-'        : 'd',
+        'H-'        : 'r',
+        'R-'        : 'f',
+        'A-'        : 'c',
+        'O-'        : 'v',
+        '*'         : ('t', 'g', 'y', 'h'),
+        '-E'        : 'n',
+        '-U'        : 'm',
+        '-F'        : 'u',
+        '-R'        : 'j',
+        '-P'        : 'i',
+        '-B'        : 'k',
+        '-L'        : 'o',
+        '-G'        : 'l',
+        '-T'        : 'p',
+        '-S'        : ';',
+        '-D'        : '[',
+        '-Z'        : '\'',
+        'arpeggiate': 'space',
+        # Suppress adjacent keys to prevent miss-strokes.
+        'no-op'     : ('z', 'x', 'b', ',', '.', '/', ']', '\\'),
+    }
+
     def __init__(self, params):
         """Monitor the keyboard's events."""
-        StenotypeBase.__init__(self)
+        super(Stenotype, self).__init__()
         self.arpeggiate = params['arpeggiate']
-        self.keymap = params['keymap'].to_dict()
-        self._arpeggiate_key = None
-        for key, mapping in self.keymap.items():
+        self.keymap = params['keymap']
+        self._bindings = dict(self.keymap.get_bindings())
+        for key, mapping in self._bindings.items():
             if 'no-op' == mapping:
-                self.keymap[key] = None
-            if 'arpeggiate' == mapping:
+                self._bindings[key] = None
+            elif 'arpeggiate' == mapping:
                 if self.arpeggiate:
-                    self.keymap[key] = None
+                    self._bindings[key] = None
                     self._arpeggiate_key = key
                 else:
                     # Don't suppress arpeggiate key if it's not used.
-                    del self.keymap[key]
+                    del self._bindings[key]
         self._down_keys = set()
         self._released_keys = set()
         self._keyboard_capture = KeyboardCapture()
@@ -51,7 +83,7 @@ class Stenotype(StenotypeBase):
         self._stopped()
 
     def set_suppression(self, enabled):
-        suppressed_keys = self.keymap.keys() if enabled else ()
+        suppressed_keys = self._bindings.keys() if enabled else ()
         self._keyboard_capture.suppress_keyboard(suppressed_keys)
 
     def suppress_last_stroke(self, send_backspaces):
@@ -60,16 +92,16 @@ class Stenotype(StenotypeBase):
     def _key_down(self, key):
         """Called when a key is pressed."""
         assert key is not None
-        if key in self.keymap:
+        if key in self._bindings:
             self._last_stroke_key_down_count += 1
-        steno_key = self.keymap.get(key)
+        steno_key = self._bindings.get(key)
         if steno_key is not None:
             self._down_keys.add(steno_key)
 
     def _key_up(self, key):
         """Called when a key is released."""
         assert key is not None
-        steno_key = self.keymap.get(key)
+        steno_key = self._bindings.get(key)
         if steno_key is not None:
             # Process the newly released key.
             self._released_keys.add(steno_key)
@@ -90,11 +122,14 @@ class Stenotype(StenotypeBase):
                 self._notify(steno_keys)
             self._last_stroke_key_down_count = 0
 
-    @staticmethod
-    def get_option_info():
+    @classmethod
+    def get_option_info(cls):
         bool_converter = lambda s: s == 'True'
-        keymap_converter = lambda s: Keymap.from_string(s)
+        def keymap_converter(mappings):
+            keymap = Keymap(cls.KEYS_LAYOUT.split(), cls.ACTIONS)
+            keymap.set_mappings(mappings)
+            return keymap
         return {
             'arpeggiate': (False, bool_converter),
-            'keymap':     (Keymap.default(), keymap_converter),
+            'keymap':     (keymap_converter(cls.DEFAULT_MAPPINGS), keymap_converter),
         }

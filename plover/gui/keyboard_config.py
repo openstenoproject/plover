@@ -4,7 +4,6 @@
 import wx
 from wx.lib.utils import AdjustRectToScreen
 import wx.lib.mixins.listctrl as listmix
-from plover.machine.keymap import Keymap
 from plover.oslayer.keyboardcontrol import KeyboardCapture
 
 DIALOG_TITLE = 'Keyboard Configuration'
@@ -67,13 +66,15 @@ class EditKeysDialog(wx.Dialog):
             self.keys.add(key)
         self.update_message()
 
-class EditableListCtrl(wx.ListCtrl, listmix.ListCtrlAutoWidthMixin):
-    """Editable list with automatically sized columns."""
+class EditKeymapWidget(wx.ListCtrl, listmix.ListCtrlAutoWidthMixin):
+
     def __init__(self, parent, ID=wx.ID_ANY, pos=wx.DefaultPosition,
                  size=wx.DefaultSize, style=0):
         wx.ListCtrl.__init__(self, parent, ID, pos, size, style)
         listmix.ListCtrlAutoWidthMixin.__init__(self)
         self.Bind(wx.EVT_LIST_ITEM_ACTIVATED, self.edit_item)
+        self.InsertColumn(0, 'Steno Keys / Actions')
+        self.InsertColumn(1, 'Keys')
 
     def edit_item(self, event):
         # Disallow editing of first column.
@@ -88,18 +89,25 @@ class EditableListCtrl(wx.ListCtrl, listmix.ListCtrlAutoWidthMixin):
         text = ' '.join(sorted(dlg.keys))
         self.SetStringItem(event.m_itemIndex, 1, text)
 
-    def get_all_rows(self):
-        """Return all items as a list of lists of strings."""
-        rowCount = self.GetItemCount()
-        colCount = self.GetColumnCount()
-        rows = []
-        for rowId in range(rowCount):
-            row = []
-            for colId in range(colCount):
-                item = self.GetItem(itemId=rowId, col=colId)
-                row.append(item.GetText())
-            rows.append(row)
-        return rows
+    def set_mappings(self, mappings):
+        rows = [(
+            action,
+            key_list if isinstance(key_list, basestring)
+            else ' '.join(key_list)
+        ) for action, key_list in mappings.items()]
+        self.DeleteAllItems()
+        for index, row in enumerate(rows):
+            self.InsertStringItem(index, row[0])
+            self.SetStringItem(index, 1, row[1])
+
+    def get_mappings(self):
+        # Don't screw up the order!
+        mappings = OrderedDict()
+        for index in range(self.GetItemCount()):
+            action = self.GetItem(index, 0).GetText()
+            key_list = self.GetItem(index, 1).GetText()
+            mappings[action] = key_list.split()
+        return mappings
 
 class KeyboardConfigDialog(wx.Dialog):
     """Keyboard configuration dialog."""
@@ -122,17 +130,9 @@ class KeyboardConfigDialog(wx.Dialog):
                   flag=wx.LEFT | wx.RIGHT | wx.BOTTOM)
         
         # editable list for keymap bindings
-        self.keymap_list_ctrl = EditableListCtrl(self, style=wx.LC_REPORT, size=(300,200))
-        self.keymap_list_ctrl.InsertColumn(0, 'Steno Key')
-        self.keymap_list_ctrl.InsertColumn(1, 'Keys')
-
-        keymap = options.keymap.get()
-        stenoKeys = keymap.keys()
-        rows = map(lambda x: (x, ' '.join(keymap[x])), stenoKeys)
-        for index, row in enumerate(rows):
-            self.keymap_list_ctrl.InsertStringItem(index, row[0])
-            self.keymap_list_ctrl.SetStringItem(index, 1, row[1])
-        sizer.Add(self.keymap_list_ctrl, flag=wx.EXPAND)
+        self.keymap_widget = EditKeymapWidget(self, style=wx.LC_REPORT, size=(300,200))
+        self.keymap_widget.set_mappings(options.keymap.get_mappings())
+        sizer.Add(self.keymap_widget, flag=wx.EXPAND)
 
         ok_button = wx.Button(self, id=wx.ID_OK)
         ok_button.SetDefault()
@@ -159,9 +159,10 @@ class KeyboardConfigDialog(wx.Dialog):
 
     def on_ok(self, event):
         self.options.arpeggiate = self.arpeggiate_option.GetValue()
-        self.options.keymap = Keymap.from_rows(self.keymap_list_ctrl.get_all_rows())
+        mappings = self.keymap_widget.get_mappings()
+        self.options.keymap.set_mappings(mappings)
         self.EndModal(wx.ID_OK)
-    
+
     def on_cancel(self, event):
         self.EndModal(wx.ID_CANCEL)
         

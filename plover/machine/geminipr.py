@@ -12,12 +12,12 @@ import plover.machine.base
 # such, there are really only seven bits of steno data in each packet
 # byte. This is why the STENO_KEY_CHART below is visually presented as
 # six rows of seven elements instead of six rows of eight elements.
-STENO_KEY_CHART = ("Fn", "#", "#", "#", "#", "#", "#",
-                   "S-", "S-", "T-", "K-", "P-", "W-", "H-",
-                   "R-", "A-", "O-", "*", "*", "res", "res",
-                   "pwr", "*", "*", "-E", "-U", "-F", "-R",
+STENO_KEY_CHART = ("Fn", "#1", "#2", "#3", "#4", "#5", "#6",
+                   "S1-", "S2-", "T-", "K-", "P-", "W-", "H-",
+                   "R-", "A-", "O-", "*1", "*2", "res1", "res2",
+                   "pwr", "*3", "*4", "-E", "-U", "-F", "-R",
                    "-P", "-B", "-L", "-G", "-T", "-S", "-D",
-                   "#", "#", "#", "#", "#", "#", "-Z")
+                   "#7", "#8", "#9", "#A", "#B", "#C", "-Z")
 
 BYTES_PER_STROKE = 6
 
@@ -30,6 +30,43 @@ class Stenotype(plover.machine.base.SerialStenotypeBase):
     add_callback.
 
     """
+
+    KEYS_LAYOUT = '''
+        #1 #2  #3 #4 #5 #6 #7 #8 #9 #A #B #C
+        Fn S1- T- P- H- *1 *3 -F -P -L -T -D
+           S2- K- W- R- *2 *4 -R -B -G -S -Z
+                  A- O-       -E -U
+        pwr
+        res1
+        res2
+    '''
+
+    DEFAULT_MAPPINGS = {
+        '#'         : ('#1', '#2', '#3', '#4', '#5', '#6', '#7', '#8', '#9', '#A', '#B', '#C'),
+        'S-'        : ('S1-', 'S2-'),
+        'T-'        : 'T-',
+        'K-'        : 'K-',
+        'P-'        : 'P-',
+        'W-'        : 'W-',
+        'H-'        : 'H-',
+        'R-'        : 'R-',
+        'A-'        : 'A-',
+        'O-'        : 'O-',
+        '*'         : ('*1', '*2', '*3', '*4'),
+        '-E'        : '-E',
+        '-U'        : '-U',
+        '-F'        : '-F',
+        '-R'        : '-R',
+        '-P'        : '-P',
+        '-B'        : '-B',
+        '-L'        : '-L',
+        '-G'        : '-G',
+        '-T'        : '-T',
+        '-S'        : '-S',
+        '-D'        : '-D',
+        '-Z'        : '-Z',
+        'no-op'     : ('Fn', 'pwr', 'res1', 'res2'),
+    }
 
     def run(self):
         """Overrides base class run method. Do not call directly."""
@@ -59,6 +96,8 @@ class Stenotype(plover.machine.base.SerialStenotypeBase):
                     if (b & (0x80 >> j)):
                         steno_keys.append(STENO_KEY_CHART[i * 7 + j - 1])
 
-            # Notify all subscribers.
-            self._notify(steno_keys)
+            steno_keys = self.keymap.keys_to_actions(steno_keys)
+            if steno_keys:
+                # Notify all subscribers.
+                self._notify(steno_keys)
 

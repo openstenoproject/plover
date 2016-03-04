@@ -8,7 +8,11 @@
 
 import serial
 import threading
+
 from plover import log
+from plover.machine.keymap import Keymap
+from plover.steno import STENO_KEY_ORDER
+
 
 STATE_STOPPED = 'closed'
 STATE_INITIALIZING = 'initializing'
@@ -19,7 +23,20 @@ STATE_ERROR = 'disconnected'
 class StenotypeBase(object):
     """The base class for all Stenotype classes."""
 
+    # Layout of physical keys.
+    KEYS_LAYOUT = ()
+    # And possible actions to map to.
+    ACTIONS = (
+        tuple(sorted(STENO_KEY_ORDER.keys(),
+                     key=lambda k: STENO_KEY_ORDER[k]))
+        + ('no-op',)
+    )
+    # And default mapping of actions (e.g. steno key) to those keys.
+    DEFAULT_MAPPINGS = {}
+
     def __init__(self):
+        self.keymap = Keymap(self.KEYS_LAYOUT.split(), self.ACTIONS)
+        self.keymap.set_mappings(self.DEFAULT_MAPPINGS)
         self.stroke_subscribers = []
         self.state_subscribers = []
         self.state = STATE_STOPPED
@@ -101,8 +118,8 @@ class StenotypeBase(object):
     def _error(self):
         self._set_state(STATE_ERROR)
 
-    @staticmethod
-    def get_option_info():
+    @classmethod
+    def get_option_info(cls):
         """Get the default options for this machine."""
         return {}
 
@@ -184,8 +201,8 @@ class SerialStenotypeBase(ThreadedStenotypeBase):
         if self.serial_port:
             self.serial_port.close()
 
-    @staticmethod
-    def get_option_info():
+    @classmethod
+    def get_option_info(cls):
         """Get the default options for this machine."""
         bool_converter = lambda s: s == 'True'
         sb = lambda s: int(float(s)) if float(s).is_integer() else float(s)

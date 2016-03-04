@@ -640,13 +640,50 @@ class Stenotype(plover.machine.base.SerialStenotypeBase):
     add_callback.
     """
 
-    def __init__(self, params):
-        plover.machine.base.SerialStenotypeBase.__init__(self, params)
+    KEYS_LAYOUT = '''
+        #  #  #  #  #  #  #  #  #  #
+        S- T- P- H- * -F -P -L -T -D
+        S- K- W- R- * -R -B -G -S -Z
+              A- O-   -E -U
+        ^
+    '''
+
+    DEFAULT_MAPPINGS = {
+        '#'    : '#',
+        'S-'   : 'S-',
+        'T-'   : 'T-',
+        'K-'   : 'K-',
+        'P-'   : 'P-',
+        'W-'   : 'W-',
+        'H-'   : 'H-',
+        'R-'   : 'R-',
+        'A-'   : 'A-',
+        'O-'   : 'O-',
+        '*'    : '*',
+        '-E'   : '-E',
+        '-U'   : '-U',
+        '-F'   : '-F',
+        '-R'   : '-R',
+        '-P'   : '-P',
+        '-B'   : '-B',
+        '-L'   : '-L',
+        '-G'   : '-G',
+        '-T'   : '-T',
+        '-S'   : '-S',
+        '-D'   : '-D',
+        '-Z'   : '-Z',
+        'no-op': '^',
+    }
+
+    def _on_stroke(self, keys):
+        steno_keys = self.keymap.keys_to_actions(keys)
+        if steno_keys:
+            self._notify(steno_keys)
 
     def run(self):
         """Overrides base class run method. Do not call directly."""
         try:
-            _loop(self.serial_port, self.finished, self._notify, self._ready)
+            _loop(self.serial_port, self.finished, self._on_stroke, self._ready)
         except _StopException:
             pass
         except Exception as e:

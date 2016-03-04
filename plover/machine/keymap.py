@@ -1,86 +1,93 @@
 import json
-from collections import OrderedDict
+from collections import defaultdict, OrderedDict
 from plover import log
 
-class Keymap():
+class Keymap(object):
 
-    DEFAULT = [
-        ["S-", ["a","q"]],
-        ["T-", ["w"]],
-        ["K-", ["s"]],
-        ["P-", ["e"]],
-        ["W-", ["d"]],
-        ["H-", ["r"]],
-        ["R-", ["f"]],
-        ["A-", ["c"]],
-        ["O-", ["v"]],
-        ["*" , ["t","g","y","h"]],
-        ["-E", ["n"]],
-        ["-U", ["m"]],
-        ["-F", ["u"]],
-        ["-R", ["j"]],
-        ["-P", ["i"]],
-        ["-B", ["k"]],
-        ["-L", ["o"]],
-        ["-G", ["l"]],
-        ["-T", ["p"]],
-        ["-S", [";"]],
-        ["-D", ["["]],
-        ["-Z", ["'"]],
-        ["#" , ["1","2","3","4","5","6","7","8","9","0","-","="]],
-        ["no-op", ["z","x","b",",",".","/","\\"]],
-        ["arpeggiate", ["space"]],
-    ]
+    def __init__(self, keys, actions):
+        # List of supported actions.
+        self._actions = OrderedDict((action, n)
+                                    for n, action
+                                    in enumerate(actions))
+        # List of supported keys.
+        self._keys = OrderedDict((key, n)
+                                 for n, key
+                                 in enumerate(keys))
+        # action -> keys
+        self._mappings = {}
+        # key -> action
+        self._bindings = {}
 
-    def __init__(self, assignments):
-        assignments = dict(assignments)
-        self.keymap = OrderedDict()
-        bound_keys = {}
-        # Keep only valid entries, and add missing entries.
-        for action, _ in Keymap.DEFAULT:
-            keylist = assignments.get(action, ())
-            for key in keylist:
-                if key in bound_keys:
-                    bound_keys[key].append(action)
-                else:
-                    bound_keys[key] = [action]
-            self.keymap[action] = keylist
+    def set_bindings(self, bindings):
+        # Set from:
+        # { key1: action1, key2: action1, ... keyn: actionn }
+        mappings = defaultdict(list)
+        for key, action in dict(bindings).items():
+            mappings[action].append(key)
+        self.set_mappings(mappings)
+
+    def set_mappings(self, mappings):
+        # When setting from a string, assume a list of mappings:
+        # [[action1, [key1, key2]], [action2, [key3]], ...]
+        if isinstance(mappings, basestring):
+            mappings = json.loads(mappings)
+        mappings = dict(mappings)
+        # Set from:
+        # { action1: [key1, key2], ... actionn: [keyn] }
+        self._mappings = OrderedDict()
+        self._bindings = {}
+        bound_keys = defaultdict(list)
         errors = []
+        for action in self._actions:
+            key_list = mappings.get(action)
+            if not key_list:
+                # Not an issue if 'no-op' is not mapped...
+                if action != 'no-op':
+                    errors.append('action %s is not bound' % action)
+                # Add dummy mapping for each missing action
+                # so it's shown in the configurator.
+                self._mappings[action] = ()
+                continue
+            if isinstance(key_list, basestring):
+                key_list = (key_list,)
+            self._mappings[action] = tuple(sorted(key_list, key=self._keys.get))
+            for key in key_list:
+                if key not in self._keys:
+                    errors.append('invalid key %s bound to action %s' % (key, action))
+                    continue
+                bound_keys[key].append(action)
+                self._bindings[key] = action
+        for action in (set(mappings) - set(self._actions)):
+            key_list = mappings.get(action)
+            if isinstance(key_list, basestring):
+                key_list = (key_list,)
+            errors.append('invalid action %s mapped to key(s) %s' % (action, ' '.join(key_list)))
         for key, action_list in bound_keys.items():
             if len(action_list) > 1:
                 errors.append('key %s is bound multiple times: %s' % (key, str(action_list)))
         if len(errors) > 0:
             log.warning('Keymap is invalid, behavior undefined:\n\n- ' + '\n- '.join(errors))
 
-    def get(self):
-        return self.keymap
+    def get_bindings(self):
+        return self._bindings
+
+    def get_mappings(self):
+        return self._mappings
+
+    def get_action(self, key, default=None):
+        return self._bindings.get(key, default)
+
+    def keys_to_actions(self, key_list):
+        action_list = []
+        for key in key_list:
+            assert key in self._keys
+            action = self._bindings[key]
+            if 'no-op' != action:
+                action_list.append(action)
+        return action_list
 
     def __str__(self):
-        return json.dumps(self.keymap.items())
+        # Use the more compact list of mappings format:
+        # [[action1, [key1, key2]], [action2, [key3]], ...]
+        return json.dumps(self._mappings.items())
 
-    def to_dict(self):
-        """Return a dictionary from keys to actions."""
-        result = {}
-        for action, keys in self.keymap.items():
-            for k in keys:
-                result[k] = action
-        return result
-
-    @staticmethod
-    def from_string(string):
-        assignments = json.loads(string)
-        return Keymap(assignments)
-
-    @staticmethod
-    def from_rows(rows):
-        """Convert a nested list of strings (e.g. from a ListCtrl) to a keymap."""
-        assignments = []
-        for row in rows:
-            action = row[0]
-            keylist = row[1].strip().split()
-            assignments.append((action, keylist))
-        return Keymap(assignments)
-
-    @staticmethod
-    def default():
-        return Keymap(Keymap.DEFAULT)
