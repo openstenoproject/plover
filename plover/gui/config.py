@@ -159,7 +159,6 @@ class ConfigurationDialog(wx.Dialog):
         event.Skip()
 
     def _save(self, event):
-        old_config = self.config.clone()
 
         self.machine_config.save()
         self.dictionary_config.save()
@@ -168,7 +167,7 @@ class ConfigurationDialog(wx.Dialog):
         self.output_config.save()
 
         try:
-            update_engine(self.engine, old_config, self.config)
+            update_engine(self.engine, self.config)
         except Exception:
             log.error('updating engine configuration failed', exc_info=True)
             return
