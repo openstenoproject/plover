@@ -69,7 +69,16 @@ def update_engine(engine, config, reset_machine=False):
     engine.set_dictionaries(dictionary_file_names)
 
     log_file_name = config.get_log_file_name()
-    engine.set_log_file_name(config)
+    if log_file_name:
+        # Older versions would use "plover.log" for logging strokes.
+        if os.path.realpath(log_file_name) == os.path.realpath(log.LOG_FILENAME):
+            log.warning('stroke logging must use a different file than %s, '
+                        'renaming to %s', log.LOG_FILENAME, conf.DEFAULT_LOG_FILE)
+            log_file_name = conf.DEFAULT_LOG_FILE
+            config.set_log_file_name(log_file_name)
+            with open(config.target_file, 'wb') as f:
+                config.save(f)
+    engine.set_log_file_name(log_file_name)
 
     enable_stroke_logging = config.get_enable_stroke_logging()
     engine.enable_stroke_logging(enable_stroke_logging)
@@ -229,18 +238,8 @@ class StenoEngine(object):
         """
         self.subscribers.append(callback)
         
-    def set_log_file_name(self, config):
+    def set_log_file_name(self, filename):
         """Set the file name for log output."""
-        filename = config.get_log_file_name()
-        if not filename:
-            return
-        if os.path.realpath(filename) == os.path.realpath(log.LOG_FILENAME):
-            log.warning('stroke logging must use a different file than %s, '
-                        'renaming to %s', log.LOG_FILENAME, conf.DEFAULT_LOG_FILE)
-            filename = conf.DEFAULT_LOG_FILE
-            config.set_log_file_name(filename)
-            with open(config.target_file, 'wb') as f:
-                config.save(f)
         log.set_stroke_filename(filename)
 
     def enable_stroke_logging(self, b):
