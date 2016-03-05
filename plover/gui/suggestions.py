@@ -16,7 +16,6 @@ ON_TOP_TEXT = "Always on top"
 UI_BORDER = 4
 LAST_WORD_TEXT = 'Last Word: %s'
 DEFAULT_LAST_WORD = 'N/A'
-HISTORY_SIZE = 10
 MAX_DISPLAY_LINES = 20
 STROKE_INDENT = 2
 
@@ -161,7 +160,8 @@ class SuggestionsDisplayDialog(wx.Dialog):
     def show_suggestions(self, suggestion_list):
 
         # Limit history.
-        if len(self.history) == HISTORY_SIZE:
+        undo_levels = self.config.get_undo_levels()
+        while len(self.history) >= undo_levels:
             _, text_length = self.history.pop(0)
             last_position = self.listbox.GetLastPosition()
             self.listbox.Remove(last_position - text_length, last_position)

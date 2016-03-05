@@ -45,6 +45,7 @@ SPACE_PLACEMENTS_LABEL = "Space Placement:"
 SPACE_PLACEMENT_BEFORE = "Before Output"
 SPACE_PLACEMENT_AFTER = "After Output"
 SPACE_PLACEMENTS = [SPACE_PLACEMENT_BEFORE, SPACE_PLACEMENT_AFTER]
+UNDO_LEVELS_LABEL = "Stroke Undo Limit:"
 FIRST_STROKE_LABEL = "First Stroke:"
 START_CAPITALIZED_LABEL = "Start Capitalized"
 START_ATTACHED_LABEL = "Suppress Space"
@@ -625,36 +626,63 @@ class OutputConfig(wx.Panel):
         """
         wx.Panel.__init__(self, parent)
         self.config = config
-        sizer = wx.BoxSizer(wx.VERTICAL)
+        gap = COMPONENT_SPACE * 3
+        sizer = wx.GridBagSizer(gap, gap)
 
-        box = wx.BoxSizer(wx.HORIZONTAL)
-        box.Add(wx.StaticText(self, label=SPACE_PLACEMENTS_LABEL),
-                border=COMPONENT_SPACE,
-                flag=wx.ALIGN_RIGHT | wx.ALIGN_CENTER_VERTICAL | wx.RIGHT)
+        # Space Placement Dropdown
+        sizer.Add(wx.StaticText(self, label=SPACE_PLACEMENTS_LABEL),
+                  pos=(0, 0),
+                  flag=wx.ALIGN_CENTER_VERTICAL)
         self.space_placement_choice = wx.Choice(self, choices=SPACE_PLACEMENTS)
         self.space_placement_choice.SetStringSelection(
             self.config.get_space_placement())
-        box.Add(self.space_placement_choice, proportion=1, flag=wx.EXPAND)
-        sizer.Add(box, border=UI_BORDER, flag=wx.ALL | wx.EXPAND)
+        sizer.Add(self.space_placement_choice,
+                  flag=wx.ALIGN_RIGHT | wx.ALIGN_CENTER_VERTICAL,
+                  pos=(0, 1))
 
-        first_stroke_label = wx.StaticText(self, label=FIRST_STROKE_LABEL)
-        self.start_attached = wx.CheckBox(self, label=START_ATTACHED_LABEL)
+        # Undo Levels Spin Control
+        sizer.Add(wx.StaticText(self, label=UNDO_LEVELS_LABEL),
+                  pos=(1, 0),
+                  flag=wx.ALIGN_CENTER_VERTICAL)
+        buffer_selector = wx.SpinCtrl(self)
+        buffer_selector.SetRange(conf.MINIMUM_OUTPUT_CONFIG_UNDO_LEVELS,
+                                 100000)
+        buffer_selector.SetValue(config.get_undo_levels())
+        sizer.Add(buffer_selector,
+                  pos=(1, 1),
+                  flag=wx.ALIGN_RIGHT | wx.ALIGN_CENTER_VERTICAL)
+
+        self.start_attached = wx.CheckBox(self,
+                                          label=START_ATTACHED_LABEL)
         self.start_attached.SetValue(self.config.get_start_attached())
         self.start_capitalized = wx.CheckBox(
-            self, label=START_CAPITALIZED_LABEL)
+            self, label=START_CAPITALIZED_LABEL
+        )
         self.start_capitalized.SetValue(self.config.get_start_capitalized())
 
-        sizer.AddF(first_stroke_label,
-                   wx.SizerFlags().Border(wx.ALL, UI_BORDER))
-        checkbox_flags = wx.SizerFlags().Border(wx.LEFT, COMPONENT_SPACE * 6)
-        sizer.AddF(self.start_capitalized, checkbox_flags)
-        sizer.AddF(self.start_attached, checkbox_flags)
+        sizer.Add(wx.StaticText(self, label=FIRST_STROKE_LABEL),
+                  pos=(2, 0))
 
-        self.SetSizer(sizer)
+        starting_options = wx.BoxSizer(wx.VERTICAL)
+        starting_options.Add(self.start_attached)
+        starting_options.Add(self.start_capitalized)
+        sizer.Add(starting_options,
+                  pos=(2, 1),
+                  span=(1, 2),
+                  flag=wx.ALIGN_CENTER_VERTICAL)
+
+        self.buffer_selector = buffer_selector
+
+        border = wx.BoxSizer(wx.HORIZONTAL)
+        border.AddF(sizer, wx.SizerFlags().Border(wx.ALL, UI_BORDER))
+
+        self.SetSizer(border)
 
     def save(self):
         """Write all parameters to the config."""
         self.config.set_space_placement(
-            self.space_placement_choice.GetStringSelection())
+            self.space_placement_choice.GetStringSelection()
+        )
         self.config.set_start_attached(self.start_attached.GetValue())
         self.config.set_start_capitalized(self.start_capitalized.GetValue())
+        self.config.set_undo_levels(self.buffer_selector.GetValue())

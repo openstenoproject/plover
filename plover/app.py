@@ -80,6 +80,9 @@ def update_engine(engine, config, reset_machine=False):
     space_placement = config.get_space_placement()
     engine.set_space_placement(space_placement)
 
+    undo_levels = config.get_undo_levels()
+    engine.set_undo_levels(undo_levels)
+
     start_capitalized = config.get_start_capitalized()
     start_attached = config.get_start_attached()
     engine.set_starting_stroke_state(attach=start_attached,
@@ -134,9 +137,6 @@ class StenoEngine(object):
         self.formatter = formatting.Formatter()
         self.translator.add_listener(log.translation)
         self.translator.add_listener(self.formatter.format)
-        # This seems like a reasonable number. If this becomes a problem it can
-        # be parameterized.
-        self.translator.set_min_undo_length(10)
 
         self.full_output = SimpleNamespace()
         self.command_only_output = SimpleNamespace()
@@ -254,7 +254,11 @@ class StenoEngine(object):
     def set_starting_stroke_state(self, capitalize=False, attach=False):
         self.formatter.start_attached = attach
         self.formatter.start_capitalized = capitalize
-        
+
+    def set_undo_levels(self, levels):
+        """Set the maximum number of changes that can be undone."""
+        self.translator.set_min_undo_length(levels)
+
     def enable_translation_logging(self, b):
         """Turn translation logging on or off."""
         log.enable_translation_logging(b)

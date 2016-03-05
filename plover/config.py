@@ -7,6 +7,7 @@ import ConfigParser
 from ConfigParser import RawConfigParser
 import os
 from cStringIO import StringIO
+from plover import log
 from plover.exception import InvalidConfigurationError
 from plover.machine.registry import machine_registry
 from plover.oslayer.config import ASSETS_DIR, CONFIG_DIR
@@ -64,9 +65,12 @@ DEFAULT_SUGGESTIONS_DISPLAY_Y = -1
 OUTPUT_CONFIG_SECTION = 'Output Configuration'
 OUTPUT_CONFIG_SPACE_PLACEMENT_OPTION = 'space_placement'
 DEFAULT_OUTPUT_CONFIG_SPACE_PLACEMENT = 'Before Output'
-OUTPUT_CONFIG_START_CAPITALIZED = 'capitalize_first_stroke'
+OUTPUT_CONFIG_UNDO_LEVELS = 'undo_levels'
+DEFAULT_OUTPUT_CONFIG_UNDO_LEVELS = 100
+MINIMUM_OUTPUT_CONFIG_UNDO_LEVELS = 1
+OUTPUT_CONFIG_START_CAPITALIZED = 'start_capitalized'
 DEFAULT_OUTPUT_CONFIG_START_CAPITALIZED = False
-OUTPUT_CONFIG_START_ATTACHED = 'attach_first_stroke'
+OUTPUT_CONFIG_START_ATTACHED = 'start_attached'
 DEFAULT_OUTPUT_CONFIG_START_ATTACHED = False
 
 CONFIG_FRAME_SECTION = 'Config Frame'
@@ -272,7 +276,7 @@ class Config(object):
                               DEFAULT_ENABLE_STROKE_LOGGING)
 
     def set_enable_translation_logging(self, log):
-      self._set(LOGGING_CONFIG_SECTION, ENABLE_TRANSLATION_LOGGING_OPTION, log)
+        self._set(LOGGING_CONFIG_SECTION, ENABLE_TRANSLATION_LOGGING_OPTION, log)
 
     def get_enable_translation_logging(self):
         return self._get_bool(LOGGING_CONFIG_SECTION, 
@@ -306,6 +310,23 @@ class Config(object):
 
     def set_space_placement(self, s):
         self._set(OUTPUT_CONFIG_SECTION, OUTPUT_CONFIG_SPACE_PLACEMENT_OPTION, s)
+
+    def get_undo_levels(self):
+        undo_levels = self._get_int(OUTPUT_CONFIG_SECTION, OUTPUT_CONFIG_UNDO_LEVELS,
+                                    DEFAULT_OUTPUT_CONFIG_UNDO_LEVELS)
+        if undo_levels < MINIMUM_OUTPUT_CONFIG_UNDO_LEVELS:
+            log.error(
+                "Undo limit %d is below minimum %d, using %d",
+                undo_levels,
+                MINIMUM_OUTPUT_CONFIG_UNDO_LEVELS,
+                DEFAULT_OUTPUT_CONFIG_UNDO_LEVELS
+            )
+            undo_levels = DEFAULT_OUTPUT_CONFIG_UNDO_LEVELS
+        return undo_levels
+
+    def set_undo_levels(self, levels):
+        assert levels >= MINIMUM_OUTPUT_CONFIG_UNDO_LEVELS
+        self._set(OUTPUT_CONFIG_SECTION, OUTPUT_CONFIG_UNDO_LEVELS, levels)
 
     def get_start_capitalized(self):
         return self._get_bool(OUTPUT_CONFIG_SECTION, OUTPUT_CONFIG_START_CAPITALIZED,
