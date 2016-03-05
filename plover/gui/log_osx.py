@@ -13,7 +13,7 @@ class OSXNotificationHandler(logging.Handler):
     def __init__(self):
         super(OSXNotificationHandler, self).__init__()
         self.setLevel(log.WARNING)
-        self.setFormatter(log.NoExceptionTracebackFormatter('%(levelname)s: %(message)s'))
+        self.setFormatter(log.NoExceptionTracebackFormatter('%(message)s'))
 
     def emit(self, record):
         # Notification Center has no levels or timeouts.
@@ -21,7 +21,7 @@ class OSXNotificationHandler(logging.Handler):
 
         notification.setTitle_(__software_name__.capitalize())
         notification.setSubtitle_(record.levelname.title())
-        notification.setInformativeText_(record.message)
+        notification.setInformativeText_(self.format(record))
 
         ns = NSUserNotificationCenter.defaultUserNotificationCenter()
         ns.setDelegate_(always_present_delegator)
