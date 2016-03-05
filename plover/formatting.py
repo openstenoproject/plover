@@ -365,6 +365,7 @@ NO_SPACE = ''
 META_STOPS = ('.', '!', '?')
 META_COMMAS = (',', ':', ';')
 META_CAPITALIZE = '-|'
+META_CARRY_CAPITALIZATION = '~|'
 META_LOWER = '>'
 META_UPPER = '<'
 META_RETRO_CAPITALIZE = '*-|'
@@ -513,6 +514,9 @@ def _atom_to_action_spaces_before(atom, last_action):
             else:
                 action.replace = last_action.text
                 action.text = _upper(last_action.text)
+        elif (meta.startswith(META_CARRY_CAPITALIZATION) or
+              meta.startswith(META_ATTACH_FLAG + META_CARRY_CAPITALIZATION)):
+            action = _apply_carry_capitalize(meta, last_action)
         elif meta.startswith(META_RETRO_FORMAT):
             if meta.startswith(META_RETRO_FORMAT) and meta.endswith(')'):
                 action = _apply_currency(meta, last_action)
@@ -651,6 +655,9 @@ def _atom_to_action_spaces_after(atom, last_action):
             action.lower = False
             action.upper = True
             action.capitalize = False
+        elif (meta.startswith(META_CARRY_CAPITALIZATION) or
+              meta.startswith(META_ATTACH_FLAG + META_CARRY_CAPITALIZATION)):
+            action = _apply_carry_capitalize(meta, last_action, spaces_after=True)
         elif meta == META_RETRO_CAPITALIZE:
             action = last_action.copy_state()
             action.word = _capitalize(action.word)
@@ -818,6 +825,33 @@ def _apply_currency(meta, last_action, spaces_after=False):
             action.text += SPACE
     return action
 
+
+def _apply_carry_capitalize(meta, last_action, spaces_after=False):
+    # Meta format: ^~|content^ (attach flags are optional)
+    attach_last = meta.startswith(META_ATTACH_FLAG)
+    attach_next = meta.endswith(META_ATTACH_FLAG)
+
+    content_start = meta.index(META_CARRY_CAPITALIZATION) + len(META_CARRY_CAPITALIZATION)
+    content_end = -len(META_ATTACH_FLAG) if attach_next else None
+    meta_content = meta[content_start:content_end]
+
+    action = last_action.copy_state()
+    action.attach = attach_next
+
+    if meta_content:
+        action.word = meta_content
+
+        # Only prefix a space if spaces are before, last action wasn't attach, and no attach_last flag.
+        prefix = NO_SPACE if attach_last or spaces_after or last_action.attach else SPACE
+        # Only suffix a space if spaces are after or there's an attach_next flag.
+        suffix = NO_SPACE if attach_next or not spaces_after else SPACE
+        action.text = prefix + meta_content + suffix
+
+        # Spaces after: delete last space if we're attaching.
+        replace_last = last_action.text.endswith(SPACE) and attach_last
+        action.replace = SPACE if replace_last else NO_SPACE
+
+    return action
 
 def _change_mode(command, action):
 
