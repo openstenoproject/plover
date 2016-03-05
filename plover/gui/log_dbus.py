@@ -7,14 +7,13 @@ import logging
 pynotify.init(__software_name__.capitalize())
 
 
-
 class DbusNotificationHandler(logging.Handler):
     """ Handler using DBus notifications to show messages. """
 
     def __init__(self):
         super(DbusNotificationHandler, self).__init__()
         self.setLevel(log.WARNING)
-        self.setFormatter(logging.Formatter('%(levelname)s: %(message)s'))
+        self.setFormatter(log.NoExceptionTracebackFormatter('%(levelname)s: %(message)s'))
 
     def emit(self, record):
         level = record.levelno

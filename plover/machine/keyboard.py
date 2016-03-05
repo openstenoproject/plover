@@ -27,9 +27,7 @@ class Stenotype(StenotypeBase):
         self._bindings = {}
         self._down_keys = set()
         self._released_keys = set()
-        self._keyboard_capture = KeyboardCapture()
-        self._keyboard_capture.key_down = self._key_down
-        self._keyboard_capture.key_up = self._key_up
+        self._keyboard_capture = None
         self._last_stroke_key_down_count = 0
         self._update_bindings()
 
@@ -52,12 +50,24 @@ class Stenotype(StenotypeBase):
 
     def start_capture(self):
         """Begin listening for output from the stenotype machine."""
-        self._keyboard_capture.start()
+        self._released_keys.clear()
+        self._last_stroke_key_down_count = 0
+        self._initializing()
+        try:
+            self._keyboard_capture = KeyboardCapture()
+            self._keyboard_capture.key_down = self._key_down
+            self._keyboard_capture.key_up = self._key_up
+            self._keyboard_capture.start()
+        except:
+            self._error()
+            raise
         self._ready()
 
     def stop_capture(self):
         """Stop listening for output from the stenotype machine."""
-        self._keyboard_capture.cancel()
+        if self._keyboard_capture is not None:
+            self._keyboard_capture.cancel()
+            self._keyboard_capture = None
         self._stopped()
 
     def set_suppression(self, enabled):

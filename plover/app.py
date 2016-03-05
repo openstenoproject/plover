@@ -40,75 +40,50 @@ class SimpleNamespace(object):
 
 def init_engine(engine, config):
     """Initialize a StenoEngine from a config object."""
-    update_engine(engine, None, config)
     engine.set_is_running(config.get_auto_start())
+    update_engine(engine, config)
 
 def reset_machine(engine, config):
     """Set the machine on the engine based on config."""
-    update_engine(engine, config, config, reset_machine=True)
+    update_engine(engine, config, reset_machine=True)
 
-def update_engine(engine, old, new, reset_machine=False):
+def update_engine(engine, config, reset_machine=False):
     """Modify a StenoEngine using a before and after config object.
     
     Using the before and after allows this function to not make unnecessary 
     changes.
     """
-    if old is None:
-        # Fake config that will return None for each
-        # option, hence triggering an update.
-        class NoneConfig(object):
-            def __getattr__(self, name):
-                return lambda *args: None
-        old = NoneConfig()
+    if reset_machine:
+        engine.set_machine(None)
 
-    machine_type = new.get_machine_type()
-    machine_mappings = new.get_system_keymap(machine_type)
-    machine_options = new.get_machine_specific_options(machine_type)
-    if (reset_machine or
-            old.get_machine_type() != machine_type or
-            old.get_system_keymap(machine_type) != machine_mappings or
-            old.get_machine_specific_options(machine_type) != machine_options):
-        try:
-            machine_class = machine_registry.get(machine_type)
-        except NoSuchMachineException as e:
-            raise InvalidConfigurationError(unicode(e))
-        machine = machine_class(machine_options)
-        if machine_mappings is None:
-            log.warning('no mappings defined for %s, the machine won\'t be usable', machine_type)
-        else:
-            machine.set_mappings(machine_mappings)
-        engine.set_machine(machine)
+    machine_type = config.get_machine_type()
+    try:
+        machine_class = machine_registry.get(machine_type)
+    except NoSuchMachineException as e:
+        raise InvalidConfigurationError(unicode(e))
+    machine_options = config.get_machine_specific_options(machine_type)
+    machine_mappings = config.get_system_keymap(machine_type)
+    engine.set_machine(machine_class, machine_options, machine_mappings)
 
-    dictionary_file_names = new.get_dictionary_file_names()
-    if old.get_dictionary_file_names() != dictionary_file_names:
-        try:
-            dicts = dict_manager.load(dictionary_file_names)
-        except DictionaryLoaderException as e:
-            raise InvalidConfigurationError(unicode(e))
-        engine.get_dictionary().set_dicts(dicts)
+    dictionary_file_names = config.get_dictionary_file_names()
+    engine.set_dictionaries(dictionary_file_names)
 
-    log_file_name = new.get_log_file_name()
-    if old.get_log_file_name() != log_file_name:
-        engine.set_log_file_name(new)
+    log_file_name = config.get_log_file_name()
+    engine.set_log_file_name(config)
 
-    enable_stroke_logging = new.get_enable_stroke_logging()
-    if old.get_enable_stroke_logging() != enable_stroke_logging:
-        engine.enable_stroke_logging(enable_stroke_logging)
+    enable_stroke_logging = config.get_enable_stroke_logging()
+    engine.enable_stroke_logging(enable_stroke_logging)
 
-    enable_translation_logging = new.get_enable_translation_logging()
-    if old.get_enable_translation_logging() != enable_translation_logging:
-        engine.enable_translation_logging(enable_translation_logging)
+    enable_translation_logging = config.get_enable_translation_logging()
+    engine.enable_translation_logging(enable_translation_logging)
 
-    space_placement = new.get_space_placement()
-    if old.get_space_placement() != space_placement:
-        engine.set_space_placement(space_placement)
+    space_placement = config.get_space_placement()
+    engine.set_space_placement(space_placement)
 
-    start_capitalized = new.get_start_capitalized()
-    start_attached = new.get_start_attached()
-    if (old.get_start_capitalized() != start_capitalized or
-            old.get_start_attached() != start_attached):
-        engine.set_starting_stroke_state(attach=start_attached,
-                                         capitalize=start_capitalized)
+    start_capitalized = config.get_start_capitalized()
+    start_attached = config.get_start_attached()
+    engine.set_starting_stroke_state(attach=start_attached,
+                                     capitalize=start_capitalized)
 
 def same_thread_hook(fn, *args):
     fn(*args)
@@ -150,6 +125,9 @@ class StenoEngine(object):
         self.stroke_listeners = []
         self.is_running = False
         self.machine = None
+        self.machine_class = None
+        self.machine_options = None
+        self.machine_mappings = None
         self.thread_hook = thread_hook
 
         self.translator = translation.Translator()
@@ -165,25 +143,45 @@ class StenoEngine(object):
         self.running_state = self.translator.get_state()
         self.set_is_running(False)
 
-    def set_machine(self, machine):
+    def set_machine(self, machine_class,
+                    machine_options=None,
+                    machine_mappings=None):
+        if (self.machine_class and machine_class and
+            self.machine_options and machine_options and
+            self.machine_mappings and machine_mappings):
+            return
+        self.machine_class = None
+        self.machine_options = None
+        self.machine_mappings = None
         if self.machine is not None:
             self.machine.remove_state_callback(self._machine_state_callback)
             self.machine.remove_stroke_callback(
                 self._translator_machine_callback)
             self.machine.remove_stroke_callback(log.stroke)
             self.machine.stop_capture()
-        self.machine = machine
-        if self.machine is not None:
+        self.machine = None
+        if machine_class is not None:
+            self.machine = machine_class(machine_options)
+            if machine_mappings is not None:
+                self.machine.set_mappings(machine_mappings)
             self.machine.add_state_callback(self._machine_state_callback)
             self.machine.add_stroke_callback(log.stroke)
             self.machine.add_stroke_callback(self._translator_machine_callback)
             self.machine.start_capture()
-            self.set_is_running(self.is_running)
+            self.machine_class = machine_class
+            self.machine_options = machine_options
+            self.machine_mappings = machine_mappings
+            is_running = self.is_running
         else:
-            self.set_is_running(False)
+            is_running = False
+        self.set_is_running(self.is_running)
 
-    def set_dictionary(self, d):
-        self.translator.set_dictionary(d)
+    def set_dictionaries(self, file_names):
+        dictionary = self.translator.get_dictionary()
+        if tuple(file_names) == tuple(d.get_path() for d in dictionary.dicts):
+            return
+        dicts = dict_manager.load(file_names)
+        dictionary.set_dicts(dicts)
 
     def get_dictionary(self):
         return self.translator.get_dictionary()

@@ -22,9 +22,9 @@ import plover.gui.lookup
 from plover.oslayer.keyboardcontrol import KeyboardEmulation
 from plover.machine.base import STATE_ERROR, STATE_INITIALIZING, STATE_RUNNING
 from plover.machine.registry import machine_registry
-from plover.exception import InvalidConfigurationError
 from plover.gui.paper_tape import StrokeDisplayDialog
 from plover.gui.suggestions import SuggestionsDisplayDialog
+from plover import log
 
 from plover import __name__ as __software_name__
 from plover import __version__
@@ -57,9 +57,6 @@ class PloverGUI(wx.App):
         frame.Show()
         return True
 
-
-def gui_thread_hook(fn, *args):
-    wx.CallAfter(fn, *args)
 
 class MainFrame(wx.Frame):
     """The top-level GUI element of the Plover application."""
@@ -211,8 +208,8 @@ class MainFrame(wx.Frame):
         try:
             with open(config.target_file, 'rb') as f:
                 self.config.load(f)
-        except InvalidConfigurationError as e:
-            self._show_alert(unicode(e))
+        except Exception:
+            log.error('loading configuration failed, reseting to default', exc_info=True)
             self.config.clear()
 
         rect = wx.Rect(config.get_main_frame_x(), config.get_main_frame_y(), *self.GetSize())
@@ -224,20 +221,6 @@ class MainFrame(wx.Frame):
         self.steno_engine.set_output(
             Output(self.consume_command, self.steno_engine))
 
-        while True:
-            try:
-                app.init_engine(self.steno_engine, self.config)
-                break
-            except InvalidConfigurationError as e:
-                self._show_alert(unicode(e))
-                dlg = ConfigurationDialog(self.steno_engine,
-                                          self.config,
-                                          parent=self)
-                ret = dlg.ShowModal()
-                if ret == wx.ID_CANCEL:
-                    self._quit()
-                    return
-                    
         self.steno_engine.add_stroke_listener(
             StrokeDisplayDialog.stroke_handler)
         if self.config.get_show_stroke_display():
@@ -247,6 +230,12 @@ class MainFrame(wx.Frame):
             SuggestionsDisplayDialog.stroke_handler)
         if self.config.get_show_suggestions_display():
             SuggestionsDisplayDialog.display(self, self.config, self.steno_engine)
+
+        try:
+            app.init_engine(self.steno_engine, self.config)
+        except Exception:
+            log.error('engine initialization failed', exc_info=True)
+            self._show_config_dialog()
 
     def consume_command(self, command):
         # The first commands can be used whether plover has output enabled or not.
@@ -354,14 +343,6 @@ class MainFrame(wx.Frame):
         info.Developers = __credits__
         info.License = __license__
         wx.AboutBox(info)
-
-    def _show_alert(self, message):
-        alert_dialog = wx.MessageDialog(self,
-                                        message,
-                                        self.ALERT_DIALOG_TITLE,
-                                        wx.OK | wx.ICON_INFORMATION)
-        alert_dialog.ShowModal()
-        alert_dialog.Destroy()
 
     def on_move(self, event):
         pos = self.GetScreenPositionTuple()

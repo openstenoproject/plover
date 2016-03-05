@@ -6,16 +6,40 @@
 import os
 import sys
 import logging
+import traceback
+
 from logging.handlers import RotatingFileHandler
 from logging import DEBUG, INFO, WARNING, ERROR
+
 from plover.oslayer.config import CONFIG_DIR
 
+
 LOG_FORMAT = '%(asctime)s %(levelname)s: %(message)s'
-LOG_FILENAME = os.path.join(CONFIG_DIR, 'plover.log')
+LOG_FILENAME = os.path.realpath(os.path.join(CONFIG_DIR, 'plover.log'))
 LOG_MAX_BYTES = 10000000
 LOG_COUNT = 9
 
 STROKE_LOG_FORMAT = '%(asctime)s %(message)s'
+
+
+class NoExceptionTracebackFormatter(logging.Formatter):
+    """Custom formatter for formatting exceptions without traceback."""
+
+    def format(self, record):
+        # Calls to formatException are cached.
+        # (see http://bugs.python.org/issue1295)
+        orig_exc_text = record.exc_text
+        record.exc_text = None
+        try:
+            return super(NoExceptionTracebackFormatter, self).format(record)
+        finally:
+            record.exc_text = orig_exc_text
+
+    def formatException(self, exc_info):
+        etype, evalue, tb = exc_info
+        lines = traceback.format_exception_only(etype, evalue)
+        return u''.join(lines)
+
 
 class FileHandler(RotatingFileHandler):
 
@@ -42,6 +66,7 @@ class Logger(object):
         self._logger = logging.getLogger('plover')
         self._logger.addHandler(self._print_handler)
         self._logger.setLevel(INFO)
+        self._stroke_filename = None
         self._stroke_logger = logging.getLogger('plover-strokes')
         self._stroke_logger.setLevel(INFO)
         self._stroke_handler = None
@@ -54,17 +79,20 @@ class Logger(object):
         self._logger.addHandler(self._file_handler)
 
     def set_stroke_filename(self, filename=None):
+        if filename is not None:
+            filename = os.path.realpath(filename)
+        if self._stroke_filename == filename:
+            return
         self.info('set_stroke_filename(%s)', filename)
         if self._stroke_handler is not None:
             self._stroke_logger.removeHandler(self._stroke_handler)
             self._stroke_handler = None
-        if filename is None:
-            return
-        assert filename != LOG_FILENAME
-        filename = os.path.abspath(filename)
-        self._stroke_handler = FileHandler(filename=filename,
-                                           format=STROKE_LOG_FORMAT)
-        self._stroke_logger.addHandler(self._stroke_handler)
+        if filename is not None:
+            assert filename != LOG_FILENAME
+            self._stroke_handler = FileHandler(filename=filename,
+                                               format=STROKE_LOG_FORMAT)
+            self._stroke_logger.addHandler(self._stroke_handler)
+        self._stroke_filename = filename
 
     def enable_stroke_logging(self, b):
         self.info('enable_stroke_logging(%s)', b)
