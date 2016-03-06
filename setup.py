@@ -7,6 +7,7 @@ import re
 import subprocess
 import sys
 
+from distutils import log
 import setuptools
 
 from plover import (
@@ -21,6 +22,18 @@ from plover import (
 )
 
 
+def get_version():
+    if not os.path.exists('.git'):
+        return None
+    version = subprocess.check_output('git describe --tags --match=v[0-9]*'.split()).strip()
+    m = re.match(r'^v(\d[\d.]*)(-\d+-g[a-f0-9]*)?$', version)
+    assert m is not None, version
+    version = m.group(1)
+    if m.group(2) is not None:
+        version += '+' + m.group(2)[1:].replace('-', '.')
+    return version
+
+
 class PatchVersion(setuptools.Command):
 
     description = 'patch package version from VCS'
@@ -33,22 +46,37 @@ class PatchVersion(setuptools.Command):
         pass
 
     def run(self):
-        pkgdir = os.path.dirname(__file__)
-        if not os.path.exists(os.path.join(pkgdir, '.git')):
-            return
-        version = subprocess.check_output('git describe --tags --match=v[0-9]*'.split()).strip()
-        m = re.match(r'^v(\d[\d.]*)(-\d+-g[a-f0-9]*)?$', version)
-        assert m is not None, version
-        version = m.group(1)
-        if m.group(2) is not None:
-            version += '+' + m.group(2)[1:].replace('-', '.')
-        version_file = os.path.join(pkgdir, 'plover', '__init__.py')
+        version = get_version()
+        if version is None:
+            sys.exit(1)
+        log.info('patching version to %s', version)
+        version_file = os.path.join('plover', '__init__.py')
         with open(version_file, 'r') as fp:
             contents = fp.read().split('\n')
         contents = [re.sub(r'^__version__ = .*$', "__version__ = '%s'" % version, line)
                     for line in contents]
         with open(version_file, 'w') as fp:
             fp.write('\n'.join(contents))
+
+
+class TagWeekly(setuptools.Command):
+
+    description = 'tag weekly version'
+    user_options = []
+
+    def initialize_options(self):
+        pass
+
+    def finalize_options(self):
+        pass
+
+    def run(self):
+        version = get_version()
+        if version is None:
+            sys.exit(1)
+        weekly_version = 'weekly-v%s' % version
+        log.info('tagging as %s', weekly_version)
+        subprocess.check_call('git tag -f'.split() + [weekly_version])
 
 
 setup_requires = []
@@ -149,6 +177,7 @@ if __name__ == '__main__':
         options=options,
         cmdclass={
             'patch_version': PatchVersion,
+            'tag_weekly': TagWeekly,
         },
         setup_requires=setup_requires,
         install_requires=install_requires,
