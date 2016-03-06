@@ -161,6 +161,7 @@ if __name__ == '__main__':
         packages=[
             'plover', 'plover.machine', 'plover.gui',
             'plover.oslayer', 'plover.dictionary',
+            'plover.system',
         ],
         package_data={
             'plover': ['assets/*'],
