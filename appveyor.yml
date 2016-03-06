@@ -1,6 +1,6 @@
 version: '{build}'
 
-skip_tags: true
+skip_tags: false
 
 pull_requests:
 
@@ -9,7 +9,7 @@ pull_requests:
 deploy:
 
 - provider: GitHub
-  release: weekly-v$(appveyor_build_version)
+  release: $(APPVEYOR_REPO_TAG_NAME)
   description: Weekly Pre-release
   prerelease: true
   draft: true
@@ -17,7 +17,7 @@ deploy:
     secure: m8kBg3jFX2k516nlmWkvxNCrBwlQZMaa6hNn7A+rktl781BRTyKssCXQqKAwPJLs
   artifact: executable
   on:
-    branch: weekly
+    appveyor_repo_tag: true
 
 environment:
 
@@ -59,9 +59,6 @@ build:
 before_build:
   # Update version number from VCS.
   - "python setup.py patch_version"
-  # And the build number accordingly.
-  - ps: "Update-AppveyorBuild -Version \"$(python setup.py --version)\""
-  - "ECHO appveyor_build_version: %appveyor_build_version%"
 
 build_script:
   - "ECHO PATH=%PATH%"
