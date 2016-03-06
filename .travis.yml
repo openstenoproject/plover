@@ -62,4 +62,3 @@ deploy:
     - "dist/*.whl"
   on:
     tags: true
-    repo: openstenoproject/plover
