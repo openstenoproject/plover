@@ -277,6 +277,22 @@ class FormatterTestCase(unittest.TestCase):
           action(combo='ALT_L(Grave)', capitalize=True),
           action(text=' ', attach=True)
          ]),
+
+        (('{-|}{>}{&a}{>}{&b}', action(), False),
+         [action(capitalize=True),
+          action(lower=True),
+          action(text=' a', word='a', glue=True),
+          action(lower=True, word='a', text='', glue=True),
+          action(text='b', word='ab', glue=True),
+         ]),
+
+        (('{-|}{>}{&a}{>}{&b}', action(), True),
+         [action(capitalize=True),
+          action(lower=True),
+          action(text='a ', word='a', glue=True),
+          action(lower=True, word='a', text=' ', replace=' ', glue=True),
+          action(text='b ', replace=' ', word='ab', glue=True),
+         ]),
          
          (('{-|} equip {^s}', action(), False),
           [action(capitalize=True),
@@ -814,7 +830,7 @@ class FormatterTestCase(unittest.TestCase):
          action(capitalize=True, word='test')),
 
         (('{>}', action(word='test', text='test ')),
-         action(lower=True, word='test')),
+         action(lower=True, word='test', replace=' ', text=' ')),
 
         (('{<}', action(word='test', text='test ')),
          action(upper=True, word='test')),
