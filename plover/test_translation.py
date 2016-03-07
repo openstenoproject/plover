@@ -636,6 +636,21 @@ class TranslateStrokeTestCase(unittest.TestCase):
         self.assertTranslations(do)
         self.assertOutput(undo, do, None)
 
+    def test_retrospective_delete_space_with_number(self):
+        self.define('T/E/S/T', 'a longer key')
+        self.define('U', 'user')
+        self.define('SP*', '{*!}')
+        self.translate(stroke('U'))
+        self.translate(stroke('1-'))
+        self.translate(stroke('SP*'))
+        undo = self.lt('U 1-')
+        do = self.lt('SP*')
+        do[0].english = 'user{^~|^}{&1}'
+        do[0].is_retrospective_command = True
+        do[0].replaced = undo
+        self.assertTranslations(do)
+        self.assertOutput(undo, do, None)
+
     def test_retrospective_delete_space_with_period(self):
         self.define('T/E/S/T', 'a longer key')
         self.define('P-P', '{.}')
