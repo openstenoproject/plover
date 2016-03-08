@@ -648,6 +648,10 @@ def _atom_to_action_spaces_after(atom, last_action):
             action.lower = False
         elif meta == META_LOWER:
             action = last_action.copy_state()
+            if was_space:
+                # Persist space state
+                action.replace = SPACE
+                action.text = SPACE
             action.lower = True
             action.capitalize = False
         elif meta == META_UPPER:
