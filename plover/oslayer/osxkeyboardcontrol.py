@@ -31,6 +31,7 @@ from Quartz import (
     kCGHeadInsertEventTap,
     kCGKeyboardEventKeycode,
     kCGSessionEventTap,
+    kCGEventSourceStateHIDSystemState,
 )
 import Foundation
 import threading
@@ -148,10 +149,7 @@ MODIFIER_KEYS_TO_MASKS = {
     55: kCGEventFlagMaskCommand
 }
 
-# kCGEventSourceStatePrivate is -1 but when -1 is passed in here it is
-# unmarshalled incorrectly as 10379842816535691263.
-MY_EVENT_SOURCE = CGEventSourceCreate(0xFFFFFFFF)  # 32 bit -1
-MY_EVENT_SOURCE_ID = CGEventSourceGetSourceStateID(MY_EVENT_SOURCE)
+OUTPUT_SOURCE = CGEventSourceCreate(kCGEventSourceStateHIDSystemState)
 
 # For the purposes of this class, we're only watching these keys.
 # We could calculate the keys, but our default layout would be misleading:
@@ -186,10 +184,6 @@ class KeyboardCapture(threading.Thread):
             # Don't pass on meta events meant for this event tap.
             if event_type not in self._KEYBOARD_EVENTS:
                 return None
-            # Don't intercept events from this module.
-            if (CGEventGetIntegerValueField(event, kCGEventSourceStateID) ==
-                    MY_EVENT_SOURCE_ID):
-                return event
             # Don't intercept the event if it has modifiers, allow
             # Fn and Numeric flags so we can suppress the arrow and
             # extended (home, end, etc...) keys.
@@ -261,9 +255,9 @@ class KeyboardEmulation(object):
     def send_backspaces(number_of_backspaces):
         for _ in xrange(number_of_backspaces):
             CGEventPost(kCGSessionEventTap,
-                        CGEventCreateKeyboardEvent(MY_EVENT_SOURCE, BACK_SPACE, True))
+                        CGEventCreateKeyboardEvent(OUTPUT_SOURCE, BACK_SPACE, True))
             CGEventPost(kCGSessionEventTap,
-                        CGEventCreateKeyboardEvent(MY_EVENT_SOURCE, BACK_SPACE, False))
+                        CGEventCreateKeyboardEvent(OUTPUT_SOURCE, BACK_SPACE, False))
 
     def send_string(self, s):
         """
@@ -320,10 +314,10 @@ class KeyboardEmulation(object):
 
     @staticmethod
     def _send_string_press(c):
-        event = CGEventCreateKeyboardEvent(MY_EVENT_SOURCE, 0, True)
+        event = CGEventCreateKeyboardEvent(OUTPUT_SOURCE, 0, True)
         KeyboardEmulation._set_event_string(event, c)
         CGEventPost(kCGSessionEventTap, event)
-        event = CGEventCreateKeyboardEvent(MY_EVENT_SOURCE, 0, False)
+        event = CGEventCreateKeyboardEvent(OUTPUT_SOURCE, 0, False)
         KeyboardEmulation._set_event_string(event, c)
         CGEventPost(kCGSessionEventTap, event)
 
@@ -418,6 +412,13 @@ class KeyboardEmulation(object):
         buf = Foundation.NSString.stringWithString_(s)
         CGEventKeyboardSetUnicodeString(event, len(buf), buf)
 
+    MODS_MASK = (
+        kCGEventFlagMaskAlternate |
+        kCGEventFlagMaskControl |
+        kCGEventFlagMaskShift |
+        kCGEventFlagMaskCommand
+    )
+
     @staticmethod
     def _send_sequence(sequence):
         # There is a bug in the event system that seems to cause inconsistent
@@ -425,23 +426,23 @@ class KeyboardEmulation(object):
         # http://stackoverflow.com/questions/2008126/cgeventpost-possible-bug-when-simulating-keyboard-events
         # My solution is to manage the state myself.
         # I'm not sure how to deal with caps lock.
-        # If event_mask is not zero at the end then bad things might happen.
-        event_mask = 0
+        # If mods_flags is not zero at the end then bad things might happen.
+        mods_flags = 0
+
         for keycode, key_down in sequence:
             if not key_down and keycode in MODIFIER_KEYS_TO_MASKS:
-                event_mask &= ~MODIFIER_KEYS_TO_MASKS[keycode]
+                mods_flags &= ~MODIFIER_KEYS_TO_MASKS[keycode]
 
-            event = CGEventCreateKeyboardEvent(MY_EVENT_SOURCE, keycode, key_down)
+            event = CGEventCreateKeyboardEvent(OUTPUT_SOURCE, keycode, key_down)
 
-            # The event comes with flags already, check if they contain our own event_mask.
-            if event_mask and (CGEventGetFlags(event) & event_mask) != event_mask:
-                # If our event_mask is missing from flags, set it.
-                CGEventSetFlags(event, event_mask)
-            elif not event_mask and keycode not in MODIFIER_KEYS_TO_MASKS:
-                # Always set event_mask when it is zero to force release of modifiers.
-                CGEventSetFlags(event, event_mask)
+            if key_down and keycode not in MODIFIER_KEYS_TO_MASKS:
+                event_flags = CGEventGetFlags(event)
+                # Add wanted flags, remove unwanted flags.
+                goal_flags = (event_flags & ~KeyboardEmulation.MODS_MASK) | mods_flags
+                if event_flags != goal_flags:
+                    CGEventSetFlags(event, goal_flags)
 
             CGEventPost(kCGSessionEventTap, event)
 
             if key_down and keycode in MODIFIER_KEYS_TO_MASKS:
-                event_mask |= MODIFIER_KEYS_TO_MASKS[keycode]
+                mods_flags |= MODIFIER_KEYS_TO_MASKS[keycode]
