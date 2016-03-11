@@ -9,7 +9,6 @@ import os
 from os.path import realpath, join, dirname, abspath, isfile, pardir
 import sys
 
-bundle_type = None
 
 # If plover is run from a pyinstaller binary.
 if hasattr(sys, 'frozen') and hasattr(sys, '_MEIPASS'):
