@@ -35,6 +35,7 @@ from Quartz import (
 )
 import Foundation
 import threading
+from time import time
 import collections
 from plover.oslayer import mac_keycode
 
@@ -441,6 +442,11 @@ class KeyboardEmulation(object):
                 goal_flags = (event_flags & ~KeyboardEmulation.MODS_MASK) | mods_flags
                 if event_flags != goal_flags:
                     CGEventSetFlags(event, goal_flags)
+
+                # Half millisecond pause after keydown
+                deadline = time() + 0.0005
+                while time() < deadline:
+                    pass
 
             CGEventPost(kCGSessionEventTap, event)
 
