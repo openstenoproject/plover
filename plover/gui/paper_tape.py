@@ -13,6 +13,7 @@ TITLE = 'Plover: Stroke Display'
 ON_TOP_TEXT = "Always on top"
 UI_BORDER = 4
 MAX_STROKE_LINES = 30
+MAX_STROKES_IN_LOG = 2000000
 STYLE_TEXT = 'Style:'
 STYLE_PAPER = 'Paper'
 STYLE_RAW = 'Raw'
@@ -21,7 +22,7 @@ STYLES = [STYLE_PAPER, STYLE_RAW]
 class StrokeDisplayDialog(wx.Dialog):
     
     other_instances = []
-    strokes = deque(maxlen=MAX_STROKE_LINES)
+    strokes = deque(maxlen=MAX_STROKES_IN_LOG)
 
     def __init__(self, parent, config):
         self.config = config        
@@ -72,7 +73,7 @@ class StrokeDisplayDialog(wx.Dialog):
         sizer.Add(wx.StaticLine(self), flag=wx.EXPAND)
 
         self.listbox = wx.TextCtrl(self,
-                                   style=wx.TE_MULTILINE|wx.TE_READONLY|wx.TE_DONTWRAP|wx.BORDER_NONE|wx.HSCROLL,
+                                   style=wx.TE_MULTILINE|wx.TE_READONLY|wx.TE_DONTWRAP|wx.BORDER_NONE|wx.HSCROLL|wx.VSCROLL,
                                    # Will show MAX_STROKE_LINES lines.
                                    size=wx.Size(scroll_width + text_width,
                                                 scroll_height + text_height * MAX_STROKE_LINES))
@@ -105,8 +106,6 @@ class StrokeDisplayDialog(wx.Dialog):
         event.Skip()
         
     def show_text(self, text):
-        if len(self.line_lengths) == MAX_STROKE_LINES:
-            self.listbox.Remove(0, self.line_lengths.pop(0))
         if self.listbox.IsEmpty():
             self.listbox.AppendText(text)
         else:
