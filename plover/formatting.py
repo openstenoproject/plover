@@ -842,6 +842,10 @@ def _apply_carry_capitalize(meta, last_action, spaces_after=False):
     action = last_action.copy_state()
     action.attach = attach_next
 
+    # Spaces after: delete last space if we're attaching.
+    replace_last = last_action.text.endswith(SPACE) and attach_last
+    action.replace = SPACE if replace_last else NO_SPACE
+
     if meta_content:
         action.word = meta_content
 
@@ -850,10 +854,6 @@ def _apply_carry_capitalize(meta, last_action, spaces_after=False):
         # Only suffix a space if spaces are after or there's an attach_next flag.
         suffix = NO_SPACE if attach_next or not spaces_after else SPACE
         action.text = prefix + meta_content + suffix
-
-        # Spaces after: delete last space if we're attaching.
-        replace_last = last_action.text.endswith(SPACE) and attach_last
-        action.replace = SPACE if replace_last else NO_SPACE
 
     return action
 

@@ -267,7 +267,6 @@ class Translator(object):
             self._state.translations.extend(do)
 
     def _find_translation(self, translations, stroke, mapping):
-
         t = self._find_translation_helper(translations, stroke)
         if t:
             return t
@@ -302,8 +301,10 @@ class Translator(object):
             for t in replaced:
                 if t.english is not None:
                     english.append(t.english)
+                elif len(t.rtfcre) is 1 and t.rtfcre[0].isdigit():
+                    english.append('{&%s}' % t.rtfcre[0])
             if len(english) > 1:
-                t = Translation([stroke], ''.join(english))
+                t = Translation([stroke], '{^~|^}'.join(english))
                 t.replaced = replaced
                 t.is_retrospective_command = True
                 return t

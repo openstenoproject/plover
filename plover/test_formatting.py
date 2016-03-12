@@ -555,6 +555,11 @@ class FormatterTestCase(unittest.TestCase):
           action(text='EQUIPPED ', word='EQUIPPED', replace='equipped ', upper_carry=True),
          ]),
 
+        (('{.}{^~|^}zshrc', action(), True),
+         [action(text='. ', capitalize=True),
+          action(attach=True, capitalize=True, replace=' '),
+          action(text='Zshrc ', word='Zshrc')]),
+
         (('notanumber {*($c)}', action(), True),
          [action(text='notanumber ', word='notanumber'),
           action(text='', word='notanumber', replace=''),
