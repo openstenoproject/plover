@@ -6,6 +6,7 @@
 import os
 import sys
 import traceback
+import argparse
 
 WXVER = '3.0'
 if not hasattr(sys, 'frozen'):
@@ -22,6 +23,8 @@ import plover.oslayer.processlock
 from plover.oslayer.config import CONFIG_DIR, ASSETS_DIR
 from plover.config import CONFIG_FILE, DEFAULT_DICTIONARIES, Config
 from plover import log
+from plover import __name__ as __software_name__
+from plover import __version__
 
 def show_error(title, message):
     """Report error to the user.
@@ -69,6 +72,11 @@ def init_config_dir():
 
 def main():
     """Launch plover."""
+    description = "Run the plover stenotype engine. This is a graphical application."
+    parser = argparse.ArgumentParser(description=description)
+    parser.add_argument('--version', action='version', version='%s %s'
+                        % (__software_name__.capitalize(), __version__))
+    args = parser.parse_args(args=sys.argv[1:])
     try:
         # Ensure only one instance of Plover is running at a time.
         with plover.oslayer.processlock.PloverLock():
