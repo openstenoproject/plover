@@ -6,8 +6,10 @@ topdir = ..
 builddir = $(topdir)/build
 distdir = $(topdir)/dist
 
-APP = $(distdir)/Plover.app
-DMG = $(distdir)/Plover.dmg
+VER := $(shell cd $(topdir) && python setup.py --version)
+TMP_APP := $(distdir)/Plover.app
+APP := $(distdir)/Plover-$(VER).app
+DMG := $(distdir)/Plover-$(VER).dmg
 
 .PHONY: all app dmg clean
 
@@ -18,10 +20,9 @@ dmg: $(DMG)
 
 $(APP):
 	cd $(topdir) && $(PYTHON) setup.py py2app
-	zip -d $(APP)/Contents/Resources/lib/python2.7/site-packages.zip 'plover/assets/*'
-	ditto --arch x86_64 $(APP) $(APP:%.app=%Stripped.app)
-	rm -rf $(APP)
-	mv $(APP:%.app=%Stripped.app) $(APP)
+	zip -d $(TMP_APP)/Contents/Resources/lib/python2.7/site-packages.zip 'plover/assets/*'
+	ditto --arch x86_64 $(TMP_APP) $(APP)
+	rm -rf $(TMP_APP)
 
 $(DMG): $(APP)
 	mkdir tmp
