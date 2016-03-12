@@ -19,11 +19,13 @@ import functools
 import threading
 import types
 import win32api
+import win32gui
 import pyHook
 
 SendInput = ctypes.windll.user32.SendInput
 MapVirtualKey = ctypes.windll.user32.MapVirtualKeyW
 GetKeyboardLayout = ctypes.windll.user32.GetKeyboardLayout
+GetWindowThreadProcessId = ctypes.windll.user32.GetWindowThreadProcessId
 LONG = ctypes.c_long
 DWORD = ctypes.c_ulong
 ULONG_PTR = ctypes.POINTER(DWORD)
@@ -260,9 +262,9 @@ class WindowsKeyboardLayout:
         '?': 'question', '\t': 'Tab', ' ': 'space'
     })
 
-    def __init__(self):
+    def __init__(self, layout_id=None):
         # Get active layout
-        layout_id = GetKeyboardLayout(0)
+        self.layout_id = WindowsKeyboardLayout.current_layout_id() if layout_id is None else layout_id
 
         # Converts a character into a key sequence based on current layout
         # Returns a list of key codes to send *or* False to represent key not found
@@ -273,7 +275,7 @@ class WindowsKeyboardLayout:
             if len(character) > 1:
                 return []
 
-            vk = win32api.VkKeyScanEx(character, layout_id)
+            vk = win32api.VkKeyScanEx(character, self.layout_id)
 
             # Low bit is keycode
             kc = vk & 0xFF
@@ -349,6 +351,14 @@ class WindowsKeyboardLayout:
             '''
             if name not in self.keyname_to_keycode:
                 del self.literals[symbol]
+
+    @staticmethod
+    def current_layout_id():
+        return GetKeyboardLayout(
+            GetWindowThreadProcessId(
+                win32gui.GetForegroundWindow(), 0
+            )
+        )
 
 
 class KeyboardCapture(object):
@@ -481,6 +491,11 @@ class KeyboardEmulation:
         self._key_down(keyname)
         self._key_up(keyname)
 
+    def _refresh_keyboard_layout(self):
+        layout_id = WindowsKeyboardLayout.current_layout_id()
+        if layout_id != self.keyboard_layout.layout_id:
+            self.keyboard_layout = WindowsKeyboardLayout(layout_id)
+
     # Send a Unicode character to application from code
     def _key_unicode(self, code):
         self._send_input(self._keyboard(code, KEYEVENTF_UNICODE))
@@ -502,6 +517,7 @@ class KeyboardEmulation:
             self._key_press("BackSpace")
 
     def send_string(self, s):
+        self._refresh_keyboard_layout()
         for c in self._characters(s):
 
             # We normalize characters
@@ -546,6 +562,7 @@ class KeyboardEmulation:
         # use Shift_R as most entries seem to use Shift_L.
         # That being said, we can consider a shifted-shifted character to be
         # undefined behavior...
+        self._refresh_keyboard_layout()
 
         key_down_stack = []
         current_command = []
