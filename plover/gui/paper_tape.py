@@ -4,10 +4,13 @@
 """A gui display of recent strokes."""
 
 import wx
+import time
+import os
 from wx.lib.utils import AdjustRectToScreen
 from collections import deque
 from plover import system
 from plover.gui.util import find_fixed_width_font
+from plover import log
 
 TITLE = 'Plover: Stroke Display'
 ON_TOP_TEXT = "Always on top"
@@ -18,6 +21,12 @@ STYLE_TEXT = 'Style:'
 STYLE_PAPER = 'Paper'
 STYLE_RAW = 'Raw'
 STYLES = [STYLE_PAPER, STYLE_RAW]
+CLEAR_BUTTON_NAME = 'Clear'
+SAVE_BUTTON_NAME = 'Save'
+CLEAR_PROMPT = 'Would you like to clear the notes?'
+CLEAR_PROMPT_TITLE = 'Clear?'
+SAVE_NOTES_DIALOG_TITLE = 'Save notes'
+SAVE_NOTES_FILE_DIALOG_TEXT_FILE_FILTER = 'Text files (*.txt)|*'
 
 class StrokeDisplayDialog(wx.Dialog):
     
@@ -82,6 +91,21 @@ class StrokeDisplayDialog(wx.Dialog):
         sizer.Add(self.listbox,
                   flag=wx.ALL|wx.EXPAND|wx.ALIGN_LEFT,
                   border=UI_BORDER)
+
+        buttons = wx.BoxSizer(wx.HORIZONTAL)
+        sizer.Add(buttons, flag=wx.EXPAND|wx.ALL)
+
+        clear_button = wx.Button(self, id=wx.ID_CLEAR, label=CLEAR_BUTTON_NAME)
+        buttons.AddSpacer(5)
+        buttons.Add(clear_button, flag=wx.EXPAND|wx.ALIGN_LEFT)
+        self.Bind(wx.EVT_BUTTON, self._clear, clear_button)
+        buttons.AddStretchSpacer()
+        save_button = wx.Button(self, id=wx.ID_SAVE, label=SAVE_BUTTON_NAME)
+        buttons.Add(save_button, flag=wx.EXPAND|wx.ALIGN_RIGHT)
+        buttons.AddSpacer(5)
+        self.Bind(wx.EVT_BUTTON, self._save, save_button)
+
+        sizer.AddSpacer(5)
 
         self.on_style()
 
@@ -149,6 +173,24 @@ class StrokeDisplayDialog(wx.Dialog):
         text = ''.join(text)
         return text        
 
+    def _clear(self, event=None):
+        message_dialog = wx.MessageDialog(self, CLEAR_PROMPT, CLEAR_PROMPT_TITLE)
+        message_dialog.SetOKLabel("Clear")
+        if message_dialog.ShowModal() == wx.ID_OK:
+            self.listbox.Clear()
+            self.strokes.clear()
+
+    def _save(self, event=None):
+        file_name_suggestion = 'steno-notes-%s.txt' % time.strftime('%Y-%m-%d-%H-%M')
+        file_dialog = wx.FileDialog(self, SAVE_NOTES_DIALOG_TITLE, "", file_name_suggestion,
+                                    SAVE_NOTES_FILE_DIALOG_TEXT_FILE_FILTER, wx.FD_SAVE | wx.FD_OVERWRITE_PROMPT)
+        if file_dialog.ShowModal() == wx.ID_OK:
+            try:
+                with open(file_dialog.GetPath(), 'w') as fd:
+                    fd.write(self.listbox.GetValue()+'\n')
+            except IOError:
+                log.error("Cannot save notes in file '%s'." % file_dialog.GetPath(), exc_info=True)
+
     def raw_format(self, stroke):
         return stroke.rtfcre
 
@@ -168,7 +210,6 @@ class StrokeDisplayDialog(wx.Dialog):
     def display(parent, config):
         # StrokeDisplayDialog shows itself.
         StrokeDisplayDialog(parent, config)
-
 
 class fake_config(object):
     def __init__(self):
