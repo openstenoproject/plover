@@ -536,17 +536,7 @@ class Helper(object):
         self._rmtree('build')
         self._rmtree('dist')
         info('creating distribution')
-        self._env.run(('pyinstaller.exe',
-                       '--log-level=WARN',
-                       '--specpath=build',
-                       '--additional-hooks-dir=%s' % WIN_DIR,
-                       '--name=%s' % APPNAME,
-                       '--icon=%s' % ICON,
-                       '--noconfirm',
-                       '--windowed',
-                       '--onefile',
-                       'launch.py'))
-        self._rename('dist/%s.exe' % APPNAME, 'dist/%s-%s.exe' % (APPNAME, VERSION))
+        self._env.run(('python.exe', 'setup.py', 'bdist_win'))
 
     def main(self, args):
         opts = self._parser.parse_args(args)
