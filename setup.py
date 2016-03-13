@@ -8,6 +8,7 @@ import subprocess
 import sys
 
 from distutils import log
+import pkg_resources
 import setuptools
 
 from plover import (
@@ -37,6 +38,50 @@ def get_version():
     if m.group(2) is not None:
         version += '+' + m.group(2)[1:].replace('-', '.')
     return version
+
+
+def pyinstaller(*args):
+    py_args = [
+        '--log-level=INFO',
+        '--specpath=build',
+        '--additional-hooks-dir=windows',
+        '--paths=.',
+        '--name=%s-%s' % (
+            __software_name__.capitalize(),
+            __version__,
+        ),
+        '--noconfirm',
+        '--windowed',
+        '--onefile'
+    ]
+    py_args.extend(args)
+    py_args.append('plover/main.py')
+    main = pkg_resources.load_entry_point('PyInstaller', 'console_scripts', 'pyinstaller')
+    main(py_args)
+
+
+class PyInstallerDist(setuptools.Command):
+
+    user_options = []
+    extra_args = []
+
+    def initialize_options(self):
+        pass
+
+    def finalize_options(self):
+        pass
+
+    def run(self):
+        # Make sure metadata are up-to-date first.
+        self.run_command("egg_info")
+        pyinstaller(*self.extra_args)
+
+
+class BinaryDistWin(PyInstallerDist):
+    description = 'create an executabe for MS Windows'
+    extra_args = [
+        '--icon=plover/assets/plover.ico',
+    ]
 
 
 class PatchVersion(setuptools.Command):
@@ -145,6 +190,7 @@ if sys.platform.startswith('darwin'):
 
 if sys.platform.startswith('win32'):
     setup_requires.append('PyInstaller==3.1.1')
+    cmdclass['bdist_win'] = BinaryDistWin
 
 setup_requires.extend(('pytest-runner', 'pytest'))
 options['aliases'] = {
