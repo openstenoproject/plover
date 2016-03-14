@@ -346,6 +346,7 @@ class Helper(object):
             '.msi'        : self._install_msi,
             '.rar'        : self._install_archive,
             '.zip'        : self._install_archive,
+            '.whl'        : self._pip_install,
         }
 
     def _rmtree(self, path):
@@ -584,6 +585,8 @@ class WineHelper(Helper):
 
     DEPENDENCIES = (
         ('Python', 'https://www.python.org/ftp/python/2.7.11/python-2.7.11.msi', 'b14ebf1198fe4bbb940bcce90d910b8eddd60209', None, (), None),
+        ('Cython', 'https://pypi.python.org/packages/2.7/C/Cython/Cython-0.23.4-cp27-none-win32.whl', 'd7c1978fe2037674b151622158881c700ac2f06a', None, (), None),
+        ('VC for Python', 'https://download.microsoft.com/download/7/9/6/796EF2E4-801B-4FC4-AB28-B59FBF6D907B/VCForPython27.msi', '7800d037ba962f288f9b952001106d35ef57befe', None, (), None),
     ) + Helper.DEPENDENCIES
 
     def __init__(self):
