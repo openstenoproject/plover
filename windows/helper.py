@@ -277,6 +277,8 @@ class Helper(object):
         # Note: '--always-unzip' is needed, as pyHook cannot work from a single egg file.
         ('pyhook'           , 'http://downloads.sourceforge.net/project/pyhook/pyhook/1.5.1/pyHook-1.5.1.win32-py2.7.exe'                         , '9afb7a5b2858a69c6b0f6d2cb1b2eb2a3f4183d2', 'easy_install', ('--always-unzip',), None),
         ('pywin32'          , 'http://downloads.sourceforge.net/project/pywin32/pywin32/Build 219/pywin32-219.win32-py2.7.exe'                    , '8bc39008383c646bed01942584117113ddaefe6b', 'easy_install', (), None),
+        ('Cython'           , 'https://pypi.python.org/packages/2.7/C/Cython/Cython-0.23.4-cp27-none-win32.whl'                                   , 'd7c1978fe2037674b151622158881c700ac2f06a', None, (), None),
+        ('VC for Python'    , 'https://download.microsoft.com/download/7/9/6/796EF2E4-801B-4FC4-AB28-B59FBF6D907B/VCForPython27.msi'              , '7800d037ba962f288f9b952001106d35ef57befe', None, (), None),
     )
 
     def __init__(self):
@@ -585,8 +587,6 @@ class WineHelper(Helper):
 
     DEPENDENCIES = (
         ('Python', 'https://www.python.org/ftp/python/2.7.11/python-2.7.11.msi', 'b14ebf1198fe4bbb940bcce90d910b8eddd60209', None, (), None),
-        ('Cython', 'https://pypi.python.org/packages/2.7/C/Cython/Cython-0.23.4-cp27-none-win32.whl', 'd7c1978fe2037674b151622158881c700ac2f06a', None, (), None),
-        ('VC for Python', 'https://download.microsoft.com/download/7/9/6/796EF2E4-801B-4FC4-AB28-B59FBF6D907B/VCForPython27.msi', '7800d037ba962f288f9b952001106d35ef57befe', None, (), None),
     ) + Helper.DEPENDENCIES
 
     def __init__(self):
