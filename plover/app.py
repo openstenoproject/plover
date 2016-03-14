@@ -155,9 +155,9 @@ class StenoEngine(object):
     def set_machine(self, machine_class,
                     machine_options=None,
                     machine_mappings=None):
-        if (self.machine_class and machine_class and
-            self.machine_options and machine_options and
-            self.machine_mappings and machine_mappings):
+        if (self.machine_class == machine_class and
+            self.machine_options == machine_options and
+            self.machine_mappings == machine_mappings):
             return
         self.machine_class = None
         self.machine_options = None
