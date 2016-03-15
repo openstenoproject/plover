@@ -64,29 +64,12 @@ class Environment(object):
         self.dry_run = False
         self.verbose = False
         self._env = {}
-        self._installed_path = 'installed.txt'
-        self._installed = None
 
     def setup(self):
         pass
 
     def get_realpath(self, path):
         return path
-
-    def get_installed(self):
-        if self._installed is None:
-            self._installed = {}
-            if os.path.exists(self._installed_path):
-                with open(self._installed_path, 'r') as fp:
-                    self._installed.update(json.load(fp))
-        return self._installed
-
-    def mark_installed(self, package, version):
-        self._installed[package] = version
-        if self.dry_run:
-            return
-        with open(self._installed_path, 'w') as fp:
-            json.dump(self._installed, fp, indent=2)
 
     def get_distdir(self):
         raise NotImplementedError
@@ -143,7 +126,6 @@ class WineEnvironment(Environment):
         self._env['WINEARCH'] = 'win32'
         self._env['WINEDEBUG'] = '-all'
         self._env['WINETRICKS_OPT_SHAREDPREFIX'] = '1'
-        self._installed_path = os.path.join(self.get_realpath(PROG_DIR), 'installed.txt')
 
     def setup(self):
         if not os.path.exists(self._prefix):
@@ -227,7 +209,6 @@ class Win32Environment(Environment):
 
     def __init__(self):
         super(Win32Environment, self).__init__()
-        self._installed_path = os.path.join(PROG_DIR, 'installed.txt')
         self._path = None
 
     def setup(self):
@@ -464,9 +445,6 @@ class Helper(object):
         assert os.path.exists(dst), 'could not successfully retrieve %s' % url
 
     def install(self, name, src, checksum, handler_format=None, handler_args=(), path_dir=None):
-        installed = self._env.get_installed()
-        if src == installed.get(name):
-            return
         info('installing %s', name)
         if src.startswith('pip:'):
             handler_format = 'pip'
@@ -483,7 +461,6 @@ class Helper(object):
         handler(dst, *handler_args)
         if path_dir is not None:
             self._env.add_to_path(path_dir)
-        self._env.mark_installed(name, src)
 
     def cmd_help(self, *commands):
         '''print detailed help'''
