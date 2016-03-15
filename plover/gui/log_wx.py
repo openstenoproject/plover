@@ -30,5 +30,3 @@ class WxNotificationHandler(logging.Handler):
         message = self.format(record)
         wx.CallAfter(_notify, level, message)
 
-log.add_handler(WxNotificationHandler())
-
