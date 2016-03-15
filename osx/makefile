@@ -18,6 +18,7 @@ dmg: $(DMG)
 
 $(APP):
 	cd $(topdir) && $(PYTHON) setup.py py2app
+	zip -d $(APP)/Contents/Resources/lib/python2.7/site-packages.zip 'plover/assets/*'
 	ditto --arch x86_64 $(APP) $(APP:%.app=%Stripped.app)
 	rm -rf $(APP)
 	mv $(APP:%.app=%Stripped.app) $(APP)
