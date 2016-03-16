@@ -24,7 +24,7 @@ before_install:
       true
       ;;
     esac &&
-    python setup.py write_requirements &&
+    ./setup.py write_requirements &&
     pip --disable-pip-version-check --timeout=5 --retries=2 install --upgrade --user -r requirements.txt &&
     # We need to downgrade setuptools for py2app to work correctly...
     pip --disable-pip-version-check --timeout=5 --retries=2 install --upgrade --user 'setuptools==19.2' &&
@@ -35,8 +35,8 @@ install: true
 
 script:
   - git fetch --unshallow
-  - python setup.py patch_version
-  - python setup.py test
+  - ./setup.py patch_version
+  - ./setup.py test
   - |
     case "$TRAVIS_OS_NAME" in
     osx)
@@ -44,8 +44,8 @@ script:
       true
       ;;
     linux)
-      python setup.py bdist_egg &&
-      python setup.py bdist_wheel &&
+      ./setup.py bdist_egg &&
+      ./setup.py bdist_wheel &&
       true
       ;;
     esac
