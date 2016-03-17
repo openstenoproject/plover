@@ -29,7 +29,7 @@ For the missing dependencies, follow the generic procedure.
 
 You can create a pip compatible requirements file with:
 
-`python2 setup.py write_requirements`
+`./setup.py write_requirements`
 
 And then using pip, e.g. for a user install:
 
@@ -39,13 +39,13 @@ Note: if your version of pip is too old, you may get parsing errors on the lines
 
 ## Running from source
 
-To run from source, use: `python2 launch.py`.
+To run from source, use: `./launch.py`.
 
 ## Installing and running
 
 ### Using an egg
 
-A self-contained executable egg can be created with: `python2 setup.py bdist_egg`. The egg will be created in `dist`, `chmod +x` it and you can run Plover directly from it:
+A self-contained executable egg can be created with: `./setup.py bdist_egg`. The egg will be created in `dist`, `chmod +x` it and you can run Plover directly from it:
 
 `chmod +x dist/Plover-2.5.8-py2.7.egg && ./dist/Plover-2.5.8-py2.7.egg`
 
@@ -53,12 +53,12 @@ Note: the egg file can be moved, but it cannot however be renamed (as the packag
 
 ### Using a wheel file with pip
 
-A wheel file can be created with: `python2 setup.py bdist_wheel`. The resulting file can then be installed using pip, e.g. for a user install:
+A wheel file can be created with: `./setup.py bdist_wheel`. The resulting file can then be installed using pip, e.g. for a user install:
 
 `pip2 install dist/Plover-2.5.8-py2-none-any.whl`
 
 ### Using `setup.py`
 
-You can install with `sudo python2 setup.py install --record install.txt`. The list of installed files will be saved to `install.txt`.
+You can install with `sudo ./setup.py install --record install.txt`. The list of installed files will be saved to `install.txt`.
 
 Note: this method is not recommended as it's harder to uninstall (you have to do it manually, with the help of `install.txt`) and can mess with your distribution files.
