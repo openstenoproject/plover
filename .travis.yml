@@ -48,7 +48,8 @@ script:
       ./setup.py bdist_wheel &&
       true
       ;;
-    esac
+    esac &&
+    du -hs dist/*
 
 deploy:
   provider: releases
