@@ -82,6 +82,37 @@ class TagWeekly(setuptools.Command):
         subprocess.check_call('git tag -f'.split() + [weekly_version])
 
 
+class BinaryDistApp(setuptools.Command):
+
+    user_options = []
+    extra_args = []
+
+    def initialize_options(self):
+        pass
+
+    def finalize_options(self):
+        pass
+
+    def run(self):
+        self.run_command('py2app')
+        tmp_app = 'dist/%s.app' % package_name
+        app = 'dist/%s-%s.app' % (package_name, __version__)
+        # Remove duplicate copy of package data.
+        package_data = []
+        for package, data_list in self.distribution.package_data.items():
+            package_data.extend('%s/%s' % (package, data)
+                                for data in data_list)
+        cmd = ['zip', '-d']
+        cmd.append('%s/Contents/Resources/lib/python2.7/site-packages.zip' % tmp_app)
+        cmd.extend(package_data)
+        subprocess.check_call(cmd)
+        os.rename(tmp_app, app)
+
+
+cmdclass = {
+    'patch_version': PatchVersion,
+    'tag_weekly': TagWeekly,
+}
 setup_requires = []
 options = {}
 kwargs = {}
@@ -104,6 +135,7 @@ if sys.platform.startswith('darwin'):
         }
     # Py2app will not look at entry_points.
     kwargs['app'] = 'launch.py',
+    cmdclass['bdist_app'] = BinaryDistApp
 
 if sys.platform.startswith('win32'):
     setup_requires.append('PyInstaller==3.1.1')
@@ -177,10 +209,7 @@ if __name__ == '__main__':
         maintainer_email='morinted@gmail.com',
         zip_safe=True,
         options=options,
-        cmdclass={
-            'patch_version': PatchVersion,
-            'tag_weekly': TagWeekly,
-        },
+        cmdclass=cmdclass,
         setup_requires=setup_requires,
         install_requires=install_requires,
         extras_require=extras_require,
