@@ -22,6 +22,9 @@ from plover import (
 )
 
 
+package_name = __software_name__.capitalize()
+
+
 def get_version():
     if not os.path.exists('.git'):
         return None
@@ -90,7 +93,7 @@ if sys.platform.startswith('darwin'):
         'iconfile': 'osx/plover.icns',
         'resources': 'plover/assets/',
         'plist': {
-            'CFBundleName': __software_name__.capitalize(),
+            'CFBundleName': package_name,
             'CFBundleShortVersionString': __version__,
             'CFBundleVersion': __version__,
             'CFBundleIdentifier': 'org.openstenoproject.plover',
@@ -160,7 +163,7 @@ if __name__ == '__main__':
         sys.exit(0)
 
     setuptools.setup(
-        name=__software_name__.capitalize(),
+        name=package_name,
         version=__version__,
         description=__description__,
         long_description=__long_description__,
