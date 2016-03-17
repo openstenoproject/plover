@@ -89,6 +89,7 @@ kwargs = {}
 if sys.platform.startswith('darwin'):
     setup_requires.append('py2app')
     options['py2app'] = {
+        'arch': 'x86_64',
         'argv_emulation': False,
         'iconfile': 'osx/plover.icns',
         'resources': 'plover/assets/',
