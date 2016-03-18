@@ -34,7 +34,7 @@ before_install:
 install: true
 
 script:
-  - depth=50; while ! git describe --tag '--match=v[0-9]*'; do depth=$(($depth+10)); git fetch --depth $depth; done
+  - git fetch --unshallow
   - python setup.py patch_version
   - python setup.py test
   - |
