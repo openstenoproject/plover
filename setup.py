@@ -21,6 +21,8 @@ from plover import (
     __copyright__,
 )
 
+from utils.metadata import copy_metadata
+
 
 package_name = __software_name__.capitalize()
 
@@ -95,18 +97,23 @@ class BinaryDistApp(setuptools.Command):
 
     def run(self):
         self.run_command('py2app')
-        tmp_app = 'dist/%s.app' % package_name
         app = 'dist/%s-%s.app' % (package_name, __version__)
-        # Remove duplicate copy of package data.
-        package_data = []
-        for package, data_list in self.distribution.package_data.items():
-            package_data.extend('%s/%s' % (package, data)
-                                for data in data_list)
-        cmd = ['zip', '-d']
-        cmd.append('%s/Contents/Resources/lib/python2.7/site-packages.zip' % tmp_app)
-        cmd.extend(package_data)
-        subprocess.check_call(cmd)
+        libdir = '%s/Contents/Resources/lib/python2.7' % app
+        sitezip = '%s/site-packages.zip' % libdir
+        # Add version to filename.
+        tmp_app = 'dist/%s.app' % package_name
+        log.info('renaming %s to %s', tmp_app, app)
         os.rename(tmp_app, app)
+        # We can't access package resources from the site zip,
+        # so extract module and package data to the lib directory.
+        cmd = 'unzip -d %s %s plover/*' % (libdir, sitezip)
+        log.info('running %s', cmd)
+        subprocess.check_call(cmd.split())
+        cmd = 'zip -d %s plover/*' % sitezip
+        log.info('running %s', cmd)
+        subprocess.check_call(cmd.split())
+        # Add packages metadata.
+        copy_metadata('.', libdir)
 
 
 cmdclass = {
@@ -123,7 +130,6 @@ if sys.platform.startswith('darwin'):
         'arch': 'x86_64',
         'argv_emulation': False,
         'iconfile': 'osx/plover.icns',
-        'resources': 'plover/assets/',
         'plist': {
             'CFBundleName': package_name,
             'CFBundleShortVersionString': __version__,
