@@ -4,6 +4,7 @@
 
 import os
 import re
+import shutil
 import subprocess
 import sys
 
@@ -145,10 +146,13 @@ class BinaryDistApp(setuptools.Command):
         app = 'dist/%s-%s.app' % (package_name, __version__)
         libdir = '%s/Contents/Resources/lib/python2.7' % app
         sitezip = '%s/site-packages.zip' % libdir
-        # Add version to filename.
+        # Add version to filename and strip other architectures.
+        # (using py2app --arch is not enough).
         tmp_app = 'dist/%s.app' % package_name
-        log.info('renaming %s to %s', tmp_app, app)
-        os.rename(tmp_app, app)
+        cmd = 'ditto --arch x86_64 %s %s' % (tmp_app, app)
+        log.info('running %s', cmd)
+        subprocess.check_call(cmd.split())
+        shutil.rmtree(tmp_app)
         # We can't access package resources from the site zip,
         # so extract module and package data to the lib directory.
         cmd = 'unzip -d %s %s plover/*' % (libdir, sitezip)
