@@ -28,7 +28,7 @@ Root doesn't need permission to use event taps,
 so during development, you can avoid this rigmarole by running Plover via:
 
 ```
-sudo python2 launch.py
+sudo ./launch.sh
 ```
 
 

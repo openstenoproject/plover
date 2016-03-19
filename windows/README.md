@@ -31,7 +31,7 @@ Most dependencies can be retrieved with pip:
 
 ### Running Plover in development
 
-To run from source, from the root of the Git repository, use `python launch.py`.
+To run from source, from the root of the Git repository, use `launch.bat`.
 
 ### Building
 

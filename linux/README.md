@@ -39,7 +39,7 @@ Note: if your version of pip is too old, you may get parsing errors on the lines
 
 ## Running from source
 
-To run from source, use: `./launch.py`.
+To run from source, use: `./launch.sh`.
 
 ## Installing and running
 
