@@ -130,6 +130,47 @@ class TagWeekly(setuptools.Command):
         subprocess.check_call('git tag -f'.split() + [weekly_version])
 
 
+class Test(setuptools.Command):
+
+    description = 'run unit tests after in-place build'
+    command_consumes_arguments = True
+    user_options = []
+
+    def initialize_options(self):
+        self.args = None
+
+    def finalize_options(self):
+        pass
+
+    def run(self):
+        # Make sure metadata are up-to-date first.
+        self.run_command('egg_info')
+        reload(pkg_resources)
+        test_dir = os.path.join(os.path.dirname(__file__), 'test')
+        # Remove __pycache__ directory so pytest does not freak out
+        # when switching between the Linux/Windows versions.
+        pycache = os.path.join(test_dir, '__pycache__')
+        if os.path.exists(pycache):
+            shutil.rmtree(pycache)
+        custom_testsuite = None
+        args = []
+        for a in self.args:
+            if '-' == a[0]:
+                args.append(a)
+            elif os.path.exists(a):
+                custom_testsuite = a
+                args.append(a)
+            else:
+                args.extend(('-k', a))
+        if custom_testsuite is None:
+            args.insert(0, test_dir)
+        sys.argv[1:] = args
+        main = pkg_resources.load_entry_point('pytest',
+                                              'console_scripts',
+                                              'py.test')
+        main()
+
+
 class BinaryDistApp(setuptools.Command):
 
     user_options = []
@@ -170,6 +211,7 @@ class BinaryDistApp(setuptools.Command):
 cmdclass = {
     'patch_version': PatchVersion,
     'tag_weekly': TagWeekly,
+    'test': Test,
 }
 setup_requires = []
 options = {}
@@ -198,10 +240,7 @@ if sys.platform.startswith('win32'):
     setup_requires.append('PyInstaller==3.1.1')
     cmdclass['bdist_win'] = BinaryDistWin
 
-setup_requires.extend(('pytest-runner', 'pytest'))
-options['aliases'] = {
-    'test': 'pytest --addopts -ra --addopts plover',
-}
+setup_requires.append('pytest')
 
 install_requires = [
     'setuptools',
