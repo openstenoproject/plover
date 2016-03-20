@@ -133,7 +133,7 @@ class AddTranslationDialog(wx.Dialog):
         translation = self.translation_text.GetValue().strip()
         if strokes and translation:
             d.set(strokes, translation)
-            d.save()
+            d.save(path_list=(d.dicts[0].get_path(),))
         self.Close()
 
     def on_close(self, event=None):
