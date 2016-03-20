@@ -35,6 +35,9 @@ from Xlib.protocol import rq, event
 from plover import log
 
 
+# Enable support for media keys.
+XK.load_keysym_group('xf86')
+
 RECORD_EXTENSION_NOT_FOUND = "Xlib's RECORD extension is required, \
 but could not be found."
 
@@ -1239,8 +1242,7 @@ class KeyboardEmulation(object):
         for c in combo_string:
             if c in (' ', '(', ')'):
                 keystring = ''.join(current_command)
-                keysym = XK.string_to_keysym(keystring)
-                mapping = self._get_mapping(keysym)
+                mapping = self._get_maping_from_keystring(keystring)
                 current_command = []
                 if mapping is None:
                     continue
@@ -1265,8 +1267,7 @@ class KeyboardEmulation(object):
         # Record final command key.
         if current_command:
             keystring = ''.join(current_command)
-            keysym = XK.string_to_keysym(keystring)
-            mapping = self._get_mapping(keysym)
+            mapping = self._get_maping_from_keystring(keystring)
             if mapping is not None:
                 keycode_events.append((mapping.keycode, X.KeyPress))
                 keycode_events.append((mapping.keycode, X.KeyRelease))
@@ -1336,6 +1337,16 @@ class KeyboardEmulation(object):
                                  same_screen=1
                                  )
         target_window.send_event(key_event)
+
+    def _get_maping_from_keystring(self, keystring):
+        keysym = XK.string_to_keysym(keystring)
+        if X.NoSymbol == keysym:
+            # Check with 'XF86_' prefix.
+            keysym = XK.string_to_keysym('XF86_%s' % keystring)
+            if X.NoSymbol == keysym:
+                log.warning('unsupported key name: %s', keystring)
+                return None
+        return self._get_mapping(keysym)
 
     def _get_mapping(self, keysym):
         """Return a keycode and modifier mask pair that result in the keysym.
