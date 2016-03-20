@@ -66,6 +66,10 @@ class DictionaryEditorStore():
         self.filtered_keys = self.all_keys[:]
         self.sorted_keys = self.filtered_keys[:]
 
+    def is_row_read_only(self, row):
+        item = self.sorted_keys[row]
+        return item.dictionary.save is None
+
     def GetNumberOfRows(self):
         return len(self.sorted_keys)
 

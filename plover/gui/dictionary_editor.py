@@ -91,12 +91,6 @@ class DictionaryEditor(wx.Dialog):
         self.grid.SetColSize(COL_TRANSLATION, 250)
         self.grid.SetColSize(COL_DICTIONARY, 150)
 
-        read_only_right_aligned = wx.grid.GridCellAttr()
-        read_only_right_aligned.SetReadOnly(True)
-        read_only_right_aligned.SetAlignment(wx.ALIGN_RIGHT, wx.ALIGN_CENTRE)
-        self.grid.SetColAttr(COL_DICTIONARY, read_only_right_aligned)
-        self.grid.SetColAttr(COL_SPACER, read_only_right_aligned)
-
         global_sizer.Add(self.grid, 1, wx.EXPAND)
 
         buttons_sizer = wx.BoxSizer(wx.HORIZONTAL)
@@ -301,6 +295,18 @@ class DictionaryEditorGridTable(PyGridTableBase):
 
     def SetValue(self, row, col, value):
         self.store.SetValue(row, col, value)
+
+    def GetAttr(self, row, col, params):
+        if col in (COL_DICTIONARY, COL_SPACER):
+            attr = wx.grid.GridCellAttr()
+            attr.SetReadOnly(True)
+            attr.SetAlignment(wx.ALIGN_RIGHT, wx.ALIGN_CENTRE)
+            return attr
+        if self.store.is_row_read_only(row):
+            attr = wx.grid.GridCellAttr()
+            attr.SetReadOnly(True)
+            return attr
+        return None
 
     def ResetView(self, grid):
 
