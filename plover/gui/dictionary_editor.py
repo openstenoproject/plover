@@ -358,4 +358,4 @@ def Show(parent, engine, config):
                                                 clear_instance)
     Show.dialog_instance.Show()
     Show.dialog_instance.Raise()
-    util.SetTopApp()
+    util.SetTopApp(Show.dialog_instance)
