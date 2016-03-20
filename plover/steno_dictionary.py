@@ -167,13 +167,19 @@ class StenoDictionaryCollection(object):
         if self.dicts:
             self.dicts[0][key] = value
 
-    def save(self):
-        if self.dicts:
-            self.dicts[0].save()
+    def save(self, path_list=None):
+        '''Save the dictionaries in <path_list>.
 
-    def save_all(self):
-        for dict in self.dicts:
-            dict.save()
+        If <path_list> is None, all writable dictionaries are saved'''
+        if path_list is None:
+            dict_list = [dictionary
+                         for dictionary in self.dicts
+                         if dictionary.save is not None]
+        else:
+            dict_list = [self.get_by_path(path)
+                         for path in path_list]
+        for dictionary in dict_list:
+            dictionary.save()
 
     def get_by_path(self, path):
         for d in self.dicts:
