@@ -54,12 +54,12 @@ class DictionaryEditorStore():
 
         self.pending_changes = False
 
-        for dict in reversed(self.engine.get_dictionary().dicts):
-            for dk, translation in dict.iteritems():
+        for dictionary in reversed(self.engine.get_dictionary().dicts):
+            for dk, translation in dictionary.iteritems():
                 joined = '/'.join(dk)
                 item = DictionaryItem(joined,
                                       translation,
-                                      dict.get_path(),
+                                      dictionary,
                                       item_id)
                 self.all_keys.append(item)
                 item_id += 1
@@ -78,7 +78,7 @@ class DictionaryEditorStore():
         elif col is COL_TRANSLATION:
             result = shorten_unicode(item.translation)
         elif col is COL_DICTIONARY:
-            result = item.dictionary
+            result = item.dictionary.get_path()
         return result
 
     def SetValue(self, row, col, value):
@@ -137,28 +137,17 @@ class DictionaryEditorStore():
         self.pending_changes = False
 
         # Creates
-        for added_item in self.added_items:
-            dict = (self.engine
-                        .get_dictionary()
-                        .get_by_path(added_item.dictionary))
-            dict.__setitem__(normalize_steno(added_item.stroke),
-                             added_item.translation)
+        for item in self.added_items:
+            item.dictionary[normalize_steno(item.stroke)] = item.translation
 
         # Updates
-        for modified_item_id in self.modified_items:
-            modified_item = self.all_keys[modified_item_id]
-            dict = (self.engine
-                        .get_dictionary()
-                        .get_by_path(modified_item.dictionary))
-            dict.__setitem__(normalize_steno(modified_item.stroke),
-                             modified_item.translation)
+        for item_id in self.modified_items:
+            item = self.all_keys[item_id]
+            item.dictionary[normalize_steno(item.stroke)] = item.translation
 
         # Deletes
-        for deleted_item in self.deleted_items:
-            dict = (self.engine
-                        .get_dictionary()
-                        .get_by_path(deleted_item.dictionary))
-            dict.__delitem__(normalize_steno(deleted_item.stroke))
+        for item in self.deleted_items:
+            del item.dictionary[normalize_steno(item.stroke)]
 
         self.engine.get_dictionary().save_all()
 
