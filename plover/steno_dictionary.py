@@ -51,15 +51,14 @@ class StenoDictionary(collections.MutableMapping):
 
     def __setitem__(self, key, value):
         self._longest_key = max(self._longest_key, len(key))
-        self._dict.__setitem__(key, value)
+        self._dict[key] = value
         self.reverse[value].append(key)
         # Case-insensitive reverse dict
         self.casereverse[value.lower()].add(value)
 
     def __delitem__(self, key):
-        value = self._dict[key]
+        value = self._dict.pop(key)
         self.reverse[value].remove(key)
-        self._dict.__delitem__(key)
         if len(key) == self.longest_key:
             if self._dict:
                 self._longest_key = max(len(x) for x in self._dict.iterkeys())
@@ -67,10 +66,9 @@ class StenoDictionary(collections.MutableMapping):
                 self._longest_key = 0
 
     def __contains__(self, key):
-        contained = self._dict.__contains__(key)
-        if not contained:
+        value = self._dict.get(key)
+        if value is None:
             return False
-        value = self._dict[key]
         for f in self.filters:
             if f(key, value):
                 return False
@@ -138,7 +136,7 @@ class StenoDictionaryCollection(object):
 
     def lookup(self, key):
         for d in self.dicts:
-            value = d.get(key, None)
+            value = d.get(key)
             if value:
                 for f in self.filters:
                     if f(key, value):
@@ -147,19 +145,19 @@ class StenoDictionaryCollection(object):
 
     def raw_lookup(self, key):
         for d in self.dicts:
-            value = d.get(key, None)
+            value = d.get(key)
             if value:
                 return value
 
     def reverse_lookup(self, value):
         for d in self.dicts:
-            key = d.reverse.get(value, None)
+            key = d.reverse.get(value)
             if key:
                 return key
 
     def casereverse_lookup(self, value):
         for d in self.dicts:
-            key = d.casereverse.get(value, None)
+            key = d.casereverse.get(value)
             if key:
                 return key
 
