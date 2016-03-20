@@ -136,20 +136,26 @@ class DictionaryEditorStore():
     def SaveChanges(self):
         self.pending_changes = False
 
+        # Set of dictionaries (paths) that needs saving.
+        needs_saving = set()
+
         # Creates
         for item in self.added_items:
             item.dictionary[normalize_steno(item.stroke)] = item.translation
+            needs_saving.add(item.dictionary.get_path())
 
         # Updates
         for item_id in self.modified_items:
             item = self.all_keys[item_id]
             item.dictionary[normalize_steno(item.stroke)] = item.translation
+            needs_saving.add(item.dictionary.get_path())
 
         # Deletes
         for item in self.deleted_items:
             del item.dictionary[normalize_steno(item.stroke)]
+            needs_saving.add(item.dictionary.get_path())
 
-        self.engine.get_dictionary().save_all()
+        self.engine.get_dictionary().save(needs_saving)
 
     def Sort(self, column):
         if column is not COL_STROKE and column is not COL_TRANSLATION:
