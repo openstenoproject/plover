@@ -162,9 +162,9 @@ class WindowsKeyboardLayout:
     # No letters yet, those are customized per-layout.
     keyname_to_keycode = collections.defaultdict(list, {
         # Adding media controls for windows
-        'Vol_Mute': [0xAD], 'Vol_Down': [0xAE], 'Vol_Up': [0xAF],
-        'Media_Next': [0xB0], 'Media_Prev': [0xB1], 'Media_Stop': [0xB2],
-        'Media_Play_Pause': [0xB3], 'Sleep': [0x5F],
+        'AudioMute': [0xAD], 'AudioLowerVolume': [0xAE], 'AudioRaiseVolume': [0xAF],
+        'AudioNext': [0xB0], 'AudioPrev': [0xB1], 'AudioStop': [0xB2],
+        'AudioPlay': [0xB3], 'Sleep': [0x5F],
 
         'Alt_L': [0xA4], 'Alt_R': [0xA5], 'Control_L': [0xA2], 'Control_R': [0xA3],
         'Hyper_L': [], 'Hyper_R': [], 'Meta_L': [], 'Meta_R': [],
