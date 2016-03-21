@@ -102,12 +102,15 @@ class AddTranslationDialog(wx.Dialog):
         
         # TODO: add functions on engine for state
         self.previous_state = self.engine.translator.get_state()
+        self.previous_start_attached = self.engine.formatter.start_attached
+        self.previous_start_capitalized = self.engine.formatter.start_capitalized
         # TODO: use state constructor?
         self.engine.translator.clear_state()
         self.strokes_state = self.engine.translator.get_state()
         self.engine.translator.clear_state()
         self.translation_state = self.engine.translator.get_state()
-        self.engine.translator.set_state(self.previous_state)
+
+        self._restore_engine_state()
         
         self.last_window = util.GetForegroundWindow()
         
@@ -118,6 +121,11 @@ class AddTranslationDialog(wx.Dialog):
             instance.Close()
         del self.other_instances[:]
         self.other_instances.append(self)
+
+    def _restore_engine_state(self):
+        self.engine.translator.set_state(self.previous_state)
+        self.engine.set_starting_stroke_state(self.previous_start_capitalized,
+                                              self.previous_start_attached)
     
     def on_add_translation(self, event=None):
         d = self.engine.get_dictionary()
@@ -129,7 +137,7 @@ class AddTranslationDialog(wx.Dialog):
         self.Close()
 
     def on_close(self, event=None):
-        self.engine.translator.set_state(self.previous_state)
+        self._restore_engine_state()
         self.other_instances.remove(self)
         self.Destroy()
         self.Update()
@@ -179,15 +187,16 @@ class AddTranslationDialog(wx.Dialog):
         
     def on_strokes_lost_focus(self, event):
         self.engine.get_dictionary().remove_filter(self.stroke_dict_filter)
-        self.engine.translator.set_state(self.previous_state)
+        self._restore_engine_state()
         event.Skip()
 
     def on_translation_gained_focus(self, event):
         self.engine.translator.set_state(self.translation_state)
+        self.engine.set_starting_stroke_state(attach=True)
         event.Skip()
-        
+
     def on_translation_lost_focus(self, event):
-        self.engine.translator.set_state(self.previous_state)
+        self._restore_engine_state()
         event.Skip()
 
     def on_button_gained_focus(self, event):
