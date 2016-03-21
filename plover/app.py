@@ -183,7 +183,7 @@ class StenoEngine(object):
             is_running = self.is_running
         else:
             is_running = False
-        self.set_is_running(self.is_running)
+        self.set_is_running(is_running)
 
     def set_dictionaries(self, file_names):
         dictionary = self.translator.get_dictionary()
