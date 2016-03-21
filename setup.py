@@ -4,10 +4,12 @@
 
 import os
 import re
+import shutil
 import subprocess
 import sys
 
 from distutils import log
+import pkg_resources
 import setuptools
 
 from plover import (
@@ -21,6 +23,11 @@ from plover import (
     __copyright__,
 )
 
+from utils.metadata import copy_metadata
+
+
+package_name = __software_name__.capitalize()
+
 
 def get_version():
     if not os.path.exists('.git'):
@@ -32,6 +39,50 @@ def get_version():
     if m.group(2) is not None:
         version += '+' + m.group(2)[1:].replace('-', '.')
     return version
+
+
+def pyinstaller(*args):
+    py_args = [
+        '--log-level=INFO',
+        '--specpath=build',
+        '--additional-hooks-dir=windows',
+        '--paths=.',
+        '--name=%s-%s' % (
+            __software_name__.capitalize(),
+            __version__,
+        ),
+        '--noconfirm',
+        '--windowed',
+        '--onefile'
+    ]
+    py_args.extend(args)
+    py_args.append('plover/main.py')
+    main = pkg_resources.load_entry_point('PyInstaller', 'console_scripts', 'pyinstaller')
+    main(py_args)
+
+
+class PyInstallerDist(setuptools.Command):
+
+    user_options = []
+    extra_args = []
+
+    def initialize_options(self):
+        pass
+
+    def finalize_options(self):
+        pass
+
+    def run(self):
+        # Make sure metadata are up-to-date first.
+        self.run_command("egg_info")
+        pyinstaller(*self.extra_args)
+
+
+class BinaryDistWin(PyInstallerDist):
+    description = 'create an executabe for MS Windows'
+    extra_args = [
+        '--icon=plover/assets/plover.ico',
+    ]
 
 
 class PatchVersion(setuptools.Command):
@@ -79,6 +130,45 @@ class TagWeekly(setuptools.Command):
         subprocess.check_call('git tag -f'.split() + [weekly_version])
 
 
+class BinaryDistApp(setuptools.Command):
+
+    user_options = []
+    extra_args = []
+
+    def initialize_options(self):
+        pass
+
+    def finalize_options(self):
+        pass
+
+    def run(self):
+        self.run_command('py2app')
+        app = 'dist/%s-%s.app' % (package_name, __version__)
+        libdir = '%s/Contents/Resources/lib/python2.7' % app
+        sitezip = '%s/site-packages.zip' % libdir
+        # Add version to filename and strip other architectures.
+        # (using py2app --arch is not enough).
+        tmp_app = 'dist/%s.app' % package_name
+        cmd = 'ditto --arch x86_64 %s %s' % (tmp_app, app)
+        log.info('running %s', cmd)
+        subprocess.check_call(cmd.split())
+        shutil.rmtree(tmp_app)
+        # We can't access package resources from the site zip,
+        # so extract module and package data to the lib directory.
+        cmd = 'unzip -d %s %s plover/*' % (libdir, sitezip)
+        log.info('running %s', cmd)
+        subprocess.check_call(cmd.split())
+        cmd = 'zip -d %s plover/*' % sitezip
+        log.info('running %s', cmd)
+        subprocess.check_call(cmd.split())
+        # Add packages metadata.
+        copy_metadata('.', libdir)
+
+
+cmdclass = {
+    'patch_version': PatchVersion,
+    'tag_weekly': TagWeekly,
+}
 setup_requires = []
 options = {}
 kwargs = {}
@@ -86,11 +176,11 @@ kwargs = {}
 if sys.platform.startswith('darwin'):
     setup_requires.append('py2app')
     options['py2app'] = {
+        'arch': 'x86_64',
         'argv_emulation': False,
         'iconfile': 'osx/plover.icns',
-        'resources': 'plover/assets/',
         'plist': {
-            'CFBundleName': __software_name__.capitalize(),
+            'CFBundleName': package_name,
             'CFBundleShortVersionString': __version__,
             'CFBundleVersion': __version__,
             'CFBundleIdentifier': 'org.openstenoproject.plover',
@@ -100,9 +190,11 @@ if sys.platform.startswith('darwin'):
         }
     # Py2app will not look at entry_points.
     kwargs['app'] = 'launch.py',
+    cmdclass['bdist_app'] = BinaryDistApp
 
 if sys.platform.startswith('win32'):
     setup_requires.append('PyInstaller==3.1.1')
+    cmdclass['bdist_win'] = BinaryDistWin
 
 setup_requires.extend(('pytest-runner', 'pytest'))
 options['aliases'] = {
@@ -160,7 +252,7 @@ if __name__ == '__main__':
         sys.exit(0)
 
     setuptools.setup(
-        name=__software_name__.capitalize(),
+        name=package_name,
         version=__version__,
         description=__description__,
         long_description=__long_description__,
@@ -173,10 +265,7 @@ if __name__ == '__main__':
         maintainer_email='morinted@gmail.com',
         zip_safe=True,
         options=options,
-        cmdclass={
-            'patch_version': PatchVersion,
-            'tag_weekly': TagWeekly,
-        },
+        cmdclass=cmdclass,
         setup_requires=setup_requires,
         install_requires=install_requires,
         extras_require=extras_require,
