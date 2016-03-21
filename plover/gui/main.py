@@ -202,8 +202,7 @@ class MainFrame(wx.Frame):
 
         self.Bind(wx.EVT_CLOSE, self._quit)
         self.Bind(wx.EVT_MOVE, self.on_move)
-        self.reconnect_button.Bind(wx.EVT_BUTTON,
-            lambda e: app.reset_machine(self.steno_engine, self.config))
+        self.reconnect_button.Bind(wx.EVT_BUTTON, lambda e: self._reconnect())
 
         try:
             with open(config.target_file, 'rb') as f:
@@ -236,6 +235,12 @@ class MainFrame(wx.Frame):
         except Exception:
             log.error('engine initialization failed', exc_info=True)
             self._show_config_dialog()
+
+    def _reconnect(self):
+        try:
+            app.reset_machine(self.steno_engine, self.config)
+        except Exception:
+            log.error('machine reset failed', exc_info=True)
 
     def consume_command(self, command):
         # The first commands can be used whether plover has output enabled or not.
