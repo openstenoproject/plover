@@ -68,16 +68,16 @@ def parselayout(buf, ktype):
     #print(modmapping)
 
     # Sequences
-    if not seqoff:
-        sequences = []
-    else:
+    sequences = []
+    if seqoff:
         sf, scount = struct.unpack_from('HH', buf, seqoff)
         seqtableoff = seqoff + struct.calcsize('HH')
-        lastsoff = -1
+        lastoff = -1
         for soff in struct.unpack_from('H'*scount, buf, seqtableoff):
-            if lastsoff >= 0:
+            if lastoff >= 0:
                 sequences.append(buf[seqoff+lastoff:seqoff+soff].decode('utf-16'))
-            lastsoff = soff
+            lastoff = soff
+
     def lookupseq(key):
         if key >= 0xFFFE:
             return None
