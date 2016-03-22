@@ -32,6 +32,8 @@ from Quartz import (
     kCGKeyboardEventKeycode,
     kCGSessionEventTap,
     kCGEventSourceStateHIDSystemState,
+    NSEvent,
+    NSSystemDefined,
 )
 import Foundation
 import threading
@@ -42,13 +44,16 @@ from plover.oslayer import mac_keycode
 
 BACK_SPACE = 51
 
+NX_KEY_OFFSET = 65536
+
 KEYNAME_TO_KEYCODE = collections.defaultdict(list, {
+    'Fn': [63],
 
     'Alt_L': [58], 'Alt_R': [61], 'Control_L': [59], 'Control_R': [62],
     'Hyper_L': [], 'Hyper_R': [], 'Meta_L': [], 'Meta_R': [],
     'Shift_L': [56], 'Shift_R': [60], 'Super_L': [55], 'Super_R': [55],
 
-    'Caps_Lock': [57], 'Num_Lock': [], 'Scroll_Lock': [], 'Shift_Lock': [],
+    'Caps_Lock': [57], 'Scroll_Lock': [], 'Shift_Lock': [],
 
     'Return': [36], 'Tab': [48], 'BackSpace': [BACK_SPACE], 'Delete': [117],
     'Escape': [53], 'Break': [], 'Insert': [], 'Pause': [], 'Print': [],
@@ -139,6 +144,23 @@ LITERALS = collections.defaultdict(str, {
     '?': 'question', '\t': 'Tab', ' ': 'space'
 })
 
+NX_KEYS = {
+    "AudioRaiseVolume": 0,
+    "AudioLowerVolume": 1,
+    "MonBrightnessUp": 2,
+    "MonBrightnessDown": 3,
+    "AudioMute": 7,
+    "Num_Lock": 10,
+    "Eject": 14,
+    "AudioPause": 16,
+    "AudioPlay": 16,
+    "AudioNext": 17,
+    "AudioPrev": 18,
+    "AudioRewind": 20,
+    "KbdBrightnessUp": 21,
+    "KbdBrightnessDown": 22
+}
+
 # Maps from keycodes to corresponding event masks.
 MODIFIER_KEYS_TO_MASKS = {
     58: kCGEventFlagMaskAlternate,
@@ -147,7 +169,8 @@ MODIFIER_KEYS_TO_MASKS = {
     62: kCGEventFlagMaskControl,
     56: kCGEventFlagMaskShift,
     60: kCGEventFlagMaskShift,
-    55: kCGEventFlagMaskCommand
+    55: kCGEventFlagMaskCommand,
+    63: kCGEventFlagMaskSecondaryFn,
 }
 
 OUTPUT_SOURCE = CGEventSourceCreate(kCGEventSourceStateHIDSystemState)
@@ -344,7 +367,9 @@ class KeyboardEmulation(object):
         # that, if executed in order, would emulate the key combination
         # represented by the argument.
         def _keystring_to_sequence(keystring):
-            if keystring in KEYNAME_TO_KEYCODE:
+            if keystring in NX_KEYS:
+                seq = [NX_KEYS[keystring] + NX_KEY_OFFSET]
+            elif keystring in KEYNAME_TO_KEYCODE:
                 seq = KEYNAME_TO_KEYCODE[keystring]
             else:
                 # Convert potential key name to Unicode character
@@ -417,8 +442,21 @@ class KeyboardEmulation(object):
         kCGEventFlagMaskAlternate |
         kCGEventFlagMaskControl |
         kCGEventFlagMaskShift |
-        kCGEventFlagMaskCommand
+        kCGEventFlagMaskCommand |
+        kCGEventFlagMaskSecondaryFn
     )
+
+    @staticmethod
+    def _get_media_event(key_id, key_down):
+        # Credit: https://gist.github.com/fredrikw/4078034
+        flags = 0xa00 if key_down else 0xb00
+        return NSEvent.otherEventWithType_location_modifierFlags_timestamp_windowNumber_context_subtype_data1_data2_(
+            NSSystemDefined, (0, 0),
+            flags,
+            0, 0, 0, 8,
+            (key_id << 16) | flags,
+            -1
+        ).CGEvent()
 
     @staticmethod
     def _send_sequence(sequence):
@@ -431,24 +469,28 @@ class KeyboardEmulation(object):
         mods_flags = 0
 
         for keycode, key_down in sequence:
-            if not key_down and keycode in MODIFIER_KEYS_TO_MASKS:
-                mods_flags &= ~MODIFIER_KEYS_TO_MASKS[keycode]
+            if keycode >= NX_KEY_OFFSET:
+                # Handle media (NX) key.
+                event = KeyboardEmulation._get_media_event(keycode - NX_KEY_OFFSET, key_down)
+            else:
+                # Handle regular keycode.
+                if not key_down and keycode in MODIFIER_KEYS_TO_MASKS:
+                    mods_flags &= ~MODIFIER_KEYS_TO_MASKS[keycode]
 
-            event = CGEventCreateKeyboardEvent(OUTPUT_SOURCE, keycode, key_down)
+                event = CGEventCreateKeyboardEvent(OUTPUT_SOURCE, keycode, key_down)
 
-            if key_down and keycode not in MODIFIER_KEYS_TO_MASKS:
-                event_flags = CGEventGetFlags(event)
-                # Add wanted flags, remove unwanted flags.
-                goal_flags = (event_flags & ~KeyboardEmulation.MODS_MASK) | mods_flags
-                if event_flags != goal_flags:
-                    CGEventSetFlags(event, goal_flags)
+                if key_down and keycode not in MODIFIER_KEYS_TO_MASKS:
+                    event_flags = CGEventGetFlags(event)
+                    # Add wanted flags, remove unwanted flags.
+                    goal_flags = (event_flags & ~KeyboardEmulation.MODS_MASK) | mods_flags
+                    if event_flags != goal_flags:
+                        CGEventSetFlags(event, goal_flags)
 
-                # Half millisecond pause after keydown
-                deadline = time() + 0.0005
-                while time() < deadline:
-                    pass
+                    # Half millisecond pause after key down.
+                    deadline = time() + 0.0005
+                    while time() < deadline:
+                        pass
+                if key_down and keycode in MODIFIER_KEYS_TO_MASKS:
+                    mods_flags |= MODIFIER_KEYS_TO_MASKS[keycode]
 
             CGEventPost(kCGSessionEventTap, event)
-
-            if key_down and keycode in MODIFIER_KEYS_TO_MASKS:
-                mods_flags |= MODIFIER_KEYS_TO_MASKS[keycode]
