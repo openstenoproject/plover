@@ -8,7 +8,7 @@ from plover.dictionary_editor_store import COL_STROKE
 from plover.dictionary_editor_store import COL_TRANSLATION
 from plover.dictionary_editor_store import COL_DICTIONARY
 from plover.dictionary_editor_store import COL_SPACER
-from wx.grid import EVT_GRID_LABEL_LEFT_CLICK
+from wx.grid import EVT_GRID_LABEL_LEFT_CLICK, EVT_GRID_SELECT_CELL, EVT_GRID_RANGE_SELECT
 from wx.grid import PyGridTableBase
 
 TITLE = 'Plover: Dictionary Editor'
@@ -90,12 +90,6 @@ class DictionaryEditor(wx.Dialog):
         self.grid.SetColSize(COL_STROKE, 250)
         self.grid.SetColSize(COL_TRANSLATION, 250)
         self.grid.SetColSize(COL_DICTIONARY, 150)
-
-        read_only_right_aligned = wx.grid.GridCellAttr()
-        read_only_right_aligned.SetReadOnly(True)
-        read_only_right_aligned.SetAlignment(wx.ALIGN_RIGHT, wx.ALIGN_CENTRE)
-        self.grid.SetColAttr(COL_DICTIONARY, read_only_right_aligned)
-        self.grid.SetColAttr(COL_SPACER, read_only_right_aligned)
 
         global_sizer.Add(self.grid, 1, wx.EXPAND)
 
@@ -204,11 +198,18 @@ class DictionaryEditorGrid(wx.grid.Grid):
 
         self._changedRow = None
 
+        # We need to keep track of the selection ourselves...
+        self.Bind(EVT_GRID_SELECT_CELL, self._on_select_cell)
+        self.Bind(EVT_GRID_RANGE_SELECT, self._on_select_range)
+        self.selection = set()
+
     def CreateGrid(self, store, rows, cols):
         """ Create the grid """
 
         wx.grid.Grid.CreateGrid(self, rows, cols)
         wx.grid.Grid.DisableDragRowSize(self)
+        # TODO: enable this when wx is fixed...
+        # self.SetSelectionMode(wx.grid.Grid.wxGridSelectRows)
 
         self.store = store
 
@@ -225,14 +226,28 @@ class DictionaryEditorGrid(wx.grid.Grid):
         self._table.ResetView(self)
 
     def InsertNew(self):
-        selected_row = self.GetGridCursorRow()
-        self.store.InsertNew(selected_row)
-        self._table.ResetView(self)
+        for row in self.selection:
+            if not self.store.is_row_read_only(row):
+                self.store.InsertNew(row)
+                self._table.ResetView(self)
+                self.SetFocus()
+                self.ClearSelection()
+                self.SelectRow(row)
+                self.SetGridCursor(row, 0)
+                self.MakeCellVisible(row, 0)
+                break
+        else:
+            self.ClearSelection()
 
     def DeleteSelected(self):
-        selected_row = self.GetGridCursorRow()
-        self.store.DeleteSelected(selected_row)
-        self._table.ResetView(self)
+        delete_selection = [row for row in self.selection
+                            if not self.store.is_row_read_only(row)]
+        if delete_selection:
+            # Delete in reverse order, so row numbers are stable.
+            for row in sorted(delete_selection, reverse=True):
+                self.store.DeleteSelected(row)
+            self._table.ResetView(self)
+        self.ClearSelection()
 
     def _onLabelClick(self, evt):
         """ Handle Grid label click"""
@@ -260,6 +275,17 @@ class DictionaryEditorGrid(wx.grid.Grid):
             label = (self.grid_labels[i] +
                      (directionLabel if column == i else ""))
             self._table.SetColLabelValue(i, label)
+
+    def _on_select_cell(self, evt):
+        row = evt.GetRow()
+        self.selection = set((row,))
+
+    def _on_select_range(self, evt):
+        select_range = set(range(evt.GetTopRow(), evt.GetBottomRow() + 1))
+        if evt.Selecting():
+            self.selection |= select_range
+        else:
+            self.selection -= select_range
 
 
 class DictionaryEditorGridTable(PyGridTableBase):
@@ -301,6 +327,18 @@ class DictionaryEditorGridTable(PyGridTableBase):
 
     def SetValue(self, row, col, value):
         self.store.SetValue(row, col, value)
+
+    def GetAttr(self, row, col, params):
+        if col in (COL_DICTIONARY, COL_SPACER):
+            attr = wx.grid.GridCellAttr()
+            attr.SetReadOnly(True)
+            attr.SetAlignment(wx.ALIGN_RIGHT, wx.ALIGN_CENTRE)
+            return attr
+        if self.store.is_row_read_only(row):
+            attr = wx.grid.GridCellAttr()
+            attr.SetReadOnly(True)
+            return attr
+        return None
 
     def ResetView(self, grid):
 
@@ -358,4 +396,4 @@ def Show(parent, engine, config):
                                                 clear_instance)
     Show.dialog_instance.Show()
     Show.dialog_instance.Raise()
-    util.SetTopApp()
+    util.SetTopApp(Show.dialog_instance)
