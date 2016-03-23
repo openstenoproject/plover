@@ -6,7 +6,7 @@ topdir = ..
 builddir = $(topdir)/build
 distdir = $(topdir)/dist
 
-VER := $(shell cd $(topdir) && python setup.py --version)
+VER := $(shell cd $(topdir) && $(PYTHON) setup.py --version)
 TMP_APP := $(distdir)/Plover.app
 APP := $(distdir)/Plover-$(VER).app
 DMG := $(distdir)/Plover-$(VER).dmg
