@@ -24,7 +24,7 @@ class StenotypeBase(object):
     """The base class for all Stenotype classes."""
 
     # Layout of physical keys.
-    KEYS_LAYOUT = ()
+    KEYS_LAYOUT = ''
     # And possible actions to map to.
     ACTIONS = (
         tuple(sorted(system.KEY_ORDER.keys(),
