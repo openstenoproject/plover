@@ -363,13 +363,13 @@ class Output(object):
         self.engine = engine
 
     def send_backspaces(self, b):
-        self.keyboard_control.send_backspaces(b)
+        wx.CallAfter(self.keyboard_control.send_backspaces, b)
 
     def send_string(self, t):
-        self.keyboard_control.send_string(t)
+        wx.CallAfter(self.keyboard_control.send_string, t)
 
     def send_key_combination(self, c):
-        self.keyboard_control.send_key_combination(c)
+        wx.CallAfter(self.keyboard_control.send_key_combination, c)
 
     # TODO: test all the commands now
     def send_engine_command(self, c):
