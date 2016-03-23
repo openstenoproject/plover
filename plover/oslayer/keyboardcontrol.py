@@ -59,23 +59,23 @@ if __name__ == '__main__':
     ke = KeyboardEmulation()
 
     pressed = set()
-    status = 'pressed: '
+    status = u'pressed: '
 
     def test(key, action):
         global pressed, status
         print key, action
-        if 'pressed' == action:
+        if u'pressed' == action:
             pressed.add(key)
         elif key in pressed:
             pressed.remove(key)
-        new_status = 'pressed: ' + '+'.join(pressed)
+        new_status = u'pressed: ' + u'+'.join(pressed)
         if status != new_status:
             ke.send_backspaces(len(status))
             ke.send_string(new_status)
             status = new_status
 
-    kc.key_down = lambda k: test(k, 'pressed')
-    kc.key_up = lambda k: test(k, 'released')
+    kc.key_down = lambda k: test(k, u'pressed')
+    kc.key_up = lambda k: test(k, u'released')
     kc.suppress_keyboard(KeyboardCapture.SUPPORTED_KEYS)
     kc.start()
     print 'Press CTRL-c to quit.'
