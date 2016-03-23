@@ -142,6 +142,8 @@ class BinaryDistApp(setuptools.Command):
         pass
 
     def run(self):
+        # Make sure metadata are up-to-date first.
+        self.run_command('egg_info')
         self.run_command('py2app')
         app = 'dist/%s-%s.app' % (package_name, __version__)
         libdir = '%s/Contents/Resources/lib/python2.7' % app
