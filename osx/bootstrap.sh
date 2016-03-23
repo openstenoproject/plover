@@ -9,7 +9,8 @@ EX_FAILURE_NO_CCTOOLS=1
 EX_FAILURE_NO_PYTHON=2
 EX_FAILURE_NO_WXPYTHON=3
 
-PYTHON=${PYTHON:=$(which python)}
+TOPDIR="$(dirname "$(readlink -e "$0")")"
+PYTHON=${PYTHON:=$(which python2)}
 PIP=${PIP:=$(which pip)}
 
 REAL_PYTHON=$("$PYTHON" -c 'import sys; print sys.executable')
@@ -91,7 +92,8 @@ EOT
 
 
     echo "$0: installing required libraries using pip"
-    pip install -r requirements.txt
+    "$TOPDIR/setup.py" write_requirements &&
+    "$PIP" install -r "$TOPDIR/requirements.txt"
 }
 
 main

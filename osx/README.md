@@ -28,7 +28,7 @@ Root doesn't need permission to use event taps,
 so during development, you can avoid this rigmarole by running Plover via:
 
 ```
-sudo python launch.py
+sudo python2 launch.py
 ```
 
 
@@ -37,8 +37,8 @@ The bootstrap script takes care of these for you, but in case you're curious:
 
 - Python2.7: `brew install python --framework`
 - wxPython: `brew install wxpython`
-- Various Python libraries, for which see
-  [requirements.txt](./requirements.txt).
+- other dependencies: you can create a pip compatible requirements file with:
+`./setup.py write_requirements`
 
 
 ### Xcode Tools
