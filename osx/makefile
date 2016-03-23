@@ -1,6 +1,6 @@
 # Set PYTHON to the version to be deployed. This may or may not be the default
 # installation.
-PYTHON ?= python
+PYTHON ?= python2
 
 topdir = ..
 builddir = $(topdir)/build
