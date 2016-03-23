@@ -1,6 +1,7 @@
 
 from plover.oslayer.config import CONFIG_DIR, ASSETS_DIR
 
+from io import open
 import os
 import re
 
@@ -14,7 +15,7 @@ def _load_wordlist(filename):
         if os.path.exists(path):
             break
     words = {}
-    with open(path) as f:
+    with open(path, encoding='utf-8') as f:
         pairs = [word.strip().rsplit(' ', 1) for word in f]
         pairs.sort(reverse=True, key=lambda x: int(x[1]))
         words = {p[0].lower(): int(p[1]) for p in pairs}
