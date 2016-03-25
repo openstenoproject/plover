@@ -85,6 +85,27 @@ class BinaryDistWin(PyInstallerDist):
     ]
 
 
+class Launch(setuptools.Command):
+
+    description = 'run %s from source' % __software_name__.capitalize()
+    command_consumes_arguments = True
+    user_options = []
+
+    def initialize_options(self):
+        self.args = None
+
+    def finalize_options(self):
+        pass
+
+    def run(self):
+        # Make sure metadata are up-to-date first.
+        self.run_command('egg_info')
+        reload(pkg_resources)
+        from plover.main import main
+        sys.argv = [' '.join(sys.argv[0:2]) + ' --'] + self.args
+        main()
+
+
 class PatchVersion(setuptools.Command):
 
     description = 'patch package version from VCS'
@@ -209,6 +230,7 @@ class BinaryDistApp(setuptools.Command):
 
 
 cmdclass = {
+    'launch': Launch,
     'patch_version': PatchVersion,
     'tag_weekly': TagWeekly,
     'test': Test,
@@ -233,7 +255,7 @@ if sys.platform.startswith('darwin'):
             }
         }
     # Py2app will not look at entry_points.
-    kwargs['app'] = 'launch.py',
+    kwargs['app'] = 'plover/main.py',
     cmdclass['bdist_app'] = BinaryDistApp
 
 if sys.platform.startswith('win32'):
