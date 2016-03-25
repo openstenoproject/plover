@@ -53,9 +53,6 @@ def update_engine(engine, config, reset_machine=False):
     Using the before and after allows this function to not make unnecessary 
     changes.
     """
-    if reset_machine:
-        engine.set_machine(None)
-
     machine_type = config.get_machine_type()
     try:
         machine_class = machine_registry.get(machine_type)
@@ -63,7 +60,8 @@ def update_engine(engine, config, reset_machine=False):
         raise InvalidConfigurationError(unicode(e))
     machine_options = config.get_machine_specific_options(machine_type)
     machine_mappings = config.get_system_keymap(machine_type)
-    engine.set_machine(machine_class, machine_options, machine_mappings)
+    engine.set_machine(machine_class, machine_options, machine_mappings,
+                       reset_machine=reset_machine)
 
     dictionary_file_names = config.get_dictionary_file_names()
     engine.set_dictionaries(dictionary_file_names)
@@ -154,8 +152,10 @@ class StenoEngine(object):
 
     def set_machine(self, machine_class,
                     machine_options=None,
-                    machine_mappings=None):
-        if (self.machine_class == machine_class and
+                    machine_mappings=None,
+                    reset_machine=False):
+        if (not reset_machine and
+            self.machine_class == machine_class and
             self.machine_options == machine_options and
             self.machine_mappings == machine_mappings):
             return
