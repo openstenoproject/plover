@@ -19,7 +19,7 @@ All dependencies can be installed with pacman:
 
 Most dependencies can be installed with APT:
 
-`sudo apt-get install python-appdirs python-mock python-pytest python-serial python-setuptools python-wxgtk3.0 python-xlib`
+`sudo apt-get install cython libusb-1.0-0-dev python-appdirs python-mock python-pip python-pytest python-serial python-setuptools python-wxgtk3.0 python-xlib`
 
 Note: `python-wxgtk3.0` is only available starting with Ubuntu 15.10 (Wily Werewolf). It can be installed on older versions, like Ubuntu 14.04 LTS (Trusty Tahr), by using the following PPA: `ppa:adamwolf/kicad-trusty-backports`.
 
@@ -35,7 +35,9 @@ And then using pip, e.g. for a user install:
 
 `pip2 install --user -r requirements.txt`
 
-Note: if your version of pip is too old, you may get parsing errors on the lines with conditional directives (like `python-xlib>=0.14; "linux" in sys_platform`). You can fix those with the following sed command: `sed -i '/; "/{/; "linux" in sys_platform$/!d;s/; .*//}' requirements.txt`.
+Notes:
+- if your version of pip is too old, you may get parsing errors on the lines with conditional directives (like `python-xlib>=0.14; "linux" in sys_platform`). You can fix those with the following sed command: `sed -i '/; "/{/; "linux" in sys_platform$/!d;s/; .*//}' requirements.txt`.
+- on Ubuntu 14.04 LTS (Trusty Tahr), the site imports are borked, and the user site-packages directory does not get priority over the standard distribution directories, so you may need to manually add it to your Python path: `export PYTHONPATH="$HOME/.local/lib/python2.7/site-packages/${PYTHONPATH:+:}${PYTHONPATH}"`.
 
 ## Running from source
 
