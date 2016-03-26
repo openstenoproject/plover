@@ -28,6 +28,8 @@ Plover version ???.
 (Click the "About…" button in the main Plover window to see the version
 number.)
 
+If the problem is known to be present in more than one version, please list all of those.
+
 Installed via: (download from openstenoproject.org, Homebrew, apt-get, …).
 
 ## Notes
