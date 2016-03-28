@@ -16,11 +16,14 @@ emulate keyboard input.
 import collections
 import ctypes
 import functools
+import multiprocessing
 import threading
 import types
+
 import win32api
+import win32con
 import win32gui
-import pyHook
+
 
 SendInput = ctypes.windll.user32.SendInput
 MapVirtualKey = ctypes.windll.user32.MapVirtualKeyW
@@ -37,59 +40,6 @@ KEYEVENTF_UNICODE = 0x0004
 INPUT_MOUSE = 0
 INPUT_KEYBOARD = 1
 
-# Global state used by KeyboardCapture to support multiple instances.
-
-class HookManager(object):
-
-    def __init__(self):
-        self._lock = threading.Lock()
-        self._hm = pyHook.HookManager()
-        self._key_down_callbacks = []
-        self._key_up_callbacks = []
-        self._nb_callbacks = 0
-
-        def _on_key_event(callback_list, event):
-            if event.Injected:
-                return True
-            with self._lock:
-                callback_list = list(callback_list)
-            allow = True
-            for callback in callback_list:
-                allow = callback(event) and allow
-            return allow
-
-        self._hm.KeyUp = functools.partial(_on_key_event, self._key_up_callbacks)
-        self._hm.KeyDown = functools.partial(_on_key_event, self._key_down_callbacks)
-
-        def _set_key_callback(callback_list, enable, callback):
-            with self._lock:
-                if enable:
-                    assert callback not in callback_list
-                    callback_list.append(callback)
-                    self._nb_callbacks += 1
-                    if 1 == self._nb_callbacks:
-                        self._hm.HookKeyboard()
-                else:
-                    assert callback in callback_list
-                    callback_list.remove(callback)
-                    self._nb_callbacks -= 1
-                    if 0 == self._nb_callbacks:
-                        self._hm.UnhookKeyboard()
-
-        self.register_key_up = functools.partial(_set_key_callback,
-                                                 self._key_up_callbacks,
-                                                 True)
-        self.unregister_key_up = functools.partial(_set_key_callback,
-                                                   self._key_up_callbacks,
-                                                   False)
-        self.register_key_down = functools.partial(_set_key_callback,
-                                                   self._key_down_callbacks,
-                                                   True)
-        self.unregister_key_down = functools.partial(_set_key_callback,
-                                                     self._key_down_callbacks,
-                                                     False)
-
-_hook_manager = HookManager()
 
 # For the purposes of this class, we'll only report key presses that
 # result in these outputs in order to exclude special key combos.
@@ -108,6 +58,8 @@ SCANCODE_TO_KEY = {
     75: "Left", 73: "Page_Down", 81: "Page_Up", 28 : "Return",
     77: "Right", 15: "Tab", 72: "Up",
 }
+
+KEY_TO_SCANCODE = {v: k for k, v in SCANCODE_TO_KEY.items()}
 
 # Keys that need an extended key flag for Windows input
 EXTENDED_KEYS = {
@@ -367,8 +319,7 @@ class WindowsKeyboardLayout:
         )
 
 
-class KeyboardCapture(object):
-    """Listen to all keyboard events."""
+class KeyboardCaptureProcess(multiprocessing.Process):
 
     CONTROL_KEYS = set(('Lcontrol', 'Rcontrol'))
     SHIFT_KEYS = set(('Lshift', 'Rshift'))
@@ -377,45 +328,113 @@ class KeyboardCapture(object):
     PASSTHROUGH_KEYS = CONTROL_KEYS | SHIFT_KEYS | ALT_KEYS | WIN_KEYS
 
     def __init__(self):
-        self._passthrough_down_keys = set()
-        self._alive = False
+        self._tid = None
+        self._queue = multiprocessing.Queue()
+        self._suppressed_keys_bitmask = multiprocessing.Array(ctypes.c_uint64, (max(SCANCODE_TO_KEY.keys()) + 63) // 64)
+        self._suppressed_keys_bitmask[:] = (0xffffffffffffffff,) * len(self._suppressed_keys_bitmask)
+        super(KeyboardCaptureProcess, self).__init__()
+
+    def run(self):
+
+        import pyHook
+        import signal
+        import pythoncom
+
+        # Ignore KeyboardInterrupt when attached to a console...
+        signal.signal(signal.SIGINT, signal.SIG_IGN)
+
+        self._queue.put(win32api.GetCurrentThreadId())
+        down_keys = set()
+        passthrough_down_keys = set()
+
+        def on_key(pressed, event):
+            if event.Injected:
+                # Ignore simulated events (e.g. from KeyboardEmulation).
+                return True
+            if event.Key in self.PASSTHROUGH_KEYS:
+                if pressed:
+                    passthrough_down_keys.add(event.Key)
+                else:
+                    passthrough_down_keys.discard(event.Key)
+            if passthrough_down_keys:
+                # Modifier(s) pressed, ignore.
+                return True
+            key = SCANCODE_TO_KEY.get(event.ScanCode)
+            if key is None:
+                # Unhandled, ignore and don't suppress.
+                return True
+            not_suppressed = 0 == (self._suppressed_keys_bitmask[event.ScanCode // 64] & (1 << (event.ScanCode % 64)))
+            if pressed:
+                down_keys.add(key)
+            else:
+                down_keys.discard(key)
+            self._queue.put((key, pressed))
+            return not_suppressed
+
+        hm = pyHook.HookManager()
+        hm.KeyUp = functools.partial(on_key, False)
+        hm.KeyDown = functools.partial(on_key, True)
+        hm.HookKeyboard()
+        try:
+            pythoncom.PumpMessages()
+        finally:
+            hm.UnhookKeyboard()
+
+    def start(self):
+        self.daemon = True
+        super(KeyboardCaptureProcess, self).start()
+        self._tid = self._queue.get()
+
+    def stop(self):
+        if self.is_alive():
+            win32api.PostThreadMessage(self._tid, win32con.WM_QUIT, 0, 0)
+            self.join()
+        # Wake up capture thread, so it gets a chance to check if it must stop.
+        self._queue.put((None, None))
+
+    def suppress_keyboard(self, suppressed_keys):
+        bitmask = [0] * len(self._suppressed_keys_bitmask)
+        for key in suppressed_keys:
+            code = KEY_TO_SCANCODE[key]
+            bitmask[code // 64] |= (1 << (code % 64))
+        self._suppressed_keys_bitmask[:] = bitmask
+
+    def get(self):
+        return self._queue.get()
+
+
+class KeyboardCapture(threading.Thread):
+    """Listen to all keyboard events."""
+
+    def __init__(self):
+        super(KeyboardCapture, self).__init__()
         self._suppressed_keys = set()
         self.key_down = lambda key: None
         self.key_up = lambda key: None
-
-        # NOTE(hesky): Does this need to be more efficient and less
-        # general if it will be called for every keystroke?
-        def on_key_event(func_name, event):
-            if event.Key in self.PASSTHROUGH_KEYS:
-                if func_name == 'key_down':
-                    self._passthrough_down_keys.add(event.Key)
-                elif func_name == 'key_up':
-                    self._passthrough_down_keys.discard(event.Key)
-            key = SCANCODE_TO_KEY.get(event.ScanCode)
-            if key is not None and not self._passthrough_down_keys:
-                getattr(self, func_name)(key)
-                return key not in self._suppressed_keys
-            return True
-
-        self._on_key_up = functools.partial(on_key_event, 'key_up')
-        self._on_key_down = functools.partial(on_key_event, 'key_down')
+        self._proc = KeyboardCaptureProcess()
+        self._finished = threading.Event()
 
     def start(self):
-        _hook_manager.register_key_up(self._on_key_up)
-        _hook_manager.register_key_down(self._on_key_down)
-        self._alive = True
+        self._proc.start()
+        self._proc.suppress_keyboard(self._suppressed_keys)
+        super(KeyboardCapture, self).start()
+
+    def run(self):
+        while True:
+            key, pressed = self._proc.get()
+            if self._finished.isSet():
+                break
+            (self.key_down if pressed else self.key_up)(key)
 
     def cancel(self):
-        if not self._alive:
-            return
-        _hook_manager.unregister_key_up(self._on_key_up)
-        _hook_manager.unregister_key_down(self._on_key_down)
-        # Guard against active passthrough key depressions on capture cancel.
-        self._passthrough_down_keys.clear()
-        self._alive = False
+        self._proc.stop()
+        if self.is_alive():
+            self._finished.set()
+            self.join()
 
     def suppress_keyboard(self, suppressed_keys=()):
         self._suppressed_keys = set(suppressed_keys)
+        self._proc.suppress_keyboard(self._suppressed_keys)
 
 
 class KeyboardEmulation:

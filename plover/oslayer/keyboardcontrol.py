@@ -84,11 +84,7 @@ if __name__ == '__main__':
     kc.start()
     print 'Press CTRL-c to quit.'
     try:
-        if sys.platform.startswith('win32'):
-            while True:
-                pythoncom.PumpWaitingMessages()
-        else:
-            while True:
-                time.sleep(1)
+        while True:
+            time.sleep(1)
     except KeyboardInterrupt:
         kc.cancel()
