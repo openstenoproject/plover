@@ -4,7 +4,9 @@
 """Unit tests for registry.py."""
 
 import unittest
+
 from plover.machine.registry import Registry, machine_registry, NoSuchMachineException
+
 
 class RegistryClassTestCase(unittest.TestCase):
     def test_lookup(self):
@@ -43,6 +45,3 @@ class MachineRegistryTestCase(unittest.TestCase):
     def test_unknown_machine(self):
         with self.assertRaises(NoSuchMachineException):
             machine_registry.get('No such machine')
-
-if __name__ == '__main__':
-    unittest.main()

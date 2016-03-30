@@ -6,8 +6,10 @@
 
 import StringIO
 import unittest
+
 from plover.dictionary.json_dict import load_dictionary
 from plover.dictionary.base import DictionaryLoaderException
+
 
 def make_dict(contents):
     d = StringIO.StringIO(contents)
@@ -32,6 +34,3 @@ class JsonDictionaryTestCase(unittest.TestCase):
         
         with self.assertRaises(DictionaryLoaderException):
             load_dictionary(make_dict('foo'))
-
-if __name__ == '__main__':
-    unittest.main()

@@ -529,6 +529,3 @@ class TestCase(unittest.TestCase):
             self.assertTrue(ready_called[0])
 
 # TODO: add a test on the machine itself with mocks
-
-if __name__ == '__main__':
-    unittest.main()

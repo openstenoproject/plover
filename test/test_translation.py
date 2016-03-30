@@ -4,14 +4,17 @@
 """Unit tests for translation.py."""
 
 from collections import namedtuple
+import unittest
 import copy
+import sys
+
 from mock import patch
+
 from plover.steno_dictionary import StenoDictionary, StenoDictionaryCollection
 from plover.translation import Translation, Translator, _State
 from plover.translation import escape_translation, unescape_translation
-import unittest
-import sys
 from plover.steno import Stroke, normalize_steno
+
 
 def stroke(s):
     keys = []
@@ -750,7 +753,3 @@ class TranslationEscapeTest(unittest.TestCase):
             self.assertEqual(result, raw, msg='unescape_translation(%r)=%r != %r' % (escaped, result, raw))
             result = escape_translation(raw)
             self.assertEqual(result, escaped, msg='escape_translation(%r)=%r != %r' % (raw, result, escaped))
-
-
-if __name__ == '__main__':
-    unittest.main()

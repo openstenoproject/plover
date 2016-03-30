@@ -4,6 +4,7 @@
 from plover.orthography import add_suffix
 import unittest
 
+
 class OrthographyTestCase(unittest.TestCase):
 
     def test_add_suffix(self):
@@ -116,6 +117,3 @@ class OrthographyTestCase(unittest.TestCase):
                 word, suffix, result, expected,
             )
             self.assertEqual(result, expected, msg=msg)
-        
-if __name__ == '__main__':
-    unittest.main()

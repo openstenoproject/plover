@@ -5,7 +5,9 @@
 
 from collections import defaultdict
 import unittest
+
 from mock import patch
+
 import plover.dictionary.loading_manager as loading_manager
 
 
@@ -34,7 +36,3 @@ class DictionaryLoadingManagerTestCase(unittest.TestCase):
             self.assertTrue(all(x == 1 for x in loader.load_counts.values()))
             # Dropped superfluous files.
             self.assertEqual(['b', 'c'], sorted(manager.dictionaries.keys()))
-
-
-if __name__ == '__main__':
-    unittest.main()
