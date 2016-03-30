@@ -24,7 +24,7 @@ dictionaries = {
 def load_dictionary(filename):
     """Load a dictionary from a file."""
     extension = splitext(filename)[1].lower()
-    
+
     try:
         dict_type = dictionaries[extension]
     except KeyError:
@@ -32,14 +32,10 @@ def load_dictionary(filename):
             'Unsupported extension for dictionary: %s. Supported extensions: %s' %
             (extension, ', '.join(dictionaries.keys())))
 
-    loader = dict_type.load_dictionary
-
     try:
-        with open(filename, 'rb') as fp:
-            d = loader(fp)
-    except IOError as e:
-        raise DictionaryLoaderException(unicode(e))
-
+        d = dict_type.load_dictionary(filename)
+    except Exception as e:
+        raise DictionaryLoaderException('loading \'%s\' failed: %s' % (filename, str(e)))
     d.set_path(filename)
     d.save = ThreadedSaver(d, filename, dict_type.save_dictionary)
     return d
