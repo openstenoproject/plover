@@ -19,10 +19,13 @@ import functools
 import multiprocessing
 import threading
 import types
+import _winreg as winreg
 
 import win32api
 import win32con
 import win32gui
+
+from plover import log
 
 
 SendInput = ctypes.windll.user32.SendInput
@@ -328,11 +331,56 @@ class KeyboardCaptureProcess(multiprocessing.Process):
     PASSTHROUGH_KEYS = CONTROL_KEYS | SHIFT_KEYS | ALT_KEYS | WIN_KEYS
 
     def __init__(self):
+        self._update_registry()
         self._tid = None
         self._queue = multiprocessing.Queue()
         self._suppressed_keys_bitmask = multiprocessing.Array(ctypes.c_uint64, (max(SCANCODE_TO_KEY.keys()) + 63) // 64)
         self._suppressed_keys_bitmask[:] = (0xffffffffffffffff,) * len(self._suppressed_keys_bitmask)
         super(KeyboardCaptureProcess, self).__init__()
+
+    @staticmethod
+    def _update_registry():
+        # From MSDN documentation:
+        #
+        # The hook procedure should process a message in less time than the
+        # data entry specified in the LowLevelHooksTimeout value in the
+        # following registry key:
+        #
+        # HKEY_CURRENT_USER\Control Panel\Desktop
+        #
+        # The value is in milliseconds. If the hook procedure times out, the
+        # system passes the message to the next hook. However, on Windows 7 and
+        # later, the hook is silently removed without being called. There is no
+        # way for the application to know whether the hook is removed.
+
+
+        def _open_key(rights):
+            return winreg.OpenKey(winreg.HKEY_CURRENT_USER,
+                                  r'Control Panel\Desktop',
+                                  0, rights)
+
+        REG_LLHOOK_KEY_FULL_NAME = r'HKEY_CURRENT_USER\Control Panel\Desktop\LowLevelHooksTimeout'
+        REG_LLHOOK_KEY_VALUE_NAME = 'LowLevelHooksTimeout'
+        REG_LLHOOK_KEY_VALUE_TYPE = winreg.REG_DWORD
+        REG_LLHOOK_KEY_VALUE = 5000
+
+        read_key = _open_key(winreg.KEY_READ)
+        try:
+            value, value_type = winreg.QueryValueEx(read_key, REG_LLHOOK_KEY_VALUE_NAME)
+        except WindowsError:
+            value, value_type = (None, None)
+
+        if value_type != REG_LLHOOK_KEY_VALUE_TYPE or value != REG_LLHOOK_KEY_VALUE:
+            try:
+                write_key = _open_key(winreg.KEY_WRITE)
+                winreg.SetValueEx(write_key, REG_LLHOOK_KEY_VALUE_NAME, 0,
+                                  REG_LLHOOK_KEY_VALUE_TYPE, REG_LLHOOK_KEY_VALUE)
+            except WindowsError as e:
+                log.warning('could not update registry key: %s, see documentation',
+                            REG_LLHOOK_KEY_FULL_NAME)
+            else:
+                log.warning('the following registry key has been updated, '
+                            'you should reboot: %s', REG_LLHOOK_KEY_FULL_NAME)
 
     def run(self):
 
