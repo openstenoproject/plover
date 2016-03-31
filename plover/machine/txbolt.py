@@ -88,3 +88,6 @@ class Stenotype(plover.machine.base.SerialStenotypeBase):
                     if (byte >> i) & 1:
                         self._pressed_keys.append(
                             STENO_KEY_CHART[(key_set * 6) + i])
+                if 6 == key_set:
+                    # Last possible set, the stroke is finished.
+                    self._finish_stroke()
