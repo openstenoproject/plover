@@ -287,7 +287,6 @@ class MainFrame(wx.Frame):
             machine_name = machine_registry.resolve_alias(
                 self.config.get_machine_type())
             self.machine_status_text.SetLabel('%s: %s' % (machine_name, state))
-            self.reconnect_button.Show(state == STATE_ERROR)
             self.spinner.Show(state == STATE_INITIALIZING)
             self.connection_ctrl.Show(state != STATE_INITIALIZING)
             if state == STATE_INITIALIZING:

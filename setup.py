@@ -56,7 +56,7 @@ def pyinstaller(*args):
         '--onefile'
     ]
     py_args.extend(args)
-    py_args.append('plover/main.py')
+    py_args.append('windows/main.py')
     main = pkg_resources.load_entry_point('PyInstaller', 'console_scripts', 'pyinstaller')
     main(py_args)
 
