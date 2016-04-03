@@ -19,7 +19,7 @@ All dependencies can be installed with pacman:
 
 Most dependencies can be installed with APT:
 
-`sudo apt-get install cython libusb-1.0-0-dev python-appdirs python-mock python-pip python-pytest python-serial python-setuptools python-wxgtk3.0 python-xlib`
+`sudo apt-get install cython libusb-1.0-0-dev libudev-dev python-appdirs python-mock python-pip python-pytest python-serial python-setuptools python-wxgtk3.0 python-xlib`
 
 Note: `python-wxgtk3.0` is only available starting with Ubuntu 15.10 (Wily Werewolf). It can be installed on older versions, like Ubuntu 14.04 LTS (Trusty Tahr), by using the following PPA: `ppa:adamwolf/kicad-trusty-backports`.
 
