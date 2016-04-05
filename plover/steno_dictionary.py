@@ -114,20 +114,23 @@ class StenoDictionaryCollection(object):
             d.add_longest_key_listener(self._longest_key_listener)
         self._longest_key_listener()
 
-    def lookup(self, key):
+    def _lookup(self, key, filters=()):
+        key_len = len(key)
         for d in self.dicts:
+            if key_len > d.longest_key:
+                continue
             value = d.get(key)
             if value:
-                for f in self.filters:
+                for f in filters:
                     if f(key, value):
                         return None
                 return value
 
+    def lookup(self, key):
+        return self._lookup(key, self.filters)
+
     def raw_lookup(self, key):
-        for d in self.dicts:
-            value = d.get(key)
-            if value:
-                return value
+        return self._lookup(key)
 
     def reverse_lookup(self, value):
         for d in self.dicts:
