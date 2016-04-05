@@ -62,8 +62,7 @@ class StenoDictionary(collections.MutableMapping):
                 self._longest_key = 0
 
     def __contains__(self, key):
-        value = self._dict.get(key)
-        return value is not None
+        return self.get(key) is not None
 
     def set_path(self, path):
         self._path = path    
