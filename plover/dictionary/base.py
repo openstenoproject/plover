@@ -9,6 +9,7 @@
 
 from os.path import splitext
 import shutil
+import sys
 import threading
 
 import plover.dictionary.json_dict as json_dict
@@ -35,7 +36,8 @@ def load_dictionary(filename):
     try:
         d = dict_type.load_dictionary(filename)
     except Exception as e:
-        raise DictionaryLoaderException('loading \'%s\' failed: %s' % (filename, str(e)))
+        ne = DictionaryLoaderException('loading \'%s\' failed: %s' % (filename, str(e)))
+        raise type(ne), ne, sys.exc_info()[2]
     d.set_path(filename)
     d.save = ThreadedSaver(d, filename, dict_type.save_dictionary)
     return d
