@@ -13,13 +13,13 @@ Those need to be installed using your distribution package manager.
 
 All dependencies can be installed with pacman:
 
-`sudo pacman --sync python2-appdirs python2-hidapi python2-mock python2-pyserial python2-pytest python2-pytest-runner python2-setuptools python2-xlib wxpython`
+`sudo pacman --sync python2-appdirs python2-hidapi python2-mock python2-pyserial python2-pytest python2-pytest-runner python2-setuptools python2-xlib wmctrl wxpython`
 
 ### Ubuntu
 
 Most dependencies can be installed with APT:
 
-`sudo apt-get install cython libusb-1.0-0-dev libudev-dev python-appdirs python-mock python-pip python-pytest python-serial python-setuptools python-wxgtk3.0 python-xlib`
+`sudo apt-get install cython libusb-1.0-0-dev libudev-dev python-appdirs python-mock python-pip python-pytest python-serial python-setuptools python-wxgtk3.0 python-xlib wmctrl`
 
 Note: `python-wxgtk3.0` is only available starting with Ubuntu 15.10 (Wily Werewolf). It can be installed on older versions, like Ubuntu 14.04 LTS (Trusty Tahr), by using the following PPA: `ppa:adamwolf/kicad-trusty-backports`.
 
