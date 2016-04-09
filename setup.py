@@ -26,10 +26,16 @@ from plover import (
 from utils.metadata import copy_metadata
 
 
+def reload_module(mod):
+    # Python 2/3 compatibility.
+    from six.moves import reload_module as _reload
+    _reload(mod)
+
+
 def get_version():
     if not os.path.exists('.git'):
         return None
-    version = subprocess.check_output('git describe --tags --match=v[0-9]*'.split()).strip()
+    version = subprocess.check_output('git describe --tags --match=v[0-9]*'.split()).strip().decode()
     m = re.match(r'^v(\d[\d.]*)(-\d+-g[a-f0-9]*)?$', version)
     assert m is not None, version
     version = m.group(1)
@@ -98,7 +104,7 @@ class Launch(setuptools.Command):
     def run(self):
         # Make sure metadata are up-to-date first.
         self.run_command('egg_info')
-        reload(pkg_resources)
+        reload_module(pkg_resources)
         from plover.main import main
         sys.argv = [' '.join(sys.argv[0:2]) + ' --'] + self.args
         sys.exit(main())
@@ -164,7 +170,7 @@ class Test(setuptools.Command):
     def run(self):
         # Make sure metadata are up-to-date first.
         self.run_command('egg_info')
-        reload(pkg_resources)
+        reload_module(pkg_resources)
         test_dir = os.path.join(os.path.dirname(__file__), 'test')
         # Remove __pycache__ directory so pytest does not freak out
         # when switching between the Linux/Windows versions.
@@ -233,7 +239,7 @@ cmdclass = {
     'tag_weekly': TagWeekly,
     'test': Test,
 }
-setup_requires = []
+setup_requires = ['six']
 options = {}
 kwargs = {}
 
