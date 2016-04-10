@@ -55,20 +55,19 @@ class TestCase(unittest.TestCase):
         cases = (
             # Test all keys
             (('!f#f+f*fAfCfBfEfDfGfFfHfKfLfOfNfQfPfSfRfUfTfWfYfXfZf^f~f',),
-            (('#', '*', 'A-', 'S-', '-B', '-E', '-D', '-G', '-F', 'H-', 'K-', 
+            [['#', '*', 'A-', 'S-', '-B', '-E', '-D', '-G', '-F', 'H-', 'K-', 
               '-L', 'O-', '-P', '-R', 'P-', 'S-', 'R-', '-U', 'T-', 'W-', '-T', 
-              '-S', '-Z', '*'),)),
+              '-S', '-Z', '*'],]),
             # Anything below 8 is not registered
-            (('S9T8A7',), (('S-', 'T-'),)),
+            (('S9T8A7',), [['S-', 'T-'],]),
             # Sequence of strokes
-            (('SfTf', 'Zf', 'QfLf'), (('S-', 'T-'), ('-Z',), ('-R', '-L'))),
+            (('SfTf', 'Zf', 'QfLf'), [['S-', 'T-'], ['-Z',], ['-R', '-L']]),
         )
 
         params = {k: v[0] for k, v in Stenotype.get_option_info().items()}
-        results = []
         with patch('plover.machine.base.serial.Serial', MockSerial) as mock:
             for inputs, expected in cases:
-                mock.inputs = map(p, inputs)
+                mock.inputs = list(map(p, inputs))
                 actual = []
                 m = Stenotype(params)
                 m.add_stroke_callback(lambda s: actual.append(s))
@@ -77,13 +76,7 @@ class TestCase(unittest.TestCase):
                 while mock.index < len(mock.inputs):
                     time.sleep(0.00001)
                 m.stop_capture()
-                result = (len(expected) == len(actual) and 
-                          all(starmap(cmp_keys, zip(actual, expected))))
-                if not result:
-                    print actual, '!=', expected
-                results.append(result)
-                
-        self.assertTrue(all(results))
+                self.assertEqual(actual, expected)
 
 if __name__ == '__main__':
     unittest.main()
