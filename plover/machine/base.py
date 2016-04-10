@@ -174,23 +174,24 @@ class SerialStenotypeBase(ThreadedStenotypeBase):
         self.serial_port = None
         self.serial_params = serial_params
 
+    def _close_port(self):
+        if self.serial_port is None:
+            return
+        self.serial_port.close()
+        self.serial_port = None
+
     def start_capture(self):
-        if self.serial_port:
-            self.serial_port.close()
+        self._close_port()
 
         try:
             self.serial_port = serial.Serial(**self.serial_params)
         except (serial.SerialException, OSError) as e:
-            log.warning('Machine not connected')
-            log.info('Can\'t open Serial port: %s', str(e))
+            log.warning('Can\'t open Serial port: %s', str(e))
             self._error()
             return
-        if self.serial_port is None:
-            log.warning('Serial port not found: %s', str(e))
-            self._error()
-            return
+
         if not self.serial_port.isOpen():
-            log.warning('Serial port is not open: %s', str(e))
+            log.warning('Serial port is not open: %s', self.serial_params.get('port'))
             self._error()
             return
 
@@ -199,8 +200,7 @@ class SerialStenotypeBase(ThreadedStenotypeBase):
     def stop_capture(self):
         """Stop listening for output from the stenotype machine."""
         ThreadedStenotypeBase.stop_capture(self)
-        if self.serial_port:
-            self.serial_port.close()
+        self._close_port()
 
     @classmethod
     def get_option_info(cls):
