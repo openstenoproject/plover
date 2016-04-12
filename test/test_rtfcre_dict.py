@@ -87,13 +87,11 @@ class TestCase(unittest.TestCase):
         
         failed = []
         for before, after in cases:
-            if convert(before) != after:
-                failed.append((before, after))
-                
-        for before, after in failed:
-            print 'convert(%s) != %s: %s' % (before, after, convert(before))
-
-        self.assertEqual(len(failed), 0)
+            result = convert(before)
+            msg = 'convert(%r) != %r: %r' % (
+                before, after, result
+            )
+            self.assertEqual(result, after)
     
     def test_load_dict(self):
         """Test the load_dict function.
@@ -196,11 +194,10 @@ class TestCase(unittest.TestCase):
         format_str = "format({}) != {}: {}"
         for before, expected in cases:
             result = format_translation(before)
-            if result != expected:
-                failed = True
-                print format_str.format(before, expected, result)
-            
-        self.assertFalse(failed)
+            msg = 'format_translation(%r) != %r: %r' % (
+                before, expected, result
+            )
+            self.assertEqual(result, expected)
         
     def test_save_dictionary(self):
         f = StringIO()
