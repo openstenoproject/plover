@@ -146,12 +146,31 @@ Unknown.
 
 """
 
-import array
-import itertools
 import struct
-from plover import log
 
+# Python 2/3 compatibility.
+from six.moves import zip
+from six import PY2, iterbytes
+
+from plover import log
 import plover.machine.base
+
+
+if PY2:
+    need_ord_types = (str, bytes, buffer)
+else:
+    need_ord_types = (str,)
+
+    def buffer(object, offset=None, size=None):
+        if offset is None:
+            offset = 0
+        if size is None:
+            size = len(object)-offset
+        return memoryview(object)[offset:offset+size]
+
+
+def _allocate_buffer():
+    return bytearray(1024)
 
 
 class _ProtocolViolationException(Exception):
@@ -210,7 +229,7 @@ _CRC_TABLE = [
 ]
 
 
-def _crc(data):
+def _crc(data, offset=None, size=None):
     """Compute the Crc algorithm used by the stentura protocol.
 
     This algorithm is described by the Rocksoft^TM Model CRC Algorithm as
@@ -232,10 +251,17 @@ def _crc(data):
     Returns: The computed crc for the data.
 
     """
+    if offset is None:
+        offset = 0
+    if size is None:
+        size = len(data) - offset
     checksum = 0
-    for b in data:
-        if isinstance(b, str):
-            b = ord(b)
+    if isinstance(data, need_ord_types):
+        _getbyte = lambda n: ord(data[n])
+    else:
+        _getbyte = lambda n: data[n]
+    for n in range(offset, offset + size):
+        b = _getbyte(n)
         checksum = (_CRC_TABLE[(checksum ^ b) & 0xff] ^
                     ((checksum >> 8) & 0xff))
     return checksum
@@ -244,19 +270,14 @@ def _crc(data):
 def _write_to_buffer(buf, offset, data):
     """Write data to buf at offset.
 
-    Extends the size of buf as needed.
+    Note: buf must be big enough, and will not be extended as needed.
 
     Args:
-    - buf: The buffer. Should be of type array('B')
+    - buf: The buffer. Should be of type bytearray()
     - offset. The offset at which to start writing.
     - data: An iterable containing the data to write.
     """
-    if len(buf) < offset + len(data):
-        buf.extend([0] * (offset + len(data) - len(buf)))
-    for i, v in enumerate(data, offset):
-        if isinstance(v, str):
-            v = ord(v)
-        buf[i] = v
+    buf[offset:offset+len(data)] = data
 
 # Helper table for parsing strokes of the form:
 # 11^#STKP 11WHRAO* 11EUFRPB 11LGTSDZ
@@ -301,11 +322,11 @@ def _parse_strokes(data):
     if (len(data) % 4) != 0:
         raise _ProtocolViolationException(
             "Data size is not divisible by 4: %d" % (len(data)))
-    for b in data:
-        if (ord(b) & 0b11000000) != 0b11000000:
+    for b in iterbytes(data):
+        if (b & 0b11000000) != 0b11000000:
             raise _ProtocolViolationException("Data is not stroke: 0x%X" % (b))
-    for a, b, c, d in itertools.izip(*([iter(data)] * 4)):
-        strokes.append(_parse_stroke(ord(a), ord(b), ord(c), ord(d)))
+    for a, b, c, d in zip(*([iterbytes(data)] * 4)):
+        strokes.append(_parse_stroke(a, b, c, d))
     return strokes
 
 # Actions
@@ -328,8 +349,8 @@ def _make_request(buf, action, seq, p1=0, p2=0, p3=0, p4=0, p5=0, data=None):
     """Create a request packet.
 
     Args:
-    - buf: The buffer used for the packet. Should be array.array('B') and will
-    be extended as needed.
+    - buf: The buffer used for the packet. Should be bytearray() and big
+    enough, as it will not be extended as needed.
     - action: The action for the packet.
     - seq: The sequence numbe for the packet.
     - p1 - p5: Paremeter N for the packet (default: 0).
@@ -342,11 +363,9 @@ def _make_request(buf, action, seq, p1=0, p2=0, p3=0, p4=0, p5=0, data=None):
     length = 18
     if data:
         length += len(data) + 2  # +2 for the data CRC.
-    if len(buf) < length:
-        buf.extend([0] * (length - len(buf)))
     _REQUEST_STRUCT.pack_into(buf, 0, 1, seq, length, action,
                               p1, p2, p3, p4, p5)
-    crc = _crc(buffer(buf, 1, 15))
+    crc = _crc(buf, 1, 15)
     _SHORT_STRUCT.pack_into(buf, 16, crc)
     if data:
         _write_to_buffer(buf, 18, data)
@@ -359,7 +378,7 @@ def _make_open(buf, seq, drive, filename):
     """Make a packet with the OPEN command.
 
     Args:
-    - buf: The buffer to use of type array.array('B'). Will be extended if
+    - buf: The buffer to use of type bytearray(). Will be extended if
     needed.
     - seq: The sequence number of the packet.
     - drive: The letter of the drive (probably 'A').
@@ -375,7 +394,7 @@ def _make_read(buf, seq, block, byte, length=512):
     """Make a packet with the READC command.
 
     Args:
-    - buf: The buffer to use of type array.array('B'). Will be extended if
+    - buf: The buffer to use of type bytearray(). Will be extended if
     needed.
     - seq: The sequence number of the packet.
     - block: The index of the file block to read.
@@ -392,7 +411,7 @@ def _make_reset(buf, seq):
     """Make a packet with the RESET command.
 
     Args:
-    - buf: The buffer to use of type array.array('B'). Will be extended if
+    - buf: The buffer to use of type bytearray(). Will be extended if
     needed.
     - seq: The sequence number of the packet.
 
@@ -413,15 +432,15 @@ def _validate_response(packet):
     """
     if len(packet) < 14:
         return False
-    length = _SHORT_STRUCT.unpack(buffer(packet, 2, 2))[0]
+    length = _SHORT_STRUCT.unpack(packet[2:4])[0]
     if length != len(packet):
         return False
-    if _crc(buffer(packet, 1, 13)) != 0:
+    if _crc(packet, 1, 13) != 0:
         return False
     if length > 14:
         if length < 17:
             return False
-        if _crc(buffer(packet, 14)) != 0:
+        if _crc(packet, 14) != 0:
             return False
     return True
 
@@ -523,14 +542,14 @@ def _send_receive(port, stop, packet, buf, max_tries=3):
     _ProtocolViolationException: If the responses packet violates the protocol.
 
     """
-    request_action = _SHORT_STRUCT.unpack(buffer(packet, 4, 2))[0]
+    request_action = _SHORT_STRUCT.unpack(packet[4:6])[0]
     for attempt in range(max_tries):
         _write_to_port(port, packet)
         try:
             response = _read_packet(port, stop, buf)
             if response[1] != packet[1]:
                 continue  # Wrong sequence number.
-            response_action = _SHORT_STRUCT.unpack(buffer(response, 4, 2))[0]
+            response_action = _SHORT_STRUCT.unpack(response[4:6])[0]
             if request_action != response_action:
                 raise _ProtocolViolationException()
             return response
@@ -574,7 +593,7 @@ def _read(port, stop, seq, request_buf, response_buf, stroke_buf, block, byte):
     while True:
         packet = _make_read(request_buf, seq(), block, byte, length=512)
         response = _send_receive(port, stop, packet, response_buf)
-        p1 = _SHORT_STRUCT.unpack(buffer(response, 8, 2))[0]
+        p1 = _SHORT_STRUCT.unpack(response[8:10])[0]
         if not ((p1 == 0 and len(response) == 14) or  # No data.
                 (p1 == len(response) - 16)):          # Data.
             raise _ProtocolViolationException()
@@ -615,10 +634,13 @@ def _loop(port, stop, callback, ready_callback, timeout=1):
     port.flushOutput()
     # Set serial port timeout to the timeout value
     port.timeout = timeout
-    request_buf, response_buf = array.array('B'), array.array('B')
-    stroke_buf = array.array('B')
+    # With Python 3, our replacement for buffer(), using memoryview, does not
+    # allow resizing the original bytearray(), so make sure our buffers are big
+    # enough to begin with.
+    request_buf, response_buf = _allocate_buffer(), _allocate_buffer()
+    stroke_buf = _allocate_buffer()
     seq = _SequenceCounter()
-    request = _make_open(request_buf, seq(), 'A', 'REALTIME.000')
+    request = _make_open(request_buf, seq(), b'A', b'REALTIME.000')
     # Any checking needed on the response packet?
     _send_receive(port, stop, request, response_buf)
     # Do a full read to get to the current position in the realtime file.
