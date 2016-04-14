@@ -3,6 +3,9 @@
 
 """Thread-based monitoring of a Gemini PR stenotype machine."""
 
+# Python 2/3 compatibility.
+from six import iterbytes
+
 import plover.machine.base
 
 # In the Gemini PR protocol, each packet consists of exactly six bytes
@@ -51,13 +54,9 @@ class GeminiPr(plover.machine.base.SerialStenotypeBase):
             if not raw:
                 continue
 
-            # XXX : work around for python 3.1 and python 2.6 differences
-            if isinstance(raw, str):
-                raw = [ord(x) for x in raw]
-
             # Convert the raw to a list of steno keys.
             steno_keys = []
-            for i, b in enumerate(raw):
+            for i, b in enumerate(iterbytes(raw)):
                 for j in range(1, 8):
                     if (b & (0x80 >> j)):
                         steno_keys.append(STENO_KEY_CHART[i * 7 + j - 1])
