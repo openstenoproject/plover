@@ -302,6 +302,7 @@ def write_requirements(extra_features=()):
                 requirements.append('%s; %s' % (require, condition))
         elif feature in extra_features:
             requirements.extend(dependencies)
+    requirements = sorted(set(requirements))
     with open('requirements.txt', 'w') as fp:
         fp.write('\n'.join(requirements))
         fp.write('\n')
