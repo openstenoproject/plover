@@ -264,8 +264,6 @@ class Helper(object):
     DEPENDENCIES = (
         # Note: we force the installation directory, otherwise the installer gets confused when run under AppVeyor, and installs in the wrong directory...
         ('wxPython'         , 'http://downloads.sourceforge.net/wxpython/wxPython3.0-win32-3.0.2.0-py27.exe'                                      , '864d44e418a0859cabff71614a495bea57738c5d', None, ('/SP-', '/VERYSILENT', '/DIR=%s' % SITE_DIR), None),
-        # Note: '--always-unzip' is needed, as pyHook cannot work from a single egg file.
-        ('pyhook'           , 'http://downloads.sourceforge.net/project/pyhook/pyhook/1.5.1/pyHook-1.5.1.win32-py2.7.exe'                         , '9afb7a5b2858a69c6b0f6d2cb1b2eb2a3f4183d2', 'easy_install', ('--always-unzip',), None),
         ('pywin32'          , 'http://downloads.sourceforge.net/project/pywin32/pywin32/Build 219/pywin32-219.win32-py2.7.exe'                    , '8bc39008383c646bed01942584117113ddaefe6b', 'easy_install', (), None),
         ('Cython'           , 'https://pypi.python.org/packages/2.7/C/Cython/Cython-0.23.4-cp27-none-win32.whl'                                   , 'd7c1978fe2037674b151622158881c700ac2f06a', None, (), None),
         ('VC for Python'    , 'https://download.microsoft.com/download/7/9/6/796EF2E4-801B-4FC4-AB28-B59FBF6D907B/VCForPython27.msi'              , '7800d037ba962f288f9b952001106d35ef57befe', None, (), None),
