@@ -1,38 +1,26 @@
 <!DOCTYPE html>
-<html lang="en" ng-app>
+<html lang="en">
   <head>
     <meta charset="utf-8">
-    <meta http-equiv="X-UA-Compatible" content="IE=edge">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <!-- <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0"> -->
     <meta name="description" content="Plover download page">
-    <meta name="author" content="Hesky Fisher">
+    <meta name="author" content="Open Steno Project">
     <link rel="shortcut icon" href="images/favicon.ico">
 
-    <title>Plover download page</title>
+    <title>Plover Download Page</title>
 
-    <!-- Bootstrap core CSS -->
-    <link href="//netdna.bootstrapcdn.com/bootstrap/3.0.2/css/bootstrap.min.css" rel="stylesheet">
-    
-    
-    <!-- Bootstrap theme -->
-    <link href="//netdna.bootstrapcdn.com/bootstrap/3.0.2/css/bootstrap-theme.min.css" rel="stylesheet">
+
+    <!-- Latest compiled and minified CSS -->
+    <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.6/css/bootstrap.min.css" integrity="sha384-1q8mTJOASx8j1Au+a5WDVnPi2lkFfwwEAa8hDDdjZlpLegxhjVME1fgjWPGmkzs7" crossorigin="anonymous">
+
+    <link rel="stylesheet" type="text/css" href="css/styles.css" rel="stylesheet" />
 
     <!-- Font Awesome -->
-    <link href="//netdna.bootstrapcdn.com/font-awesome/4.0.3/css/font-awesome.css" rel="stylesheet">
+    <!-- <link href="//netdna.bootstrapcdn.com/font-awesome/4.0.3/css/font-awesome.css" rel="stylesheet"> -->
 
-    <style>
-    .nav-tabs {
-      margin-bottom: 15px;
-    }
-    </style>
 
-    <!-- HTML5 shim and Respond.js IE8 support of HTML5 elements and media queries -->
-    <!--[if lt IE 9]>
-      <script src="https://oss.maxcdn.com/libs/html5shiv/3.7.0/html5shiv.js"></script>
-      <script src="https://oss.maxcdn.com/libs/respond.js/1.3.0/respond.min.js"></script>
-    <![endif]-->
-    
-    <script>
+    <!-- <script>
       (function(i,s,o,g,r,a,m){i['GoogleAnalyticsObject']=r;i[r]=i[r]||function(){
       (i[r].q=i[r].q||[]).push(arguments)},i[r].l=1*new Date();a=s.createElement(o),
       m=s.getElementsByTagName(o)[0];a.async=1;a.src=g;m.parentNode.insertBefore(a,m)
@@ -41,105 +29,42 @@
       ga('create', 'UA-42897347-1', 'plover.github.io');
       ga('send', 'pageview');
 
-    </script>
+    </script> -->
   </head>
 
   <body>
-    <div class="container" ng-controller="SimpleCtrl">
+    <div id="container" class="containefluid">
 
-        <h1>Plover</h1>
-        <p class="lead">Free and open source real-time stenography</p>
-
-        <!-- Nav tabs -->
-        <ul class="nav nav-tabs" id="os_tab">
-          <li><a href="#windows" data-toggle="tab"><i class="fa fa-windows"></i> Windows</a></li>
-          <li><a href="#osx" data-toggle="tab"><i class="fa fa-apple"></i> OS X</a></li>
-          <li><a href="#linux" data-toggle="tab"><i class="fa fa-linux"></i> Linux</a></li>
-          <li><a href="#source" data-toggle="tab"><i class="fa fa-github"></i> Source Code</a></li>
-        </ul>
-
-        <!-- Tab panes -->
-        <div class="tab-content">
-          <div class="tab-pane" id="windows">
-              <h3>Download</h3>
-              <a class="btn btn-primary" href="https://github.com/openstenoproject/plover/releases/download/{{latest_version}}/plover.exe">Download Plover for Windows<br><small>{{latest_version}}</small></a>
-              <h3>Install</h3>
-              There is no installer. Simply run the downloaded executable each time you want to use Plover.
-          </div>
-          <div class="tab-pane" id="osx">
-              <h3>Download</h3>
-              <a class="btn btn-primary" href="https://github.com/openstenoproject/plover/releases/download/{{latest_version}}/Plover.dmg">Download Plover for OSX<br><small>{{latest_version}}</small></a>
-              <h3>Install</h3>
-              <p>Open the dmg and drag plover to the applications folder to install.</p>
-              <h3>Enable access for assistive devices</h3>
-              <p>Before running the application you will need to enable access for assistive devices. If you do not do this, Plover will not work.</p>
-              <h4>Pre-Mavericks</h4>
-              <ol>
-                <li>Open System Preferences</li>
-                <li>Open "Universal Access"</li>
-                <li>Check the box next to "Enable access for assistive devices"</li>
-              </ol>
-              <h4>Mavericks</h4>
-              <ol>
-                <li>Open System Preferences</li>
-                <li>Click the Security &amp; Privacy icon.</li>
-                <li>Select the Privacy tab.</li>
-                <li>Select Accessibility from the list on the left side of the Privacy pane.</li>
-                <li>Click the lock icon in the lower left corner of the window and enter an admin account and password when prompted.</li>
-                <li>Drag Plover into area on the right.</li>
-              </ol>
-          </div>
-          <div class="tab-pane" id="linux">
-              <h3>Debian/Ubuntu</h3>
-              <p>There is no package yet so an installation requires installing all the dependencies. First you must have python 2.7. Then, run the following commands:</p>
-              <pre>cd
-sudo apt-get install python-xlib python-wxgtk2.8 wmctrl python-dev python-pip
-sudo pip install -U appdirs simplejson pyserial
-wget https://github.com/plover/plover/archive/{{latest_version}}.tar.gz
-tar -zxf {{latest_version}}.tar.gz
-cd plover-{{latest_version | limitTo:(-latest_version.length + 1)}}
-sudo python setup.py install</pre>
-              <p>Once this is done then you should be able to run plover from the applications menu or from the command line with:</p>
-              <pre>/usr/local/bin/plover</pre>
-          </div>
-          
-          <div class="tab-pane" id="source">
-            <a class="btn btn-primary" href="https://github.com/openstenoproject/plover/archive/{{latest_version}}.zip">Download Plover Source (.zip)<br><small>{{latest_version}}</small></a>
-            <a class="btn btn-primary" href="https://github.com/openstenoproject/plover/archive/{{latest_version}}.tar.gz">Download Plover Source (.tar.gz)<br><small>{{latest_version}}</small></a>
-            <a class="btn btn-primary" href="https://github.com/openstenoproject/plover/archive/master.zip">Download Latest Plover Source (.zip)<br><small>Unstable</small></a>
-            <a class="btn btn-primary" href="https://github.com/openstenoproject/plover/archive/master.tar.gz">Download Latest Plover Source (.tar.gz)<br><small>Unstable</small></a>
-            <p>Or visit us on <a href="https://github.com/openstenoproject/plover">GitHub</a>.</p>
-          </div>
-        </div><!-- /.tab-content -->
-        
-        <h3>Running Plover</h3>
-        <p>Starting the application will bring up a small window with a red
-        'P' button. At this point, Plover is inactive. To activate Plover, click
-        the red 'P' button. The 'P' will turn green to indicate that
-        Plover is active and ready to translate stenography keystrokes into
-        English text. Clicking the green button will cause it to turn red, 
-        which means Plover is again in the inactive state.</p>
-        
-        <p>If you run into any problems, seek help at the <a href="http://stenoknight.com/plover/aviary/phpBB3/">Forum</a> or <a href="https://groups.google.com/forum/#!forum/ploversteno">mailing list</a>.</p>
-
-        <h3>Community</h3>
-        <p>Now that you have Plover you might be interested in these community resources.</p>
-        <div class="list-group">
-            <a href="http://stenoknight.com/wiki/Main_Page" class="list-group-item">Plover Wiki</a>
-            <a href="http://plover.stenoknight.com/" class="list-group-item">Plover Blog</a>
-            <a href="http://stenoknight.com/plover/aviary/phpBB3/" class="list-group-item">Plover Aviary (Forum)</a>
-            <a href="https://groups.google.com/forum/#!forum/ploversteno" class="list-group-item">Plover Google Group (mailing list)</a>
+      <div id="topColor"></div>
+      <div id="sectionOne">
+        <div class="ploverTitle">
+          <h1>Plover</h1>
         </div>
+        <div class="ploverLogo">
+          <svg id="PloverIcon" data-name="Plover Icon" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" viewBox="0 0 131.28 151.01"><defs><style>.cls-1{fill:url(#linear-gradient);}.cls-2{fill:#fff;}</style><linearGradient id="linear-gradient" x1="118.57" y1="196.76" x2="118.57" y2="45.75" gradientUnits="userSpaceOnUse"><stop offset="0" stop-color="#305c53"/><stop offset="0.14" stop-color="#3b665d"/><stop offset="0.55" stop-color="#568078"/><stop offset="0.66" stop-color="#5f8981"/><stop offset="0.84" stop-color="#79a099"/><stop offset="1" stop-color="#94bab3"/></linearGradient></defs><title>plover-icon</title><path id="path4923" class="cls-1" d="M57.25,45.75a4,4,0,0,0-4,3.92c-0.27,13.21-.94,56.87,1.09,84.5,2.41,32.92,28.21,62.59,64.25,62.59s61.57-29.5,64.25-62.59c2-24.21,1.32-70.73,1.08-84.49a4,4,0,0,0-4-3.92H57.25Z" transform="translate(-52.92 -45.75)"/><path class="cls-2" d="M114.13,108L110.5,72.17a1.77,1.77,0,0,1,1.8-2h12.42a1.78,1.78,0,0,1,1.8,2L123,108a1.07,1.07,0,0,0,1.63,1.19L158.48,94.4a1.78,1.78,0,0,1,2.45,1.1L164.67,107a1.73,1.73,0,0,1-1.34,2.29l-37.19,7.29a1,1,0,0,0-.62,1.86l24.54,26.93a1.71,1.71,0,0,1-.29,2.62l-10.07,7a1.79,1.79,0,0,1-2.63-.59L119.5,123.52a1,1,0,0,0-2,0l-17.47,30.85a1.78,1.78,0,0,1-2.62.59l-10.07-7a1.71,1.71,0,0,1-.29-2.63l24.44-26.92a1,1,0,0,0-.62-1.87L73.8,109.24A1.74,1.74,0,0,1,72.45,107L76.1,95.5a1.77,1.77,0,0,1,2.44-1.11l33.95,14.82A1.07,1.07,0,0,0,114.13,108Z" transform="translate(-52.92 -45.75)"/></svg>
+        </div>
+      </div>
+
+      <div id="sectionTwo" class="panel panel-default">
+        <div class="textBlock panel-body">
+          <p>
+            Plover (rhymes with "hover") is a free, open source stenography engine. It allows individuals to write into any program at speeds of over 200 words per minute.
+          </p>
+          <p style="text-align: center;padding: 1em 0;">
+            Plover runs on Windows, Mac OSX, and Linux.
+          </p>
+        </div>
+        <div class="ploverBtns">
+          <div class="colOne">
+            <a href="https://github.com/openstenoproject/plover/releases/latest" class="btn btn-primary">Latest Releases</a>
+          </div>
+          <div class="colTwo">
+            <a href="https://github.com/openstenoproject/plover/wiki" class="btn btn-primary">Wiki</a>
+          </div>
+        </div>
+      </div>
 
     </div><!-- /.container -->
 
-
-    <!-- Bootstrap core JavaScript
-    ================================================== -->
-    <!-- Placed at the end of the document so the pages load faster -->
-    <script src="//ajax.googleapis.com/ajax/libs/jquery/1.10.2/jquery.min.js"></script>
-    <script src="//netdna.bootstrapcdn.com/bootstrap/3.0.2/js/bootstrap.min.js"></script>
-    <script src="javascript/main.js"></script>
-    <script src="https://ajax.googleapis.com/ajax/libs/angularjs/1.2.0/angular.min.js"></script>
   </body>
 </html>

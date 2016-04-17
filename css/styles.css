@@ -1,0 +1,62 @@
+@import url(https://fonts.googleapis.com/css?family=Josefin+Sans);
+
+html, body {
+  height: 100%;
+  font-size: 1.1em;
+}
+#container {
+  background-color: #eee;
+  min-height: 100%;
+}
+#topColor {
+  background-color: #568078;
+    height: 300px;
+    margin-bottom: -280px;
+}
+
+.ploverTitle {
+  padding: 1% 0;
+}
+h1 {
+  margin: 0;
+  text-align: center;
+  color: #fff;
+  font-size: 4em;
+  font-family: 'Franklin Gothic Book', sans-serif;
+}
+
+.ploverLogo {
+  width: 200px;
+  margin: 0 auto -120px;
+}
+.ploverLogo > svg {
+  width: 100%;
+}
+
+#sectionTwo {
+  background-color: #fff;
+  width: 95%;
+  margin: 0 auto 0.5em;
+  padding-top: 140px;
+  padding-bottom: 2em;
+}
+
+.textBlock {
+  text-align: left;
+  width: 80%;
+  margin: 0 auto;
+}
+
+.ploverBtns {
+  margin: 0 auto;
+  text-align: center;
+}
+.colOne, .colTwo {
+  display: inline-block;
+  text-align: center;
+}
+.ploverBtns .btn {
+  font-size: 1em;
+  padding: 1em;
+  margin: 1em;
+}
