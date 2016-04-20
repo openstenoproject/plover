@@ -17,7 +17,9 @@ import collections
 import ctypes
 import functools
 import multiprocessing
+import os
 import threading
+import time
 import types
 import _winreg as winreg
 
@@ -321,6 +323,57 @@ class WindowsKeyboardLayout:
             )
         )
 
+def pid_exists(pid):
+    """Check whether pid exists in the current process table."""
+    # Code based on psutil implementation.
+    kernel32 = ctypes.windll.kernel32
+
+    PROCESS_QUERY_INFORMATION = 0x0400
+    PROCESS_VM_READ = 0x0010
+    ERROR_INVALID_PARAMETER = 87
+    ERROR_ACCESS_DENIED = 5
+    STILL_ACTIVE = 0x00000103
+
+    process = kernel32.OpenProcess(PROCESS_QUERY_INFORMATION | PROCESS_VM_READ, 0, pid)
+    if not process:
+        err = kernel32.GetLastError()
+        if err == ERROR_INVALID_PARAMETER:
+            # Invalid parameter is no such process.
+            return False
+        if err == ERROR_ACCESS_DENIED:
+            # Access denied obviously means there's a process to deny access to...
+            return True
+        raise WindowsError(err, '')
+
+    try:
+        exitcode = DWORD()
+        out = kernel32.GetExitCodeProcess(process, ctypes.byref(exitcode))
+        if not out:
+            err = kernel32.GetLastError()
+            if err == ERROR_ACCESS_DENIED:
+                # Access denied means there's a process
+                # there so we'll assume it's running.
+                return True
+            raise WindowsError(err, '')
+
+        return exitcode.value == STILL_ACTIVE
+
+    finally:
+        kernel32.CloseHandle(process)
+
+
+class HeartBeat(threading.Thread):
+
+    def __init__(self, ppid, atexit):
+        super(HeartBeat, self).__init__()
+        self._ppid = ppid
+        self._atexit = atexit
+
+    def run(self):
+        while pid_exists(self._ppid):
+            time.sleep(1)
+        self._atexit()
+
 
 class KeyboardCaptureProcess(multiprocessing.Process):
 
@@ -331,12 +384,14 @@ class KeyboardCaptureProcess(multiprocessing.Process):
     PASSTHROUGH_KEYS = CONTROL_KEYS | SHIFT_KEYS | ALT_KEYS | WIN_KEYS
 
     def __init__(self):
+        super(KeyboardCaptureProcess, self).__init__()
+        self.daemon = True
+        self._ppid = os.getpid()
         self._update_registry()
         self._tid = None
         self._queue = multiprocessing.Queue()
         self._suppressed_keys_bitmask = multiprocessing.Array(ctypes.c_uint64, (max(SCANCODE_TO_KEY.keys()) + 63) // 64)
         self._suppressed_keys_bitmask[:] = (0xffffffffffffffff,) * len(self._suppressed_keys_bitmask)
-        super(KeyboardCaptureProcess, self).__init__()
 
     @staticmethod
     def _update_registry():
@@ -384,6 +439,9 @@ class KeyboardCaptureProcess(multiprocessing.Process):
 
     def run(self):
 
+        heartbeat = HeartBeat(self._ppid, self.stop)
+        heartbeat.start()
+
         import pyHook
         import signal
         import pythoncom
@@ -391,7 +449,9 @@ class KeyboardCaptureProcess(multiprocessing.Process):
         # Ignore KeyboardInterrupt when attached to a console...
         signal.signal(signal.SIGINT, signal.SIG_IGN)
 
-        self._queue.put(win32api.GetCurrentThreadId())
+        self._tid = win32api.GetCurrentThreadId()
+        self._queue.put(self._tid)
+
         down_keys = set()
         passthrough_down_keys = set()
 
