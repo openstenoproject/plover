@@ -95,7 +95,7 @@ class Formatter(object):
         rendered translations. If there is no context then this may be None.
 
         """
-        prev_formatting = prev.formatting if prev else []
+        prev_formatting = prev.formatting if prev else None
 
         for t in do:
             last_action = self._get_last_action(prev.formatting if prev else None)
@@ -110,20 +110,10 @@ class Formatter(object):
         old = [a for t in undo for a in t.formatting]
         new = [a for t in do for a in t.formatting]
 
-        min_length = min(len(old), len(new))
-        for i in xrange(min_length):
-            if old[i] != new[i]:
-                break
-        else:
-            i = min_length
-
         for callback in self._listeners:
             callback(old, new)
 
-        if i > 0:
-            prev_formatting = prev_formatting + old[:i]
-
-        OutputHelper(self._output, prev_formatting).render(old[i:], new[i:])
+        OutputHelper(self._output, prev_formatting).render(old, new)
 
     def _get_last_action(self, actions):
         """Return last action in actions if possible or return a default action."""
@@ -139,13 +129,13 @@ class OutputHelper(object):
     optimizes away extra backspaces and typing.
 
     """
-    def __init__(self, output, initial_state=None):
-        if initial_state is None:
-            self.before = ''
-            self.after = ''
+    def __init__(self, output, initial_formatting=None):
+        if initial_formatting is None:
+            self.initial_formatting = []
         else:
-            self.before = self._actions_to_text(initial_state)
-            self.after = self.before[:]
+            self.initial_formatting = initial_formatting
+        self.before = None
+        self.after = None
         self.output = output
 
     def commit(self):
@@ -173,6 +163,24 @@ class OutputHelper(object):
         return text
 
     def render(self, undo, do):
+
+        initial_text = self._actions_to_text(self.initial_formatting)
+
+        min_length = min(len(undo), len(do))
+        for i in range(min_length):
+            if undo[i] != do[i]:
+                break
+        else:
+            i = min_length
+
+        if i > 0:
+            initial_text = self._actions_to_text(undo[:i], initial_text)
+            undo = undo[i:]
+            do = do[i:]
+
+        self.before = initial_text
+        self.after = initial_text[:]
+
         self.before = self._actions_to_text(undo, self.before)
 
         for a in do:
