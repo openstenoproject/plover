@@ -95,7 +95,7 @@ class Formatter(object):
         rendered translations. If there is no context then this may be None.
 
         """
-        prev_formatting = prev.formatting if prev else None
+        prev_formatting = prev.formatting if prev else []
 
         for t in do:
             last_action = self._get_last_action(prev.formatting if prev else None)
@@ -110,10 +110,20 @@ class Formatter(object):
         old = [a for t in undo for a in t.formatting]
         new = [a for t in do for a in t.formatting]
 
+        min_length = min(len(old), len(new))
+        for i in xrange(min_length):
+            if old[i] != new[i]:
+                break
+        else:
+            i = min_length
+
         for callback in self._listeners:
             callback(old, new)
 
-        OutputHelper(self._output, prev_formatting).render(old, new)
+        if i > 0:
+            prev_formatting = prev_formatting + old[:i]
+
+        OutputHelper(self._output, prev_formatting).render(old[i:], new[i:])
 
     def _get_last_action(self, actions):
         """Return last action in actions if possible or return a default action."""

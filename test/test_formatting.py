@@ -1125,5 +1125,36 @@ class FormatterTestCase(unittest.TestCase):
                 prev = t
             self.assertEqual(output.instructions, expected_instructions)
 
+    def test_output_optimisation(self):
+        for undo, do, expected_instructions in (
+            # No change.
+            ([
+                translation(english='noop'),
+            ], [
+                translation(english='noop'),
+
+            ], [('s', ' noop')]),
+            # Append only.
+            ([
+                translation(english='test'),
+            ], [
+                translation(english='testing'),
+
+            ], [('s', ' test'), ('s', 'ing')]),
+            # Chained meta-commands.
+            ([
+                translation(english='{#a}'),
+            ], [
+                translation(english='{#a}{#b}'),
+
+            ], [('c', 'a'), ('c', 'b')]),
+        ):
+            output = CaptureOutput()
+            formatter = formatting.Formatter()
+            formatter.set_output(output)
+            formatter.format([], undo, None)
+            formatter.format(undo, do, None)
+            self.assertEqual(output.instructions, expected_instructions)
+
 if __name__ == '__main__':
     unittest.main()
