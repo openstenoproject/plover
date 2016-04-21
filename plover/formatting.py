@@ -164,8 +164,7 @@ class OutputHelper(object):
         self.after = ''
 
     @staticmethod
-    def _actions_to_text(action_list):
-        text = u''
+    def _actions_to_text(action_list, text=u''):
         for a in action_list:
             if a.replace and text.endswith(a.replace):
                 text = text[:-len(a.replace)]
@@ -174,7 +173,7 @@ class OutputHelper(object):
         return text
 
     def render(self, undo, do):
-        self.before += self._actions_to_text(undo)
+        self.before = self._actions_to_text(undo, self.before)
 
         for a in do:
             if a.replace and self.after.endswith(a.replace):

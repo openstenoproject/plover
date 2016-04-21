@@ -1099,21 +1099,21 @@ class FormatterTestCase(unittest.TestCase):
                 translation(english='foobar'),
                 translation(english='{^}{#Return}{^}{-|}'),
 
-            ], [('s', u'foobar'), ('c', 'Return')]),
+            ], [('s', 'foobar'), ('c', 'Return')]),
             # Check 'replace' correctly takes into account
             # the previous translation.
             ([
                 translation(english='test '),
                 translation(english='{^,}'),
 
-            ], [('s', 'test '), ('b', 1), ('s', u', ')]),
+            ], [('s', 'test '), ('b', 1), ('s', ', ')]),
             # While the previous translation must be taken into account,
             # any meta-command must not be fired again.
             ([
                 translation(english='{#Return}'),
                 translation(english='test'),
 
-            ], [('c', 'Return'), ('s', u'test ')]),
+            ], [('c', 'Return'), ('s', 'test ')]),
         ):
             output = CaptureOutput()
             formatter = formatting.Formatter()
@@ -1124,6 +1124,22 @@ class FormatterTestCase(unittest.TestCase):
                 formatter.format([], [t], prev)
                 prev = t
             self.assertEqual(output.instructions, expected_instructions)
+
+    def test_undo_replace(self):
+            # Undoing a replace....
+            output = CaptureOutput()
+            formatter = formatting.Formatter()
+            formatter.set_output(output)
+            formatter.set_space_placement('After Output')
+            prev = translation(english='test')
+            formatter.format([], [prev], None)
+            undo = translation(english='{^,}')
+            formatter.format([], [undo], prev)
+            # Undo.
+            formatter.format([undo], [], prev)
+            self.assertEqual(output.instructions, [
+                ('s', 'test '), ('b', 1), ('s', ', '), ('b', 2), ('s', ' '),
+            ])
 
     def test_output_optimisation(self):
         for undo, do, expected_instructions in (
