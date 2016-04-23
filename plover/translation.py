@@ -16,10 +16,13 @@ emits one or more Translation objects based on a greedy conversion algorithm.
 
 """
 
-from plover.steno import Stroke
-from plover.steno_dictionary import StenoDictionaryCollection
 import itertools
 import sys
+
+from plover.steno import Stroke
+from plover.steno_dictionary import StenoDictionaryCollection
+from plover import system
+
 
 class Translation(object):
     """A data model for the mapping between a sequence of Strokes and a string.
@@ -311,10 +314,10 @@ class Translator(object):
 
         if mapping is not None:  # Could be the empty string.
             return Translation([stroke], mapping)
-        t = self._find_translation_helper(translations, stroke, SUFFIX_KEYS)
+        t = self._find_translation_helper(translations, stroke, system.SUFFIX_KEYS)
         if t:
             return t
-        return Translation([stroke], self._lookup([stroke], SUFFIX_KEYS))
+        return Translation([stroke], self._lookup([stroke], system.SUFFIX_KEYS))
 
     def _find_translation_helper(self, translations, stroke, suffixes=()):
         # The new stroke can either create a new translation or replace
@@ -387,8 +390,6 @@ class _State(object):
             self.tail = self.translations[translation_index - 1]
         del self.translations[:translation_index]
 
-
-SUFFIX_KEYS = ['-S', '-G', '-Z', '-D']
 
 def _back_string():
     # Provides the correct translation to undo a word
