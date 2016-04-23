@@ -95,6 +95,8 @@ class Formatter(object):
         rendered translations. If there is no context then this may be None.
 
         """
+        prev_formatting = prev.formatting if prev else None
+
         for t in do:
             last_action = self._get_last_action(prev.formatting if prev else None)
             if t.english:
@@ -108,17 +110,10 @@ class Formatter(object):
         old = [a for t in undo for a in t.formatting]
         new = [a for t in do for a in t.formatting]
 
-        min_length = min(len(old), len(new))
-        for i in xrange(min_length):
-            if old[i] != new[i]:
-                break
-        else:
-            i = min_length
-
         for callback in self._listeners:
             callback(old, new)
 
-        OutputHelper(self._output).render(old[i:], new[i:])
+        OutputHelper(self._output, prev_formatting).render(old, new)
 
     def _get_last_action(self, actions):
         """Return last action in actions if possible or return a default action."""
@@ -134,9 +129,13 @@ class OutputHelper(object):
     optimizes away extra backspaces and typing.
 
     """
-    def __init__(self, output):
-        self.before = ''
-        self.after = ''
+    def __init__(self, output, initial_formatting=None):
+        if initial_formatting is None:
+            self.initial_formatting = []
+        else:
+            self.initial_formatting = initial_formatting
+        self.before = None
+        self.after = None
         self.output = output
 
     def commit(self):
@@ -154,32 +153,39 @@ class OutputHelper(object):
         self.before = ''
         self.after = ''
 
+    @staticmethod
+    def _actions_to_text(action_list, text=u''):
+        for a in action_list:
+            if a.replace and text.endswith(a.replace):
+                text = text[:-len(a.replace)]
+            if a.text:
+                text += a.text
+        return text
+
     def render(self, undo, do):
-        for a in undo:
-            if a.replace:
-                if len(a.replace) >= len(self.before):
-                    self.before = ''
-                else:
-                    self.before = self.before[:-len(a.replace)]
-            if a.text:
-                self.before += a.text
 
-        self.after = self.before
+        initial_text = self._actions_to_text(self.initial_formatting)
 
-        for a in reversed(undo):
-            if a.text:
-                self.after = self.after[:-len(a.text)]
-            if a.replace:
-                self.after += a.replace
+        min_length = min(len(undo), len(do))
+        for i in range(min_length):
+            if undo[i] != do[i]:
+                break
+        else:
+            i = min_length
+
+        if i > 0:
+            initial_text = self._actions_to_text(undo[:i], initial_text)
+            undo = undo[i:]
+            do = do[i:]
+
+        self.before = initial_text
+        self.after = initial_text[:]
+
+        self.before = self._actions_to_text(undo, self.before)
 
         for a in do:
-            if a.replace:
-                if len(a.replace) > len(self.after):
-                    self.before = a.replace[
-                        :len(a.replace)-len(self.after)] + self.before
-                    self.after = ''
-                else:
-                    self.after = self.after[:-len(a.replace)]
+            if a.replace and self.after.endswith(a.replace):
+                self.after = self.after[:-len(a.replace)]
             if a.text:
                 self.after += a.text
             if a.combo:
