@@ -41,6 +41,9 @@ def translation(**kwargs):
 
 class FormatterTestCase(unittest.TestCase):
 
+    longMessage = True
+    maxDiff = None
+
     def check(self, f, cases):
         for input, output in cases:
             self.assertEqual(f(input), output)
@@ -48,9 +51,10 @@ class FormatterTestCase(unittest.TestCase):
     def check_arglist(self, f, cases):
         for inputs, expected in cases:
             actual = f(*inputs)
-            if actual != expected:
-                print actual, '!=', expected, 'for', inputs
-            self.assertEqual(actual, expected)
+            msg = '\n\nCode:\n%s(%s)' % (
+                f.__name__, (',\n ' + ' ' * len(f.__name__)).join(repr(a) for a in inputs),
+            )
+            self.assertEqual(actual, expected, msg=msg)
 
     def test_starting_stroke(self):
         # Args: (Capitalized, Attached, Undo, Current, Prev Formatter)
