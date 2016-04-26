@@ -71,6 +71,9 @@ def steno_to_stroke(steno):
 steno_to_stroke.system = None
 
 
+BLACKBOX_OUTPUT_RX = re.compile("r?['\"]")
+
+
 def blackbox_setup(blackbox):
     blackbox.output = CaptureOutput()
     blackbox.formatter = Formatter()
@@ -117,7 +120,7 @@ def blackbox_replay(blackbox, name, test):
             '\n'.join(('> ' if n == lnum else '  ') + l
                       for n, l in enumerate(lines)) + '\n'
         )
-        if output.startswith("'") or output.startswith('"'):
+        if BLACKBOX_OUTPUT_RX.match(output):
             # Replay strokes.
             list(map(blackbox.translator.translate, steno))
             # Check output.

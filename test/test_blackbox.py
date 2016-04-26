@@ -1646,3 +1646,91 @@ class TestsBlackbox:
         system.setup('Melani', system_mod=Melani, system_dict=system_dict)
         for k, v in system_dict.items():
             monkeypatch.setattr(system, k, v)
+
+    def test_conditionals_1(self):
+        r'''
+        "*": "=undo",
+        "S-": "{=(?i)t/true/false}",
+        "TP-": "FALSE",
+        "T-": "TRUE",
+
+        S-   ' false'
+        TP-  ' false FALSE'
+        *    ' false'
+        T-   ' true TRUE'
+        *    ' false'
+        S-   ' false false'
+        TP-  ' false false FALSE'
+        *    ' false false'
+        T-   ' true true TRUE'
+        '''
+
+    def test_conditionals_2(self):
+        r'''
+        "1": "{=(?i)([8aeiouxy]|11|dei|gn|ps|s[bcdfglmnpqrtv]|z)/agli/ai}",
+        "2": "oc{^}chi",
+        "3": "dei",
+        "4": "sti{^}vali",
+
+        1  ' ai'
+        2  ' agli occhi'
+        1  ' agli occhi ai'
+        3  ' agli occhi agli dei'
+        1  ' agli occhi agli dei ai'
+        4  ' agli occhi agli dei agli stivali'
+        '''
+
+    def test_conditionals_3(self):
+        r'''
+        "1": "{:if_next_matches:(?i)([8aeiouxy]|11|dei|gn|ps|s[bcdfglmnpqrtv]|z)/agli/ai}",
+        "2": "chi",
+        "3": "oc{^}chi",
+        "4": "dei",
+        "5": "sti{^}vali",
+
+        :spaces_after
+        2  'chi '
+        1  'chi ai '
+        3  'chi agli occhi '
+        1  'chi agli occhi ai '
+        4  'chi agli occhi agli dei '
+        1  'chi agli occhi agli dei ai '
+        5  'chi agli occhi agli dei agli stivali '
+        '''
+
+    def test_conditionals_4(self):
+        r'''
+        "1": "{=(?i)([8aeiouxy]|11|dei|gn|ps|s[bcdfglmnpqrtv]|z)/agli/ai}",
+        "2": "{=(?i)([8aeiouxy]|11|dei|gn|ps|s[bcdfglmnpqrtv]|z)/cogli/coi}",
+        "3": "ci",
+
+        1/2/1/3  ' ai cogli ai ci'
+        '''
+
+    def test_conditionals_5(self):
+        r'''
+        "1": "{=(?i)([8aeiouxy]|11|dei|gn|ps|s[bcdfglmnpqrtv]|z)/agli/ai}",
+        "2": "{=(?i)([8aeiouxy]|11|dei|gn|ps|s[bcdfglmnpqrtv]|z)/cogli/coi}",
+        "3": "ci",
+
+        :spaces_after
+        1/2/1/3  'ai cogli ai ci '
+        '''
+
+    def test_conditionals_6(self):
+        r'''
+        "*": "=undo",
+        "S-": r'{=(?i)tr\/ue/tr\/ue/fa\\lse}',
+        "TP-": r'FA\LSE',
+        "T-": 'TR/UE',
+
+        S-   r' fa\lse'
+        TP-  r' fa\lse FA\LSE'
+        *    r' fa\lse'
+        T-   r' tr/ue TR/UE'
+        *    r' fa\lse'
+        S-   r' fa\lse fa\lse'
+        TP-  r' fa\lse fa\lse FA\LSE'
+        *    r' fa\lse fa\lse'
+        T-   r' tr/ue tr/ue TR/UE'
+        '''
