@@ -9,7 +9,7 @@ import unittest
 import tempfile
 from contextlib import contextmanager
 
-from plover.dictionary.json_dict import load_dictionary
+from plover.dictionary.json_dict import load_dictionary, save_dictionary
 from plover.dictionary.base import DictionaryLoaderException
 
 
@@ -52,3 +52,25 @@ class JsonDictionaryTestCase(unittest.TestCase):
         ):
             with make_dict(contents) as filename:
                 self.assertRaises(exception, load_dictionary, filename)
+
+    def test_save_dictionary(self):
+        for contents, expected in (
+            # Simple test.
+            ({('S', ): 'a'},
+             b'{\n"S": "a"\n}'),
+            # Check strokes format: '/' separated.
+            ({('SAPL', '-PL'): u'sample'},
+             b'{\n"SAPL/-PL": "sample"\n}'),
+            # Non-ASCII characters are escaped.
+            ({('S', ): u'café'},
+             b'{\n"S": "caf\\u00e9"\n}'),
+            # Keys are sorted on save.
+            ({('B', ): u'bravo', ('A', ): u'alpha', ('C', ): u'charlie'},
+             b'{\n"A": "alpha",\n"B": "bravo",\n"C": "charlie"\n}'),
+        ):
+            with make_dict('foo') as filename:
+                with open(filename, 'wb') as fp:
+                    save_dictionary(contents, fp)
+                with open(filename, 'rb') as fp:
+                    contents = fp.read()
+                self.assertEqual(contents, expected)

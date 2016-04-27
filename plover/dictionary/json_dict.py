@@ -34,7 +34,6 @@ def load_dictionary(filename):
                            for x in dict(d).iteritems())
 
 
-# TODO: test this
 def save_dictionary(d, fp):
     d = dict(('/'.join(k), v) for k, v in d.iteritems())
     json.dump(d, fp, sort_keys=True, indent=0, separators=(',', ': '))
