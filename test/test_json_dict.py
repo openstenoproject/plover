@@ -57,20 +57,20 @@ class JsonDictionaryTestCase(unittest.TestCase):
         for contents, expected in (
             # Simple test.
             ({('S', ): 'a'},
-             b'{\n"S": "a"\n}'),
+             u'{\n"S": "a"\n}'),
             # Check strokes format: '/' separated.
             ({('SAPL', '-PL'): u'sample'},
-             b'{\n"SAPL/-PL": "sample"\n}'),
-            # Non-ASCII characters are escaped.
+             u'{\n"SAPL/-PL": "sample"\n}'),
+            # Contents should be saved as UTF-8, no escaping.
             ({('S', ): u'café'},
-             b'{\n"S": "caf\\u00e9"\n}'),
+             u'{\n"S": "café"\n}'),
             # Keys are sorted on save.
             ({('B', ): u'bravo', ('A', ): u'alpha', ('C', ): u'charlie'},
-             b'{\n"A": "alpha",\n"B": "bravo",\n"C": "charlie"\n}'),
+             u'{\n"A": "alpha",\n"B": "bravo",\n"C": "charlie"\n}'),
         ):
             with make_dict('foo') as filename:
                 with open(filename, 'wb') as fp:
                     save_dictionary(contents, fp)
                 with open(filename, 'rb') as fp:
-                    contents = fp.read()
+                    contents = fp.read().decode('utf-8')
                 self.assertEqual(contents, expected)
