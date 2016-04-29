@@ -131,7 +131,7 @@ class WineEnvironment(Environment):
         if not os.path.exists(self._prefix):
             info('intializing Wine prefix')
             for cmd in (
-                'wineboot --init',
+                'env DISPLAY= wineboot --init',
                 'winetricks --no-isolate --unattended corefonts vcrun2008',
             ):
                 self.run(cmd.split())
