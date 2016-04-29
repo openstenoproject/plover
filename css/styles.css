@@ -1,0 +1,122 @@
+@import url(https://fonts.googleapis.com/css?family=Patua+One);
+@import url(https://fonts.googleapis.com/css?family=Cutive+Mono);
+
+html, body {
+  height: 100%;
+  background-color: #182C28;
+  font-size: 1.1em;
+}
+#container {
+  background-color: #182C28;
+  min-height: 100%;
+}
+
+p {
+  text-indent: 1.5em;
+}
+
+h2 {
+  font-family: 'Cutive Mono', monospaced;
+  font-weight: bold;
+  border-bottom: 1px solid #eee;
+  font-size: 190%;
+  margin-top: 1em;
+  margin-bottom: 0.5em;
+}
+
+#opening-text {
+  text-align: center;
+  margin: 0 auto;
+  font-size: 110%;
+}
+.ploverTitle {
+  text-align: center;
+}
+.ploverTitle h1 {
+  display: inline-block;
+  margin: 0;
+  padding: 1% 5%;
+  margin: 0;
+  text-align: center;
+  font-size: 4.5em;
+  font-family: 'Patua One', sans-serif;
+}
+
+hr {
+  width: 80%;
+  margin: 0 auto;
+  border-color: #182C28;
+}
+
+.ploverLogo {
+  width: 30%;
+  max-width: 180px;
+  margin: 0 auto -100px;
+}
+#PloverIcon {
+  margin-top: 1em;
+}
+.ploverLogo > svg {
+  width: 100%;
+}
+
+#sectionTwo {
+  background-color: #fff;
+  width: 95%;
+  max-width: 60em;
+  margin: 0 auto 0.5em;
+  padding-top: 80px;
+  padding-bottom: 2em;
+}
+
+#sectionTwo .panel-body {
+  padding: 1em 2.5em;
+}
+@media(max-width: 500px) {
+    #sectionTwo .panel-body {
+    padding: 10px;
+  }
+}
+
+.textBlock {
+  text-align: left;
+  width: 80%;
+  margin: 0 auto;
+}
+
+.ploverBtns {
+  margin: 0 auto;
+  margin-top: 1.5em;
+  text-align: center;
+}
+.colOne, .colTwo {
+  display: inline-block;
+  text-align: center;
+}
+.ploverBtns .btn {
+  text-size: 130%;
+}
+
+/** Links */
+a:hover {
+    text-decoration: underline;
+    color: #bf9000;
+}
+a:visited {
+    text-decoration: none;
+    color: #c3823a;
+}
+a:link {
+    text-decoration: none;
+    color: #c3823a;
+}
+
+/* Bootstrap overrides */
+.btn-success, .btn.btn-success, .btn.btn-success:visited { color: white; background-color: #568078; border-color: #2d433f; }
+
+.btn-success:focus, .btn.btn-success:focus { color: white; background-color: #42615b; border-color: #192422; }
+
+.btn-success:hover, .btn.btn-success:hover { color: white; background-color: #42615b; border-color: #192422; }
+
+a.btn.btn-success:active, .btn-success:active { color: white; background-color: #2d433f !important; border-color: #040606 !important; }
+
