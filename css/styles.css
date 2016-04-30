@@ -32,12 +32,13 @@ h2 {
 .ploverTitle {
   text-align: center;
 }
-
+.ploverTitle .btn {
+    color: #182C28;
+  }
 @media(min-width: 700px) {
   .ploverTitle .btn {
     width: 10em;
     padding: 0.25em;
-    color: #182C28;
   }
 }
 .ploverTitle h1 {
