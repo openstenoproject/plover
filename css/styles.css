@@ -32,8 +32,15 @@ h2 {
 .ploverTitle {
   text-align: center;
 }
+
+@media(min-width: 700px) {
+  .ploverTitle .btn {
+    width: 10em;
+    padding: 0.25em;
+    color: #182C28;
+  }
+}
 .ploverTitle h1 {
-  display: inline-block;
   margin: 0;
   padding: 1% 5%;
   margin: 0;
@@ -59,6 +66,9 @@ hr {
 .ploverLogo > svg {
   width: 100%;
 }
+.plover-nav {
+  margin: 0 auto;
+}
 
 #sectionTwo {
   background-color: #fff;
@@ -72,9 +82,12 @@ hr {
 #sectionTwo .panel-body {
   padding: 1em 2.5em;
 }
-@media(max-width: 500px) {
-    #sectionTwo .panel-body {
+@media(max-width: 600px) {
+  #sectionTwo .panel-body {
     padding: 10px;
+  }
+  hr {
+    width: 100%;
   }
 }
 
