@@ -17,11 +17,13 @@ All dependencies can be installed with pacman:
 
 ### Ubuntu
 
-Most dependencies can be installed with APT:
+The latest stable release should be installable by the using the following PPA: [ppa:benoit.pierre/plover](https://launchpad.net/~benoit.pierre/+archive/ubuntu/plover).
+
+For the development version, most dependencies can be installed with APT:
 
 `sudo apt-get install cython libusb-1.0-0-dev libudev-dev python-appdirs python-mock python-pip python-pytest python-serial python-setuptools python-wxgtk3.0 python-xlib wmctrl`
 
-Note: `python-wxgtk3.0` is only available starting with Ubuntu 15.10 (Wily Werewolf). It can be installed on older versions, like Ubuntu 14.04 LTS (Trusty Tahr), by using the following PPA: `ppa:adamwolf/kicad-trusty-backports`.
+Note: `python-wxgtk3.0` is only available starting with Ubuntu 15.10 (Wily Werewolf). It can be installed on older versions, like Ubuntu 14.04 LTS (Trusty Tahr), by using the aforementioned PPA: [ppa:benoit.pierre/plover](https://launchpad.net/~benoit.pierre/+archive/ubuntu/plover).
 
 For the missing dependencies, follow the generic procedure.
 

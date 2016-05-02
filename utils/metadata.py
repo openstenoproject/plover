@@ -23,7 +23,13 @@ def get_metadata(distribution):
     if metadata is None:
         metadata = '%s/%s' % (distribution.location, egg_info)
         if not os.path.exists(metadata):
-            return None
+            metadata = '%s/%s-%s.egg-info' % (
+                distribution.location,
+                pkg_resources.to_filename(distribution.project_name),
+                pkg_resources.to_filename(distribution.version),
+            )
+            if not os.path.exists(metadata):
+                return None
     return (metadata, egg_info)
 
 def collect_metadata(distribution):
