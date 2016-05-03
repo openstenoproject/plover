@@ -107,6 +107,7 @@ class DictionaryEditorStore():
         return self.sorting_mode
 
     def ApplyFilter(self, stroke_filter, translation_filter):
+        stroke_filter = '/'.join(normalize_steno(stroke_filter))
         self.filtered_keys = []
         self.sorted_keys = []
         for di in self.added_items:
