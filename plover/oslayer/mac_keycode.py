@@ -160,6 +160,10 @@ def parselayout(buf, ktype):
             mapping.setdefault(ch, ((dj, dmod), (j, mod)))
             revmapping[(dj, dmod), (j, mod)] = ch
 
+    mapping[u'\n'] = (36, 0)
+    mapping[u'\r'] = (36, 0)
+    mapping[u'\t'] = (48, 0)
+
     return mapping, revmapping, modmapping
 
 def getlayout():
