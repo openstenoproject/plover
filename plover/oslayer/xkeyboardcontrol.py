@@ -1062,6 +1062,10 @@ def uchr_to_keysym(char):
     # Latin-1 characters: direct, 1:1 mapping.
     if is_latin1(code):
         return code
+    if 0x09 == code:
+        return XK.XK_Tab
+    if 0x0a == code or 0x0d == code:
+        return XK.XK_Return
     return UCS_TO_KEYSYM.get(code, code | 0x01000000)
 
 def keysym_to_string(keysym):
