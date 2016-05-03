@@ -307,7 +307,7 @@ def write_requirements(extra_features=()):
 
 if __name__ == '__main__':
 
-    if sys.argv[1] == 'write_requirements':
+    if len(sys.argv) > 1 and sys.argv[1] == 'write_requirements':
         write_requirements(extra_features=sys.argv[2:])
         sys.exit(0)
 
