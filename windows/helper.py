@@ -23,16 +23,6 @@ sys.path.insert(0, TOP_DIR)
 os.chdir(TOP_DIR)
 
 
-from plover import (
-    __name__ as __software_name__,
-    __version__,
-)
-
-APPNAME = __software_name__.capitalize()
-VERSION = __version__
-ICON = os.path.join(TOP_DIR, __software_name__, 'assets', '%s.ico' % __software_name__)
-
-
 if sys.stdout.isatty() and not sys.platform.startswith('win32'):
 
     def info(fmt, *args):
