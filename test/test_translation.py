@@ -8,6 +8,7 @@ import copy
 from mock import patch
 from plover.steno_dictionary import StenoDictionary, StenoDictionaryCollection
 from plover.translation import Translation, Translator, _State
+from plover.translation import escape_translation, unescape_translation
 import unittest
 import sys
 from plover.steno import Stroke, normalize_steno
@@ -702,6 +703,36 @@ class TranslateStrokeTestCase(unittest.TestCase):
         state = self.lt('THA THA')
         self.assertTranslations(state)
         self.assertOutput(undo, do, do[0])
+
+
+class TranslationEscapeTest(unittest.TestCase):
+
+    def test_escape_unescape_translation(self):
+        for raw, escaped in (
+            # No change.
+            ('foobar', 'foobar'),
+            (r'\\', r'\\'),
+            ('\\\\\\', '\\\\\\'), # -> \\\
+            # Basic support: \n, \r, \t.
+            ('\n', r'\n'),
+            ('\r', r'\r'),
+            ('\t', r'\t'),
+            # Allow a literal \n, \r, or \t by doubling the \.
+            (r'\n', r'\\n'),
+            (r'\r', r'\\r'),
+            (r'\t', r'\\t'),
+            (r'\\n', r'\\\n'),
+            (r'\\r', r'\\\r'),
+            (r'\\t', r'\\\t'),
+            # A little more complex.
+            ('\tfoo\nbar\r', r'\tfoo\nbar\r'),
+            ('\\tfoo\\nbar\\r', r'\\tfoo\\nbar\\r'),
+        ):
+            result = unescape_translation(escaped)
+            self.assertEqual(result, raw, msg='unescape_translation(%r)=%r != %r' % (escaped, result, raw))
+            result = escape_translation(raw)
+            self.assertEqual(result, escaped, msg='escape_translation(%r)=%r != %r' % (raw, result, escaped))
+
 
 if __name__ == '__main__':
     unittest.main()

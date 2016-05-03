@@ -18,10 +18,38 @@ emits one or more Translation objects based on a greedy conversion algorithm.
 
 import itertools
 import sys
+import re
 
 from plover.steno import Stroke
 from plover.steno_dictionary import StenoDictionaryCollection
 from plover import system
+
+
+_ESCAPE_RX = re.compile('(\\\\[nrt]|[\n\r\t])')
+_ESCAPE_REPLACEMENTS = {
+    '\n': r'\n',
+    '\r': r'\r',
+    '\t': r'\t',
+    r'\n': r'\\n',
+    r'\r': r'\\r',
+    r'\t': r'\\t',
+}
+
+def escape_translation(translation):
+    return _ESCAPE_RX.sub(lambda m: _ESCAPE_REPLACEMENTS[m.group(0)], translation)
+
+_UNESCAPE_RX = re.compile(r'((?<!\\)|\\)\\([nrt])')
+_UNESCAPE_REPLACEMENTS = {
+    r'\\n': r'\n',
+    r'\\r': r'\r',
+    r'\\t': r'\t',
+    r'\n' : '\n',
+    r'\r' : '\r',
+    r'\t' : '\t',
+}
+
+def unescape_translation(translation):
+    return _UNESCAPE_RX.sub(lambda m: _UNESCAPE_REPLACEMENTS[m.group(0)], translation)
 
 
 class Translation(object):
