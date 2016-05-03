@@ -7,9 +7,9 @@ builddir = $(topdir)/build
 distdir = $(topdir)/dist
 
 VER := $(shell cd $(topdir) && $(PYTHON) setup.py --version)
-TMP_APP := $(distdir)/Plover.app
-APP := $(distdir)/Plover-$(VER).app
-DMG := $(distdir)/Plover-$(VER).dmg
+TMP_APP := $(distdir)/plover.app
+APP := $(distdir)/plover-$(VER).app
+DMG := $(distdir)/plover-$(VER).dmg
 
 .PHONY: all app dmg clean
 
@@ -28,8 +28,8 @@ $(DMG): $(APP)
 	hdiutil resize -size 100m tmp/plover_template.dmg 
 	mkdir tmp/plover_mountpoint
 	hdiutil attach tmp/plover_template.dmg -noautoopen -quiet -mountpoint tmp/plover_mountpoint
-	rm -rf tmp/plover_mountpoint/Plover.app
-	ditto $(APP) tmp/plover_mountpoint/Plover.app
+	rm -rf tmp/plover_mountpoint/plover.app
+	ditto $(APP) tmp/plover_mountpoint/plover.app
 	hdiutil detach $$(hdiutil info | grep plover_mountpoint | grep Apple_HFS | cut -f1)
 	rmdir tmp/plover_mountpoint
 	hdiutil convert tmp/plover_template.dmg -format UDZO -imagekey zlib-level=9 -o $(DMG)
