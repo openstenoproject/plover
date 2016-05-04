@@ -347,10 +347,12 @@ if __name__ == '__main__':
             ('share/pixmaps', ['plover/assets/plover.png']),
         ],
         classifiers=[
-            'Programming Language :: Python',
+            'Programming Language :: Python :: 2.7',
             'License :: OSI Approved :: GNU General Public License (GPL)',
             'Development Status :: 4 - Beta',
             'Environment :: X11 Applications',
+            'Environment :: MacOS X',
+            'Environment :: Win32 (MS Windows)',
             'Intended Audience :: End Users/Desktop',
             'Natural Language :: English',
             'Operating System :: POSIX :: Linux',
