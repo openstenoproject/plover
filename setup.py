@@ -348,6 +348,7 @@ if __name__ == '__main__':
         ],
         platforms=[
             'Operating System :: POSIX :: Linux',
+            'Operating System :: MacOS :: MacOS X',
             'Operating System :: Microsoft :: Windows',
         ],
         classifiers=[
