@@ -349,7 +349,7 @@ if __name__ == '__main__':
         classifiers=[
             'Programming Language :: Python :: 2.7',
             'License :: OSI Approved :: GNU General Public License (GPL)',
-            'Development Status :: 4 - Beta',
+            'Development Status :: 5 - Production/Stable',
             'Environment :: X11 Applications',
             'Environment :: MacOS X',
             'Environment :: Win32 (MS Windows)',
