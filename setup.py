@@ -346,11 +346,6 @@ if __name__ == '__main__':
             ('share/applications', ['application/Plover.desktop']),
             ('share/pixmaps', ['plover/assets/plover.png']),
         ],
-        platforms=[
-            'Operating System :: POSIX :: Linux',
-            'Operating System :: MacOS :: MacOS X',
-            'Operating System :: Microsoft :: Windows',
-        ],
         classifiers=[
             'Programming Language :: Python',
             'License :: OSI Approved :: GNU General Public License (GPL)',
@@ -359,6 +354,8 @@ if __name__ == '__main__':
             'Intended Audience :: End Users/Desktop',
             'Natural Language :: English',
             'Operating System :: POSIX :: Linux',
+            'Operating System :: MacOS :: MacOS X',
+            'Operating System :: Microsoft :: Windows',
             'Topic :: Adaptive Technologies',
             'Topic :: Desktop Environment',
         ],
