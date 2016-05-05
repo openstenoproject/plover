@@ -5,13 +5,16 @@
 
 import os.path
 import unittest
-from mock import patch
-from collections import namedtuple
 import os
-import plover.config as config
+from collections import namedtuple
 from cStringIO import StringIO
+
+from mock import patch
+
+import plover.config as config
 from plover.machine.registry import Registry
 from plover.oslayer.config import CONFIG_DIR
+
 
 class ConfigTestCase(unittest.TestCase):
 
@@ -251,6 +254,3 @@ class ConfigTestCase(unittest.TestCase):
                               for d, v in enumerate(filenames, start=1))
         self.assertEqual(f.getvalue(), 
                          '[%s]\n%s\n\n' % (section, value))
-
-if __name__ == '__main__':
-    unittest.main()

@@ -3,11 +3,13 @@
 
 import os
 import unittest
-from mock import patch
 from logging import Handler
 from collections import defaultdict
 
+from mock import patch
+
 from plover import log
+
 
 class FakeHandler(Handler):
     
@@ -87,6 +89,3 @@ class LoggerTestCase(unittest.TestCase):
         self.logger.enable_translation_logging(False)
         self.logger.translation(['e'], ['f'], None)
         self.assertEqual(FakeHandler.get_output(), {stroke_filename: ['*c', 'd']})
-
-if __name__ == '__main__':
-    unittest.main()

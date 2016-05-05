@@ -4,7 +4,9 @@
 """Unit tests for steno_dictionary.py."""
 
 import unittest
+
 from plover.steno_dictionary import StenoDictionary, StenoDictionaryCollection
+
 
 class StenoDictionaryTestCase(unittest.TestCase):
 
@@ -75,6 +77,3 @@ class StenoDictionaryTestCase(unittest.TestCase):
         dc.set(('S',), 'e')
         self.assertEqual(dc.lookup(('S',)), 'e')
         self.assertEqual(d2[('S',)], 'e')
-        
-if __name__ == '__main__':
-    unittest.main()

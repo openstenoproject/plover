@@ -4,7 +4,9 @@
 """Unit tests for steno.py."""
 
 import unittest
+
 from plover.steno import normalize_steno, Stroke
+
 
 class StenoTestCase(unittest.TestCase):
     def test_normalize_steno(self):
@@ -37,6 +39,3 @@ class StenoTestCase(unittest.TestCase):
         self.assertEqual(Stroke(['-P', '-P']).rtfcre, '-P')
         self.assertEqual(Stroke(['-P', 'X-']).rtfcre, 'X-P')
         self.assertEqual(Stroke(['#', 'S-', '-T']).rtfcre, '1-9')
-
-if __name__ == '__main__':
-    unittest.main()

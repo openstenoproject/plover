@@ -77,6 +77,3 @@ class TestCase(unittest.TestCase):
                     time.sleep(0.00001)
                 m.stop_capture()
                 self.assertEqual(actual, expected)
-
-if __name__ == '__main__':
-    unittest.main()

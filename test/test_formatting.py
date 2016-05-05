@@ -3,8 +3,10 @@
 
 """Unit tests for formatting.py."""
 
-from plover import formatting
 import unittest
+
+from plover import formatting
+
 
 # Add tests with partial output specified.
 
@@ -1175,6 +1177,3 @@ class FormatterTestCase(unittest.TestCase):
             formatter.format([], undo, None)
             formatter.format(undo, do, None)
             self.assertEqual(output.instructions, expected_instructions)
-
-if __name__ == '__main__':
-    unittest.main()

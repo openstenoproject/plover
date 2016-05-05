@@ -4,6 +4,7 @@
 import json
 import unittest
 
+
 DICT_NAMES = ['main.json',
               'commands.json',
               'user.json']

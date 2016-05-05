@@ -1,10 +1,13 @@
 # Copyright (c) 2013 Hesky Fisher
 # See LICENSE.txt for details.
 
-from plover.dictionary.rtfcre_dict import load_dictionary, TranslationConverter, format_translation, save_dictionary
-import mock
 import unittest
 from StringIO import StringIO
+
+import mock
+
+from plover.dictionary.rtfcre_dict import load_dictionary, TranslationConverter, format_translation, save_dictionary
+
 
 class TestCase(unittest.TestCase):
     
@@ -207,7 +210,3 @@ class TestCase(unittest.TestCase):
         save_dictionary(d, f)
         expected = '{\\rtf1\\ansi{\\*\\cxrev100}\\cxdict{\\*\\cxsystem Plover}{\\stylesheet{\\s0 Normal;}}\r\n{\\*\\cxs S///T}pre\\cxds \r\n}\r\n' 
         self.assertEqual(f.getvalue(), expected)
-
-
-if __name__ == '__main__':
-    unittest.main()
