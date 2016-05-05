@@ -462,6 +462,7 @@ class LoggingConfig(wx.Panel):
 
 class DisplayConfig(wx.Panel):
 
+    START_MINIMIZED_TEXT = "Start Plover minimized"
     SHOW_STROKES_TEXT = "Open stroke display on startup"
     SHOW_STROKES_BUTTON_TEXT = "Open stroke display"
     SHOW_SUGGESTIONS_TEXT = "Open stroke suggestions on startup"
@@ -482,6 +483,11 @@ class DisplayConfig(wx.Panel):
         self.config = config
         self.engine = engine
         sizer = wx.BoxSizer(wx.VERTICAL)
+
+        self.start_minimized = wx.CheckBox(self, label=self.START_MINIMIZED_TEXT)
+        self.start_minimized.SetValue(config.get_start_minimized())
+
+        sizer.Add(self.start_minimized, border=UI_BORDER, flag=wx.ALL)
 
         # SHOW STROKES:
         #  [ Open stroke display ]
@@ -585,10 +591,12 @@ class DisplayConfig(wx.Panel):
 
     def save(self):
         """Write all parameters to the config."""
+        should_start_minimized = self.start_minimized.GetValue()
         should_show_strokes = self.show_strokes.GetValue()
         should_show_suggestions = self.show_suggestions.GetValue()
         translation_opacity = self.\
             translation_opacity_slider.GetValue()
+        self.config.set_start_minimized(should_start_minimized)
         self.config.set_show_stroke_display(should_show_strokes)
         self.config.set_show_suggestions_display(should_show_suggestions)
         self.config.set_translation_frame_opacity(
