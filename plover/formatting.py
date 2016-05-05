@@ -294,7 +294,8 @@ class _Action(object):
         return not self == other
 
     def __str__(self):
-        return 'Action(%s)' % str(self.__dict__)
+        return 'Action(%s)' % ', '.join('%s=%r' % (k, v) for k, v
+                                        in sorted(self.__dict__.items()))
 
     def __repr__(self):
         return str(self)

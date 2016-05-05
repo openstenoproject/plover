@@ -111,13 +111,11 @@ class OrthographyTestCase(unittest.TestCase):
         
         failed = []
         for word, suffix, expected in cases:
-            if add_suffix(word, suffix) != expected:
-                failed.append((word, suffix, expected))
-                
-        for word, suffix, expected in failed:
-            print 'add_suffix(%s, %s) is %s not %s' % (word, suffix, add_suffix(word, suffix),expected)
-            
-        self.assertEqual(len(failed), 0)
+            result = add_suffix(word, suffix)
+            msg = 'add_suffix(%r, %r) returned %r instead of %r' % (
+                word, suffix, result, expected,
+            )
+            self.assertEqual(result, expected, msg=msg)
         
 if __name__ == '__main__':
     unittest.main()

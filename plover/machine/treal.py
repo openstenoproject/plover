@@ -7,9 +7,12 @@
 "Thread-based monitoring of a stenotype machine using the Treal machine."
 
 from time import sleep
+
 import hid
+
 from plover import log
 from plover.machine.base import ThreadedStenotypeBase
+
 
 STENO_KEY_CHART = (('K-', 'W-', 'R-', '*2', '-R', '-B', '-G', '-S'),
                    ('*1', '-F', '-P', '-L', '-T', '-D', 'X2-', 'S2-'),
@@ -126,15 +129,3 @@ class Stenotype(ThreadedStenotypeBase):
         if self._machine:
             self._machine.close()
         self._stopped()
-
-
-if __name__ == '__main__':
-    from plover.steno import Stroke
-    import time
-    def callback(s):
-        print Stroke(s).rtfcre
-    machine = Stenotype()
-    machine.add_callback(callback)
-    machine.start_capture()
-    time.sleep(30)
-    machine.stop_capture()
