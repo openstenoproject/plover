@@ -134,6 +134,7 @@ class KeyboardCapture(threading.Thread):
     def __init__(self):
         """Prepare to listen for keyboard events."""
         threading.Thread.__init__(self)
+        self.name += '-capture'
         self.context = None
         self.key_events_to_ignore = []
         self._suppressed_keys = set()

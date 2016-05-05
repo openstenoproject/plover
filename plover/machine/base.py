@@ -132,6 +132,7 @@ class ThreadedStenotypeBase(StenotypeBase, threading.Thread):
     """
     def __init__(self):
         threading.Thread.__init__(self)
+        self.name += '-machine'
         StenotypeBase.__init__(self)
         self.finished = threading.Event()
 
