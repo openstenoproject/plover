@@ -304,12 +304,12 @@ class Translator(object):
 
         if mapping == '{*?}':
             # Retrospective insert space
-            replaced = translations[len(translations)-1:]
+            replaced = translations[-1:]
             if len(replaced) < 1:
                 return
             if replaced[0].is_retrospective_command:
                 return
-            lookup_stroke = replaced[0].strokes[len(replaced[0].strokes)-1]
+            lookup_stroke = replaced[0].strokes[-1]
             english = []
             for t in replaced:
                 for r in t.replaced:
@@ -323,7 +323,7 @@ class Translator(object):
 
         if mapping == '{*!}':
             # Retrospective delete space
-            replaced = translations[len(translations)-2:]
+            replaced = translations[-2:]
             if len(replaced) < 2:
                 return
             if replaced[1].is_retrospective_command:
