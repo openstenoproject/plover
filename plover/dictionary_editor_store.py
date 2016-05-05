@@ -1,5 +1,6 @@
 from plover.steno import normalize_steno
 from plover.gui.util import shorten_unicode
+from plover.translation import escape_translation, unescape_translation
 
 STROKE = "STROKE"
 TRANSLATION = "TRANSLATION"
@@ -58,7 +59,7 @@ class DictionaryEditorStore():
             for dk, translation in dictionary.iteritems():
                 joined = '/'.join(dk)
                 item = DictionaryItem(joined,
-                                      translation,
+                                      escape_translation(translation),
                                       dictionary,
                                       item_id)
                 self.all_keys.append(item)
@@ -146,13 +147,13 @@ class DictionaryEditorStore():
 
         # Creates
         for item in self.added_items:
-            item.dictionary[normalize_steno(item.stroke)] = item.translation
+            item.dictionary[normalize_steno(item.stroke)] = unescape_translation(item.translation)
             needs_saving.add(item.dictionary.get_path())
 
         # Updates
         for item_id in self.modified_items:
             item = self.all_keys[item_id]
-            item.dictionary[normalize_steno(item.stroke)] = item.translation
+            item.dictionary[normalize_steno(item.stroke)] = unescape_translation(item.translation)
             needs_saving.add(item.dictionary.get_path())
 
         # Deletes

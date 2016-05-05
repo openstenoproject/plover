@@ -3,8 +3,11 @@
 
 import wx
 from wx.lib.utils import AdjustRectToScreen
+
 from plover.steno import normalize_steno
 import plover.gui.util as util
+from plover.translation import unescape_translation
+
 
 TITLE = 'Plover: Lookup'
 
@@ -109,7 +112,7 @@ class LookupDialog(wx.Dialog):
         self.listbox.Clear()
         if translation:
             d = self.engine.get_dictionary()
-            strokes_list = d.reverse_lookup(translation)
+            strokes_list = d.reverse_lookup(unescape_translation(translation))
             if strokes_list:
                 entries = ('/'.join(x) for x in strokes_list)
                 for str in entries:

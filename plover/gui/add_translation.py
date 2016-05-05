@@ -3,8 +3,11 @@
 
 import wx
 from wx.lib.utils import AdjustRectToScreen
+
 from plover.steno import normalize_steno
 import plover.gui.util as util
+from plover.translation import escape_translation, unescape_translation
+
 
 TITLE = 'Plover: Add Translation'
 
@@ -132,7 +135,7 @@ class AddTranslationDialog(wx.Dialog):
         strokes = self._normalized_strokes()
         translation = self.translation_text.GetValue().strip()
         if strokes and translation:
-            d.set(strokes, translation)
+            d.set(strokes, unescape_translation(translation))
             d.save(path_list=(d.dicts[0].get_path(),))
         self.Close()
 
@@ -153,7 +156,7 @@ class AddTranslationDialog(wx.Dialog):
             translation = d.raw_lookup(key)
             strokes = '/'.join(key)
             if translation:
-                label = '%s maps to %s' % (strokes, translation)
+                label = '%s maps to %s' % (strokes, escape_translation(translation))
             else:
                 label = '%s is not in the dictionary' % strokes
             label = util.shorten_unicode(label)
@@ -168,7 +171,7 @@ class AddTranslationDialog(wx.Dialog):
         translation = event.GetString().strip()
         if translation:
             d = self.engine.get_dictionary()
-            strokes_list = d.reverse_lookup(translation)
+            strokes_list = d.reverse_lookup(unescape_translation(translation))
             if strokes_list:
                 strokes = ', '.join('/'.join(x) for x in strokes_list)
                 label = '%s is mapped from %s' % (translation, strokes)
