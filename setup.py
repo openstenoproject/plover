@@ -55,7 +55,7 @@ def pyinstaller(*args):
     py_args.extend(args)
     py_args.append('windows/main.py')
     main = pkg_resources.load_entry_point('PyInstaller', 'console_scripts', 'pyinstaller')
-    main(py_args)
+    return main(py_args) or 0
 
 
 class PyInstallerDist(setuptools.Command):
@@ -72,7 +72,9 @@ class PyInstallerDist(setuptools.Command):
     def run(self):
         # Make sure metadata are up-to-date first.
         self.run_command("egg_info")
-        pyinstaller(*self.extra_args)
+        code = pyinstaller(*self.extra_args)
+        if code != 0:
+            sys.exit(code)
 
 
 class BinaryDistWin(PyInstallerDist):
@@ -100,7 +102,7 @@ class Launch(setuptools.Command):
         reload(pkg_resources)
         from plover.main import main
         sys.argv = [' '.join(sys.argv[0:2]) + ' --'] + self.args
-        main()
+        sys.exit(main())
 
 
 class PatchVersion(setuptools.Command):
@@ -186,7 +188,7 @@ class Test(setuptools.Command):
         main = pkg_resources.load_entry_point('pytest',
                                               'console_scripts',
                                               'py.test')
-        main()
+        sys.exit(main())
 
 
 class BinaryDistApp(setuptools.Command):
