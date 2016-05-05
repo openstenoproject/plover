@@ -222,7 +222,7 @@ class WindowsKeyboardLayout:
         '}': 'braceright', '\\': 'backslash', '|': 'bar', ';': 'semicolon',
         ':': 'colon', '\'': 'apostrophe', '"': 'quotedbl', ',': 'comma',
         '<': 'less', '.': 'period', '>': 'greater', '/': 'slash',
-        '?': 'question', '\t': 'Tab', ' ': 'space'
+        '?': 'question', '\t': 'Tab', ' ': 'space', '\n': 'Return', '\r': 'Return',
     })
 
     def __init__(self, layout_id=None):
