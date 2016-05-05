@@ -270,7 +270,6 @@ install_requires = [
 
 extras_require = {
     ':"win32" in sys_platform': [
-        'pyHook>=1.5.1',
         'pywin32>=219',
         # Can't reliably require wxPython
     ],

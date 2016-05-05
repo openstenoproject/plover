@@ -15,7 +15,6 @@ emulate keyboard input.
 
 import collections
 import ctypes
-import functools
 import multiprocessing
 import os
 import threading
@@ -23,17 +22,18 @@ import time
 import types
 import _winreg as winreg
 
+from ctypes import windll, wintypes
+
 import win32api
-import win32con
 import win32gui
 
 from plover import log
 
 
-SendInput = ctypes.windll.user32.SendInput
-MapVirtualKey = ctypes.windll.user32.MapVirtualKeyW
-GetKeyboardLayout = ctypes.windll.user32.GetKeyboardLayout
-GetWindowThreadProcessId = ctypes.windll.user32.GetWindowThreadProcessId
+SendInput = windll.user32.SendInput
+MapVirtualKey = windll.user32.MapVirtualKeyW
+GetKeyboardLayout = windll.user32.GetKeyboardLayout
+GetWindowThreadProcessId = windll.user32.GetWindowThreadProcessId
 LONG = ctypes.c_long
 DWORD = ctypes.c_ulong
 ULONG_PTR = ctypes.POINTER(DWORD)
@@ -377,10 +377,10 @@ class HeartBeat(threading.Thread):
 
 class KeyboardCaptureProcess(multiprocessing.Process):
 
-    CONTROL_KEYS = set(('Lcontrol', 'Rcontrol'))
-    SHIFT_KEYS = set(('Lshift', 'Rshift'))
-    ALT_KEYS = set(('Lmenu', 'Rmenu'))
-    WIN_KEYS = set(('Lwin', 'Rwin'))
+    CONTROL_KEYS = set((0xA2, 0xA3))
+    SHIFT_KEYS = set((0xA0, 0xA1))
+    ALT_KEYS = set((0xA4, 0xA5))
+    WIN_KEYS = set((0x5B, 0x5C))
     PASSTHROUGH_KEYS = CONTROL_KEYS | SHIFT_KEYS | ALT_KEYS | WIN_KEYS
 
     def __init__(self):
@@ -442,9 +442,22 @@ class KeyboardCaptureProcess(multiprocessing.Process):
         heartbeat = HeartBeat(self._ppid, self.stop)
         heartbeat.start()
 
-        import pyHook
+        import atexit
         import signal
-        import pythoncom
+
+        class KBDLLHOOKSTRUCT(ctypes.Structure):
+            _fields_ = [
+                ("vkCode", wintypes.DWORD),
+                ("scanCode", wintypes.DWORD),
+                ("flags", wintypes.DWORD),
+                ("time", wintypes.DWORD),
+                ("dwExtraInfo", ctypes.c_void_p),
+            ]
+
+        KeyboardProc = ctypes.CFUNCTYPE(ctypes.c_int,
+                                        ctypes.c_int,
+                                        wintypes.WPARAM,
+                                        ctypes.POINTER(KBDLLHOOKSTRUCT))
 
         # Ignore KeyboardInterrupt when attached to a console...
         signal.signal(signal.SIGINT, signal.SIG_IGN)
@@ -456,37 +469,46 @@ class KeyboardCaptureProcess(multiprocessing.Process):
         passthrough_down_keys = set()
 
         def on_key(pressed, event):
-            if event.Injected:
+            if (event.flags & 0x10):
                 # Ignore simulated events (e.g. from KeyboardEmulation).
-                return True
-            if event.Key in self.PASSTHROUGH_KEYS:
+                return False
+            if event.vkCode in self.PASSTHROUGH_KEYS:
                 if pressed:
-                    passthrough_down_keys.add(event.Key)
+                    passthrough_down_keys.add(event.vkCode)
                 else:
-                    passthrough_down_keys.discard(event.Key)
+                    passthrough_down_keys.discard(event.vkCode)
             if passthrough_down_keys:
                 # Modifier(s) pressed, ignore.
-                return True
-            key = SCANCODE_TO_KEY.get(event.ScanCode)
+                return False
+            key = SCANCODE_TO_KEY.get(event.scanCode)
             if key is None:
                 # Unhandled, ignore and don't suppress.
-                return True
-            not_suppressed = 0 == (self._suppressed_keys_bitmask[event.ScanCode // 64] & (1 << (event.ScanCode % 64)))
+                return False
+            suppressed = bool(self._suppressed_keys_bitmask[event.scanCode // 64] & (1 << (event.scanCode % 64)))
             if pressed:
                 down_keys.add(key)
             else:
                 down_keys.discard(key)
             self._queue.put((key, pressed))
-            return not_suppressed
+            return suppressed
 
-        hm = pyHook.HookManager()
-        hm.KeyUp = functools.partial(on_key, False)
-        hm.KeyDown = functools.partial(on_key, True)
-        hm.HookKeyboard()
-        try:
-            pythoncom.PumpMessages()
-        finally:
-            hm.UnhookKeyboard()
+        hook_id = None
+
+        def low_level_handler(code, wparam, lparam):
+            if code >= 0:
+                pressed = wparam in (0x100, 0x104)
+                if on_key(pressed, lparam[0]):
+                    # Suppressed...
+                    return 1
+            return windll.user32.CallNextHookEx(hook_id, code, wparam, lparam)
+
+        pointer = KeyboardProc(low_level_handler)
+        hook_id = windll.user32.SetWindowsHookExA(0x00D, pointer, windll.kernel32.GetModuleHandleW(None), 0)
+        atexit.register(windll.user32.UnhookWindowsHookEx, hook_id)
+        msg = wintypes.MSG()
+        while windll.user32.GetMessageW(ctypes.byref(msg), 0, 0, 0):
+            windll.user32.TranslateMessage(ctypes.byref(msg))
+            windll.user32.DispatchMessageW(ctypes.byref(msg))
 
     def start(self):
         self.daemon = True
@@ -495,7 +517,9 @@ class KeyboardCaptureProcess(multiprocessing.Process):
 
     def stop(self):
         if self.is_alive():
-            win32api.PostThreadMessage(self._tid, win32con.WM_QUIT, 0, 0)
+            windll.user32.PostThreadMessageW(self._tid,
+                                             0x0012, # WM_QUIT
+                                             0, 0)
             self.join()
         # Wake up capture thread, so it gets a chance to check if it must stop.
         self._queue.put((None, None))
