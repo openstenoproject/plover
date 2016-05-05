@@ -313,9 +313,9 @@ class Translator(object):
             english = []
             for t in replaced:
                 for r in t.replaced:
-                    english.append(r.english)
+                    english.append(r.english or r.rtfcre[0])
             if len(english) > 0:
-                english.append(self._lookup([lookup_stroke]))
+                english.append(self._lookup([lookup_stroke]) or lookup_stroke.rtfcre)
                 t = Translation([stroke], ' '.join(english))
                 t.replaced = replaced
                 t.is_retrospective_command = True
