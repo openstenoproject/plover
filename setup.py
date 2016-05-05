@@ -26,9 +26,6 @@ from plover import (
 from utils.metadata import copy_metadata
 
 
-package_name = __software_name__.capitalize()
-
-
 def get_version():
     if not os.path.exists('.git'):
         return None
@@ -48,7 +45,7 @@ def pyinstaller(*args):
         '--additional-hooks-dir=windows',
         '--paths=.',
         '--name=%s-%s' % (
-            __software_name__.capitalize(),
+            __software_name__,
             __version__,
         ),
         '--noconfirm',
@@ -207,12 +204,12 @@ class BinaryDistApp(setuptools.Command):
         # Make sure metadata are up-to-date first.
         self.run_command('egg_info')
         self.run_command('py2app')
-        app = 'dist/%s-%s.app' % (package_name, __version__)
+        app = 'dist/%s-%s.app' % (__software_name__, __version__)
         libdir = '%s/Contents/Resources/lib/python2.7' % app
         sitezip = '%s/site-packages.zip' % libdir
         # Add version to filename and strip other architectures.
         # (using py2app --arch is not enough).
-        tmp_app = 'dist/%s.app' % package_name
+        tmp_app = 'dist/%s.app' % __software_name__
         cmd = 'ditto --arch x86_64 %s %s' % (tmp_app, app)
         log.info('running %s', cmd)
         subprocess.check_call(cmd.split())
@@ -246,7 +243,7 @@ if sys.platform.startswith('darwin'):
         'argv_emulation': False,
         'iconfile': 'osx/plover.icns',
         'plist': {
-            'CFBundleName': package_name,
+            'CFBundleName': __software_name__.capitalize(),
             'CFBundleShortVersionString': __version__,
             'CFBundleVersion': __version__,
             'CFBundleIdentifier': 'org.openstenoproject.plover',
@@ -273,7 +270,7 @@ install_requires = [
 
 extras_require = {
     ':"win32" in sys_platform': [
-        'pyhook>=1.5.1',
+        'pyHook>=1.5.1',
         'pywin32>=219',
         # Can't reliably require wxPython
     ],
@@ -310,12 +307,12 @@ def write_requirements(extra_features=()):
 
 if __name__ == '__main__':
 
-    if sys.argv[1] == 'write_requirements':
+    if len(sys.argv) > 1 and sys.argv[1] == 'write_requirements':
         write_requirements(extra_features=sys.argv[2:])
         sys.exit(0)
 
     setuptools.setup(
-        name=package_name,
+        name=__software_name__,
         version=__version__,
         description=__description__,
         long_description=__long_description__,
@@ -349,18 +346,18 @@ if __name__ == '__main__':
             ('share/applications', ['application/Plover.desktop']),
             ('share/pixmaps', ['plover/assets/plover.png']),
         ],
-        platforms=[
-            'Operating System :: POSIX :: Linux',
-            'Operating System :: Microsoft :: Windows',
-        ],
         classifiers=[
-            'Programming Language :: Python',
+            'Programming Language :: Python :: 2.7',
             'License :: OSI Approved :: GNU General Public License (GPL)',
-            'Development Status :: 4 - Beta',
+            'Development Status :: 5 - Production/Stable',
             'Environment :: X11 Applications',
+            'Environment :: MacOS X',
+            'Environment :: Win32 (MS Windows)',
             'Intended Audience :: End Users/Desktop',
             'Natural Language :: English',
             'Operating System :: POSIX :: Linux',
+            'Operating System :: MacOS :: MacOS X',
+            'Operating System :: Microsoft :: Windows',
             'Topic :: Adaptive Technologies',
             'Topic :: Desktop Environment',
         ],

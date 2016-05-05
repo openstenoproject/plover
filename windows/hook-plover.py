@@ -13,7 +13,7 @@ datas = []
 hiddenimports = []
 
 distribution = list(pkg_resources.find_distributions('.', only=True))[0]
-assert distribution.project_name == 'Plover'
+assert distribution.project_name == 'plover'
 
 metadata_list = collect_metadata(distribution)
 log.info('adding metadata: %s', metadata_list)
