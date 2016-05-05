@@ -621,6 +621,24 @@ class TranslateStrokeTestCase(unittest.TestCase):
         self.assertTranslations(do)
         self.assertOutput(undo, do, None)
 
+    def test_retrospective_insert_space_undefined(self):
+        # Should work when beginning or ending strokes aren't defined
+        self.define('T/E/S/T', 'a longer key')
+        self.define('STWR/STWR', 'test')
+        self.define('SP*', '{*?}')
+        self.translate(stroke('STWR'))
+        self.translate(stroke('STWR'))
+        self.translate(stroke('SP*'))
+        lt = self.lt('STWR')
+        undo = self.lt('STWR/STWR')
+        undo[0].replaced = lt
+        do = self.lt('SP*')
+        do[0].english = 'STWR STWR'
+        do[0].is_retrospective_command = True
+        do[0].replaced = undo
+        self.assertTranslations(do)
+        self.assertOutput(undo, do, None)
+
     def test_retrospective_delete_space(self):
         self.define('T/E/S/T', 'a longer key')
         self.define('K', 'kick')
