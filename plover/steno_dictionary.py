@@ -43,11 +43,7 @@ class StenoDictionary(collections.MutableMapping):
         return self._dict.__iter__()
 
     def __getitem__(self, key):
-        value = self._dict.__getitem__(key)
-        for f in self.filters:
-            if f(key, value):
-                raise KeyError('(%s, %s) is filtered' % (str(key), str(value)))
-        return value
+        return self._dict.__getitem__(key)
 
     def __setitem__(self, key, value):
         self._longest_key = max(self._longest_key, len(key))
@@ -66,13 +62,7 @@ class StenoDictionary(collections.MutableMapping):
                 self._longest_key = 0
 
     def __contains__(self, key):
-        value = self._dict.get(key)
-        if value is None:
-            return False
-        for f in self.filters:
-            if f(key, value):
-                return False
-        return True
+        return self.get(key) is not None
 
     def set_path(self, path):
         self._path = path    
@@ -107,16 +97,6 @@ class StenoDictionary(collections.MutableMapping):
     def remove_longest_key_listener(self, callback):
         self._longest_listener_callbacks.remove(callback)
 
-    def add_filter(self, f):
-        self.filters.append(f)
-        
-    def remove_filter(self, f):
-        self.filters.remove(f)
-    
-    def raw_get(self, key, default):
-        """Bypass filters."""
-        return self._dict.get(key, default)
-
 
 class StenoDictionaryCollection(object):
     def __init__(self):
@@ -134,20 +114,23 @@ class StenoDictionaryCollection(object):
             d.add_longest_key_listener(self._longest_key_listener)
         self._longest_key_listener()
 
-    def lookup(self, key):
+    def _lookup(self, key, filters=()):
+        key_len = len(key)
         for d in self.dicts:
+            if key_len > d.longest_key:
+                continue
             value = d.get(key)
             if value:
-                for f in self.filters:
+                for f in filters:
                     if f(key, value):
                         return None
                 return value
 
+    def lookup(self, key):
+        return self._lookup(key, self.filters)
+
     def raw_lookup(self, key):
-        for d in self.dicts:
-            value = d.get(key)
-            if value:
-                return value
+        return self._lookup(key)
 
     def reverse_lookup(self, value):
         for d in self.dicts:
