@@ -29,7 +29,7 @@ def normalize_steno(strokes_string):
             if not re.search('[0-9]', stroke):
                 stroke = system.NUMBER_KEY + stroke
         # Insert dash when dealing with 'explicit' numbers
-        if re.search('[1-4][6-9]', stroke):
+        if re.search('(^|[1-4])[6-9]', stroke):
             start = re.search('[6-9]', stroke).start()
             stroke = stroke[:start] + '-' + stroke[start:]
         has_implicit_dash = bool(set(stroke) & system.IMPLICIT_HYPHENS)
