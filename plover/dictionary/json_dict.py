@@ -15,6 +15,8 @@ except ImportError:
 from plover.steno_dictionary import StenoDictionary
 from plover.steno import normalize_steno
 
+def create_dictionary():
+    return StenoDictionary()
 
 def load_dictionary(filename):
 

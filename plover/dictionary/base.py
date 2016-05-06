@@ -22,24 +22,49 @@ dictionaries = {
     RTF_EXTENSION.lower(): rtfcre_dict,
 }
 
-def load_dictionary(filename):
-    """Load a dictionary from a file."""
+def _get_dictionary_module(filename):
     extension = splitext(filename)[1].lower()
-
     try:
-        dict_type = dictionaries[extension]
+        dictionary_module = dictionaries[extension]
     except KeyError:
         raise DictionaryLoaderException(
-            'Unsupported extension for dictionary: %s. Supported extensions: %s' %
-            (extension, ', '.join(dictionaries.keys())))
+            'Unsupported extension: %s. Supported extensions: %s' %
+            (extension, ', '.join(sorted(dictionaries.keys()))))
+    return dictionary_module
 
+def create_dictionary(filename):
+    '''Create a new dictionary.
+
+    The format is inferred from the extension.
+
+    Note: the file is not created! The resulting dictionary save
+    method must be called to finalize the creation on disk.
+    '''
+    dictionary_module = _get_dictionary_module(filename)
+    if dictionary_module.create_dictionary is None:
+        raise DictionaryLoaderException('%s does not support creation' % dictionary_module.__name__)
     try:
-        d = dict_type.load_dictionary(filename)
+        d = dictionary_module.create_dictionary()
+    except Exception as e:
+        ne = DictionaryLoaderException('creating %s failed: %s' % (filename, str(e)))
+        raise type(ne), ne, sys.exc_info()[2]
+    d.set_path(filename)
+    d.save = ThreadedSaver(d, filename, dictionary_module.save_dictionary)
+    return d
+
+def load_dictionary(filename):
+    '''Load a dictionary from a file.
+
+    The format is inferred from the extension.
+    '''
+    dictionary_module = _get_dictionary_module(filename)
+    try:
+        d = dictionary_module.load_dictionary(filename)
     except Exception as e:
         ne = DictionaryLoaderException('loading \'%s\' failed: %s' % (filename, str(e)))
         raise type(ne), ne, sys.exc_info()[2]
     d.set_path(filename)
-    d.save = ThreadedSaver(d, filename, dict_type.save_dictionary)
+    d.save = ThreadedSaver(d, filename, dictionary_module.save_dictionary)
     return d
 
 def save_dictionary(d, filename, saver):

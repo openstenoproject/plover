@@ -336,3 +336,6 @@ def save_dictionary(d, fp):
         fp.write(entry)
 
     fp.write("}\r\n")
+
+def create_dictionary():
+    return StenoDictionary()
