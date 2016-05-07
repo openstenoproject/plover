@@ -18,27 +18,30 @@ from plover import system
 
 STROKE_DELIMITER = '/'
 
+_NUMBERS = set('0123456789')
+_IMPLICIT_NUMBER_RX = re.compile('(^|[1-4])([6-9])')
+
+def normalize_stroke(stroke):
+    letters = set(stroke)
+    if letters & _NUMBERS:
+        if system.NUMBER_KEY in letters:
+            stroke = stroke.replace(system.NUMBER_KEY, '')
+        # Insert dash when dealing with 'explicit' numbers
+        m = _IMPLICIT_NUMBER_RX.search(stroke)
+        if m is not None:
+            start = m.start(2)
+            return stroke[:start] + '-' + stroke[start:]
+    if '-' in letters:
+        if stroke.endswith('-'):
+             stroke = stroke[:-1]
+        elif letters & system.IMPLICIT_HYPHENS:
+            stroke = stroke.replace('-', '')
+    return stroke
 
 def normalize_steno(strokes_string):
     """Convert steno strings to one common form."""
-    strokes = strokes_string.split(STROKE_DELIMITER)
-    normalized_strokes = []
-    for stroke in strokes:
-        if system.NUMBER_KEY in stroke:
-            stroke = stroke.replace(system.NUMBER_KEY, '')
-            if not re.search('[0-9]', stroke):
-                stroke = system.NUMBER_KEY + stroke
-        # Insert dash when dealing with 'explicit' numbers
-        if re.search('(^|[1-4])[6-9]', stroke):
-            start = re.search('[6-9]', stroke).start()
-            stroke = stroke[:start] + '-' + stroke[start:]
-        has_implicit_dash = bool(set(stroke) & system.IMPLICIT_HYPHENS)
-        if has_implicit_dash:
-            stroke = stroke.replace('-', '')
-        if stroke.endswith('-'):
-            stroke = stroke[:-1]
-        normalized_strokes.append(stroke)
-    return tuple(normalized_strokes)
+    return tuple(normalize_stroke(stroke) for stroke
+                 in strokes_string.split(STROKE_DELIMITER))
 
 
 class Stroke(object):
