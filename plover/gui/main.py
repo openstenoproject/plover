@@ -54,7 +54,13 @@ class PloverGUI(wx.App):
         from plover.gui import log as gui_log
         frame = MainFrame(self.config)
         self.SetTopWindow(frame)
+
+        osx = sys.platform.startswith('darwin')
+        if not osx:
+            frame.Iconize(self.config.get_start_minimized())
         frame.Show()
+        if osx:
+            frame.Iconize(self.config.get_start_minimized())
         return True
 
 

@@ -40,6 +40,10 @@ DEFAULT_ENABLE_STROKE_LOGGING = False
 ENABLE_TRANSLATION_LOGGING_OPTION = 'enable_translation_logging'
 DEFAULT_ENABLE_TRANSLATION_LOGGING = False
 
+STARTUP_SECTION = 'Startup'
+START_MINIMIZED_OPTION = 'Start Minimized'
+DEFAULT_START_MINIMIZED = False
+
 STROKE_DISPLAY_SECTION = 'Stroke Display'
 STROKE_DISPLAY_SHOW_OPTION = 'show'
 DEFAULT_STROKE_DISPLAY_SHOW = False
@@ -289,6 +293,13 @@ class Config(object):
     def get_auto_start(self):
         return self._get_bool(MACHINE_CONFIG_SECTION, MACHINE_AUTO_START_OPTION, 
                               DEFAULT_MACHINE_AUTO_START)
+
+    def set_start_minimized(self, b):
+        self._set(STARTUP_SECTION, START_MINIMIZED_OPTION, b)
+
+    def get_start_minimized(self):
+        return self._get_bool(STARTUP_SECTION, START_MINIMIZED_OPTION,
+                              DEFAULT_START_MINIMIZED)
 
     def set_show_stroke_display(self, b):
         self._set(STROKE_DISPLAY_SECTION, STROKE_DISPLAY_SHOW_OPTION, b)
