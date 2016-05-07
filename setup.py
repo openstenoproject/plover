@@ -43,14 +43,13 @@ def pyinstaller(*args):
         '--log-level=INFO',
         '--specpath=build',
         '--additional-hooks-dir=windows',
-        '--paths=.',
         '--name=%s-%s' % (
             __software_name__,
             __version__,
         ),
         '--noconfirm',
         '--windowed',
-        '--onefile'
+        '--onefile',
     ]
     py_args.extend(args)
     py_args.append('windows/main.py')
@@ -78,7 +77,7 @@ class PyInstallerDist(setuptools.Command):
 
 
 class BinaryDistWin(PyInstallerDist):
-    description = 'create an executabe for MS Windows'
+    description = 'create an executable for MS Windows'
     extra_args = [
         '--icon=plover/assets/plover.ico',
     ]
@@ -157,7 +156,7 @@ class Test(setuptools.Command):
     user_options = []
 
     def initialize_options(self):
-        self.args = None
+        self.args = []
 
     def finalize_options(self):
         pass
