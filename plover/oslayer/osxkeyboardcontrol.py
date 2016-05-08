@@ -39,6 +39,7 @@ from Quartz import (
 )
 import Foundation
 import threading
+import Queue
 from time import time
 import collections
 from plover.oslayer import mac_keycode
@@ -214,6 +215,9 @@ class KeyboardCapture(threading.Thread):
     def __init__(self):
         threading.Thread.__init__(self)
         self._running_thread = None
+        self._canceled = False  # Used to signal event handler thread.
+        self._event_queue = Queue.Queue()  # Drained by event handler thread.
+
         self._suppressed_keys = set()
         self.key_down = lambda key: None
         self.key_up = lambda key: None
@@ -233,6 +237,9 @@ class KeyboardCapture(threading.Thread):
         def callback(proxy, event_type, event, reference):
             SUPPRESS_EVENT = None
             PASS_EVENT_THROUGH = event
+
+            if self._canceled:
+                return PASS_EVENT_THROUGH
 
             # Don't pass on meta events meant for this event tap.
             is_unexpected_event = event_type not in self._KEYBOARD_EVENTS
@@ -260,7 +267,7 @@ class KeyboardCapture(threading.Thread):
             keycode = CGEventGetIntegerValueField(
                 event, kCGKeyboardEventKeycode)
             key = KEYCODE_TO_KEY.get(keycode)
-            self._dispatch(key, event_type)
+            self._async_dispatch(key, event_type)
             if key in self._suppressed_keys:
                 return SUPPRESS_EVENT
             return PASS_EVENT_THROUGH
@@ -279,6 +286,11 @@ class KeyboardCapture(threading.Thread):
         CGEventTapEnable(self._tap, False)
 
     def run(self):
+        self._handler_thread = threading.Thread(
+            target=self._event_handler,
+            name="org.openstenoproject.plover.KeyEventDispatcher")
+        self._handler_thread.start()
+
         self._running_thread = CFRunLoopGetCurrent()
         CFRunLoopAddSource(
             self._running_thread,
@@ -289,6 +301,9 @@ class KeyboardCapture(threading.Thread):
         CFRunLoopRun()
 
     def cancel(self):
+        self._canceled = True  # Signal event handler thread to exit.
+        self._event_queue.put_nowait(None)   # Wake up event handler.
+
         CGEventTapEnable(self._tap, False)
         CFRunLoopRemoveSource(
             self._running_thread, self._source, kCFRunLoopCommonModes)
@@ -305,18 +320,28 @@ class KeyboardCapture(threading.Thread):
     def suppress_keyboard(self, suppressed_keys=()):
         self._suppressed_keys = set(suppressed_keys)
 
-    def _dispatch(self, key, event_type):
+    def _async_dispatch(self, key, event_type):
         """
         Dispatches a key string in KEYCODE_TO_KEY.values() and a CGEventType
-        to the appropriate KeyboardCapture callback.
+        to the appropriate KeyboardCapture callback
+        without blocking execution of its caller.
         """
         if key is None:
             return
 
-        handler = self.key_up if event_type == kCGEventKeyUp \
-            else self.key_down
-        # (jws/2016-05-07)TODO: Call this asynchronously!
-        handler(key)
+        is_keyup = event_type == kCGEventKeyUp
+        pair = (key, is_keyup)
+        self._event_queue.put_nowait(pair)
+
+    def _event_handler(self):
+        while True:
+            pair = self._event_queue.get(block=True, timeout=None)
+            if self._canceled or pair is None:
+                return
+
+            key, is_keyup = pair
+            handler = self.key_up if is_keyup else self.key_down
+            handler(key)
 
 
 # "Narrow python" unicode objects store characters in UTF-16 so we
