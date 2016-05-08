@@ -334,6 +334,17 @@ class KeyboardCapture(threading.Thread):
         self._event_queue.put_nowait(pair)
 
     def _event_handler(self):
+        """
+        Event dispatching thread launched during run().
+        Loops until _canceled is set True
+        or None is received from _event_queue.
+        Avoids busy-waiting by blocking on _event_queue.
+
+        In normal operation, it gets a pair of
+        (key_string, is_keyup_bool) from _event_queue
+        and routes the string to self.key_up or self.key_down,
+        then waits for a new pair to arrive.
+        """
         while True:
             pair = self._event_queue.get(block=True, timeout=None)
             if self._canceled or pair is None:
