@@ -217,28 +217,41 @@ class KeyboardCapture(threading.Thread):
         # for further processing by others.
         #
         # Returning None means that the event is intercepted.
+        #
+        # Delaying too long in returning appears to cause the
+        # system to ignore the tap forever after
+        # (https://github.com/openstenoproject/plover/issues/484#issuecomment-214743466).
+        #
+        # This motivates pushing callbacks to the other side
+        # of a queue of received events, so that we can return
+        # from this callback as soon as possible.
         def callback(proxy, event_type, event, reference):
+            SUPPRESS_EVENT = None
+            PASS_EVENT_THROUGH = event
+
             # Don't pass on meta events meant for this event tap.
-            if event_type not in self._KEYBOARD_EVENTS:
-                return None
+            is_unexpected_event = event_type not in self._KEYBOARD_EVENTS
+            if is_unexpected_event:
+                return SUPPRESS_EVENT
+
             # Don't intercept the event if it has modifiers, allow
             # Fn and Numeric flags so we can suppress the arrow and
             # extended (home, end, etc...) keys.
-            if CGEventGetFlags(event) & ~(kCGEventFlagMaskNumericPad |
-                                          kCGEventFlagMaskSecondaryFn |
-                                          kCGEventFlagMaskNonCoalesced):
-                return event
+            suppressible_modifiers = (kCGEventFlagMaskNumericPad |
+                                      kCGEventFlagMaskSecondaryFn |
+                                      kCGEventFlagMaskNonCoalesced)
+            has_nonsupressible_modifiers = \
+                CGEventGetFlags(event) & ~suppressible_modifiers
+            if has_nonsupressible_modifiers:
+                return PASS_EVENT_THROUGH
+
             keycode = CGEventGetIntegerValueField(
                 event, kCGKeyboardEventKeycode)
             key = KEYCODE_TO_KEY.get(keycode)
-            if key is not None:
-                handler = self.key_up if event_type == kCGEventKeyUp \
-                    else self.key_down
-                handler(key)
-                if key in self._suppressed_keys:
-                    # Suppress event.
-                    event = None
-            return event
+            self._dispatch(key, event_type)
+            if key in self._suppressed_keys:
+                return SUPPRESS_EVENT
+            return PASS_EVENT_THROUGH
 
         self._tap = CGEventTapCreate(
             kCGSessionEventTap,
@@ -269,6 +282,19 @@ class KeyboardCapture(threading.Thread):
 
     def suppress_keyboard(self, suppressed_keys=()):
         self._suppressed_keys = set(suppressed_keys)
+
+    def _dispatch(self, key, event_type):
+        """
+        Dispatches a key string in KEYCODE_TO_KEY.values() and a CGEventType
+        to the appropriate KeyboardCapture callback.
+        """
+        if key is None:
+            return
+
+        handler = self.key_up if event_type == kCGEventKeyUp \
+            else self.key_down
+        # (jws/2016-05-07)TODO: Call this asynchronously!
+        handler(key)
 
 
 # "Narrow python" unicode objects store characters in UTF-16 so we
