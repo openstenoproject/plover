@@ -1,10 +1,13 @@
 # coding: utf-8
 from Quartz import (
     CFMachPortCreateRunLoopSource,
+    CFMachPortInvalidate,
     CFRunLoopAddSource,
+    CFRunLoopRemoveSource,
     CFRunLoopGetCurrent,
     CFRunLoopRun,
     CFRunLoopStop,
+    CFRelease,
     CGEventCreateKeyboardEvent,
     CGEventGetFlags,
     CGEventGetIntegerValueField,
@@ -287,7 +290,17 @@ class KeyboardCapture(threading.Thread):
 
     def cancel(self):
         CGEventTapEnable(self._tap, False)
+        CFRunLoopRemoveSource(
+            self._running_thread, self._source, kCFRunLoopCommonModes)
+        CFRelease(self._source)
+        self._source = None
+
+        CFMachPortInvalidate(self._tap)
+        CFRelease(self._tap)
+        self._tap = None
+
         CFRunLoopStop(self._running_thread)
+        self._running_thread = None
 
     def suppress_keyboard(self, suppressed_keys=()):
         self._suppressed_keys = set(suppressed_keys)
