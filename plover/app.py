@@ -187,8 +187,6 @@ class StenoEngine(object):
 
     def set_dictionaries(self, file_names):
         dictionary = self.translator.get_dictionary()
-        if tuple(file_names) == tuple(d.get_path() for d in dictionary.dicts):
-            return
         dicts = dict_manager.load(file_names)
         dictionary.set_dicts(dicts)
 
