@@ -25,6 +25,7 @@ from Quartz import (
     kCGEventFlagMaskShift,
     kCGEventKeyDown,
     kCGEventKeyUp,
+    kCGEventTapDisabledByTimeout,
     kCGEventTapOptionDefault,
     kCGHeadInsertEventTap,
     kCGKeyboardEventKeycode,
@@ -38,6 +39,7 @@ import threading
 from time import time
 import collections
 from plover.oslayer import mac_keycode
+import plover.log
 
 
 BACK_SPACE = 51
@@ -232,6 +234,13 @@ class KeyboardCapture(threading.Thread):
             # Don't pass on meta events meant for this event tap.
             is_unexpected_event = event_type not in self._KEYBOARD_EVENTS
             if is_unexpected_event:
+                if event_type == kCGEventTapDisabledByTimeout:
+                    # Re-enable the tap and hope we act faster next time
+                    CGEventTapEnable(self._tap, True)
+                    plover.log.warning(
+                        "Keyboard event tap was disabled by timeout. " +
+                        "Attempted to re-enable. Quit and relaunch Plover " +
+                        "if translation does not resume.")
                 return SUPPRESS_EVENT
 
             # Don't intercept the event if it has modifiers, allow
