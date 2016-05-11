@@ -46,7 +46,7 @@ class StenoDictionaryTestCase(unittest.TestCase):
         
         self.assertEqual(StenoDictionary([('a', 'b')]).items(), [('a', 'b')])
         self.assertEqual(StenoDictionary(a='b').items(), [('a', 'b')])
-        
+
     def test_dictionary_collection(self):
         dc = StenoDictionaryCollection()
         d1 = StenoDictionary()
@@ -77,3 +77,39 @@ class StenoDictionaryTestCase(unittest.TestCase):
         dc.set(('S',), 'e')
         self.assertEqual(dc.lookup(('S',)), 'e')
         self.assertEqual(d2[('S',)], 'e')
+
+    def test_dictionary_collection_longest_key(self):
+
+        k1 = ('S',)
+        k2 = ('S', 'T')
+        k3 = ('S', 'T' , 'R')
+
+        dc = StenoDictionaryCollection()
+        self.assertEqual(dc.longest_key, 0)
+
+        d1 = StenoDictionary()
+        d1._path = 'd1'
+        d1.save = lambda: None
+        d1[k1] = 'a'
+
+        dc.set_dicts([d1])
+        self.assertEqual(dc.longest_key, 1)
+
+        d1[k2] = 'a'
+        self.assertEqual(dc.longest_key, 2)
+
+        d2 = StenoDictionary()
+        d2._path = 'd2'
+        d2[k3] = 'c'
+
+        dc.set_dicts([d1, d2])
+        self.assertEqual(dc.longest_key, 3)
+
+        del d1[k2]
+        self.assertEqual(dc.longest_key, 3)
+
+        dc.set_dicts([d1])
+        self.assertEqual(dc.longest_key, 1)
+
+        dc.set_dicts([])
+        self.assertEqual(dc.longest_key, 0)

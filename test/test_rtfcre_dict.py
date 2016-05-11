@@ -1,7 +1,10 @@
 # Copyright (c) 2013 Hesky Fisher
 # See LICENSE.txt for details.
 
+import os
+import tempfile
 import unittest
+from contextlib import contextmanager
 from StringIO import StringIO
 
 import mock
@@ -122,10 +125,17 @@ class TestCase(unittest.TestCase):
             ['}'])
         footer = '\r\n}'
         
-        def make_dict(s):
-            d = StringIO(''.join((header, s, footer)))
-            d.name = "'%s'" % s
-            return d
+        @contextmanager
+        def make_dict(contents):
+            tf = tempfile.NamedTemporaryFile(delete=False)
+            try:
+                tf.write(header)
+                tf.write(contents)
+                tf.write(footer)
+                tf.close()
+                yield tf.name
+            finally:
+                os.unlink(tf.name)
 
         def assertEqual(a, b):
             self.assertEqual(a._dict, b)
@@ -179,10 +189,11 @@ class TestCase(unittest.TestCase):
         patch_path = 'plover.dictionary.rtfcre_dict'
         with mock.patch.multiple(patch_path, normalize_steno=normalize, 
                                  TranslationConverter=Converter):
-            for s, expected in cases:
+            for contents, expected in cases:
                 expected = dict((normalize(k), convert(v)) 
                                 for k, v in expected.iteritems())
-                assertEqual(load_dictionary(make_dict(s)), expected)
+                with make_dict(contents) as filename:
+                    assertEqual(load_dictionary(filename), expected)
 
     def test_format_translation(self):
         cases = (

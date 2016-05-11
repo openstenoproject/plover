@@ -180,7 +180,10 @@ class StenoDictionaryCollection(object):
         self.longest_key_callbacks.remove(callback)
     
     def _longest_key_listener(self, ignored=None):
-        new_longest_key = max(d.longest_key for d in self.dicts)
+        if self.dicts:
+            new_longest_key = max(d.longest_key for d in self.dicts)
+        else:
+            new_longest_key = 0
         if new_longest_key != self.longest_key:
             self.longest_key = new_longest_key
             for c in self.longest_key_callbacks:

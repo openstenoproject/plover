@@ -4,17 +4,24 @@
 
 """Unit tests for json.py."""
 
-import StringIO
+import os
 import unittest
+import tempfile
+from contextlib import contextmanager
 
 from plover.dictionary.json_dict import load_dictionary
 from plover.dictionary.base import DictionaryLoaderException
 
 
+@contextmanager
 def make_dict(contents):
-    d = StringIO.StringIO(contents)
-    d.name = "'%s'" % contents
-    return d
+    tf = tempfile.NamedTemporaryFile(delete=False)
+    try:
+        tf.write(contents)
+        tf.close()
+        yield tf.name
+    finally:
+        os.unlink(tf.name)
 
 class JsonDictionaryTestCase(unittest.TestCase):
 
@@ -30,7 +37,18 @@ class JsonDictionaryTestCase(unittest.TestCase):
             # must automatically retry with latin-1.
             (u'{"S": "café"}'.encode('latin-1'), {('S', ): u'café'}),
         ):
-            assertEqual(load_dictionary(make_dict(contents)), expected)
-        
-        with self.assertRaises(DictionaryLoaderException):
-            load_dictionary(make_dict('foo'))
+            with make_dict(contents) as filename:
+                assertEqual(load_dictionary(filename), expected)
+
+        for contents, exception in (
+            # Invalid JSON.
+            (u'{"foo", "bar",}', ValueError),
+            # Invalid JSON.
+            (u'foo', ValueError),
+            # Cannot convert to dict.
+            (u'"foo"', ValueError),
+            # Ditto.
+            (u'4.2', TypeError),
+        ):
+            with make_dict(contents) as filename:
+                self.assertRaises(exception, load_dictionary, filename)
