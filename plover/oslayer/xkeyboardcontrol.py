@@ -32,11 +32,27 @@ from Xlib import X, XK, display
 from Xlib.ext import record, xtest
 from Xlib.protocol import rq, event
 
+from plover.key_combo import add_modifiers_aliases, parse_key_combo
 from plover import log
 
 
 # Enable support for media keys.
 XK.load_keysym_group('xf86')
+
+# Create case insensitive mapping of keyname to keysym.
+KEY_TO_KEYSYM = {}
+for symbol in sorted(dir(XK)): # Sorted so XK_a is preferred over XK_A.
+    if not symbol.startswith('XK_'):
+        continue
+    name = symbol[3:].lower()
+    keysym = getattr(XK, symbol)
+    KEY_TO_KEYSYM[name] = keysym
+    # Add aliases for `XF86_` keys.
+    if name.startswith('xf86_'):
+        alias = name[5:]
+        if alias not in KEY_TO_KEYSYM:
+            KEY_TO_KEYSYM[alias] = keysym
+add_modifiers_aliases(KEY_TO_KEYSYM)
 
 RECORD_EXTENSION_NOT_FOUND = "Xlib's RECORD extension is required, \
 but could not be found."
@@ -1129,7 +1145,6 @@ class KeyboardEmulation(object):
         # Analyse X11 keymap.
         keycode = self.display.display.info.min_keycode
         keycode_count = self.display.display.info.max_keycode - keycode + 1
-        modifier_mapping = self.display.get_modifier_mapping()
         for mapping in self.display.get_keyboard_mapping(keycode, keycode_count):
             mapping = tuple(mapping)
             while mapping and X.NoSymbol == mapping[-1]:
@@ -1238,55 +1253,17 @@ class KeyboardEmulation(object):
         and release the Tab key, and then release the left Alt key.
 
         """
-        # Convert the argument into a sequence of keycode, event type pairs
-        # that, if executed in order, would emulate the key
-        # combination represented by the argument.
-        keycode_events = []
-        key_down_stack = []
-        current_command = []
-        for c in combo_string:
-            if c in (' ', '(', ')'):
-                keystring = ''.join(current_command)
-                mapping = self._get_maping_from_keystring(keystring)
-                current_command = []
-                if mapping is None:
-                    continue
-                if c == ' ':
-                    # Record press and release for command's key.
-                    keycode_events.append((mapping.keycode, X.KeyPress))
-                    keycode_events.append((mapping.keycode, X.KeyRelease))
-                elif c == '(':
-                    # Record press for command's key.
-                    key_down_stack.append(mapping.keycode)
-                    keycode_events.append((mapping.keycode, X.KeyPress))
-                elif c == ')':
-                    # Record press and release for command's key and
-                    # release previously held key.
-                    keycode_events.append((mapping.keycode, X.KeyPress))
-                    keycode_events.append((mapping.keycode, X.KeyRelease))
-                    if len(key_down_stack):
-                        keycode = key_down_stack.pop()
-                        keycode_events.append((keycode, X.KeyRelease))
-            else:
-                current_command.append(c)
-        # Record final command key.
-        if current_command:
-            keystring = ''.join(current_command)
-            mapping = self._get_maping_from_keystring(keystring)
-            if mapping is not None:
-                keycode_events.append((mapping.keycode, X.KeyPress))
-                keycode_events.append((mapping.keycode, X.KeyRelease))
-        # Release all keys.
-        for keycode in key_down_stack:
-            keycode_events.append((keycode, X.KeyRelease))
-
+        # Parse and validate combo.
+        key_events = [
+            (keycode, X.KeyPress if pressed else X.KeyRelease) for keycode, pressed
+            in parse_key_combo(combo_string, self._get_keycode_from_keystring)
+        ]
         # Tell all KeyboardCapture instances to ignore the key
         # events that are about to be sent.
         for capture in keyboard_capture_instances:
-            capture.ignore_key_events(keycode_events)
-
+            capture.ignore_key_events(key_events)
         # Emulate the key combination by sending key events.
-        for keycode, event_type in keycode_events:
+        for keycode, event_type in key_events:
             xtest.fake_input(self.display, event_type, keycode)
         self.display.sync()
 
@@ -1343,17 +1320,20 @@ class KeyboardEmulation(object):
                                  )
         target_window.send_event(key_event)
 
-    def _get_maping_from_keystring(self, keystring):
-        keysym = XK.string_to_keysym(keystring)
-        if X.NoSymbol == keysym:
-            # Check with 'XF86_' prefix.
-            keysym = XK.string_to_keysym('XF86_%s' % keystring)
-            if X.NoSymbol == keysym:
-                log.warning('unsupported key name: %s', keystring)
-                return None
-        return self._get_mapping(keysym)
+    def _get_keycode_from_keystring(self, keystring):
+        '''Find the physical key <keystring> is mapped to.
 
-    def _get_mapping(self, keysym):
+        Return None of if keystring is not mapped.
+        '''
+        keysym = KEY_TO_KEYSYM.get(keystring)
+        if keysym is None:
+            return None
+        mapping = self._get_mapping(keysym, automatically_map=False)
+        if mapping is None:
+            return None
+        return mapping.keycode
+
+    def _get_mapping(self, keysym, automatically_map=True):
         """Return a keycode and modifier mask pair that result in the keysym.
 
         There is a one-to-many mapping from keysyms to keycode and
@@ -1368,6 +1348,10 @@ class KeyboardEmulation(object):
         """
         mapping = self.keymap.get(keysym)
         if mapping is None:
+            # Automatically map?
+            if not automatically_map:
+                # No.
+                return None
             # Can we map it?
             if 0 == len(self.custom_mappings_queue):
                 # Nope...
