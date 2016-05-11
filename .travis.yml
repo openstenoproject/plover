@@ -5,7 +5,18 @@ matrix:
     - os: linux
       dist: trusty
       sudo: required
+      # Disabled until Travis CI allows using a different cache ID for each OS.
+      # cache:
+      #   directories:
+      #     - $HOME/.cache/pip
+      # before_cache:
+      #   - rm -rf $HOME/.cache/pip/log
     - os: osx
+      cache:
+        directories:
+          - /Users/travis/Library/Caches/pip
+      before_cache:
+        - rm -rf /Users/travis/Library/Caches/pip/log
 
 before_install:
   - |
