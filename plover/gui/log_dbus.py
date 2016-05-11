@@ -1,7 +1,14 @@
 
-from plover import log, __name__ as __software_name__
-import pynotify
 import logging
+
+# Fix a possible crash...
+# See: http://trac.wxwidgets.org/ticket/15898
+import gtk
+gtk.remove_log_handlers()
+
+import pynotify
+
+from plover import log, __name__ as __software_name__
 
 
 pynotify.init(__software_name__.capitalize())
