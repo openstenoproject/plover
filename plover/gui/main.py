@@ -367,14 +367,20 @@ class Output(object):
         self.keyboard_control = KeyboardEmulation()
         self.engine = engine
 
+    def _xcall(self, fn, *args, **kwargs):
+        try:
+            fn(*args, **kwargs)
+        except Exception:
+            log.error('output failed', exc_info=True)
+
     def send_backspaces(self, b):
-        wx.CallAfter(self.keyboard_control.send_backspaces, b)
+        wx.CallAfter(self._xcall, self.keyboard_control.send_backspaces, b)
 
     def send_string(self, t):
-        wx.CallAfter(self.keyboard_control.send_string, t)
+        wx.CallAfter(self._xcall, self.keyboard_control.send_string, t)
 
     def send_key_combination(self, c):
-        wx.CallAfter(self.keyboard_control.send_key_combination, c)
+        wx.CallAfter(self._xcall, self.keyboard_control.send_key_combination, c)
 
     # TODO: test all the commands now
     def send_engine_command(self, c):
