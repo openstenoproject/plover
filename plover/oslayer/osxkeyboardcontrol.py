@@ -1,10 +1,13 @@
 # coding: utf-8
 from Quartz import (
     CFMachPortCreateRunLoopSource,
+    CFMachPortInvalidate,
     CFRunLoopAddSource,
+    CFRunLoopRemoveSource,
     CFRunLoopGetCurrent,
     CFRunLoopRun,
     CFRunLoopStop,
+    CFRelease,
     CGEventCreateKeyboardEvent,
     CGEventGetFlags,
     CGEventGetIntegerValueField,
@@ -13,7 +16,6 @@ from Quartz import (
     CGEventPost,
     CGEventSetFlags,
     CGEventSourceCreate,
-    CGEventSourceGetSourceStateID,
     CGEventTapCreate,
     CGEventTapEnable,
     kCFRunLoopCommonModes,
@@ -26,7 +28,7 @@ from Quartz import (
     kCGEventFlagMaskShift,
     kCGEventKeyDown,
     kCGEventKeyUp,
-    kCGEventSourceStateID,
+    kCGEventTapDisabledByTimeout,
     kCGEventTapOptionDefault,
     kCGHeadInsertEventTap,
     kCGKeyboardEventKeycode,
@@ -37,9 +39,11 @@ from Quartz import (
 )
 import Foundation
 import threading
+import Queue
 from time import time
 import collections
 from plover.oslayer import mac_keycode
+import plover.log
 
 
 BACK_SPACE = 51
@@ -177,16 +181,29 @@ OUTPUT_SOURCE = CGEventSourceCreate(kCGEventSourceStateHIDSystemState)
 
 # For the purposes of this class, we're only watching these keys.
 # We could calculate the keys, but our default layout would be misleading:
-# KEYCODE_TO_KEY = {keycode: mac_keycode.CharForKeycode(keycode) for keycode in range(127)}
+#
+#     KEYCODE_TO_KEY = {keycode: mac_keycode.CharForKeycode(keycode) \
+#             for keycode in range(127)}
 KEYCODE_TO_KEY = {
-    122: 'F1', 120: 'F2', 99: 'F3', 118: 'F4', 96: 'F5', 97: 'F6', 98: 'F7', 100: 'F8', 101: 'F9', 109: 'F10', 103: 'F11', 111: 'F12',
-    50: '`', 29: '0', 18: '1', 19: '2', 20: '3', 21: '4', 23: '5', 22: '6', 26: '7', 28: '8', 25: '9', 27: '-', 24: '=',
-    12: 'q', 13: 'w', 14: 'e', 15: 'r', 17: 't', 16: 'y', 32: 'u', 34: 'i', 31: 'o',  35: 'p', 33: '[', 30: ']', 42: '\\',
-    0: 'a', 1: 's', 2: 'd', 3: 'f', 5: 'g', 4: 'h', 38: 'j', 40: 'k', 37: 'l', 41: ';', 39: '\'',
-    6: 'z', 7: 'x', 8: 'c', 9: 'v', 11: 'b', 45: 'n', 46: 'm', 43: ',', 47: '.', 44: '/',
-    49: 'space', BACK_SPACE: "BackSpace", 117: "Delete", 125: "Down", 119: "End",
+    122: 'F1', 120: 'F2', 99: 'F3', 118: 'F4', 96: 'F5', 97: 'F6',
+    98: 'F7', 100: 'F8', 101: 'F9', 109: 'F10', 103: 'F11', 111: 'F12',
+
+    50: '`', 29: '0', 18: '1', 19: '2', 20: '3', 21: '4', 23: '5',
+    22: '6', 26: '7', 28: '8', 25: '9', 27: '-', 24: '=',
+
+    12: 'q', 13: 'w', 14: 'e', 15: 'r', 17: 't', 16: 'y',
+    32: 'u', 34: 'i', 31: 'o',  35: 'p', 33: '[', 30: ']', 42: '\\',
+
+    0: 'a', 1: 's', 2: 'd', 3: 'f', 5: 'g',
+    4: 'h', 38: 'j', 40: 'k', 37: 'l', 41: ';', 39: '\'',
+
+    6: 'z', 7: 'x', 8: 'c', 9: 'v', 11: 'b',
+    45: 'n', 46: 'm', 43: ',', 47: '.', 44: '/',
+
+    49: 'space', BACK_SPACE: "BackSpace",
+    117: "Delete", 125: "Down", 119: "End",
     53: "Escape", 115: "Home", 123: "Left", 121: "Page_Down", 116: "Page_Up",
-    36 : "Return", 124: "Right", 48: "Tab", 126: "Up",
+    36: "Return", 124: "Right", 48: "Tab", 126: "Up",
 }
 
 
@@ -196,34 +213,63 @@ class KeyboardCapture(threading.Thread):
     _KEYBOARD_EVENTS = set([kCGEventKeyDown, kCGEventKeyUp])
 
     def __init__(self):
-        threading.Thread.__init__(self)
+        threading.Thread.__init__(self, name="KeyboardEventTapThread")
         self._running_thread = None
+        self._canceled = False  # Used to signal event handler thread.
+        self._event_queue = Queue.Queue()  # Drained by event handler thread.
+
         self._suppressed_keys = set()
         self.key_down = lambda key: None
         self.key_up = lambda key: None
 
-        # Returning the event means that it is passed on for further processing by others. 
+        # Returning the event means that it is passed on
+        # for further processing by others.
+        #
         # Returning None means that the event is intercepted.
+        #
+        # Delaying too long in returning appears to cause the
+        # system to ignore the tap forever after
+        # (https://github.com/openstenoproject/plover/issues/484#issuecomment-214743466).
+        #
+        # This motivates pushing callbacks to the other side
+        # of a queue of received events, so that we can return
+        # from this callback as soon as possible.
         def callback(proxy, event_type, event, reference):
+            SUPPRESS_EVENT = None
+            PASS_EVENT_THROUGH = event
+
+            if self._canceled:
+                return PASS_EVENT_THROUGH
+
             # Don't pass on meta events meant for this event tap.
-            if event_type not in self._KEYBOARD_EVENTS:
-                return None
+            is_unexpected_event = event_type not in self._KEYBOARD_EVENTS
+            if is_unexpected_event:
+                if event_type == kCGEventTapDisabledByTimeout:
+                    # Re-enable the tap and hope we act faster next time
+                    CGEventTapEnable(self._tap, True)
+                    plover.log.warning(
+                        "Keystrokes may have been missed. "
+                        + "Keyboard event tap has been re-enabled. ")
+                return SUPPRESS_EVENT
+
             # Don't intercept the event if it has modifiers, allow
             # Fn and Numeric flags so we can suppress the arrow and
             # extended (home, end, etc...) keys.
-            if CGEventGetFlags(event) & ~(kCGEventFlagMaskNumericPad |
-                                          kCGEventFlagMaskSecondaryFn |
-                                          kCGEventFlagMaskNonCoalesced):
-                return event
-            keycode = CGEventGetIntegerValueField(event, kCGKeyboardEventKeycode)
+            suppressible_modifiers = (kCGEventFlagMaskNumericPad |
+                                      kCGEventFlagMaskSecondaryFn |
+                                      kCGEventFlagMaskNonCoalesced)
+            has_nonsupressible_modifiers = \
+                CGEventGetFlags(event) & ~suppressible_modifiers
+            if has_nonsupressible_modifiers:
+                return PASS_EVENT_THROUGH
+
+            keycode = CGEventGetIntegerValueField(
+                event, kCGKeyboardEventKeycode)
             key = KEYCODE_TO_KEY.get(keycode)
-            if key is not None:
-                handler = self.key_up if event_type == kCGEventKeyUp else self.key_down
-                handler(key)
-                if key in self._suppressed_keys:
-                    # Suppress event.
-                    event = None
-            return event
+            self._async_dispatch(key, event_type)
+            if key in self._suppressed_keys:
+                return SUPPRESS_EVENT
+            return PASS_EVENT_THROUGH
 
         self._tap = CGEventTapCreate(
             kCGSessionEventTap,
@@ -239,6 +285,11 @@ class KeyboardCapture(threading.Thread):
         CGEventTapEnable(self._tap, False)
 
     def run(self):
+        self._handler_thread = threading.Thread(
+            target=self._event_handler,
+            name="KeyEventDispatcher")
+        self._handler_thread.start()
+
         self._running_thread = CFRunLoopGetCurrent()
         CFRunLoopAddSource(
             self._running_thread,
@@ -249,15 +300,62 @@ class KeyboardCapture(threading.Thread):
         CFRunLoopRun()
 
     def cancel(self):
+        self._canceled = True  # Signal event handler thread to exit.
+        self._event_queue.put_nowait(None)   # Wake up event handler.
+
         CGEventTapEnable(self._tap, False)
+        CFRunLoopRemoveSource(
+            self._running_thread, self._source, kCFRunLoopCommonModes)
+        CFRelease(self._source)
+        self._source = None
+
+        CFMachPortInvalidate(self._tap)
+        CFRelease(self._tap)
+        self._tap = None
+
         CFRunLoopStop(self._running_thread)
+        self._running_thread = None
 
     def suppress_keyboard(self, suppressed_keys=()):
         self._suppressed_keys = set(suppressed_keys)
 
+    def _async_dispatch(self, key, event_type):
+        """
+        Dispatches a key string in KEYCODE_TO_KEY.values() and a CGEventType
+        to the appropriate KeyboardCapture callback
+        without blocking execution of its caller.
+        """
+        if key is None:
+            return
+
+        is_keyup = event_type == kCGEventKeyUp
+        pair = (key, is_keyup)
+        self._event_queue.put_nowait(pair)
+
+    def _event_handler(self):
+        """
+        Event dispatching thread launched during run().
+        Loops until _canceled is set True
+        or None is received from _event_queue.
+        Avoids busy-waiting by blocking on _event_queue.
+
+        In normal operation, it gets a pair of
+        (key_string, is_keyup_bool) from _event_queue
+        and routes the string to self.key_up or self.key_down,
+        then waits for a new pair to arrive.
+        """
+        while True:
+            pair = self._event_queue.get(block=True, timeout=None)
+            if self._canceled or pair is None:
+                return
+
+            key, is_keyup = pair
+            handler = self.key_up if is_keyup else self.key_down
+            handler(key)
+
 
 # "Narrow python" unicode objects store characters in UTF-16 so we
-# can't iterate over characters in the standard way. This workaround 
+# can't iterate over characters in the standard way. This workaround
 # let's us iterate over full characters in the string.
 def characters(s):
     encoded = s.encode('utf-32-be')
@@ -278,10 +376,12 @@ class KeyboardEmulation(object):
     @staticmethod
     def send_backspaces(number_of_backspaces):
         for _ in xrange(number_of_backspaces):
-            CGEventPost(kCGSessionEventTap,
-                        CGEventCreateKeyboardEvent(OUTPUT_SOURCE, BACK_SPACE, True))
-            CGEventPost(kCGSessionEventTap,
-                        CGEventCreateKeyboardEvent(OUTPUT_SOURCE, BACK_SPACE, False))
+            backspace_down = CGEventCreateKeyboardEvent(
+                OUTPUT_SOURCE, BACK_SPACE, True)
+            backspace_up = CGEventCreateKeyboardEvent(
+                OUTPUT_SOURCE, BACK_SPACE, False)
+            CGEventPost(kCGSessionEventTap, backspace_down)
+            CGEventPost(kCGSessionEventTap, backspace_up)
 
     def send_string(self, s):
         """
@@ -293,17 +393,23 @@ class KeyboardEmulation(object):
         Setting the string is less ideal, but necessary for things like emoji.
         We want to try to group modifier presses, where convenient.
         So, a string like 'THIS dog [dog emoji]' might be processed like:
-        'Raw: Shift down t h i s shift up, Raw: space d o g space, String: [dog emoji]'
-        There are 3 groups, the shifted groud, the spaces and dog string, and the emoji.
+            'Raw: Shift down t h i s shift up,
+            Raw: space d o g space,
+            String: [dog emoji]'
+        There are 3 groups, the shifted group, the spaces and dog string,
+        and the emoji.
         """
-        # Key plan will store the type of output (raw keycodes versus setting string)
+        # Key plan will store the type of output
+        # (raw keycodes versus setting string)
         # and the list of keycodes or the goal character.
         key_plan = []
 
-        # apply_raw's properties are used to store the current keycode sequence,
+        # apply_raw's properties are used to store
+        # the current keycode sequence,
         # and add the sequence to the key plan when called as a function.
         def apply_raw():
-            if hasattr(apply_raw, 'sequence') and len(apply_raw.sequence) is not 0:
+            if hasattr(apply_raw, 'sequence') \
+                    and len(apply_raw.sequence) is not 0:
                 apply_raw.sequence.extend(apply_raw.release_modifiers)
                 key_plan.append((self.RAW_PRESS, apply_raw.sequence))
             apply_raw.sequence = []
@@ -318,9 +424,11 @@ class KeyboardEmulation(object):
                         # Flush on modifier change.
                         apply_raw()
                         last_modifier = modifier
-                        modifier_keycodes = self._modifier_to_keycodes(modifier)
+                        modifier_keycodes = self._modifier_to_keycodes(
+                            modifier)
                         apply_raw.sequence.extend(down(modifier_keycodes))
-                        apply_raw.release_modifiers.extend(up(modifier_keycodes))
+                        apply_raw.release_modifiers.extend(
+                            up(modifier_keycodes))
                     apply_raw.sequence.extend(down_up([keycode]))
                 else:
                     # Flush on type change.
@@ -450,7 +558,7 @@ class KeyboardEmulation(object):
     def _get_media_event(key_id, key_down):
         # Credit: https://gist.github.com/fredrikw/4078034
         flags = 0xa00 if key_down else 0xb00
-        return NSEvent.otherEventWithType_location_modifierFlags_timestamp_windowNumber_context_subtype_data1_data2_(
+        return NSEvent.otherEventWithType_location_modifierFlags_timestamp_windowNumber_context_subtype_data1_data2_(  # nopep8: We can't make this line shorter!
             NSSystemDefined, (0, 0),
             flags,
             0, 0, 0, 8,
@@ -471,18 +579,21 @@ class KeyboardEmulation(object):
         for keycode, key_down in sequence:
             if keycode >= NX_KEY_OFFSET:
                 # Handle media (NX) key.
-                event = KeyboardEmulation._get_media_event(keycode - NX_KEY_OFFSET, key_down)
+                event = KeyboardEmulation._get_media_event(
+                    keycode - NX_KEY_OFFSET, key_down)
             else:
                 # Handle regular keycode.
                 if not key_down and keycode in MODIFIER_KEYS_TO_MASKS:
                     mods_flags &= ~MODIFIER_KEYS_TO_MASKS[keycode]
 
-                event = CGEventCreateKeyboardEvent(OUTPUT_SOURCE, keycode, key_down)
+                event = CGEventCreateKeyboardEvent(
+                    OUTPUT_SOURCE, keycode, key_down)
 
                 if key_down and keycode not in MODIFIER_KEYS_TO_MASKS:
                     event_flags = CGEventGetFlags(event)
                     # Add wanted flags, remove unwanted flags.
-                    goal_flags = (event_flags & ~KeyboardEmulation.MODS_MASK) | mods_flags
+                    goal_flags = ((event_flags & ~KeyboardEmulation.MODS_MASK)
+                                  | mods_flags)
                     if event_flags != goal_flags:
                         CGEventSetFlags(event, goal_flags)
 
