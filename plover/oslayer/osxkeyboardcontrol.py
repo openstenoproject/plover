@@ -247,7 +247,9 @@ class KeyboardCapture(threading.Thread):
                 if event_type == kCGEventTapDisabledByTimeout:
                     # Re-enable the tap and hope we act faster next time
                     CGEventTapEnable(self._tap, True)
-                    plover.log.info("Re-enabled keyboard event tap.")
+                    plover.log.warning(
+                        "Keystrokes may have been missed. "
+                        + "Keyboard event tap has been re-enabled. ")
                 return SUPPRESS_EVENT
 
             # Don't intercept the event if it has modifiers, allow
