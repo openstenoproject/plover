@@ -48,6 +48,8 @@ script:
   - git fetch --unshallow
   - ./setup.py patch_version
   - ./setup.py test
+
+before_deploy:
   - |
     case "$TRAVIS_OS_NAME" in
     osx)
