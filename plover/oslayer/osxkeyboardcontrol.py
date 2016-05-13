@@ -213,7 +213,7 @@ class KeyboardCapture(threading.Thread):
     _KEYBOARD_EVENTS = set([kCGEventKeyDown, kCGEventKeyUp])
 
     def __init__(self):
-        threading.Thread.__init__(self)
+        threading.Thread.__init__(self, name="KeyboardEventTapThread")
         self._running_thread = None
         self._canceled = False  # Used to signal event handler thread.
         self._event_queue = Queue.Queue()  # Drained by event handler thread.
@@ -247,10 +247,7 @@ class KeyboardCapture(threading.Thread):
                 if event_type == kCGEventTapDisabledByTimeout:
                     # Re-enable the tap and hope we act faster next time
                     CGEventTapEnable(self._tap, True)
-                    plover.log.warning(
-                        "Keyboard event tap was disabled by timeout. " +
-                        "Attempted to re-enable. Quit and relaunch Plover " +
-                        "if translation does not resume.")
+                    plover.log.info("Re-enabled keyboard event tap.")
                 return SUPPRESS_EVENT
 
             # Don't intercept the event if it has modifiers, allow
@@ -288,7 +285,7 @@ class KeyboardCapture(threading.Thread):
     def run(self):
         self._handler_thread = threading.Thread(
             target=self._event_handler,
-            name="org.openstenoproject.plover.KeyEventDispatcher")
+            name="KeyEventDispatcher")
         self._handler_thread.start()
 
         self._running_thread = CFRunLoopGetCurrent()
