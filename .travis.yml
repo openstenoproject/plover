@@ -29,7 +29,7 @@ before_install:
       true
       ;;
     linux)
-      sudo apt-add-repository -y ppa:adamwolf/kicad-trusty-backports &&
+      sudo apt-add-repository -y ppa:benoit.pierre/plover &&
       sudo apt-get update -qq &&
       sudo apt-get install -y cython libudev-dev libusb-1.0-0-dev python-dev python-wxgtk3.0 python-xlib &&
       true
