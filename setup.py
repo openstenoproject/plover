@@ -41,7 +41,7 @@ def get_version():
     if not os.path.exists('.git'):
         return None
     version = subprocess.check_output('git describe --tags --match=v[0-9]*'.split()).strip().decode()
-    m = re.match(r'^v(\d[\d.]*)(-\d+-g[a-f0-9]*)?$', version)
+    m = re.match(r'^v(\d[\d.]*(?:\.dev\d+)?)(-\d+-g[a-f0-9]*)?$', version)
     assert m is not None, version
     version = m.group(1)
     if m.group(2) is not None:
