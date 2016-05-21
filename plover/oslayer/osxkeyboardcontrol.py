@@ -42,7 +42,9 @@ import threading
 import Queue
 from time import time
 import collections
+
 from plover.oslayer import mac_keycode
+from plover.key_combo import add_modifiers_aliases, parse_key_combo
 import plover.log
 
 
@@ -50,49 +52,49 @@ BACK_SPACE = 51
 
 NX_KEY_OFFSET = 65536
 
-KEYNAME_TO_KEYCODE = collections.defaultdict(list, {
-    'Fn': [63],
+NX_KEYS = {
+    "AudioRaiseVolume": 0,
+    "AudioLowerVolume": 1,
+    "MonBrightnessUp": 2,
+    "MonBrightnessDown": 3,
+    "AudioMute": 7,
+    "Num_Lock": 10,
+    "Eject": 14,
+    "AudioPause": 16,
+    "AudioPlay": 16,
+    "AudioNext": 17,
+    "AudioPrev": 18,
+    "AudioRewind": 20,
+    "KbdBrightnessUp": 21,
+    "KbdBrightnessDown": 22
+}
 
-    'Alt_L': [58], 'Alt_R': [61], 'Control_L': [59], 'Control_R': [62],
-    'Hyper_L': [], 'Hyper_R': [], 'Meta_L': [], 'Meta_R': [],
-    'Shift_L': [56], 'Shift_R': [60], 'Super_L': [55], 'Super_R': [55],
+KEYNAME_TO_KEYCODE = {
+    'fn': 63,
 
-    'Caps_Lock': [57], 'Scroll_Lock': [], 'Shift_Lock': [],
+    'alt_l': 58, 'alt_r': 61, 'control_l': 59, 'control_r': 62,
+    'shift_l': 56, 'shift_r': 60, 'super_l': 55, 'super_r': 55,
+    'caps_lock': 57,
 
-    'Return': [36], 'Tab': [48], 'BackSpace': [BACK_SPACE], 'Delete': [117],
-    'Escape': [53], 'Break': [], 'Insert': [], 'Pause': [], 'Print': [],
-    'Sys_Req': [],
+    'return': 36, 'tab': 48, 'backspace': BACK_SPACE, 'delete': 117,
+    'escape': 53,
 
-    'Up': [126], 'Down': [125], 'Left': [123], 'Right': [124],
-    'Page_Up': [116],
-    'Page_Down': [121], 'Home': [115], 'End': [119],
+    'up': 126, 'down': 125, 'left': 123, 'right': 124, 'page_up': 116,
+    'page_down': 121, 'home': 115, 'end': 119,
 
-    'F1': [122], 'F2': [120], 'F3': [99], 'F4': [118], 'F5': [96], 'F6': [97],
-    'F7': [98], 'F8': [100], 'F9': [101], 'F10': [109], 'F11': [103],
-    'F12': [111], 'F13': [105], 'F14': [107], 'F15': [113], 'F16': [106],
-    'F17': [64], 'F18': [79], 'F19': [80], 'F20': [90], 'F21': [], 'F22': [],
-    'F23': [], 'F24': [], 'F25': [], 'F26': [], 'F27': [], 'F28': [],
-    'F29': [], 'F30': [], 'F31': [], 'F32': [], 'F33': [], 'F34': [],
-    'F35': [],
+    'f1': 122, 'f2': 120, 'f3': 99, 'f4': 118, 'f5': 96, 'f6': 97,
+    'f7': 98, 'f8': 100, 'f9': 101, 'f10': 109, 'f11': 103,
+    'f12': 111, 'f13': 105, 'f14': 107, 'f15': 113, 'f16': 106,
+    'f17': 64, 'f18': 79, 'f19': 80, 'f20': 90,
 
-    'L1': [], 'L2': [], 'L3': [], 'L4': [], 'L5': [], 'L6': [],
-    'L7': [], 'L8': [], 'L9': [], 'L10': [],
-
-    'R1': [], 'R2': [], 'R3': [], 'R4': [], 'R5': [], 'R6': [],
-    'R7': [], 'R8': [], 'R9': [], 'R10': [], 'R11': [], 'R12': [],
-    'R13': [], 'R14': [], 'R15': [],
-
-    'KP_0': [82], 'KP_1': [83], 'KP_2': [84], 'KP_3': [85], 'KP_4': [86],
-    'KP_5': [87], 'KP_6': [88], 'KP_7': [89], 'KP_8': [91], 'KP_9': [92],
-    'KP_Add': [69], 'KP_Begin': [], 'KP_Decimal': [65], 'KP_Delete': [71],
-    'KP_Divide': [75], 'KP_Down': [], 'KP_End': [], 'KP_Enter': [76],
-    'KP_Equal': [81], 'KP_F1': [], 'KP_F2': [], 'KP_F3': [], 'KP_F4': [],
-    'KP_Home': [], 'KP_Insert': [], 'KP_Left': [], 'KP_Multiply': [67],
-    'KP_Next': [], 'KP_Page_Down': [], 'KP_Page_Up': [], 'KP_Prior': [],
-    'KP_Right': [], 'KP_Separator': [], 'KP_Space': [], 'KP_Subtract': [78],
-    'KP_Tab': [], 'KP_Up': [],
-
-})
+    'kp_0': 82, 'kp_1': 83, 'kp_2': 84, 'kp_3': 85, 'kp_4': 86,
+    'kp_5': 87, 'kp_6': 88, 'kp_7': 89, 'kp_8': 91, 'kp_9': 92,
+    'kp_add': 69, 'kp_decimal': 65, 'kp_delete': 71, 'kp_divide': 75,
+    'kp_enter': 76, 'kp_equal': 81, 'kp_multiply': 67, 'kp_subtract': 78,
+}
+for name, code in NX_KEYS.iteritems():
+    KEYNAME_TO_KEYCODE[name.lower()] = code + NX_KEY_OFFSET
+add_modifiers_aliases(KEYNAME_TO_KEYCODE)
 
 KEYNAME_TO_CHAR = {
     'ampersand': '&', 'apostrophe': '\'', 'asciitilde': '~',
@@ -147,23 +149,6 @@ LITERALS = collections.defaultdict(str, {
     '<': 'less', '.': 'period', '>': 'greater', '/': 'slash',
     '?': 'question', '\t': 'Tab', ' ': 'space'
 })
-
-NX_KEYS = {
-    "AudioRaiseVolume": 0,
-    "AudioLowerVolume": 1,
-    "MonBrightnessUp": 2,
-    "MonBrightnessDown": 3,
-    "AudioMute": 7,
-    "Num_Lock": 10,
-    "Eject": 14,
-    "AudioPause": 16,
-    "AudioPlay": 16,
-    "AudioNext": 17,
-    "AudioPrev": 18,
-    "AudioRewind": 20,
-    "KbdBrightnessUp": 21,
-    "KbdBrightnessDown": 22
-}
 
 # Maps from keycodes to corresponding event masks.
 MODIFIER_KEYS_TO_MASKS = {
@@ -470,75 +455,29 @@ class KeyboardEmulation(object):
                 and release the Tab key, and then release the left Alt key.
 
         """
-
-        # Convert the argument into a sequence of keycode, event type pairs
-        # that, if executed in order, would emulate the key combination
-        # represented by the argument.
-        def _keystring_to_sequence(keystring):
-            if keystring in NX_KEYS:
-                seq = [NX_KEYS[keystring] + NX_KEY_OFFSET]
-            elif keystring in KEYNAME_TO_KEYCODE:
-                seq = KEYNAME_TO_KEYCODE[keystring]
-            else:
-                # Convert potential key name to Unicode character
-                if keystring in KEYNAME_TO_CHAR:
-                    keystring = KEYNAME_TO_CHAR[keystring]
-                seq = []
-                for keycode, modifier in mac_keycode.KeyCodeForChar(keystring):
-                    if keycode is not None:
-                        seq.extend(self._modifier_to_keycodes(modifier))
-                        seq.append(keycode)
-            return seq
-
-        keycode_events = []
-        key_down_stack = []
-        current_command = []
-        for c in combo_string:
-            if c in (' ', '(', ')'):
-                keystring = ''.join(current_command)
-                current_command = []
-                seq = _keystring_to_sequence(keystring)
-
-                if c == ' ':
-                    # Record press and release for command's keys.
-                    keycode_events.extend(down_up(seq))
-                elif c == '(':
-                    # Record press for command's key.
-                    keycode_events.extend(down(seq))
-                    key_down_stack.append(seq)
-                elif c == ')':
-                    # Record press and release for command's key and
-                    # release previously held keys.
-                    keycode_events.extend(down_up(seq))
-                    if key_down_stack:
-                        keycode_events.extend(up(key_down_stack.pop()))
-            else:
-                current_command.append(c)
-        # Record final command key.
-        if current_command:
-            keystring = ''.join(current_command)
-            seq = _keystring_to_sequence(keystring)
-            keycode_events.extend(down_up(seq))
-
-        # Release all keys.
-        # Should this be legal in the dict (lack of closing parens)?
-        for seq in key_down_stack:
-            keycode_events.extend(up(seq))
-
-        # Emulate the key combination by sending key events.
-        self._send_sequence(keycode_events)
+        def name_to_code(name):
+            code = KEYNAME_TO_KEYCODE.get(name)
+            if code is not None:
+                return code
+            char = KEYNAME_TO_CHAR.get(name, name)
+            code, mods = mac_keycode.KeyCodeForChar(char)[0]
+            return code
+        # Parse and validate combo.
+        key_events = parse_key_combo(combo_string, name_to_code)
+        # Send events...
+        self._send_sequence(key_events)
 
     @staticmethod
     def _modifier_to_keycodes(modifier):
         keycodes = []
         if modifier & 16:
-            keycodes.extend(KEYNAME_TO_KEYCODE['Control_R'])
+            keycodes.append(KEYNAME_TO_KEYCODE['control_r'])
         if modifier & 8:
-            keycodes.extend(KEYNAME_TO_KEYCODE['Alt_R'])
+            keycodes.append(KEYNAME_TO_KEYCODE['alt_r'])
         if modifier & 2:
-            keycodes.extend(KEYNAME_TO_KEYCODE['Shift_R'])
+            keycodes.append(KEYNAME_TO_KEYCODE['shift_r'])
         if modifier & 1:
-            keycodes.extend(KEYNAME_TO_KEYCODE['Super_R'])
+            keycodes.append(KEYNAME_TO_KEYCODE['super_r'])
         return keycodes
 
     @staticmethod

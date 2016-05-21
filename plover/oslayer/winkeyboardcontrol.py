@@ -25,15 +25,13 @@ import _winreg as winreg
 from ctypes import windll, wintypes
 
 import win32api
-import win32gui
 
+from plover.key_combo import add_modifiers_aliases, parse_key_combo
+from plover.oslayer.winkeyboardlayout import KeyboardLayout
 from plover import log
 
 
 SendInput = windll.user32.SendInput
-MapVirtualKey = windll.user32.MapVirtualKeyW
-GetKeyboardLayout = windll.user32.GetKeyboardLayout
-GetWindowThreadProcessId = windll.user32.GetWindowThreadProcessId
 LONG = ctypes.c_long
 DWORD = ctypes.c_ulong
 ULONG_PTR = ctypes.POINTER(DWORD)
@@ -106,222 +104,6 @@ class INPUT(ctypes.Structure):
     _fields_ = (('type', DWORD),
                 ('union', _INPUTunion))
 
-
-class WindowsKeyboardLayout:
-    """
-    Create a set of objects that are customized to the user's current keyboard layout.
-    This class allows us to send key codes that are correct, regardless of the users
-    layout, and letting us fall back to sending Unicode even if they don't have Latin
-    letters on their keyboard.
-    """
-
-    # This mapping only works on keyboards using the ANSI standard layout.
-    # No letters yet, those are customized per-layout.
-    keyname_to_keycode = collections.defaultdict(list, {
-        # Adding media controls for windows
-        'Standby': [0x5F],
-        'Back': [0xA6], 'Forward': [0xA7], 'Refresh': [0xA8], 'Stop': [0xA9],
-        'Search': [0xAA], 'Favorites': [0xAB], 'HomePage': [0xAC], 'WWW': [0xAC],
-        'AudioMute': [0xAD], 'AudioLowerVolume': [0xAE], 'AudioRaiseVolume': [0xAF],
-        'AudioNext': [0xB0], 'AudioPrev': [0xB1], 'AudioStop': [0xB2],
-        'AudioPlay': [0xB3], 'AudioPause': [0xB3], 'AudioMedia': [0xB5],
-        'MyComputer': [0xB6], 'Calculator': [0xB7],
-
-        'Mail': [0xB4],
-
-        'Alt_L': [0xA4], 'Alt_R': [0xA5], 'Control_L': [0xA2], 'Control_R': [0xA3],
-        'Hyper_L': [], 'Hyper_R': [], 'Meta_L': [], 'Meta_R': [],
-        'Shift_L': [0xA0], 'Shift_R': [0xA1], 'Super_L': [0x5B], 'Super_R': [0x5C],
-
-        'Caps_Lock': [0x14], 'Num_Lock': [0x90], 'Scroll_Lock': [0x91],
-        'Shift_Lock': [],
-
-        'Return': [0x0D], 'Tab': [0x09], 'BackSpace': [0x08], 'Delete': [0x2E],
-        'Escape': [0x1B], 'Break': [0x03], 'Insert': [0x2D], 'Pause': [0x13],
-        'Print': [0x2C], 'Sys_Req': [],
-
-        'Up': [0x26], 'Down': [0x28], 'Left': [0x25], 'Right': [0x27],
-        'Page_Up': [0x21], 'Page_Down': [0x22], 'Home': [0x24], 'End': [0x23],
-
-        'F1': [0x70], 'F2': [0x71], 'F3': [0x72], 'F4': [0x73], 'F5': [0x74],
-        'F6': [0x75], 'F7': [0x76], 'F8': [0x77], 'F9': [0x78], 'F10': [0x79],
-        'F11': [0x7A], 'F12': [0x7B], 'F13': [0x7C], 'F14': [0x7D], 'F15': [0x7E],
-        'F16': [0x7F], 'F17': [0x80], 'F18': [0x81], 'F19': [0x82], 'F20': [0x83],
-        'F21': [0x84], 'F22': [0x85], 'F23': [0x86], 'F24': [0x87], 'F25': [],
-        'F26': [], 'F27': [], 'F28': [], 'F29': [], 'F30': [], 'F31': [],
-        'F32': [], 'F33': [], 'F34': [], 'F35': [],
-
-        'L1': [], 'L2': [], 'L3': [], 'L4': [], 'L5': [], 'L6': [],
-        'L7': [], 'L8': [], 'L9': [], 'L10': [],
-
-        'R1': [], 'R2': [], 'R3': [], 'R4': [], 'R5': [], 'R6': [],
-        'R7': [], 'R8': [], 'R9': [], 'R10': [], 'R11': [], 'R12': [],
-        'R13': [], 'R14': [], 'R15': [],
-
-        'KP_0': [0x60], 'KP_1': [0x61], 'KP_2': [0x62], 'KP_3': [0x63],
-        'KP_4': [0x64], 'KP_5': [0x65], 'KP_6': [0x66], 'KP_7': [0x67],
-        'KP_8': [0x68], 'KP_9': [0x69], 'KP_Add': [0xA1, 0xBB], 'KP_Begin': [],
-        'KP_Decimal': [0x6E], 'KP_Delete': [0x2E], 'KP_Divide': [0x6F],
-        'KP_Down': [], 'KP_End': [], 'KP_Enter': [0x0D], 'KP_Equal': [0xBB],
-        'KP_F1': [], 'KP_F2': [], 'KP_F3': [], 'KP_F4': [], 'KP_Home': [],
-        'KP_Insert': [], 'KP_Left': [], 'KP_Multiply': [0x6A], 'KP_Next': [],
-        'KP_Page_Down': [], 'KP_Page_Up': [], 'KP_Prior': [], 'KP_Right': [],
-        'KP_Separator': [], 'KP_Space': [], 'KP_Subtract': [0x6D], 'KP_Tab': [],
-        'KP_Up': [],
-
-        'Help': [0x2F], 'Mode_switch': [0x1F], 'Menu': [0x5D],
-
-        'Begin': [], 'Cancel': [0x03], 'Clear': [0x0C], 'Execute': [0x2B],
-        'Find': [], 'Linefeed': [],
-        'Multi_key': [], 'MultipleCandidate': [], 'Next': [0x22],
-        'PreviousCandidate': [], 'Prior': [0x21], 'Redo': [], 'Select': [0x29],
-        'SingleCandidate': [], 'Undo': [],
-
-        'Eisu_Shift': [], 'Eisu_toggle': [], 'Hankaku': [], 'Henkan': [],
-        'Henkan_Mode': [], 'Hiragana': [], 'Hiragana_Katakana': [],
-        'Kana_Lock': [], 'Kana_Shift': [], 'Kanji': [], 'Katakana': [],
-        'Mae_Koho': [], 'Massyo': [], 'Muhenkan': [], 'Romaji': [],
-        'Touroku': [], 'Zen_Koho': [], 'Zenkaku': [], 'Zenkaku_Hankaku': []
-    })
-
-    # Handle Plover's key names by mapping them to Unicode.
-    keyname_to_unicode = {
-        # Values of Unicode chars
-        'plusminus': 177, 'aring': 229, 'yen': 165, 'ograve': 242,
-        'adiaeresis': 228, 'Ntilde': 209, 'questiondown': 191, 'Yacute': 221,
-        'Atilde': 195, 'ccedilla': 231, 'copyright': 169, 'ntilde': 241,
-        'otilde': 245, 'masculine': 9794, 'Eacute': 201, 'ocircumflex': 244,
-        'guillemotright': 187, 'ecircumflex': 234, 'uacute': 250, 'cedilla': 184,
-        'oslash': 248, 'acute': 237, 'ssharp': 223, 'Igrave': 204,
-        'twosuperior': 178, 'udiaeresis': 252, 'notsign': 172, 'exclamdown': 161,
-        'ordfeminine': 9792, 'Otilde': 213, 'agrave': 224, 'ection': 167,
-        'egrave': 232, 'macron': 175, 'Icircumflex': 206, 'diaeresis': 168,
-        'ucircumflex': 251, 'atilde': 227, 'Acircumflex': 194, 'degree': 176,
-        'THORN': 222, 'acircumflex': 226, 'Aring': 197, 'Ooblique': 216,
-        'Ugrave': 217, 'Agrave': 192, 'ydiaeresis': 255, 'threesuperior': 179,
-        'Egrave': 200, 'Idiaeresis': 207, 'igrave': 236, 'ETH': 208,
-        'Ecircumflex': 202, 'Aacute': 193, 'cent': 162, 'registered': 174,
-        'Oacute': 211, 'Adiaeresis': 228, 'guillemotleft': 171, 'ediaeresis': 235,
-        'Ograve': 210, 'mu': 956, 'paragraph': 182, 'Ccedilla': 199, 'thorn': 254,
-        'threequarters': 190, 'ae': 230, 'brokenbar': 166, 'nobreakspace': 32,
-        'currency': 164, 'ugrave': 249, 'Ucircumflex': 219, 'odiaeresis': 246,
-        'periodcentered': 183, 'Uacute': 218, 'idiaeresis': 239, 'yacute': 253,
-        'sterling': 163, 'AE': 198, 'Ediaeresis': 203, 'onequarter': 188,
-        'onehalf': 189, 'Thorn': 222, 'aacute': 225, 'icircumflex': 238,
-        'Udiaeresis': 220, 'eacute': 233, 'Eth': 240, 'eth': 240, 'Iacute': 205,
-        'onesuperior': 185, 'Ocircumflex': 212, 'Odiaeresis': 214, 'oacute': 243
-    }
-
-    # Maps from literal characters to their key names.
-    literals = collections.defaultdict(str, {
-        '~': 'asciitilde', '!': 'exclam', '@': 'at',
-        '#': 'numbersign', '$': 'dollar', '%': 'percent',
-        '&': 'ampersand', '*': 'asterisk', '(': 'parenleft', ')': 'parenright',
-        '-': 'minus', '_': 'underscore', '=': 'equal', '+': 'plus',
-        '[': 'bracketleft', ']': 'bracketright', '{': 'braceleft',
-        '}': 'braceright', '\\': 'backslash', '|': 'bar', ';': 'semicolon',
-        ':': 'colon', '\'': 'apostrophe', '"': 'quotedbl', ',': 'comma',
-        '<': 'less', '.': 'period', '>': 'greater', '/': 'slash',
-        '?': 'question', '\t': 'Tab', ' ': 'space', '\n': 'Return', '\r': 'Return',
-    })
-
-    def __init__(self, layout_id=None):
-        # Get active layout
-        self.layout_id = WindowsKeyboardLayout.current_layout_id() if layout_id is None else layout_id
-
-        # Converts a character into a key sequence based on current layout
-        # Returns a list of key codes to send *or* False to represent key not found
-        def _kc(character):
-            sequence = []
-
-            # Doesn't support unicode
-            if len(character) > 1:
-                return []
-
-            vk = win32api.VkKeyScanEx(character, self.layout_id)
-
-            # Low bit is keycode
-            kc = vk & 0xFF
-            mods = vk >> 8
-
-            # Keyboard layout does not have this key
-            if kc < 0 or mods < 0:
-                return []
-
-            # High bit is modifiers
-            if (mods & 1):  # Shift
-                sequence.append(0xA1)
-            if (mods & 2):  # Control
-                sequence.append(0xA3)
-            if (mods & 4):  # Alt
-                sequence.append(0xA5)
-            sequence.append(kc)
-            return sequence
-
-        # Add a list of keys, knowing that some keys are name-value pairs.
-        def _add_keys(keycodes, characters):
-            for c in characters:
-                if isinstance(c, types.StringTypes):
-                    _add_key(keycodes, c)
-                else:
-                    # Named keys (c[character, keyname])
-                    _add_key(keycodes, c[1], c[0])
-
-        # Add a single key to the be correct list.
-        def _add_key(keycodes, character, keyname=False):
-            if not keyname:
-                keyname = character
-
-            codes = _kc(character)
-            if len(codes) > 0:
-                keycodes[keyname] = codes
-            elif len(character) is 1:
-                self.keyname_to_unicode[keyname] = ord(character)
-
-        # Here we add the main letters and special characters found on a standard layout.
-        _add_keys(
-            self.keyname_to_keycode,
-            ['0', '1', '2', '3', '4', '5', '6', '7', '8',
-             '9', 'a', 'b', 'c', 'd', 'e', 'f', 'g', 'h',
-             'i', 'j', 'k', 'l', 'm', 'n', 'o', 'p', 'q',
-             'r', 's', 't', 'u', 'v', 'w', 'x', 'y', 'z',
-             'A', 'B', 'C', 'D', 'E', 'F', 'G', 'H',
-             'I', 'J', 'K', 'L', 'M', 'N', 'O', 'P', 'Q',
-             'R', 'S', 'T', 'U', 'V', 'W', 'X', 'Y', 'Z',
-             ['exclam', '!'], ['at', '@'],
-             ['numbersign', '#'], ['dollar', '$'],
-             ['percent', '%'],
-             ['asciitilde', '~'], ['ampersand', '&'],
-             ['asterisk', '*'], ['parenleft', '('],
-             ['parenright', ')'], ['minus', '-'],
-             ['underscore', '_'], ['equal', '='],
-             ['plus', '+'], ['bracketleft', '['],
-             ['bracketright', ']'], ['backslash', '\\'],
-             ['bar', '|'], ['semicolon', ';'],
-             ['colon', ':'], ['apostrophe', '\''],
-             ['quotedbl', '"'], ['comma', ','],
-             ['less', '<'], ['period', '.'],
-             ['greater', '>'], ['slash', '/'],
-             ['question', '?'], ['space', ' '],
-             ['grave', '`'], ['asciicircum', '^'],
-             ['braceleft', '{'], ['braceright', '}']])
-
-        for symbol, name in self.literals.items():
-            '''
-            If any of the keys in the _add_keys wasn't registered, then we want to
-            treat it as unicode.
-            In order to do that, we will remove it from literals.
-            '''
-            if name not in self.keyname_to_keycode:
-                del self.literals[symbol]
-
-    @staticmethod
-    def current_layout_id():
-        return GetKeyboardLayout(
-            GetWindowThreadProcessId(
-                win32gui.GetForegroundWindow(), 0
-            )
-        )
 
 def pid_exists(pid):
     """Check whether pid exists in the current process table."""
@@ -570,10 +352,9 @@ class KeyboardCapture(threading.Thread):
 
 
 class KeyboardEmulation:
-    keyboard_layout = WindowsKeyboardLayout()
 
     def __init__(self):
-        pass
+        self.keyboard_layout = KeyboardLayout()
 
     # Sends input types to buffer
     @staticmethod
@@ -618,78 +399,54 @@ class KeyboardEmulation:
         if flags == KEYEVENTF_UNICODE:
             # special handling of Unicode characters
             return KEYBDINPUT(0, code, flags, 0, None)
-        return KEYBDINPUT(code, MapVirtualKey(code, 0), flags, 0, None)
+        return KEYBDINPUT(code, 0, flags, 0, None)
 
     # Abstraction to set flags to 0 and create an input type
     def _keyboard(self, code, flags=0):
         return self._input(self._keyboard_input(code, flags))
 
-    # Presses a key down
-    def _key_down(self, keyname):
-        # Press all keys
-        for keycode in self.keyboard_layout.keyname_to_keycode[keyname]:
-            if keycode in EXTENDED_KEYS:
-                self._send_input(self._keyboard(keycode, KEYEVENTF_EXTENDEDKEY))
-            else:
-                self._send_input(self._keyboard(keycode))
-
-    # Releases a key
-    def _key_up(self, keyname):
-        # Release all keys
-        for keycode in self.keyboard_layout.keyname_to_keycode[keyname]:
-            if keycode in EXTENDED_KEYS:
-                self._send_input(self._keyboard(
-                    keycode, (KEYEVENTF_KEYUP | KEYEVENTF_EXTENDEDKEY)))
-            else:
-                self._send_input(self._keyboard(keycode, KEYEVENTF_KEYUP))
+    def _key_event(self, keycode, pressed):
+        flags = 0 if pressed else KEYEVENTF_KEYUP
+        if keycode in EXTENDED_KEYS:
+            flags |= KEYEVENTF_EXTENDEDKEY
+        self._send_input(self._keyboard(keycode, flags))
 
     # Press and release a key
-    def _key_press(self, keyname):
-        self._key_down(keyname)
-        self._key_up(keyname)
+    def _key_press(self, char):
+        vk, ss = self.keyboard_layout.char_to_vk_ss[char]
+        keycode_list = []
+        keycode_list.extend(self.keyboard_layout.ss_to_vks[ss])
+        keycode_list.append(vk)
+        # Press all keys.
+        for keycode in keycode_list:
+            self._key_event(keycode, True)
+        # Release all keys
+        for keycode in keycode_list:
+            self._key_event(keycode, False)
 
     def _refresh_keyboard_layout(self):
-        layout_id = WindowsKeyboardLayout.current_layout_id()
+        layout_id = KeyboardLayout.current_layout_id()
         if layout_id != self.keyboard_layout.layout_id:
-            self.keyboard_layout = WindowsKeyboardLayout(layout_id)
+            self.keyboard_layout = KeyboardLayout(layout_id)
 
-    # Send a Unicode character to application from code
-    def _key_unicode(self, code):
-        self._send_input(self._keyboard(code, KEYEVENTF_UNICODE))
-
-    # Take an array of Unicode characters
-    def _key_unicode_string(self, codes):
-        # This is used for anything larger
-        # than UTF-16 character.
-        # For example, emoji.
-        # Logic is to send each input
-        # and the OS should handle it.
-        inputs = []
-        for code in codes:
-            inputs.append(self._keyboard(ord(code), KEYEVENTF_UNICODE))
+    def _key_unicode(self, char):
+        inputs = [self._keyboard(ord(code), KEYEVENTF_UNICODE)
+                  for code in char]
         self._send_input(*inputs)
 
     def send_backspaces(self, number_of_backspaces):
         for _ in xrange(number_of_backspaces):
-            self._key_press("BackSpace")
+            self._key_press('\x08')
 
     def send_string(self, s):
         self._refresh_keyboard_layout()
-        for c in self._characters(s):
-
-            # We normalize characters
-            # Like . to period, * to asterisk
-            if c in self.keyboard_layout.literals:
-                c = self.keyboard_layout.literals[c]
-
-            # We check if we know the character
-            # If we do we can do a manual keycode
-            if c in self.keyboard_layout.keyname_to_keycode:
-                self._key_press(c)
-
-            # Otherwise, we send it as a Unicode character
+        for char in self._characters(s):
+            if char in self.keyboard_layout.char_to_vk_ss:
+                # We know how to simulate the character.
+                self._key_press(char)
             else:
-                self._key_unicode_string(c)
+                # Otherwise, we send it as a Unicode string.
+                self._key_unicode(char)
 
     def send_key_combination(self, combo_string):
         """Emulate a sequence of key combinations.
@@ -706,83 +463,10 @@ class KeyboardEmulation:
         example, Alt_L(Tab) means to hold the left Alt key down, press
         and release the Tab key, and then release the left Alt key.
         """
-
-        # We will go through and press down keys
-        # When encountering (, we will add to the held stack
-        # ) will release these from the stack
-
-        # There is a problem. If the user defines something like:
-        #   Shift_L(ampersand x)
-        # Shift_L( will press the shift key, but ampersand will release it
-        # too early. x output will be lowercase.
-        # In order to combat this, ampersand and other shifted characters
-        # use Shift_R as most entries seem to use Shift_L.
-        # That being said, we can consider a shifted-shifted character to be
-        # undefined behavior...
+        # Make sure keyboard layout if up-to-date.
         self._refresh_keyboard_layout()
-
-        key_down_stack = []
-        current_command = []
-        for c in combo_string:
-            if c in (' ', '(', ')'):
-                # Keystring is the variable (l, b, Alt_L, etc.)
-                keystring = ''.join(current_command)
-                # Clear out current command
-                current_command = []
-                is_keycode = keystring in self.keyboard_layout.keyname_to_keycode
-
-                # Handle unicode characters by pressing them
-                if keystring in self.keyboard_layout.keyname_to_unicode:
-                    self._key_unicode(self.keyboard_layout.keyname_to_unicode[keystring])
-                elif len(keystring) == 1 and not is_keycode:
-                    self._key_unicode_string(keystring)
-
-                if not is_keycode:
-                    keystring = ''
-
-                if c == ' ':
-                    # Record press and release for command's keys.
-                    if is_keycode:
-                        self._key_press(keystring)
-                elif c == '(':
-                    # Record press for command's key.
-                    if is_keycode:
-                        self._key_down(keystring)
-                    # We always add to the stack
-                    # Even if not a valid KEYCODE or is a UNICODE
-                    # Because if the user accidentally
-                    # used a non-existent command,
-                    # say `Shift_L(dogma(q) a)`, we still want
-                    # the parenthesis count to match
-                    # and output `QA`
-                    key_down_stack.append(keystring)
-                elif c == ')':
-                    # Record press and release for command's key and
-                    # release previously held keys.
-                    if is_keycode:
-                        self._key_press(keystring)
-                    if key_down_stack:
-                        # We check that the key pressed down is
-                        # an actual key.
-                        down_key = key_down_stack.pop()
-                        if down_key in self.keyboard_layout.keyname_to_keycode:
-                            self._key_up(down_key)
-            else:
-                current_command.append(c)
-
-        # Record final command key.
-        keystring = ''.join(current_command)
-        if keystring in self.keyboard_layout.keyname_to_unicode:
-            self._key_unicode(self.keyboard_layout.keyname_to_unicode[keystring])
-            # Reset keystring to nothing to prevent further presses
-        elif keystring in self.keyboard_layout.keyname_to_keycode:
-            self._key_press(keystring)
-        elif len(keystring) == 1:
-            self._key_unicode_string(keystring)
-
-        # Release all keys.
-        # Should this be legal in the dict (lack of closing parens)?
-        for key_name in key_down_stack:
-            if key_name in self.keyboard_layout.keyname_to_keycode:
-                self._key_up(key_name)
-
+        # Parse and validate combo.
+        key_events = parse_key_combo(combo_string, self.keyboard_layout.keyname_to_vk.get)
+        # Send events...
+        for keycode, pressed in key_events:
+            self._key_event(keycode, pressed)
