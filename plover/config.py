@@ -217,11 +217,7 @@ class Config(object):
                          DEFAULT_MACHINE_TYPE)
 
     def set_machine_specific_options(self, machine_name, options):
-        if self._config.has_section(machine_name):
-            self._config.remove_section(machine_name)
-        self._config.add_section(machine_name)
-        for k, v in options.items():
-            self._config.set(machine_name, k, str(v))
+        self._update(machine_name, sorted(options.iteritems()))
 
     def get_machine_specific_options(self, machine_name):
         def convert(p, v):
@@ -241,13 +237,10 @@ class Config(object):
         return defaults
 
     def set_dictionary_file_names(self, filenames):
-        if self._config.has_section(DICTIONARY_CONFIG_SECTION):
-            self._config.remove_section(DICTIONARY_CONFIG_SECTION)
-        self._config.add_section(DICTIONARY_CONFIG_SECTION)
-        filenames = [self._path_to_config_value(path) for path in filenames]
-        for ordinal, filename in enumerate(filenames, start=1):
-            option = DICTIONARY_FILE_OPTION + str(ordinal)
-            self._config.set(DICTIONARY_CONFIG_SECTION, option, filename)
+        self._update(DICTIONARY_CONFIG_SECTION, (
+            (DICTIONARY_FILE_OPTION + str(n), self._path_to_config_value(path))
+            for n, path in enumerate(filenames, start=1)
+        ))
 
     def get_dictionary_file_names(self):
         filenames = []
@@ -579,7 +572,17 @@ class Config(object):
         except ValueError:
             pass
         return default
-        
+
+    def _update(self, section, options):
+        old_options = set()
+        if self._config.has_section(section):
+            old_options.update(self._config.options(section))
+        for opt, val in options:
+            old_options.discard(opt)
+            self._set(section, opt, val)
+        for opt in old_options:
+            self._config.remove_option(section, opt)
+
 
 def _dict_entry_key(s):
     try:
