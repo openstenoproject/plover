@@ -83,21 +83,14 @@ class AddTranslationDialog(wx.Dialog):
         
         # events
         button.Bind(wx.EVT_BUTTON, self.on_add_translation)
-        # The reason for the focus event here is to skip focus on tab traversal
-        # of the buttons. But it seems that on windows this prevents the button
-        # from being pressed. Leave this commented out until that problem is
-        # resolved.
-        #button.Bind(wx.EVT_SET_FOCUS, self.on_button_gained_focus)
         cancel.Bind(wx.EVT_BUTTON, self.on_close)
-        #cancel.Bind(wx.EVT_SET_FOCUS, self.on_button_gained_focus)
         self.strokes_text.Bind(wx.EVT_TEXT, self.on_strokes_change)
         self.translation_text.Bind(wx.EVT_TEXT, self.on_translation_change)
         self.strokes_text.Bind(wx.EVT_SET_FOCUS, self.on_strokes_gained_focus)
-        self.strokes_text.Bind(wx.EVT_KILL_FOCUS, self.on_strokes_lost_focus)
         self.strokes_text.Bind(wx.EVT_TEXT_ENTER, self.on_add_translation)
         self.translation_text.Bind(wx.EVT_SET_FOCUS, self.on_translation_gained_focus)
-        self.translation_text.Bind(wx.EVT_KILL_FOCUS, self.on_translation_lost_focus)
         self.translation_text.Bind(wx.EVT_TEXT_ENTER, self.on_add_translation)
+        self.Bind(wx.EVT_ACTIVATE, self.on_activate)
         self.Bind(wx.EVT_CLOSE, self.on_close)
         self.Bind(wx.EVT_MOVE, self.on_move)
         
@@ -125,6 +118,9 @@ class AddTranslationDialog(wx.Dialog):
         del self.other_instances[:]
         self.other_instances.append(self)
 
+        self._focus = None
+        self._win_id = None
+
     def _restore_engine_state(self):
         self.engine.translator.set_state(self.previous_state)
         self.engine.set_starting_stroke_state(self.previous_start_capitalized,
@@ -140,10 +136,11 @@ class AddTranslationDialog(wx.Dialog):
         self.Close()
 
     def on_close(self, event=None):
-        self._restore_engine_state()
+        self.Disconnect(-1, -1, wx.wxEVT_ACTIVATE)
+        self._unfocus_strokes()
+        self._unfocus_translation()
         self.other_instances.remove(self)
         self.Destroy()
-        self.Update()
         try:
             util.SetForegroundWindow(self.last_window)
         except:
@@ -183,29 +180,54 @@ class AddTranslationDialog(wx.Dialog):
         self.translation_mapping_text.SetLabel(label)
         self.GetSizer().Layout()
 
-    def on_strokes_gained_focus(self, event):
+    def _focus_strokes(self):
+        if self._focus == 'strokes':
+            return
+        self._unfocus_translation()
         self.engine.get_dictionary().add_filter(self.stroke_dict_filter)
         self.engine.translator.set_state(self.strokes_state)
-        event.Skip()
-        
-    def on_strokes_lost_focus(self, event):
+        self._focus = 'strokes'
+
+    def _unfocus_strokes(self):
+        if self._focus != 'strokes':
+            return
         self.engine.get_dictionary().remove_filter(self.stroke_dict_filter)
         self._restore_engine_state()
+        self._focus = None
+
+    def _focus_translation(self):
+        if self._focus == 'translation':
+            return
+        self._unfocus_strokes()
+        self.engine.translator.set_state(self.translation_state)
+        self.engine.set_starting_stroke_state(attach=True)
+        self._focus = 'translation'
+
+    def _unfocus_translation(self):
+        if self._focus != 'translation':
+            return
+        self._restore_engine_state()
+        self._focus = None
+
+    def on_strokes_gained_focus(self, event):
+        self._focus_strokes()
         event.Skip()
 
     def on_translation_gained_focus(self, event):
-        self.engine.translator.set_state(self.translation_state)
-        self.engine.set_starting_stroke_state(attach=True)
+        self._focus_translation()
         event.Skip()
 
-    def on_translation_lost_focus(self, event):
-        self._restore_engine_state()
+    def on_activate(self, event):
+        # On Linux, transient focus out/in events on engine output mean
+        # we can't just rely on event.Active to track focus loss/gain.
+        focus = util.GetForegroundWindow()
+        if event.Active:
+            self._win_id = focus
+        elif self._win_id != focus:
+            self._unfocus_strokes()
+            self._unfocus_translation()
         event.Skip()
 
-    def on_button_gained_focus(self, event):
-        self.strokes_text.SetFocus()
-        event.Skip()
-        
     def stroke_dict_filter(self, key, value):
         # Only allow translations with special entries. Do this by looking for 
         # braces but take into account escaped braces and slashes.
