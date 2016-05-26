@@ -78,9 +78,10 @@ def main():
     parser.add_argument('--version', action='version', version='%s %s'
                         % (__software_name__.capitalize(), __version__))
     parser.add_argument('-l', '--log-level', choices=['debug', 'info', 'warning', 'error'],
-                        default='warning', help='set log level')
+                        default=None, help='set log level')
     args = parser.parse_args(args=sys.argv[1:])
-    log.set_level(args.log_level.upper())
+    if args.log_level is not None:
+        log.set_level(args.log_level.upper())
     try:
         # Ensure only one instance of Plover is running at a time.
         with plover.oslayer.processlock.PloverLock():
@@ -88,6 +89,7 @@ def main():
             # This must be done after calling init_config_dir, so
             # Plover's configuration directory actually exists.
             log.setup_logfile()
+            log.info('Plover %s', __version__)
             config = Config()
             config.target_file = CONFIG_FILE
             gui = plover.gui.main.PloverGUI(config)
