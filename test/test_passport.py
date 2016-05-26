@@ -10,7 +10,7 @@ import unittest
 
 from mock import patch
 
-from plover.machine.passport import Stenotype
+from plover.machine.passport import Passport
 from plover import system
 
 
@@ -64,12 +64,12 @@ class TestCase(unittest.TestCase):
             (('SfTf', 'Zf', 'QfLf'), [['S-', 'T-'], ['-Z',], ['-R', '-L']]),
         )
 
-        params = {k: v[0] for k, v in Stenotype.get_option_info().items()}
+        params = {k: v[0] for k, v in Passport.get_option_info().items()}
         with patch('plover.machine.base.serial.Serial', MockSerial) as mock:
             for inputs, expected in cases:
                 mock.inputs = list(map(p, inputs))
                 actual = []
-                m = Stenotype(params)
+                m = Passport(params)
                 m.add_stroke_callback(lambda s: actual.append(s))
                 m.set_mappings(system.KEYMAPS['Passport'])
                 m.start_capture()

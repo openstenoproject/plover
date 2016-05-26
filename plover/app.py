@@ -159,17 +159,19 @@ class StenoEngine(object):
             self.machine_options == machine_options and
             self.machine_mappings == machine_mappings):
             return
-        self.machine_class = None
-        self.machine_options = None
-        self.machine_mappings = None
         if self.machine is not None:
+            log.debug('stopping machine: %s', self.machine_class.__name__)
             self.machine.remove_state_callback(self._machine_state_callback)
             self.machine.remove_stroke_callback(
                 self._translator_machine_callback)
             self.machine.remove_stroke_callback(log.stroke)
             self.machine.stop_capture()
-        self.machine = None
+            self.machine_class = None
+            self.machine_options = None
+            self.machine_mappings = None
+            self.machine = None
         if machine_class is not None:
+            log.debug('starting machine: %s', machine_class.__name__)
             self.machine = machine_class(machine_options)
             if machine_mappings is not None:
                 self.machine.set_mappings(machine_mappings)
@@ -194,6 +196,8 @@ class StenoEngine(object):
         return self.translator.get_dictionary()
 
     def set_is_running(self, value):
+        if value != self.is_running:
+            log.debug('%s output', 'enabling' if value else 'disabling')
         self.is_running = value
         if self.is_running:
             self.translator.set_state(self.running_state)

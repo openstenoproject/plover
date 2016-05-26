@@ -30,7 +30,7 @@ STENO_KEY_CHART = ("S-", "T-", "K-", "P-", "W-", "H-",  # 00
                    "-T", "-S", "-D", "-Z", "#")         # 11
 
 
-class Stenotype(plover.machine.base.SerialStenotypeBase):
+class TxBolt(plover.machine.base.SerialStenotypeBase):
     """TX Bolt interface.
 
     This class implements the three methods necessary for a standard
@@ -47,7 +47,7 @@ class Stenotype(plover.machine.base.SerialStenotypeBase):
     '''
 
     def __init__(self, params):
-        super(Stenotype, self).__init__(params)
+        super(TxBolt, self).__init__(params)
         self._reset_stroke_state()
 
     def _reset_stroke_state(self):

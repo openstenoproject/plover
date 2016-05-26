@@ -8,7 +8,7 @@ from plover.machine.keymap import Keymap
 from plover.oslayer.keyboardcontrol import KeyboardCapture
 
 
-class Stenotype(StenotypeBase):
+class Keyboard(StenotypeBase):
     """Standard stenotype interface for a computer keyboard.
 
     This class implements the three methods necessary for a standard
@@ -22,7 +22,7 @@ class Stenotype(StenotypeBase):
 
     def __init__(self, params):
         """Monitor the keyboard's events."""
-        super(Stenotype, self).__init__()
+        super(Keyboard, self).__init__()
         self.arpeggiate = params['arpeggiate']
         self._bindings = {}
         self._down_keys = set()
@@ -45,7 +45,7 @@ class Stenotype(StenotypeBase):
                     del self._bindings[key]
 
     def set_mappings(self, mappings):
-        super(Stenotype, self).set_mappings(mappings)
+        super(Keyboard, self).set_mappings(mappings)
         self._update_bindings()
 
     def start_capture(self):

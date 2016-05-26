@@ -8,6 +8,7 @@ import threading
 
 from plover.dictionary.base import load_dictionary
 from plover.exception import DictionaryLoaderException
+from plover import log
 
 
 class DictionaryLoadingManager(object):
@@ -19,6 +20,7 @@ class DictionaryLoadingManager(object):
         op = self.dictionaries.get(filename)
         if op is not None:
             return self.dictionaries[filename]
+        log.debug('loading dictionary: %s', filename)
         op = DictionaryLoadingOperation(filename)
         self.dictionaries[filename] = op
         return op
