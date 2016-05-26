@@ -52,7 +52,7 @@ class DataHandler(object):
             self._pressed = [x[0] | x[1] for x in zip(self._pressed, p)]
 
 
-class Stenotype(ThreadedStenotypeBase):
+class Treal(ThreadedStenotypeBase):
 
     KEYS_LAYOUT = '''
         #1  #2  #3 #4 #5 #6 #7 #8 #9 #A #B
@@ -62,7 +62,7 @@ class Stenotype(ThreadedStenotypeBase):
     '''
 
     def __init__(self, params):
-        super(Stenotype, self).__init__()
+        super(Treal, self).__init__()
         self._machine = None
 
     def _on_stroke(self, keys):
@@ -95,7 +95,7 @@ class Stenotype(ThreadedStenotypeBase):
             log.warning('Treal is not connected')
             self._error()
             return
-        super(Stenotype, self).start_capture()
+        super(Treal, self).start_capture()
 
     def _reconnect(self):
         self._machine = None
@@ -125,7 +125,7 @@ class Stenotype(ThreadedStenotypeBase):
 
     def stop_capture(self):
         """Stop listening for output from the stenotype machine."""
-        super(Stenotype, self).stop_capture()
+        super(Treal, self).stop_capture()
         if self._machine:
             self._machine.close()
         self._stopped()

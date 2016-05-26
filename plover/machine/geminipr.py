@@ -22,7 +22,7 @@ STENO_KEY_CHART = ("Fn", "#1", "#2", "#3", "#4", "#5", "#6",
 BYTES_PER_STROKE = 6
 
 
-class Stenotype(plover.machine.base.SerialStenotypeBase):
+class GeminiPr(plover.machine.base.SerialStenotypeBase):
     """Standard stenotype interface for a Gemini PR machine.
 
     This class implements the three methods necessary for a standard

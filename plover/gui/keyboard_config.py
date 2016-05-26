@@ -8,7 +8,7 @@ from wx.lib.utils import AdjustRectToScreen
 import wx.lib.mixins.listctrl as listmix
 
 from plover.oslayer.keyboardcontrol import KeyboardCapture
-from plover.machine.keyboard import Stenotype as KeyboardMachine
+from plover.machine.keyboard import Keyboard
 from plover.machine.keymap import Keymap
 from plover import system
 
@@ -146,7 +146,7 @@ class KeyboardConfigDialog(wx.Dialog):
         sizer.AddF(self.arpeggiate_option, sizer_flags)
 
         # editable list for keymap bindings
-        self.keymap = Keymap(KeyboardMachine.KEYS_LAYOUT.split(), KeyboardMachine.ACTIONS)
+        self.keymap = Keymap(Keyboard.KEYS_LAYOUT.split(), Keyboard.ACTIONS)
         mappings = config.get_system_keymap('Keyboard')
         if mappings is not None:
             self.keymap.set_mappings(mappings)

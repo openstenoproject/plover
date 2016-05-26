@@ -10,7 +10,7 @@ from plover.machine.base import SerialStenotypeBase
 # Passport protocol is documented here:
 # http://www.eclipsecat.com/?q=system/files/Passport%20protocol_0.pdf
 
-class Stenotype(SerialStenotypeBase):
+class Passport(SerialStenotypeBase):
     """Passport interface."""
 
     KEYS_LAYOUT = '''
@@ -22,7 +22,7 @@ class Stenotype(SerialStenotypeBase):
     '''
 
     def __init__(self, params):
-        super(Stenotype, self).__init__(params)
+        super(Passport, self).__init__(params)
         self.packet = []
 
     def _read(self, b):

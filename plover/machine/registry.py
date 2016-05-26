@@ -3,12 +3,12 @@
 
 "Manager for stenotype machines types."
 
-from plover.machine.geminipr import Stenotype as geminipr
-from plover.machine.txbolt import Stenotype as txbolt
-from plover.machine.keyboard import Stenotype as keyboard
-from plover.machine.stentura import Stenotype as stentura
-from plover.machine.passport import Stenotype as passport
-from plover.machine.treal import Stenotype as treal
+from plover.machine.geminipr import GeminiPr
+from plover.machine.txbolt import TxBolt
+from plover.machine.keyboard import Keyboard
+from plover.machine.stentura import Stentura
+from plover.machine.passport import Passport
+from plover.machine.treal import Treal
 
 class NoSuchMachineException(Exception):
     def __init__(self, id):
@@ -44,13 +44,12 @@ class Registry(object):
             return name
 
 machine_registry = Registry()
-machine_registry.register('Keyboard', keyboard)
-machine_registry.register('Gemini PR', geminipr)
-machine_registry.register('TX Bolt', txbolt)
-machine_registry.register('Stentura', stentura)
-machine_registry.register('Passport', passport)
-if treal:
-    machine_registry.register('Treal', treal)
+machine_registry.register('Keyboard', Keyboard)
+machine_registry.register('Gemini PR', GeminiPr)
+machine_registry.register('TX Bolt', TxBolt)
+machine_registry.register('Stentura', Stentura)
+machine_registry.register('Passport', Passport)
+machine_registry.register('Treal', Treal)
 
 # Legacy configuration
 machine_registry.add_alias('Microsoft Sidewinder X4', 'Keyboard')

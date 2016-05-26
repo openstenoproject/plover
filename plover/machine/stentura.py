@@ -632,7 +632,7 @@ def _loop(port, stop, callback, ready_callback, timeout=1):
             callback(stroke)
 
 
-class Stenotype(plover.machine.base.SerialStenotypeBase):
+class Stentura(plover.machine.base.SerialStenotypeBase):
     """Stentura interface.
 
     This class implements the three methods necessary for a standard
