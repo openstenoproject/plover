@@ -1,17 +1,14 @@
 
 import logging
 
-# Fix a possible crash...
-# See: http://trac.wxwidgets.org/ticket/15898
-import gtk
-gtk.remove_log_handlers()
-
-import pynotify
+import dbus
 
 from plover import log, __name__ as __software_name__
 
 
-pynotify.init(__software_name__.capitalize())
+APPNAME = __software_name__.capitalize()
+SERVICE = 'org.freedesktop.Notifications'
+INTERFACE = '/org/freedesktop/Notifications'
 
 
 class DbusNotificationHandler(logging.Handler):
@@ -19,12 +16,17 @@ class DbusNotificationHandler(logging.Handler):
 
     def __init__(self):
         super(DbusNotificationHandler, self).__init__()
+        self._bus = dbus.SessionBus()
+        self._proxy = self._bus.get_object(SERVICE, INTERFACE)
+        self._notify = dbus.Interface(self._proxy, SERVICE)
         self.setLevel(log.WARNING)
-        self.setFormatter(log.NoExceptionTracebackFormatter('%(levelname)s: %(message)s'))
+        self.setFormatter(log.NoExceptionTracebackFormatter('<b>%(levelname)s:</b> %(message)s'))
 
     def emit(self, record):
         level = record.levelno
         message = self.format(record)
+        if message.endswith('\n'):
+            message = message[:-1]
         if level <= log.INFO:
             timeout = 10
             urgency = 0
@@ -34,8 +36,8 @@ class DbusNotificationHandler(logging.Handler):
         else:
             timeout = 0
             urgency = 2
-        n = pynotify.Notification(__software_name__.capitalize(), message)
-        n.set_timeout(timeout * 1000)
-        n.set_urgency(urgency)
-        n.show()
+        self._notify.Notify(APPNAME, 0, '',       # replaces_id, app_icon
+                            APPNAME, message, '', # actions
+                            { 'urgency': dbus.Byte(urgency) },
+                            timeout * 1000)
 
