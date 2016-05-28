@@ -1,6 +1,29 @@
 # Copyright (c) 2016 Open Steno Project
 # See LICENSE.txt for details.
 
+# Python 2/3 compatibility.
+from six import PY3
+
+
+if PY3:
+
+    from types import SimpleNamespace
+
+else:
+
+    class SimpleNamespace(object):
+
+        def __init__(self, **kwargs):
+            self.__dict__.update(kwargs)
+
+        def __repr__(self):
+            keys = sorted(self.__dict__)
+            items = ("{}={!r}".format(k, self.__dict__[k]) for k in keys)
+            return "{}({})".format(type(self).__name__, ", ".join(items))
+
+        def __eq__(self, other):
+            return self.__dict__ == other.__dict__
+
 
 def popcount_8(v):
     """Population count for an 8 bit integer"""

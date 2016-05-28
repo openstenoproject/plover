@@ -28,15 +28,7 @@ from plover.suggestions import Suggestions
 from plover import log
 from plover.dictionary.loading_manager import manager as dict_manager
 from plover import system
-
-# Because 2.7 doesn't have this yet.
-class SimpleNamespace(object):
-    def __init__(self, **kwargs):
-        self.__dict__.update(kwargs)
-    def __repr__(self):
-        keys = sorted(self.__dict__)
-        items = ("{}={!r}".format(k, self.__dict__[k]) for k in keys)
-        return "{}({})".format(type(self).__name__, ", ".join(items))
+from plover.misc import SimpleNamespace
 
 
 def init_engine(engine, config):
@@ -58,7 +50,7 @@ def update_engine(engine, config, reset_machine=False):
     try:
         machine_class = machine_registry.get(machine_type)
     except NoSuchMachineException as e:
-        raise InvalidConfigurationError(unicode(e))
+        raise InvalidConfigurationError(str(e))
     machine_options = config.get_machine_specific_options(machine_type)
     machine_mappings = config.get_system_keymap(machine_type)
     engine.set_machine(machine_class, machine_options, machine_mappings,
