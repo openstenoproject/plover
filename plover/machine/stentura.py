@@ -659,6 +659,6 @@ class Stentura(plover.machine.base.SerialStenotypeBase):
             _loop(self.serial_port, self.finished, self._on_stroke, self._ready)
         except _StopException:
             pass
-        except Exception as e:
-            log.info("Failure starting Stentura: %s", str(e))
+        except Exception:
+            log.info("Failure starting Stentura", exc_info=True)
             self._error()
