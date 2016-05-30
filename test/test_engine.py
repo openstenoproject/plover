@@ -78,6 +78,12 @@ class EngineTestCase(unittest.TestCase):
             ])
             self.assertIsInstance(self.engine.machine, FakeMachine)
 
+    def test_engine_bad_mappings(self):
+        with self._setup(system_keymap='invalid'):
+            with self.assertRaises(Exception):
+                app.init_engine(self.engine, self.cfg)
+            self.assertEqual(self.engine.machine, None)
+
     def test_engine_auto_start(self):
         with self._setup(auto_start=True):
             app.init_engine(self.engine, self.cfg)
