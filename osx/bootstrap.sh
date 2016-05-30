@@ -93,8 +93,9 @@ EOT
 
 
     echo "$0: installing required libraries using pip"
-    "$TOPDIR/setup.py" write_requirements &&
-    "$PIP" install -r "$TOPDIR/requirements.txt"
+    # Writes requirements to PWD, not setup.py's directory.
+    "$TOPDIR/setup.py" write_requirements \
+        && "$PIP" install -r requirements.txt
 }
 
 main
