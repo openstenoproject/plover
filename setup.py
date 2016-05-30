@@ -284,6 +284,7 @@ extras_require = {
         'pyobjc-framework-Cocoa>=3.0.3',
         'pyobjc-framework-Quartz>=3.0.3',
         'wxPython>=3.0',
+        'appnope>=0.1.0',
     ],
 }
 

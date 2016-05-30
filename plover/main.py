@@ -14,6 +14,8 @@ if not hasattr(sys, 'frozen'):
     import wxversion
     wxversion.ensureMinimal(WXVER)
 
+if sys.platform.startswith('darwin'):
+    import appnope
 import wx
 import json
 
@@ -85,6 +87,8 @@ def main():
     try:
         # Ensure only one instance of Plover is running at a time.
         with plover.oslayer.processlock.PloverLock():
+            if sys.platform.startswith('darwin'):
+                appnope.nope()
             init_config_dir()
             # This must be done after calling init_config_dir, so
             # Plover's configuration directory actually exists.
