@@ -40,7 +40,7 @@ from Quartz import (
 import Foundation
 import threading
 import Queue
-from time import time
+from time import sleep
 import collections
 
 from plover.oslayer import mac_keycode
@@ -537,9 +537,7 @@ class KeyboardEmulation(object):
                         CGEventSetFlags(event, goal_flags)
 
                     # Half millisecond pause after key down.
-                    deadline = time() + 0.0005
-                    while time() < deadline:
-                        pass
+                    sleep(0.0005)
                 if key_down and keycode in MODIFIER_KEYS_TO_MASKS:
                     mods_flags |= MODIFIER_KEYS_TO_MASKS[keycode]
 
