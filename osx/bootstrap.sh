@@ -9,7 +9,7 @@ EX_FAILURE_NO_CCTOOLS=1
 EX_FAILURE_NO_PYTHON=2
 EX_FAILURE_NO_WXPYTHON=3
 
-TOPDIR="$(dirname "$(realpath -e "$0")")"
+TOPDIR="$(dirname "$(realpath -e "$0")")/.."
 
 PYTHON=${PYTHON:=$(which python2)}
 PIP=${PIP:=$(which pip)}
