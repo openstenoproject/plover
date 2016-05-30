@@ -8,6 +8,7 @@
 EX_FAILURE_NO_CCTOOLS=1
 EX_FAILURE_NO_PYTHON=2
 EX_FAILURE_NO_WXPYTHON=3
+EX_FAILURE_NO_SETUP_PY=4
 
 TOPDIR="$(dirname "$(realpath -e "$0")")/.."
 
@@ -18,6 +19,15 @@ REAL_PYTHON=$("$PYTHON" -c 'import sys; print sys.executable')
 
 echo "$0: using python: $PYTHON (executable: $REAL_PYTHON)"
 echo "$0: using pip: $PIP (version: $($PIP --version))"
+
+has_setup_py() {
+    echo "$0: checking for executable setup.py"
+    if [[ -x "$TOPDIR/setup.py" ]]; then
+        "true"
+    else
+        "false"
+    fi
+}
 
 
 has_cli_tools() {
@@ -91,6 +101,17 @@ EOT
         echo "$0: successfully imported wx"
     fi
 
+
+    if ! has_setup_py; then
+        cat 1>&2 <<EOT
+$0: either failed to find setup.py or setup.py not executable using:
+
+    $TOPDIR/setup.py
+EOT
+        exit $EX_FAILURE_NO_SETUP_PY
+    else
+        echo "$0: found executable setup.py"
+    fi
 
     echo "$0: installing required libraries using pip"
     # Writes requirements to PWD, not setup.py's directory.
