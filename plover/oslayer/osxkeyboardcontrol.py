@@ -44,7 +44,7 @@ from time import sleep
 import collections
 
 from plover.oslayer import mac_keycode
-from plover.key_combo import add_modifiers_aliases, parse_key_combo
+from plover.key_combo import add_modifiers_aliases, parse_key_combo, KEYNAME_TO_CHAR
 import plover.log
 
 
@@ -95,22 +95,6 @@ KEYNAME_TO_KEYCODE = {
 for name, code in NX_KEYS.iteritems():
     KEYNAME_TO_KEYCODE[name.lower()] = code + NX_KEY_OFFSET
 add_modifiers_aliases(KEYNAME_TO_KEYCODE)
-
-KEYNAME_TO_CHAR = {
-    'ampersand': '&', 'apostrophe': '\'', 'asciitilde': '~',
-    'asterisk': '*', 'at': '@', 'backslash': '\'',
-    'braceleft': '{', 'braceright': '}', 'bracketleft': '[',
-    'bracketright': ']', 'colon': ':', 'comma': ',', 'division': '÷',
-    'dollar': '$', 'equal': '=', 'exclam': '!', 'greater': '>',
-    'hyphen': '-', 'less': '<', 'minus': '-', 'multiply': '×',
-    'numbersign': '#', 'parenleft': '(', 'parenright': ')',
-    'percent': '%', 'period': '.', 'plus': '+',
-    'question': '?', 'quotedbl': '"', 'quoteleft': '‘',
-    'quoteright': '’', 'semicolon': ';', 'slash': '/', 'space': ' ',
-    'underscore': '_',
-    'grave': '`', 'asciicircum': '^',
-    'bar': '|',
-}
 
 
 def down(seq):
