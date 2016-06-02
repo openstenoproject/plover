@@ -158,7 +158,11 @@ class OutputHelper(object):
         for a in action_list:
             if a.replace and text.endswith(a.replace):
                 text = text[:-len(a.replace)]
-            if a.text:
+            # With numbers, it's possible to have a.text='2' with a.word='1.2'
+            # folowing by an action that replaces '1.2' by '$1.20'...
+            if len(a.word) > len(a.text) and a.word.endswith(text):
+                text = a.word
+            else:
                 text += a.text
         return text
 
@@ -186,8 +190,7 @@ class OutputHelper(object):
         for a in do:
             if a.replace and self.after.endswith(a.replace):
                 self.after = self.after[:-len(a.replace)]
-            if a.text:
-                self.after += a.text
+            self.after += a.text
             if a.combo:
                 self.commit()
                 self.output.send_key_combination(a.combo)
