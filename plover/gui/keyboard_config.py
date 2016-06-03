@@ -179,7 +179,7 @@ class KeyboardConfigDialog(wx.Dialog):
             self.options.arpeggiate = self.arpeggiate_option.GetValue()
             # Validate mappings by updating the keymap object.
             self.keymap.set_mappings(self.keymap_widget.get_mappings())
-            self.config.set_system_keymap('Keyboard', str(self.keymap))
+            self.config.set_system_keymap('Keyboard', self.keymap.get_mappings())
         return code
 
     def on_reset(self, event):
