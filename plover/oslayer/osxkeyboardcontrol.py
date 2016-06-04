@@ -158,7 +158,6 @@ class KeyboardCapture(threading.Thread):
     def __init__(self):
         threading.Thread.__init__(self, name="KeyboardEventTapThread")
         self._loop = None
-        self._canceled = False  # Used to signal event handler thread.
         self._event_queue = Queue.Queue()  # Drained by event handler thread.
 
         self._suppressed_keys = set()
@@ -180,9 +179,6 @@ class KeyboardCapture(threading.Thread):
         def callback(proxy, event_type, event, reference):
             SUPPRESS_EVENT = None
             PASS_EVENT_THROUGH = event
-
-            if self._canceled:
-                return PASS_EVENT_THROUGH
 
             # Don't pass on meta events meant for this event tap.
             is_unexpected_event = event_type not in self._KEYBOARD_EVENTS
@@ -239,17 +235,19 @@ class KeyboardCapture(threading.Thread):
             kCFRunLoopCommonModes
         )
         CGEventTapEnable(self._tap, True)
+
         CFRunLoopRun()
+
+        # Wake up event handler.
+        self._event_queue.put_nowait(None)
         handler_thread.join()
         CFMachPortInvalidate(self._tap)
         CFRelease(self._tap)
         CFRunLoopSourceInvalidate(source)
 
     def cancel(self):
-        self._canceled = True
-        # Wake up event handler.
-        self._event_queue.put_nowait(None)
         CFRunLoopStop(self._loop)
+        self.join()
         self._loop = None
 
     def suppress_keyboard(self, suppressed_keys=()):
@@ -271,8 +269,7 @@ class KeyboardCapture(threading.Thread):
     def _event_handler(self):
         """
         Event dispatching thread launched during run().
-        Loops until _canceled is set True
-        or None is received from _event_queue.
+        Loops until None is received from _event_queue.
         Avoids busy-waiting by blocking on _event_queue.
 
         In normal operation, it gets a pair of
@@ -282,7 +279,7 @@ class KeyboardCapture(threading.Thread):
         """
         while True:
             pair = self._event_queue.get(block=True, timeout=None)
-            if self._canceled or pair is None:
+            if pair is None:
                 return
 
             key, is_keyup = pair
