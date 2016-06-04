@@ -157,7 +157,7 @@ class KeyboardCapture(threading.Thread):
 
     def __init__(self):
         threading.Thread.__init__(self, name="KeyboardEventTapThread")
-        self._running_thread = None
+        self._loop = None
         self._canceled = False  # Used to signal event handler thread.
         self._event_queue = Queue.Queue()  # Drained by event handler thread.
 
@@ -224,37 +224,33 @@ class KeyboardCapture(threading.Thread):
             # Todo(hesky): See if there is a nice way to show the user what's
             # needed (or do it for them).
             raise Exception("Enable access for assistive devices.")
-        self._source = CFMachPortCreateRunLoopSource(None, self._tap, 0)
         CGEventTapEnable(self._tap, False)
 
     def run(self):
-        self._handler_thread = threading.Thread(
+        source = CFMachPortCreateRunLoopSource(None, self._tap, 0)
+        handler_thread = threading.Thread(
             target=self._event_handler,
             name="KeyEventDispatcher")
-        self._handler_thread.start()
-
-        self._running_thread = CFRunLoopGetCurrent()
+        handler_thread.start()
+        self._loop = CFRunLoopGetCurrent()
         CFRunLoopAddSource(
-            self._running_thread,
-            self._source,
+            self._loop,
+            source,
             kCFRunLoopCommonModes
         )
         CGEventTapEnable(self._tap, True)
         CFRunLoopRun()
+        handler_thread.join()
+        CFMachPortInvalidate(self._tap)
+        CFRelease(self._tap)
+        CFRunLoopSourceInvalidate(source)
 
     def cancel(self):
-        self._canceled = True  # Signal event handler thread to exit.
-        self._event_queue.put_nowait(None)   # Wake up event handler.
-
-        CGEventTapEnable(self._tap, False)
-        CFMachPortInvalidate(self._tap)
-        CFRunLoopSourceInvalidate(self._source)
-
-        CFRelease(self._tap)
-        self._tap = None
-
-        CFRunLoopStop(self._running_thread)
-        self._running_thread = None
+        self._canceled = True
+        # Wake up event handler.
+        self._event_queue.put_nowait(None)
+        CFRunLoopStop(self._loop)
+        self._loop = None
 
     def suppress_keyboard(self, suppressed_keys=()):
         self._suppressed_keys = set(suppressed_keys)
