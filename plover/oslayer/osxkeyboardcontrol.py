@@ -3,7 +3,7 @@ from Quartz import (
     CFMachPortCreateRunLoopSource,
     CFMachPortInvalidate,
     CFRunLoopAddSource,
-    CFRunLoopRemoveSource,
+    CFRunLoopSourceInvalidate,
     CFRunLoopGetCurrent,
     CFRunLoopRun,
     CFRunLoopStop,
@@ -247,12 +247,9 @@ class KeyboardCapture(threading.Thread):
         self._event_queue.put_nowait(None)   # Wake up event handler.
 
         CGEventTapEnable(self._tap, False)
-        CFRunLoopRemoveSource(
-            self._running_thread, self._source, kCFRunLoopCommonModes)
-        CFRelease(self._source)
-        self._source = None
-
         CFMachPortInvalidate(self._tap)
+        CFRunLoopSourceInvalidate(self._source)
+
         CFRelease(self._tap)
         self._tap = None
 
