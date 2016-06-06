@@ -15,6 +15,15 @@ try:
 except NameError:
     unichr = chr
 
+COMMAND = u'⌘'
+SHIFT = u'⇧'
+OPTION = u'⌥'
+CONTROL = u'⌃'
+CAPS = u'⇪'
+UNKNOWN = u'?'
+UNKNOWN_L = u'?_L'
+HEADER = u'KEYCODE | {}   | {}      | {}      | {}      | {}     | {}     | {}     | {}'.format('None', SHIFT, CAPS, OPTION, COMMAND + OPTION, SHIFT + OPTION, CAPS + OPTION, CONTROL).expandtabs(9)
+
 carbon_path = ctypes.util.find_library('Carbon')
 carbon = ctypes.cdll.LoadLibrary(carbon_path)
 
@@ -109,13 +118,9 @@ def parselayout(buf, ktype):
 
     def lookup_and_add(key, j, mod):
         ch = lookupseq(key)
-        if ch is not None:
-            mapping.setdefault(ch, (j, mod))
-            revmapping[j, mod] = ch
-        elif key == 0xFFFF:
-            revmapping[j, mod] = u''
-        else:
-            revmapping[j, mod] = u'<{}>'.format(key)
+        mapping.setdefault(ch, (j, mod))
+        revmapping[j, mod] = ch
+
 
     # Get char tables
     cf, csize, ccount = struct.unpack_from('HHI', buf, charoff)
@@ -127,8 +132,9 @@ def parselayout(buf, ktype):
     for i, tableoff in enumerate(struct.unpack_from('I'*ccount, buf, chartableoff)):
         mod = modmapping[i]
         for j, key in enumerate(struct.unpack_from('H'*csize, buf, tableoff)):
-            ch = None
-            if key >= 0xFFFE:
+            if key == 65535:
+                revmapping[j, mod] = u'MD'
+            elif key >= 0xFFFE:
                 revmapping[j, mod] = u'<{}>'.format(key)
             elif key & 0x0C000 == 0x4000:
                 dead = key & ~0xC000
@@ -138,9 +144,9 @@ def parselayout(buf, ktype):
                         deadstatemapping[nextstate] = (j, mod)
                         if nextstate-1 < len(dkterms):
                             basekey = lookupseq(dkterms[nextstate-1])
-                            revmapping[j, mod] = u'<deadkey #{}: {}>'.format(nextstate, basekey)
+                            revmapping[j, mod] = u'dk {}'.format(basekey)
                         else:
-                            revmapping[j, mod] = u'<deadkey #{}>'.format(nextstate)
+                            revmapping[j, mod] = u'DK#{}'.format(nextstate)
                     elif eformat == 1: # terminal
                         deadrevmapping[j, mod] = deadkeys[dead]
                         lookup_and_add(cdata, j, mod)
@@ -180,34 +186,34 @@ def getlayout():
 
 mapping, revmapping, modmapping = getlayout()
 
+
 def modstr(mod):
     """ Small helper function to provide a string of the mods set"""
     s = ''
     modifiers = mods(mod)
     for key in modifiers:
-        if modifiers[key]:
-            s = s+ key + '-'
-    return s.rstrip('-')
+        s += key if modifiers[key] else ''
+    return s
 
 def mods(mod):
     """ Small helper function to provide a list of Modifier keys from a Mod """
-    modifiers = {'Shift':False,'Command':False,'Control':False,'Alternate':False,
-                 'Caps':False,'Unknown':False, 'LUnknown':False}
+    modifiers = {SHIFT: False, COMMAND: False, CONTROL: False, OPTION:False,
+                 CAPS: False, UNKNOWN: False, UNKNOWN_L: False}
 
     if mod & 16:
-        modifiers['Control'] = True
+        modifiers[CONTROL] = True
     if mod & 8:
         # correct
-        modifiers['Alternate'] = True
+        modifiers[OPTION] = True
     if mod & 4:
         # ?? maybe not right
-        modifiers['Caps'] = True
+        modifiers[CAPS] = True
     if mod & 2:
         # correct
-        modifiers['Shift'] = True
+        modifiers[SHIFT] = True
     if mod & 1:
         # ?? maybe not right
-        modifiers['Command'] = True
+        modifiers[COMMAND] = True
     return modifiers
 
 
@@ -219,14 +225,16 @@ def isprintable(s):
     for c in s:
         cat = unicodedata.category(c)
         if cat[0] in 'C':
-            return False
+            return False if s != u"" else True
         elif cat == 'Zs' and c != ' ':
             return False
         elif cat in ('Zl, Zp'):
             return False
+    return True
+
 
 def printify(s):
-    return s if isprintable(s) else s.encode('unicode_escape').decode('utf-8')
+    return s if isprintable(s) else s.encode('unicode_escape').decode("utf-8")
 
 def CharForKeycode(keycode, modifier=0):
     """ Provide a keycode and a modifier and it provides the Character"""
@@ -243,12 +251,13 @@ def KeyCodeForChar(character):
             result = result,
         return result
 
-def printcode(keycode):
+
+def print_keycode_keys(keycode):
     """ Prints all the variations of the Keycode with modifiers """
-    keys = ('{}:{}'.format(modstr(mod).rstrip('-'),
-                           printify(revmapping[keycode, mod]))
+    keys = (u'| {}\t'.format(printify(revmapping[keycode, mod])).expandtabs(8)
             for mod in sorted(modmapping.values()))
-    print(u"{:3} {}".format(keycode, ' '.join(keys)))
+
+    print(u'{}\t{}'.format(keycode, ' '.join(keys))).expandtabs(8)
 
 if __name__ == '__main__':
     import sys
@@ -271,7 +280,9 @@ if __name__ == '__main__':
                                            ', '.join('{}{}'.format(modstr(mod), keycode)
                                                      for keycode, mod in result)))
         else:
-            printcode(keycode)
+            print_keycode_keys(keycode)
     if len(sys.argv) < 2:
+        print HEADER
+        print '-' * len(HEADER)
         for keycode in range(127):
-            printcode(keycode)
+            print_keycode_keys(keycode)
