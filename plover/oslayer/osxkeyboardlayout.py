@@ -9,6 +9,8 @@ import ctypes
 import ctypes.util
 import struct
 import unicodedata
+import re
+from plover.key_combo import CHAR_TO_KEYNAME
 
 try:
     unichr
@@ -22,7 +24,6 @@ CONTROL = u'⌃'
 CAPS = u'⇪'
 UNKNOWN = u'?'
 UNKNOWN_L = u'?_L'
-HEADER = u'KEYCODE | {}   | {}      | {}      | {}      | {}     | {}     | {}     | {}'.format('None', SHIFT, CAPS, OPTION, COMMAND + OPTION, SHIFT + OPTION, CAPS + OPTION, CONTROL).expandtabs(9)
 
 carbon_path = ctypes.util.find_library('Carbon')
 carbon = ctypes.cdll.LoadLibrary(carbon_path)
@@ -251,38 +252,33 @@ def KeyCodeForChar(character):
             result = result,
         return result
 
+def format_modifier_header():
+    modifiers = (u'| {}\t'.format(modstr(mod)).expandtabs(8)
+                 for mod in sorted(modmapping.values()))
+    header = u'Keycode\t{}'.format(''.join(modifiers))
+    return '%s\n%s' % (header, re.sub(r'[^|]', '-', header))
 
-def print_keycode_keys(keycode):
+def format_keycode_keys(keycode):
     """ Prints all the variations of the Keycode with modifiers """
     keys = (u'| {}\t'.format(printify(revmapping[keycode, mod])).expandtabs(8)
             for mod in sorted(modmapping.values()))
 
-    print(u'{}\t{}'.format(keycode, ' '.join(keys))).expandtabs(8)
+    return u'{}\t{}'.format(keycode, ''.join(keys)).expandtabs(8)
 
 if __name__ == '__main__':
-    import sys
-    for arg in sys.argv[1:]:
-        try:
-            arg = arg.decode(sys.stdin.encoding)
-        except AttributeError:
-            pass
-        try:
-            keycode = int(arg)
-        except ValueError:
-            for ch in arg:
-                result = mapping.get(ch, (None, 0))
-                if result is None or result[0] is None:
-                    print(u"{}: not found".format(printify(ch)))
-                else:
-                    if not isinstance(result[0], tuple):
-                        result = result,
-                    print(u"{}: {}".format(printify(ch),
-                                           ', '.join('{}{}'.format(modstr(mod), keycode)
-                                                     for keycode, mod in result)))
-        else:
-            print_keycode_keys(keycode)
-    if len(sys.argv) < 2:
-        print HEADER
-        print '-' * len(HEADER)
-        for keycode in range(127):
-            print_keycode_keys(keycode)
+    print format_modifier_header()
+    for keycode in range(127):
+        print format_keycode_keys(keycode)
+    unmapped_characters = []
+    for char, keyname in sorted(CHAR_TO_KEYNAME.iteritems()):
+        sequence = []
+        for code, mod in KeyCodeForChar(char):
+            if code is not None:
+                sequence.append(u'{}{}'.format(modstr(mod), printify(revmapping[code, 0])))
+            else:
+                unmapped_characters.append(char)
+        if sequence:
+            print u'Name:\t\t{}\nCharacter:\t{}\nSequence:\t‘{}’\n'.format(keyname, char, u'’, ‘'.join(sequence))
+    print u'No mapping on this layout for characters: ‘{}’'.format(u'’, ‘'.join(unmapped_characters))
+
+
