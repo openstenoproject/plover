@@ -43,7 +43,7 @@ import Queue
 from time import sleep
 import collections
 
-from plover.oslayer import mac_keycode
+from plover.oslayer.osxkeyboardlayout import KeyboardLayout
 from plover.key_combo import add_modifiers_aliases, parse_key_combo, KEYNAME_TO_CHAR
 import plover.log
 
@@ -77,7 +77,7 @@ KEYNAME_TO_KEYCODE = {
     'caps_lock': 57,
 
     'return': 36, 'tab': 48, 'backspace': BACK_SPACE, 'delete': 117,
-    'escape': 53,
+    'escape': 53, 'clear': 71,
 
     'up': 126, 'down': 125, 'left': 123, 'right': 124, 'page_up': 116,
     'page_down': 121, 'home': 115, 'end': 119,
@@ -304,7 +304,7 @@ class KeyboardEmulation(object):
     RAW_PRESS, STRING_PRESS = range(2)
 
     def __init__(self):
-        pass
+        self._layout = KeyboardLayout()
 
     @staticmethod
     def send_backspaces(number_of_backspaces):
@@ -351,7 +351,7 @@ class KeyboardEmulation(object):
 
         last_modifier = None
         for c in characters(s):
-            for keycode, modifier in mac_keycode.KeyCodeForChar(c):
+            for keycode, modifier in self._layout.char_to_key_sequence(c):
                 if keycode is not None:
                     if modifier is not last_modifier:
                         # Flush on modifier change.
@@ -408,7 +408,7 @@ class KeyboardEmulation(object):
             if code is not None:
                 return code
             char = KEYNAME_TO_CHAR.get(name, name)
-            code, mods = mac_keycode.KeyCodeForChar(char)[0]
+            code, mods = self._layout.char_to_key_sequence(char)[0]
             return code
         # Parse and validate combo.
         key_events = parse_key_combo(combo_string, name_to_code)
