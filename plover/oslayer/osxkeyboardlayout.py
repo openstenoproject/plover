@@ -11,6 +11,7 @@ import struct
 import unicodedata
 import re
 from plover.key_combo import CHAR_TO_KEYNAME
+from plover.misc import popcount32
 
 try:
     unichr
@@ -49,6 +50,7 @@ carbon.CFRelease.restype = None
 kTISPropertyUnicodeKeyLayoutData = ctypes.c_void_p.in_dll(
     carbon, 'kTISPropertyUnicodeKeyLayoutData')
 
+
 def parselayout(buf, ktype):
     hf, dv, featureinfo, ktcount = struct.unpack_from('HHII', buf)
     offset = struct.calcsize('HHII')
@@ -75,7 +77,6 @@ def parselayout(buf, ktype):
     modmapping = {}
     for i, table in enumerate(modtables):
         modmapping.setdefault(table, i)
-    #print(modmapping)
 
     # Sequences
     sequences = []
@@ -117,11 +118,33 @@ def parselayout(buf, ktype):
         dkterms = []
     #print(dkterms)
 
+    def save_shortest_key_sequence(character, new_sequence):
+        current_sequence = mapping.setdefault(character, new_sequence)
+        if current_sequence != new_sequence:
+            # Convert responses to tuples...
+            if not isinstance(current_sequence[0], tuple):
+                current_sequence = current_sequence,
+            if not isinstance(new_sequence[0], tuple):
+                new_sequence = new_sequence,
+
+            # Favor shortest sequence (fewer separate key presses)
+            if len(current_sequence) < len(new_sequence):
+                return
+            elif len(new_sequence) < len(current_sequence):
+                mapping[character] = new_sequence[0]
+            # Favor fewer modifiers on last item
+            elif popcount32(new_sequence[-1][1]) < popcount32(current_sequence[-1][1]):
+                mapping[character] = new_sequence
+            # Favor lower modifiers on first item if last item is the same
+            elif (popcount32(new_sequence[-1][1]) == popcount32(current_sequence[-1][1]) and
+                  popcount32(new_sequence[0][1]) < popcount32(current_sequence[0][1])):
+                mapping[character] = new_sequence
+
+
     def lookup_and_add(key, j, mod):
         ch = lookupseq(key)
-        mapping.setdefault(ch, (j, mod))
+        save_shortest_key_sequence(ch, (j, mod))
         revmapping[j, mod] = ch
-
 
     # Get char tables
     cf, csize, ccount = struct.unpack_from('HHI', buf, charoff)
@@ -164,7 +187,7 @@ def parselayout(buf, ktype):
         for state, key in entries:
             dj, dmod = deadstatemapping[state]
             ch = lookupseq(key)
-            mapping.setdefault(ch, ((dj, dmod), (j, mod)))
+            save_shortest_key_sequence(ch, ((dj, dmod), (j, mod)))
             revmapping[(dj, dmod), (j, mod)] = ch
 
     mapping[u'\n'] = (36, 0)
@@ -213,7 +236,6 @@ def mods(mod):
         # correct
         modifiers[SHIFT] = True
     if mod & 1:
-        # ?? maybe not right
         modifiers[COMMAND] = True
     return modifiers
 
