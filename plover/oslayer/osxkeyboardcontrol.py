@@ -3,7 +3,7 @@ from Quartz import (
     CFMachPortCreateRunLoopSource,
     CFMachPortInvalidate,
     CFRunLoopAddSource,
-    CFRunLoopRemoveSource,
+    CFRunLoopSourceInvalidate,
     CFRunLoopGetCurrent,
     CFRunLoopRun,
     CFRunLoopStop,
@@ -157,8 +157,7 @@ class KeyboardCapture(threading.Thread):
 
     def __init__(self):
         threading.Thread.__init__(self, name="KeyboardEventTapThread")
-        self._running_thread = None
-        self._canceled = False  # Used to signal event handler thread.
+        self._loop = None
         self._event_queue = Queue.Queue()  # Drained by event handler thread.
 
         self._suppressed_keys = set()
@@ -180,9 +179,6 @@ class KeyboardCapture(threading.Thread):
         def callback(proxy, event_type, event, reference):
             SUPPRESS_EVENT = None
             PASS_EVENT_THROUGH = event
-
-            if self._canceled:
-                return PASS_EVENT_THROUGH
 
             # Don't pass on meta events meant for this event tap.
             is_unexpected_event = event_type not in self._KEYBOARD_EVENTS
@@ -224,40 +220,35 @@ class KeyboardCapture(threading.Thread):
             # Todo(hesky): See if there is a nice way to show the user what's
             # needed (or do it for them).
             raise Exception("Enable access for assistive devices.")
-        self._source = CFMachPortCreateRunLoopSource(None, self._tap, 0)
         CGEventTapEnable(self._tap, False)
 
     def run(self):
-        self._handler_thread = threading.Thread(
+        source = CFMachPortCreateRunLoopSource(None, self._tap, 0)
+        handler_thread = threading.Thread(
             target=self._event_handler,
             name="KeyEventDispatcher")
-        self._handler_thread.start()
-
-        self._running_thread = CFRunLoopGetCurrent()
+        handler_thread.start()
+        self._loop = CFRunLoopGetCurrent()
         CFRunLoopAddSource(
-            self._running_thread,
-            self._source,
+            self._loop,
+            source,
             kCFRunLoopCommonModes
         )
         CGEventTapEnable(self._tap, True)
+
         CFRunLoopRun()
 
-    def cancel(self):
-        self._canceled = True  # Signal event handler thread to exit.
-        self._event_queue.put_nowait(None)   # Wake up event handler.
-
-        CGEventTapEnable(self._tap, False)
-        CFRunLoopRemoveSource(
-            self._running_thread, self._source, kCFRunLoopCommonModes)
-        CFRelease(self._source)
-        self._source = None
-
+        # Wake up event handler.
+        self._event_queue.put_nowait(None)
+        handler_thread.join()
         CFMachPortInvalidate(self._tap)
         CFRelease(self._tap)
-        self._tap = None
+        CFRunLoopSourceInvalidate(source)
 
-        CFRunLoopStop(self._running_thread)
-        self._running_thread = None
+    def cancel(self):
+        CFRunLoopStop(self._loop)
+        self.join()
+        self._loop = None
 
     def suppress_keyboard(self, suppressed_keys=()):
         self._suppressed_keys = set(suppressed_keys)
@@ -278,8 +269,7 @@ class KeyboardCapture(threading.Thread):
     def _event_handler(self):
         """
         Event dispatching thread launched during run().
-        Loops until _canceled is set True
-        or None is received from _event_queue.
+        Loops until None is received from _event_queue.
         Avoids busy-waiting by blocking on _event_queue.
 
         In normal operation, it gets a pair of
@@ -289,7 +279,7 @@ class KeyboardCapture(threading.Thread):
         """
         while True:
             pair = self._event_queue.get(block=True, timeout=None)
-            if self._canceled or pair is None:
+            if pair is None:
                 return
 
             key, is_keyup = pair
