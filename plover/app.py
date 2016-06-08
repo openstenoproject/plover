@@ -22,7 +22,7 @@ import plover.config as conf
 import plover.formatting as formatting
 import plover.steno as steno
 import plover.translation as translation
-from plover.exception import InvalidConfigurationError,DictionaryLoaderException
+from plover.exception import InvalidConfigurationError
 from plover.machine.registry import machine_registry, NoSuchMachineException
 from plover import log
 from plover.dictionary.loading_manager import manager as dict_manager
