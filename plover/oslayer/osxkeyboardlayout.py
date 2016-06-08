@@ -86,6 +86,7 @@ SPECIAL_KEY_NAMES = {
 }
 
 
+
 def is_printable(string):
     for character in string:
         category = unicodedata.category(character)
@@ -128,9 +129,9 @@ class KeyboardLayout(object):
                 layout.update_layout()
 
         center = Foundation.NSDistributedNotificationCenter.defaultCenter()
-        LayoutWatchingCallback = LayoutWatchingCallback.new()
+        watcher_callback = LayoutWatchingCallback.new()
         center.addObserver_selector_name_object_(
-            LayoutWatchingCallback,
+            watcher_callback,
             'layoutChanged:',
             'AppleSelectedInputSourcesChangedNotification',
             None
@@ -171,7 +172,7 @@ class KeyboardLayout(object):
         return u'{}\t{}'.format(keycode, ''.join(keys)).expandtabs(8)
 
     @staticmethod
-    def mods(mod):
+    def modifier_dictionary(modifier_mask):
         """Provide a dictionary of active modifier keys from mod mask"""
         modifiers = {
             SHIFT: False,
@@ -182,15 +183,15 @@ class KeyboardLayout(object):
             UNKNOWN: False,
             UNKNOWN_L: False
         }
-        if mod & 16:
+        if modifier_mask & 16:
             modifiers[CONTROL] = True
-        if mod & 8:
+        if modifier_mask & 8:
             modifiers[OPTION] = True
-        if mod & 4:
+        if modifier_mask & 4:
             modifiers[CAPS] = True
-        if mod & 2:
+        if modifier_mask & 2:
             modifiers[SHIFT] = True
-        if mod & 1:
+        if modifier_mask & 1:
             modifiers[COMMAND] = True
         return modifiers
 
@@ -198,7 +199,7 @@ class KeyboardLayout(object):
     def modifier_string(modifier_mask):
         """Turn modifier mask into string representing modifiers"""
         s = ''
-        modifiers = KeyboardLayout.mods(modifier_mask)
+        modifiers = KeyboardLayout.modifier_dictionary(modifier_mask)
         for key in modifiers:
             s += key if modifiers[key] else ''
         return s
@@ -289,6 +290,36 @@ class KeyboardLayout(object):
         deadkey_state_to_key_sequence = {}
         key_sequence_to_deadkey_state = {}
 
+        def favored_modifiers(modifier_a, modifier_b):
+            """0 if they are equal, 1 if a is better, -1 if b is better"""
+            a_favored_over_b = 0
+            modifiers_a = KeyboardLayout.modifier_dictionary(modifier_a)
+            modifiers_b = KeyboardLayout.modifier_dictionary(modifier_b)
+            count_a = popcount32(modifier_a)
+            count_b = popcount32(modifier_b)
+
+            # Favor no CAPS modifier
+            if modifiers_a[CAPS] and not modifiers_b[CAPS]:
+                a_favored_over_b = -1
+            elif modifiers_b[CAPS] and not modifiers_a[CAPS]:
+                a_favored_over_b = 1
+            # Favor no command modifier
+            elif modifiers_a[COMMAND] and not modifiers_b[COMMAND]:
+                a_favored_over_b = -1
+            elif modifiers_b[COMMAND] and not modifiers_a[COMMAND]:
+                a_favored_over_b = 1
+            # Favor no control modifier
+            elif modifiers_a[CONTROL] and not modifiers_b[CONTROL]:
+                a_favored_over_b = -1
+            elif modifiers_b[CONTROL] and not modifiers_a[CONTROL]:
+                a_favored_over_b = 1
+            # Finally, favor fewer modifiers
+            elif count_a > count_b:
+                a_favored_over_b = -1
+            elif count_b > count_a:
+                a_favored_over_b = 1
+            return a_favored_over_b
+
         def save_shortest_key_sequence(character, new_sequence):
             current_sequence = char_to_key_sequence.setdefault(character, new_sequence)
             if current_sequence != new_sequence:
@@ -298,17 +329,21 @@ class KeyboardLayout(object):
                 if not isinstance(new_sequence[0], tuple):
                     new_sequence = new_sequence,
 
+                a_favored_b = favored_modifiers(current_sequence[-1][1], new_sequence[-1][1])
+
                 # Favor shortest sequence (fewer separate key presses)
                 if len(current_sequence) < len(new_sequence):
                     return
                 elif len(new_sequence) < len(current_sequence):
                     char_to_key_sequence[character] = new_sequence[0]
                 # Favor fewer modifiers on last item
-                elif popcount32(new_sequence[-1][1]) < popcount32(current_sequence[-1][1]):
+                elif a_favored_b < 0:
                     char_to_key_sequence[character] = new_sequence
                 # Favor lower modifiers on first item if last item is the same
-                elif (popcount32(new_sequence[-1][1]) == popcount32(current_sequence[-1][1]) and
-                      popcount32(new_sequence[0][1]) < popcount32(current_sequence[0][1])):
+                elif (a_favored_b == 0 and
+                      favored_modifiers(
+                          current_sequence[0][1], new_sequence[0][1]
+                      ) < 0):
                     char_to_key_sequence[character] = new_sequence
 
         def lookup_and_add(key, j, mod):
@@ -331,12 +366,16 @@ class KeyboardLayout(object):
                     if dead < len(deadkeys):
                         cdata, nextstate, ecount, eformat, edata = deadkeys[dead]
                         if eformat == 0 and nextstate: # initial
-                            deadkey_state_to_key_sequence[nextstate] = (j, mod)
-                            if nextstate-1 < len(dkterms):
-                                basekey = lookupseq(dkterms[nextstate-1])
-                                key_sequence_to_char[j, mod] = u'dk {}'.format(basekey)
+                            new_deadkey = (j, mod)
+                            current_deadkey = deadkey_state_to_key_sequence.setdefault(nextstate, new_deadkey)
+                            if new_deadkey != current_deadkey:
+                                if favored_modifiers(current_deadkey[1], new_deadkey[1]) < 0:
+                                    deadkey_state_to_key_sequence[nextstate] = new_deadkey
+                            if nextstate - 1 < len(dkterms):
+                                basekey = lookupseq(dkterms[nextstate - 1])
+                                key_sequence_to_char[j, mod] = u'dk{}'.format(basekey)
                             else:
-                                key_sequence_to_char[j, mod] = u'DK#{}'.format(nextstate)
+                                key_sequence_to_char[j, mod] = u'dk#{}'.format(nextstate)
                         elif eformat == 1:  # terminal
                             key_sequence_to_deadkey_state[j, mod] = deadkeys[dead]
                             lookup_and_add(cdata, j, mod)
@@ -386,5 +425,3 @@ if __name__ == '__main__':
                 keyname, char, u'’, ‘'.join(sequence.values()), u'’, ‘'.join(sequence.keys())
             )
     print u'No mapping on this layout for characters: ‘{}’'.format(u'’, ‘'.join(unmapped_characters))
-
-
