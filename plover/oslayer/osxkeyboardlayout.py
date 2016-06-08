@@ -1,5 +1,5 @@
 # -*- coding: utf-8 -*-
-#!/usr/bin/env python
+#!/usr/bin/env python2
 # Author: @abarnert, @willwade, and @morinted
 # Code taken and modified from
 # <https://github.com/willwade/PyUserInput/blob/master/pykeyboard/mac_keycode.py>
@@ -33,6 +33,7 @@ class CFRange(ctypes.Structure):
     _fields_ = [('loc', CFIndex),
                 ('len', CFIndex)]
 
+
 carbon.TISCopyCurrentKeyboardInputSource.argtypes = []
 carbon.TISCopyCurrentKeyboardInputSource.restype = ctypes.c_void_p
 carbon.TISGetInputSourceProperty.argtypes = [ctypes.c_void_p, ctypes.c_void_p]
@@ -50,12 +51,12 @@ kTISPropertyUnicodeKeyLayoutData = ctypes.c_void_p.in_dll(
     carbon, 'kTISPropertyUnicodeKeyLayoutData')
 kTISPropertyInputSourceID = ctypes.c_void_p.in_dll(
     carbon, 'kTISPropertyInputSourceID')
-COMMAND   = u'⌘'
-SHIFT     = u'⇧'
-OPTION    = u'⌥'
-CONTROL   = u'⌃'
-CAPS      = u'⇪'
-UNKNOWN   = u'?'
+COMMAND = u'⌘'
+SHIFT = u'⇧'
+OPTION = u'⌥'
+CONTROL = u'⌃'
+CAPS = u'⇪'
+UNKNOWN = u'?'
 UNKNOWN_L = u'?_L'
 
 KEY_CODE_VISUALIZATION = """
@@ -146,7 +147,9 @@ class KeyboardLayout(object):
 
     def key_code_to_char(self, key_code, modifier=0):
         """Provide a key code and a modifier and it provides the character"""
-        return get_printable_string(self._key_sequence_to_char[key_code, modifier])
+        return get_printable_string(
+            self._key_sequence_to_char[key_code, modifier]
+        )
 
     def char_to_key_sequence(self, char):
         """Finds the key code and modifier sequence for the character"""
@@ -159,14 +162,17 @@ class KeyboardLayout(object):
             return key_sequence
 
     def format_modifier_header(self):
-        modifiers = (u'| {}\t'.format(KeyboardLayout.modifier_string(mod)).expandtabs(8)
-                     for mod in sorted(self._modifier_masks.values()))
+        modifiers = (
+            u'| {}\t'.format(KeyboardLayout.modifier_string(mod)).expandtabs(8)
+            for mod in sorted(self._modifier_masks.values())
+        )
         header = u'Keycode\t{}'.format(''.join(modifiers))
         return '%s\n%s' % (header, re.sub(r'[^|]', '-', header))
 
     def format_keycode_keys(self, keycode):
         """Prints all the variations of the keycode with modifiers"""
-        keys = (u'| {}\t'.format(get_printable_string(self._key_sequence_to_char[keycode, mod])).expandtabs(8)
+        keys = (u'| {}\t'.format(get_printable_string(
+            self._key_sequence_to_char[keycode, mod])).expandtabs(8)
                 for mod in sorted(self._modifier_masks.values()))
 
         return u'{}\t{}'.format(keycode, ''.join(keys)).expandtabs(8)
@@ -178,7 +184,7 @@ class KeyboardLayout(object):
             SHIFT: False,
             COMMAND: False,
             CONTROL: False,
-            OPTION:False,
+            OPTION: False,
             CAPS: False,
             UNKNOWN: False,
             UNKNOWN_L: False
@@ -240,7 +246,7 @@ class KeyboardLayout(object):
         # Modifiers
         mf, deftable, mcount = struct.unpack_from('HHI', buf, modoff)
         modtableoff = modoff + struct.calcsize('HHI')
-        modtables = struct.unpack_from('B'*mcount, buf, modtableoff)
+        modtables = struct.unpack_from('B' * mcount, buf, modtableoff)
         modifier_masks = {}
         for i, table in enumerate(modtables):
             modifier_masks.setdefault(table, i)
@@ -251,9 +257,10 @@ class KeyboardLayout(object):
             sf, scount = struct.unpack_from('HH', buf, seqoff)
             seqtableoff = seqoff + struct.calcsize('HH')
             lastoff = -1
-            for soff in struct.unpack_from('H'*scount, buf, seqtableoff):
+            for soff in struct.unpack_from('H' * scount, buf, seqtableoff):
                 if lastoff >= 0:
-                    sequences.append(buf[seqoff+lastoff:seqoff+soff].decode('utf-16'))
+                    sequences.append(
+                        buf[seqoff + lastoff:seqoff + soff].decode('utf-16'))
                 lastoff = soff
 
         def lookupseq(key):
@@ -270,16 +277,18 @@ class KeyboardLayout(object):
         if sroff:
             srf, srcount = struct.unpack_from('HH', buf, sroff)
             srtableoff = sroff + struct.calcsize('HH')
-            for recoff in struct.unpack_from('I'*srcount, buf, srtableoff):
-                cdata, nextstate, ecount, eformat = struct.unpack_from('HHHH', buf, recoff)
+            for recoff in struct.unpack_from('I' * srcount, buf, srtableoff):
+                cdata, nextstate, ecount, eformat = struct.unpack_from('HHHH',
+                                                                       buf,
+                                                                       recoff)
                 recdataoff = recoff + struct.calcsize('HHHH')
-                edata = buf[recdataoff:recdataoff+4*ecount]
+                edata = buf[recdataoff:recdataoff + 4 * ecount]
                 deadkeys.append((cdata, nextstate, ecount, eformat, edata))
 
         if stoff:
             stf, stcount = struct.unpack_from('HH', buf, stoff)
             sttableoff = stoff + struct.calcsize('HH')
-            dkterms = struct.unpack_from('H'*stcount, buf, sttableoff)
+            dkterms = struct.unpack_from('H' * stcount, buf, sttableoff)
         else:
             dkterms = []
 
@@ -321,7 +330,8 @@ class KeyboardLayout(object):
             return a_favored_over_b
 
         def save_shortest_key_sequence(character, new_sequence):
-            current_sequence = char_to_key_sequence.setdefault(character, new_sequence)
+            current_sequence = char_to_key_sequence.setdefault(character,
+                                                               new_sequence)
             if current_sequence != new_sequence:
                 # Convert responses to tuples...
                 if not isinstance(current_sequence[0], tuple):
@@ -329,7 +339,9 @@ class KeyboardLayout(object):
                 if not isinstance(new_sequence[0], tuple):
                     new_sequence = new_sequence,
 
-                a_favored_b = favored_modifiers(current_sequence[-1][1], new_sequence[-1][1])
+                a_favored_b = favored_modifiers(
+                    current_sequence[-1][1], new_sequence[-1][1]
+                )
 
                 # Favor shortest sequence (fewer separate key presses)
                 if len(current_sequence) < len(new_sequence):
@@ -341,9 +353,9 @@ class KeyboardLayout(object):
                     char_to_key_sequence[character] = new_sequence
                 # Favor lower modifiers on first item if last item is the same
                 elif (a_favored_b == 0 and
-                      favored_modifiers(
-                          current_sequence[0][1], new_sequence[0][1]
-                      ) < 0):
+                              favored_modifiers(
+                                  current_sequence[0][1], new_sequence[0][1]
+                              ) < 0):
                     char_to_key_sequence[character] = new_sequence
 
         def lookup_and_add(key, j, mod):
@@ -354,9 +366,11 @@ class KeyboardLayout(object):
         cf, csize, ccount = struct.unpack_from('HHI', buf, charoff)
         chartableoff = charoff + struct.calcsize('HHI')
 
-        for i, table_offset in enumerate(struct.unpack_from('I' * ccount, buf, chartableoff)):
+        for i, table_offset in enumerate(
+                struct.unpack_from('I' * ccount, buf, chartableoff)):
             mod = modifier_masks[i]
-            for j, key in enumerate(struct.unpack_from('H'*csize, buf, table_offset)):
+            for j, key in enumerate(
+                    struct.unpack_from('H' * csize, buf, table_offset)):
                 if key == 65535:
                     key_sequence_to_char[j, mod] = u'mod'
                 elif key >= 0xFFFE:
@@ -365,17 +379,23 @@ class KeyboardLayout(object):
                     dead = key & ~0xC000
                     if dead < len(deadkeys):
                         cdata, nextstate, ecount, eformat, edata = deadkeys[dead]
-                        if eformat == 0 and nextstate: # initial
+                        if eformat == 0 and nextstate:  # initial
                             new_deadkey = (j, mod)
-                            current_deadkey = deadkey_state_to_key_sequence.setdefault(nextstate, new_deadkey)
+                            current_deadkey = deadkey_state_to_key_sequence.setdefault(
+                                nextstate, new_deadkey
+                            )
                             if new_deadkey != current_deadkey:
-                                if favored_modifiers(current_deadkey[1], new_deadkey[1]) < 0:
+                                if favored_modifiers(current_deadkey[1],
+                                                     new_deadkey[1]) < 0:
                                     deadkey_state_to_key_sequence[nextstate] = new_deadkey
                             if nextstate - 1 < len(dkterms):
                                 basekey = lookupseq(dkterms[nextstate - 1])
-                                key_sequence_to_char[j, mod] = u'dk{}'.format(basekey)
+                                key_sequence_to_char[j, mod] = u'dk{}'.format(
+                                    basekey)
                             else:
-                                key_sequence_to_char[j, mod] = u'dk#{}'.format(nextstate)
+                                key_sequence_to_char[j, mod] = u'dk#{}'.format(
+                                    nextstate
+                                )
                         elif eformat == 1:  # terminal
                             key_sequence_to_deadkey_state[j, mod] = deadkeys[dead]
                             lookup_and_add(cdata, j, mod)
@@ -388,7 +408,8 @@ class KeyboardLayout(object):
         for key, dead in key_sequence_to_deadkey_state.items():
             j, mod = key
             cdata, nextstate, ecount, eformat, edata = dead
-            entries = [struct.unpack_from('HH', edata, i*4) for i in range(ecount)]
+            entries = [struct.unpack_from('HH', edata, i * 4) for i in
+                       range(ecount)]
             for state, key in entries:
                 dj, dmod = deadkey_state_to_key_sequence[state]
                 ch = lookupseq(key)
@@ -400,6 +421,7 @@ class KeyboardLayout(object):
         char_to_key_sequence[u'\t'] = (48, 0)
 
         return char_to_key_sequence, key_sequence_to_char, modifier_masks
+
 
 if __name__ == '__main__':
     layout = KeyboardLayout(watch_layout=False)
@@ -422,6 +444,9 @@ if __name__ == '__main__':
                 unmapped_characters.append(char)
         if sequence:
             print u'Name:\t\t{}\nCharacter:\t{}\nSequence:\t‘{}’\nBase codes:\t‘{}’\n'.format(
-                keyname, char, u'’, ‘'.join(sequence.values()), u'’, ‘'.join(sequence.keys())
+                keyname, char, u'’, ‘'.join(sequence.values()),
+                u'’, ‘'.join(sequence.keys())
             )
-    print u'No mapping on this layout for characters: ‘{}’'.format(u'’, ‘'.join(unmapped_characters))
+    print u'No mapping on this layout for characters: ‘{}’'.format(
+        u'’, ‘'.join(unmapped_characters)
+    )
