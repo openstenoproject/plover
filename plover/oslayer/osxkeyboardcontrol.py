@@ -96,6 +96,13 @@ for name, code in NX_KEYS.iteritems():
     KEYNAME_TO_KEYCODE[name.lower()] = code + NX_KEY_OFFSET
 add_modifiers_aliases(KEYNAME_TO_KEYCODE)
 
+DEADKEY_SYMBOLS = {
+    'dead_acute': '´',
+    'dead_circumflex': '^',
+    'dead_diaeresis': '¨',
+    'dead_grave': '`',
+    'dead_tilde': '~',
+}
 
 def down(seq):
     return [(x, True) for x in seq]
@@ -289,7 +296,7 @@ class KeyboardCapture(threading.Thread):
 
 # "Narrow python" unicode objects store characters in UTF-16 so we
 # can't iterate over characters in the standard way. This workaround
-# let's us iterate over full characters in the string.
+# lets us iterate over full characters in the string.
 def characters(s):
     encoded = s.encode('utf-32-be')
     for i in xrange(len(encoded) / 4):
@@ -404,11 +411,19 @@ class KeyboardEmulation(object):
 
         """
         def name_to_code(name):
+            # Static key codes
             code = KEYNAME_TO_KEYCODE.get(name)
             if code is not None:
-                return code
-            char = KEYNAME_TO_CHAR.get(name, name)
-            code, mods = self._layout.char_to_key_sequence(char)[0]
+                pass
+            # Dead keys
+            elif name.startswith('dead_'):
+                code, mod = self._layout.deadkey_symbol_to_key_sequence(
+                    DEADKEY_SYMBOLS.get(name)
+                )[0]
+            # Normal keys
+            else:
+                char = KEYNAME_TO_CHAR.get(name, name)
+                code, mods = self._layout.char_to_key_sequence(char)[0]
             return code
         # Parse and validate combo.
         key_events = parse_key_combo(combo_string, name_to_code)

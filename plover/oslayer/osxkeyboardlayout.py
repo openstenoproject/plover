@@ -86,7 +86,7 @@ SPECIAL_KEY_NAMES = {
     u'\x0b': u'PgUp',  # \x0b is also the clear character signal
 }
 
-
+DEFAULT_SEQUENCE = (None, 0),
 
 def is_printable(string):
     for character in string:
@@ -112,6 +112,7 @@ class KeyboardLayout(object):
         self._char_to_key_sequence = None
         self._key_sequence_to_char = None
         self._modifier_masks = None
+        self._deadkey_symbol_to_key_sequence = None
 
         # Spawn a thread that responds to system keyboard layout changes.
         if watch_layout:
@@ -144,6 +145,10 @@ class KeyboardLayout(object):
         self._char_to_key_sequence = char_to_key_sequence
         self._key_sequence_to_char = key_sequence_to_char
         self._modifier_masks = modifier_masks
+        self._deadkey_symbol_to_key_sequence = self._deadkeys_by_symbols()
+
+    def deadkey_symbol_to_key_sequence(self, symbol):
+        return self._deadkey_symbol_to_key_sequence.get(symbol, DEFAULT_SEQUENCE)
 
     def key_code_to_char(self, key_code, modifier=0):
         """Provide a key code and a modifier and it provides the character"""
@@ -153,13 +158,27 @@ class KeyboardLayout(object):
 
     def char_to_key_sequence(self, char):
         """Finds the key code and modifier sequence for the character"""
-        key_sequence = self._char_to_key_sequence.get(char, (None, 0))
-        if key_sequence is None or key_sequence[0] is None:
-            return [(None, 0)]
-        else:
-            if not isinstance(key_sequence[0], tuple):
-                key_sequence = key_sequence,
-            return key_sequence
+        key_sequence = self._char_to_key_sequence.get(char, DEFAULT_SEQUENCE)
+        if not isinstance(key_sequence[0], tuple):
+            key_sequence = key_sequence,
+        return key_sequence
+
+    def _deadkeys_by_symbols(self):
+        # We store deadkeys as "characters"; dkX, where X is the symbol.
+        symbols = {
+            '`': u'`',
+            '´': u'´',
+            '^': (u'^', u'ˆ'),
+            '~': (u'~', u'˜'),
+            '¨': u'¨',
+        }
+        deadkeys_by_symbol = {}
+        for symbol, equivalent_symbols in symbols.iteritems():
+            for equivalent_symbol in equivalent_symbols:
+                sequence = self.char_to_key_sequence(u'dk%s' % equivalent_symbol)
+                if sequence[0][0] is not None:
+                    deadkeys_by_symbol[symbol] = sequence
+        return deadkeys_by_symbol
 
     def format_modifier_header(self):
         modifiers = (
@@ -379,24 +398,26 @@ class KeyboardLayout(object):
                     dead = key & ~0xC000
                     if dead < len(deadkeys):
                         cdata, nextstate, ecount, eformat, edata = deadkeys[dead]
-                        if eformat == 0 and nextstate:  # initial
+                        if eformat == 0 and nextstate:
+                            # Initial: symbols, e.g. `, ~, ^
                             new_deadkey = (j, mod)
                             current_deadkey = deadkey_state_to_key_sequence.setdefault(
                                 nextstate, new_deadkey
                             )
+                            dead_key_name = None
                             if new_deadkey != current_deadkey:
                                 if favored_modifiers(current_deadkey[1],
                                                      new_deadkey[1]) < 0:
                                     deadkey_state_to_key_sequence[nextstate] = new_deadkey
                             if nextstate - 1 < len(dkterms):
-                                basekey = lookupseq(dkterms[nextstate - 1])
-                                key_sequence_to_char[j, mod] = u'dk{}'.format(
-                                    basekey)
+                                base_key = lookupseq(dkterms[nextstate - 1])
+                                dead_key_name = u'dk{}'.format(base_key)
                             else:
-                                key_sequence_to_char[j, mod] = u'dk#{}'.format(
-                                    nextstate
-                                )
-                        elif eformat == 1:  # terminal
+                                dead_key_name = u'dk#{}'.format(nextstate)
+                            key_sequence_to_char[j, mod] = dead_key_name
+                            save_shortest_key_sequence(dead_key_name, (j, mod))
+                        elif eformat == 1:
+                            # Terminal: letters, e.g. a, e, o, A, E, O
                             key_sequence_to_deadkey_state[j, mod] = deadkeys[dead]
                             lookup_and_add(cdata, j, mod)
                         elif eformat == 2:  # range

@@ -463,7 +463,7 @@ class KeyboardEmulation:
         example, Alt_L(Tab) means to hold the left Alt key down, press
         and release the Tab key, and then release the left Alt key.
         """
-        # Make sure keyboard layout if up-to-date.
+        # Make sure keyboard layout is up-to-date.
         self._refresh_keyboard_layout()
         # Parse and validate combo.
         key_events = parse_key_combo(combo_string, self.keyboard_layout.keyname_to_vk.get)
