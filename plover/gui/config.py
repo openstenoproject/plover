@@ -379,7 +379,7 @@ class DictionaryConfig(ScrolledPanel):
                     lambda e: wx.CallAfter(self.remove_row, index))
         sizer.Add(remove)
         label = wx.StaticText(self, label=filename)
-        sizer.Add(label)
+        sizer.Add(label, flag=wx.ALIGN_CENTER_VERTICAL)
         controls = self.DictionaryControls(sizer, up, down, remove, label)
         self.dictionary_controls.append(controls)
         self.dicts_sizer.Add(sizer)
