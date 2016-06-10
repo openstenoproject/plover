@@ -12,7 +12,7 @@ import win32gui
 import win32con
 
 from plover.key_combo import CHAR_TO_KEYNAME, add_modifiers_aliases
-from plover.misc import popcount32
+from plover.misc import popcount_8
 
 GetKeyboardLayout = windll.user32.GetKeyboardLayout
 GetWindowThreadProcessId = windll.user32.GetWindowThreadProcessId
@@ -380,7 +380,7 @@ class KeyboardLayout(object): # {{{
 
         def sort_vk_ss_list(vk_ss_list):
             # Prefer lower modifiers combo.
-            return sorted(vk_ss_list, key=lambda vk_ss: popcount32(vk_ss[1]))
+            return sorted(vk_ss_list, key=lambda vk_ss: popcount_8(vk_ss[1]))
 
         char_to_vk_ss = defaultdict(list)
         keyname_to_vk = defaultdict(list)

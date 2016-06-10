@@ -13,23 +13,21 @@ emulate keyboard input.
 
 """
 
-import collections
 import ctypes
 import multiprocessing
 import os
 import threading
 import time
-import types
 import _winreg as winreg
 
 from ctypes import windll, wintypes
 
 import win32api
 
-from plover.key_combo import add_modifiers_aliases, parse_key_combo
+from plover.key_combo import parse_key_combo
 from plover.oslayer.winkeyboardlayout import KeyboardLayout
 from plover import log
-
+from plover.misc import characters
 
 SendInput = windll.user32.SendInput
 LONG = ctypes.c_long
@@ -365,19 +363,6 @@ class KeyboardEmulation:
         c_size = ctypes.c_int(ctypes.sizeof(INPUT))
         return SendInput(len_inputs, pinputs, c_size)
 
-    # "Narrow python" unicode objects store characters in UTF-16 so we
-    # can't iterate over characters in the standard way. This workaround
-    # lets us iterate over full characters in the string.
-    @staticmethod
-    def _characters(s):
-        encoded = s.encode('utf-32-be')
-        characters = []
-        for i in xrange(len(encoded)/4):
-            start = i * 4
-            end = start + 4
-            character = encoded[start:end].decode('utf-32-be')
-            yield character
-
     # Input type (can be mouse, keyboard)
     @staticmethod
     def _input(structure):
@@ -440,7 +425,7 @@ class KeyboardEmulation:
 
     def send_string(self, s):
         self._refresh_keyboard_layout()
-        for char in self._characters(s):
+        for char in characters(s):
             if char in self.keyboard_layout.char_to_vk_ss:
                 # We know how to simulate the character.
                 self._key_press(char)

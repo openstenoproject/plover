@@ -16,7 +16,7 @@ import AppKit
 import Foundation
 from PyObjCTools import AppHelper
 from plover.key_combo import CHAR_TO_KEYNAME
-from plover.misc import popcount32
+from plover.misc import popcount_8
 
 try:
     unichr
@@ -323,8 +323,8 @@ class KeyboardLayout(object):
             a_favored_over_b = 0
             modifiers_a = KeyboardLayout.modifier_dictionary(modifier_a)
             modifiers_b = KeyboardLayout.modifier_dictionary(modifier_b)
-            count_a = popcount32(modifier_a)
-            count_b = popcount32(modifier_b)
+            count_a = popcount_8(modifier_a)
+            count_b = popcount_8(modifier_b)
 
             # Favor no CAPS modifier
             if modifiers_a[CAPS] and not modifiers_b[CAPS]:

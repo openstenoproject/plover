@@ -41,8 +41,7 @@ import Foundation
 import threading
 import Queue
 from time import sleep
-import collections
-
+from plover.misc import characters
 from plover.oslayer.osxkeyboardlayout import KeyboardLayout
 from plover.key_combo import add_modifiers_aliases, parse_key_combo, KEYNAME_TO_CHAR
 import plover.log
@@ -292,18 +291,6 @@ class KeyboardCapture(threading.Thread):
             key, is_keyup = pair
             handler = self.key_up if is_keyup else self.key_down
             handler(key)
-
-
-# "Narrow python" unicode objects store characters in UTF-16 so we
-# can't iterate over characters in the standard way. This workaround
-# lets us iterate over full characters in the string.
-def characters(s):
-    encoded = s.encode('utf-32-be')
-    for i in xrange(len(encoded) / 4):
-        start = i * 4
-        end = start + 4
-        character = encoded[start:end].decode('utf-32-be')
-        yield character
 
 
 class KeyboardEmulation(object):
