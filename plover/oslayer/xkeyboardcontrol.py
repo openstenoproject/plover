@@ -29,7 +29,6 @@ import threading
 from Xlib import X, XK, display
 from Xlib.ext import xinput, xtest
 from Xlib.ext.ge import GenericEventCode
-from Xlib.protocol.event import KeyPress, KeyRelease
 
 from plover.key_combo import add_modifiers_aliases, parse_key_combo
 from plover import log
@@ -1168,6 +1167,8 @@ class KeyboardEmulation(object):
         self.backspace_mapping = self._get_mapping(backspace_keysym)
         assert self.backspace_mapping is not None
         assert self.backspace_mapping.custom_mapping is None
+        # Get modifier mapping.
+        self.modifier_mapping = self.display.get_modifier_mapping()
 
     def send_backspaces(self, number_of_backspaces):
         """Emulate the given number of backspaces.
@@ -1179,10 +1180,8 @@ class KeyboardEmulation(object):
         number_of_backspace -- The number of backspaces to emulate.
 
         """
-        target_window = self.display.get_input_focus().focus
         for x in range(number_of_backspaces):
-            self._send_keycode(target_window,
-                               self.backspace_mapping.keycode,
+            self._send_keycode(self.backspace_mapping.keycode,
                                self.backspace_mapping.modifiers)
         self.display.sync()
 
@@ -1197,14 +1196,12 @@ class KeyboardEmulation(object):
 
         """
         assert isinstance(s, unicode)
-        target_window = self.display.get_input_focus().focus
         for char in s:
             keysym = uchr_to_keysym(char)
             mapping = self._get_mapping(keysym)
             if mapping is None:
                 continue
-            self._send_keycode(target_window,
-                               mapping.keycode,
+            self._send_keycode(mapping.keycode,
                                mapping.modifiers)
         self.display.sync()
 
@@ -1240,58 +1237,32 @@ class KeyboardEmulation(object):
             xtest.fake_input(self.display, event_type, keycode)
         self.display.sync()
 
-    def _send_keycode(self, target_window, keycode, modifiers=0):
+    def _send_keycode(self, keycode, modifiers=0):
         """Emulate a key press and release.
 
         Arguments:
 
-        target_window -- The window to send the event to.
-
         keycode -- An integer in the inclusive range [8-255].
 
-        modifiers -- An 8-bit bit mask indicating if the key pressed
-        is modified by other keys, such as Shift, Capslock, Control,
-        and Alt.
+        modifiers -- An 8-bit bit mask indicating if the key
+        pressed is modified by other keys, such as Shift, Capslock,
+        Control, and Alt.
 
         """
-        self._send_key_event(target_window, keycode, modifiers, KeyPress)
-        self._send_key_event(target_window, keycode, modifiers, KeyRelease)
-
-    def _send_key_event(self, target_window, keycode, modifiers, event_class):
-        """Simulate a key press or release.
-
-        These events are not detected by KeyboardCapture.
-
-        Arguments:
-
-        target_window -- The window to send the event to.
-
-        keycode -- An integer in the inclusive range [8-255].
-
-        modifiers -- An 8-bit bit mask indicating if the key pressed
-        is modified by other keys, such as Shift, Capslock, Control,
-        and Alt.
-
-        event_class -- One of Xlib.protocol.event.KeyPress or
-        Xlib.protocol.event.KeyRelease.
-
-        """
-        # Make sure every event time is different than the previous one, to
-        # avoid an application thinking its an auto-repeat.
-        self.time = (self.time + 1) % 4294967295
-        key_event = event_class(detail=keycode,
-                                 time=self.time,
-                                 root=self.display.screen().root,
-                                 window=target_window,
-                                 child=X.NONE,
-                                 root_x=1,
-                                 root_y=1,
-                                 event_x=1,
-                                 event_y=1,
-                                 state=modifiers,
-                                 same_screen=1
-                                 )
-        target_window.send_event(key_event)
+        modifiers_list = [
+            self.modifier_mapping[n][0]
+            for n in range(8)
+            if (modifiers & (1 << n))
+        ]
+        # Press modifiers.
+        for mod_keycode in modifiers_list:
+            xtest.fake_input(self.display, X.KeyPress, mod_keycode)
+        # Press and release the base key.
+        xtest.fake_input(self.display, X.KeyPress, keycode)
+        xtest.fake_input(self.display, X.KeyRelease, keycode)
+        # Release modifiers.
+        for mod_keycode in reversed(modifiers_list):
+            xtest.fake_input(self.display, X.KeyRelease, mod_keycode)
 
     def _get_keycode_from_keystring(self, keystring):
         '''Find the physical key <keystring> is mapped to.
