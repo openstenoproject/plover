@@ -12,19 +12,13 @@ import win32gui
 import win32con
 
 from plover.key_combo import CHAR_TO_KEYNAME, add_modifiers_aliases
-
+from plover.misc import popcount_8
 
 GetKeyboardLayout = windll.user32.GetKeyboardLayout
 GetWindowThreadProcessId = windll.user32.GetWindowThreadProcessId
 MapVirtualKeyEx = windll.user32.MapVirtualKeyExW
 ToUnicodeEx = windll.user32.ToUnicodeEx
 
-
-def popcount32(v):
-    ''' Population count for a 32bits integer. '''
-    v = v - ((v >> 1) & 0x55555555)
-    v = (v & 0x33333333) + ((v >> 2) & 0x33333333)
-    return ((v + (v >> 4) & 0xF0F0F0F) * 0x1010101) >> 24
 
 def enum(name, items):
     ''' Helper to simulate an Enum. '''
@@ -386,7 +380,7 @@ class KeyboardLayout(object): # {{{
 
         def sort_vk_ss_list(vk_ss_list):
             # Prefer lower modifiers combo.
-            return sorted(vk_ss_list, key=lambda vk_ss: popcount32(vk_ss[1]))
+            return sorted(vk_ss_list, key=lambda vk_ss: popcount_8(vk_ss[1]))
 
         char_to_vk_ss = defaultdict(list)
         keyname_to_vk = defaultdict(list)
