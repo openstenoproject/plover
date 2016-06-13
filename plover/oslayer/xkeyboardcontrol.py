@@ -125,7 +125,7 @@ KEYCODE_TO_KEY = {
     60: ".",
     61: "/",
     # Other keys.
-    66 : "BackSpace",
+    22 : "BackSpace",
     119: "Delete",
     116: "Down",
     115: "End",
