@@ -132,11 +132,12 @@ class KeyboardLayout(object):
 
         center = Foundation.NSDistributedNotificationCenter.defaultCenter()
         watcher_callback = LayoutWatchingCallback.new()
-        center.addObserver_selector_name_object_(
+        center.addObserver_selector_name_object_suspensionBehavior_(
             watcher_callback,
             'layoutChanged:',
-            'AppleSelectedInputSourcesChangedNotification',
-            None
+            'com.apple.Carbon.TISNotifySelectedKeyboardInputSourceChanged',
+            None,
+            Foundation.NSNotificationSuspensionBehaviorDeliverImmediately
         )
         AppHelper.runConsoleEventLoop(installInterrupt=True)
 
