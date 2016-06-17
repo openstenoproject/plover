@@ -15,6 +15,7 @@ from collections import OrderedDict
 import AppKit
 import Foundation
 from PyObjCTools import AppHelper
+from plover import log
 from plover.key_combo import CHAR_TO_KEYNAME
 from plover.misc import popcount_8
 
@@ -88,6 +89,7 @@ SPECIAL_KEY_NAMES = {
 
 DEFAULT_SEQUENCE = (None, 0),
 
+
 def is_printable(string):
     for character in string:
         category = unicodedata.category(character)
@@ -121,14 +123,15 @@ class KeyboardLayout(object):
                 name="LayoutWatcher")
             self._watcher.start()
 
-        self.update_layout()
+        self._update_layout()
 
     def _layout_watcher(self):
         layout = self
 
         class LayoutWatchingCallback(AppKit.NSObject):
             def layoutChanged_(self, event):
-                layout.update_layout()
+                log.info('Mac keyboard layout changed, updating')
+                layout._update_layout()
 
         center = Foundation.NSDistributedNotificationCenter.defaultCenter()
         watcher_callback = LayoutWatchingCallback.new()
@@ -141,8 +144,8 @@ class KeyboardLayout(object):
         )
         AppHelper.runConsoleEventLoop(installInterrupt=True)
 
-    def update_layout(self):
-        char_to_key_sequence, key_sequence_to_char, modifier_masks = KeyboardLayout.get_layout()
+    def _update_layout(self):
+        char_to_key_sequence, key_sequence_to_char, modifier_masks = KeyboardLayout._get_layout()
         self._char_to_key_sequence = char_to_key_sequence
         self._key_sequence_to_char = key_sequence_to_char
         self._modifier_masks = modifier_masks
@@ -183,14 +186,14 @@ class KeyboardLayout(object):
 
     def format_modifier_header(self):
         modifiers = (
-            u'| {}\t'.format(KeyboardLayout.modifier_string(mod)).expandtabs(8)
+            u'| {}\t'.format(KeyboardLayout._modifier_string(mod)).expandtabs(8)
             for mod in sorted(self._modifier_masks.values())
         )
         header = u'Keycode\t{}'.format(''.join(modifiers))
         return '%s\n%s' % (header, re.sub(r'[^|]', '-', header))
 
     def format_keycode_keys(self, keycode):
-        """Prints all the variations of the keycode with modifiers"""
+        """Returns all the variations of the keycode with modifiers"""
         keys = (u'| {}\t'.format(get_printable_string(
             self._key_sequence_to_char[keycode, mod])).expandtabs(8)
                 for mod in sorted(self._modifier_masks.values()))
@@ -198,7 +201,7 @@ class KeyboardLayout(object):
         return u'{}\t{}'.format(keycode, ''.join(keys)).expandtabs(8)
 
     @staticmethod
-    def modifier_dictionary(modifier_mask):
+    def _modifier_dictionary(modifier_mask):
         """Provide a dictionary of active modifier keys from mod mask"""
         modifiers = {
             SHIFT: False,
@@ -222,16 +225,16 @@ class KeyboardLayout(object):
         return modifiers
 
     @staticmethod
-    def modifier_string(modifier_mask):
+    def _modifier_string(modifier_mask):
         """Turn modifier mask into string representing modifiers"""
         s = ''
-        modifiers = KeyboardLayout.modifier_dictionary(modifier_mask)
+        modifiers = KeyboardLayout._modifier_dictionary(modifier_mask)
         for key in modifiers:
             s += key if modifiers[key] else ''
         return s
 
     @staticmethod
-    def get_layout():
+    def _get_layout():
         keyboard_input_source = carbon.TISCopyCurrentKeyboardInputSource()
         layout_source = carbon.TISGetInputSourceProperty(
             keyboard_input_source, kTISPropertyUnicodeKeyLayoutData
@@ -242,14 +245,14 @@ class KeyboardLayout(object):
             layout_source, CFRange(0, layout_size), ctypes.byref(layout_buffer)
         )
         keyboard_type = carbon.LMGetKbdType()
-        parsed_layout = KeyboardLayout.parse_layout(
+        parsed_layout = KeyboardLayout._parse_layout(
             layout_buffer, keyboard_type
         )
         carbon.CFRelease(keyboard_input_source)
         return parsed_layout
 
     @staticmethod
-    def parse_layout(buf, ktype):
+    def _parse_layout(buf, ktype):
         hf, dv, featureinfo, ktcount = struct.unpack_from('HHII', buf)
         offset = struct.calcsize('HHII')
         ktsize = struct.calcsize('IIIIIII')
@@ -322,8 +325,8 @@ class KeyboardLayout(object):
         def favored_modifiers(modifier_a, modifier_b):
             """0 if they are equal, 1 if a is better, -1 if b is better"""
             a_favored_over_b = 0
-            modifiers_a = KeyboardLayout.modifier_dictionary(modifier_a)
-            modifiers_b = KeyboardLayout.modifier_dictionary(modifier_b)
+            modifiers_a = KeyboardLayout._modifier_dictionary(modifier_a)
+            modifiers_b = KeyboardLayout._modifier_dictionary(modifier_b)
             count_a = popcount_8(modifier_a)
             count_b = popcount_8(modifier_b)
 
@@ -446,7 +449,7 @@ class KeyboardLayout(object):
 
 
 if __name__ == '__main__':
-    layout = KeyboardLayout(watch_layout=False)
+    layout = KeyboardLayout(False)
     print KEY_CODE_VISUALIZATION
     print
     print layout.format_modifier_header()
@@ -459,7 +462,7 @@ if __name__ == '__main__':
         for code, mod in layout.char_to_key_sequence(char):
             if code is not None:
                 sequence[str(code)] = u'{}{}'.format(
-                    layout.modifier_string(mod),
+                    layout._modifier_string(mod),
                     layout.key_code_to_char(code, 0)
                 )
             else:
