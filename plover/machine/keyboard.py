@@ -4,7 +4,6 @@
 "For use with a computer keyboard (preferably NKRO) as a steno machine."
 
 from plover.machine.base import StenotypeBase
-from plover.machine.keymap import Keymap
 from plover.oslayer.keyboardcontrol import KeyboardCapture
 
 
