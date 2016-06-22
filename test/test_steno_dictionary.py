@@ -82,7 +82,7 @@ class StenoDictionaryTestCase(unittest.TestCase):
 
         k1 = ('S',)
         k2 = ('S', 'T')
-        k3 = ('S', 'T' , 'R')
+        k3 = ('S', 'T', 'R')
 
         dc = StenoDictionaryCollection()
         self.assertEqual(dc.longest_key, 0)

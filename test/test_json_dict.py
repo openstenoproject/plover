@@ -10,7 +10,6 @@ import tempfile
 from contextlib import contextmanager
 
 from plover.dictionary.json_dict import load_dictionary, save_dictionary
-from plover.dictionary.base import DictionaryLoaderException
 
 
 @contextmanager

@@ -70,7 +70,7 @@ class TestCase(unittest.TestCase):
                 mock.inputs = list(map(p, inputs))
                 actual = []
                 m = Passport(params)
-                m.add_stroke_callback(lambda s: actual.append(s))
+                m.add_stroke_callback(actual.append)
                 m.set_mappings(system.KEYMAPS['Passport'])
                 m.start_capture()
                 while mock.index < len(mock.inputs):

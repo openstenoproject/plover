@@ -86,18 +86,15 @@ class TestCase(unittest.TestCase):
         (r'{\cxconf [{\cxc abc}|{\cxc def}|{\cxc ghi}]}', 'ghi'),
         (r'{\cxconf [{\cxc abc}|{\cxc {\cxp... }}]}', '{^... ^}'),
         (r'be\cxds{\*\cxsvatdictentrydate\yr2006\mo5\dy10}', '{be^}'),
-        
         (r'{\nonexistant {\cxp .}}', '{.}'),
         (r'{\*\nonexistant {\cxp .}}', ''),
         )
-        
-        failed = []
         for before, after in cases:
             result = convert(before)
             msg = 'convert(%r) != %r: %r' % (
                 before, after, result
             )
-            self.assertEqual(result, after)
+            self.assertEqual(result, after, msg=msg)
     
     def test_load_dict(self):
         """Test the load_dict function.
@@ -183,7 +180,6 @@ class TestCase(unittest.TestCase):
         # Conflicts result on only the last one kept.
         ('{\\*\\cxs T}t{\\*\\cxs T}g', {'T': 'g'}),
         ('{\\*\\cxs T}t{\\*\\cxs T}return_none', {'T': 't'}),
-        
         )
         
         patch_path = 'plover.dictionary.rtfcre_dict'
@@ -203,16 +199,13 @@ class TestCase(unittest.TestCase):
         ('{pre^} ', 'pre\cxds '),
         ('{pre^}  ', 'pre\cxds ')
         )
-        
-        failed = False
-        format_str = "format({}) != {}: {}"
         for before, expected in cases:
             result = format_translation(before)
             msg = 'format_translation(%r) != %r: %r' % (
                 before, expected, result
             )
-            self.assertEqual(result, expected)
-        
+            self.assertEqual(result, expected, msg=msg)
+
     def test_save_dictionary(self):
         f = StringIO()
         d = {
