@@ -210,7 +210,7 @@ class KeyboardCaptureProcess(multiprocessing.Process):
                 write_key = _open_key(winreg.KEY_WRITE)
                 winreg.SetValueEx(write_key, REG_LLHOOK_KEY_VALUE_NAME, 0,
                                   REG_LLHOOK_KEY_VALUE_TYPE, REG_LLHOOK_KEY_VALUE)
-            except WindowsError as e:
+            except WindowsError:
                 log.warning('could not update registry key: %s, see documentation',
                             REG_LLHOOK_KEY_FULL_NAME)
             else:
@@ -349,7 +349,7 @@ class KeyboardCapture(threading.Thread):
         self._proc.suppress_keyboard(self._suppressed_keys)
 
 
-class KeyboardEmulation:
+class KeyboardEmulation(object):
 
     def __init__(self):
         self.keyboard_layout = KeyboardLayout()
