@@ -7,9 +7,7 @@ import ctypes
 from ctypes import windll, wintypes
 from collections import defaultdict, namedtuple
 
-import win32api
 import win32gui
-import win32con
 
 from plover.key_combo import CHAR_TO_KEYNAME, add_modifiers_aliases
 from plover.misc import popcount_8
