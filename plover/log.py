@@ -113,7 +113,7 @@ class Logger(object):
     def log_stroke(self, steno_keys):
         if not self._log_strokes or self._stroke_handler is None:
             return
-        self._stroke_logger.info('Stroke(%s)' % ' '.join(steno_keys))
+        self._stroke_logger.info('Stroke(%s)', ' '.join(steno_keys))
 
     def log_translation(self, undo, do, prev):
         if not self._log_translations or self._stroke_handler is None:
