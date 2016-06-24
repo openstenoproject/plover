@@ -9,6 +9,9 @@ import sys
 import traceback
 import argparse
 
+# Python 2/3 compatibility.
+from six import iteritems
+
 WXVER = '3.0'
 if not hasattr(sys, 'frozen'):
     import wxversion
@@ -58,7 +61,7 @@ def init_config_dir():
         out_path = os.path.join(CONFIG_DIR, name)
         if not os.path.exists(out_path):
             unsorted_dict = json.load(open(source_path, 'rb'))
-            ordered = OrderedDict(sorted(unsorted_dict.iteritems(),
+            ordered = OrderedDict(sorted(iteritems(unsorted_dict),
                                          key=lambda x: x[1]))
             outfile = open(out_path, 'wb')
             json.dump(ordered, outfile, indent=0, separators=(',', ': '))

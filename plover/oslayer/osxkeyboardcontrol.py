@@ -91,7 +91,7 @@ KEYNAME_TO_KEYCODE = {
     'kp_add': 69, 'kp_decimal': 65, 'kp_delete': 71, 'kp_divide': 75,
     'kp_enter': 76, 'kp_equal': 81, 'kp_multiply': 67, 'kp_subtract': 78,
 }
-for name, code in NX_KEYS.iteritems():
+for name, code in NX_KEYS.items():
     KEYNAME_TO_KEYCODE[name.lower()] = code + NX_KEY_OFFSET
 add_modifiers_aliases(KEYNAME_TO_KEYCODE)
 

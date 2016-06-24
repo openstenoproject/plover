@@ -406,13 +406,13 @@ class KeyboardLayout(object): # {{{
 
         self.char_to_vk_ss = {
             char: sort_vk_ss_list(vk_ss_list)[0]
-            for char, vk_ss_list in char_to_vk_ss.iteritems()
+            for char, vk_ss_list in char_to_vk_ss.items()
         }
         self.char_to_vk_ss['\n'] = self.char_to_vk_ss['\r']
 
         self.keyname_to_vk = {
             kn: vk
-            for vk, kn in VK_TO_KEYNAME.iteritems()
+            for vk, kn in VK_TO_KEYNAME.items()
         }
         self.keyname_to_vk.update({
             'next'      : VK.NEXT,
@@ -423,7 +423,7 @@ class KeyboardLayout(object): # {{{
         })
         self.keyname_to_vk.update({
             kn: sort_vk_ss_list(vk_ss_list)[0][0]
-            for kn, vk_ss_list in keyname_to_vk.iteritems()
+            for kn, vk_ss_list in keyname_to_vk.items()
         })
         add_modifiers_aliases(self.keyname_to_vk)
 

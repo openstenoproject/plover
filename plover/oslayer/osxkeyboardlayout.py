@@ -177,7 +177,7 @@ class KeyboardLayout(object):
             '¨': u'¨',
         }
         deadkeys_by_symbol = {}
-        for symbol, equivalent_symbols in symbols.iteritems():
+        for symbol, equivalent_symbols in symbols.items():
             for equivalent_symbol in equivalent_symbols:
                 sequence = self.char_to_key_sequence(u'dk%s' % equivalent_symbol)
                 if sequence[0][0] is not None:
@@ -457,7 +457,7 @@ if __name__ == '__main__':
         print layout.format_keycode_keys(keycode)
     print
     unmapped_characters = []
-    for char, keyname in sorted(CHAR_TO_KEYNAME.iteritems()):
+    for char, keyname in sorted(CHAR_TO_KEYNAME.items()):
         sequence = OrderedDict()
         for code, mod in layout.char_to_key_sequence(char):
             if code is not None:

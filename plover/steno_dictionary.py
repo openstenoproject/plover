@@ -57,7 +57,7 @@ class StenoDictionary(collections.MutableMapping):
         self.reverse[value].remove(key)
         if len(key) == self.longest_key:
             if self._dict:
-                self._longest_key = max(len(x) for x in self._dict.iterkeys())
+                self._longest_key = max(len(x) for x in self._dict)
             else:
                 self._longest_key = 0
 
@@ -69,15 +69,6 @@ class StenoDictionary(collections.MutableMapping):
 
     def get_path(self):
         return self._path    
-
-    def iterkeys(self):
-        return self._dict.iterkeys()
-
-    def itervalues(self):
-        return self._dict.itervalues()
-        
-    def iteritems(self):
-        return self._dict.iteritems()
 
     @property
     def _longest_key(self):
