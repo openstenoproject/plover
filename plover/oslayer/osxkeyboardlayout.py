@@ -5,6 +5,9 @@
 # <https://github.com/willwade/PyUserInput/blob/master/pykeyboard/mac_keycode.py>
 # <https://stackoverflow.com/questions/1918841/how-to-convert-ascii-character-to-cgkeycode>
 
+# Python 2/3 compatibility.
+from __future__ import print_function
+
 import ctypes
 import ctypes.util
 import struct
@@ -450,12 +453,12 @@ class KeyboardLayout(object):
 
 if __name__ == '__main__':
     layout = KeyboardLayout(False)
-    print KEY_CODE_VISUALIZATION
-    print
-    print layout.format_modifier_header()
+    print(KEY_CODE_VISUALIZATION)
+    print()
+    print(layout.format_modifier_header())
     for keycode in range(127):
-        print layout.format_keycode_keys(keycode)
-    print
+        print(layout.format_keycode_keys(keycode))
+    print()
     unmapped_characters = []
     for char, keyname in sorted(CHAR_TO_KEYNAME.items()):
         sequence = OrderedDict()
@@ -468,10 +471,10 @@ if __name__ == '__main__':
             else:
                 unmapped_characters.append(char)
         if sequence:
-            print u'Name:\t\t{}\nCharacter:\t{}\nSequence:\t‘{}’\nBase codes:\t‘{}’\n'.format(
+            print(u'Name:\t\t{}\nCharacter:\t{}\nSequence:\t‘{}’\nBase codes:\t‘{}’\n'.format(
                 keyname, char, u'’, ‘'.join(sequence.values()),
                 u'’, ‘'.join(sequence.keys())
-            )
-    print u'No mapping on this layout for characters: ‘{}’'.format(
+            ))
+    print(u'No mapping on this layout for characters: ‘{}’'.format(
         u'’, ‘'.join(unmapped_characters)
-    )
+    ))

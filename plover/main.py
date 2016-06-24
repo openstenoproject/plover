@@ -4,6 +4,9 @@
 
 "Launch the plover application."
 
+# Python 2/3 compatibility.
+from __future__ import print_function
+
 import os
 import sys
 import traceback
@@ -37,7 +40,7 @@ def show_error(title, message):
 
     This shows a graphical error and prints the same to the terminal.
     """
-    print message
+    print(message)
     app = wx.App()
     alert_dialog = wx.MessageDialog(None,
                                     message,

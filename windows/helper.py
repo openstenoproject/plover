@@ -1,5 +1,8 @@
 #!/usr/bin/env python2
 
+# Python 2/3 compatibility.
+from __future__ import print_function
+
 import argparse
 import hashlib
 import inspect
@@ -26,25 +29,25 @@ if sys.stdout.isatty() and not sys.platform.startswith('win32'):
 
     def info(fmt, *args):
         s = fmt % args
-        print '[34m' + s + '[0m'
+        print('[34m' + s + '[0m')
 
 else:
 
     def info(fmt, *args):
         s = fmt % args
-        print s
+        print(s)
 
 if sys.stderr.isatty():
 
     def error(fmt, *args):
         s = fmt % args
-        print >>sys.stderr, '[31m' + s + '[0m'
+        print('[31m' + s + '[0m', file=sys.stderr)
 
 else:
 
     def error(fmt, *args):
         s = fmt % args
-        print >>sys.stderr, s
+        print(s, file=sys.stderr)
 
 
 class CommandExecutionException(Exception):
@@ -78,7 +81,7 @@ class Environment(object):
 
     def run(self, args, cwd=None, redirection='auto'):
         if self.verbose:
-            print 'running', ' '.join(args)
+            print('running', ' '.join(args))
         if self.dry_run:
             return 0, ''
         env = self._get_env()
@@ -154,7 +157,7 @@ class WineEnvironment(Environment):
 
     def add_to_path(self, directory):
         if self.verbose:
-            print 'adding "%s" to PATH' % directory
+            print('adding "%s" to PATH' % directory)
         if self.dry_run:
             return
         path = self.run(('wine', 'cmd.exe', '/c', 'echo', '%PATH%'), redirection='always')
@@ -225,7 +228,7 @@ class Win32Environment(Environment):
 
     def add_to_path(self, directory):
         if self.verbose:
-            print 'adding "%s" to PATH' % directory
+            print('adding "%s" to PATH' % directory)
         if self._path is None:
             self._path = self.run(('cmd.exe', '/c', 'echo', '%PATH%'), redirection='always').strip()
         self._path = directory + ';' + self._path
@@ -323,7 +326,7 @@ class Helper(object):
         if not os.path.exists(path):
             return
         if self.verbose:
-            print 'rm -rf', path
+            print('rm -rf', path)
         if self.dry_run:
             return
         shutil.rmtree(path)
@@ -332,35 +335,35 @@ class Helper(object):
         if os.path.exists(path):
             return
         if self.verbose:
-            print 'mkdir -p', path
+            print('mkdir -p', path)
         if self.dry_run:
             return
         os.makedirs(path)
 
     def _rename(self, old, new):
         if self.verbose:
-            print 'mv', old, new
+            print('mv', old, new)
         if self.dry_run:
             return
         os.rename(old, new)
 
     def _copyfile(self, src, dst):
         if self.verbose:
-            print 'cp', src, dst
+            print('cp', src, dst)
         if self.dry_run:
             return
         shutil.copyfile(src, dst)
 
     def _copytree(self, src, dst):
         if self.verbose:
-            print 'cp -r', src, dst
+            print('cp -r', src, dst)
         if self.dry_run:
             return
         shutil.copytree(src, dst)
 
     def _extract(self, archive, destination, *args):
         if self.verbose:
-            print 'extracting %s to %s' % (archive, destination)
+            print('extracting %s to %s' % (archive, destination))
         cmd = ['7z.exe', 'x', archive, '-y', '-o%s' % destination]
         cmd.extend(args)
         realdir = self._env.get_realpath(destination)
@@ -423,10 +426,10 @@ class Helper(object):
                 retries += 1
                 try:
                     wget.download(url, out=dst)
-                    print
+                    print()
                 except Exception as e:
-                    print
-                    print 'error', e
+                    print()
+                    print('error', e)
                     continue
             h = hashlib.sha1()
             with open(dst, 'rb') as fp:
@@ -437,7 +440,7 @@ class Helper(object):
                     h.update(d)
             if h.hexdigest() == checksum:
                 break
-            print 'sha1 does not match: %s instead of %s' % (h.hexdigest(), checksum)
+            print('sha1 does not match: %s instead of %s' % (h.hexdigest(), checksum))
             os.unlink(dst)
         assert os.path.exists(dst), 'could not successfully retrieve %s' % url
 
@@ -465,12 +468,12 @@ class Helper(object):
             commands = self._subparsers.choices.keys()
             self._parser.print_help()
         for name in commands:
-            print
+            print()
             parser = self._subparsers.choices.get(name)
             if parser is None:
                 raise ValueError('unknown command name: %s' % name)
-            print '%s COMMAND' % name.upper()
-            print
+            print('%s COMMAND' % name.upper())
+            print()
             parser.print_help()
 
     def cmd_setup(self, interactive=False):
@@ -524,9 +527,9 @@ class Helper(object):
             cmd(*args)
         except CommandExecutionException as e:
             if e.stdout:
-                print >>sys.stdout, e.stdout
+                print(e.stdout, file=sys.stdout)
             if e.stderr:
-                print >>sys.stderr, e.stderr
+                print(e.stderr, file=sys.stderr)
             error('execution failed, returned %u: %s',
                   e.exitcode, ' '.join(e.args))
             return e.exitcode

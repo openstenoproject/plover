@@ -1,6 +1,9 @@
 #!/usr/bin/env python2
 # -*- coding: utf-8 -*-
 
+# Python 2/3 compatibility.
+from __future__ import print_function
+
 import sys
 import codecs
 import ctypes
@@ -390,10 +393,10 @@ class KeyboardLayout(object): # {{{
                     continue
                 char, dead_key = to_unichr(vk, sc, ss)
                 if debug and char:
-                    print '%s%s -> %s [%r] %s' % (
+                    print('%s%s -> %s [%r] %s' % (
                         shift_state_str(ss), vk_to_str(vk),
                         char, char, '[dead key]' if dead_key else '',
-                    )
+                    ))
                 kn = None
                 if char:
                     kn = CHAR_TO_KEYNAME.get(char)
@@ -450,19 +453,19 @@ class KeyboardLayout(object): # {{{
 if __name__ == '__main__':
     sys.stdout = codecs.getwriter('utf8')(sys.stdout)
     layout = KeyboardLayout(debug=True)
-    print 'character to virtual key + shift state [%u]' % len(layout.char_to_vk_ss)
+    print('character to virtual key + shift state [%u]' % len(layout.char_to_vk_ss))
     for char, combo in sorted(layout.char_to_vk_ss.items()):
         vk, ss = combo
-        print '%s [%r:%s] -> %s%s' % (char, char,
+        print('%s [%r:%s] -> %s%s' % (char, char,
                                       CHAR_TO_KEYNAME.get(char, '?'),
-                                      shift_state_str(ss), vk_to_str(vk))
-    print
-    print 'keyname to virtual key [%u]' % len(layout.keyname_to_vk)
+                                      shift_state_str(ss), vk_to_str(vk)))
+    print()
+    print('keyname to virtual key [%u]' % len(layout.keyname_to_vk))
     for kn, vk in sorted(layout.keyname_to_vk.items()):
-        print '%s -> %s' % (kn, vk_to_str(vk))
-    print
-    print 'modifiers combo [%u]' % len(layout.ss_to_vks)
+        print('%s -> %s' % (kn, vk_to_str(vk)))
+    print()
+    print('modifiers combo [%u]' % len(layout.ss_to_vks))
     for ss, vk_list in sorted(layout.ss_to_vks.items()):
-        print '%s -> %s' % (shift_state_str(ss), '+'.join(vk_to_str(vk) for vk in vk_list))
+        print('%s -> %s' % (shift_state_str(ss), '+'.join(vk_to_str(vk) for vk in vk_list)))
 
 # vim: foldmethod=marker
