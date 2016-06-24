@@ -429,7 +429,7 @@ class TestCase(unittest.TestCase):
             block, byte, response = stentura._read(port, event, seq, request_buf,
                                       response_buf, stroke_buf, block, byte)
             self.assertEqual(data, str(response))
-            self.assertEqual(block, len(data) / 512)
+            self.assertEqual(block, len(data) // 512)
             self.assertEqual(byte, len(data) % 512)
 
     def test_loop(self):
