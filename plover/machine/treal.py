@@ -24,7 +24,7 @@ def packet_to_stroke(p):
    keys = []
    for i, b in enumerate(p):
        map = STENO_KEY_CHART[i]
-       for i in xrange(8):
+       for i in range(8):
            if (b >> i) & 1:
                key = map[-i + 7]
                if key:

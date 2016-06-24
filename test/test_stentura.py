@@ -334,7 +334,7 @@ class TestCase(unittest.TestCase):
                 self.data += data
                 return len(data)
 
-        data = ''.join([chr(b) for b in xrange(20)])
+        data = ''.join([chr(b) for b in range(20)])
 
         # All in one shot.
         port = MockPort(20)
@@ -402,12 +402,12 @@ class TestCase(unittest.TestCase):
 
     def test_sequence_counter(self):
         seq = stentura._SequenceCounter()
-        actual = [seq() for x in xrange(512)]
+        actual = [seq() for x in range(512)]
         expected = range(256) * 2
         self.assertEqual(actual, expected)
 
         seq = stentura._SequenceCounter(67)
-        actual = [seq() for x in xrange(512)]
+        actual = [seq() for x in range(512)]
         expected = range(67, 256) + range(256) + range(67)
         self.assertEqual(actual, expected)
 

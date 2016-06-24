@@ -99,7 +99,7 @@ def shorten_unicode(s):
     # Turn into 4 byte chars.
     encoded = s.encode('utf-32-be')
     sanitized = ""
-    for n in xrange(0, len(encoded), 4):
+    for n in range(0, len(encoded), 4):
         character = encoded[n:n+4].decode('utf-32-be')
         # Get 1 Unicode char at a time.
         character = character.encode('utf-8')

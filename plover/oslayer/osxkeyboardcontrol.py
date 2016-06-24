@@ -302,7 +302,7 @@ class KeyboardEmulation(object):
 
     @staticmethod
     def send_backspaces(number_of_backspaces):
-        for _ in xrange(number_of_backspaces):
+        for _ in range(number_of_backspaces):
             backspace_down = CGEventCreateKeyboardEvent(
                 OUTPUT_SOURCE, BACK_SPACE, True)
             backspace_up = CGEventCreateKeyboardEvent(

@@ -351,7 +351,7 @@ class Translator(object):
         # The new stroke can either create a new translation or replace
         # existing translations by matching a longer entry in the
         # dictionary.
-        for i in xrange(len(translations)):
+        for i in range(len(translations)):
             replaced = translations[i:]
             strokes = list(itertools.chain(*[t.strokes for t in replaced]))
             strokes.append(stroke)
