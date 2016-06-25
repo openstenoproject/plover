@@ -72,7 +72,6 @@ class LookupDialog(wx.Dialog):
         self.translation_text.Bind(wx.EVT_TEXT, self.on_translation_change)
         self.translation_text.Bind(wx.EVT_SET_FOCUS, self.on_translation_gained_focus)
         self.translation_text.Bind(wx.EVT_KILL_FOCUS, self.on_translation_lost_focus)
-        self.translation_text.Bind(wx.EVT_TEXT_ENTER, self.on_close)
         self.Bind(wx.EVT_CLOSE, self.on_close)
         self.Bind(wx.EVT_MOVE, self.on_move)
         
