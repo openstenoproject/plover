@@ -4,10 +4,16 @@
 
 "Launch the plover application."
 
+# Python 2/3 compatibility.
+from __future__ import print_function
+
 import os
 import sys
 import traceback
 import argparse
+
+# Python 2/3 compatibility.
+from six import iteritems
 
 WXVER = '3.0'
 if not hasattr(sys, 'frozen'):
@@ -34,7 +40,7 @@ def show_error(title, message):
 
     This shows a graphical error and prints the same to the terminal.
     """
-    print message
+    print(message)
     app = wx.App()
     alert_dialog = wx.MessageDialog(None,
                                     message,
@@ -58,7 +64,7 @@ def init_config_dir():
         out_path = os.path.join(CONFIG_DIR, name)
         if not os.path.exists(out_path):
             unsorted_dict = json.load(open(source_path, 'rb'))
-            ordered = OrderedDict(sorted(unsorted_dict.iteritems(),
+            ordered = OrderedDict(sorted(iteritems(unsorted_dict),
                                          key=lambda x: x[1]))
             outfile = open(out_path, 'wb')
             json.dump(ordered, outfile, indent=0, separators=(',', ': '))

@@ -131,7 +131,7 @@ for char in (
     KEYNAME_TO_CHAR[char] = char
 CHAR_TO_KEYNAME = {
     char: name
-    for name, char in KEYNAME_TO_CHAR.iteritems()
+    for name, char in KEYNAME_TO_CHAR.items()
 }
 
 

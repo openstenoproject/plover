@@ -255,7 +255,7 @@ class SuggestionsDisplayDialog(wx.Dialog):
 
         '''
 
-        for i in xrange(0, len(ls)):
+        for i in range(len(ls)):
             yield ls[i:]
 
     @staticmethod

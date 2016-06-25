@@ -141,9 +141,9 @@ class OutputHelper(object):
         before_32 = self.before.encode('utf-32-be')
         after_32 = self.after.encode('utf-32-be')
         # Get the closest multiple of 4 for length
-        offset = len(commonprefix([before_32, after_32]))/4*4
+        offset = len(commonprefix([before_32, after_32]))//4*4
         if before_32[offset:]:
-            self.output.send_backspaces(len(before_32[offset:])/4)
+            self.output.send_backspaces(len(before_32[offset:])//4)
         if after_32[offset:]:
             # Convert back to Unicode for the send_string method
             self.output.send_string(after_32[offset:].decode('utf-32-be'))

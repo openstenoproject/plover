@@ -263,6 +263,7 @@ if sys.platform.startswith('win32'):
 setup_requires.append('pytest')
 
 install_requires = [
+    'six',
     'setuptools',
     'pyserial>=2.7',
     'appdirs>=1.3.0',

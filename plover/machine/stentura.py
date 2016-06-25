@@ -281,7 +281,7 @@ def _parse_stroke(a, b, c, d):
     """
     fullstroke = (((a & 0x3f) << 18) | ((b & 0x3f) << 12) |
                   ((c & 0x3f) << 6) | d & 0x3f)
-    return [_STENO_KEY_CHART[i] for i in xrange(24)
+    return [_STENO_KEY_CHART[i] for i in range(24)
             if (fullstroke & (1 << (23 - i)))]
 
 
@@ -524,7 +524,7 @@ def _send_receive(port, stop, packet, buf, max_tries=3):
 
     """
     request_action = _SHORT_STRUCT.unpack(buffer(packet, 4, 2))[0]
-    for attempt in xrange(max_tries):
+    for attempt in range(max_tries):
         _write_to_port(port, packet)
         try:
             response = _read_packet(port, stop, buf)

@@ -93,8 +93,8 @@ class FormatterTestCase(unittest.TestCase):
             formatter.start_capitalized = capitalized
             formatter.start_attached = attached
             formatter.format(undo, do, prev)
-            for i in xrange(len(do)):
-                self.assertEqual(do[i].formatting, formats[i])
+            for i, t in enumerate(do):
+                self.assertEqual(t.formatting, formats[i])
             self.assertEqual(output.instructions, outputs)
 
     def test_formatter(self):
@@ -233,8 +233,8 @@ class FormatterTestCase(unittest.TestCase):
             formatter.set_space_placement('Before Output')
             undo, do, prev = args
             formatter.format(undo, do, prev)
-            for i in xrange(len(do)):
-                self.assertEqual(do[i].formatting, formats[i])
+            for i, t in enumerate(do):
+                self.assertEqual(t.formatting, formats[i])
             self.assertEqual(output.instructions, outputs)
 
     def test_get_last_action(self):

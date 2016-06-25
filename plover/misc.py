@@ -14,7 +14,7 @@ def characters(string):
     """Python 2.7 has narrow Unicode on Mac OS X and Windows"""
 
     encoded = string.encode('utf-32-be')  # 4 bytes per character
-    for char_start in xrange(0, len(encoded), 4):
+    for char_start in range(0, len(encoded), 4):
         end = char_start + 4
         character = encoded[char_start:end].decode('utf-32-be')
         yield character

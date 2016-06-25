@@ -16,6 +16,9 @@ emulate keyboard input.
 
 """
 
+# Python 2/3 compatibility.
+from __future__ import print_function
+
 import sys
 
 KEYBOARDCONTROL_NOT_FOUND_FOR_OS = \
@@ -64,7 +67,7 @@ if __name__ == '__main__':
 
     def test(key, action):
         global status
-        print key, action
+        print(key, action)
         if u'pressed' == action:
             pressed.add(key)
         elif key in pressed:
@@ -79,7 +82,7 @@ if __name__ == '__main__':
     kc.key_up = lambda k: test(k, u'released')
     kc.suppress_keyboard(KeyboardCapture.SUPPORTED_KEYS)
     kc.start()
-    print 'Press CTRL-c to quit.'
+    print('Press CTRL-c to quit.')
     try:
         while True:
             time.sleep(1)

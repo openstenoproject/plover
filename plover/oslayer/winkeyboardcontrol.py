@@ -420,7 +420,7 @@ class KeyboardEmulation(object):
         self._send_input(*inputs)
 
     def send_backspaces(self, number_of_backspaces):
-        for _ in xrange(number_of_backspaces):
+        for _ in range(number_of_backspaces):
             self._key_press('\x08')
 
     def send_string(self, s):

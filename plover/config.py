@@ -217,7 +217,7 @@ class Config(object):
                          DEFAULT_MACHINE_TYPE)
 
     def set_machine_specific_options(self, machine_name, options):
-        self._update(machine_name, sorted(options.iteritems()))
+        self._update(machine_name, sorted(options.items()))
 
     def get_machine_specific_options(self, machine_name):
         def convert(p, v):

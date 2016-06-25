@@ -187,7 +187,7 @@ class TestCase(unittest.TestCase):
                                  TranslationConverter=Converter):
             for contents, expected in cases:
                 expected = dict((normalize(k), convert(v)) 
-                                for k, v in expected.iteritems())
+                                for k, v in expected.items())
                 with make_dict(contents) as filename:
                     assertEqual(load_dictionary(filename), expected)
 

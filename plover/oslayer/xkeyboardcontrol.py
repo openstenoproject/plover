@@ -1201,7 +1201,7 @@ class KeyboardEmulation(object):
 
         """
         target_window = self.display.get_input_focus().focus
-        for x in xrange(number_of_backspaces):
+        for x in range(number_of_backspaces):
             self._send_keycode(target_window,
                                self.backspace_mapping.keycode,
                                self.backspace_mapping.modifiers)
