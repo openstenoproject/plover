@@ -1,4 +1,3 @@
-import threading
 import wx
 from wx.lib.utils import AdjustRectToScreen
 import plover.gui.util as util
@@ -135,9 +134,6 @@ class DictionaryEditor(wx.Dialog):
         self.last_window = util.GetForegroundWindow()
 
     def _do_filter(self, event=None):
-        threading.Thread(target=self._do_filter_thread).start()
-
-    def _do_filter_thread(self):
         self.store.ApplyFilter(self.filter_by_stroke.GetValue(),
                                self.filter_by_translation.GetValue())
         self.grid.RefreshView()
