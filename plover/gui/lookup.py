@@ -6,10 +6,10 @@ from wx.lib.utils import AdjustRectToScreen
 
 from plover.steno import normalize_steno
 import plover.gui.util as util
-from plover.translation import unescape_translation
-
+from plover.translation import escape_translation, unescape_translation
 
 TITLE = 'Plover: Lookup'
+
 
 class LookupDialog(wx.Dialog):
 
@@ -28,7 +28,7 @@ class LookupDialog(wx.Dialog):
         # components
         self.translation_text = wx.TextCtrl(self, style=wx.TE_PROCESS_ENTER)
         cancel = wx.Button(self, id=wx.ID_CANCEL, label='Cancel')
-        self.listbox = wx.ListBox(self, size=wx.Size(210, 200))
+        self.listbox = wx.ListBox(self, size=wx.Size(210, 200), style=wx.LB_HSCROLL)
         
         # layout
         global_sizer = wx.BoxSizer(wx.VERTICAL)
@@ -106,17 +106,19 @@ class LookupDialog(wx.Dialog):
             pass
 
     def on_translation_change(self, event):
-        # TODO: normalize dict entries to make reverse lookup more reliable with 
-        # whitespace.
-        translation = event.GetString().strip()
+        translation = event.GetString()
         self.listbox.Clear()
         if translation:
-            d = self.engine.get_dictionary()
-            strokes_list = d.reverse_lookup(unescape_translation(translation))
-            if strokes_list:
-                entries = ('/'.join(x) for x in strokes_list)
-                for str in entries:
-                    self.listbox.Append(str)
+            suggestions = self.engine.get_suggestions(
+                unescape_translation(translation)
+            )
+            if suggestions:
+                for suggestion, strokes in suggestions:
+                    self.listbox.Append(escape_translation(suggestion))
+                    entries = ('/'.join(x) for x in strokes)
+                    for entry in entries:
+                        self.listbox.Append('    %s' % (entry))
+                self.listbox.EnsureVisible(0)
             else:
                 self.listbox.Append('No entries')
         self.GetSizer().Layout()

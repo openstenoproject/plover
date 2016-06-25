@@ -5,10 +5,11 @@
 
 import wx
 import re
-from collections import namedtuple
 from wx.lib.utils import AdjustRectToScreen
 from plover.gui.util import find_fixed_width_font, shorten_unicode
 from plover import system
+from plover.suggestions import Suggestion
+from plover.translation import escape_translation
 
 PAT = re.compile(r'[-\'"\w]+|[^\w\s]')
 TITLE = 'Plover: Suggestions Display'
@@ -22,8 +23,6 @@ STROKE_INDENT = 2
 class SuggestionsDisplayDialog(wx.Dialog):
 
     other_instances = []
-
-    Suggestion = namedtuple('Suggestion', 'text steno_list')
 
     def __init__(self, parent, config, engine):
         self.config = config
@@ -124,39 +123,6 @@ class SuggestionsDisplayDialog(wx.Dialog):
         self.other_instances.remove(self)
         event.Skip()
 
-    def lookup_suggestions(self, phrase):
-        ''' Return stroke suggestions for a given phrase, if it exists
-
-            If we can't find an entry, we start manipulating the phrase to see if we
-            can come up with something for the user. This allows for suggestions to
-            be given for prefixes/suffixes.
-
-        '''
-
-        suggestion_list = []
-
-        mods  = [u'%s', u'{^%s}', u'{^%s^}', u'{%s^}', u'{&%s}']
-        d     = self.engine.get_dictionary()
-
-        similar_words = d.casereverse_lookup(phrase.lower())
-        if similar_words:
-            similar_words_list = list(similar_words - set([phrase]))
-        else:
-            similar_words_list = []
-
-
-        for p in [phrase] + similar_words_list:
-            for x in [mod % p for mod in mods]:
-                strokes_list = d.reverse_lookup(x)
-                if not strokes_list:
-                    continue
-                # Return list of suggestions, sorted by fewest strokes, then fewest keys
-                strokes_list = sorted(strokes_list, key=lambda x: len(x) * 32 + sum(map(len, x)))
-                suggestion = self.Suggestion(x, strokes_list)
-                suggestion_list.append(suggestion)
-
-        return suggestion_list
-
     def show_suggestions(self, suggestion_list):
 
         # Limit history.
@@ -177,7 +143,9 @@ class SuggestionsDisplayDialog(wx.Dialog):
 
         for suggestion in suggestion_list:
             self.listbox.SetDefaultStyle(self.word_style)
-            self.listbox.WriteText(shorten_unicode(suggestion.text) + u'\n')
+            self.listbox.WriteText(
+                shorten_unicode(escape_translation(suggestion.text)) + u'\n'
+            )
             if not suggestion.steno_list:
                 self.listbox.SetDefaultStyle(self.no_suggestion_style)
                 self.listbox.WriteText(self.no_suggestion_indent)
@@ -229,10 +197,10 @@ class SuggestionsDisplayDialog(wx.Dialog):
         split_words = PAT.findall(self.words)
         for phrase in SuggestionsDisplayDialog.tails(split_words):
             phrase = u' '.join(phrase)
-            suggestion_list.extend(self.lookup_suggestions(phrase))
+            suggestion_list.extend(self.engine.get_suggestions(phrase))
 
         if not suggestion_list and split_words:
-            suggestion_list = [self.Suggestion(split_words[-1], [])]
+            suggestion_list = [Suggestion(split_words[-1], [])]
 
         if suggestion_list:
             self.show_suggestions(suggestion_list)
