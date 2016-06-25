@@ -242,7 +242,7 @@ class TestCase(unittest.TestCase):
             def read(self, count):
                 # When serial time out occurs read() returns
                 # less characters as requested
-                return "123";
+                return "123"
 
         port = MockPort()
         buf = array.array('B')
@@ -275,7 +275,7 @@ class TestCase(unittest.TestCase):
                 self._read1 = False
                 self._read2 = False
                 self.event = threading.Event()
-                self._give_timeout = give_timeout;
+                self._give_timeout = give_timeout
                 self._data = ([1, 0, data_section_length + 4, 0] +
                               [0] * data_section_length)
                 if give_too_much_data:

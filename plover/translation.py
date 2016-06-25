@@ -91,7 +91,7 @@ class Translation(object):
         self.rtfcre = tuple(s.rtfcre for s in outline)
         self.english = translation
         self.replaced = []
-        self.formatting = None
+        self.formatting = []
         self.is_retrospective_command = False
 
     def __eq__(self, other):
@@ -371,14 +371,16 @@ class Translator(object):
             if key in strokes[-1].steno_keys:
                 dict_key = (Stroke([key]).rtfcre,)
                 suffix_mapping = self._dictionary.lookup(dict_key)
-                if suffix_mapping == None: continue
+                if suffix_mapping is None:
+                    continue
                 keys = strokes[-1].steno_keys[:]
                 keys.remove(key)
                 copy = strokes[:]
                 copy[-1] = Stroke(keys)
                 dict_key = tuple(s.rtfcre for s in copy)
                 main_mapping = self._dictionary.lookup(dict_key)
-                if main_mapping == None: continue
+                if main_mapping is None:
+                    continue
                 return main_mapping + ' ' + suffix_mapping
 
         return None

@@ -107,10 +107,7 @@ class OrthographyTestCase(unittest.TestCase):
             ('free', 'ed', 'freed'),
             ('free', 'er', 'freer'),
             ('regulate', 'ry', 'regulatory'),
-            
         )
-        
-        failed = []
         for word, suffix, expected in cases:
             result = add_suffix(word, suffix)
             msg = 'add_suffix(%r, %r) returned %r instead of %r' % (

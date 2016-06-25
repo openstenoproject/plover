@@ -8,8 +8,6 @@ import unittest
 import copy
 import sys
 
-from mock import patch
-
 from plover.steno_dictionary import StenoDictionary, StenoDictionaryCollection
 from plover.translation import Translation, Translator, _State
 from plover.translation import escape_translation, unescape_translation

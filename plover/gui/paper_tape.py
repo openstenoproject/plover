@@ -5,7 +5,6 @@
 
 import wx
 import time
-import os
 from wx.lib.utils import AdjustRectToScreen
 from collections import deque
 from plover import system

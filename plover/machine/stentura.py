@@ -298,7 +298,7 @@ def _parse_strokes(data):
 
     """
     strokes = []
-    if (len(data) % 4 != 0):
+    if (len(data) % 4) != 0:
         raise _ProtocolViolationException(
             "Data size is not divisible by 4: %d" % (len(data)))
     for b in data:

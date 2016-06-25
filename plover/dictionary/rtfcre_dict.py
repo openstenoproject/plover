@@ -97,7 +97,6 @@ class TranslationConverter(object):
     def _re_handle_commands(self, m):
         r'(\\\*)?\\([a-z]+)(-?[0-9]+)? ?'
         
-        ignore = bool(m.group(1))
         command = m.group(2)
         arg = m.group(3)
         if arg:
@@ -200,7 +199,6 @@ class TranslationConverter(object):
             return None
         end = len(s)
         depth = 1
-        startpos = pos
         pos += 1
         while pos != end:
             c = s[pos]

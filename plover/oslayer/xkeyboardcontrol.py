@@ -24,7 +24,6 @@ http://tronche.com/gui/x/xlib/input/keyboard-encoding.html
 
 """
 
-import sys
 import string
 import threading
 
@@ -167,7 +166,6 @@ class KeyboardCapture(threading.Thread):
         # Check if the extension is present
         if not self.record_display.has_extension("RECORD"):
             raise Exception(RECORD_EXTENSION_NOT_FOUND)
-            sys.exit(1)
         # Create a recording context for key events.
         self.context = self.record_display.record_create_context(
                                  0,

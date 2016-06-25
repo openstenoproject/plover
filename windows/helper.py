@@ -3,7 +3,6 @@
 import argparse
 import hashlib
 import inspect
-import json
 import os
 import shutil
 import subprocess
@@ -51,7 +50,7 @@ else:
 class CommandExecutionException(Exception):
 
     def __init__(self, args, exitcode, stdout='', stderr=''):
-        super(Exception, self).__init__()
+        super(CommandExecutionException, self).__init__()
         self.args = args
         self.exitcode = exitcode
         self.stdout = stdout

@@ -73,10 +73,7 @@ class Formatter(object):
     def set_space_placement(self, s):
         # Set whether spaces will be inserted
         # before the output or after the output
-        if s == 'After Output':
-            self.spaces_after = True
-        else:
-            self.spaces_after = False
+        self.spaces_after = bool(s == 'After Output')
 
     def format(self, undo, do, prev):
         """Format the given translations.
@@ -808,8 +805,8 @@ def _apply_mode(text, case, space_char, begin, last_attach,
 
     # Title case is sensitive to lower flag
     if last_lower and len(text) > 0:  # Check for text
-            if (case is _Action.CASE_TITLE):
-                text = _lower(text)
+        if case is _Action.CASE_TITLE:
+            text = _lower(text)
 
     return text
 
@@ -919,7 +916,6 @@ def _change_mode(command, action):
 
 def _apply_case(input_text, case, appended):
     text = input_text
-    action = _Action()
     if case is _Action.CASE_LOWER:
         text = text.lower()
     elif case is _Action.CASE_UPPER:
@@ -928,7 +924,6 @@ def _apply_case(input_text, case, appended):
         # Do nothing to appended output
         if not appended:
             text = string.capwords(text, " ")
-
     return text
 
 

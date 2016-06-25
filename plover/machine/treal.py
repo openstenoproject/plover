@@ -79,7 +79,7 @@ class Treal(ThreadedStenotypeBase):
                     self._machine.open(VENDOR_ID, product_id)
                 else:
                     self._machine = hid.device(VENDOR_ID, product_id)
-            except IOError as e:
+            except IOError:
                 self._machine = None
             else:
                 self._machine.set_nonblocking(0)

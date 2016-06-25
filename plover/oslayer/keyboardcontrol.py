@@ -34,7 +34,7 @@ else:
 class KeyboardCapture(keyboardcontrol.KeyboardCapture):
     """Listen to keyboard events."""
 
-    """Supported keys."""
+    # Supported keys.
     SUPPORTED_KEYS_LAYOUT = '''
     Escape  F1 F2 F3 F4  F5 F6 F7 F8  F9 F10 F11 F12
 
@@ -56,9 +56,6 @@ if __name__ == '__main__':
 
     import time
 
-    if sys.platform.startswith('win32'):
-        import pythoncom
-
     kc = KeyboardCapture()
     ke = KeyboardEmulation()
 
@@ -66,7 +63,7 @@ if __name__ == '__main__':
     status = u'pressed: '
 
     def test(key, action):
-        global pressed, status
+        global status
         print key, action
         if u'pressed' == action:
             pressed.add(key)
