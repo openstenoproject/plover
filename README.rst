@@ -48,7 +48,7 @@ Plover is available for Windows, OS X and Linux here: http://openstenoproject.gi
 Community Resources
 -------------------
 
-* `Wiki <http://stenoknight.com/wiki/Main_Page>`_
+* `Wiki <https://github.com/openstenoproject/plover/wiki>`_
 * `Forum <http://stenoknight.com/plover/aviary/phpBB3/>`_
 * `Blog <http://plover.stenoknight.com/>`_
 * `Mailing list <https://groups.google.com/forum/#!forum/ploversteno>`_
