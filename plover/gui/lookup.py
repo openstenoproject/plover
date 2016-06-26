@@ -9,72 +9,52 @@ import plover.gui.util as util
 from plover.translation import escape_translation, unescape_translation
 
 TITLE = 'Plover: Lookup'
-
+CANCEL_BUTTON = 'Close'
 
 class LookupDialog(wx.Dialog):
 
     BORDER = 3
-    TRANSLATION_TEXT = 'Text:'
-    
+
     other_instances = []
-    
+
     def __init__(self, parent, engine, config):
-        pos = (config.get_lookup_frame_x(), 
+        pos = (config.get_lookup_frame_x(),
                config.get_lookup_frame_y())
-        wx.Dialog.__init__(self, parent, title=TITLE, pos=pos)
+        wx.Dialog.__init__(self, parent, title=TITLE, pos=pos,
+                           style=wx.DEFAULT_DIALOG_STYLE|wx.RESIZE_BORDER)
 
         self.config = config
 
         # components
         self.translation_text = wx.TextCtrl(self, style=wx.TE_PROCESS_ENTER)
-        cancel = wx.Button(self, id=wx.ID_CANCEL, label='Cancel')
-        self.listbox = wx.ListBox(self, size=wx.Size(210, 200), style=wx.LB_HSCROLL)
-        
+        self.listbox = wx.ListBox(self, size=wx.Size(210, 200),
+                                  style=wx.LB_HSCROLL)
+        cancel = wx.Button(self, wx.ID_CANCEL, CANCEL_BUTTON)
+        cancel.Bind(wx.EVT_BUTTON, self.on_close)
         # layout
         global_sizer = wx.BoxSizer(wx.VERTICAL)
-        
-        sizer = wx.BoxSizer(wx.HORIZONTAL)
-        label = wx.StaticText(self, label=self.TRANSLATION_TEXT)
-        sizer.Add(label, 
-                  flag=wx.TOP | wx.LEFT | wx.RIGHT | wx.BOTTOM | wx.ALIGN_CENTER_VERTICAL, 
-                  border=self.BORDER)
-        sizer.Add(self.translation_text, 
-                  flag=wx.TOP | wx.RIGHT | wx.BOTTOM | wx.ALIGN_CENTER_VERTICAL, 
-                  border=self.BORDER)
-        sizer.Add(cancel, 
-                  flag=wx.TOP | wx.RIGHT | wx.BOTTOM | wx.ALIGN_CENTER_VERTICAL, 
-                  border=self.BORDER)
-        global_sizer.Add(sizer)
-        
-        sizer = wx.BoxSizer(wx.HORIZONTAL)
-        sizer.Add(self.listbox,
-                  flag=wx.ALL | wx.FIXED_MINSIZE,
-                  border=self.BORDER)
 
-        global_sizer.Add(sizer)
-        
+        global_sizer.Add(self.translation_text, 0, wx.ALL | wx.EXPAND,
+                         self.BORDER)
+        global_sizer.Add(self.listbox, 1, wx.ALL & ~wx.TOP | wx.EXPAND,
+                         self.BORDER)
+        global_sizer.Add(cancel, 0, wx.ALL & ~wx.TOP | wx.EXPAND, self.BORDER)
+
         self.SetAutoLayout(True)
         self.SetSizer(global_sizer)
         global_sizer.Fit(self)
         global_sizer.SetSizeHints(self)
         self.Layout()
         self.SetRect(AdjustRectToScreen(self.GetRect()))
-        
-        # events
 
-        # The reason for the focus event here is to skip focus on tab traversal
-        # of the buttons. But it seems that on windows this prevents the button
-        # from being pressed. Leave this commented out until that problem is
-        # resolved.
-        #button.Bind(wx.EVT_SET_FOCUS, self.on_button_gained_focus)
-        cancel.Bind(wx.EVT_BUTTON, self.on_close)
-        #cancel.Bind(wx.EVT_SET_FOCUS, self.on_button_gained_focus)
+        # events
         self.translation_text.Bind(wx.EVT_TEXT, self.on_translation_change)
         self.translation_text.Bind(wx.EVT_SET_FOCUS, self.on_translation_gained_focus)
         self.translation_text.Bind(wx.EVT_KILL_FOCUS, self.on_translation_lost_focus)
         self.Bind(wx.EVT_CLOSE, self.on_close)
+
         self.Bind(wx.EVT_MOVE, self.on_move)
-        
+
         self.engine = engine
         
         # TODO: add functions on engine for state
