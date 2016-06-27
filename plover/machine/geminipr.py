@@ -55,13 +55,6 @@ class GeminiPr(plover.machine.base.SerialStenotypeBase):
             if isinstance(raw, str):
                 raw = [ord(x) for x in raw]
 
-            # Make sure this is a valid steno stroke.
-            if not ((len(raw) == BYTES_PER_STROKE) and
-                    (raw[0] & 0x80) and
-                    (len([b for b in raw if b & 0x80]) == 1)):
-                serial_port.flushInput()
-                continue
-
             # Convert the raw to a list of steno keys.
             steno_keys = []
             for i, b in enumerate(raw):
