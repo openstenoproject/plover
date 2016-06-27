@@ -172,16 +172,17 @@ class StenoEngine(object):
             self.machine = None
         if machine_class is not None:
             log.debug('starting machine: %s', machine_class.__name__)
-            self.machine = machine_class(machine_options)
+            machine = machine_class(machine_options)
             if machine_mappings is not None:
-                self.machine.set_mappings(machine_mappings)
-            self.machine.add_state_callback(self._machine_state_callback)
-            self.machine.add_stroke_callback(log.stroke)
-            self.machine.add_stroke_callback(self._translator_machine_callback)
-            self.machine.start_capture()
+               machine.set_mappings(machine_mappings)
+            machine.add_state_callback(self._machine_state_callback)
+            machine.add_stroke_callback(log.stroke)
+            machine.add_stroke_callback(self._translator_machine_callback)
+            self.machine = machine
             self.machine_class = machine_class
             self.machine_options = machine_options
             self.machine_mappings = machine_mappings
+            self.machine.start_capture()
             is_running = self.is_running
         else:
             is_running = False
