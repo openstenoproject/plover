@@ -7,11 +7,13 @@ import ConfigParser
 from ConfigParser import RawConfigParser
 import os
 from cStringIO import StringIO
-from plover import log
+import json
+
 from plover.exception import InvalidConfigurationError
 from plover.machine.registry import machine_registry
 from plover.oslayer.config import ASSETS_DIR, CONFIG_DIR
 from plover import system
+from plover import log
 
 SPINNER_FILE = os.path.join(ASSETS_DIR, 'spinner.gif')
 
@@ -540,12 +542,17 @@ class Config(object):
     def set_system_keymap(self, machine_type, mappings):
         section = SYSTEM_CONFIG_SECTION % DEFAULT_SYSTEM
         option = SYSTEM_KEYMAP_OPTION % machine_type
-        self._set(section, option, mappings)
+        self._set(section, option, json.dumps(sorted(dict(mappings).items())))
 
     def get_system_keymap(self, machine_type):
         section = SYSTEM_CONFIG_SECTION % DEFAULT_SYSTEM
         option = SYSTEM_KEYMAP_OPTION % machine_type
-        return self._get(section, option, system.KEYMAPS.get(machine_type))
+        mappings = self._get(section, option, None)
+        if mappings is None:
+            mappings = system.KEYMAPS.get(machine_type)
+        else:
+            mappings = dict(json.loads(mappings))
+        return mappings
 
     def _set(self, section, option, value):
         if not self._config.has_section(section):

@@ -6,6 +6,7 @@
 import os.path
 import unittest
 import os
+import json
 from collections import namedtuple
 from cStringIO import StringIO
 
@@ -254,3 +255,40 @@ class ConfigTestCase(unittest.TestCase):
                               for d, v in enumerate(filenames, start=1))
         self.assertEqual(f.getvalue(), 
                          '[%s]\n%s\n\n' % (section, value))
+
+    def test_system_keymap(self):
+        mappings_list = [
+            ['-D', ['[']],
+            ['*', ["t", "g", "y", "h"]],
+            # Keys can be a list of key names or a single key name.
+            ['arpeggiate', 'space'],
+            ['S-', ['a', 'q']],
+        ]
+        mappings_dict = dict(mappings_list)
+        machine = 'Keyboard'
+        section = config.SYSTEM_CONFIG_SECTION % config.DEFAULT_SYSTEM
+        option = config.SYSTEM_KEYMAP_OPTION % machine.lower()
+        cfg = config.Config()
+        # Mappings must be a dictionary.
+        mappings = cfg.get_system_keymap(machine)
+        self.assertIsInstance(mappings, dict)
+        # Mappings can be set from a dictionary.
+        cfg.set_system_keymap(machine, mappings_dict)
+        self.assertEqual(cfg.get_system_keymap(machine), mappings_dict)
+        # Or from a compatible iterable of pairs (action, keys).
+        cfg.set_system_keymap(machine, mappings_list)
+        self.assertEqual(cfg.get_system_keymap(machine), mappings_dict)
+        def make_config_file(mappings):
+            return StringIO('[%s]\n%s = %s\n\n' % (section, option, json.dumps(mappings)))
+        # And the config format allow both.
+        for mappings in (mappings_list, mappings_dict):
+            cfg = config.Config()
+            cfg.load(make_config_file(mappings))
+            self.assertEqual(cfg.get_system_keymap(machine), mappings_dict)
+        # On save, a sorted list of pairs (action, keys) is expected.
+        # (to reduce differences between saves)
+        cfg = config.Config()
+        cfg.set_system_keymap(machine, mappings_dict)
+        contents = StringIO()
+        cfg.save(contents)
+        self.assertEqual(contents.getvalue(), make_config_file(sorted(mappings_list)).getvalue())
