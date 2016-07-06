@@ -58,3 +58,14 @@ class BlackboxTest(unittest.TestCase):
             stroke = steno_to_stroke(steno)
             self.translator.translate(stroke)
         self.assertEqual(self.output.text, u' $1.20')
+
+    def test_special_characters(self):
+        self.dictionary.set(('R-R',), '{^}\n{^}')
+        self.dictionary.set(('TAB',), '\t')
+        for steno in (
+            'R-R',
+            'TAB',
+        ):
+            stroke = steno_to_stroke(steno)
+            self.translator.translate(stroke)
+        self.assertEqual(self.output.text, u'\n\t')

@@ -355,7 +355,9 @@ def _translation_to_actions(translation, last_action, spaces_after):
         # If a translation is only digits then glue it to neighboring digits.
         atoms = [_apply_glue(translation)]
     else:
-        atoms = [x.strip() for x in META_RE.findall(translation) if x.strip()]
+        atoms = [
+            x.strip(' ') for x in META_RE.findall(translation) if x.strip(' ')
+        ]
 
     if not atoms:
         return [last_action.copy_state()]
