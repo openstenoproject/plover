@@ -24,6 +24,7 @@ import plover.steno as steno
 import plover.translation as translation
 from plover.exception import InvalidConfigurationError
 from plover.machine.registry import machine_registry, NoSuchMachineException
+from plover.suggestions import Suggestions
 from plover import log
 from plover.dictionary.loading_manager import manager as dict_manager
 from plover import system
@@ -138,6 +139,7 @@ class StenoEngine(object):
         self.machine_class = None
         self.machine_options = None
         self.machine_mappings = None
+        self.suggestions = None
         self.thread_hook = thread_hook
 
         self.translator = translation.Translator()
@@ -192,9 +194,13 @@ class StenoEngine(object):
         dictionary = self.translator.get_dictionary()
         dicts = dict_manager.load(file_names)
         dictionary.set_dicts(dicts)
+        self.suggestions = Suggestions(dictionary)
 
     def get_dictionary(self):
         return self.translator.get_dictionary()
+
+    def get_suggestions(self, translation):
+        return self.suggestions.find(translation)
 
     def set_is_running(self, value):
         if value != self.is_running:
