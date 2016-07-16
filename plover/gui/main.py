@@ -15,7 +15,7 @@ import wx
 import wx.animate
 from wx.lib.utils import AdjustRectToScreen
 import plover.app as app
-from plover.config import ASSETS_DIR, SPINNER_FILE
+from plover.config import ASSETS_DIR, SPINNER_FILE, copy_default_dictionaries
 from plover.gui.config import ConfigurationDialog
 import plover.gui.add_translation
 import plover.gui.lookup
@@ -216,6 +216,7 @@ class MainFrame(wx.Frame):
         except Exception:
             log.error('loading configuration failed, reseting to default', exc_info=True)
             self.config.clear()
+        copy_default_dictionaries(self.config)
 
         rect = wx.Rect(config.get_main_frame_x(), config.get_main_frame_y(), *self.GetSize())
         self.SetRect(AdjustRectToScreen(rect))
