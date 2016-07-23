@@ -1,0 +1,135 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<ui version="4.0">
+ <class>SuggestionsDialog</class>
+ <widget class="QDialog" name="SuggestionsDialog">
+  <property name="geometry">
+   <rect>
+    <x>0</x>
+    <y>0</y>
+    <width>247</width>
+    <height>430</height>
+   </rect>
+  </property>
+  <property name="font">
+   <font>
+    <family>Monospace</family>
+   </font>
+  </property>
+  <property name="windowTitle">
+   <string>Plover: Suggestions</string>
+  </property>
+  <property name="sizeGripEnabled">
+   <bool>true</bool>
+  </property>
+  <layout class="QVBoxLayout" name="verticalLayout">
+   <item>
+    <widget class="QWidget" name="suggestions" native="true"/>
+   </item>
+  </layout>
+  <action name="action_Clear">
+   <property name="icon">
+    <iconset resource="resources/resources.qrc">
+     <normaloff>:/clear.svg</normaloff>:/clear.svg</iconset>
+   </property>
+   <property name="text">
+    <string>&amp;Clear</string>
+   </property>
+   <property name="toolTip">
+    <string>Clear paper tape</string>
+   </property>
+   <property name="shortcut">
+    <string>Ctrl+L</string>
+   </property>
+  </action>
+  <action name="action_ToggleOnTop">
+   <property name="checkable">
+    <bool>true</bool>
+   </property>
+   <property name="icon">
+    <iconset resource="resources/resources.qrc">
+     <normaloff>:/on-top.svg</normaloff>:/on-top.svg</iconset>
+   </property>
+   <property name="text">
+    <string>&amp;Toggle &quot;always on top&quot;</string>
+   </property>
+   <property name="toolTip">
+    <string>Toggle &quot;always on top&quot;</string>
+   </property>
+   <property name="shortcut">
+    <string>Ctrl+T</string>
+   </property>
+  </action>
+  <action name="action_SelectFont">
+   <property name="icon">
+    <iconset resource="resources/resources.qrc">
+     <normaloff>:/font.svg</normaloff>:/font.svg</iconset>
+   </property>
+   <property name="text">
+    <string>Select &amp;font</string>
+   </property>
+   <property name="toolTip">
+    <string>Open font selection dialog</string>
+   </property>
+  </action>
+ </widget>
+ <resources>
+  <include location="resources/resources.qrc"/>
+ </resources>
+ <connections>
+  <connection>
+   <sender>action_Clear</sender>
+   <signal>triggered()</signal>
+   <receiver>SuggestionsDialog</receiver>
+   <slot>on_clear()</slot>
+   <hints>
+    <hint type="sourcelabel">
+     <x>-1</x>
+     <y>-1</y>
+    </hint>
+    <hint type="destinationlabel">
+     <x>199</x>
+     <y>149</y>
+    </hint>
+   </hints>
+  </connection>
+  <connection>
+   <sender>action_ToggleOnTop</sender>
+   <signal>triggered(bool)</signal>
+   <receiver>SuggestionsDialog</receiver>
+   <slot>on_toggle_ontop(bool)</slot>
+   <hints>
+    <hint type="sourcelabel">
+     <x>-1</x>
+     <y>-1</y>
+    </hint>
+    <hint type="destinationlabel">
+     <x>123</x>
+     <y>214</y>
+    </hint>
+   </hints>
+  </connection>
+  <connection>
+   <sender>action_SelectFont</sender>
+   <signal>triggered()</signal>
+   <receiver>SuggestionsDialog</receiver>
+   <slot>on_select_font()</slot>
+   <hints>
+    <hint type="sourcelabel">
+     <x>-1</x>
+     <y>-1</y>
+    </hint>
+    <hint type="destinationlabel">
+     <x>123</x>
+     <y>214</y>
+    </hint>
+   </hints>
+  </connection>
+ </connections>
+ <slots>
+  <slot>on_save()</slot>
+  <slot>on_clear()</slot>
+  <slot>on_style_changed()</slot>
+  <slot>on_toggle_ontop(bool)</slot>
+  <slot>on_select_font()</slot>
+ </slots>
+</ui>

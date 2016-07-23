@@ -12,6 +12,7 @@ import sys
 from distutils import log
 import pkg_resources
 import setuptools
+from setuptools.command.build_py import build_py
 
 from plover import (
     __name__ as __software_name__,
@@ -288,6 +289,7 @@ cmdclass = {
 setup_requires = ['setuptools-scm']
 options = {}
 kwargs = {}
+build_dependencies = []
 
 if sys.platform.startswith('darwin'):
     setup_requires.append('py2app')
@@ -314,6 +316,59 @@ if sys.platform.startswith('win32'):
     cmdclass['bdist_win'] = BinaryDistWin
 
 setup_requires.append('pytest')
+
+try:
+    import PyQt5
+except ImportError:
+    pass
+else:
+    setup_requires.append('pyqt-distutils')
+    try:
+        from pyqt_distutils.build_ui import build_ui
+    except ImportError:
+        pass
+    else:
+        class BuildUi(build_ui):
+
+            def run(self):
+                from utils.pyqt import fix_icons
+                self._hooks['fix_icons'] = fix_icons
+                build_ui.run(self)
+
+        cmdclass['build_ui'] = BuildUi
+        build_dependencies.append('build_ui')
+
+setup_requires.append('Babel')
+try:
+    from babel.messages import frontend as babel
+except ImportError:
+    pass
+else:
+    cmdclass.update({
+        'compile_catalog': babel.compile_catalog,
+        'extract_messages': babel.extract_messages,
+        'init_catalog': babel.init_catalog,
+        'update_catalog': babel.update_catalog
+    })
+    locale_dir = 'plover/gui_qt/messages'
+    template = '%s/%s.pot' % (locale_dir, __software_name__)
+    options['compile_catalog'] = {
+        'domain': __software_name__,
+        'directory': locale_dir,
+    }
+    options['extract_messages'] = {
+        'output_file': template,
+    }
+    options['init_catalog'] = {
+        'domain': __software_name__,
+        'input_file': template,
+        'output_dir': locale_dir,
+    }
+    options['update_catalog'] = {
+        'domain': __software_name__,
+        'output_dir': locale_dir,
+    }
+    build_dependencies.append('compile_catalog')
 
 dependency_links = [
    'https://github.com/benoit-pierre/pyobjc/releases/download/pyobjc-3.1.1+plover2/pyobjc-core-3.1.1-plover2.tar.gz#egg=pyobjc-core',
@@ -346,6 +401,15 @@ extras_require = {
 tests_require = [
     'mock',
 ]
+
+
+class CustomBuildPy(build_py):
+    def run(self):
+        for command in build_dependencies:
+            self.run_command(command)
+        build_py.run(self)
+
+cmdclass['build_py'] = CustomBuildPy
 
 
 def write_requirements(extra_features=()):
@@ -400,6 +464,7 @@ if __name__ == '__main__':
         packages=[
             'plover',
             'plover.dictionary',
+            'plover.gui_qt',
             'plover.machine',
             'plover.oslayer',
             'plover.system',
