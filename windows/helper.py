@@ -252,6 +252,8 @@ class Helper(object):
         DEPENDENCIES = (
             ('pip', 'pip:pip',
              None, None, (), None),
+            ('PyQt5', 'pip:PyQt5',
+             None, None, (), None),
             ('pywin32', 'https://downloads.sourceforge.net/project/pywin32/pywin32/Build 220/pywin32-220.win32-py3.5.exe',
              '5c9bd9643982dbfea4aba500503227dd997931df', 'easy_install', (), None),
         )

@@ -16,6 +16,7 @@ It is best to develop using 32 bit tools for Plover.
 
 - [Cython](http://cython.org/)
 - [Python for Windows Extensions](http://sourceforge.net/projects/pywin32/)
+- [PyQt5](https://riverbankcomputing.com/software/pyqt/intro)
 
 ### Other dependencies
 

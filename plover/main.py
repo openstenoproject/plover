@@ -49,8 +49,9 @@ def main():
                         default=None, help='set log level')
     gui_choices = {
         'none': 'plover.gui_none.main',
+        'qt'  : 'plover.gui_qt.main',
     }
-    gui_default = 'none'
+    gui_default = 'qt'
     parser.add_argument('-g', '--gui', choices=gui_choices,
                         default=gui_default, help='set gui')
     args = parser.parse_args(args=sys.argv[1:])
