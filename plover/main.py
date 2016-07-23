@@ -12,9 +12,6 @@ import sys
 import traceback
 import argparse
 
-# Python 2/3 compatibility.
-from six import iteritems
-
 WXVER = '3.0'
 if not hasattr(sys, 'frozen'):
     import wxversion
