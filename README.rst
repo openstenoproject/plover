@@ -1,3 +1,5 @@
+|appveyor| |travis-ci|
+
 Copyright (c) 2010-2011 Joshua Harlan Lifton.
 See LICENSE.txt for details.
 
@@ -52,3 +54,8 @@ Community Resources
 * `Forum <http://stenoknight.com/plover/aviary/phpBB3/>`_
 * `Blog <http://plover.stenoknight.com/>`_
 * `Mailing list <https://groups.google.com/forum/#!forum/ploversteno>`_
+
+.. |appveyor| image:: https://ci.appveyor.com/api/projects/status/github/openstenoproject/plover?svg=true&branch=master
+   :target: https://ci.appveyor.com/project/morinted/plover/branch/master
+.. |travis-ci| image:: https://travis-ci.org/openstenoproject/plover.svg?branch=master
+   :target: https://travis-ci.org/openstenoproject/plover/branches
