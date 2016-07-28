@@ -3,18 +3,25 @@
 
 """Configuration management."""
 
-import ConfigParser
-from ConfigParser import RawConfigParser
 import os
-from cStringIO import StringIO
 import json
+import codecs
 import shutil
+
+# Python 2/3 compatibility.
+from six import BytesIO, PY3
+# Note: six.move is not used as it confuses py2app...
+if PY3:
+    import configparser
+else:
+    import ConfigParser as configparser
 
 from plover.exception import InvalidConfigurationError
 from plover.machine.registry import machine_registry
 from plover.oslayer.config import ASSETS_DIR, CONFIG_DIR
 from plover import system
 from plover import log
+
 
 SPINNER_FILE = os.path.join(ASSETS_DIR, 'spinner.gif')
 
@@ -159,7 +166,7 @@ def raise_if_invalid_opacity(opacity):
 class Config(object):
 
     def __init__(self):
-        self._config = RawConfigParser()
+        self._config = configparser.RawConfigParser()
         # A convenient place for other code to store a file name.
         self.target_file = None
 
@@ -191,20 +198,22 @@ class Config(object):
         return path
 
     def load(self, fp):
-        self._config = RawConfigParser()
+        self._config = configparser.RawConfigParser()
+        reader = codecs.getreader('utf8')(fp)
         try:
-            self._config.readfp(fp)
-        except ConfigParser.Error as e:
+            self._config.readfp(reader)
+        except configparser.Error as e:
             raise InvalidConfigurationError(str(e))
 
     def clear(self):
-        self._config = RawConfigParser()
+        self._config = configparser.RawConfigParser()
 
     def save(self, fp):
-        self._config.write(fp)
+        writer = codecs.getwriter('utf8')(fp)
+        self._config.write(writer)
 
     def clone(self):
-        f = StringIO()
+        f = BytesIO()
         self.save(f)
         c = Config()
         f.seek(0, 0)
@@ -248,8 +257,8 @@ class Config(object):
     def get_dictionary_file_names(self):
         filenames = []
         if self._config.has_section(DICTIONARY_CONFIG_SECTION):
-            options = filter(lambda x: x.startswith(DICTIONARY_FILE_OPTION),
-                             self._config.options(DICTIONARY_CONFIG_SECTION))
+            options = [x for x in self._config.options(DICTIONARY_CONFIG_SECTION)
+                       if x.startswith(DICTIONARY_FILE_OPTION)]
             options.sort(key=_dict_entry_key)
             filenames = [self._config.get(DICTIONARY_CONFIG_SECTION, o)
                          for o in options]
