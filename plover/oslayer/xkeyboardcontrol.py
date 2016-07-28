@@ -26,6 +26,9 @@ import string
 import select
 import threading
 
+# Python 2/3 compatibility.
+from six import text_type, unichr
+
 from Xlib import X, XK, display
 from Xlib.ext import xinput, xtest
 from Xlib.ext.ge import GenericEventCode
@@ -1050,7 +1053,7 @@ def is_latin1(code):
     return 0x20 <= code <= 0x7e or 0xa0 <= code <= 0xff
 
 def uchr_to_keysym(char):
-    assert isinstance(char, unicode)
+    assert isinstance(char, text_type)
     code = ord(char)
     # Latin-1 characters: direct, 1:1 mapping.
     if is_latin1(code):
@@ -1195,7 +1198,7 @@ class KeyboardEmulation(object):
         s -- The string to emulate.
 
         """
-        assert isinstance(s, unicode)
+        assert isinstance(s, text_type)
         for char in s:
             keysym = uchr_to_keysym(char)
             mapping = self._get_mapping(keysym)
