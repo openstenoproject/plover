@@ -17,7 +17,6 @@ import ctypes
 import multiprocessing
 import os
 import threading
-import time
 
 from ctypes import windll, wintypes
 
@@ -150,11 +149,17 @@ class HeartBeat(threading.Thread):
         super(HeartBeat, self).__init__()
         self._ppid = ppid
         self._atexit = atexit
+        self._finished = threading.Event()
 
     def run(self):
         while pid_exists(self._ppid):
-            time.sleep(1)
+            if self._finished.wait(1):
+                break
         self._atexit()
+
+    def stop(self):
+        self._finished.set()
+        self.join()
 
 
 class KeyboardCaptureProcess(multiprocessing.Process):
@@ -221,7 +226,7 @@ class KeyboardCaptureProcess(multiprocessing.Process):
 
     def run(self):
 
-        heartbeat = HeartBeat(self._ppid, self.stop)
+        heartbeat = HeartBeat(self._ppid, self._send_quit)
         heartbeat.start()
 
         import atexit
@@ -292,6 +297,13 @@ class KeyboardCaptureProcess(multiprocessing.Process):
             windll.user32.TranslateMessage(ctypes.byref(msg))
             windll.user32.DispatchMessageW(ctypes.byref(msg))
 
+        heartbeat.stop()
+
+    def _send_quit(self):
+        windll.user32.PostThreadMessageW(self._tid,
+                                         0x0012, # WM_QUIT
+                                         0, 0)
+
     def start(self):
         self.daemon = True
         super(KeyboardCaptureProcess, self).start()
@@ -299,9 +311,7 @@ class KeyboardCaptureProcess(multiprocessing.Process):
 
     def stop(self):
         if self.is_alive():
-            windll.user32.PostThreadMessageW(self._tid,
-                                             0x0012, # WM_QUIT
-                                             0, 0)
+            self._send_quit()
             self.join()
         # Wake up capture thread, so it gets a chance to check if it must stop.
         self._queue.put((None, None))
@@ -341,9 +351,9 @@ class KeyboardCapture(threading.Thread):
             (self.key_down if pressed else self.key_up)(key)
 
     def cancel(self):
+        self._finished.set()
         self._proc.stop()
         if self.is_alive():
-            self._finished.set()
             self.join()
 
     def suppress_keyboard(self, suppressed_keys=()):
