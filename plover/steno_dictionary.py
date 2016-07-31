@@ -105,9 +105,11 @@ class StenoDictionaryCollection(object):
             d.add_longest_key_listener(self._longest_key_listener)
         self._longest_key_listener()
 
-    def _lookup(self, key, filters=()):
+    def _lookup(self, key, dicts=None, filters=()):
+        if dicts is None:
+            dicts = self.dicts
         key_len = len(key)
-        for d in self.dicts:
+        for d in dicts:
             if key_len > d.longest_key:
                 continue
             value = d.get(key)
@@ -118,16 +120,19 @@ class StenoDictionaryCollection(object):
                 return value
 
     def lookup(self, key):
-        return self._lookup(key, self.filters)
+        return self._lookup(key, filters=self.filters)
 
     def raw_lookup(self, key):
         return self._lookup(key)
 
     def reverse_lookup(self, value):
-        for d in self.dicts:
-            key = d.reverse.get(value)
-            if key:
-                return key
+        keys = []
+        for n, d in enumerate(self.dicts):
+            for k in d.reverse.get(value, ()):
+                # Ignore key if it's overriden by a higher priority dictionary.
+                if self._lookup(k, dicts=self.dicts[:n]) is None:
+                    keys.append(k)
+        return keys
 
     def casereverse_lookup(self, value):
         for d in self.dicts:
