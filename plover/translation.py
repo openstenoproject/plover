@@ -101,7 +101,12 @@ class Translation(object):
         return not self.__eq__(other)
 
     def __str__(self):
-        return 'Translation(%s : %s)' % (self.rtfcre, self.english)
+        if self.english is None:
+            translation = 'None'
+        else:
+            translation = escape_translation(self.english)
+            translation = '"%s"' % translation.replace('"', r'\"')
+        return 'Translation(%s : %s)' % (self.rtfcre, translation)
 
     def __repr__(self):
         return str(self)
