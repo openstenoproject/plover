@@ -276,7 +276,7 @@ extras_require = {
         # Can't reliably require wxPython
     ],
     ':"linux" in sys_platform': [
-        'python-xlib>=0.14',
+        'python-xlib>=0.16',
         'wxPython>=3.0',
     ],
     ':"darwin" in sys_platform': [
