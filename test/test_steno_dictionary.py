@@ -44,8 +44,8 @@ class StenoDictionaryTestCase(unittest.TestCase):
         self.assertEqual(d.longest_key, 2)
         self.assertEqual(notifications, [1, 4, 2, 0])
         
-        self.assertEqual(StenoDictionary([('a', 'b')]).items(), [('a', 'b')])
-        self.assertEqual(StenoDictionary(a='b').items(), [('a', 'b')])
+        self.assertEqual(list(StenoDictionary([('a', 'b')]).items()), [('a', 'b')])
+        self.assertEqual(list(StenoDictionary(a='b').items()), [('a', 'b')])
 
     def test_dictionary_collection(self):
         dc = StenoDictionaryCollection()

@@ -18,9 +18,11 @@ import multiprocessing
 import os
 import threading
 import time
-import _winreg as winreg
 
 from ctypes import windll, wintypes
+
+# Python 2/3 compatibility.
+from six.moves import winreg
 
 import win32api
 

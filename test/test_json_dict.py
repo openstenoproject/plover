@@ -29,7 +29,7 @@ class JsonDictionaryTestCase(unittest.TestCase):
             self.assertEqual(a._dict, b)
 
         for contents, expected in (
-            (u'{"S": "a"}'       , {('S', ): 'a'    }),
+            (u'{"S": "a"}'.encode('utf-8'), {('S', ): u'a'}),
             # Default encoding is utf-8.
             (u'{"S": "café"}'.encode('utf-8'), {('S', ): u'café'}),
             # But if that fails, the implementation
@@ -49,7 +49,7 @@ class JsonDictionaryTestCase(unittest.TestCase):
             # Ditto.
             (u'4.2', TypeError),
         ):
-            with make_dict(contents) as filename:
+            with make_dict(contents.encode('utf-8')) as filename:
                 self.assertRaises(exception, load_dictionary, filename)
 
     def test_save_dictionary(self):
@@ -63,11 +63,14 @@ class JsonDictionaryTestCase(unittest.TestCase):
             # Contents should be saved as UTF-8, no escaping.
             ({('S', ): u'café'},
              u'{\n"S": "café"\n}'),
+            # Check escaping of special characters.
+            ({('S', ): u'{^"\n\t"^}'},
+             u'{\n"S": "' + r'{^\"\n\t\"^}' + u'"\n}'),
             # Keys are sorted on save.
             ({('B', ): u'bravo', ('A', ): u'alpha', ('C', ): u'charlie'},
              u'{\n"A": "alpha",\n"B": "bravo",\n"C": "charlie"\n}'),
         ):
-            with make_dict('foo') as filename:
+            with make_dict(b'foo') as filename:
                 with open(filename, 'wb') as fp:
                     save_dictionary(contents, fp)
                 with open(filename, 'rb') as fp:

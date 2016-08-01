@@ -3,6 +3,9 @@
 
 "Thread-based monitoring of a stenotype machine using the TX Bolt protocol."
 
+# Python 2/3 compatibility.
+from six import iterbytes
+
 import plover.machine.base
 
 # In the TX Bolt protocol, there are four sets of keys grouped in
@@ -70,15 +73,11 @@ class TxBolt(plover.machine.base.SerialStenotypeBase):
             # Grab data from the serial port, or wait for timeout if none available.
             raw = self.serial_port.read(max(1, self.serial_port.inWaiting()))
 
-            # XXX : work around for python 3.1 and python 2.6 differences
-            if isinstance(raw, str):
-                raw = [ord(x) for x in raw]
-
             if not raw and len(self._pressed_keys) > 0:
                 self._finish_stroke()
                 continue
 
-            for byte in raw:
+            for byte in iterbytes(raw):
                 key_set = byte >> 6
                 if (key_set <= self._last_key_set
                     and len(self._pressed_keys) > 0):

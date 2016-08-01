@@ -3,7 +3,8 @@
 
 "Thread-based monitoring of a stenotype machine using the passport protocol."
 
-from itertools import izip_longest
+# Python 2/3 compatibility.
+from six.moves import zip_longest
 
 from plover.machine.base import SerialStenotypeBase
 
@@ -79,5 +80,5 @@ def grouper(iterable, n, fillvalue=None):
     "Collect data into fixed-length chunks or blocks"
     # grouper('ABCDEFG', 3, 'x') --> ABC DEF Gxx
     args = [iter(iterable)] * n
-    return izip_longest(fillvalue=fillvalue, *args)
+    return zip_longest(fillvalue=fillvalue, *args)
 
