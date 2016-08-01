@@ -1,5 +1,5 @@
 [Desktop Entry]
-Version=1.2
+Version=1.1
 Type=Application
 Terminal=false
 Exec=plover
@@ -7,4 +7,5 @@ Name=Plover
 Icon=plover
 Categories=Utility;Accessibility;
 Comment=stenographic input and translation
+Keywords=steno;input;keyboard;
 X-Unity-IconBackgroundColor=#414F4C
