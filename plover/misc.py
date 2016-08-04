@@ -1,6 +1,8 @@
 # Copyright (c) 2016 Open Steno Project
 # See LICENSE.txt for details.
 
+import sys
+
 # Python 2/3 compatibility.
 from six import PY3
 
@@ -33,11 +35,17 @@ def popcount_8(v):
     return ((v + (v >> 4) & 0xF0F0F0F) * 0x1010101) >> 24
 
 
-def characters(string):
-    """Python 2.7 has narrow Unicode on Mac OS X and Windows"""
+if sys.maxunicode == 65535:
 
-    encoded = string.encode('utf-32-be')  # 4 bytes per character
-    for char_start in range(0, len(encoded), 4):
-        end = char_start + 4
-        character = encoded[char_start:end].decode('utf-32-be')
-        yield character
+    def characters(string):
+        """Python 2.7 has narrow Unicode on Mac OS X and Windows"""
+        encoded = string.encode('utf-32-be')  # 4 bytes per character
+        for char_start in range(0, len(encoded), 4):
+            end = char_start + 4
+            character = encoded[char_start:end].decode('utf-32-be')
+            yield character
+
+else:
+
+    def characters(string):
+        return iter(string)
