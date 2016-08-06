@@ -38,8 +38,9 @@ from plover import __license__
 class PloverGUI(wx.App):
     """The main entry point for the Plover application."""
 
-    def __init__(self, config):
+    def __init__(self, config, engine=None):
         self.config = config
+        self.engine = engine
         # Override sys.argv[0] so X11 windows class is correctly set.
         argv = sys.argv
         try:
@@ -52,7 +53,7 @@ class PloverGUI(wx.App):
         """Called just before the application starts."""
         # Enable GUI logging.
         from plover.gui import log as gui_log
-        frame = MainFrame(self.config)
+        frame = MainFrame(self.config, engine=self.engine)
         self.SetTopWindow(frame)
 
         osx = sys.platform.startswith('darwin')
@@ -93,7 +94,7 @@ class MainFrame(wx.Frame):
     COMMAND_FOCUS = 'FOCUS'
     COMMAND_QUIT = 'QUIT'
 
-    def __init__(self, config):
+    def __init__(self, config, engine=None):
         self.config = config
 
         # Note: don't set position from config, since it's not yet loaded.
@@ -221,7 +222,10 @@ class MainFrame(wx.Frame):
         rect = wx.Rect(config.get_main_frame_x(), config.get_main_frame_y(), *self.GetSize())
         self.SetRect(AdjustRectToScreen(rect))
 
-        self.steno_engine = app.StenoEngine()
+        if engine is None:
+            self.steno_engine = app.StenoEngine()
+        else:
+            self.steno_engine = engine
         self.steno_engine.add_callback(
             lambda s: wx.CallAfter(self._update_status, s))
         self.steno_engine.set_output(
