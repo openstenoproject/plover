@@ -19,6 +19,7 @@ from plover.config import ASSETS_DIR, SPINNER_FILE, copy_default_dictionaries
 from plover.gui.config import ConfigurationDialog
 import plover.gui.add_translation
 import plover.gui.lookup
+from plover.gui.taskbar_icon import TaskBarIcon
 from plover.oslayer.keyboardcontrol import KeyboardEmulation
 from plover.machine.base import STATE_ERROR, STATE_INITIALIZING, STATE_RUNNING
 from plover.machine.registry import machine_registry
@@ -248,6 +249,11 @@ class MainFrame(wx.Frame):
             app.reset_machine(self.steno_engine, self.config)
         except Exception:
             log.error('machine reset failed', exc_info=True)
+
+        #Tray Icon
+        icon = TaskBarIcon(self.ON_IMAGE_FILE, self.OFF_IMAGE_FILE, lambda: self.consume_command(self.COMMAND_TOGGLE))
+        icon.set_active(self.steno_engine.is_running)
+        self.steno_engine.add_callback(lambda s: icon.set_active(self.steno_engine.is_running))
 
     def consume_command(self, command):
         # The first commands can be used whether plover has output enabled or not.
