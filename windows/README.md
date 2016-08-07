@@ -26,7 +26,7 @@ It is best to develop using 32 bit tools for Plover.
 Most dependencies can be retrieved with pip:
 
 - `python setup.py write_requirements`
-- `pip install -r requirements.txt`
+- `pip install -r requirements.txt -c requirements_constraints.txt`
 
 ### Running Plover in development
 

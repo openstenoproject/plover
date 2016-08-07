@@ -487,7 +487,7 @@ class Helper(object):
             self.install(name, src, checksum, handler_format=handler_format, handler_args=handler_args, path_dir=path_dir)
         info('install requirements')
         self._env.run(('python.exe', 'setup.py', 'write_requirements'))
-        self._pip_install('-r', 'requirements.txt')
+        self._pip_install('-r', 'requirements.txt', '-c', 'requirements_constraints.txt')
 
     def cmd_run(self, executable, *args):
         '''run command in environment
