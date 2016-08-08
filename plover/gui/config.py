@@ -23,6 +23,8 @@ from plover.dictionary.loading_manager import manager as dict_manager
 from plover.gui.paper_tape import StrokeDisplayDialog
 from plover.gui.suggestions import SuggestionsDisplayDialog
 from plover.gui.keyboard_config import KeyboardConfigDialog
+from plover.misc import SimpleNamespace
+
 
 EDIT_BUTTON_NAME = "Dictionary Editor"
 ADD_TRANSLATION_BUTTON_NAME = "Add Translation"
@@ -243,10 +245,7 @@ class MachineConfig(wx.Panel):
                                                      self.advanced_options)
 
     def _advanced_config(self, event=None):
-        class Struct(object):
-            def __init__(self, **kwargs):
-                self.__dict__.update(kwargs)
-        config_instance = Struct(**self.advanced_options)
+        config_instance = SimpleNamespace(**self.advanced_options)
         if 'port' in self.advanced_options:
             scd = SerialConfigDialog(config_instance, self, self.config)
             scd.ShowModal()  # SerialConfigDialog destroys itself.

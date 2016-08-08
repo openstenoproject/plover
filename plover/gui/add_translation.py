@@ -119,7 +119,6 @@ class AddTranslationDialog(wx.Dialog):
         self.other_instances.append(self)
 
         self._focus = None
-        self._win_id = None
 
     def _restore_engine_state(self):
         self.engine.translator.set_state(self.previous_state)
@@ -218,12 +217,7 @@ class AddTranslationDialog(wx.Dialog):
         event.Skip()
 
     def on_activate(self, event):
-        # On Linux, transient focus out/in events on engine output mean
-        # we can't just rely on event.Active to track focus loss/gain.
-        focus = util.GetForegroundWindow()
-        if event.Active:
-            self._win_id = focus
-        elif self._win_id != focus:
+        if not event.Active:
             self._unfocus_strokes()
             self._unfocus_translation()
         event.Skip()

@@ -14,7 +14,7 @@ from plover.machine.keymap import Keymap
 from plover import system
 
 
-STATE_STOPPED = 'closed'
+STATE_STOPPED = 'stopped'
 STATE_INITIALIZING = 'initializing'
 STATE_RUNNING = 'connected'
 STATE_ERROR = 'disconnected'
