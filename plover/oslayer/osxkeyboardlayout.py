@@ -14,7 +14,6 @@ import struct
 import unicodedata
 import re
 from threading import Thread
-from collections import OrderedDict
 import AppKit
 import Foundation
 from PyObjCTools import AppHelper
@@ -461,19 +460,22 @@ if __name__ == '__main__':
     print()
     unmapped_characters = []
     for char, keyname in sorted(CHAR_TO_KEYNAME.items()):
-        sequence = OrderedDict()
+        sequence = []
         for code, mod in layout.char_to_key_sequence(char):
             if code is not None:
-                sequence[str(code)] = u'{}{}'.format(
-                    layout._modifier_string(mod),
-                    layout.key_code_to_char(code, 0)
+                sequence.append(
+                    (code, u'{}{}'.format(
+                         layout._modifier_string(mod),
+                         layout.key_code_to_char(code, 0)
+                     )
+                    )
                 )
             else:
                 unmapped_characters.append(char)
         if sequence:
             print(u'Name:\t\t{}\nCharacter:\t{}\nSequence:\t‘{}’\nBase codes:\t‘{}’\n'.format(
-                keyname, char, u'’, ‘'.join(sequence.values()),
-                u'’, ‘'.join(sequence.keys())
+                keyname, char, u'’, ‘'.join(combo[1] for combo in sequence),
+                u'’, ‘'.join(str(combo[0]) for combo in sequence)
             ))
     print(u'No mapping on this layout for characters: ‘{}’'.format(
         u'’, ‘'.join(unmapped_characters)
