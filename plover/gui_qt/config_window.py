@@ -349,6 +349,7 @@ class ConfigWindow(QDialog, Ui_ConfigWindow, WindowState):
         self._engine = engine
         machine_options = {
             'Keyboard': KeyboardOption,
+            'Stenograph USB': NopeOption,
             'Treal': NopeOption,
         }
         machines = {
