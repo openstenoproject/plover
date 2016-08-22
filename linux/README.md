@@ -35,7 +35,7 @@ You can create a pip compatible requirements file with:
 
 And then using pip, e.g. for a user install:
 
-`pip2 install --user -r requirements.txt`
+`pip2 install --user -r requirements.txt -c requirements_constraints.txt`
 
 Notes:
 - if your version of pip is too old, you may get parsing errors on the lines with conditional directives (like `python-xlib>=0.14; "linux" in sys_platform`). You can fix those with the following sed command: `sed -i '/; "/{/; "linux" in sys_platform$/!d;s/; .*//}' requirements.txt`.

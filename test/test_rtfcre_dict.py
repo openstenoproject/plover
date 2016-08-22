@@ -2,10 +2,13 @@
 # See LICENSE.txt for details.
 
 import os
+import codecs
 import tempfile
 import unittest
 from contextlib import contextmanager
-from StringIO import StringIO
+
+# Python 2/3 compatibility.
+from six import BytesIO
 
 import mock
 
@@ -125,10 +128,11 @@ class TestCase(unittest.TestCase):
         @contextmanager
         def make_dict(contents):
             tf = tempfile.NamedTemporaryFile(delete=False)
+            writer = codecs.getwriter('cp1252')(tf)
             try:
-                tf.write(header)
-                tf.write(contents)
-                tf.write(footer)
+                writer.write(header)
+                writer.write(contents)
+                writer.write(footer)
                 tf.close()
                 yield tf.name
             finally:
@@ -207,10 +211,10 @@ class TestCase(unittest.TestCase):
             self.assertEqual(result, expected, msg=msg)
 
     def test_save_dictionary(self):
-        f = StringIO()
+        f = BytesIO()
         d = {
         'S/T': '{pre^}',
         }
         save_dictionary(d, f)
-        expected = '{\\rtf1\\ansi{\\*\\cxrev100}\\cxdict{\\*\\cxsystem Plover}{\\stylesheet{\\s0 Normal;}}\r\n{\\*\\cxs S///T}pre\\cxds \r\n}\r\n' 
+        expected = b'{\\rtf1\\ansi{\\*\\cxrev100}\\cxdict{\\*\\cxsystem Plover}{\\stylesheet{\\s0 Normal;}}\r\n{\\*\\cxs S///T}pre\\cxds \r\n}\r\n'
         self.assertEqual(f.getvalue(), expected)

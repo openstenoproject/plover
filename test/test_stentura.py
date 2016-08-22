@@ -3,10 +3,12 @@
 
 """Unit tests for stentura.py."""
 
-import array
 import struct
 import threading
 import unittest
+
+# Python 2/3 compatibility.
+from six import assertCountEqual
 
 from plover.machine import stentura
 
@@ -17,14 +19,12 @@ def make_response(seq, action, error=0, p1=0, p2=0, data=None,
         length = 14
         if data:
             length += 2 + len(data)
-    response = struct.pack('<2B5H', 1, seq, length, action, error, p1, p2)
-    crc = stentura._crc(buffer(response, 1, 11))
-    response += struct.pack('<H', crc)
+    response = bytearray(14 + ((2 + len(data)) if data else 0))
+    struct.pack_into('<2B5H', response, 0, 1, seq, length, action, error, p1, p2)
+    struct.pack_into('<H', response, 12, stentura._crc(response, 1, 11))
     if data:
-        crc = stentura._crc(data)
-        if not isinstance(data, str) and not isinstance(data, buffer):
-            data = ''.join([chr(b) for b in data])
-        response += data + struct.pack('<H', crc)
+        response[14:14+len(data)] = data
+        struct.pack_into('<H', response, 14 + len(data), stentura._crc(data))
     return response
 
 
@@ -35,25 +35,25 @@ def make_read_response(seq, data=[]):
 def make_readc_packets(data):
     requests, responses = [], []
     seq = stentura._SequenceCounter()
-    buf = array.array('B')
+    buf = bytearray(256)
     block, byte = 0, 0
     while data:
         s = seq()
-        chunk = buffer(data, 0, 512)
-        data = buffer(data, 512)
+        chunk = data[0:512]
+        data = data[512:]
         q = stentura._make_read(buf, s, block, byte)
-        requests.append(str(q))
+        requests.append(bytes(q))
         r = make_read_response(s, chunk)
-        responses.append(str(r))
+        responses.append(bytes(r))
         byte += len(chunk)
         if byte >= 512:
             block += 1
             byte -= 512
     s = seq()
     q = stentura._make_read(buf, s, block, byte)
-    requests.append(str(q))
+    requests.append(bytes(q))
     r = make_read_response(s)
-    responses.append(str(r))
+    responses.append(bytes(r))
     return requests, responses
 
 
@@ -77,25 +77,25 @@ class MockPacketPort(object):
 
     def write(self, data):
         self.writes += 1
-        if self._requests and self._requests[self.writes - 1] != str(data):
+        if self._requests and self._requests[self.writes - 1] != bytes(data):
             raise Exception("Wrong packet.")
         self._current_response_offset = 0
         return len(data)
 
     def read(self, count):
         response = self._responses[self.writes - 1]
-        data = buffer(response, self._current_response_offset, count)
+        data = response[self._current_response_offset:self._current_response_offset+count]
         self._current_response_offset += count
         return data
 
 
 class TestCase(unittest.TestCase):
     def test_crc(self):
-        data = [ord(x) for x in '123456789']
+        data = bytearray(b'123456789')
         self.assertEqual(stentura._crc(data), 0xBB3D)
 
     def test_write_buffer(self):
-        buf = array.array('B')
+        buf = bytearray()
         data = [1, 2, 3]
         stentura._write_to_buffer(buf, 0, data)
         self.assertSequenceEqual(buf, data)
@@ -108,13 +108,14 @@ class TestCase(unittest.TestCase):
         b = 0b11000100
         c = 0b11000000
         d = 0b11001000
-        self.assertItemsEqual(stentura._parse_stroke(a, b, c, d),
-                              ['S-', 'A-', '-T'])
+        assertCountEqual(self,
+                         stentura._parse_stroke(a, b, c, d),
+                         ['S-', 'A-', '-T'])
 
 # 11^#STKP 11WHRAO* 11EUFRPB 11LGTSDZ
 # PRAOERBGS
     def test_parse_strokes(self):
-        data = []
+        data = bytearray()
         # SAT
         a = 0b11001000
         b = 0b11000100
@@ -127,52 +128,53 @@ class TestCase(unittest.TestCase):
         c = 0b11100101
         d = 0b11010100
         data.extend([a, b, c, d])
-        strokes = stentura._parse_strokes(''.join([chr(b) for b in data]))
+        strokes = stentura._parse_strokes(bytes(data))
         expected = [['S-', 'A-', '-T'],
                     ['P-', 'R-', 'A-', 'O-', '-E', '-R', '-B', '-G', '-S']]
         for i, stroke in enumerate(strokes):
-            self.assertItemsEqual(stroke, expected[i])
+            assertCountEqual(self, stroke, expected[i])
 
     def test_make_request(self):
-        buf = array.array('B')
+        buf = bytearray(range(256))
         seq = 2
         action = stentura._OPEN
         p1, p2, p3, p4, p5 = 1, 2, 3, 4, 5
         p = stentura._make_request(buf, action, seq, p1, p2, p3, p4, p5)
         for_crc = [seq, 18, 0, action, 0, p1, 0, p2, 0, p3, 0, p4, 0, p5, 0]
         crc = stentura._crc(for_crc)
-        expected = [1] + for_crc + [crc & 0xFF, crc >> 8]
-        self.assertSequenceEqual(p, [chr(b) for b in expected])
+        expected = bytearray([1] + for_crc + [crc & 0xFF, crc >> 8])
+        self.assertEqual(p, expected)
 
         # Now with data.
-        data = 'Testing Testing 123'
+        data = b'Testing Testing 123'
         p = stentura._make_request(buf, action, seq, p1, p2, p3, p4, p5, data)
         length = 18 + len(data) + 2
         for_crc = [seq, length & 0xFF, length >> 8, action, 0,
                    p1, 0, p2, 0, p3, 0, p4, 0, p5, 0]
         crc = stentura._crc(for_crc)
         data_crc = stentura._crc(data)
-        expected = ([1] + for_crc + [crc & 0xFF, crc >> 8] +
-                    [ord(b) for b in data] + [data_crc & 0xFF, data_crc >> 8])
-        self.assertSequenceEqual(p, [chr(b) for b in expected])
+        expected = bytearray([1] + for_crc + [crc & 0xFF, crc >> 8])
+        expected.extend(data)
+        expected.extend([data_crc & 0xFF, data_crc >> 8])
+        self.assertEqual(p, expected)
 
     def test_make_open(self):
-        buf = array.array('B', [3] * 18)  # Start with junk in the buffer.
+        buf = bytearray(range(32))  # Start with junk in the buffer.
         seq = 79
-        drive = 'A'
-        filename = 'REALTIME.000'
+        drive = b'A'
+        filename = b'REALTIME.000'
         p = stentura._make_open(buf, seq, drive, filename)
         for_crc = [seq, 20 + len(filename), 0, stentura._OPEN, 0, ord(drive),
                    0, 0, 0, 0, 0, 0, 0, 0, 0]
         crc = stentura._crc(for_crc)
         data_crc = stentura._crc(filename)
-        expected = ([1] + for_crc + [crc & 0xFF, crc >> 8] +
-                    [ord(b) for b in filename] +
-                    [data_crc & 0xFF, data_crc >> 8])
-        self.assertSequenceEqual(p, [chr(b) for b in expected])
+        expected = bytearray([1] + for_crc + [crc & 0xFF, crc >> 8])
+        expected.extend(filename)
+        expected.extend([data_crc & 0xFF, data_crc >> 8])
+        self.assertEqual(p, expected)
 
     def test_make_read(self):
-        buf = array.array('B', [3] * 20)  # Start with junk in the buffer.
+        buf = bytearray(range(32))  # Start with junk in the buffer.
         seq = 32
         block = 1
         byte = 8
@@ -181,29 +183,29 @@ class TestCase(unittest.TestCase):
         for_crc = [seq, 18, 0, stentura._READC, 0, 1, 0, 0, 0, length, 0,
                    block, 0, byte, 0]
         crc = stentura._crc(for_crc)
-        expected = [1] + for_crc + [crc & 0xFF, crc >> 8]
-        self.assertSequenceEqual(p, [chr(b) for b in expected])
+        expected = bytearray([1] + for_crc + [crc & 0xFF, crc >> 8])
+        self.assertEqual(p, expected)
 
     def test_make_reset(self):
-        buf = array.array('B', [3] * 20)  # Start with junk in the buffer.
+        buf = bytearray(range(32))  # Start with junk in the buffer.
         seq = 67
         p = stentura._make_reset(buf, seq)
         for_crc = [seq, 18, 0, stentura._RESET, 0] + ([0] * 10)
         crc = stentura._crc(for_crc)
-        expected = [1] + for_crc + [crc & 0xFF, crc >> 8]
-        self.assertSequenceEqual(p, [chr(b) for b in expected])
+        expected = bytearray([1] + for_crc + [crc & 0xFF, crc >> 8])
+        self.assertEqual(p, expected)
 
     def test_validate_response(self):
         tests = [
             (make_response(5, 9, 1, 2, 3), True, "valid no data"),
-            (make_response(5, 9, 1, 2, 3, data="hello"), True, "valid, data"),
+            (make_response(5, 9, 1, 2, 3, data=b"hello"), True, "valid, data"),
             (make_response(5, 9, 1, 2, 3)[:12], False, "short"),
             (make_response(5, 9, 1, 2, 3, length=15), False, "Length long"),
-            (make_response(5, 9, 1, 2, 3, data='foo', length=15), False,
+            (make_response(5, 9, 1, 2, 3, data=b'foo', length=15), False,
              "Length short"),
-            (make_response(5, 9, 1, 2, 3) + '1', False, "Bad data"),
-            (make_response(5, 9, 1, 2, 3)[:-1] + '1', False, "bad crc"),
-            (make_response(5, 9, 1, 2, 3, data='foo')[:-1] + '1', False,
+            (make_response(5, 9, 1, 2, 3) + b'1', False, "Bad data"),
+            (make_response(5, 9, 1, 2, 3)[:-1] + b'1', False, "bad crc"),
+            (make_response(5, 9, 1, 2, 3, data=b'foo')[:-1] + b'1', False,
              "bad data crc")
         ]
         for test in tests:
@@ -215,23 +217,23 @@ class TestCase(unittest.TestCase):
             def read(self, count):
                 if count != 5:
                     raise Exception("Incorrect number read.")
-                return "12345"
+                return b"12345"
 
         port = MockPort()
-        buf = array.array('B')
+        buf = bytearray([0] * 20)
         count = stentura._read_data(port, threading.Event(), buf, 0, 5)
         self.assertEqual(count, 5)
-        self.assertSequenceEqual([chr(b) for b in buf], "12345")
+        self.assertEqual(buf, b'12345' + (b'\x00' * 15))
 
         # Test the offset parameter.
         count = stentura._read_data(port, threading.Event(), buf, 4, 5)
-        self.assertSequenceEqual([chr(b) for b in buf], "123412345")
+        self.assertEqual(buf, b'123412345' + (b'\x00' * 11))
 
     def test_read_data_stop_set(self):
         class MockPort(object):
             def read(self, count):
-                return "0000"
-        buf = array.array('B')
+                return b"0000"
+        buf = bytearray()
         event = threading.Event()
         event.set()
         with self.assertRaises(stentura._StopException):
@@ -245,7 +247,7 @@ class TestCase(unittest.TestCase):
                 return "123"
 
         port = MockPort()
-        buf = array.array('B')
+        buf = bytearray()
         with self.assertRaises(stentura._TimeoutException):
             stentura._read_data(port, threading.Event(), buf, 0, 4)
 
@@ -255,13 +257,13 @@ class TestCase(unittest.TestCase):
                 self._packet = packet
 
             def read(self, count):
-                requested_bytes = buffer(self._packet, 0, count)
+                requested_bytes = self._packet[0:count]
                 self._packet = self._packet[count:]
                 return requested_bytes
 
-        buf = array.array('B')
+        buf = bytearray(256)
         for packet in [make_response(1, 2, 3, 4, 5),
-                       make_response(1, 2, 3, 4, 5, "hello")]:
+                       make_response(1, 2, 3, 4, 5, b"hello")]:
             port = MockPort(packet)
             response = stentura._read_packet(port, threading.Event(), buf)
             self.assertSequenceEqual(response, packet)
@@ -280,7 +282,7 @@ class TestCase(unittest.TestCase):
                               [0] * data_section_length)
                 if give_too_much_data:
                     self._data.append(0)
-                self._data = ''.join([chr(b) for b in self._data])
+                self._data = bytearray(self._data)
 
             def read(self, count):
                 if not self._read1:
@@ -297,11 +299,11 @@ class TestCase(unittest.TestCase):
                     # If read() returns less bytes what was requested,
                     # it indicates a timeout.
                     count -= 1
-                requested_bytes = buffer(self._data, 0, count);
+                requested_bytes = self._data[0:count]
                 self._data = self._data[count:]
                 return requested_bytes
 
-        buf = array.array('B')
+        buf = bytearray()
 
         with self.assertRaises(stentura._StopException):
             port = MockPort(set1=True)
@@ -327,14 +329,14 @@ class TestCase(unittest.TestCase):
         class MockPort(object):
             def __init__(self, chunk):
                 self._chunk = chunk
-                self.data = ''
+                self.data = b''
 
             def write(self, data):
                 data = data[:self._chunk]
                 self.data += data
                 return len(data)
 
-        data = ''.join([chr(b) for b in range(20)])
+        data = bytearray(range(20))
 
         # All in one shot.
         port = MockPort(20)
@@ -348,12 +350,12 @@ class TestCase(unittest.TestCase):
 
     def test_send_receive(self):
         event = threading.Event()
-        buf, seq, action = array.array('B'), 5, stentura._OPEN
-        request = stentura._make_request(array.array('B'), stentura._OPEN, seq)
+        buf, seq, action = bytearray(256), 5, stentura._OPEN
+        request = stentura._make_request(bytearray(256), stentura._OPEN, seq)
         correct_response = make_response(seq, action)
         wrong_seq = make_response(seq - 1, action)
         wrong_action = make_response(seq, action + 1)
-        bad_response = make_response(seq, action, data="foo", length=15)
+        bad_response = make_response(seq, action, data=b"foo", length=15)
 
         # Correct response first time.
         responses = [correct_response]
@@ -362,7 +364,7 @@ class TestCase(unittest.TestCase):
         self.assertSequenceEqual(response, correct_response)
 
         # Timeout once then correct response.
-        responses = ['', correct_response]
+        responses = [b'', correct_response]
         port = MockPacketPort(responses)
         response = stentura._send_receive(port, event, request, buf)
         self.assertSequenceEqual(response, correct_response)
@@ -375,7 +377,7 @@ class TestCase(unittest.TestCase):
 
         # No correct responses. Also make sure max_retries is honored.
         max_tries = 6
-        responses = [''] * max_tries
+        responses = [b''] * max_tries
         port = MockPacketPort(responses)
         with self.assertRaises(stentura._ConnectionLostException):
             stentura._send_receive(port, event, request, buf, max_tries)
@@ -403,32 +405,32 @@ class TestCase(unittest.TestCase):
     def test_sequence_counter(self):
         seq = stentura._SequenceCounter()
         actual = [seq() for x in range(512)]
-        expected = range(256) * 2
+        expected = list(range(256)) * 2
         self.assertEqual(actual, expected)
 
         seq = stentura._SequenceCounter(67)
         actual = [seq() for x in range(512)]
-        expected = range(67, 256) + range(256) + range(67)
+        expected = list(range(67, 256)) + list(range(256)) + list(range(67))
         self.assertEqual(actual, expected)
 
     def test_read(self):
-        request_buf = array.array('B')
-        response_buf = array.array('B')
-        stroke_buf = array.array('B')
+        request_buf = bytearray(256)
+        response_buf = bytearray(256)
+        stroke_buf = bytearray(256)
         event = threading.Event()
 
         tests = ([0b11000001] * (3 * 512 + 28), [0b11010101] * 4,
                  [0b11000010] * 8)
 
         for data in tests:
-            data = str(buffer(array.array('B', data)))
+            data = bytearray(data)
             requests, responses = make_readc_packets(data)
             port = MockPacketPort(responses, requests)
             seq = stentura._SequenceCounter()
             block, byte = 0, 0
             block, byte, response = stentura._read(port, event, seq, request_buf,
                                       response_buf, stroke_buf, block, byte)
-            self.assertEqual(data, str(response))
+            self.assertEqual(data, bytes(response))
             self.assertEqual(block, len(data) // 512)
             self.assertEqual(byte, len(data) % 512)
 
@@ -444,8 +446,8 @@ class TestCase(unittest.TestCase):
 
         class MockPort(object):
             def __init__(self, events=[]):
-                self._file = ''
-                self._out = ''
+                self._file = b''
+                self._out = b''
                 self._is_open = False
                 self.event = threading.Event()
                 self.count = 0
@@ -478,7 +480,7 @@ class TestCase(unittest.TestCase):
                 return len(request)
 
             def read(self, count):
-                requested_bytes = buffer(self._out,0 , count)
+                requested_bytes = self._out[0:count]
                 self._out = self._out[count:]
                 return requested_bytes
 
@@ -492,19 +494,19 @@ class TestCase(unittest.TestCase):
             def flushOutput(self):
                 pass
 
-        data1 = ''.join([chr(b) for b in [0b11001010] * 4 * 9])
+        data1 = bytearray([0b11001010] * 4 * 9)
         data1_trans = [['S-', 'K-', 'R-', 'O-', '-F', '-P', '-T', '-D']] * 9
-        data2 = ''.join([chr(b) for b in [0b11001011] * 4 * 30])
+        data2 = bytearray([0b11001011] * 4 * 30)
 
         tests = [
             # No inputs but nothing crashes either.
-            (MockPort([(30, '', True)]), []),
+            (MockPort([(30, b'', True)]), []),
             # A few strokes.
-            (MockPort([(23, data1), (43, '', True)]), data1_trans),
+            (MockPort([(23, data1), (43, b'', True)]), data1_trans),
             # Ignore data that's there before we started.
-            (MockPort([(46, '', True)]).append(data2), []),
+            (MockPort([(46, b'', True)]).append(data2), []),
             # Ignore data that was there and also parse some strokes.
-            (MockPort([(25, data1), (36, '', True)]).append(data2), data1_trans)
+            (MockPort([(25, data1), (36, b'', True)]).append(data2), data1_trans)
         ]
 
         for test in tests:

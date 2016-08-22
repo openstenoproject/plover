@@ -14,11 +14,17 @@ http://www.legalxml.org/workgroups/substantive/transcripts/cre-spec.htm
 """
 
 import inspect
+import codecs
 import re
+
+# Python 2/3 compatibility.
+from six import get_function_code
+
 from plover.steno import normalize_steno
 from plover.steno_dictionary import StenoDictionary
-# TODO: Move dictionary format somewhere more caninical than formatting.
+# TODO: Move dictionary format somewhere more canonical than formatting.
 from plover.formatting import META_RE
+
 
 # A regular expression to capture an individual entry in the dictionary.
 DICT_ENTRY_PATTERN = re.compile(r'(?s)(?<!\\){\\\*\\cxs (?P<steno>[^}]+)}' + 
@@ -33,7 +39,7 @@ class TranslationConverter(object):
         self.styles = styles
         
         def linenumber(f):
-            return f[1].im_func.func_code.co_firstlineno
+            return get_function_code(f[1].__func__).co_firstlineno
         
         handler_funcs = inspect.getmembers(self, inspect.ismethod)
         handler_funcs.sort(key=linenumber)
@@ -283,7 +289,7 @@ def load_stylesheet(s):
 def load_dictionary(filename):
     """Load an RTF/CRE dictionary."""
     with open(filename, 'rb') as fp:
-        s = fp.read()
+        s = fp.read().decode('cp1252')
     styles = load_stylesheet(s)
     d = {}
     converter = TranslationConverter(styles)
@@ -325,15 +331,16 @@ def format_translation(t):
 
 # TODO: test this
 def save_dictionary(d, fp):
-    fp.write(HEADER)
+    writer = codecs.getwriter('cp1252')(fp)
+    writer.write(HEADER)
 
     for s, t in d.items():
         s = '/'.join(s)
         t = format_translation(t)
         entry = "{\\*\\cxs %s}%s\r\n" % (s, t)
-        fp.write(entry)
+        writer.write(entry)
 
-    fp.write("}\r\n")
+    writer.write("}\r\n")
 
 def create_dictionary():
     return StenoDictionary()

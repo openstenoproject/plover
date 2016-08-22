@@ -40,7 +40,7 @@ before_install:
     pip --disable-pip-version-check --timeout=5 --retries=2 install --upgrade --user 'setuptools>=19.6' &&
     # Manually install Cython if not already to speedup hidapi build.
     pip --disable-pip-version-check --timeout=5 --retries=2 install --user Cython &&
-    pip --disable-pip-version-check --timeout=5 --retries=2 install --upgrade --user -r requirements.txt &&
+    pip --disable-pip-version-check --timeout=5 --retries=2 install --upgrade --user -r requirements.txt -c requirements_constraints.txt &&
     # And now downgrade setuptools so py2app works correctly...
     pip --disable-pip-version-check --timeout=5 --retries=2 install --upgrade --user 'setuptools==19.2' &&
     pip --disable-pip-version-check list &&

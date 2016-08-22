@@ -268,6 +268,9 @@ if sys.platform.startswith('win32'):
 
 setup_requires.append('pytest')
 
+dependency_links = [
+   'git+https://github.com/benoit-pierre/pyobjc.git@pyobjc-3.1.1+plover#egg=pyobjc-core&subdirectory=pyobjc-core',
+]
 install_requires = [
     'six',
     'setuptools',
@@ -286,7 +289,7 @@ extras_require = {
         'wxPython>=3.0',
     ],
     ':"darwin" in sys_platform': [
-        'pyobjc-core>=3.0.3',
+        'pyobjc-core==3.1.1+plover',
         'pyobjc-framework-Cocoa>=3.0.3',
         'pyobjc-framework-Quartz>=3.0.3',
         'wxPython>=3.0',
@@ -311,6 +314,9 @@ def write_requirements(extra_features=()):
     requirements = sorted(set(requirements))
     with open('requirements.txt', 'w') as fp:
         fp.write('\n'.join(requirements))
+        fp.write('\n')
+    with open('requirements_constraints.txt', 'w') as fp:
+        fp.write('\n'.join(dependency_links))
         fp.write('\n')
 
 
@@ -339,6 +345,7 @@ if __name__ == '__main__':
         install_requires=install_requires,
         extras_require=extras_require,
         tests_require=tests_require,
+        dependency_links=dependency_links,
         entry_points={
             'console_scripts': ['plover=plover.main:main'],
             'setuptools.installation': ['eggsecutable=plover.main:main'],
