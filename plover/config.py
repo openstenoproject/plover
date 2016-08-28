@@ -19,6 +19,7 @@ else:
 from plover.exception import InvalidConfigurationError
 from plover.machine.registry import machine_registry
 from plover.oslayer.config import ASSETS_DIR, CONFIG_DIR
+from plover.misc import expand_path, shorten_path
 from plover import system
 from plover import log
 
@@ -170,33 +171,6 @@ class Config(object):
         # A convenient place for other code to store a file name.
         self.target_file = None
 
-    def _path_to_config_value(self, path):
-        ''' Return config value for a path.
-
-            If the path is below CONFIG_DIR, a relative path to it is returned,
-            otherwise, an absolute path is returned.
-
-            Note: relative path are automatically assumed to be relative to CONFIG_DIR.
-        '''
-        path = os.path.realpath(os.path.join(CONFIG_DIR, path))
-        config_dir = os.path.realpath(CONFIG_DIR)
-        if not config_dir.endswith(os.sep):
-            config_dir += os.sep
-        if path.startswith(config_dir):
-            value = path[len(config_dir):]
-        else:
-            value = path
-        return value
-
-    def _path_from_config_value(self, value):
-        ''' Return a path from a config value.
-
-            If value is an absolute path, it is returned as is
-            otherwise, an absolute path relative to CONFIG_DIR is returned.
-        '''
-        path = os.path.realpath(os.path.join(CONFIG_DIR, value))
-        return path
-
     def load(self, fp):
         self._config = configparser.RawConfigParser()
         reader = codecs.getreader('utf8')(fp)
@@ -250,7 +224,7 @@ class Config(object):
 
     def set_dictionary_file_names(self, filenames):
         self._update(DICTIONARY_CONFIG_SECTION, (
-            (DICTIONARY_FILE_OPTION + str(n), self._path_to_config_value(path))
+            (DICTIONARY_FILE_OPTION + str(n), shorten_path(path))
             for n, path in enumerate(filenames, start=1)
         ))
 
@@ -264,17 +238,17 @@ class Config(object):
                          for o in options]
         if not filenames:
             filenames = DEFAULT_DICTIONARIES
-        filenames = [self._path_from_config_value(path) for path in filenames]
+        filenames = [expand_path(path) for path in filenames]
         return filenames
 
     def set_log_file_name(self, filename):
-        filename = self._path_to_config_value(filename)
+        filename = shorten_path(filename)
         self._set(LOGGING_CONFIG_SECTION, LOG_FILE_OPTION, filename)
 
     def get_log_file_name(self):
         filename = self._get(LOGGING_CONFIG_SECTION, LOG_FILE_OPTION,
                              DEFAULT_LOG_FILE)
-        return self._path_from_config_value(filename)
+        return expand_path(filename)
 
     def set_enable_stroke_logging(self, log):
         self._set(LOGGING_CONFIG_SECTION, ENABLE_STROKE_LOGGING_OPTION, log)
