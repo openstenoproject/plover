@@ -2,16 +2,21 @@ language: generic
 
 matrix:
   include:
+    # Linux / Python 2
     - os: linux
+      env:
+        - CACHE_NAME=linux_py2
       dist: trusty
       sudo: required
-      # Disabled until Travis CI allows using a different cache ID for each OS.
-      # cache:
-      #   directories:
-      #     - $HOME/.cache/pip
-      # before_cache:
-      #   - rm -rf $HOME/.cache/pip/log
+      cache:
+        directories:
+          - $HOME/.cache/pip
+      before_cache:
+        - rm -rf $HOME/.cache/pip/log
+    # OSX / Python 2
     - os: osx
+      env:
+        - CACHE_NAME=osx_py2
       cache:
         directories:
           - /Users/travis/Library/Caches/pip
