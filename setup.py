@@ -2,6 +2,7 @@
 # Copyright (c) 2010 Joshua Harlan Lifton.
 # See LICENSE.txt for details.
 
+import contextlib
 import os
 import re
 import shutil
@@ -24,12 +25,6 @@ from plover import (
 )
 
 from utils.metadata import copy_metadata
-
-
-def reload_module(mod):
-    # Python 2/3 compatibility.
-    from six.moves import reload_module as _reload
-    _reload(mod)
 
 
 def get_version():
@@ -63,7 +58,33 @@ def pyinstaller(*args):
     return main(py_args) or 0
 
 
-class PyInstallerDist(setuptools.Command):
+class Command(setuptools.Command):
+
+    def build_in_place(self):
+        self.run_command('build_py')
+        self.reinitialize_command('build_ext', inplace=1)
+        self.run_command('build_ext')
+
+    @contextlib.contextmanager
+    def project_on_sys_path(self):
+        self.build_in_place()
+        ei_cmd = self.get_finalized_command("egg_info")
+        old_path = sys.path[:]
+        old_modules = sys.modules.copy()
+        try:
+            sys.path.insert(0, pkg_resources.normalize_path(ei_cmd.egg_base))
+            pkg_resources.working_set.__init__()
+            pkg_resources.add_activation_listener(lambda dist: dist.activate())
+            pkg_resources.require('%s==%s' % (ei_cmd.egg_name, ei_cmd.egg_version))
+            yield
+        finally:
+            sys.path[:] = old_path
+            sys.modules.clear()
+            sys.modules.update(old_modules)
+            pkg_resources.working_set.__init__()
+
+
+class PyInstallerDist(Command):
 
     user_options = []
     extra_args = []
@@ -75,8 +96,7 @@ class PyInstallerDist(setuptools.Command):
         pass
 
     def run(self):
-        # Make sure metadata are up-to-date first.
-        self.run_command("egg_info")
+        self.build_in_place()
         code = pyinstaller(*self.extra_args)
         if code != 0:
             sys.exit(code)
@@ -89,7 +109,7 @@ class BinaryDistWin(PyInstallerDist):
     ]
 
 
-class Launch(setuptools.Command):
+class Launch(Command):
 
     description = 'run %s from source' % __software_name__.capitalize()
     command_consumes_arguments = True
@@ -102,15 +122,13 @@ class Launch(setuptools.Command):
         pass
 
     def run(self):
-        # Make sure metadata are up-to-date first.
-        self.run_command('egg_info')
-        reload_module(pkg_resources)
-        from plover.main import main
-        sys.argv = [' '.join(sys.argv[0:2]) + ' --'] + self.args
-        sys.exit(main())
+        with self.project_on_sys_path():
+            from plover.main import main
+            sys.argv = [' '.join(sys.argv[0:2]) + ' --'] + self.args
+            sys.exit(main())
 
 
-class PatchVersion(setuptools.Command):
+class PatchVersion(Command):
 
     description = 'patch package version from VCS'
     user_options = []
@@ -135,7 +153,7 @@ class PatchVersion(setuptools.Command):
             fp.write('\n'.join(contents))
 
 
-class TagWeekly(setuptools.Command):
+class TagWeekly(Command):
 
     description = 'tag weekly version'
     user_options = []
@@ -155,7 +173,7 @@ class TagWeekly(setuptools.Command):
         subprocess.check_call('git tag -f'.split() + [weekly_version])
 
 
-class Test(setuptools.Command):
+class Test(Command):
 
     description = 'run unit tests after in-place build'
     command_consumes_arguments = True
@@ -168,9 +186,10 @@ class Test(setuptools.Command):
         pass
 
     def run(self):
-        # Make sure metadata are up-to-date first.
-        self.run_command('egg_info')
-        reload_module(pkg_resources)
+        with self.project_on_sys_path():
+            self.run_tests()
+
+    def run_tests(self):
         test_dir = os.path.join(os.path.dirname(__file__), 'test')
         # Remove __pycache__ directory so pytest does not freak out
         # when switching between the Linux/Windows versions.
@@ -239,7 +258,7 @@ cmdclass = {
     'tag_weekly': TagWeekly,
     'test': Test,
 }
-setup_requires = ['six']
+setup_requires = []
 options = {}
 kwargs = {}
 
