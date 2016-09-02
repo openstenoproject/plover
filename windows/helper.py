@@ -400,7 +400,9 @@ class Helper(object):
         if not self.unattended and filename.endswith('.exe'):
             cmd = [filename]
         else:
-            cmd = ['easy_install.exe']
+            # Don't use easy_install.exe so setuptools
+            # can update itself if needed.
+            cmd = ['python.exe', '-m', 'easy_install']
             if not self.verbose:
                 cmd.append('--quiet')
             cmd.extend(options)
@@ -408,7 +410,8 @@ class Helper(object):
         self._env.run(cmd)
 
     def _pip_install(self, *args):
-        cmd = ['pip.exe',
+        # Don't use pip.exe so pip can update itself if needed.
+        cmd = ['python.exe', '-m', 'pip',
                '--timeout=5',
                '--retries=2',
                '--disable-pip-version-check']
