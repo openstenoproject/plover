@@ -339,6 +339,7 @@ if __name__ == '__main__':
         author_email='joshua.harlan.lifton@gmail.com',
         maintainer='Ted Morin',
         maintainer_email='morinted@gmail.com',
+        include_package_data=True,
         zip_safe=True,
         options=options,
         cmdclass=cmdclass,
@@ -356,9 +357,6 @@ if __name__ == '__main__':
             'plover.oslayer', 'plover.dictionary',
             'plover.system',
         ],
-        package_data={
-            'plover': ['assets/*'],
-        },
         data_files=[
             ('share/applications', ['application/Plover.desktop']),
             ('share/pixmaps', ['plover/assets/plover.png']),
