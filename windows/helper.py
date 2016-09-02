@@ -134,6 +134,8 @@ class WineEnvironment(Environment):
             info('intializing Wine prefix')
             for cmd in (
                 'env DISPLAY= wineboot --init',
+                # Wait for previous command to finish.
+                'wineserver -w',
                 'winetricks --no-isolate --unattended corefonts vcrun2008',
             ):
                 self.run(cmd.split())
