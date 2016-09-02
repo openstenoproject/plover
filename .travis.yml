@@ -41,14 +41,15 @@ before_install:
       ;;
     esac
     ./setup.py write_requirements
+    pip() { python2 -m pip --disable-pip-version-check --timeout=5 --retries=2 "$@"; }
     # Upgrade setuptools, we need at least 19.6 to prevent issues with Cython patched 'build_ext' command.
-    pip --disable-pip-version-check --timeout=5 --retries=2 install --upgrade --user 'setuptools>=19.6'
+    pip install --upgrade --user 'setuptools>=19.6'
     # Manually install Cython if not already to speedup hidapi build.
-    pip --disable-pip-version-check --timeout=5 --retries=2 install --user Cython
-    pip --disable-pip-version-check --timeout=5 --retries=2 install --upgrade --user -r requirements.txt -c requirements_constraints.txt
+    pip install --user Cython
+    pip install --upgrade --user -r requirements.txt -c requirements_constraints.txt
     # And now downgrade setuptools so py2app works correctly...
-    pip --disable-pip-version-check --timeout=5 --retries=2 install --upgrade --user 'setuptools==19.2'
-    pip --disable-pip-version-check list
+    pip install --upgrade --user 'setuptools==19.2'
+    pip list
     )
 
 install: true
