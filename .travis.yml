@@ -25,31 +25,31 @@ matrix:
 
 before_install:
   - |
+    (
+    set -e
     case "$TRAVIS_OS_NAME" in
     osx)
-      brew update &&
-      brew install python --framework &&
-      brew link --overwrite python &&
-      brew install wxpython &&
-      true
+      brew update
+      brew install python --framework
+      brew link --overwrite python
+      brew install wxpython
       ;;
     linux)
-      sudo apt-add-repository -y ppa:benoit.pierre/plover &&
-      sudo apt-get update -qq &&
-      sudo apt-get install -y cython libudev-dev libusb-1.0-0-dev python-dev python-wxgtk3.0 python-xlib &&
-      true
+      sudo apt-add-repository -y ppa:benoit.pierre/plover
+      sudo apt-get update -qq
+      sudo apt-get install -y cython libudev-dev libusb-1.0-0-dev python-dev python-wxgtk3.0 python-xlib
       ;;
-    esac &&
-    ./setup.py write_requirements &&
+    esac
+    ./setup.py write_requirements
     # Upgrade setuptools, we need at least 19.6 to prevent issues with Cython patched 'build_ext' command.
-    pip --disable-pip-version-check --timeout=5 --retries=2 install --upgrade --user 'setuptools>=19.6' &&
+    pip --disable-pip-version-check --timeout=5 --retries=2 install --upgrade --user 'setuptools>=19.6'
     # Manually install Cython if not already to speedup hidapi build.
-    pip --disable-pip-version-check --timeout=5 --retries=2 install --user Cython &&
-    pip --disable-pip-version-check --timeout=5 --retries=2 install --upgrade --user -r requirements.txt -c requirements_constraints.txt &&
+    pip --disable-pip-version-check --timeout=5 --retries=2 install --user Cython
+    pip --disable-pip-version-check --timeout=5 --retries=2 install --upgrade --user -r requirements.txt -c requirements_constraints.txt
     # And now downgrade setuptools so py2app works correctly...
-    pip --disable-pip-version-check --timeout=5 --retries=2 install --upgrade --user 'setuptools==19.2' &&
-    pip --disable-pip-version-check list &&
-    true
+    pip --disable-pip-version-check --timeout=5 --retries=2 install --upgrade --user 'setuptools==19.2'
+    pip --disable-pip-version-check list
+    )
 
 install: true
 
@@ -60,18 +60,19 @@ script:
 
 before_deploy:
   - |
+    (
+    set -e
     case "$TRAVIS_OS_NAME" in
     osx)
-      make -C osx &&
-      true
+      make -C osx
       ;;
     linux)
-      ./setup.py bdist_egg &&
-      ./setup.py bdist_wheel &&
-      true
+      ./setup.py bdist_{egg,wheel}
       ;;
-    esac &&
-    du -hs dist/*
+    esac
+    # Not all builds will produce artifacts.
+    du -hs dist/* || true
+    )
 
 deploy:
   provider: releases
