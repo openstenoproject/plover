@@ -13,7 +13,7 @@ import sys
 import traceback
 
 
-SITE_DIR = r'C:\Python27\Lib\site-packages'
+PY3 = sys.version_info[0] >= 3
 WIN_DIR = os.path.dirname(os.path.abspath(__file__))
 TOP_DIR = os.path.dirname(WIN_DIR)
 NULL = open(os.devnull, 'r+b')
@@ -137,6 +137,7 @@ class WineEnvironment(Environment):
                 # Wait for previous command to finish.
                 'wineserver -w',
                 'winetricks --no-isolate --unattended corefonts vcrun2008',
+                'winetricks win7',
             ):
                 self.run(cmd.split())
         if self.dry_run:
@@ -246,13 +247,26 @@ class Win32Environment(Environment):
 
 class Helper(object):
 
-    DEPENDENCIES = (
-        # Note: we force the installation directory, otherwise the installer gets confused when run under AppVeyor, and installs in the wrong directory...
-        ('wxPython'         , 'http://downloads.sourceforge.net/wxpython/wxPython3.0-win32-3.0.2.0-py27.exe'                                      , '864d44e418a0859cabff71614a495bea57738c5d', None, ('/SP-', '/VERYSILENT', '/DIR=%s' % SITE_DIR), None),
-        ('pywin32'          , 'http://downloads.sourceforge.net/project/pywin32/pywin32/Build 219/pywin32-219.win32-py2.7.exe'                    , '8bc39008383c646bed01942584117113ddaefe6b', 'easy_install', (), None),
-        ('Cython'           , 'https://pypi.python.org/packages/2.7/C/Cython/Cython-0.23.4-cp27-none-win32.whl'                                   , 'd7c1978fe2037674b151622158881c700ac2f06a', None, (), None),
-        ('VC for Python'    , 'https://download.microsoft.com/download/7/9/6/796EF2E4-801B-4FC4-AB28-B59FBF6D907B/VCForPython27.msi'              , '7800d037ba962f288f9b952001106d35ef57befe', None, (), None),
-    )
+    if PY3:
+        # Note: update pip so hidapi install from wheel works.
+        DEPENDENCIES = (
+            ('pip', 'pip:pip',
+             None, None, (), None),
+            ('pywin32', 'https://downloads.sourceforge.net/project/pywin32/pywin32/Build 220/pywin32-220.win32-py3.5.exe',
+             '5c9bd9643982dbfea4aba500503227dd997931df', 'easy_install', (), None),
+        )
+    else:
+        DEPENDENCIES = (
+            # Note: we force the installation directory, otherwise the installer gets confused when run under AppVeyor, and installs in the wrong directory...
+            ('wxPython', 'https://downloads.sourceforge.net/wxpython/wxPython3.0-win32-3.0.2.0-py27.exe',
+             '864d44e418a0859cabff71614a495bea57738c5d', None, ('/SP-', '/VERYSILENT', r'/DIR=C:\Python27\Lib\site-packages'), None),
+            ('pywin32', 'https://downloads.sourceforge.net/project/pywin32/pywin32/Build 219/pywin32-219.win32-py2.7.exe',
+             '8bc39008383c646bed01942584117113ddaefe6b', 'easy_install', (), None),
+            ('Cython', 'https://pypi.python.org/packages/2.7/C/Cython/Cython-0.23.4-cp27-none-win32.whl',
+             'd7c1978fe2037674b151622158881c700ac2f06a', None, (), None),
+            ('VC for Python', 'https://download.microsoft.com/download/7/9/6/796EF2E4-801B-4FC4-AB28-B59FBF6D907B/VCForPython27.msi',
+             '7800d037ba962f288f9b952001106d35ef57befe', None, (), None),
+        )
 
     def __init__(self):
         self.dry_run = False
@@ -547,9 +561,16 @@ class Helper(object):
 
 class WineHelper(Helper):
 
-    DEPENDENCIES = (
-        ('Python', 'https://www.python.org/ftp/python/2.7.11/python-2.7.11.msi', 'b14ebf1198fe4bbb940bcce90d910b8eddd60209', None, (), None),
-    ) + Helper.DEPENDENCIES
+    if PY3:
+        DEPENDENCIES = (
+            ('Python', 'https://www.python.org/ftp/python/3.5.2/python-3.5.2.exe',
+             '3873deb137833a724be8932e3ce659f93741c20b', None, ('PrependPath=1', '/S'), None),
+        ) + Helper.DEPENDENCIES
+    else:
+        DEPENDENCIES = (
+            ('Python', 'https://www.python.org/ftp/python/2.7.12/python-2.7.12.msi',
+             '662142691e0beba07a0bacee48e5e93a02537ff7', None, (), None),
+        ) + Helper.DEPENDENCIES
 
     def __init__(self):
         super(WineHelper, self).__init__()
