@@ -1,4 +1,4 @@
-#!/usr/bin/env python2
+#!/usr/bin/env python3
 
 # Python 2/3 compatibility.
 from __future__ import print_function

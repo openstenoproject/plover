@@ -259,7 +259,7 @@ do
   shift
 done
 
-python="${1:-python2}"
+python="${1:-python3}"
 
 case "$OSTYPE" in
   linux-gnu)

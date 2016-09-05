@@ -1,5 +1,5 @@
+#!/usr/bin/env python3
 # -*- coding: utf-8 -*-
-#!/usr/bin/env python2
 # Author: @abarnert, @willwade, and @morinted
 # Code taken and modified from
 # <https://github.com/willwade/PyUserInput/blob/master/pykeyboard/mac_keycode.py>

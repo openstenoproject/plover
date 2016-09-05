@@ -9,11 +9,11 @@ Note: you can use `./bootstrap.sh -n` to get a list of the commands that would b
 ## Manual development environment setup
 
 - install [Homebrew](http://brew.sh/)
-- install Python2.7: `brew install python`
+- install Python3.5: `brew install python3`
 - install other dependencies:
 ```
 ./setup.py write_requirements
-pip2 install -r requirements.txt -c requirements_constraints.txt
+pip3 install -r requirements.txt -c requirements_constraints.txt
 ```
 
 ## Running Plover in development
