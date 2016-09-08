@@ -1,10 +1,13 @@
 # Copyright (c) 2016 Open Steno Project
 # See LICENSE.txt for details.
 
+import os
 import sys
 
 # Python 2/3 compatibility.
 from six import PY3
+
+from plover.oslayer.config import CONFIG_DIR
 
 
 if PY3:
@@ -49,3 +52,35 @@ else:
 
     def characters(string):
         return iter(string)
+
+
+def expand_path(path):
+    ''' Expand path.
+
+        - if starting with "~/", it is substituted with the user home directory
+        - if relative, it is resolved relative to CONFIG_DIR
+    '''
+    path = os.path.expanduser(path)
+    path = os.path.realpath(os.path.join(CONFIG_DIR, path))
+    return path
+
+def shorten_path(path):
+    ''' Shorten path.
+
+        - if the path is below CONFIG_DIR, a relative path to it is returned
+        - if path is below the user home directory, "~/" is substituted to it
+
+        Note: relative path are automatically assumed to be relative to CONFIG_DIR.
+    '''
+    path = os.path.realpath(os.path.join(CONFIG_DIR, path))
+    config_dir = os.path.realpath(CONFIG_DIR)
+    if not config_dir.endswith(os.sep):
+        config_dir += os.sep
+    if path.startswith(config_dir):
+        return path[len(config_dir):]
+    home_dir = os.path.expanduser('~')
+    if not home_dir.endswith(os.sep):
+        home_dir += os.sep
+    if path.startswith(home_dir):
+        return os.path.join('~', path[len(home_dir):])
+    return path

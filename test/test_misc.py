@@ -4,9 +4,11 @@
 
 """Tests for misc.py."""
 
+import os
 import unittest
 
 import plover.misc as misc
+import plover.oslayer.config as conf
 
 
 class MiscTestCase(unittest.TestCase):
@@ -24,3 +26,29 @@ class MiscTestCase(unittest.TestCase):
                          ['S', 'T', 'K', 'P', 'W', 'H', 'R'])
         self.assertEqual(list(misc.characters('')), [])
         self.assertEqual(list(misc.characters(u'✂⌨')), [u'✂', u'⌨'])
+
+    def test_dictionary_path(self):
+        for short_path, full_path in (
+            # Absolute path, no change.
+            (os.path.abspath('/foo/bar'),
+             os.path.abspath('/foo/bar')),
+            # Relative path, resolve relative to configuration directory.
+            (os.path.normpath('foo/bar'),
+             os.path.join(conf.CONFIG_DIR, 'foo', 'bar')),
+            # Path below the user home directory.
+            (os.path.normpath('~/foo/bar'),
+             os.path.expanduser(os.path.normpath('~/foo/bar'))),
+        ):
+            for input, function, expected in (
+                # Unchanged.
+                (short_path, 'shorten', short_path),
+                (full_path, 'expand', full_path),
+                # Shorten.
+                (full_path, 'shorten', short_path),
+                # Expand.
+                (short_path, 'expand', full_path),
+            ):
+                function = '%s_path' % function
+                result = getattr(misc, function)(input)
+                self.assertEqual(result, expected, msg='%s(%r)=%r != %r'
+                                 % (function, input, result, expected))
