@@ -46,21 +46,30 @@ class LoggerTestCase(unittest.TestCase):
         stroke_filename1 = self._stroke_filename('/fn1')
         self.logger.set_stroke_filename('/fn1')
         self.logger.enable_stroke_logging(True)
-        self.logger.stroke(('S',))
+        self.logger.stroke(('S-',))
         stroke_filename2 = self._stroke_filename('/fn2')
         self.logger.set_stroke_filename('/fn2')
-        self.logger.stroke(('T',))
+        self.logger.stroke(('-T',))
         self.logger.set_stroke_filename(None)
-        self.logger.stroke(('P',))
-        self.assertEqual(FakeHandler.get_output(), {stroke_filename1: ['Stroke(S)'], 
-                                                    stroke_filename2: ['Stroke(T)']})
+        self.logger.stroke(('P-',))
+        self.assertEqual(FakeHandler.get_output(),
+                         {stroke_filename1: ["Stroke(S : ['S-'])"],
+                          stroke_filename2: ["Stroke(-T : ['-T'])"]
+                          }
+                         )
 
     def test_stroke(self):
         stroke_filename = self._stroke_filename('/fn')
         self.logger.set_stroke_filename(stroke_filename)
         self.logger.enable_stroke_logging(True)
-        self.logger.stroke(('ST', 'T'))
-        self.assertEqual(FakeHandler.get_output(), {stroke_filename: ['Stroke(ST T)']})
+        self.logger.stroke(('S-', '-T', 'T-'))
+        self.logger.stroke(('#', 'S-', '-T'))
+        self.assertEqual(FakeHandler.get_output(),
+                         {stroke_filename: ["Stroke(ST-T : ['S-', 'T-', '-T'])",
+                                            "Stroke(1-9 : ['1-', '-9'])"
+                                            ]
+                          }
+                         )
 
     def test_log_translation(self):
         stroke_filename = self._stroke_filename('/fn')
@@ -73,12 +82,14 @@ class LoggerTestCase(unittest.TestCase):
     def test_enable_stroke_logging(self):
         stroke_filename = self._stroke_filename('/fn')
         self.logger.set_stroke_filename(stroke_filename)
-        self.logger.stroke(('a',))
+        self.logger.stroke(('S-',))
         self.logger.enable_stroke_logging(True)
-        self.logger.stroke(('b',))
+        self.logger.stroke(('T-',))
         self.logger.enable_stroke_logging(False)
-        self.logger.stroke(('c',))
-        self.assertEqual(FakeHandler.get_output(), {stroke_filename: ['Stroke(b)']})
+        self.logger.stroke(('K-',))
+        self.assertEqual(FakeHandler.get_output(),
+                         {stroke_filename: ["Stroke(T : ['T-'])"]}
+                         )
 
     def test_enable_translation_logging(self):
         stroke_filename = self._stroke_filename('/fn')
