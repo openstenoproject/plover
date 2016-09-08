@@ -50,7 +50,7 @@ matrix:
 before_install:
   - |
     (
-    set -e
+    set -ex
     case "$TRAVIS_OS_NAME" in
     osx)
       python_package=''
@@ -127,7 +127,7 @@ script:
 before_deploy:
   - |
     (
-    set -e
+    set -ex
     case "$TRAVIS_OS_NAME" in
     osx)
       if [ $PYTHON = python2 ]
