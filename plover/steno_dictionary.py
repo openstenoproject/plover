@@ -90,6 +90,7 @@ class StenoDictionary(collections.MutableMapping):
 
 
 class StenoDictionaryCollection(object):
+
     def __init__(self):
         self.dicts = []
         self.filters = []
@@ -140,9 +141,12 @@ class StenoDictionaryCollection(object):
             if key:
                 return key
 
-    def set(self, key, value):
-        if self.dicts:
-            self.dicts[0][key] = value
+    def set(self, key, value, dictionary=None):
+        if dictionary is None:
+            d = self.dicts[0]
+        else:
+            d = self.get_by_path(dictionary)
+        d[key] = value
 
     def save(self, path_list=None):
         '''Save the dictionaries in <path_list>.
