@@ -14,7 +14,7 @@ __credits__ = ['Founded by stenographer Mirabai Knight.\n\nDevelopers:'
                'Benoit Pierre',
                '\nand many more on GitHub: \n<https://github.com/openstenoproject/plover>'
                ]
-__license__ = 'GNU General Public License v2 (GPLv2)'
+__license__ = 'GNU General Public License v2 or later (GPLv2+)'
 __description__ = 'Open Source Stenography Software'
 __long_description__ = """\
 Plover is a free open source program intended to bring realtime
