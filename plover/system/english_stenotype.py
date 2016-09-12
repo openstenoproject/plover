@@ -237,3 +237,5 @@ KEYMAPS = {
     },
 }
 
+KEYMAPS['ProCAT'] = KEYMAPS['TX Bolt']
+
