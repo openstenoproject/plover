@@ -6,7 +6,7 @@
 # Python 2/3 compatibility.
 from six import iterbytes
 
-import plover.machine.base
+from plover.machine.base import SerialStenotypeBase
 
 # In the Gemini PR protocol, each packet consists of exactly six bytes
 # and the most significant bit (MSB) of every byte is used exclusively
@@ -25,13 +25,8 @@ STENO_KEY_CHART = ("Fn", "#1", "#2", "#3", "#4", "#5", "#6",
 BYTES_PER_STROKE = 6
 
 
-class GeminiPr(plover.machine.base.SerialStenotypeBase):
+class GeminiPr(SerialStenotypeBase):
     """Standard stenotype interface for a Gemini PR machine.
-
-    This class implements the three methods necessary for a standard
-    stenotype interface: start_capture, stop_capture, and
-    add_callback.
-
     """
 
     KEYS_LAYOUT = '''
