@@ -267,6 +267,11 @@ class ConfigTestCase(unittest.TestCase):
         self.assertEqual(cfg.get_system_keymap(), mappings_dict)
         cfg.set_system_keymap({})
         self.assertEqual(cfg.get_system_keymap(), {})
+        # Check an invalid keymap is replaced by the default one.
+        cfg = config.Config()
+        default_keymap = cfg.get_system_keymap(machine)
+        cfg.load(make_config('[%s]\n%s = pouet!' % (section, option)))
+        self.assertEqual(cfg.get_system_keymap(machine), default_keymap)
 
     def test_as_dict_update(self):
         opt_list = '''

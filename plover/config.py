@@ -350,7 +350,13 @@ class Config(object):
         if mappings is None:
             mappings = system.KEYMAPS.get(machine_type)
         else:
-            mappings = dict(json.loads(mappings))
+            try:
+                mappings = dict(json.loads(mappings))
+            except ValueError as e:
+                log.error("invalid machine keymap, resetting to default",
+                          exc_info=True)
+                mappings = system.KEYMAPS.get(machine_type)
+                self.set_system_keymap(mappings, machine_type)
         return mappings
 
     def _set(self, section, option, value):
