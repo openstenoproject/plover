@@ -202,21 +202,25 @@ class Config(object):
         return self._get(MACHINE_CONFIG_SECTION, MACHINE_TYPE_OPTION, 
                          DEFAULT_MACHINE_TYPE)
 
-    def set_machine_specific_options(self, machine_name, options):
-        self._update(machine_name, sorted(options.items()))
+    def set_machine_specific_options(self, options, machine_type=None):
+        if machine_type is None:
+            machine_type = self.get_machine_type()
+        self._update(machine_type, sorted(options.items()))
 
-    def get_machine_specific_options(self, machine_name):
+    def get_machine_specific_options(self, machine_type=None):
+        if machine_type is None:
+            machine_type = self.get_machine_type()
         def convert(p, v):
             try:
                 return p[1](v)
             except ValueError:
                 return p[0]
-        machine = machine_registry.get(machine_name)
+        machine = machine_registry.get(machine_type)
         info = machine.get_option_info()
         defaults = {k: v[0] for k, v in info.items()}
-        if self._config.has_section(machine_name):
-            options = {o: self._config.get(machine_name, o) 
-                       for o in self._config.options(machine_name)
+        if self._config.has_section(machine_type):
+            options = {o: self._config.get(machine_type, o)
+                       for o in self._config.options(machine_type)
                        if o in info}
             options = {k: convert(info[k], v) for k, v in options.items()}
             defaults.update(options)
@@ -523,12 +527,16 @@ class Config(object):
                              KEYBOARD_CONFIG_FRAME_Y_OPTION,
                              DEFAULT_KEYBOARD_CONFIG_FRAME_Y)
 
-    def set_system_keymap(self, machine_type, mappings):
+    def set_system_keymap(self, mappings, machine_type=None):
+        if machine_type is None:
+            machine_type = self.get_machine_type()
         section = SYSTEM_CONFIG_SECTION % DEFAULT_SYSTEM
         option = SYSTEM_KEYMAP_OPTION % machine_type
         self._set(section, option, json.dumps(sorted(dict(mappings).items())))
 
-    def get_system_keymap(self, machine_type):
+    def get_system_keymap(self, machine_type=None):
+        if machine_type is None:
+            machine_type = self.get_machine_type()
         section = SYSTEM_CONFIG_SECTION % DEFAULT_SYSTEM
         option = SYSTEM_KEYMAP_OPTION % machine_type
         mappings = self._get(section, option, None)
