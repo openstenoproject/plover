@@ -1,6 +1,7 @@
 # Copyright (c) 2013 Hesky Fisher
 # See LICENSE.txt for details.
 
+import io
 import json
 import unittest
 
@@ -28,7 +29,7 @@ class TestCase(unittest.TestCase):
     def test_no_duplicates_categorized_files(self):
         d = {}
         for dictionary in map(lambda x: DICT_PATH + x, DICT_NAMES):
-            d.update(json.load(open(dictionary),
+            d.update(json.load(io.open(dictionary, encoding='utf-8'),
                                object_pairs_hook=read_key_pairs))
 
         msg_list = []
