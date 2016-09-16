@@ -62,20 +62,12 @@ STROKE_DISPLAY_ON_TOP_OPTION = 'on_top'
 DEFAULT_STROKE_DISPLAY_ON_TOP = True
 STROKE_DISPLAY_STYLE_OPTION = 'style'
 DEFAULT_STROKE_DISPLAY_STYLE = 'Paper'
-STROKE_DISPLAY_X_OPTION = 'x'
-DEFAULT_STROKE_DISPLAY_X = -1
-STROKE_DISPLAY_Y_OPTION = 'y'
-DEFAULT_STROKE_DISPLAY_Y = -1
 
 SUGGESTIONS_DISPLAY_SECTION = 'Suggestions Display'
 SUGGESTIONS_DISPLAY_SHOW_OPTION = 'show'
 DEFAULT_SUGGESTIONS_DISPLAY_SHOW = False
 SUGGESTIONS_DISPLAY_ON_TOP_OPTION = 'on_top'
 DEFAULT_SUGGESTIONS_DISPLAY_ON_TOP = True
-SUGGESTIONS_DISPLAY_X_OPTION = 'x'
-DEFAULT_SUGGESTIONS_DISPLAY_X = -1
-SUGGESTIONS_DISPLAY_Y_OPTION = 'y'
-DEFAULT_SUGGESTIONS_DISPLAY_Y = -1
 
 OUTPUT_CONFIG_SECTION = 'Output Configuration'
 OUTPUT_CONFIG_SPACE_PLACEMENT_OPTION = 'space_placement'
@@ -88,53 +80,9 @@ DEFAULT_OUTPUT_CONFIG_START_CAPITALIZED = False
 OUTPUT_CONFIG_START_ATTACHED = 'start_attached'
 DEFAULT_OUTPUT_CONFIG_START_ATTACHED = False
 
-CONFIG_FRAME_SECTION = 'Config Frame'
-CONFIG_FRAME_X_OPTION = 'x'
-DEFAULT_CONFIG_FRAME_X = -1
-CONFIG_FRAME_Y_OPTION = 'y'
-DEFAULT_CONFIG_FRAME_Y = -1
-CONFIG_FRAME_WIDTH_OPTION = 'width'
-DEFAULT_CONFIG_FRAME_WIDTH = -1
-CONFIG_FRAME_HEIGHT_OPTION = 'height'
-DEFAULT_CONFIG_FRAME_HEIGHT = -1
-
-MAIN_FRAME_SECTION = 'Main Frame'
-MAIN_FRAME_X_OPTION = 'x'
-DEFAULT_MAIN_FRAME_X = -1
-MAIN_FRAME_Y_OPTION = 'y'
-DEFAULT_MAIN_FRAME_Y = -1
-
 TRANSLATION_FRAME_SECTION = 'Translation Frame'
-TRANSLATION_FRAME_X_OPTION = 'x'
-DEFAULT_TRANSLATION_FRAME_X = -1
-TRANSLATION_FRAME_Y_OPTION = 'y'
-DEFAULT_TRANSLATION_FRAME_Y = -1
 TRANSLATION_FRAME_OPACITY_OPTION = 'opacity'
 DEFAULT_TRANSLATION_FRAME_OPACITY = 100
-
-LOOKUP_FRAME_SECTION = 'Lookup Frame'
-LOOKUP_FRAME_X_OPTION = 'x'
-DEFAULT_LOOKUP_FRAME_X = -1
-LOOKUP_FRAME_Y_OPTION = 'y'
-DEFAULT_LOOKUP_FRAME_Y = -1
-
-DICTIONARY_EDITOR_FRAME_SECTION = 'Dictionary Editor Frame'
-DICTIONARY_EDITOR_FRAME_X_OPTION = 'x'
-DEFAULT_DICTIONARY_EDITOR_FRAME_X = -1
-DICTIONARY_EDITOR_FRAME_Y_OPTION = 'y'
-DEFAULT_DICTIONARY_EDITOR_FRAME_Y = -1
-
-SERIAL_CONFIG_FRAME_SECTION = 'Serial Config Frame'
-SERIAL_CONFIG_FRAME_X_OPTION = 'x'
-DEFAULT_SERIAL_CONFIG_FRAME_X = -1
-SERIAL_CONFIG_FRAME_Y_OPTION = 'y'
-DEFAULT_SERIAL_CONFIG_FRAME_Y = -1
-
-KEYBOARD_CONFIG_FRAME_SECTION = 'Keyboard Config Frame'
-KEYBOARD_CONFIG_FRAME_X_OPTION = 'x'
-DEFAULT_KEYBOARD_CONFIG_FRAME_X = -1
-KEYBOARD_CONFIG_FRAME_Y_OPTION = 'y'
-DEFAULT_KEYBOARD_CONFIG_FRAME_Y = -1
 
 DEFAULT_SYSTEM = 'English Stenotype'
 SYSTEM_CONFIG_SECTION = 'System: %s'
@@ -357,92 +305,6 @@ class Config(object):
         return self._get(STROKE_DISPLAY_SECTION, STROKE_DISPLAY_STYLE_OPTION, 
                          DEFAULT_STROKE_DISPLAY_STYLE)
 
-    def set_stroke_display_x(self, x):
-        self._set(STROKE_DISPLAY_SECTION, STROKE_DISPLAY_X_OPTION, x)
-
-    def get_stroke_display_x(self):
-        return self._get_int(STROKE_DISPLAY_SECTION, STROKE_DISPLAY_X_OPTION, 
-                             DEFAULT_STROKE_DISPLAY_X)
-
-    def set_stroke_display_y(self, y):
-        self._set(STROKE_DISPLAY_SECTION, STROKE_DISPLAY_Y_OPTION, y)
-
-    def get_stroke_display_y(self):
-        return self._get_int(STROKE_DISPLAY_SECTION, STROKE_DISPLAY_Y_OPTION, 
-                             DEFAULT_STROKE_DISPLAY_Y)
-
-    def set_suggestions_display_x(self, x):
-        self._set(SUGGESTIONS_DISPLAY_SECTION, SUGGESTIONS_DISPLAY_X_OPTION, x)
-
-    def get_suggestions_display_x(self):
-        return self._get_int(SUGGESTIONS_DISPLAY_SECTION, SUGGESTIONS_DISPLAY_X_OPTION,
-                             DEFAULT_SUGGESTIONS_DISPLAY_X)
-
-    def set_suggestions_display_y(self, y):
-        self._set(SUGGESTIONS_DISPLAY_SECTION, SUGGESTIONS_DISPLAY_Y_OPTION, y)
-
-    def get_suggestions_display_y(self):
-        return self._get_int(SUGGESTIONS_DISPLAY_SECTION, SUGGESTIONS_DISPLAY_Y_OPTION,
-                             DEFAULT_SUGGESTIONS_DISPLAY_Y)
-
-    def set_config_frame_x(self, x):
-        self._set(CONFIG_FRAME_SECTION, CONFIG_FRAME_X_OPTION, x)
-        
-    def get_config_frame_x(self):
-        return self._get_int(CONFIG_FRAME_SECTION, CONFIG_FRAME_X_OPTION,
-                             DEFAULT_CONFIG_FRAME_X)
-
-    def set_config_frame_y(self, y):
-        self._set(CONFIG_FRAME_SECTION, CONFIG_FRAME_Y_OPTION, y)
-    
-    def get_config_frame_y(self):
-        return self._get_int(CONFIG_FRAME_SECTION, CONFIG_FRAME_Y_OPTION,
-                             DEFAULT_CONFIG_FRAME_Y)
-
-    def set_config_frame_width(self, width):
-        self._set(CONFIG_FRAME_SECTION, CONFIG_FRAME_WIDTH_OPTION, width)
-
-    def get_config_frame_width(self):
-        return self._get_int(CONFIG_FRAME_SECTION, CONFIG_FRAME_WIDTH_OPTION,
-                             DEFAULT_CONFIG_FRAME_WIDTH)
-
-    def set_config_frame_height(self, height):
-        self._set(CONFIG_FRAME_SECTION, CONFIG_FRAME_HEIGHT_OPTION, height)
-
-    def get_config_frame_height(self):
-        return self._get_int(CONFIG_FRAME_SECTION, CONFIG_FRAME_HEIGHT_OPTION,
-                             DEFAULT_CONFIG_FRAME_HEIGHT)
-
-    def set_main_frame_x(self, x):
-        self._set(MAIN_FRAME_SECTION, MAIN_FRAME_X_OPTION, x)
-    
-    def get_main_frame_x(self):
-        return self._get_int(MAIN_FRAME_SECTION, MAIN_FRAME_X_OPTION,
-                             DEFAULT_MAIN_FRAME_X)
-
-    def set_main_frame_y(self, y):
-        self._set(MAIN_FRAME_SECTION, MAIN_FRAME_Y_OPTION, y)
-
-    def get_main_frame_y(self):
-        return self._get_int(MAIN_FRAME_SECTION, MAIN_FRAME_Y_OPTION,
-                             DEFAULT_MAIN_FRAME_Y)
-
-    def set_translation_frame_x(self, x):
-        self._set(TRANSLATION_FRAME_SECTION, TRANSLATION_FRAME_X_OPTION, x)
-    
-    def get_translation_frame_x(self):
-        return self._get_int(TRANSLATION_FRAME_SECTION, 
-                             TRANSLATION_FRAME_X_OPTION,
-                             DEFAULT_TRANSLATION_FRAME_X)
-
-    def set_translation_frame_y(self, y):
-        self._set(TRANSLATION_FRAME_SECTION, TRANSLATION_FRAME_Y_OPTION, y)
-
-    def get_translation_frame_y(self):
-        return self._get_int(TRANSLATION_FRAME_SECTION, 
-                             TRANSLATION_FRAME_Y_OPTION,
-                             DEFAULT_TRANSLATION_FRAME_Y)
-
     def set_translation_frame_opacity(self, opacity):
         raise_if_invalid_opacity(opacity)
         self._set(TRANSLATION_FRAME_SECTION,
@@ -460,72 +322,6 @@ class Config(object):
                       e, DEFAULT_TRANSLATION_FRAME_OPACITY)
             opacity = DEFAULT_TRANSLATION_FRAME_OPACITY
         return opacity
-
-    def set_lookup_frame_x(self, x):
-        self._set(LOOKUP_FRAME_SECTION, LOOKUP_FRAME_X_OPTION, x)
-    
-    def get_lookup_frame_x(self):
-        return self._get_int(LOOKUP_FRAME_SECTION, 
-                             LOOKUP_FRAME_X_OPTION,
-                             DEFAULT_LOOKUP_FRAME_X)
-
-    def set_lookup_frame_y(self, y):
-        self._set(LOOKUP_FRAME_SECTION, LOOKUP_FRAME_Y_OPTION, y)
-
-    def get_lookup_frame_y(self):
-        return self._get_int(LOOKUP_FRAME_SECTION, 
-                             LOOKUP_FRAME_Y_OPTION,
-                             DEFAULT_LOOKUP_FRAME_Y)
-
-    def set_dictionary_editor_frame_x(self, x):
-        self._set(DICTIONARY_EDITOR_FRAME_SECTION, DICTIONARY_EDITOR_FRAME_X_OPTION, x)
-
-    def get_dictionary_editor_frame_x(self):
-        return self._get_int(DICTIONARY_EDITOR_FRAME_SECTION,
-                             DICTIONARY_EDITOR_FRAME_X_OPTION,
-                             DEFAULT_DICTIONARY_EDITOR_FRAME_X)
-
-    def set_dictionary_editor_frame_y(self, y):
-        self._set(DICTIONARY_EDITOR_FRAME_SECTION, DICTIONARY_EDITOR_FRAME_Y_OPTION, y)
-
-    def get_dictionary_editor_frame_y(self):
-        return self._get_int(DICTIONARY_EDITOR_FRAME_SECTION,
-                             DICTIONARY_EDITOR_FRAME_Y_OPTION,
-                             DEFAULT_DICTIONARY_EDITOR_FRAME_Y)
-    
-    def set_serial_config_frame_x(self, x):
-        self._set(SERIAL_CONFIG_FRAME_SECTION, SERIAL_CONFIG_FRAME_X_OPTION, x)
-    
-    def get_serial_config_frame_x(self):
-        return self._get_int(SERIAL_CONFIG_FRAME_SECTION, 
-                             SERIAL_CONFIG_FRAME_X_OPTION,
-                             DEFAULT_SERIAL_CONFIG_FRAME_X)
-
-    def set_serial_config_frame_y(self, y):
-        self._set(SERIAL_CONFIG_FRAME_SECTION, SERIAL_CONFIG_FRAME_Y_OPTION, y)
-
-    def get_serial_config_frame_y(self):
-        return self._get_int(SERIAL_CONFIG_FRAME_SECTION, 
-                             SERIAL_CONFIG_FRAME_Y_OPTION,
-                             DEFAULT_SERIAL_CONFIG_FRAME_Y)
-
-    def set_keyboard_config_frame_x(self, x):
-        self._set(KEYBOARD_CONFIG_FRAME_SECTION, KEYBOARD_CONFIG_FRAME_X_OPTION, 
-                  x)
-    
-    def get_keyboard_config_frame_x(self):
-        return self._get_int(KEYBOARD_CONFIG_FRAME_SECTION, 
-                             KEYBOARD_CONFIG_FRAME_X_OPTION,
-                             DEFAULT_KEYBOARD_CONFIG_FRAME_X)
-
-    def set_keyboard_config_frame_y(self, y):
-        self._set(KEYBOARD_CONFIG_FRAME_SECTION, KEYBOARD_CONFIG_FRAME_Y_OPTION, 
-                  y)
-
-    def get_keyboard_config_frame_y(self):
-        return self._get_int(KEYBOARD_CONFIG_FRAME_SECTION, 
-                             KEYBOARD_CONFIG_FRAME_Y_OPTION,
-                             DEFAULT_KEYBOARD_CONFIG_FRAME_Y)
 
     def set_system_keymap(self, mappings, machine_type=None):
         if machine_type is None:
