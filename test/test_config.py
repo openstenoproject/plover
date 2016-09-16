@@ -31,8 +31,8 @@ class ConfigTestCase(unittest.TestCase):
 
         cases = (
         ('machine_type', config.MACHINE_CONFIG_SECTION, 
-         config.MACHINE_TYPE_OPTION, config.DEFAULT_MACHINE_TYPE, 'foo', 'bar', 
-         'blee'),
+         config.MACHINE_TYPE_OPTION, config.DEFAULT_MACHINE_TYPE, 'Gemini PR', 'TX Bolt',
+         'Passport'),
         ('log_file_name', config.LOGGING_CONFIG_SECTION, config.LOG_FILE_OPTION, 
          os.path.realpath(os.path.join(CONFIG_DIR, config.DEFAULT_LOG_FILE)),
          os.path.abspath('/l1'), os.path.abspath('/log'), os.path.abspath('/sawzall')),
@@ -306,3 +306,11 @@ class ConfigTestCase(unittest.TestCase):
         cfg.update(**update)
         excepted_dict.update(update)
         self.assertEqual(cfg.as_dict(), excepted_dict)
+
+    def test_invalid_machine(self):
+        cfg = config.Config()
+        cfg.load(make_config(
+            '[%s]\n%s: %s' % (config.MACHINE_CONFIG_SECTION,
+                              'machine_type',  'foobar')
+        ))
+        self.assertEqual(cfg.get_machine_type(), config.DEFAULT_MACHINE_TYPE)
