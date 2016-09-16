@@ -37,15 +37,19 @@ class TranslationConverter(object):
     
     def __init__(self, styles={}):
         self.styles = styles
-        
+
         def linenumber(f):
-            return get_function_code(f[1].__func__).co_firstlineno
-        
-        handler_funcs = inspect.getmembers(self, inspect.ismethod)
+            return get_function_code(f[1]).co_firstlineno
+
+        handler_funcs = [
+            (name, f) for name, f in inspect.getmembers(self, inspect.ismethod)
+            if name.startswith('_re_handle_')
+        ]
         handler_funcs.sort(key=linenumber)
-        handlers = [self._make_re_handler(f.__doc__, f)
-                    for name, f in handler_funcs 
-                    if name.startswith('_re_handle_')]
+        handlers = [
+            self._make_re_handler(f.__doc__, f)
+            for name, f in handler_funcs
+        ]
         handlers.append(self._match_nested_command_group)
         def handler(s, pos):
             for handler in handlers:
