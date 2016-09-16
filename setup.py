@@ -258,7 +258,7 @@ cmdclass = {
     'tag_weekly': TagWeekly,
     'test': Test,
 }
-setup_requires = []
+setup_requires = ['setuptools-scm']
 options = {}
 kwargs = {}
 
