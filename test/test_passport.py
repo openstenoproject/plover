@@ -3,8 +3,6 @@
 
 """Unit tests for passport.py."""
 
-from operator import eq
-from itertools import starmap
 import time
 import unittest
 
@@ -42,9 +40,6 @@ class MockSerial(object):
     def close(self):
         pass
 
-
-def cmp_keys(a, b):
-    return all(starmap(eq, zip(a, b)))
 
 class TestCase(unittest.TestCase):
     def test_passport(self):
