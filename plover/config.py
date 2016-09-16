@@ -379,6 +379,51 @@ class Config(object):
             self._config.remove_option(section, opt)
 
 
+    # Note: order matters, e.g. machine_type comes before
+    # machine_specific_options and system_keymap because
+    # the laters depend on the former.
+    _OPTIONS = '''
+    auto_start
+    space_placement
+    start_attached
+    start_capitalized
+    start_minimized
+    undo_levels
+
+    dictionary_file_names
+
+    enable_stroke_logging
+    enable_translation_logging
+    log_file_name
+
+    show_stroke_display
+    show_suggestions_display
+    stroke_display_on_top
+    stroke_display_style
+    suggestions_display_on_top
+    translation_frame_opacity
+
+    machine_type
+    machine_specific_options
+    system_keymap
+    '''.split()
+
+    def as_dict(self):
+        d = {}
+        for option in self._OPTIONS:
+            assert hasattr(self, 'set_%s' % option)
+            getter = getattr(self, 'get_%s' % option)
+            d[option] = getter()
+        return d
+
+    def update(self, **kwargs):
+        for option in self._OPTIONS:
+            if option not in kwargs:
+                continue
+            setter = getattr(self, 'set_%s' % option)
+            setter(kwargs[option])
+
+
 def _dict_entry_key(s):
     try:
         return int(s[len(DICTIONARY_FILE_OPTION):])

@@ -267,3 +267,42 @@ class ConfigTestCase(unittest.TestCase):
         self.assertEqual(cfg.get_system_keymap(), mappings_dict)
         cfg.set_system_keymap({})
         self.assertEqual(cfg.get_system_keymap(), {})
+
+    def test_as_dict_update(self):
+        opt_list = '''
+            auto_start
+            dictionary_file_names
+            enable_stroke_logging
+            enable_translation_logging
+            log_file_name
+            machine_specific_options
+            machine_type
+            show_stroke_display
+            show_suggestions_display
+            space_placement
+            start_attached
+            start_capitalized
+            start_minimized
+            stroke_display_on_top
+            stroke_display_style
+            suggestions_display_on_top
+            system_keymap
+            translation_frame_opacity
+            undo_levels
+        '''.split()
+        cfg = config.Config()
+        excepted_dict = {
+            opt: getattr(cfg, 'get_' + opt)()
+            for opt in opt_list
+        }
+        self.assertEqual(cfg.as_dict(), excepted_dict)
+        update = {
+            'auto_start'           : False,
+            'dictionary_file_names': [os.path.abspath('user.json')],
+            'enable_stroke_logging': False,
+            'space_placement'      : 'After Output',
+            'start_minimized'      : False,
+        }
+        cfg.update(**update)
+        excepted_dict.update(update)
+        self.assertEqual(cfg.as_dict(), excepted_dict)
