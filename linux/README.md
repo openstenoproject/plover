@@ -12,7 +12,6 @@ You need Python 2 installed with pip support.
 
 Some of the other dependencies cannot be installed with pip:
 
-* wxPython
 * wmctrl: for additional window management support
 * system libraries used by python-hidapi (e.g. libusb)
 
@@ -22,7 +21,7 @@ Those need to be installed using your distribution package manager.
 
 All dependencies can be installed with pacman:
 
-`sudo pacman --sync base-devel cython2 libusb python2-appdirs python2-dbus python2-hidapi python2-mock python2-pip python2-pyserial python2-pytest python2-setuptools python2-setuptools-scm python2-six python2-wheel python2-xlib wmctrl wxpython`
+`sudo pacman --sync base-devel cython2 libusb python2-appdirs python2-dbus python2-hidapi python2-mock python2-pip python2-pyserial python2-pytest python2-setuptools python2-setuptools-scm python2-six python2-wheel python2-xlib wmctrl`
 
 ### Ubuntu
 
@@ -30,7 +29,7 @@ The latest stable release should be installable by the using the following PPA: 
 
 For the development version, most dependencies can be installed with APT:
 
-`sudo apt-get install cython debhelper devscripts libudev-dev libusb-1.0-0-dev python-appdirs python-dbus python-dev python-hid python-mock python-pip python-pkg-resources python-pytest python-serial python-setuptools python-setuptools-scm python-six python-wheel python-xlib python-wxgtk3.0 wmctrl`
+`sudo apt-get install cython debhelper devscripts libudev-dev libusb-1.0-0-dev python-appdirs python-dbus python-dev python-hid python-mock python-pip python-pkg-resources python-pytest python-serial python-setuptools python-setuptools-scm python-six python-wheel python-xlib wmctrl`
 
 Note: some of those packages are not available from the standard repositories. you can install them by using the aforementioned PPA: [ppa:benoit.pierre/plover](https://launchpad.net/~benoit.pierre/+archive/ubuntu/plover), or you can install them manually by following the generic install procedure with pip.
 

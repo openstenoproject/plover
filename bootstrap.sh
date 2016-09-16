@@ -105,7 +105,6 @@ osx_packages_install()
 osx_python2_base_packages=(
 )
 osx_python2_extra_packages=(
-wxpython
 )
 
 osx_python3_base_packages=(
@@ -146,7 +145,6 @@ python2-xlib
 arch_python2_extra_packages=(
 base-devel
 wmctrl
-wxpython
 )
 
 arch_python3_base_packages=(
@@ -205,7 +203,6 @@ python-xlib
 ubuntu_python2_extra_packages=(
 debhelper
 devscripts
-python-wxgtk3.0
 wmctrl
 )
 

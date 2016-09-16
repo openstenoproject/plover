@@ -11,17 +11,11 @@ import os
 import sys
 import traceback
 import argparse
-
-WXVER = '3.0'
-if not hasattr(sys, 'frozen'):
-    import wxversion
-    wxversion.ensureMinimal(WXVER)
+import importlib
 
 if sys.platform.startswith('darwin'):
     import appnope
-import wx
 
-import plover.gui.main
 import plover.oslayer.processlock
 from plover.oslayer.config import CONFIG_DIR, ASSETS_DIR
 from plover.config import CONFIG_FILE, Config
@@ -29,19 +23,6 @@ from plover import log
 from plover import __name__ as __software_name__
 from plover import __version__
 
-def show_error(title, message):
-    """Report error to the user.
-
-    This shows a graphical error and prints the same to the terminal.
-    """
-    print(message)
-    app = wx.App()
-    alert_dialog = wx.MessageDialog(None,
-                                    message,
-                                    title,
-                                    wx.OK | wx.ICON_INFORMATION)
-    alert_dialog.ShowModal()
-    alert_dialog.Destroy()
 
 def init_config_dir():
     """Creates plover's config dir.
@@ -66,9 +47,18 @@ def main():
                         % (__software_name__.capitalize(), __version__))
     parser.add_argument('-l', '--log-level', choices=['debug', 'info', 'warning', 'error'],
                         default=None, help='set log level')
+    gui_choices = {}
+    gui_default = None
+    parser.add_argument('-g', '--gui', choices=gui_choices,
+                        default=gui_default, help='set gui')
     args = parser.parse_args(args=sys.argv[1:])
     if args.log_level is not None:
         log.set_level(args.log_level.upper())
+
+    if not args.gui in gui_choices:
+        raise ValueError('invalid gui: %r' % args.gui)
+    gui = importlib.import_module(gui_choices[args.gui])
+
     try:
         # Ensure only one instance of Plover is running at a time.
         with plover.oslayer.processlock.PloverLock():
@@ -81,15 +71,16 @@ def main():
             log.info('Plover %s', __version__)
             config = Config()
             config.target_file = CONFIG_FILE
-            gui = plover.gui.main.PloverGUI(config)
-            gui.MainLoop()
+            code = gui.main(config)
             with open(config.target_file, 'wb') as f:
                 config.save(f)
     except plover.oslayer.processlock.LockNotAcquiredException:
-        show_error('Error', 'Another instance of Plover is already running.')
+        gui.show_error('Error', 'Another instance of Plover is already running.')
+        code = 1
     except:
-        show_error('Unexpected error', traceback.format_exc())
-    os._exit(1)
+        gui.show_error('Unexpected error', traceback.format_exc())
+        code = 2
+    os._exit(code)
 
 if __name__ == '__main__':
     main()
