@@ -27,7 +27,6 @@ from plover.machine.registry import machine_registry, NoSuchMachineException
 from plover.suggestions import Suggestions
 from plover import log
 from plover.dictionary.loading_manager import manager as dict_manager
-from plover import system
 from plover.misc import SimpleNamespace
 
 
