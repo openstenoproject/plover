@@ -257,9 +257,6 @@ class Helper(object):
         )
     else:
         DEPENDENCIES = (
-            # Note: we force the installation directory, otherwise the installer gets confused when run under AppVeyor, and installs in the wrong directory...
-            ('wxPython', 'https://downloads.sourceforge.net/wxpython/wxPython3.0-win32-3.0.2.0-py27.exe',
-             '864d44e418a0859cabff71614a495bea57738c5d', None, ('/SP-', '/VERYSILENT', r'/DIR=C:\Python27\Lib\site-packages'), None),
             ('pywin32', 'https://downloads.sourceforge.net/project/pywin32/pywin32/Build 219/pywin32-219.win32-py2.7.exe',
              '8bc39008383c646bed01942584117113ddaefe6b', 'easy_install', (), None),
             ('Cython', 'https://pypi.python.org/packages/2.7/C/Cython/Cython-0.23.4-cp27-none-win32.whl',

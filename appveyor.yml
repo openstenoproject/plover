@@ -67,7 +67,7 @@ build_script:
   - "ECHO PATH=%PATH%"
 
 after_build:
-  - ps: "if ($Env:PYTHON_VERSION -eq \"2.7\") { python windows\\helper.py dist }"
+  - ps: "if ($Env:PYTHON_VERSION -eq \"nope\") { python windows\\helper.py dist }"
 
 test_script:
   - "python setup.py test"

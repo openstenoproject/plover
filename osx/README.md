@@ -10,7 +10,6 @@ Note: you can use `./bootstrap.sh -n` to get a list of the commands that would b
 
 - install [Homebrew](http://brew.sh/)
 - install Python2.7: `brew install python`
-- install wxPython: `brew install wxpython`
 - install other dependencies:
 ```
 ./setup.py write_requirements

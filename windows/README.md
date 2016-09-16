@@ -17,7 +17,6 @@ It is best to develop using 32 bit tools for Plover.
 - [Cython](http://cython.org/)
 - [Microsoft Visual C++ Compiler for Python 2.7](https://www.microsoft.com/en-us/download/details.aspx?id=44266)
 - [Python for Windows Extensions](http://sourceforge.net/projects/pywin32/)
-- [wxPython](http://www.wxpython.org/)
 
 ### Other dependencies
 
