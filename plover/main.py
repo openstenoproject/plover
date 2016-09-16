@@ -17,7 +17,7 @@ if sys.platform.startswith('darwin'):
     import appnope
 
 import plover.oslayer.processlock
-from plover.oslayer.config import CONFIG_DIR, ASSETS_DIR
+from plover.oslayer.config import CONFIG_DIR
 from plover.config import CONFIG_FILE, Config
 from plover import log
 from plover import __name__ as __software_name__
