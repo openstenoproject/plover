@@ -17,7 +17,7 @@ else:
     import ConfigParser as configparser
 
 from plover.exception import InvalidConfigurationError
-from plover.machine.registry import machine_registry
+from plover.machine.registry import machine_registry, NoSuchMachineException
 from plover.oslayer.config import ASSETS_DIR, CONFIG_DIR
 from plover.misc import expand_path, shorten_path
 from plover import system
@@ -143,12 +143,23 @@ class Config(object):
         return c
 
     def set_machine_type(self, machine_type):
-        self._set(MACHINE_CONFIG_SECTION, MACHINE_TYPE_OPTION, 
+        self._set(MACHINE_CONFIG_SECTION, MACHINE_TYPE_OPTION,
                          machine_type)
 
     def get_machine_type(self):
-        return self._get(MACHINE_CONFIG_SECTION, MACHINE_TYPE_OPTION, 
-                         DEFAULT_MACHINE_TYPE)
+        machine_type = self._get(MACHINE_CONFIG_SECTION,
+                                 MACHINE_TYPE_OPTION,
+                                 None)
+        if machine_type is not None:
+            try:
+                machine_registry.get(machine_type)
+            except NoSuchMachineException:
+                log.error("invalid machine type: %s", machine_type)
+                self.set_machine_type(DEFAULT_MACHINE_TYPE)
+                machine_type = None
+        if machine_type is None:
+            machine_type = DEFAULT_MACHINE_TYPE
+        return machine_type
 
     def set_machine_specific_options(self, options, machine_type=None):
         if machine_type is None:
