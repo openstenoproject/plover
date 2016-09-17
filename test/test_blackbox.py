@@ -65,6 +65,20 @@ class BlackboxTest(unittest.TestCase):
             self.translator.translate(stroke)
         self.assertEqual(self.output.text, u' test test')
 
+    def test_bug471(self):
+        # Repeat-last-stroke after typing two numbers outputs the numbers
+        # reversed for some combos.
+        self.dictionary.set(('R*S',), '{*+}')
+        # Note: the implementation of repeat-last-stroke looks at the last
+        # stroke keys, so we can't use the same trick as for other tests.
+        for keys in (
+            ('#', 'S-', 'T-'), # 12
+            ('R-', '*', '-S'),
+        ):
+            stroke = Stroke(keys)
+            self.translator.translate(stroke)
+        self.assertEqual(self.output.text, u' 1212')
+
     def test_bug535(self):
         # Currency formatting a number with a decimal fails by not erasing
         # the previous output.

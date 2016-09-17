@@ -61,9 +61,7 @@ class StrokeDisplayDialog(wx.Dialog):
 
         fixed_font = find_fixed_width_font()
 
-        self.all_keys = ''.join(x[0].strip('-') for x in 
-                                sorted(system.KEY_ORDER.items(),
-                                       key=lambda x: x[1]))
+        self.all_keys = ''.join(k.strip('-') for k in system.KEYS)
         self.reverse_numbers = {v: k for k, v in system.NUMBERS.items()}
 
         # Calculate required width and height.

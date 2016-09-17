@@ -51,7 +51,7 @@ class SuggestionsDisplayDialog(wx.Dialog):
         fixed_font = find_fixed_width_font()
 
         # Calculate required width and height.
-        display_width = len(system.KEY_ORDER) + 2 * STROKE_INDENT + 1 # extra +1 for /
+        display_width = len(system.KEYS) + 2 * STROKE_INDENT + 1 # extra +1 for /
         dc = wx.ScreenDC()
         dc.SetFont(fixed_font)
         fixed_text_size = dc.GetTextExtent(' ' * display_width)
