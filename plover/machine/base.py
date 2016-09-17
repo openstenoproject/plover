@@ -11,6 +11,7 @@ import threading
 
 from plover import log
 from plover.machine.keymap import Keymap
+from plover.steno import Stroke
 from plover import system
 
 

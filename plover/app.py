@@ -268,8 +268,7 @@ class StenoEngine(object):
     def remove_stroke_listener(self, listener):
         self.stroke_listeners.remove(listener)
 
-    def _translate_stroke(self, s):
-        stroke = steno.Stroke(s)
+    def _translate_stroke(self, stroke):
         self.translator.translate(stroke)
         for listener in self.stroke_listeners:
             listener(stroke)
