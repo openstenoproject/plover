@@ -49,6 +49,22 @@ class BlackboxTest(unittest.TestCase):
         self.dictionary = self.translator.get_dictionary()
         self.dictionary.set_dicts([StenoDictionary()])
 
+    def test_translator_state_handling(self):
+        # Check if the translator curtailing the list of last translations
+        # according to its dictionary longest key does no affect things
+        # like the restrospective repeate-last-stroke command.
+        self.dictionary.set(('TEFT',), 'test')
+        self.dictionary.set(('R*S',), '{*+}')
+        # Note: the implementation of repeat-last-stroke looks at the last
+        # stroke keys, so we can't use the same trick as for other tests.
+        for keys in (
+            ('T-', '-E', '-F', '-T'),
+            ('R-', '*', '-S'),
+        ):
+            stroke = Stroke(keys)
+            self.translator.translate(stroke)
+        self.assertEqual(self.output.text, u' test test')
+
     def test_bug535(self):
         # Currency formatting a number with a decimal fails by not erasing
         # the previous output.
