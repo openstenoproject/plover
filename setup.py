@@ -27,6 +27,16 @@ from plover import (
 from utils.metadata import copy_metadata
 
 
+# Don't use six to avoid dependency with 'write_requirements' command.
+PY3 = sys.version_info[0] >= 3
+
+PACKAGE = '%s-%s-%s' % (
+    __software_name__,
+    __version__,
+    'py3' if PY3 else 'py2',
+)
+
+
 def get_version():
     if not os.path.exists('.git'):
         return None
@@ -44,10 +54,7 @@ def pyinstaller(*args):
         '--log-level=INFO',
         '--specpath=build',
         '--additional-hooks-dir=windows',
-        '--name=%s-%s' % (
-            __software_name__,
-            __version__,
-        ),
+        '--name=%s' % PACKAGE,
         '--noconfirm',
         '--windowed',
         '--onefile',
@@ -230,7 +237,7 @@ class BinaryDistApp(setuptools.Command):
         # Make sure metadata are up-to-date first.
         self.run_command('egg_info')
         self.run_command('py2app')
-        app = 'dist/%s-%s.app' % (__software_name__, __version__)
+        app = 'dist/%s.app' % PACKAGE
         libdir = '%s/Contents/Resources/lib/python2.7' % app
         sitezip = '%s/site-packages.zip' % libdir
         # Add version to filename and strip other architectures.
