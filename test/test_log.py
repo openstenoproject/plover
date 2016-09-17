@@ -8,6 +8,7 @@ from collections import defaultdict
 
 from mock import patch
 
+from plover.steno import Stroke
 from plover import log
 
 
@@ -46,12 +47,12 @@ class LoggerTestCase(unittest.TestCase):
         stroke_filename1 = self._stroke_filename('/fn1')
         self.logger.set_stroke_filename('/fn1')
         self.logger.enable_stroke_logging(True)
-        self.logger.stroke(('S-',))
+        self.logger.stroke(Stroke(('S-',)))
         stroke_filename2 = self._stroke_filename('/fn2')
         self.logger.set_stroke_filename('/fn2')
-        self.logger.stroke(('-T',))
+        self.logger.stroke(Stroke(('-T',)))
         self.logger.set_stroke_filename(None)
-        self.logger.stroke(('P-',))
+        self.logger.stroke(Stroke(('P-',)))
         self.assertEqual(FakeHandler.get_output(),
                          {stroke_filename1: ["Stroke(S : ['S-'])"],
                           stroke_filename2: ["Stroke(-T : ['-T'])"]
@@ -62,8 +63,8 @@ class LoggerTestCase(unittest.TestCase):
         stroke_filename = self._stroke_filename('/fn')
         self.logger.set_stroke_filename(stroke_filename)
         self.logger.enable_stroke_logging(True)
-        self.logger.stroke(('S-', '-T', 'T-'))
-        self.logger.stroke(('#', 'S-', '-T'))
+        self.logger.stroke(Stroke(('S-', '-T', 'T-')))
+        self.logger.stroke(Stroke(('#', 'S-', '-T')))
         self.assertEqual(FakeHandler.get_output(),
                          {stroke_filename: ["Stroke(ST-T : ['S-', 'T-', '-T'])",
                                             "Stroke(1-9 : ['1-', '-9'])"
@@ -82,11 +83,11 @@ class LoggerTestCase(unittest.TestCase):
     def test_enable_stroke_logging(self):
         stroke_filename = self._stroke_filename('/fn')
         self.logger.set_stroke_filename(stroke_filename)
-        self.logger.stroke(('S-',))
+        self.logger.stroke(Stroke(('S-',)))
         self.logger.enable_stroke_logging(True)
-        self.logger.stroke(('T-',))
+        self.logger.stroke(Stroke(('T-',)))
         self.logger.enable_stroke_logging(False)
-        self.logger.stroke(('K-',))
+        self.logger.stroke(Stroke(('K-',)))
         self.assertEqual(FakeHandler.get_output(),
                          {stroke_filename: ["Stroke(T : ['T-'])"]}
                          )
