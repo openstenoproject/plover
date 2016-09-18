@@ -47,8 +47,10 @@ def main():
                         % (__software_name__.capitalize(), __version__))
     parser.add_argument('-l', '--log-level', choices=['debug', 'info', 'warning', 'error'],
                         default=None, help='set log level')
-    gui_choices = {}
-    gui_default = None
+    gui_choices = {
+        'none': 'plover.gui_none.main',
+    }
+    gui_default = 'none'
     parser.add_argument('-g', '--gui', choices=gui_choices,
                         default=gui_default, help='set gui')
     args = parser.parse_args(args=sys.argv[1:])
