@@ -21,3 +21,4 @@ datas.extend(metadata_list)
 
 datas.append(('plover/assets', 'plover/assets'))
 
+hiddenimports.append('plover.gui_none.main')
