@@ -3,17 +3,24 @@
 
 """Unit tests for config.py."""
 
-import os.path
 import unittest
 import os
+import json
 from collections import namedtuple
-from cStringIO import StringIO
+
+# Python 2/3 compatibility.
+from six import BytesIO
 
 from mock import patch
 
-import plover.config as config
+from plover import config
 from plover.machine.registry import Registry
 from plover.oslayer.config import CONFIG_DIR
+
+
+def make_config(contents=''):
+    return BytesIO(b'\n'.join(line.strip().encode('utf-8')
+                              for line in contents.split('\n')))
 
 
 class ConfigTestCase(unittest.TestCase):
@@ -108,18 +115,18 @@ class ConfigTestCase(unittest.TestCase):
             # ...and make sure it is really set.
             self.assertEqual(getter(), case.value1)
             # Load from a file...
-            f = StringIO('[%s]\n%s: %s' % (case.section, case.option,
-                                           case.value2))
+            f = make_config('[%s]\n%s: %s' % (case.section, case.option,
+                                              case.value2))
             c.load(f)
             # ..and make sure the right value is set.
             self.assertEqual(getter(), case.value2)
             # Set a value...
             setter(case.value3)
-            f = StringIO()
+            f = make_config()
             # ...save it...
             c.save(f)
             # ...and make sure it's right.
-            self.assertEqual(f.getvalue(), 
+            self.assertEqual(f.getvalue().decode('utf-8'),
                              '[%s]\n%s = %s\n\n' % (case.section, case.option,
                                                     case.value3))
 
@@ -127,11 +134,11 @@ class ConfigTestCase(unittest.TestCase):
         s = '[%s]%s = %s\n\n' % (config.MACHINE_CONFIG_SECTION, 
                                  config.MACHINE_TYPE_OPTION, 'foo')
         c = config.Config()
-        c.load(StringIO(s))
-        f1 = StringIO()
+        c.load(make_config(s))
+        f1 = make_config()
         c.save(f1)
         c2 = c.clone()
-        f2 = StringIO()
+        f2 = make_config()
         c2.save(f2)
         self.assertEqual(f1.getvalue(), f2.getvalue())
 
@@ -169,14 +176,14 @@ class ConfigTestCase(unittest.TestCase):
             }
             c.set_machine_specific_options(machine_name, options)
             actual = c.get_machine_specific_options(machine_name)
-            expected = dict(defaults.items() + options.items())
+            expected = dict(list(defaults.items()) + list(options.items()))
             self.assertEqual(actual, expected)
             
             # Test loading a file. Unknown option is ignored.
             s = '\n'.join(('[machine foo]', 'stroption1 = foo', 
                            'intoption1 = 3', 'booloption1 = True', 
                            'booloption2 = False', 'unknown = True'))
-            f = StringIO(s)
+            f = make_config(s)
             c.load(f)
             expected = {
                 'stroption1': 'foo',
@@ -184,25 +191,25 @@ class ConfigTestCase(unittest.TestCase):
                 'booloption1': True,
                 'booloption2': False,
             }
-            expected = dict(defaults.items() + expected.items())
+            expected = dict(list(defaults.items()) + list(expected.items()))
             actual = c.get_machine_specific_options(machine_name)
             self.assertEqual(actual, expected)
             
             # Test saving a file.
-            f = StringIO()
+            f = make_config()
             c.save(f)
-            self.assertEqual(f.getvalue(), s + '\n\n')
+            self.assertEqual(f.getvalue().decode('utf-8'), s + '\n\n')
             
             # Test reading invalid values.
             s = '\n'.join(['[machine foo]', 'floatoption1 = None', 
                            'booloption2 = True'])
-            f = StringIO(s)
+            f = make_config(s)
             c.load(f)
             expected = {
                 'floatoption1': 1,
                 'booloption2': True,
             }
-            expected = dict(defaults.items() + expected.items())
+            expected = dict(list(defaults.items()) + list(expected.items()))
             actual = c.get_machine_specific_options(machine_name)
             self.assertEqual(actual, expected)
 
@@ -228,7 +235,7 @@ class ConfigTestCase(unittest.TestCase):
         self.assertEqual(c.get_dictionary_file_names(), filenames)
         # Load from a file encoded the old way...
         filename = os.path.abspath('/some_file')
-        f = StringIO('[%s]\n%s: %s' % (section, option, filename))
+        f = make_config('[%s]\n%s: %s' % (section, option, filename))
         c.load(f)
         # ..and make sure the right value is set.
         self.assertEqual(c.get_dictionary_file_names(), [filename])
@@ -237,7 +244,7 @@ class ConfigTestCase(unittest.TestCase):
                      for path in ('/b', '/a', '/d', '/c')]
         value = '\n'.join('%s%d: %s' % (option, d, v) 
                               for d, v in enumerate(filenames, start=1))
-        f = StringIO('[%s]\n%s' % (section, value))
+        f = make_config('[%s]\n%s' % (section, value))
         c.load(f)
         # ...and make sure the right value is set.
         self.assertEqual(c.get_dictionary_file_names(), filenames)
@@ -246,11 +253,48 @@ class ConfigTestCase(unittest.TestCase):
         
         # Set a value...
         c.set_dictionary_file_names(filenames)
-        f = StringIO()
+        f = make_config()
         # ...save it...
         c.save(f)
         # ...and make sure it's right.
         value = '\n'.join('%s%d = %s' % (option, d, v) 
                               for d, v in enumerate(filenames, start=1))
-        self.assertEqual(f.getvalue(), 
+        self.assertEqual(f.getvalue().decode('utf-8'),
                          '[%s]\n%s\n\n' % (section, value))
+
+    def test_system_keymap(self):
+        mappings_list = [
+            ['-D', ['[']],
+            ['*', ["t", "g", "y", "h"]],
+            # Keys can be a list of key names or a single key name.
+            ['arpeggiate', 'space'],
+            ['S-', ['a', 'q']],
+        ]
+        mappings_dict = dict(mappings_list)
+        machine = 'Keyboard'
+        section = config.SYSTEM_CONFIG_SECTION % config.DEFAULT_SYSTEM
+        option = config.SYSTEM_KEYMAP_OPTION % machine.lower()
+        cfg = config.Config()
+        # Mappings must be a dictionary.
+        mappings = cfg.get_system_keymap(machine)
+        self.assertIsInstance(mappings, dict)
+        # Mappings can be set from a dictionary.
+        cfg.set_system_keymap(machine, mappings_dict)
+        self.assertEqual(cfg.get_system_keymap(machine), mappings_dict)
+        # Or from a compatible iterable of pairs (action, keys).
+        cfg.set_system_keymap(machine, mappings_list)
+        self.assertEqual(cfg.get_system_keymap(machine), mappings_dict)
+        def make_config_file(mappings):
+            return make_config('[%s]\n%s = %s\n\n' % (section, option, json.dumps(mappings)))
+        # And the config format allow both.
+        for mappings in (mappings_list, mappings_dict):
+            cfg = config.Config()
+            cfg.load(make_config_file(mappings))
+            self.assertEqual(cfg.get_system_keymap(machine), mappings_dict)
+        # On save, a sorted list of pairs (action, keys) is expected.
+        # (to reduce differences between saves)
+        cfg = config.Config()
+        cfg.set_system_keymap(machine, mappings_dict)
+        contents = make_config()
+        cfg.save(contents)
+        self.assertEqual(contents.getvalue(), make_config_file(sorted(mappings_list)).getvalue())

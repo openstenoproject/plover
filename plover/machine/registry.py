@@ -8,6 +8,7 @@ from plover.machine.txbolt import TxBolt
 from plover.machine.keyboard import Keyboard
 from plover.machine.stentura import Stentura
 from plover.machine.passport import Passport
+from plover.machine.procat import ProCAT
 from plover.machine.treal import Treal
 
 class NoSuchMachineException(Exception):
@@ -49,6 +50,7 @@ machine_registry.register('Gemini PR', GeminiPr)
 machine_registry.register('TX Bolt', TxBolt)
 machine_registry.register('Stentura', Stentura)
 machine_registry.register('Passport', Passport)
+machine_registry.register('ProCAT', ProCAT)
 machine_registry.register('Treal', Treal)
 
 # Legacy configuration

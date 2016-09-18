@@ -4,7 +4,6 @@
 "For use with a computer keyboard (preferably NKRO) as a steno machine."
 
 from plover.machine.base import StenotypeBase
-from plover.machine.keymap import Keymap
 from plover.oslayer.keyboardcontrol import KeyboardCapture
 
 
@@ -33,7 +32,7 @@ class Keyboard(StenotypeBase):
 
     def _update_bindings(self):
         self._bindings = dict(self.keymap.get_bindings())
-        for key, mapping in self._bindings.items():
+        for key, mapping in list(self._bindings.items()):
             if 'no-op' == mapping:
                 self._bindings[key] = None
             elif 'arpeggiate' == mapping:

@@ -2,10 +2,13 @@
 # See LICENSE.txt for details.
 
 import os
+import codecs
 import tempfile
 import unittest
 from contextlib import contextmanager
-from StringIO import StringIO
+
+# Python 2/3 compatibility.
+from six import BytesIO
 
 import mock
 
@@ -86,18 +89,15 @@ class TestCase(unittest.TestCase):
         (r'{\cxconf [{\cxc abc}|{\cxc def}|{\cxc ghi}]}', 'ghi'),
         (r'{\cxconf [{\cxc abc}|{\cxc {\cxp... }}]}', '{^... ^}'),
         (r'be\cxds{\*\cxsvatdictentrydate\yr2006\mo5\dy10}', '{be^}'),
-        
         (r'{\nonexistant {\cxp .}}', '{.}'),
         (r'{\*\nonexistant {\cxp .}}', ''),
         )
-        
-        failed = []
         for before, after in cases:
             result = convert(before)
             msg = 'convert(%r) != %r: %r' % (
                 before, after, result
             )
-            self.assertEqual(result, after)
+            self.assertEqual(result, after, msg=msg)
     
     def test_load_dict(self):
         """Test the load_dict function.
@@ -128,10 +128,11 @@ class TestCase(unittest.TestCase):
         @contextmanager
         def make_dict(contents):
             tf = tempfile.NamedTemporaryFile(delete=False)
+            writer = codecs.getwriter('cp1252')(tf)
             try:
-                tf.write(header)
-                tf.write(contents)
-                tf.write(footer)
+                writer.write(header)
+                writer.write(contents)
+                writer.write(footer)
                 tf.close()
                 yield tf.name
             finally:
@@ -183,7 +184,6 @@ class TestCase(unittest.TestCase):
         # Conflicts result on only the last one kept.
         ('{\\*\\cxs T}t{\\*\\cxs T}g', {'T': 'g'}),
         ('{\\*\\cxs T}t{\\*\\cxs T}return_none', {'T': 't'}),
-        
         )
         
         patch_path = 'plover.dictionary.rtfcre_dict'
@@ -191,7 +191,7 @@ class TestCase(unittest.TestCase):
                                  TranslationConverter=Converter):
             for contents, expected in cases:
                 expected = dict((normalize(k), convert(v)) 
-                                for k, v in expected.iteritems())
+                                for k, v in expected.items())
                 with make_dict(contents) as filename:
                     assertEqual(load_dictionary(filename), expected)
 
@@ -203,21 +203,18 @@ class TestCase(unittest.TestCase):
         ('{pre^} ', 'pre\cxds '),
         ('{pre^}  ', 'pre\cxds ')
         )
-        
-        failed = False
-        format_str = "format({}) != {}: {}"
         for before, expected in cases:
             result = format_translation(before)
             msg = 'format_translation(%r) != %r: %r' % (
                 before, expected, result
             )
-            self.assertEqual(result, expected)
-        
+            self.assertEqual(result, expected, msg=msg)
+
     def test_save_dictionary(self):
-        f = StringIO()
+        f = BytesIO()
         d = {
         'S/T': '{pre^}',
         }
         save_dictionary(d, f)
-        expected = '{\\rtf1\\ansi{\\*\\cxrev100}\\cxdict{\\*\\cxsystem Plover}{\\stylesheet{\\s0 Normal;}}\r\n{\\*\\cxs S///T}pre\\cxds \r\n}\r\n' 
+        expected = b'{\\rtf1\\ansi{\\*\\cxrev100}\\cxdict{\\*\\cxsystem Plover}{\\stylesheet{\\s0 Normal;}}\r\n{\\*\\cxs S///T}pre\\cxds \r\n}\r\n'
         self.assertEqual(f.getvalue(), expected)

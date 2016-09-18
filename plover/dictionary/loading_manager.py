@@ -6,6 +6,9 @@
 import sys
 import threading
 
+# Python 2/3 compatibility.
+from six import reraise
+
 from plover.dictionary.base import load_dictionary
 from plover.exception import DictionaryLoaderException
 from plover import log
@@ -31,7 +34,7 @@ class DictionaryLoadingManager(object):
         for f in filenames:
             d, exc_info = self.dictionaries[f].get()
             if exc_info is not None:
-                raise exc_info[0], exc_info[1], exc_info[2]
+                reraise(*exc_info)
             dicts.append(d)
         return dicts
 

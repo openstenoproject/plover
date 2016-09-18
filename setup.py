@@ -2,6 +2,7 @@
 # Copyright (c) 2010 Joshua Harlan Lifton.
 # See LICENSE.txt for details.
 
+import contextlib
 import os
 import re
 import shutil
@@ -29,7 +30,7 @@ from utils.metadata import copy_metadata
 def get_version():
     if not os.path.exists('.git'):
         return None
-    version = subprocess.check_output('git describe --tags --match=v[0-9]*'.split()).strip()
+    version = subprocess.check_output('git describe --tags --match=v[0-9]*'.split()).strip().decode()
     m = re.match(r'^v(\d[\d.]*)(-\d+-g[a-f0-9]*)?$', version)
     assert m is not None, version
     version = m.group(1)
@@ -43,14 +44,13 @@ def pyinstaller(*args):
         '--log-level=INFO',
         '--specpath=build',
         '--additional-hooks-dir=windows',
-        '--paths=.',
         '--name=%s-%s' % (
             __software_name__,
             __version__,
         ),
         '--noconfirm',
         '--windowed',
-        '--onefile'
+        '--onefile',
     ]
     py_args.extend(args)
     py_args.append('windows/main.py')
@@ -58,7 +58,33 @@ def pyinstaller(*args):
     return main(py_args) or 0
 
 
-class PyInstallerDist(setuptools.Command):
+class Command(setuptools.Command):
+
+    def build_in_place(self):
+        self.run_command('build_py')
+        self.reinitialize_command('build_ext', inplace=1)
+        self.run_command('build_ext')
+
+    @contextlib.contextmanager
+    def project_on_sys_path(self):
+        self.build_in_place()
+        ei_cmd = self.get_finalized_command("egg_info")
+        old_path = sys.path[:]
+        old_modules = sys.modules.copy()
+        try:
+            sys.path.insert(0, pkg_resources.normalize_path(ei_cmd.egg_base))
+            pkg_resources.working_set.__init__()
+            pkg_resources.add_activation_listener(lambda dist: dist.activate())
+            pkg_resources.require('%s==%s' % (ei_cmd.egg_name, ei_cmd.egg_version))
+            yield
+        finally:
+            sys.path[:] = old_path
+            sys.modules.clear()
+            sys.modules.update(old_modules)
+            pkg_resources.working_set.__init__()
+
+
+class PyInstallerDist(Command):
 
     user_options = []
     extra_args = []
@@ -70,21 +96,20 @@ class PyInstallerDist(setuptools.Command):
         pass
 
     def run(self):
-        # Make sure metadata are up-to-date first.
-        self.run_command("egg_info")
+        self.build_in_place()
         code = pyinstaller(*self.extra_args)
         if code != 0:
             sys.exit(code)
 
 
 class BinaryDistWin(PyInstallerDist):
-    description = 'create an executabe for MS Windows'
+    description = 'create an executable for MS Windows'
     extra_args = [
         '--icon=plover/assets/plover.ico',
     ]
 
 
-class Launch(setuptools.Command):
+class Launch(Command):
 
     description = 'run %s from source' % __software_name__.capitalize()
     command_consumes_arguments = True
@@ -97,15 +122,13 @@ class Launch(setuptools.Command):
         pass
 
     def run(self):
-        # Make sure metadata are up-to-date first.
-        self.run_command('egg_info')
-        reload(pkg_resources)
-        from plover.main import main
-        sys.argv = [' '.join(sys.argv[0:2]) + ' --'] + self.args
-        sys.exit(main())
+        with self.project_on_sys_path():
+            from plover.main import main
+            sys.argv = [' '.join(sys.argv[0:2]) + ' --'] + self.args
+            sys.exit(main())
 
 
-class PatchVersion(setuptools.Command):
+class PatchVersion(Command):
 
     description = 'patch package version from VCS'
     user_options = []
@@ -130,7 +153,7 @@ class PatchVersion(setuptools.Command):
             fp.write('\n'.join(contents))
 
 
-class TagWeekly(setuptools.Command):
+class TagWeekly(Command):
 
     description = 'tag weekly version'
     user_options = []
@@ -150,22 +173,23 @@ class TagWeekly(setuptools.Command):
         subprocess.check_call('git tag -f'.split() + [weekly_version])
 
 
-class Test(setuptools.Command):
+class Test(Command):
 
     description = 'run unit tests after in-place build'
     command_consumes_arguments = True
     user_options = []
 
     def initialize_options(self):
-        self.args = None
+        self.args = []
 
     def finalize_options(self):
         pass
 
     def run(self):
-        # Make sure metadata are up-to-date first.
-        self.run_command('egg_info')
-        reload(pkg_resources)
+        with self.project_on_sys_path():
+            self.run_tests()
+
+    def run_tests(self):
         test_dir = os.path.join(os.path.dirname(__file__), 'test')
         # Remove __pycache__ directory so pytest does not freak out
         # when switching between the Linux/Windows versions.
@@ -263,9 +287,14 @@ if sys.platform.startswith('win32'):
 
 setup_requires.append('pytest')
 
+dependency_links = [
+   'git+https://github.com/benoit-pierre/pyobjc.git@pyobjc-3.1.1+plover#egg=pyobjc-core&subdirectory=pyobjc-core',
+]
+
 install_requires = [
+    'six',
     'setuptools',
-    'pyserial>=2.6',
+    'pyserial>=2.7',
     'appdirs>=1.3.0',
     'hidapi',
 ]
@@ -273,17 +302,15 @@ install_requires = [
 extras_require = {
     ':"win32" in sys_platform': [
         'pywin32>=219',
-        # Can't reliably require wxPython
     ],
     ':"linux" in sys_platform': [
-        'python-xlib>=0.14',
-        'wxPython>=3.0',
+        'python-xlib>=0.16',
     ],
     ':"darwin" in sys_platform': [
-        'pyobjc-core>=3.0.3',
+        'pyobjc-core==3.1.1+plover',
         'pyobjc-framework-Cocoa>=3.0.3',
         'pyobjc-framework-Quartz>=3.0.3',
-        'wxPython>=3.0',
+        'appnope>=0.1.0',
     ],
 }
 
@@ -301,8 +328,12 @@ def write_requirements(extra_features=()):
                 requirements.append('%s; %s' % (require, condition))
         elif feature in extra_features:
             requirements.extend(dependencies)
+    requirements = sorted(set(requirements))
     with open('requirements.txt', 'w') as fp:
         fp.write('\n'.join(requirements))
+        fp.write('\n')
+    with open('requirements_constraints.txt', 'w') as fp:
+        fp.write('\n'.join(dependency_links))
         fp.write('\n')
 
 
@@ -324,6 +355,7 @@ if __name__ == '__main__':
         author_email='joshua.harlan.lifton@gmail.com',
         maintainer='Ted Morin',
         maintainer_email='morinted@gmail.com',
+        include_package_data=True,
         zip_safe=True,
         options=options,
         cmdclass=cmdclass,
@@ -331,6 +363,7 @@ if __name__ == '__main__':
         install_requires=install_requires,
         extras_require=extras_require,
         tests_require=tests_require,
+        dependency_links=dependency_links,
         entry_points={
             'console_scripts': ['plover=plover.main:main'],
             'setuptools.installation': ['eggsecutable=plover.main:main'],
@@ -340,16 +373,13 @@ if __name__ == '__main__':
             'plover.oslayer', 'plover.dictionary',
             'plover.system',
         ],
-        package_data={
-            'plover': ['assets/*'],
-        },
         data_files=[
             ('share/applications', ['application/Plover.desktop']),
             ('share/pixmaps', ['plover/assets/plover.png']),
         ],
         classifiers=[
             'Programming Language :: Python :: 2.7',
-            'License :: OSI Approved :: GNU General Public License v2 (GPLv2)',
+            'License :: OSI Approved :: GNU General Public License v2 or later (GPLv2+)',
             'Development Status :: 5 - Production/Stable',
             'Environment :: X11 Applications',
             'Environment :: MacOS X',

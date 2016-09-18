@@ -13,7 +13,7 @@ Those need to be installed using your distribution package manager.
 
 All dependencies can be installed with pacman:
 
-`sudo pacman --sync python2-appdirs python2-hidapi python2-mock python2-pyserial python2-pytest python2-pytest-runner python2-setuptools python2-xlib wmctrl wxpython`
+`sudo pacman --sync python2-appdirs python2-dbus python2-hidapi python2-mock python2-pyserial python2-pytest python2-pytest-runner python2-setuptools python2-six python2-xlib wmctrl wxpython`
 
 ### Ubuntu
 
@@ -21,7 +21,7 @@ The latest stable release should be installable by the using the following PPA: 
 
 For the development version, most dependencies can be installed with APT:
 
-`sudo apt-get install cython libusb-1.0-0-dev libudev-dev python-appdirs python-mock python-pip python-pytest python-serial python-setuptools python-wxgtk3.0 python-xlib wmctrl`
+`sudo apt-get install cython libusb-1.0-0-dev libudev-dev python-appdirs python-dbus python-mock python-pip python-pytest python-serial python-setuptools python-six python-wxgtk3.0 python-xlib wmctrl`
 
 Note: `python-wxgtk3.0` is only available starting with Ubuntu 15.10 (Wily Werewolf). It can be installed on older versions, like Ubuntu 14.04 LTS (Trusty Tahr), by using the aforementioned PPA: [ppa:benoit.pierre/plover](https://launchpad.net/~benoit.pierre/+archive/ubuntu/plover).
 
@@ -35,7 +35,7 @@ You can create a pip compatible requirements file with:
 
 And then using pip, e.g. for a user install:
 
-`pip2 install --user -r requirements.txt`
+`pip2 install --user -r requirements.txt -c requirements_constraints.txt`
 
 Notes:
 - if your version of pip is too old, you may get parsing errors on the lines with conditional directives (like `python-xlib>=0.14; "linux" in sys_platform`). You can fix those with the following sed command: `sed -i '/; "/{/; "linux" in sys_platform$/!d;s/; .*//}' requirements.txt`.

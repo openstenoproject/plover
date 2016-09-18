@@ -1,9 +1,21 @@
 # coding: utf-8
+
+import threading
+from time import sleep
+
+# Python 2/3 compatibility.
+from six import PY3
+# Note: six.move is not used as it confuses py2app...
+if PY3:
+    from queue import Queue
+else:
+    from Queue import Queue
+
 from Quartz import (
     CFMachPortCreateRunLoopSource,
     CFMachPortInvalidate,
     CFRunLoopAddSource,
-    CFRunLoopRemoveSource,
+    CFRunLoopSourceInvalidate,
     CFRunLoopGetCurrent,
     CFRunLoopRun,
     CFRunLoopStop,
@@ -37,14 +49,10 @@ from Quartz import (
     NSEvent,
     NSSystemDefined,
 )
-import Foundation
-import threading
-import Queue
-from time import time
-import collections
 
-from plover.oslayer import mac_keycode
-from plover.key_combo import add_modifiers_aliases, parse_key_combo
+from plover.misc import characters
+from plover.oslayer.osxkeyboardlayout import KeyboardLayout
+from plover.key_combo import add_modifiers_aliases, parse_key_combo, KEYNAME_TO_CHAR
 import plover.log
 
 
@@ -77,7 +85,7 @@ KEYNAME_TO_KEYCODE = {
     'caps_lock': 57,
 
     'return': 36, 'tab': 48, 'backspace': BACK_SPACE, 'delete': 117,
-    'escape': 53,
+    'escape': 53, 'clear': 71,
 
     'up': 126, 'down': 125, 'left': 123, 'right': 124, 'page_up': 116,
     'page_down': 121, 'home': 115, 'end': 119,
@@ -92,26 +100,17 @@ KEYNAME_TO_KEYCODE = {
     'kp_add': 69, 'kp_decimal': 65, 'kp_delete': 71, 'kp_divide': 75,
     'kp_enter': 76, 'kp_equal': 81, 'kp_multiply': 67, 'kp_subtract': 78,
 }
-for name, code in NX_KEYS.iteritems():
+for name, code in NX_KEYS.items():
     KEYNAME_TO_KEYCODE[name.lower()] = code + NX_KEY_OFFSET
 add_modifiers_aliases(KEYNAME_TO_KEYCODE)
 
-KEYNAME_TO_CHAR = {
-    'ampersand': '&', 'apostrophe': '\'', 'asciitilde': '~',
-    'asterisk': '*', 'at': '@', 'backslash': '\'',
-    'braceleft': '{', 'braceright': '}', 'bracketleft': '[',
-    'bracketright': ']', 'colon': ':', 'comma': ',', 'division': '÷',
-    'dollar': '$', 'equal': '=', 'exclam': '!', 'greater': '>',
-    'hyphen': '-', 'less': '<', 'minus': '-', 'multiply': '×',
-    'numbersign': '#', 'parenleft': '(', 'parenright': ')',
-    'percent': '%', 'period': '.', 'plus': '+',
-    'question': '?', 'quotedbl': '"', 'quoteleft': '‘',
-    'quoteright': '’', 'semicolon': ';', 'slash': '/', 'space': ' ',
-    'underscore': '_',
-    'grave': '`', 'asciicircum': '^',
-    'bar': '|',
+DEADKEY_SYMBOLS = {
+    'dead_acute': '´',
+    'dead_circumflex': '^',
+    'dead_diaeresis': '¨',
+    'dead_grave': '`',
+    'dead_tilde': '~',
 }
-
 
 def down(seq):
     return [(x, True) for x in seq]
@@ -123,32 +122,6 @@ def up(seq):
 
 def down_up(seq):
     return down(seq) + up(seq)
-
-# Maps from literal characters to their key names.
-LITERALS = collections.defaultdict(str, {
-    '0': '0', '1': '1', '2': '2', '3': '3', '4': '4', '5': '5', '6': '6',
-    '7': '7', '8': '8', '9': '9',
-
-    'a': 'a', 'b': 'b', 'c': 'c', 'd': 'd', 'e': 'e', 'f': 'f', 'g': 'g',
-    'h': 'h', 'i': 'i', 'j': 'j', 'k': 'k', 'l': 'l', 'm': 'm', 'n': 'n',
-    'o': 'o', 'p': 'p', 'q': 'q', 'r': 'r', 's': 's', 't': 't', 'u': 'u',
-    'v': 'v', 'w': 'w', 'x': 'x', 'y': 'y', 'z': 'z',
-
-    'A': 'A', 'B': 'B', 'C': 'C', 'D': 'D', 'E': 'E', 'F': 'F', 'G': 'G',
-    'H': 'H', 'I': 'I', 'J': 'J', 'K': 'K', 'L': 'L', 'M': 'M', 'N': 'N',
-    'O': 'O', 'P': 'P', 'Q': 'Q', 'R': 'R', 'S': 'S', 'T': 'T', 'U': 'U',
-    'V': 'V', 'W': 'W', 'X': 'X', 'Y': 'Y', 'Z': 'Z',
-
-    '`': 'grave', '~': 'asciitilde', '!': 'exclam', '@': 'at',
-    '#': 'numbersign', '$': 'dollar', '%': 'percent', '^': 'asciicircum',
-    '&': 'ampersand', '*': 'asterisk', '(': 'parenleft', ')': 'parenright',
-    '-': 'minus', '_': 'underscore', '=': 'equal', '+': 'plus',
-    '[': 'bracketleft', ']': 'bracketright', '{': 'braceleft',
-    '}': 'braceright', '\\': 'backslash', '|': 'bar', ';': 'semicolon',
-    ':': 'colon', '\'': 'apostrophe', '"': 'quotedbl', ',': 'comma',
-    '<': 'less', '.': 'period', '>': 'greater', '/': 'slash',
-    '?': 'question', '\t': 'Tab', ' ': 'space'
-})
 
 # Maps from keycodes to corresponding event masks.
 MODIFIER_KEYS_TO_MASKS = {
@@ -199,9 +172,8 @@ class KeyboardCapture(threading.Thread):
 
     def __init__(self):
         threading.Thread.__init__(self, name="KeyboardEventTapThread")
-        self._running_thread = None
-        self._canceled = False  # Used to signal event handler thread.
-        self._event_queue = Queue.Queue()  # Drained by event handler thread.
+        self._loop = None
+        self._event_queue = Queue()  # Drained by event handler thread.
 
         self._suppressed_keys = set()
         self.key_down = lambda key: None
@@ -222,9 +194,6 @@ class KeyboardCapture(threading.Thread):
         def callback(proxy, event_type, event, reference):
             SUPPRESS_EVENT = None
             PASS_EVENT_THROUGH = event
-
-            if self._canceled:
-                return PASS_EVENT_THROUGH
 
             # Don't pass on meta events meant for this event tap.
             is_unexpected_event = event_type not in self._KEYBOARD_EVENTS
@@ -266,40 +235,35 @@ class KeyboardCapture(threading.Thread):
             # Todo(hesky): See if there is a nice way to show the user what's
             # needed (or do it for them).
             raise Exception("Enable access for assistive devices.")
-        self._source = CFMachPortCreateRunLoopSource(None, self._tap, 0)
         CGEventTapEnable(self._tap, False)
 
     def run(self):
-        self._handler_thread = threading.Thread(
+        source = CFMachPortCreateRunLoopSource(None, self._tap, 0)
+        handler_thread = threading.Thread(
             target=self._event_handler,
             name="KeyEventDispatcher")
-        self._handler_thread.start()
-
-        self._running_thread = CFRunLoopGetCurrent()
+        handler_thread.start()
+        self._loop = CFRunLoopGetCurrent()
         CFRunLoopAddSource(
-            self._running_thread,
-            self._source,
+            self._loop,
+            source,
             kCFRunLoopCommonModes
         )
         CGEventTapEnable(self._tap, True)
+
         CFRunLoopRun()
 
-    def cancel(self):
-        self._canceled = True  # Signal event handler thread to exit.
-        self._event_queue.put_nowait(None)   # Wake up event handler.
-
-        CGEventTapEnable(self._tap, False)
-        CFRunLoopRemoveSource(
-            self._running_thread, self._source, kCFRunLoopCommonModes)
-        CFRelease(self._source)
-        self._source = None
-
+        # Wake up event handler.
+        self._event_queue.put_nowait(None)
+        handler_thread.join()
         CFMachPortInvalidate(self._tap)
         CFRelease(self._tap)
-        self._tap = None
+        CFRunLoopSourceInvalidate(source)
 
-        CFRunLoopStop(self._running_thread)
-        self._running_thread = None
+    def cancel(self):
+        CFRunLoopStop(self._loop)
+        self.join()
+        self._loop = None
 
     def suppress_keyboard(self, suppressed_keys=()):
         self._suppressed_keys = set(suppressed_keys)
@@ -320,8 +284,7 @@ class KeyboardCapture(threading.Thread):
     def _event_handler(self):
         """
         Event dispatching thread launched during run().
-        Loops until _canceled is set True
-        or None is received from _event_queue.
+        Loops until None is received from _event_queue.
         Avoids busy-waiting by blocking on _event_queue.
 
         In normal operation, it gets a pair of
@@ -331,7 +294,7 @@ class KeyboardCapture(threading.Thread):
         """
         while True:
             pair = self._event_queue.get(block=True, timeout=None)
-            if self._canceled or pair is None:
+            if pair is None:
                 return
 
             key, is_keyup = pair
@@ -339,28 +302,16 @@ class KeyboardCapture(threading.Thread):
             handler(key)
 
 
-# "Narrow python" unicode objects store characters in UTF-16 so we
-# can't iterate over characters in the standard way. This workaround
-# let's us iterate over full characters in the string.
-def characters(s):
-    encoded = s.encode('utf-32-be')
-    for i in xrange(len(encoded) / 4):
-        start = i * 4
-        end = start + 4
-        character = encoded[start:end].decode('utf-32-be')
-        yield character
-
-
 class KeyboardEmulation(object):
 
     RAW_PRESS, STRING_PRESS = range(2)
 
     def __init__(self):
-        pass
+        self._layout = KeyboardLayout()
 
     @staticmethod
     def send_backspaces(number_of_backspaces):
-        for _ in xrange(number_of_backspaces):
+        for _ in range(number_of_backspaces):
             backspace_down = CGEventCreateKeyboardEvent(
                 OUTPUT_SOURCE, BACK_SPACE, True)
             backspace_up = CGEventCreateKeyboardEvent(
@@ -403,7 +354,7 @@ class KeyboardEmulation(object):
 
         last_modifier = None
         for c in characters(s):
-            for keycode, modifier in mac_keycode.KeyCodeForChar(c):
+            for keycode, modifier in self._layout.char_to_key_sequence(c):
                 if keycode is not None:
                     if modifier is not last_modifier:
                         # Flush on modifier change.
@@ -456,11 +407,19 @@ class KeyboardEmulation(object):
 
         """
         def name_to_code(name):
+            # Static key codes
             code = KEYNAME_TO_KEYCODE.get(name)
             if code is not None:
-                return code
-            char = KEYNAME_TO_CHAR.get(name, name)
-            code, mods = mac_keycode.KeyCodeForChar(char)[0]
+                pass
+            # Dead keys
+            elif name.startswith('dead_'):
+                code, mod = self._layout.deadkey_symbol_to_key_sequence(
+                    DEADKEY_SYMBOLS.get(name)
+                )[0]
+            # Normal keys
+            else:
+                char = KEYNAME_TO_CHAR.get(name, name)
+                code, mods = self._layout.char_to_key_sequence(char)[0]
             return code
         # Parse and validate combo.
         key_events = parse_key_combo(combo_string, name_to_code)
@@ -482,8 +441,8 @@ class KeyboardEmulation(object):
 
     @staticmethod
     def _set_event_string(event, s):
-        buf = Foundation.NSString.stringWithString_(s)
-        CGEventKeyboardSetUnicodeString(event, len(buf), buf)
+        nb_utf16_codepoints = len(s.encode('utf-16-le')) // 2
+        CGEventKeyboardSetUnicodeString(event, nb_utf16_codepoints, s)
 
     MODS_MASK = (
         kCGEventFlagMaskAlternate |
@@ -537,9 +496,7 @@ class KeyboardEmulation(object):
                         CGEventSetFlags(event, goal_flags)
 
                     # Half millisecond pause after key down.
-                    deadline = time() + 0.0005
-                    while time() < deadline:
-                        pass
+                    sleep(0.0005)
                 if key_down and keycode in MODIFIER_KEYS_TO_MASKS:
                     mods_flags |= MODIFIER_KEYS_TO_MASKS[keycode]
 

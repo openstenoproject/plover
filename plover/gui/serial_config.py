@@ -6,7 +6,7 @@
 """A graphical user interface for configuring a serial port."""
 
 from serial import Serial
-from plover.oslayer.comscan import comports
+from serial.tools.list_ports import comports
 import string
 import wx
 import wx.animate

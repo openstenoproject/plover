@@ -19,7 +19,7 @@ COL_DICTIONARY = COLUMNS.index(DICTIONARY)
 COL_SPACER = COLUMNS.index(SPACER)
 
 
-class DictionaryItem():
+class DictionaryItem(object):
 
     def __init__(self, stroke, translation, dictionary, id):
 
@@ -32,7 +32,7 @@ class DictionaryItem():
         self.id = id
 
 
-class DictionaryEditorStore():
+class DictionaryEditorStore(object):
 
     def __init__(self, engine, config):
 

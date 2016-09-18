@@ -5,6 +5,9 @@
 
 import unittest
 
+# Python 2/3 compatibility.
+from six import assertCountEqual
+
 from plover.steno_dictionary import StenoDictionary, StenoDictionaryCollection
 
 
@@ -44,17 +47,19 @@ class StenoDictionaryTestCase(unittest.TestCase):
         self.assertEqual(d.longest_key, 2)
         self.assertEqual(notifications, [1, 4, 2, 0])
         
-        self.assertEqual(StenoDictionary([('a', 'b')]).items(), [('a', 'b')])
-        self.assertEqual(StenoDictionary(a='b').items(), [('a', 'b')])
+        self.assertEqual(list(StenoDictionary([('a', 'b')]).items()), [('a', 'b')])
+        self.assertEqual(list(StenoDictionary(a='b').items()), [('a', 'b')])
 
     def test_dictionary_collection(self):
         dc = StenoDictionaryCollection()
         d1 = StenoDictionary()
         d1[('S',)] = 'a'
         d1[('T',)] = 'b'
+        d1.set_path('d1')
         d2 = StenoDictionary()
         d2[('S',)] = 'c'
         d2[('W',)] = 'd'
+        d2.set_path('d2')
         dc.set_dicts([d1, d2])
         self.assertEqual(dc.lookup(('S',)), 'c')
         self.assertEqual(dc.lookup(('W',)), 'd')
@@ -78,11 +83,16 @@ class StenoDictionaryTestCase(unittest.TestCase):
         self.assertEqual(dc.lookup(('S',)), 'e')
         self.assertEqual(d2[('S',)], 'e')
 
+        dc.set(('S',), 'f', dictionary='d1')
+        self.assertEqual(dc.lookup(('S',)), 'e')
+        self.assertEqual(d1[('S',)], 'f')
+        self.assertEqual(d2[('S',)], 'e')
+
     def test_dictionary_collection_longest_key(self):
 
         k1 = ('S',)
         k2 = ('S', 'T')
-        k3 = ('S', 'T' , 'R')
+        k3 = ('S', 'T', 'R')
 
         dc = StenoDictionaryCollection()
         self.assertEqual(dc.longest_key, 0)
@@ -113,3 +123,40 @@ class StenoDictionaryTestCase(unittest.TestCase):
 
         dc.set_dicts([])
         self.assertEqual(dc.longest_key, 0)
+
+    def test_reverse_lookup(self):
+        dc = StenoDictionaryCollection()
+
+        d1 = StenoDictionary()
+        d1[('PWAOUFL',)] = 'beautiful'
+        d1[('WAOUFL',)] = 'beautiful'
+
+        d2 = StenoDictionary()
+        d2[('PW-FL',)] = 'beautiful'
+
+        d3 = StenoDictionary()
+        d3[('WAOUFL',)] = 'not beautiful'
+
+        # Simple test.
+        dc.set_dicts([d1])
+        assertCountEqual(self,
+                         dc.reverse_lookup('beautiful'),
+                         [('PWAOUFL',), ('WAOUFL',)])
+
+        # No duplicates.
+        dc.set_dicts([d2, StenoDictionary(d2)])
+        assertCountEqual(self,
+                         dc.reverse_lookup('beautiful'),
+                         [('PW-FL',)])
+
+        # Don't stop at the first dictionary with matches.
+        dc.set_dicts([d1, d2])
+        assertCountEqual(self,
+                         dc.reverse_lookup('beautiful'),
+                         [('PWAOUFL',), ('WAOUFL',), ('PW-FL',)])
+
+        # Ignore keys overriden by a higher precedence dictionary.
+        dc.set_dicts([d1, d2, d3])
+        assertCountEqual(self,
+                         dc.reverse_lookup('beautiful'),
+                         [('PWAOUFL',), ('PW-FL',)])

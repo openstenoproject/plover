@@ -1,5 +1,8 @@
 #!/usr/bin/env python2
 
+# Python 2/3 compatibility.
+from __future__ import print_function
+
 import os
 import pkg_resources
 import sys
@@ -39,7 +42,7 @@ def collect_metadata(distribution):
     for dependency in requirements:
         metadata = get_metadata(dependency)
         if metadata is None:
-            print 'no metadata for: %s' % dependency.project_name
+            print('no metadata for: %s' % dependency.project_name)
             continue
         metadata_list.append(metadata)
     return metadata_list
@@ -59,13 +62,13 @@ def pack(root_dir, path, archive_name):
 
 def copy_metadata(source, destination):
     distribution = list(pkg_resources.find_distributions(source, only=True))[0]
-    print 'adding metadata from %s (%s) to %s' % (
+    print('adding metadata from %s (%s) to %s' % (
         source,
         distribution.project_name,
         destination,
-    )
+    ))
     for metadata in collect_metadata(distribution):
-        print 'adding metadata: %s' % metadata[1]
+        print('adding metadata: %s' % metadata[1])
         pack(destination, metadata[0], metadata[1])
 
 if __name__ == '__main__':

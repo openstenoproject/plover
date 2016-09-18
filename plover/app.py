@@ -22,20 +22,13 @@ import plover.config as conf
 import plover.formatting as formatting
 import plover.steno as steno
 import plover.translation as translation
-from plover.exception import InvalidConfigurationError,DictionaryLoaderException
+from plover.exception import InvalidConfigurationError
 from plover.machine.registry import machine_registry, NoSuchMachineException
+from plover.suggestions import Suggestions
 from plover import log
 from plover.dictionary.loading_manager import manager as dict_manager
 from plover import system
-
-# Because 2.7 doesn't have this yet.
-class SimpleNamespace(object):
-    def __init__(self, **kwargs):
-        self.__dict__.update(kwargs)
-    def __repr__(self):
-        keys = sorted(self.__dict__)
-        items = ("{}={!r}".format(k, self.__dict__[k]) for k in keys)
-        return "{}({})".format(type(self).__name__, ", ".join(items))
+from plover.misc import SimpleNamespace
 
 
 def init_engine(engine, config):
@@ -57,7 +50,7 @@ def update_engine(engine, config, reset_machine=False):
     try:
         machine_class = machine_registry.get(machine_type)
     except NoSuchMachineException as e:
-        raise InvalidConfigurationError(unicode(e))
+        raise InvalidConfigurationError(str(e))
     machine_options = config.get_machine_specific_options(machine_type)
     machine_mappings = config.get_system_keymap(machine_type)
     engine.set_machine(machine_class, machine_options, machine_mappings,
@@ -138,6 +131,7 @@ class StenoEngine(object):
         self.machine_class = None
         self.machine_options = None
         self.machine_mappings = None
+        self.suggestions = None
         self.thread_hook = thread_hook
 
         self.translator = translation.Translator()
@@ -172,16 +166,17 @@ class StenoEngine(object):
             self.machine = None
         if machine_class is not None:
             log.debug('starting machine: %s', machine_class.__name__)
-            self.machine = machine_class(machine_options)
+            machine = machine_class(machine_options)
             if machine_mappings is not None:
-                self.machine.set_mappings(machine_mappings)
-            self.machine.add_state_callback(self._machine_state_callback)
-            self.machine.add_stroke_callback(log.stroke)
-            self.machine.add_stroke_callback(self._translator_machine_callback)
-            self.machine.start_capture()
+               machine.set_mappings(machine_mappings)
+            machine.add_state_callback(self._machine_state_callback)
+            machine.add_stroke_callback(log.stroke)
+            machine.add_stroke_callback(self._translator_machine_callback)
+            self.machine = machine
             self.machine_class = machine_class
             self.machine_options = machine_options
             self.machine_mappings = machine_mappings
+            self.machine.start_capture()
             is_running = self.is_running
         else:
             is_running = False
@@ -191,9 +186,13 @@ class StenoEngine(object):
         dictionary = self.translator.get_dictionary()
         dicts = dict_manager.load(file_names)
         dictionary.set_dicts(dicts)
+        self.suggestions = Suggestions(dictionary)
 
     def get_dictionary(self):
         return self.translator.get_dictionary()
+
+    def get_suggestions(self, translation):
+        return self.suggestions.find(translation)
 
     def set_is_running(self, value):
         if value != self.is_running:

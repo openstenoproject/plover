@@ -1,6 +1,4 @@
 
-import unittest
-
 from plover.key_combo import parse_key_combo
 
 from . import TestCase

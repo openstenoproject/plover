@@ -57,7 +57,7 @@ class StenoDictionary(collections.MutableMapping):
         self.reverse[value].remove(key)
         if len(key) == self.longest_key:
             if self._dict:
-                self._longest_key = max(len(x) for x in self._dict.iterkeys())
+                self._longest_key = max(len(x) for x in self._dict)
             else:
                 self._longest_key = 0
 
@@ -69,15 +69,6 @@ class StenoDictionary(collections.MutableMapping):
 
     def get_path(self):
         return self._path    
-
-    def iterkeys(self):
-        return self._dict.iterkeys()
-
-    def itervalues(self):
-        return self._dict.itervalues()
-        
-    def iteritems(self):
-        return self._dict.iteritems()
 
     @property
     def _longest_key(self):
@@ -99,6 +90,7 @@ class StenoDictionary(collections.MutableMapping):
 
 
 class StenoDictionaryCollection(object):
+
     def __init__(self):
         self.dicts = []
         self.filters = []
@@ -114,9 +106,11 @@ class StenoDictionaryCollection(object):
             d.add_longest_key_listener(self._longest_key_listener)
         self._longest_key_listener()
 
-    def _lookup(self, key, filters=()):
+    def _lookup(self, key, dicts=None, filters=()):
+        if dicts is None:
+            dicts = self.dicts
         key_len = len(key)
-        for d in self.dicts:
+        for d in dicts:
             if key_len > d.longest_key:
                 continue
             value = d.get(key)
@@ -127,16 +121,19 @@ class StenoDictionaryCollection(object):
                 return value
 
     def lookup(self, key):
-        return self._lookup(key, self.filters)
+        return self._lookup(key, filters=self.filters)
 
     def raw_lookup(self, key):
         return self._lookup(key)
 
     def reverse_lookup(self, value):
-        for d in self.dicts:
-            key = d.reverse.get(value)
-            if key:
-                return key
+        keys = []
+        for n, d in enumerate(self.dicts):
+            for k in d.reverse.get(value, ()):
+                # Ignore key if it's overriden by a higher priority dictionary.
+                if self._lookup(k, dicts=self.dicts[:n]) is None:
+                    keys.append(k)
+        return keys
 
     def casereverse_lookup(self, value):
         for d in self.dicts:
@@ -144,9 +141,12 @@ class StenoDictionaryCollection(object):
             if key:
                 return key
 
-    def set(self, key, value):
-        if self.dicts:
-            self.dicts[0][key] = value
+    def set(self, key, value, dictionary=None):
+        if dictionary is None:
+            d = self.dicts[0]
+        else:
+            d = self.get_by_path(dictionary)
+        d[key] = value
 
     def save(self, path_list=None):
         '''Save the dictionaries in <path_list>.

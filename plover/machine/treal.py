@@ -24,7 +24,7 @@ def packet_to_stroke(p):
    keys = []
    for i, b in enumerate(p):
        map = STENO_KEY_CHART[i]
-       for i in xrange(8):
+       for i in range(8):
            if (b >> i) & 1:
                key = map[-i + 7]
                if key:
@@ -79,7 +79,7 @@ class Treal(ThreadedStenotypeBase):
                     self._machine.open(VENDOR_ID, product_id)
                 else:
                     self._machine = hid.device(VENDOR_ID, product_id)
-            except IOError as e:
+            except IOError:
                 self._machine = None
             else:
                 self._machine.set_nonblocking(0)

@@ -13,23 +13,22 @@ emulate keyboard input.
 
 """
 
-import collections
 import ctypes
 import multiprocessing
 import os
 import threading
-import time
-import types
-import _winreg as winreg
 
 from ctypes import windll, wintypes
 
+# Python 2/3 compatibility.
+from six.moves import winreg
+
 import win32api
 
-from plover.key_combo import add_modifiers_aliases, parse_key_combo
+from plover.key_combo import parse_key_combo
 from plover.oslayer.winkeyboardlayout import KeyboardLayout
 from plover import log
-
+from plover.misc import characters
 
 SendInput = windll.user32.SendInput
 LONG = ctypes.c_long
@@ -150,11 +149,17 @@ class HeartBeat(threading.Thread):
         super(HeartBeat, self).__init__()
         self._ppid = ppid
         self._atexit = atexit
+        self._finished = threading.Event()
 
     def run(self):
         while pid_exists(self._ppid):
-            time.sleep(1)
+            if self._finished.wait(1):
+                break
         self._atexit()
+
+    def stop(self):
+        self._finished.set()
+        self.join()
 
 
 class KeyboardCaptureProcess(multiprocessing.Process):
@@ -212,7 +217,7 @@ class KeyboardCaptureProcess(multiprocessing.Process):
                 write_key = _open_key(winreg.KEY_WRITE)
                 winreg.SetValueEx(write_key, REG_LLHOOK_KEY_VALUE_NAME, 0,
                                   REG_LLHOOK_KEY_VALUE_TYPE, REG_LLHOOK_KEY_VALUE)
-            except WindowsError as e:
+            except WindowsError:
                 log.warning('could not update registry key: %s, see documentation',
                             REG_LLHOOK_KEY_FULL_NAME)
             else:
@@ -221,7 +226,7 @@ class KeyboardCaptureProcess(multiprocessing.Process):
 
     def run(self):
 
-        heartbeat = HeartBeat(self._ppid, self.stop)
+        heartbeat = HeartBeat(self._ppid, self._send_quit)
         heartbeat.start()
 
         import atexit
@@ -292,6 +297,13 @@ class KeyboardCaptureProcess(multiprocessing.Process):
             windll.user32.TranslateMessage(ctypes.byref(msg))
             windll.user32.DispatchMessageW(ctypes.byref(msg))
 
+        heartbeat.stop()
+
+    def _send_quit(self):
+        windll.user32.PostThreadMessageW(self._tid,
+                                         0x0012, # WM_QUIT
+                                         0, 0)
+
     def start(self):
         self.daemon = True
         super(KeyboardCaptureProcess, self).start()
@@ -299,9 +311,7 @@ class KeyboardCaptureProcess(multiprocessing.Process):
 
     def stop(self):
         if self.is_alive():
-            windll.user32.PostThreadMessageW(self._tid,
-                                             0x0012, # WM_QUIT
-                                             0, 0)
+            self._send_quit()
             self.join()
         # Wake up capture thread, so it gets a chance to check if it must stop.
         self._queue.put((None, None))
@@ -341,9 +351,9 @@ class KeyboardCapture(threading.Thread):
             (self.key_down if pressed else self.key_up)(key)
 
     def cancel(self):
+        self._finished.set()
         self._proc.stop()
         if self.is_alive():
-            self._finished.set()
             self.join()
 
     def suppress_keyboard(self, suppressed_keys=()):
@@ -351,7 +361,7 @@ class KeyboardCapture(threading.Thread):
         self._proc.suppress_keyboard(self._suppressed_keys)
 
 
-class KeyboardEmulation:
+class KeyboardEmulation(object):
 
     def __init__(self):
         self.keyboard_layout = KeyboardLayout()
@@ -364,19 +374,6 @@ class KeyboardEmulation:
         pinputs = len_pinput(*inputs)
         c_size = ctypes.c_int(ctypes.sizeof(INPUT))
         return SendInput(len_inputs, pinputs, c_size)
-
-    # "Narrow python" unicode objects store characters in UTF-16 so we
-    # can't iterate over characters in the standard way. This workaround
-    # lets us iterate over full characters in the string.
-    @staticmethod
-    def _characters(s):
-        encoded = s.encode('utf-32-be')
-        characters = []
-        for i in xrange(len(encoded)/4):
-            start = i * 4
-            end = start + 4
-            character = encoded[start:end].decode('utf-32-be')
-            yield character
 
     # Input type (can be mouse, keyboard)
     @staticmethod
@@ -435,12 +432,12 @@ class KeyboardEmulation:
         self._send_input(*inputs)
 
     def send_backspaces(self, number_of_backspaces):
-        for _ in xrange(number_of_backspaces):
+        for _ in range(number_of_backspaces):
             self._key_press('\x08')
 
     def send_string(self, s):
         self._refresh_keyboard_layout()
-        for char in self._characters(s):
+        for char in characters(s):
             if char in self.keyboard_layout.char_to_vk_ss:
                 # We know how to simulate the character.
                 self._key_press(char)
@@ -463,7 +460,7 @@ class KeyboardEmulation:
         example, Alt_L(Tab) means to hold the left Alt key down, press
         and release the Tab key, and then release the left Alt key.
         """
-        # Make sure keyboard layout if up-to-date.
+        # Make sure keyboard layout is up-to-date.
         self._refresh_keyboard_layout()
         # Parse and validate combo.
         key_events = parse_key_combo(combo_string, self.keyboard_layout.keyname_to_vk.get)

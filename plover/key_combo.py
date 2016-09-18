@@ -131,11 +131,11 @@ for char in (
     KEYNAME_TO_CHAR[char] = char
 CHAR_TO_KEYNAME = {
     char: name
-    for name, char in KEYNAME_TO_CHAR.iteritems()
+    for name, char in KEYNAME_TO_CHAR.items()
 }
 
 
-_SPLIT_RX = re.compile(ur'(\s+|(?:\w+(?:\s*\()?)|.)')
+_SPLIT_RX = re.compile(r'(\s+|(?:\w+(?:\s*\()?)|.)')
 
 def parse_key_combo(combo_string, key_name_to_key_code=None):
 
@@ -163,7 +163,7 @@ def parse_key_combo(combo_string, key_name_to_key_code=None):
         if token.isspace():
             pass
 
-        elif re.match(ur'\w', token):
+        elif re.match(r'\w', token):
 
             if token.endswith(u'('):
                 key_name = token[:-1].rstrip().lower()

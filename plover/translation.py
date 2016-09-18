@@ -91,7 +91,7 @@ class Translation(object):
         self.rtfcre = tuple(s.rtfcre for s in outline)
         self.english = translation
         self.replaced = []
-        self.formatting = None
+        self.formatting = []
         self.is_retrospective_command = False
 
     def __eq__(self, other):
@@ -101,7 +101,12 @@ class Translation(object):
         return not self.__eq__(other)
 
     def __str__(self):
-        return 'Translation(%s : %s)' % (self.rtfcre, self.english)
+        if self.english is None:
+            translation = 'None'
+        else:
+            translation = escape_translation(self.english)
+            translation = '"%s"' % translation.replace('"', r'\"')
+        return 'Translation(%s : %s)' % (self.rtfcre, translation)
 
     def __repr__(self):
         return str(self)
@@ -351,7 +356,7 @@ class Translator(object):
         # The new stroke can either create a new translation or replace
         # existing translations by matching a longer entry in the
         # dictionary.
-        for i in xrange(len(translations)):
+        for i in range(len(translations)):
             replaced = translations[i:]
             strokes = list(itertools.chain(*[t.strokes for t in replaced]))
             strokes.append(stroke)
@@ -371,14 +376,16 @@ class Translator(object):
             if key in strokes[-1].steno_keys:
                 dict_key = (Stroke([key]).rtfcre,)
                 suffix_mapping = self._dictionary.lookup(dict_key)
-                if suffix_mapping == None: continue
+                if suffix_mapping is None:
+                    continue
                 keys = strokes[-1].steno_keys[:]
                 keys.remove(key)
                 copy = strokes[:]
                 copy[-1] = Stroke(keys)
                 dict_key = tuple(s.rtfcre for s in copy)
                 main_mapping = self._dictionary.lookup(dict_key)
-                if main_mapping == None: continue
+                if main_mapping is None:
+                    continue
                 return main_mapping + ' ' + suffix_mapping
 
         return None

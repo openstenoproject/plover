@@ -14,7 +14,7 @@ from plover.machine.keymap import Keymap
 from plover import system
 
 
-STATE_STOPPED = 'closed'
+STATE_STOPPED = 'stopped'
 STATE_INITIALIZING = 'initializing'
 STATE_RUNNING = 'connected'
 STATE_ERROR = 'disconnected'
@@ -186,8 +186,8 @@ class SerialStenotypeBase(ThreadedStenotypeBase):
 
         try:
             self.serial_port = serial.Serial(**self.serial_params)
-        except (serial.SerialException, OSError) as e:
-            log.warning('Can\'t open Serial port: %s', str(e))
+        except (serial.SerialException, OSError):
+            log.warning('Can\'t open serial port', exc_info=True)
             self._error()
             return
 

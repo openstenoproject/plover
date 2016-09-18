@@ -73,10 +73,7 @@ class Formatter(object):
     def set_space_placement(self, s):
         # Set whether spaces will be inserted
         # before the output or after the output
-        if s == 'After Output':
-            self.spaces_after = True
-        else:
-            self.spaces_after = False
+        self.spaces_after = bool(s == 'After Output')
 
     def format(self, undo, do, prev):
         """Format the given translations.
@@ -144,9 +141,9 @@ class OutputHelper(object):
         before_32 = self.before.encode('utf-32-be')
         after_32 = self.after.encode('utf-32-be')
         # Get the closest multiple of 4 for length
-        offset = len(commonprefix([before_32, after_32]))/4*4
+        offset = len(commonprefix([before_32, after_32]))//4*4
         if before_32[offset:]:
-            self.output.send_backspaces(len(before_32[offset:])/4)
+            self.output.send_backspaces(len(before_32[offset:])//4)
         if after_32[offset:]:
             # Convert back to Unicode for the send_string method
             self.output.send_string(after_32[offset:].decode('utf-32-be'))
@@ -158,7 +155,11 @@ class OutputHelper(object):
         for a in action_list:
             if a.replace and text.endswith(a.replace):
                 text = text[:-len(a.replace)]
-            if a.text:
+            # With numbers, it's possible to have a.text='2' with a.word='1.2'
+            # folowing by an action that replaces '1.2' by '$1.20'...
+            if len(a.word) > len(a.text) and a.word.endswith(text):
+                text = a.word
+            else:
                 text += a.text
         return text
 
@@ -186,8 +187,7 @@ class OutputHelper(object):
         for a in do:
             if a.replace and self.after.endswith(a.replace):
                 self.after = self.after[:-len(a.replace)]
-            if a.text:
-                self.after += a.text
+            self.after += a.text
             if a.combo:
                 self.commit()
                 self.output.send_key_combination(a.combo)
@@ -355,7 +355,9 @@ def _translation_to_actions(translation, last_action, spaces_after):
         # If a translation is only digits then glue it to neighboring digits.
         atoms = [_apply_glue(translation)]
     else:
-        atoms = [x.strip() for x in META_RE.findall(translation) if x.strip()]
+        atoms = [
+            x.strip(' ') for x in META_RE.findall(translation) if x.strip(' ')
+        ]
 
     if not atoms:
         return [last_action.copy_state()]
@@ -805,8 +807,8 @@ def _apply_mode(text, case, space_char, begin, last_attach,
 
     # Title case is sensitive to lower flag
     if last_lower and len(text) > 0:  # Check for text
-            if (case is _Action.CASE_TITLE):
-                text = _lower(text)
+        if case is _Action.CASE_TITLE:
+            text = _lower(text)
 
     return text
 
@@ -916,7 +918,6 @@ def _change_mode(command, action):
 
 def _apply_case(input_text, case, appended):
     text = input_text
-    action = _Action()
     if case is _Action.CASE_LOWER:
         text = text.lower()
     elif case is _Action.CASE_UPPER:
@@ -925,7 +926,6 @@ def _apply_case(input_text, case, appended):
         # Do nothing to appended output
         if not appended:
             text = string.capwords(text, " ")
-
     return text
 
 

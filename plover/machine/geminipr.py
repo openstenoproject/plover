@@ -3,7 +3,10 @@
 
 """Thread-based monitoring of a Gemini PR stenotype machine."""
 
-import plover.machine.base
+# Python 2/3 compatibility.
+from six import iterbytes
+
+from plover.machine.base import SerialStenotypeBase
 
 # In the Gemini PR protocol, each packet consists of exactly six bytes
 # and the most significant bit (MSB) of every byte is used exclusively
@@ -22,13 +25,8 @@ STENO_KEY_CHART = ("Fn", "#1", "#2", "#3", "#4", "#5", "#6",
 BYTES_PER_STROKE = 6
 
 
-class GeminiPr(plover.machine.base.SerialStenotypeBase):
+class GeminiPr(SerialStenotypeBase):
     """Standard stenotype interface for a Gemini PR machine.
-
-    This class implements the three methods necessary for a standard
-    stenotype interface: start_capture, stop_capture, and
-    add_callback.
-
     """
 
     KEYS_LAYOUT = '''
@@ -51,20 +49,9 @@ class GeminiPr(plover.machine.base.SerialStenotypeBase):
             if not raw:
                 continue
 
-            # XXX : work around for python 3.1 and python 2.6 differences
-            if isinstance(raw, str):
-                raw = [ord(x) for x in raw]
-
-            # Make sure this is a valid steno stroke.
-            if not ((len(raw) == BYTES_PER_STROKE) and
-                    (raw[0] & 0x80) and
-                    (len([b for b in raw if b & 0x80]) == 1)):
-                serial_port.flushInput()
-                continue
-
             # Convert the raw to a list of steno keys.
             steno_keys = []
-            for i, b in enumerate(raw):
+            for i, b in enumerate(iterbytes(raw)):
                 for j in range(1, 8):
                     if (b & (0x80 >> j)):
                         steno_keys.append(STENO_KEY_CHART[i * 7 + j - 1])

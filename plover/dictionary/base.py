@@ -12,6 +12,9 @@ import shutil
 import sys
 import threading
 
+# Python 2/3 compatibility.
+from six import reraise
+
 import plover.dictionary.json_dict as json_dict
 import plover.dictionary.rtfcre_dict as rtfcre_dict
 from plover.config import JSON_EXTENSION, RTF_EXTENSION
@@ -47,7 +50,7 @@ def create_dictionary(filename):
         d = dictionary_module.create_dictionary()
     except Exception as e:
         ne = DictionaryLoaderException('creating %s failed: %s' % (filename, str(e)))
-        raise type(ne), ne, sys.exc_info()[2]
+        reraise(type(ne), ne, sys.exc_info()[2])
     d.set_path(filename)
     d.save = ThreadedSaver(d, filename, dictionary_module.save_dictionary)
     return d
@@ -62,7 +65,7 @@ def load_dictionary(filename):
         d = dictionary_module.load_dictionary(filename)
     except Exception as e:
         ne = DictionaryLoaderException('loading \'%s\' failed: %s' % (filename, str(e)))
-        raise type(ne), ne, sys.exc_info()[2]
+        reraise(type(ne), ne, sys.exc_info()[2])
     d.set_path(filename)
     d.save = ThreadedSaver(d, filename, dictionary_module.save_dictionary)
     return d

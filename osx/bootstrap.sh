@@ -93,7 +93,7 @@ EOT
 
     echo "$0: installing required libraries using pip"
     "$TOPDIR/setup.py" write_requirements &&
-    "$PIP" install -r "$TOPDIR/requirements.txt"
+    "$PIP" install -r "$TOPDIR/requirements.txt" -c "$TOPDIR/requirements_constraints.txt"
 }
 
 main

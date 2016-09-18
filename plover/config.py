@@ -3,15 +3,26 @@
 
 """Configuration management."""
 
-import ConfigParser
-from ConfigParser import RawConfigParser
 import os
-from cStringIO import StringIO
-from plover import log
+import json
+import codecs
+import shutil
+
+# Python 2/3 compatibility.
+from six import BytesIO, PY3
+# Note: six.move is not used as it confuses py2app...
+if PY3:
+    import configparser
+else:
+    import ConfigParser as configparser
+
 from plover.exception import InvalidConfigurationError
 from plover.machine.registry import machine_registry
 from plover.oslayer.config import ASSETS_DIR, CONFIG_DIR
+from plover.misc import expand_path, shorten_path
 from plover import system
+from plover import log
+
 
 SPINNER_FILE = os.path.join(ASSETS_DIR, 'spinner.gif')
 
@@ -156,52 +167,27 @@ def raise_if_invalid_opacity(opacity):
 class Config(object):
 
     def __init__(self):
-        self._config = RawConfigParser()
+        self._config = configparser.RawConfigParser()
         # A convenient place for other code to store a file name.
         self.target_file = None
 
-    def _path_to_config_value(self, path):
-        ''' Return config value for a path.
-
-            If the path is below CONFIG_DIR, a relative path to it is returned,
-            otherwise, an absolute path is returned.
-
-            Note: relative path are automatically assumed to be relative to CONFIG_DIR.
-        '''
-        path = os.path.realpath(os.path.join(CONFIG_DIR, path))
-        config_dir = os.path.realpath(CONFIG_DIR)
-        if not config_dir.endswith(os.sep):
-            config_dir += os.sep
-        if path.startswith(config_dir):
-            value = path[len(config_dir):]
-        else:
-            value = path
-        return value
-
-    def _path_from_config_value(self, value):
-        ''' Return a path from a config value.
-
-            If value is an absolute path, it is returned as is
-            otherwise, an absolute path relative to CONFIG_DIR is returned.
-        '''
-        path = os.path.realpath(os.path.join(CONFIG_DIR, value))
-        return path
-
     def load(self, fp):
-        self._config = RawConfigParser()
+        self._config = configparser.RawConfigParser()
+        reader = codecs.getreader('utf8')(fp)
         try:
-            self._config.readfp(fp)
-        except ConfigParser.Error as e:
+            self._config.readfp(reader)
+        except configparser.Error as e:
             raise InvalidConfigurationError(str(e))
 
     def clear(self):
-        self._config = RawConfigParser()
+        self._config = configparser.RawConfigParser()
 
     def save(self, fp):
-        self._config.write(fp)
+        writer = codecs.getwriter('utf8')(fp)
+        self._config.write(writer)
 
     def clone(self):
-        f = StringIO()
+        f = BytesIO()
         self.save(f)
         c = Config()
         f.seek(0, 0)
@@ -217,7 +203,7 @@ class Config(object):
                          DEFAULT_MACHINE_TYPE)
 
     def set_machine_specific_options(self, machine_name, options):
-        self._update(machine_name, sorted(options.iteritems()))
+        self._update(machine_name, sorted(options.items()))
 
     def get_machine_specific_options(self, machine_name):
         def convert(p, v):
@@ -238,31 +224,31 @@ class Config(object):
 
     def set_dictionary_file_names(self, filenames):
         self._update(DICTIONARY_CONFIG_SECTION, (
-            (DICTIONARY_FILE_OPTION + str(n), self._path_to_config_value(path))
+            (DICTIONARY_FILE_OPTION + str(n), shorten_path(path))
             for n, path in enumerate(filenames, start=1)
         ))
 
     def get_dictionary_file_names(self):
         filenames = []
         if self._config.has_section(DICTIONARY_CONFIG_SECTION):
-            options = filter(lambda x: x.startswith(DICTIONARY_FILE_OPTION),
-                             self._config.options(DICTIONARY_CONFIG_SECTION))
+            options = [x for x in self._config.options(DICTIONARY_CONFIG_SECTION)
+                       if x.startswith(DICTIONARY_FILE_OPTION)]
             options.sort(key=_dict_entry_key)
             filenames = [self._config.get(DICTIONARY_CONFIG_SECTION, o)
                          for o in options]
         if not filenames:
             filenames = DEFAULT_DICTIONARIES
-        filenames = [self._path_from_config_value(path) for path in filenames]
+        filenames = [expand_path(path) for path in filenames]
         return filenames
 
     def set_log_file_name(self, filename):
-        filename = self._path_to_config_value(filename)
+        filename = shorten_path(filename)
         self._set(LOGGING_CONFIG_SECTION, LOG_FILE_OPTION, filename)
 
     def get_log_file_name(self):
         filename = self._get(LOGGING_CONFIG_SECTION, LOG_FILE_OPTION,
                              DEFAULT_LOG_FILE)
-        return self._path_from_config_value(filename)
+        return expand_path(filename)
 
     def set_enable_stroke_logging(self, log):
         self._set(LOGGING_CONFIG_SECTION, ENABLE_STROKE_LOGGING_OPTION, log)
@@ -540,12 +526,17 @@ class Config(object):
     def set_system_keymap(self, machine_type, mappings):
         section = SYSTEM_CONFIG_SECTION % DEFAULT_SYSTEM
         option = SYSTEM_KEYMAP_OPTION % machine_type
-        self._set(section, option, mappings)
+        self._set(section, option, json.dumps(sorted(dict(mappings).items())))
 
     def get_system_keymap(self, machine_type):
         section = SYSTEM_CONFIG_SECTION % DEFAULT_SYSTEM
         option = SYSTEM_KEYMAP_OPTION % machine_type
-        return self._get(section, option, system.KEYMAPS.get(machine_type))
+        mappings = self._get(section, option, None)
+        if mappings is None:
+            mappings = system.KEYMAPS.get(machine_type)
+        else:
+            mappings = dict(json.loads(mappings))
+        return mappings
 
     def _set(self, section, option, value):
         if not self._config.has_section(section):
@@ -589,3 +580,21 @@ def _dict_entry_key(s):
         return int(s[len(DICTIONARY_FILE_OPTION):])
     except ValueError:
         return -1
+
+
+def copy_default_dictionaries(config):
+    '''Copy default dictionaries to the configuration directory.
+
+    Each default dictionary is copied to the configuration directory
+    if it's in use by the current config and missing.
+    '''
+
+    config_dictionaries = set(os.path.basename(dictionary) for dictionary
+                              in config.get_dictionary_file_names())
+    for dictionary in config_dictionaries & set(DEFAULT_DICTIONARIES):
+        dst = os.path.join(CONFIG_DIR, dictionary)
+        if os.path.exists(dst):
+            continue
+        src = os.path.join(ASSETS_DIR, dictionary)
+        log.info('copying %s to %s', src, dst)
+        shutil.copy(src, dst)

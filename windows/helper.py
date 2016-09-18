@@ -1,9 +1,11 @@
 #!/usr/bin/env python2
 
+# Python 2/3 compatibility.
+from __future__ import print_function
+
 import argparse
 import hashlib
 import inspect
-import json
 import os
 import shutil
 import subprocess
@@ -11,7 +13,7 @@ import sys
 import traceback
 
 
-SITE_DIR = r'C:\Python27\Lib\site-packages'
+PY3 = sys.version_info[0] >= 3
 WIN_DIR = os.path.dirname(os.path.abspath(__file__))
 TOP_DIR = os.path.dirname(WIN_DIR)
 NULL = open(os.devnull, 'r+b')
@@ -27,31 +29,31 @@ if sys.stdout.isatty() and not sys.platform.startswith('win32'):
 
     def info(fmt, *args):
         s = fmt % args
-        print '[34m' + s + '[0m'
+        print('[34m' + s + '[0m')
 
 else:
 
     def info(fmt, *args):
         s = fmt % args
-        print s
+        print(s)
 
 if sys.stderr.isatty():
 
     def error(fmt, *args):
         s = fmt % args
-        print >>sys.stderr, '[31m' + s + '[0m'
+        print('[31m' + s + '[0m', file=sys.stderr)
 
 else:
 
     def error(fmt, *args):
         s = fmt % args
-        print >>sys.stderr, s
+        print(s, file=sys.stderr)
 
 
 class CommandExecutionException(Exception):
 
     def __init__(self, args, exitcode, stdout='', stderr=''):
-        super(Exception, self).__init__()
+        super(CommandExecutionException, self).__init__()
         self.args = args
         self.exitcode = exitcode
         self.stdout = stdout
@@ -79,7 +81,7 @@ class Environment(object):
 
     def run(self, args, cwd=None, redirection='auto'):
         if self.verbose:
-            print 'running', ' '.join(args)
+            print('running', ' '.join(args))
         if self.dry_run:
             return 0, ''
         env = self._get_env()
@@ -132,7 +134,10 @@ class WineEnvironment(Environment):
             info('intializing Wine prefix')
             for cmd in (
                 'env DISPLAY= wineboot --init',
+                # Wait for previous command to finish.
+                'wineserver -w',
                 'winetricks --no-isolate --unattended corefonts vcrun2008',
+                'winetricks win7',
             ):
                 self.run(cmd.split())
         if self.dry_run:
@@ -155,7 +160,7 @@ class WineEnvironment(Environment):
 
     def add_to_path(self, directory):
         if self.verbose:
-            print 'adding "%s" to PATH' % directory
+            print('adding "%s" to PATH' % directory)
         if self.dry_run:
             return
         path = self.run(('wine', 'cmd.exe', '/c', 'echo', '%PATH%'), redirection='always')
@@ -226,7 +231,7 @@ class Win32Environment(Environment):
 
     def add_to_path(self, directory):
         if self.verbose:
-            print 'adding "%s" to PATH' % directory
+            print('adding "%s" to PATH' % directory)
         if self._path is None:
             self._path = self.run(('cmd.exe', '/c', 'echo', '%PATH%'), redirection='always').strip()
         self._path = directory + ';' + self._path
@@ -242,13 +247,26 @@ class Win32Environment(Environment):
 
 class Helper(object):
 
-    DEPENDENCIES = (
-        # Note: we force the installation directory, otherwise the installer gets confused when run under AppVeyor, and installs in the wrong directory...
-        ('wxPython'         , 'http://downloads.sourceforge.net/wxpython/wxPython3.0-win32-3.0.2.0-py27.exe'                                      , '864d44e418a0859cabff71614a495bea57738c5d', None, ('/SP-', '/VERYSILENT', '/DIR=%s' % SITE_DIR), None),
-        ('pywin32'          , 'http://downloads.sourceforge.net/project/pywin32/pywin32/Build 219/pywin32-219.win32-py2.7.exe'                    , '8bc39008383c646bed01942584117113ddaefe6b', 'easy_install', (), None),
-        ('Cython'           , 'https://pypi.python.org/packages/2.7/C/Cython/Cython-0.23.4-cp27-none-win32.whl'                                   , 'd7c1978fe2037674b151622158881c700ac2f06a', None, (), None),
-        ('VC for Python'    , 'https://download.microsoft.com/download/7/9/6/796EF2E4-801B-4FC4-AB28-B59FBF6D907B/VCForPython27.msi'              , '7800d037ba962f288f9b952001106d35ef57befe', None, (), None),
-    )
+    if PY3:
+        # Note: update pip so hidapi install from wheel works.
+        DEPENDENCIES = (
+            ('pip', 'pip:pip',
+             None, None, (), None),
+            ('pywin32', 'https://downloads.sourceforge.net/project/pywin32/pywin32/Build 220/pywin32-220.win32-py3.5.exe',
+             '5c9bd9643982dbfea4aba500503227dd997931df', 'easy_install', (), None),
+        )
+    else:
+        DEPENDENCIES = (
+            # Note: we force the installation directory, otherwise the installer gets confused when run under AppVeyor, and installs in the wrong directory...
+            ('wxPython', 'https://downloads.sourceforge.net/wxpython/wxPython3.0-win32-3.0.2.0-py27.exe',
+             '864d44e418a0859cabff71614a495bea57738c5d', None, ('/SP-', '/VERYSILENT', r'/DIR=C:\Python27\Lib\site-packages'), None),
+            ('pywin32', 'https://downloads.sourceforge.net/project/pywin32/pywin32/Build 219/pywin32-219.win32-py2.7.exe',
+             '8bc39008383c646bed01942584117113ddaefe6b', 'easy_install', (), None),
+            ('Cython', 'https://pypi.python.org/packages/2.7/C/Cython/Cython-0.23.4-cp27-none-win32.whl',
+             'd7c1978fe2037674b151622158881c700ac2f06a', None, (), None),
+            ('VC for Python', 'https://download.microsoft.com/download/7/9/6/796EF2E4-801B-4FC4-AB28-B59FBF6D907B/VCForPython27.msi',
+             '7800d037ba962f288f9b952001106d35ef57befe', None, (), None),
+        )
 
     def __init__(self):
         self.dry_run = False
@@ -324,7 +342,7 @@ class Helper(object):
         if not os.path.exists(path):
             return
         if self.verbose:
-            print 'rm -rf', path
+            print('rm -rf', path)
         if self.dry_run:
             return
         shutil.rmtree(path)
@@ -333,35 +351,35 @@ class Helper(object):
         if os.path.exists(path):
             return
         if self.verbose:
-            print 'mkdir -p', path
+            print('mkdir -p', path)
         if self.dry_run:
             return
         os.makedirs(path)
 
     def _rename(self, old, new):
         if self.verbose:
-            print 'mv', old, new
+            print('mv', old, new)
         if self.dry_run:
             return
         os.rename(old, new)
 
     def _copyfile(self, src, dst):
         if self.verbose:
-            print 'cp', src, dst
+            print('cp', src, dst)
         if self.dry_run:
             return
         shutil.copyfile(src, dst)
 
     def _copytree(self, src, dst):
         if self.verbose:
-            print 'cp -r', src, dst
+            print('cp -r', src, dst)
         if self.dry_run:
             return
         shutil.copytree(src, dst)
 
     def _extract(self, archive, destination, *args):
         if self.verbose:
-            print 'extracting %s to %s' % (archive, destination)
+            print('extracting %s to %s' % (archive, destination))
         cmd = ['7z.exe', 'x', archive, '-y', '-o%s' % destination]
         cmd.extend(args)
         realdir = self._env.get_realpath(destination)
@@ -398,7 +416,9 @@ class Helper(object):
         if not self.unattended and filename.endswith('.exe'):
             cmd = [filename]
         else:
-            cmd = ['easy_install.exe']
+            # Don't use easy_install.exe so setuptools
+            # can update itself if needed.
+            cmd = ['python.exe', '-m', 'easy_install']
             if not self.verbose:
                 cmd.append('--quiet')
             cmd.extend(options)
@@ -406,7 +426,8 @@ class Helper(object):
         self._env.run(cmd)
 
     def _pip_install(self, *args):
-        cmd = ['pip.exe',
+        # Don't use pip.exe so pip can update itself if needed.
+        cmd = ['python.exe', '-m', 'pip',
                '--timeout=5',
                '--retries=2',
                '--disable-pip-version-check']
@@ -424,10 +445,10 @@ class Helper(object):
                 retries += 1
                 try:
                     wget.download(url, out=dst)
-                    print
+                    print()
                 except Exception as e:
-                    print
-                    print 'error', e
+                    print()
+                    print('error', e)
                     continue
             h = hashlib.sha1()
             with open(dst, 'rb') as fp:
@@ -438,7 +459,7 @@ class Helper(object):
                     h.update(d)
             if h.hexdigest() == checksum:
                 break
-            print 'sha1 does not match: %s instead of %s' % (h.hexdigest(), checksum)
+            print('sha1 does not match: %s instead of %s' % (h.hexdigest(), checksum))
             os.unlink(dst)
         assert os.path.exists(dst), 'could not successfully retrieve %s' % url
 
@@ -466,12 +487,12 @@ class Helper(object):
             commands = self._subparsers.choices.keys()
             self._parser.print_help()
         for name in commands:
-            print
+            print()
             parser = self._subparsers.choices.get(name)
             if parser is None:
                 raise ValueError('unknown command name: %s' % name)
-            print '%s COMMAND' % name.upper()
-            print
+            print('%s COMMAND' % name.upper())
+            print()
             parser.print_help()
 
     def cmd_setup(self, interactive=False):
@@ -485,7 +506,7 @@ class Helper(object):
             self.install(name, src, checksum, handler_format=handler_format, handler_args=handler_args, path_dir=path_dir)
         info('install requirements')
         self._env.run(('python.exe', 'setup.py', 'write_requirements'))
-        self._pip_install('-r', 'requirements.txt')
+        self._pip_install('-r', 'requirements.txt', '-c', 'requirements_constraints.txt')
 
     def cmd_run(self, executable, *args):
         '''run command in environment
@@ -525,9 +546,9 @@ class Helper(object):
             cmd(*args)
         except CommandExecutionException as e:
             if e.stdout:
-                print >>sys.stdout, e.stdout
+                print(e.stdout, file=sys.stdout)
             if e.stderr:
-                print >>sys.stderr, e.stderr
+                print(e.stderr, file=sys.stderr)
             error('execution failed, returned %u: %s',
                   e.exitcode, ' '.join(e.args))
             return e.exitcode
@@ -540,9 +561,16 @@ class Helper(object):
 
 class WineHelper(Helper):
 
-    DEPENDENCIES = (
-        ('Python', 'https://www.python.org/ftp/python/2.7.11/python-2.7.11.msi', 'b14ebf1198fe4bbb940bcce90d910b8eddd60209', None, (), None),
-    ) + Helper.DEPENDENCIES
+    if PY3:
+        DEPENDENCIES = (
+            ('Python', 'https://www.python.org/ftp/python/3.5.2/python-3.5.2.exe',
+             '3873deb137833a724be8932e3ce659f93741c20b', None, ('PrependPath=1', '/S'), None),
+        ) + Helper.DEPENDENCIES
+    else:
+        DEPENDENCIES = (
+            ('Python', 'https://www.python.org/ftp/python/2.7.12/python-2.7.12.msi',
+             '662142691e0beba07a0bacee48e5e93a02537ff7', None, (), None),
+        ) + Helper.DEPENDENCIES
 
     def __init__(self):
         super(WineHelper, self).__init__()
