@@ -6,30 +6,44 @@ from functools import partial
 
 import mock
 
-from plover import app
-from plover.machine.base import StenotypeBase
 from plover import system
+from plover.engine import StenoEngine
+from plover.machine.base import StenotypeBase
 
 
 class FakeConfig(object):
 
+    DEFAULTS = {
+        'auto_start'                : False,
+        'machine_type'              : 'Fake',
+        'machine_specific_options'  : {},
+        'system_keymap'             : [(k, k) for k in system.KEYS],
+        'dictionary_file_names'     : [],
+        'log_file_name'             : os.devnull,
+        'enable_stroke_logging'     : False,
+        'enable_translation_logging': False,
+        'space_placement'           : 'Before Output',
+        'undo_levels'               : 10,
+        'start_capitalized'         : True,
+        'start_attached'            : False,
+    }
+
     def __init__(self, **kwargs):
-        for name, default in (
-            ('auto_start'                , False                        ),
-            ('machine_type'              , 'Fake'                       ),
-            ('machine_specific_options'  , {}                           ),
-            ('system_keymap'             , [(k, k) for k in system.KEYS]),
-            ('dictionary_file_names'     , []                           ),
-            ('log_file_name'             , os.devnull                   ),
-            ('enable_stroke_logging'     , False                        ),
-            ('enable_translation_logging', False                        ),
-            ('space_placement'           , 'Before Output'              ),
-            ('undo_levels'               , 10                           ),
-            ('start_capitalized'         , True                         ),
-            ('start_attached'            , False                        ),
-        ):
+        self._options = {}
+        for name, default in self.DEFAULTS.items():
             value = kwargs.get(name, default)
+            self._options[name] = value
             self.__dict__['get_%s' % name] = partial(lambda v, *a: v, value)
+        self.target_file = os.devnull
+
+    def load(self, fp):
+        pass
+
+    def as_dict(self):
+        return dict(self._options)
+
+    def update(self, **kwargs):
+        self._options.update(kwargs)
 
 class FakeRegistry(object):
 
@@ -43,76 +57,111 @@ class FakeMachine(StenotypeBase):
 
     KEYS_LAYOUT = ' '.join(system.KEYS)
 
+    instance = None
+
     def __init__(self, options):
         super(FakeMachine, self).__init__()
-        self._options = options
+        self.options = options
+        self.is_suppressed = False
+
+    def start_capture(self):
+        assert FakeMachine.instance is None
+        FakeMachine.instance = self
+        self._initializing()
+        self._ready()
+
+    def stop_capture(self):
+        FakeMachine.instance = None
+        self._stopped()
+
+    def set_suppression(self, enabled):
+        self.is_suppressed = enabled
+
+class FakeKeyboardEmulation(object):
+
+    def send_backspaces(self, b):
+        pass
+
+    def send_string(self, s):
+        pass
+
+    def send_key_combination(self, c):
+        pass
+
+class FakeEngine(StenoEngine):
+
+    def _in_engine_thread(self):
+        return True
+
+    def start(self):
+        StenoEngine.start(self)
+
 
 class EngineTestCase(unittest.TestCase):
 
     @contextmanager
     def _setup(self, **kwargs):
+        FakeMachine.instance = None
         self.reg = FakeRegistry(Fake=FakeMachine)
+        self.kbd = FakeKeyboardEmulation()
         self.cfg = FakeConfig(**kwargs)
-        self.state_transitions = []
-        self.engine = app.StenoEngine()
+        self.events = []
+        self.engine = FakeEngine(self.cfg, self.kbd)
+        def hook_callback(hook, *args, **kwargs):
+            self.events.append((hook, args, kwargs))
+        for hook in self.engine.HOOKS:
+            self.engine.hook_connect(hook, partial(hook_callback, hook))
         try:
-            with mock.patch('plover.app.machine_registry', self.reg):
-                def callback(state):
-                    self.state_transitions.append((state, self.engine.is_running))
-                self.engine.add_callback(callback)
+            with mock.patch('plover.engine.machine_registry', self.reg):
                 yield
         finally:
             del self.reg
             del self.cfg
             del self.engine
-            del self.state_transitions
+            del self.events
 
-    def test_engine_init(self):
+    def test_engine(self):
         with self._setup():
-            app.init_engine(self.engine, self.cfg)
-            self.assertEqual(self.state_transitions, [
-                (None, False), # engine init
-                (None, False), #
+            # Config load.
+            self.assertEqual(self.engine.load_config(), True)
+            self.assertEqual(self.events, [])
+            # Startup.
+            self.engine.start()
+            self.assertEqual(self.events, [
+                ('machine_state_changed', ('Fake', 'initializing'), {}),
+                ('machine_state_changed', ('Fake', 'connected'), {}),
+                ('config_changed', (self.cfg.as_dict(),), {}),
             ])
-            self.assertIsInstance(self.engine.machine, FakeMachine)
-
-    def test_engine_bad_mappings(self):
-        with self._setup(system_keymap='invalid'):
-            with self.assertRaises(Exception):
-                app.init_engine(self.engine, self.cfg)
-            self.assertEqual(self.engine.machine, None)
-
-    def test_engine_auto_start(self):
-        with self._setup(auto_start=True):
-            app.init_engine(self.engine, self.cfg)
-            self.assertEqual(self.state_transitions, [
-                (None, True), # engine init
-                (None, True), #
+            self.assertIsNotNone(FakeMachine.instance)
+            self.assertFalse(FakeMachine.instance.is_suppressed)
+            # Output enabled.
+            self.events = []
+            self.engine.output = True
+            self.assertEqual(self.events, [
+                ('output_changed', (True,), {}),
             ])
-
-    def test_engine_update_no_changes(self):
-        with self._setup():
-            app.init_engine(self.engine, self.cfg)
-            self.assertEqual(self.state_transitions, [
-                (None, False), # engine init
-                (None, False), #
+            self.assertTrue(FakeMachine.instance.is_suppressed)
+            # Machine reconnection.
+            self.events = []
+            self.engine.reset_machine()
+            self.assertEqual(self.events, [
+                ('machine_state_changed', ('Fake', 'stopped'), {}),
+                ('machine_state_changed', ('Fake', 'initializing'), {}),
+                ('machine_state_changed', ('Fake', 'connected'), {}),
             ])
-
-    def test_engine_reconnect(self):
-        with self._setup():
-            app.init_engine(self.engine, self.cfg)
-            self.engine.machine._ready()
-            self.engine.set_is_running(True)
-            self.engine.machine._error()
-            app.update_engine(self.engine, self.cfg, reset_machine=True)
-            self.engine.machine._ready()
-            self.assertEqual(self.state_transitions, [
-                (None          , False), # engine init
-                (None          , False), #
-                ('connected'   , False), # machine ready
-                (None          , True ), # set_is_running(True)
-                ('disconnected', True ), # machine error
-                (None          , True ), # engine update
-                ('connected'   , True ), # machine ready
+            self.assertIsNotNone(FakeMachine.instance)
+            self.assertTrue(FakeMachine.instance.is_suppressed)
+            # Output disabled
+            self.events = []
+            self.engine.output = False
+            self.assertEqual(self.events, [
+                ('output_changed', (False,), {}),
             ])
-
+            self.assertFalse(FakeMachine.instance.is_suppressed)
+            # Stopped.
+            self.events = []
+            self.engine.quit()
+            self.assertEqual(self.events, [
+                ('machine_state_changed', ('Fake', 'stopped'), {}),
+            ])
+            self.assertIsNone(FakeMachine.instance)
