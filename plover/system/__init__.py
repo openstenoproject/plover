@@ -1,9 +1,9 @@
 
-from plover.oslayer.config import CONFIG_DIR, ASSETS_DIR
-
 from io import open
 import os
 import re
+
+from plover.oslayer.config import CONFIG_DIR, ASSETS_DIR
 
 
 def _load_wordlist(filename):

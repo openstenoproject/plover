@@ -9,9 +9,10 @@ This module defines and implements plover's custom dictionary language.
 
 from os.path import commonprefix
 from collections import namedtuple
-from plover import orthography
 import re
 import string
+
+from plover import orthography
 
 
 class Formatter(object):

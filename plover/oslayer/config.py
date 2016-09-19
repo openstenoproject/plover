@@ -3,11 +3,11 @@
 
 """Platform dependent configuration."""
 
-import appdirs
 import os
 from os.path import realpath, join, dirname, abspath, isfile, pardir
 import sys
 
+import appdirs
 import pkg_resources
 
 
