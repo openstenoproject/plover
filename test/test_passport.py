@@ -35,7 +35,7 @@ class MockSerial(object):
 
     def read(self, size=1):
         assert size == self.inWaiting()
-        result = [ord(x) for x in self._get()]
+        result = self._get()
         MockSerial.index += 1
         return result
         
@@ -50,18 +50,18 @@ class TestCase(unittest.TestCase):
     def test_passport(self):
         
         def p(s):
-            return '<123/%s/something>' % s
+            return b'<123/' + s + b'/something>'
         
         cases = (
             # Test all keys
-            (('!f#f+f*fAfCfBfEfDfGfFfHfKfLfOfNfQfPfSfRfUfTfWfYfXfZf^f~f',),
+            ((b'!f#f+f*fAfCfBfEfDfGfFfHfKfLfOfNfQfPfSfRfUfTfWfYfXfZf^f~f',),
             [['#', '*', 'A-', 'S-', '-B', '-E', '-D', '-G', '-F', 'H-', 'K-', 
               '-L', 'O-', '-P', '-R', 'P-', 'S-', 'R-', '-U', 'T-', 'W-', '-T', 
               '-S', '-Z', '*'],]),
             # Anything below 8 is not registered
-            (('S9T8A7',), [['S-', 'T-'],]),
+            ((b'S9T8A7',), [['S-', 'T-'],]),
             # Sequence of strokes
-            (('SfTf', 'Zf', 'QfLf'), [['S-', 'T-'], ['-Z',], ['-R', '-L']]),
+            ((b'SfTf', b'Zf', b'QfLf'), [['S-', 'T-'], ['-Z',], ['-R', '-L']]),
         )
 
         params = {k: v[0] for k, v in Passport.get_option_info().items()}
