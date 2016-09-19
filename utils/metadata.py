@@ -4,9 +4,10 @@
 from __future__ import print_function
 
 import os
-import pkg_resources
 import sys
 import shutil
+
+import pkg_resources
 
 
 def collect_requirements(distribution, requirements=None):

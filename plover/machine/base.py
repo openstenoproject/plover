@@ -6,8 +6,9 @@
 
 """Base classes for machine types. Do not use directly."""
 
-import serial
 import threading
+
+import serial
 
 from plover import log
 from plover.machine.keymap import Keymap

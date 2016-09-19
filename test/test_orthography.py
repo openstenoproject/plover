@@ -1,8 +1,9 @@
 # Copyright (c) 2013 Hesky Fisher
 # See LICENSE.txt for details.
 
-from plover.orthography import add_suffix
 import unittest
+
+from plover.orthography import add_suffix
 
 
 class OrthographyTestCase(unittest.TestCase):
