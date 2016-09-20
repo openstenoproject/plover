@@ -12,6 +12,7 @@ from plover.dictionary.loading_manager import DictionaryLoadingManager
 from plover.exception import InvalidConfigurationError
 from plover.formatting import Formatter
 from plover.machine.registry import machine_registry, NoSuchMachineException
+from plover.steno import Stroke
 from plover.suggestions import Suggestions
 from plover.translation import Translator
 
@@ -157,7 +158,6 @@ class StenoEngine(object):
             self._machine.set_suppression(self._is_running)
             self._machine.add_state_callback(self._machine_state_callback)
             self._machine.add_stroke_callback(self._machine_stroke_callback)
-            self._machine.add_stroke_callback(log.stroke)
             self._machine_params = machine_params
             update_keymap = True
             start_machine = True
@@ -199,8 +199,8 @@ class StenoEngine(object):
     def _machine_state_callback(self, machine_state):
         self._same_thread_hook(self._on_machine_state_changed, machine_state)
 
-    def _machine_stroke_callback(self, stroke):
-        self._same_thread_hook(self._on_stroked, stroke)
+    def _machine_stroke_callback(self, steno_keys):
+        self._same_thread_hook(self._on_stroked, steno_keys)
 
     @with_lock
     def _on_machine_state_changed(self, machine_state):
@@ -235,7 +235,9 @@ class StenoEngine(object):
             self._trigger_hook('lookup')
         return False
 
-    def _on_stroked(self, stroke):
+    def _on_stroked(self, steno_keys):
+        stroke = Stroke(steno_keys)
+        log.stroke(stroke)
         self._translator.translate(stroke)
         self._trigger_hook('stroked', stroke)
 
