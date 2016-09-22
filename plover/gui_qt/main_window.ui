@@ -9,8 +9,8 @@
    <rect>
     <x>0</x>
     <y>0</y>
-    <width>309</width>
-    <height>320</height>
+    <width>319</width>
+    <height>427</height>
    </rect>
   </property>
   <property name="minimumSize">
@@ -105,8 +105,8 @@
         <rect>
          <x>0</x>
          <y>0</y>
-         <width>289</width>
-         <height>135</height>
+         <width>301</width>
+         <height>245</height>
         </rect>
        </property>
       </widget>
@@ -151,7 +151,7 @@
     <rect>
      <x>0</x>
      <y>0</y>
-     <width>309</width>
+     <width>319</width>
      <height>19</height>
     </rect>
    </property>
@@ -212,6 +212,7 @@
     <bool>false</bool>
    </attribute>
    <addaction name="action_Configure"/>
+   <addaction name="separator"/>
    <addaction name="action_Lookup"/>
    <addaction name="action_Suggestions"/>
    <addaction name="action_PaperTape"/>
