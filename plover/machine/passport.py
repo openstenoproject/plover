@@ -44,20 +44,16 @@ class Passport(SerialStenotypeBase):
         if steno_keys:
             self._notify(steno_keys)
 
-    def run(self):
-        """Overrides base class run method. Do not call directly."""
-        self._ready()
+    def _loop_body(self):
+        # Grab data from the serial port.
+        raw = self.serial_port.read(self.serial_port.inWaiting())
 
-        while not self.finished.isSet():
-            # Grab data from the serial port.
-            raw = self.serial_port.read(self.serial_port.inWaiting())
+        # XXX : work around for python 3.1 and python 2.6 differences
+        if isinstance(raw, str):
+            raw = [ord(x) for x in raw]
 
-            # XXX : work around for python 3.1 and python 2.6 differences
-            if isinstance(raw, str):
-                raw = [ord(x) for x in raw]
-
-            for b in raw:
-                self._read(b)
+        for b in raw:
+            self._read(b)
 
     @classmethod
     def get_option_info(cls):
@@ -81,4 +77,3 @@ def grouper(iterable, n, fillvalue=None):
     # grouper('ABCDEFG', 3, 'x') --> ABC DEF Gxx
     args = [iter(iterable)] * n
     return zip_longest(fillvalue=fillvalue, *args)
-

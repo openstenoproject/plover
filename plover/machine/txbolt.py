@@ -63,30 +63,33 @@ class TxBolt(plover.machine.base.SerialStenotypeBase):
             self._notify(self._pressed_keys)
         self._reset_stroke_state()
 
-    def run(self):
-        """Overrides base class run method. Do not call directly."""
-        settings = self.serial_port.getSettingsDict()
-        settings['timeout'] = 0.015 # seconds
-        self.serial_port.applySettingsDict(settings)
-        self._ready()
-        while not self.finished.isSet():
-            # Grab data from the serial port, or wait for timeout if none available.
-            raw = self.serial_port.read(max(1, self.serial_port.inWaiting()))
 
-            if not raw and len(self._pressed_keys) > 0:
+    def _connect(self):
+        if super(TxBolt, self)._connect():
+            settings = self.serial_port.getSettingsDict()
+            settings['timeout'] = 0.015 # seconds
+            self.serial_port.applySettingsDict(settings)
+            return True
+        return False
+
+    def _loop_body(self):
+        # Grab data from the serial port, or wait for timeout if none available.
+        raw = self.serial_port.read(max(1, self.serial_port.inWaiting()))
+
+        if not raw and len(self._pressed_keys) > 0:
+            self._finish_stroke()
+            return
+
+        for byte in iterbytes(raw):
+            key_set = byte >> 6
+            if (key_set <= self._last_key_set
+                and len(self._pressed_keys) > 0):
                 self._finish_stroke()
-                continue
-
-            for byte in iterbytes(raw):
-                key_set = byte >> 6
-                if (key_set <= self._last_key_set
-                    and len(self._pressed_keys) > 0):
-                    self._finish_stroke()
-                self._last_key_set = key_set
-                for i in range(6):
-                    if (byte >> i) & 1:
-                        self._pressed_keys.append(
-                            STENO_KEY_CHART[(key_set * 6) + i])
-                if 3 == key_set:
-                    # Last possible set, the stroke is finished.
-                    self._finish_stroke()
+            self._last_key_set = key_set
+            for i in range(6):
+                if (byte >> i) & 1:
+                    self._pressed_keys.append(
+                        STENO_KEY_CHART[(key_set * 6) + i])
+            if 3 == key_set:
+                # Last possible set, the stroke is finished.
+                self._finish_stroke()

@@ -32,23 +32,19 @@ class ProCAT(SerialStenotypeBase):
                A- O- -E -U
     '''
 
-    def run(self):
-        """Overrides base class run method. Do not call directly."""
-        self._ready()
-        while not self.finished.isSet():
+    def _loop_body(self):
+        # Grab data from the serial port.
+        raw = self.serial_port.read(BYTES_PER_STROKE)
+        if not raw:
+            return
 
-            # Grab data from the serial port.
-            raw = self.serial_port.read(BYTES_PER_STROKE)
-            if not raw:
-                continue
-
-            # Convert the raw to a list of steno keys.
-            steno_keys = self.keymap.keys_to_actions(
-                self.process_steno_packet(raw)
-            )
-            if steno_keys:
-                # Notify all subscribers.
-                self._notify(steno_keys)
+        # Convert the raw to a list of steno keys.
+        steno_keys = self.keymap.keys_to_actions(
+            self.process_steno_packet(raw)
+        )
+        if steno_keys:
+            # Notify all subscribers.
+            self._notify(steno_keys)
 
     @staticmethod
     def process_steno_packet(raw):
@@ -59,5 +55,3 @@ class ProCAT(SerialStenotypeBase):
                 if b & 0x80 >> j:
                     steno_keys.append(STENO_KEY_CHART[i * 8 + j])
         return steno_keys
-
-

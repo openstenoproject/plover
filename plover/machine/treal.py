@@ -6,8 +6,6 @@
 
 "Thread-based monitoring of a stenotype machine using the Treal machine."
 
-from time import sleep
-
 import hid
 
 from plover import log
@@ -87,45 +85,16 @@ class Treal(ThreadedStenotypeBase):
                 connected = True
                 break
 
+        self._handler = DataHandler(self._on_stroke)
         return connected
 
-    def start_capture(self):
-        """Begin listening for output from the stenotype machine."""
-        if not self._connect():
-            log.warning('Treal is not connected')
-            self._error()
-            return
-        super(Treal, self).start_capture()
-
-    def _reconnect(self):
-        self._machine = None
-        self._initializing()
-
-        connected = self._connect()
-        # Reconnect loop
-        while not self.finished.isSet() and not connected:
-            sleep(0.5)
-            connected = self._connect()
-        return connected
-
-    def run(self):
-        handler = DataHandler(self._on_stroke)
-        self._ready()
-        while not self.finished.isSet():
-            try:
-                packet = self._machine.read(5, 100)
-            except IOError:
-                self._machine.close()
-                log.warning(u'Treal disconnected, reconnecting…')
-                if self._reconnect():
-                    log.warning('Treal reconnected.')
-            else:
-                if len(packet) is 5:
-                    handler.update(packet)
-
-    def stop_capture(self):
-        """Stop listening for output from the stenotype machine."""
-        super(Treal, self).stop_capture()
+    def _disconnect(self):
         if self._machine:
             self._machine.close()
-        self._stopped()
+        self._machine = None
+        self._handler = None
+
+    def _loop_body(self):
+        packet = self._machine.read(5, 100)
+        if len(packet) is 5:
+            _handler.update(packet)

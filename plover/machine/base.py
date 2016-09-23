@@ -9,6 +9,8 @@
 import serial
 import threading
 
+from time import sleep
+
 from plover import log
 from plover.machine.keymap import Keymap
 from plover import system
@@ -73,7 +75,7 @@ class StenotypeBase(object):
 
     def add_state_callback(self, callback):
         self.state_subscribers.append(callback)
-        
+
     def remove_state_callback(self, callback):
         self.state_subscribers.remove(callback)
 
@@ -115,7 +117,7 @@ class StenotypeBase(object):
 
     def _ready(self):
         self._set_state(STATE_RUNNING)
-            
+
     def _error(self):
         self._set_state(STATE_ERROR)
 
@@ -127,7 +129,7 @@ class StenotypeBase(object):
 
 class ThreadedStenotypeBase(StenotypeBase, threading.Thread):
     """Base class for thread based machines.
-    
+
     Subclasses should override run.
     """
     def __init__(self):
@@ -136,24 +138,59 @@ class ThreadedStenotypeBase(StenotypeBase, threading.Thread):
         StenotypeBase.__init__(self)
         self.finished = threading.Event()
 
+    def _connect(self):
+        """This method should be overridden by a subclass."""
+        pass
+
+    def _disconnect(self):
+        """This method should be overridden by a subclass."""
+        pass
+
+    def _reconnect(self):
+        self._initializing()
+        self._disconnect()
+        connected = self._connect()
+        # Reconnect loop
+        while not self.finished.isSet() and not connected:
+            sleep(0.5)
+            connected = self._connect()
+        return connected
+
     def run(self):
+        self._ready()
+        while not self.finished.isSet():
+            try:
+                self._loop_body()
+            except IOError:
+                log.warning(self.__class__.__name__ + ' disconnected, reconnecting...')
+                if self._reconnect():
+                    log.warning(self.__class__.__name__ + ' stenotype machine reconnected.')
+                else:
+                    self._error()
+
+    def _loop_body(self):
         """This method should be overridden by a subclass."""
         pass
 
     def start_capture(self):
-        """Begin listening for output from the stenotype machine."""
+        """Begin listening for output from """ + self.__class__.__name__
         self.finished.clear()
         self._initializing()
+        if not self._connect():
+            log.warning(self.__class__.__name__ + ' is not connected')
+            self._error()
+            return
         self.start()
 
     def stop_capture(self):
-        """Stop listening for output from the stenotype machine."""
+        """Stop listening for output from """ + self.__class__.__name__
         self.finished.set()
         try:
             self.join()
         except RuntimeError:
             pass
         self._stopped()
+        self._disconnect()
 
 class SerialStenotypeBase(ThreadedStenotypeBase):
     """For use with stenotype machines that connect via serial port.
@@ -175,33 +212,24 @@ class SerialStenotypeBase(ThreadedStenotypeBase):
         self.serial_port = None
         self.serial_params = serial_params
 
-    def _close_port(self):
-        if self.serial_port is None:
-            return
-        self.serial_port.close()
-        self.serial_port = None
-
-    def start_capture(self):
-        self._close_port()
-
+    def _connect(self):
         try:
             self.serial_port = serial.Serial(**self.serial_params)
         except (serial.SerialException, OSError):
             log.warning('Can\'t open serial port', exc_info=True)
-            self._error()
-            return
+            return False
 
         if not self.serial_port.isOpen():
             log.warning('Serial port is not open: %s', self.serial_params.get('port'))
-            self._error()
+            return False
+
+        return True
+
+    def _disconnect(self):
+        if self.serial_port is None:
             return
-
-        return ThreadedStenotypeBase.start_capture(self)
-
-    def stop_capture(self):
-        """Stop listening for output from the stenotype machine."""
-        ThreadedStenotypeBase.stop_capture(self)
-        self._close_port()
+        self.serial_port.close()
+        self.serial_port = None
 
     @classmethod
     def get_option_info(cls):

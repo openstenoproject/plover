@@ -607,53 +607,6 @@ def _read(port, stop, seq, request_buf, response_buf, stroke_buf, block, byte):
             block += 1
             byte -= 512
 
-def _loop(port, stop, callback, ready_callback, timeout=1):
-    """Enter into a loop talking to the machine and returning strokes.
-
-    Args:
-    - port: The port to use.
-    - stop: The event used to signal that it's time to stop.
-    - callback: A function that takes a list of pressed keys, called for each
-    stroke.
-    - ready_callback: A function that is called when the machine is ready.
-    - timeout: Timeout to use when waiting for a response in seconds. Should be
-    1 when talking to a real machine. (default: 1)
-
-    Raises:
-    _ProtocolViolationException: If the protocol is violated.
-    _StopException: If a stop is requested.
-    _ConnectionLostException: If we can't seem to talk to the machine.
-
-    """
-    # We want to give the machine a standard timeout to finish whatever it's
-    # doing but we also want to stop if asked to so this is the safe way to
-    # wait.
-    if stop.wait(timeout):
-        raise _StopException()
-    port.flushInput()
-    port.flushOutput()
-    # Set serial port timeout to the timeout value
-    port.timeout = timeout
-    # With Python 3, our replacement for buffer(), using memoryview, does not
-    # allow resizing the original bytearray(), so make sure our buffers are big
-    # enough to begin with.
-    request_buf, response_buf = _allocate_buffer(), _allocate_buffer()
-    stroke_buf = _allocate_buffer()
-    seq = _SequenceCounter()
-    request = _make_open(request_buf, seq(), b'A', b'REALTIME.000')
-    # Any checking needed on the response packet?
-    _send_receive(port, stop, request, response_buf)
-    # Do a full read to get to the current position in the realtime file.
-    block, byte = 0, 0
-    block, byte, _ = _read(port, stop, seq, request_buf, response_buf, stroke_buf, block, byte)
-    ready_callback()
-    while True:
-        block, byte, data = _read(port, stop, seq, request_buf, response_buf, stroke_buf, block, byte)
-        strokes = _parse_strokes(data)
-        for stroke in strokes:
-            callback(stroke)
-
-
 class Stentura(plover.machine.base.SerialStenotypeBase):
     """Stentura interface.
 
@@ -670,17 +623,35 @@ class Stentura(plover.machine.base.SerialStenotypeBase):
         ^
     '''
 
+    def _connect(self):
+        if super(Stentura, self)._connect():
+            port.flushInput()
+            port.flushOutput()
+            # Set serial port timeout to the timeout value
+            port.timeout = timeout
+            # With Python 3, our replacement for buffer(), using memoryview, does not
+            # allow resizing the original bytearray(), so make sure our buffers are big
+            # enough to begin with.
+            self._request_buf = _allocate_buffer()
+            self._response_buf = _allocate_buffer()
+            self._stroke_buf = _allocate_buffer()
+            self._seq = _SequenceCounter()
+            self._request = _make_open(request_buf, seq(), b'A', b'REALTIME.000')
+            # Any checking needed on the response packet?
+            _send_receive(port, stop, request, response_buf)
+            # Do a full read to get to the current position in the realtime file.
+            self._block = 0
+            self._byte = 0
+            block, byte, _ = _read(port, stop, seq, request_buf, response_buf, stroke_buf, block, byte)
+            ready_callback()
+
     def _on_stroke(self, keys):
         steno_keys = self.keymap.keys_to_actions(keys)
         if steno_keys:
             self._notify(steno_keys)
 
-    def run(self):
-        """Overrides base class run method. Do not call directly."""
-        try:
-            _loop(self.serial_port, self.finished, self._on_stroke, self._ready)
-        except _StopException:
-            pass
-        except Exception:
-            log.info("Failure starting Stentura", exc_info=True)
-            self._error()
+    def _loop_body(self):
+        block, byte, data = _read(port, stop, seq, request_buf, response_buf, stroke_buf, block, byte)
+        strokes = _parse_strokes(data)
+        for stroke in strokes:
+            self._on_stroke(stroke)
