@@ -26,11 +26,7 @@ class StenotypeBase(object):
     # Layout of physical keys.
     KEYS_LAYOUT = ''
     # And possible actions to map to.
-    ACTIONS = (
-        tuple(sorted(system.KEY_ORDER.keys(),
-                     key=lambda k: system.KEY_ORDER[k]))
-        + ('no-op',)
-    )
+    ACTIONS = system.KEYS + ('no-op',)
 
     def __init__(self):
         self.keymap = Keymap(self.KEYS_LAYOUT.split(), self.ACTIONS)

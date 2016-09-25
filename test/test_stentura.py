@@ -524,7 +524,7 @@ class TestCase(unittest.TestCase):
             
             try:
                 ready_called[0] = False
-                stentura._loop(port, port.event, callback, ready)
+                stentura._loop(port, port.event, callback, ready, timeout=0)
             except stentura._StopException:
                 pass
             self.assertEqual(read_data, expected)

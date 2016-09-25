@@ -21,8 +21,18 @@ def _load_wordlist(filename):
         words = {p[0].lower(): int(p[1]) for p in pairs}
     return words
 
+def _key_order(keys, numbers):
+    key_order = {}
+    for order, key in enumerate(keys):
+        key_order[key] = order
+        number_key = numbers.get(key)
+        if number_key is not None:
+            key_order[number_key] = order
+    return key_order
+
 _EXPORTS = {
-    'KEY_ORDER'                : lambda mod: dict((l, n) for n, l in enumerate(mod.KEYS)),
+    'KEYS'                     : lambda mod: mod.KEYS,
+    'KEY_ORDER'                : lambda mod: _key_order(mod.KEYS, mod.NUMBERS),
     'NUMBER_KEY'               : lambda mod: mod.NUMBER_KEY,
     'NUMBERS'                  : lambda mod: dict(mod.NUMBERS),
     'SUFFIX_KEYS'              : lambda mod: set(mod.SUFFIX_KEYS),

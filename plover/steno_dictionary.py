@@ -110,6 +110,8 @@ class StenoDictionaryCollection(object):
         if dicts is None:
             dicts = self.dicts
         key_len = len(key)
+        if key_len > self.longest_key:
+            return None
         for d in dicts:
             if key_len > d.longest_key:
                 continue

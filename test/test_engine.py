@@ -16,18 +16,18 @@ class FakeConfig(object):
 
     def __init__(self, **kwargs):
         for name, default in (
-            ('auto_start'                , False                             ),
-            ('machine_type'              , 'Fake'                            ),
-            ('machine_specific_options'  , {}                                ),
-            ('system_keymap'             , [(k, k) for k in system.KEY_ORDER]),
-            ('dictionary_file_names'     , []                                ),
-            ('log_file_name'             , os.devnull                        ),
-            ('enable_stroke_logging'     , False                             ),
-            ('enable_translation_logging', False                             ),
-            ('space_placement'           , 'Before Output'                   ),
-            ('undo_levels'               , 10                                ),
-            ('start_capitalized'         , True                              ),
-            ('start_attached'            , False                             ),
+            ('auto_start'                , False                        ),
+            ('machine_type'              , 'Fake'                       ),
+            ('machine_specific_options'  , {}                           ),
+            ('system_keymap'             , [(k, k) for k in system.KEYS]),
+            ('dictionary_file_names'     , []                           ),
+            ('log_file_name'             , os.devnull                   ),
+            ('enable_stroke_logging'     , False                        ),
+            ('enable_translation_logging', False                        ),
+            ('space_placement'           , 'Before Output'              ),
+            ('undo_levels'               , 10                           ),
+            ('start_capitalized'         , True                         ),
+            ('start_attached'            , False                        ),
         ):
             value = kwargs.get(name, default)
             self.__dict__['get_%s' % name] = partial(lambda v, *a: v, value)
@@ -42,7 +42,7 @@ class FakeRegistry(object):
 
 class FakeMachine(StenotypeBase):
 
-    KEYS_LAYOUT = ' '.join(system.KEY_ORDER.keys())
+    KEYS_LAYOUT = ' '.join(system.KEYS)
 
     def __init__(self, options):
         super(FakeMachine, self).__init__()
