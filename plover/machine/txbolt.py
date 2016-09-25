@@ -66,7 +66,7 @@ class TxBolt(plover.machine.base.SerialStenotypeBase):
     def run(self):
         """Overrides base class run method. Do not call directly."""
         settings = self.serial_port.getSettingsDict()
-        settings['timeout'] = 0.015 # seconds
+        settings['timeout'] = 0.1 # seconds
         self.serial_port.applySettingsDict(settings)
         self._ready()
         while not self.finished.isSet():
