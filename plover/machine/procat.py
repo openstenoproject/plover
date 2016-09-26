@@ -57,7 +57,9 @@ class ProCAT(SerialStenotypeBase):
         for i, b in enumerate(iterbytes(raw[:3])):
             for j in range(0, 8):
                 if b & 0x80 >> j:
-                    steno_keys.append(STENO_KEY_CHART[i * 8 + j])
+                    key = STENO_KEY_CHART[i * 8 + j]
+                    if key:
+                        steno_keys.append(key)
         return steno_keys
 
 
