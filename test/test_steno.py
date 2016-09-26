@@ -5,7 +5,14 @@
 import re
 import unittest
 
-from plover.steno import normalize_steno, Stroke, filter_entry
+from plover.steno import (
+    filter_entry,
+    normalize_steno,
+    Stroke,
+    normalized_stroke_to_indexes,
+    normalized_steno_to_indexes,
+    normalize_stroke,
+)
 
 
 class StenoTestCase(unittest.TestCase):
@@ -59,6 +66,51 @@ class StenoTestCase(unittest.TestCase):
         self.assertEqual(Stroke(['-P', '-P']).rtfcre, '-P')
         self.assertEqual(Stroke(['-P', 'X-']).rtfcre, 'X-P')
         self.assertEqual(Stroke(['#', 'S-', '-T']).rtfcre, '1-9')
+
+    def test_stroke_to_indexes(self):
+        cases = (
+            ('STPH', (1, 2, 4, 6,)),
+            ('#', (0,)),
+            ('-T', (19,)),
+            ('STPHA*T', (1, 2, 4, 6, 8, 10, 19,)),
+            ('WUZ', (5, 12, 22,)),
+            ('#KW*', (0, 3, 5, 10,)),
+            ('#-Z', (0, 22,)),
+            ('12K3W*', (1, 2, 3, 4, 5, 10,)),
+            ('ED', (11, 21,)),
+            ('*ED', (10, 11, 21,)),
+            ('-Z', (22,)),
+            ('-F', (13,)),
+            ('-U', (12,)),
+            ('A-', (8,)),
+            ('*', (10,)),
+            ('-FZ', (13, 22,)),
+            ('S*EUPL', (1, 10, 11, 12, 15, 17,)),
+            ('TPA*EUPBGS', (2, 4, 8, 10, 11, 12, 15, 16, 18, 20,)),
+            ('AFPL', (8, 13, 15, 17,)),
+            ('URPBLG', (12, 14, 15, 16, 17, 18,)),
+            ('*US', (10, 12, 20,)),
+            ('EUF', (11, 12, 13,)),
+            ('HRAU', (6, 7, 8, 12,)),
+            ('HRAR', (6, 7, 8, 14,)),
+            ('S', (1,)),
+            ('-S', (20,)),
+            ('S-', (1,)),
+            ('R', (7,)),
+            ('-R', (14,)),
+            ('R-', (7,))
+        )
+        for stroke, indexes in cases:
+            self.assertEqual(indexes, normalized_stroke_to_indexes(normalize_stroke(stroke)))
+
+    def test_steno_to_indexes(self):
+        cases = (
+                ('S', ((1,),)),
+                ('12K3W*/WUZ/STPH/AFPL/*US', ((1, 2, 3, 4, 5, 10), (5, 12, 22), (1, 2, 4, 6,), (8, 13, 15, 17,), (10, 12, 20,),)),
+                ('', ((),))
+        )
+        for steno, indexes in cases:
+            self.assertEqual(indexes, normalized_steno_to_indexes(normalize_steno(steno)))
 
     def test_filter_by_strokes(self):
         self.assertTrue(filter_entry(

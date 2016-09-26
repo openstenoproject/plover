@@ -21,6 +21,57 @@ STROKE_DELIMITER = '/'
 _NUMBERS = set('0123456789')
 _IMPLICIT_NUMBER_RX = re.compile('(^|[1-4])([6-9])')
 
+normalized_steno_indexes = {}
+normalized_stroke_indexes = {}
+
+def normalized_steno_to_indexes(steno):
+    return (
+        normalized_steno_indexes[steno]
+        if steno in normalized_steno_indexes
+        else normalized_steno_indexes.setdefault(
+            steno,
+            tuple(normalized_stroke_to_indexes(stroke) for stroke in steno)
+        )
+    )
+
+def normalized_stroke_to_indexes(stroke):
+    if stroke not in normalized_stroke_indexes:
+        side = -1
+        indexes = []
+        for key in stroke:
+            if side == 1:  # Right side, easiest case.
+                key_index = system.KEY_ORDER.get('-%s' % key)
+            elif key == '-':  # Center delimiter
+                side = 1
+                continue
+            elif key == system.NUMBER_KEY:
+                key_index = system.KEY_ORDER.get(key)
+            elif key in system.IMPLICIT_HYPHENS:  # Detect center keys
+                key_index = (
+                    system.KEY_ORDER.get(key) or
+                    system.KEY_ORDER.get('%s-' % key) or
+                    system.KEY_ORDER.get('-%s' % key)
+                )
+                assert key_index is not None, 'Invalid implicit key found: %s' % key
+                side = 0
+            elif side == 0:
+                # Case where we last found a center key, but now can't.
+                # It implies our first right side key.
+                key_index = system.KEY_ORDER.get('-%s' % key)
+                side = 1
+            else: # Must be a left-side key.
+                key_index = system.KEY_ORDER.get('%s-' % key)
+            if key_index is not None:
+                indexes.append(key_index)
+    return (
+        normalized_stroke_indexes[stroke]
+        if stroke in normalized_stroke_indexes
+        else normalized_stroke_indexes.setdefault(
+            stroke,
+            tuple(indexes)
+        )
+    )
+
 def normalize_stroke(stroke):
     letters = set(stroke)
     if letters & _NUMBERS:
@@ -33,7 +84,7 @@ def normalize_stroke(stroke):
             return stroke[:start] + '-' + stroke[start:]
     if '-' in letters:
         if stroke.endswith('-'):
-             stroke = stroke[:-1]
+            stroke = stroke[:-1]
         elif letters & system.IMPLICIT_HYPHENS:
             stroke = stroke.replace('-', '')
     return stroke
@@ -106,11 +157,11 @@ class Stroke(object):
                     numeral = True
             if numeral:
                 steno_keys.remove(system.NUMBER_KEY)
-        
+
         if steno_keys_set & system.IMPLICIT_HYPHEN_KEYS:
             self.rtfcre = ''.join(key.strip('-') for key in steno_keys)
         else:
-            pre = ''.join(k.strip('-') for k in steno_keys if k[-1] == '-' or 
+            pre = ''.join(k.strip('-') for k in steno_keys if k[-1] == '-' or
                           k == system.NUMBER_KEY)
             post = ''.join(k.strip('-') for k in steno_keys if k[0] == '-')
             self.rtfcre = '-'.join([pre, post]) if post else pre
