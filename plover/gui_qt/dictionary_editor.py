@@ -1,4 +1,4 @@
-
+import re
 from operator import attrgetter, itemgetter
 from collections import namedtuple
 from itertools import chain
@@ -10,22 +10,22 @@ from PyQt5.QtCore import (
     QAbstractTableModel,
     QModelIndex,
     Qt,
-)
+    QPoint)
 from PyQt5.QtWidgets import (
     QComboBox,
     QDialog,
     QStyledItemDelegate,
-)
+    QToolTip)
 
 from plover.translation import escape_translation, unescape_translation
 from plover.misc import expand_path, shorten_path
-from plover.steno import normalize_steno
+from plover.steno import normalize_steno, filter_entry
 
 from plover.gui_qt.dictionary_editor_ui import Ui_DictionaryEditor
 from plover.gui_qt.utils import ToolBar, WindowState
 
 
-_COL_STENO, _COL_TRANS, _COL_DICT, _COL_COUNT = range(3 + 1)
+_COL_STENO, _COL_TRANS, _COL_DICT, _COL_NUM_STROKES, _COL_NUM_WORDS, _COL_COUNT = range(5 + 1)
 
 
 class DictionaryItem(namedtuple('DictionaryItem', 'strokes translation dictionary')):
@@ -65,18 +65,16 @@ class DictionaryItemModel(QAbstractTableModel):
         self._sort_order = sort_order
         self._update_entries()
 
-    def _update_entries(self, strokes_filter=None, translation_filter=None):
+    def _update_entries(self, strokes_filter=None, translation_filter=None,
+                        case_sensitive=False, regex=None):
         self._entries = []
         for dictionary in self._dictionary_list:
             for strokes, translation in iteritems(dictionary):
-                if strokes_filter is not None and \
-                   not '/'.join(strokes).startswith(strokes_filter):
-                    continue
-                if translation_filter is not None and \
-                   not translation.startswith(translation_filter):
-                    continue
-                item = DictionaryItem(strokes, translation, dictionary)
-                self._entries.append(item)
+                if filter_entry(strokes, translation, strokes_filter,
+                                translation_filter, case_sensitive, regex):
+                    self._entries.append(
+                        DictionaryItem(strokes, translation, dictionary)
+                    )
         self.sort(self._sort_column, self._sort_order)
 
     @property
@@ -167,6 +165,10 @@ class DictionaryItemModel(QAbstractTableModel):
             return _('Translation')
         if section == _COL_DICT:
             return _('Dictionary')
+        if section == _COL_NUM_STROKES:
+            return _('# Strokes')
+        if section == _COL_NUM_WORDS:
+            return _('# Words')
 
     def data(self, index, role):
         if not index.isValid() or role not in (Qt.EditRole, Qt.DisplayRole):
@@ -179,25 +181,37 @@ class DictionaryItemModel(QAbstractTableModel):
             return escape_translation(item.translation)
         if column == _COL_DICT:
             return shorten_path(item.dictionary.get_path())
+        if column == _COL_NUM_STROKES:
+            return len(item.strokes)
+        if column == _COL_NUM_WORDS:
+            return len(item.translation.split(' '))
 
     def flags(self, index):
         if not index.isValid():
             return Qt.NoItemFlags
-        f = Qt.ItemIsEnabled | Qt.ItemIsSelectable
+        editable = Qt.ItemIsEditable if index.column() <= 2 else 0
+        f = Qt.ItemIsEnabled | Qt.ItemIsSelectable | editable
         item = self._entries[index.row()]
         if not item.dictionary.readonly:
             f |= Qt.ItemIsEditable
         return f
 
-    def filter(self, strokes_filter=None, translation_filter=None):
+    def filter(self, strokes_filter=None, translation_filter=None,
+               case_sensitive=False, regex=None):
         self.modelAboutToBeReset.emit()
-        self._update_entries(strokes_filter, translation_filter)
+        self._update_entries(
+            strokes_filter, translation_filter, case_sensitive, regex
+        )
         self.modelReset.emit()
 
     def sort(self, column, order):
         self.layoutAboutToBeChanged.emit()
         if column == _COL_DICT:
             key = attrgetter('dictionary_path')
+        elif column == _COL_NUM_STROKES:
+            key = lambda entry: len(entry.strokes)
+        elif column == _COL_NUM_WORDS:
+            key = lambda entry: len(entry.translation.split(' '))
         else:
             key = itemgetter(column)
         self._entries.sort(key=key,
@@ -298,7 +312,11 @@ class DictionaryEditor(QDialog, Ui_DictionaryEditor, WindowState):
         self.table.sortByColumn(sort_column, sort_order)
         self.table.setModel(self._model)
         self.table.setSortingEnabled(True)
-        self.table.resizeColumnsToContents()
+        self.table.setColumnWidth(0, 200)
+        self.table.setColumnWidth(1, 200)
+        self.table.setColumnWidth(2, 200)
+        self.table.resizeColumnToContents(3)
+        self.table.resizeColumnToContents(4)
         self.table.setItemDelegate(DictionaryItemDelegate(dictionary_list))
         self.table.selectionModel().selectionChanged.connect(self.on_selection_changed)
         background = self.table.palette().highlightedText().color().name()
@@ -371,14 +389,36 @@ class DictionaryEditor(QDialog, Ui_DictionaryEditor, WindowState):
 
     def on_apply_filter(self):
         strokes_filter = '/'.join(normalize_steno(self.strokes_filter.text().strip()))
-        translation_filter = unescape_translation(self.translation_filter.text().strip())
-        self._model.filter(strokes_filter=strokes_filter,
-                           translation_filter=translation_filter)
+        translation_filter = self.translation_filter.text()
+        unescaped_translation_filter = unescape_translation(translation_filter)
+        case_sensitive = self.case_checkbox.checkState()
+        is_regex = self.regex_checkbox.checkState()
+        try:
+            regex = re.compile(
+                translation_filter, flags=0 if case_sensitive else re.I
+            ) if is_regex else None
+        except re.error as e:
+            # Invalid regex, don't apply filter.
+            QToolTip.showText(
+                self.translation_filter.mapToGlobal(QPoint(0,0)),
+                'RegEx did not compile: %s' % str(e)
+            )
+            return
+        else:
+            # Regex overrides some other filter criteria
+            if regex:
+                unescaped_translation_filter=None
+                strokes_filter=None
+                case_sensitive=None
+        self._model.filter(strokes_filter, unescaped_translation_filter,
+                           case_sensitive, regex)
 
     def on_clear_filter(self):
         self.strokes_filter.setText('')
         self.translation_filter.setText('')
-        self._model.filter(strokes_filter=None, translation_filter=None)
+        self.case_checkbox.setChecked(False)
+        self.regex_checkbox.setChecked(False)
+        self._model.filter()
 
     def on_finished(self, result):
         with self._engine:

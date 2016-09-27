@@ -47,6 +47,29 @@ def sort_steno_keys(steno_keys):
     return sorted(steno_keys, key=lambda x: system.KEY_ORDER.get(x, -1))
 
 
+def filter_entry(strokes, translation, strokes_filter=None,
+                 translation_filter=None, case_sensitive=False, regex=None):
+    joined_strokes = '/'.join(strokes)
+    # Two cases:
+    #   Looking for 'STPH' and get 'STPH/BA'
+    #   Looking for 'BA' and get 'STPH/BA'
+    if strokes_filter is not None and \
+       not joined_strokes.startswith(strokes_filter) and \
+            not '/' + strokes_filter in joined_strokes:
+        return False
+    if regex is not None:
+        if not regex.search(translation):
+            return False
+    elif translation_filter is not None:
+        translation_filter = translation_filter if case_sensitive\
+            else translation_filter.lower()
+        translation_text = translation if case_sensitive\
+            else translation.lower()
+        if translation_filter not in translation_text:
+            return False
+    return True
+
+
 class Stroke(object):
     """A standardized data model for stenotype machine strokes.
 

@@ -32,8 +32,18 @@
       <bool>false</bool>
      </property>
      <layout class="QGridLayout" name="gridLayout">
+      <item row="1" column="2">
+       <widget class="QPushButton" name="clear_button">
+        <property name="text">
+         <string>Clear</string>
+        </property>
+        <property name="autoDefault">
+         <bool>false</bool>
+        </property>
+       </widget>
+      </item>
       <item row="0" column="0">
-       <widget class="QLabel" name="label">
+       <widget class="QLabel" name="stroke_label">
         <property name="text">
          <string>By strokes:</string>
         </property>
@@ -43,7 +53,7 @@
        <widget class="QLineEdit" name="strokes_filter"/>
       </item>
       <item row="0" column="2">
-       <widget class="QPushButton" name="pushButton">
+       <widget class="QPushButton" name="filter_button">
         <property name="sizePolicy">
          <sizepolicy hsizetype="Minimum" vsizetype="Minimum">
           <horstretch>0</horstretch>
@@ -51,26 +61,43 @@
          </sizepolicy>
         </property>
         <property name="text">
-         <string>Apply</string>
+         <string>Filter</string>
         </property>
-       </widget>
-      </item>
-      <item row="1" column="0">
-       <widget class="QLabel" name="label_2">
-        <property name="text">
-         <string>By translation:</string>
+        <property name="autoDefault">
+         <bool>false</bool>
+        </property>
+        <property name="default">
+         <bool>true</bool>
         </property>
        </widget>
       </item>
       <item row="1" column="1">
        <widget class="QLineEdit" name="translation_filter"/>
       </item>
-      <item row="1" column="2">
-       <widget class="QPushButton" name="pushButton_2">
+      <item row="1" column="0">
+       <widget class="QLabel" name="translation_label">
         <property name="text">
-         <string>Clear</string>
+         <string>By translation:</string>
         </property>
        </widget>
+      </item>
+      <item row="2" column="1">
+       <layout class="QHBoxLayout" name="horizontalLayout">
+        <item>
+         <widget class="QCheckBox" name="case_checkbox">
+          <property name="text">
+           <string>Case sensitive</string>
+          </property>
+         </widget>
+        </item>
+        <item>
+         <widget class="QCheckBox" name="regex_checkbox">
+          <property name="text">
+           <string>RegEx</string>
+          </property>
+         </widget>
+        </item>
+       </layout>
       </item>
      </layout>
     </widget>
@@ -232,7 +259,7 @@
    </hints>
   </connection>
   <connection>
-   <sender>pushButton</sender>
+   <sender>filter_button</sender>
    <signal>clicked()</signal>
    <receiver>DictionaryEditor</receiver>
    <slot>on_apply_filter()</slot>
@@ -280,7 +307,7 @@
    </hints>
   </connection>
   <connection>
-   <sender>pushButton_2</sender>
+   <sender>clear_button</sender>
    <signal>clicked()</signal>
    <receiver>DictionaryEditor</receiver>
    <slot>on_clear_filter()</slot>
