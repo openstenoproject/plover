@@ -136,5 +136,5 @@ class Keymap(object):
     def __str__(self):
         # Use the more compact list of mappings format:
         # [[action1, [key1, key2]], [action2, [key3]], ...]
-        return json.dumps(self._mappings.items())
+        return json.dumps(list(self._mappings.items()))
 
