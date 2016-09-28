@@ -15,7 +15,9 @@ from PyQt5.QtWidgets import (
     QComboBox,
     QDialog,
     QStyledItemDelegate,
-    QToolTip)
+    QMenu,
+    QToolTip,
+    QAction)
 
 from plover.translation import escape_translation, unescape_translation
 from plover.misc import expand_path, shorten_path
@@ -318,13 +320,17 @@ class DictionaryEditor(QDialog, Ui_DictionaryEditor, WindowState):
         self.table.sortByColumn(sort_column, sort_order)
         self.table.setModel(self._model)
         self.table.setSortingEnabled(True)
-        self.table.setColumnWidth(0, 200)
+        self._reflow_columns()
         self.table.setColumnWidth(1, 200)
         self.table.setColumnWidth(2, 200)
         self.table.resizeColumnToContents(3)
         self.table.resizeColumnToContents(4)
         self.table.setItemDelegate(DictionaryItemDelegate(dictionary_list))
         self.table.selectionModel().selectionChanged.connect(self.on_selection_changed)
+        headers = self.table.horizontalHeader()
+        headers.setContextMenuPolicy(Qt.CustomContextMenu)
+        headers.customContextMenuRequested.connect(self._column_selector)
+        self.table.horizontalHeader().setSectionsMovable(True)
         background = self.table.palette().highlightedText().color().name()
         text_color = self.table.palette().highlight().color().name()
         self.table.setStyleSheet('''
@@ -353,6 +359,46 @@ class DictionaryEditor(QDialog, Ui_DictionaryEditor, WindowState):
             index.row() for index in
             self.table.selectionModel().selectedRows(0)
         ))
+
+    def _reflow_columns(self):
+        # For each column, we want to:
+        #  Resize it to its contents
+        #  If the resize brings it over 200px, bring it back
+        self.table.resizeColumnsToContents()
+        # Temporarily disable the final column's stretch.
+        self.table.horizontalHeader().setStretchLastSection(False)
+        columns = self._model.columnCount(self.table)
+        for index in range(columns):
+            if self.table.columnWidth(index) > 200:
+                self.table.setColumnWidth(index, 200)
+        self.table.horizontalHeader().setStretchLastSection(True)
+
+    def _column_selector(self, position):
+        headers = self.table.horizontalHeader()
+        position = headers.mapToGlobal(position)
+
+        menu = QMenu()
+
+        header_count = headers.count()
+        for section in range(header_count):
+            title = self._model.headerData(
+                section, Qt.Horizontal, Qt.DisplayRole
+            )
+            header_action = QAction(title, self)
+            visible = (not headers.isSectionHidden(section))
+            header_action.setData((section, visible))
+            header_action.setCheckable(True)
+            header_action.setChecked(visible)
+            menu.addAction(header_action)
+        selection = menu.exec(position)
+        if selection:
+            section, visible = selection.data()
+            # Don't let the user hide the last column.
+            visible_headers = header_count - headers.hiddenSectionCount()
+            if visible and visible_headers == 1:
+                return
+            headers.setSectionHidden(section, visible)
+            self._reflow_columns()
 
     def on_data_changed(self, top_left, bottom_right):
         self.table.setCurrentIndex(top_left)
