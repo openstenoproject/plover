@@ -68,8 +68,7 @@ before_install:
         )
         ;;
       esac
-      brew update
-      brew install $python_package --framework
+      (cd /usr/local/Homebrew && git fetch --depth=2000 && git checkout b1746de260 && HOMEBREW_NO_AUTO_UPDATE=1 brew install $python_package --framework)
       brew link --overwrite $python_package
       [ -n "$packages" ] && brew install "${packages[@]}"
       ;;
