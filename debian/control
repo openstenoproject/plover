@@ -1,0 +1,16 @@
+Source: plover
+Maintainer: Benoit Pierre <benoit.pierre@gmail.com>
+Section: utils
+Priority: optional
+Build-Depends: debhelper (>= 7.4.3), python, python-mock, python-pytest, python-setuptools (>= 20.7.0), python-setuptools-scm
+Standards-Version: 3.9.5
+X-Python-Version: >= 2.7, << 2.8
+
+Package: plover
+Architecture: all
+Homepage: http://plover.stenoknight.com/
+Depends: ${python:Depends}, python-appdirs, python-hid, python-pkg-resources, python-serial (>= 2.7), python-wxgtk3.0, python-xlib (>= 0.16), wmctrl
+Description: ('Open Source Stenography Software',)
+ Plover is a free open source program intended to
+ bring realtime stenographic technology not just to stenographers, but also to
+ hackers, hobbyists, accessibility mavens, and all-around speed demons.
