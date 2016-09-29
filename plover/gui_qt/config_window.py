@@ -242,18 +242,18 @@ class KeymapOption(QTableWidget):
         self._updating = True
         self._value = value
         self.setRowCount(0)
-        row = -1
-        sort_key = lambda v: (system.KEY_ORDER.get(v[0], -1), v[0])
-        for action, keys in sorted(value.items(), key=sort_key):
-            if not isinstance(keys, (tuple, list)):
-                keys = (keys,)
-            row += 1
-            self.insertRow(row)
-            item = QTableWidgetItem(action)
-            item.setFlags(item.flags() & ~Qt.ItemIsEditable)
-            self.setItem(row, 0, item)
-            item = QTableWidgetItem(' '.join(keys))
-            self.setItem(row, 1, item)
+        if value is not None:
+            row = -1
+            for action, keys in value.get_mappings().items():
+                if not isinstance(keys, (tuple, list)):
+                    keys = (keys,)
+                row += 1
+                self.insertRow(row)
+                item = QTableWidgetItem(action)
+                item.setFlags(item.flags() & ~Qt.ItemIsEditable)
+                self.setItem(row, 0, item)
+                item = QTableWidgetItem(' '.join(keys))
+                self.setItem(row, 1, item)
         self.resizeColumnsToContents()
         self.setMinimumSize(self.viewportSizeHint())
         self._updating = False
@@ -261,7 +261,6 @@ class KeymapOption(QTableWidget):
     def _on_cell_changed(self, row, column):
         if self._updating:
             return
-        assert 0 <= row <= len(self._value) and column == 1
         action = self.item(row, 0).data(Qt.DisplayRole)
         keys = self.item(row, 1).data(Qt.DisplayRole)
         self._value[action] = keys.split()

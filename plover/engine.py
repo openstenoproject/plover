@@ -164,9 +164,9 @@ class StenoEngine(object):
         elif self._machine is not None:
             update_keymap = 'system_keymap' in config_update
         if update_keymap:
-            machine_mappings = config['system_keymap']
-            if machine_mappings is not None:
-                self._machine.set_mappings(machine_mappings)
+            machine_keymap = config['system_keymap']
+            if machine_keymap is not None:
+                self._machine.set_keymap(machine_keymap)
         if start_machine:
             self._machine.start_capture()
         # Update dictionaries.
