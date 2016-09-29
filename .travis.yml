@@ -91,6 +91,10 @@ before_deploy:
       ;;
     linux)
       $PYTHON setup.py bdist_{egg,wheel}
+      if [ $PYTHON = python2 ]
+      then
+        ./linux/debuild.sh -us -uc
+      fi
       ;;
     esac
     # Not all builds will produce artifacts.
@@ -105,6 +109,7 @@ deploy:
   draft: true
   file_glob: true
   file:
+    - "dist/*.deb"
     - "dist/*.dmg"
     - "dist/*.egg"
     - "dist/*.whl"
