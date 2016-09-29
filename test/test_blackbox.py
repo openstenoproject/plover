@@ -120,6 +120,24 @@ class BlackboxTest(unittest.TestCase):
             self.translator.translate(stroke)
         self.assertEqual(self.output.text, u'I like ta ')
 
+    @unittest.expectedFailure
+    def test_bug606(self):
+        for steno, translation in (
+            ('KWEGS', 'question'),
+            ('-S'   , '{^s}'    ),
+            ('TP-PL', '{.}'     ),
+        ):
+            self.dictionary.set(normalize_steno(steno), translation)
+        self.formatter.set_space_placement('After Output')
+        for steno in (
+            'KWEGS',
+            '-S',
+            'TP-PL',
+        ):
+            stroke = steno_to_stroke(steno)
+            self.translator.translate(stroke)
+        self.assertEqual(self.output.text, u'questions. ')
+
     def test_special_characters(self):
         self.dictionary.set(('R-R',), '{^}\n{^}')
         self.dictionary.set(('TAB',), '\t')
