@@ -1,50 +1,50 @@
-# Plover Development on OS X
+# OS X Development
 
-## Getting Started
-- Run `./bootstrap.sh`.
-- Run `make app` to produce `../dist/Plover.app`.
-  - If you want a disk image instead, use: `make dmg`
-  - Standard development practice is to use `make clean app` to produce
-    a clean rebuild of the app.
+## Semi-automatic development environment setup
 
+With Homebrew installed, you should be able to have everything setup automatically by using: `./bootstrap.sh`.
+
+Note: you can use `./bootstrap.sh -n` to get a list of the commands that would be run.
+
+## Manual development environment setup
+
+- install [Homebrew](http://brew.sh/)
+- install Python2.7: `brew install python`
+- install wxPython: `brew install wxpython`
+- install other dependencies:
+```
+./setup.py write_requirements
+pip2 install -r requirements.txt -c requirements_constraints.txt
+```
+
+## Running Plover in development
+
+To run from source, from the root of the Git repository, use `./launch.sh`.
+
+## Building
+
+- to build to an application, use: `./setup.py bdist_app`
+- to create a disk image instead, use: `./setup.py bdist_dmg`
 
 ## Gotcha: Granting Assistive Device Permission
+
 After each build, you need to approve Plover as an Assistive Device:
 
-- Open System Preferences
-- Open the Security & Privacy pane
-- Select the Privacy tab
-- Select "Accessibility" from the source list on the left
-- Click the "+" button below the list off apps
-- Use the file picker to select the Plover.app that you just built
+- open "System Preferences"
+- open the "Security & Privacy" pane
+- select the "Privacy" tab
+- select "Accessibility" from the source list on the left
+- click the "+" button below the list off apps
+- use the file picker to select the `plover.app` that you just built
 
-Now you can run the app by double-clicking on it
-or by using open(1):
+Now you can run the app by double-clicking on it or by using open(1):
 
-    open ../dist/Plover.app
+`open dist/Plover.app`
 
-### Dev Workaround: Run as Root
-Root doesn't need permission to use event taps,
-so during development, you can avoid this rigmarole by running Plover via:
+### Dev Workaround: run as `root`
 
-```
-sudo ./launch.sh
-```
+Root doesn't need permission to use event taps, so during development, you can avoid this rigmarole by running Plover via:
 
+`sudo ./launch.sh`
 
-## Dependencies
-The bootstrap script takes care of these for you, but in case you're curious:
-
-- Python2.7: `brew install python --framework`
-- wxPython: `brew install wxpython`
-- other dependencies: you can create a pip compatible requirements file with:
-`./setup.py write_requirements`
-
-
-### Xcode Tools
-You need the Xcode command-line tools.
-The bootstrap script will walk you through this.
-
-If you want to check for yourself, try running `clang` in Terminal.app.
-You will receive a prompt if the tools are not installed
-with instructions for how to install them.
+**Warning**: running things as root is never a good idea from a security standpoint!
