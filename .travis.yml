@@ -12,6 +12,7 @@ matrix:
       cache:
         directories:
           - $HOME/.cache/pip
+          - $HOME/.cache/wheels
       before_cache:
         - rm -rf $HOME/.cache/pip/log
     # Linux / Python 3
@@ -24,6 +25,7 @@ matrix:
       cache:
         directories:
           - $HOME/.cache/pip
+          - $HOME/.cache/wheels
       before_cache:
         - rm -rf $HOME/.cache/pip/log
     # OSX / Python 2
@@ -33,9 +35,10 @@ matrix:
         - CACHE_NAME=osx_py2
       cache:
         directories:
-          - /Users/travis/Library/Caches/pip
+          - $HOME/Library/Caches/pip
+          - $HOME/Library/Caches/wheels
       before_cache:
-        - rm -rf /Users/travis/Library/Caches/pip/log
+        - rm -rf $HOME/Library/Caches/pip/log
     # OSX / Python 3
     - os: osx
       env:
@@ -43,77 +46,24 @@ matrix:
         - CACHE_NAME=osx_py3
       cache:
         directories:
-          - /Users/travis/Library/Caches/pip
+          - $HOME/Library/Caches/pip
+          - $HOME/Library/Caches/wheels
       before_cache:
-        - rm -rf /Users/travis/Library/Caches/pip/log
+        - rm -rf $HOME/Library/Caches/pip/log
 
 before_install:
   - |
     (
     set -ex
-    case "$TRAVIS_OS_NAME" in
-    osx)
-      python_package=''
-      packages=()
-      case $PYTHON in
-      python2)
-        python_package='python'
-        packages+=( \
-          wxpython \
-        )
-        ;;
-      python3)
-        python_package='python3'
-        packages+=( \
-        )
-        ;;
-      esac
-      brew update
-      brew install $python_package --framework
-      brew link --overwrite $python_package
-      [ -n "$packages" ] && brew install "${packages[@]}"
-      ;;
-    linux)
-      sudo apt-add-repository -y ppa:benoit.pierre/plover
-      sudo apt-get update -qq
-      packages=(libudev-dev libusb-1.0-0-dev)
-      case $PYTHON in
-      python2)
-        packages+=( \
-          cython \
-          python-dev \
-          python-pip \
-          python-pkg-resources \
-          python-wheel \
-          python-wxgtk3.0 \
-          python-xlib \
-        )
-        ;;
-      python3)
-        packages+=( \
-          cython3 \
-          python3-dev \
-          python3-pip \
-          python3-pkg-resources \
-          python3-wheel \
-          python3-xlib \
-        )
-        ;;
-      esac
-      [ -n "$packages" ] && sudo apt-get install -y "${packages[@]}"
-      ;;
-    esac
-    $PYTHON setup.py write_requirements
-    pip() { $PYTHON -m pip --disable-pip-version-check --timeout=5 --retries=2 "$@"; }
-    # Update antiquated version of pip on Ubuntu...
-    $PYTHON -m pip install --upgrade --user pip
-    # Upgrade setuptools, we need at least 19.6 to prevent issues with Cython patched 'build_ext' command.
-    pip install --upgrade --user 'setuptools>=19.6'
-    # Manually install Cython if not already to speedup hidapi build.
-    pip install --user Cython
-    pip install --upgrade --user -r requirements.txt -c requirements_constraints.txt
-    # And now downgrade setuptools so py2app works correctly...
-    pip install --upgrade --user 'setuptools==19.2'
+    # Bootstrap dev environment.
+    bootstrap_cmd=(./bootstrap.sh)
+    if ! [ "$PYTHON" = 'python2' -a -n "$TRAVIS_TAG" ]
+    then
+      bootstrap_cmd+=('--tests-only')
+    fi
+    bootstrap_cmd+=("$PYTHON")
+    "${bootstrap_cmd[@]}"
+    # List installed packages versions.
     pip list
     )
 
@@ -132,6 +82,8 @@ before_deploy:
     osx)
       if [ $PYTHON = python2 ]
       then
+        # Downgrade setuptools so py2app works correctly...
+        $PYTHON -m pip install --upgrade --user 'setuptools==19.2'
         make -C osx
       fi
       ;;
