@@ -259,6 +259,26 @@ class BinaryDistApp(setuptools.Command):
         copy_metadata('.', libdir)
 
 
+class BinaryDistDmg(Command):
+
+    user_options = []
+    extra_args = []
+
+    def initialize_options(self):
+        pass
+
+    def finalize_options(self):
+        pass
+
+    def run(self):
+        self.run_command('bdist_app')
+        app = 'dist/%s.app' % PACKAGE
+        dmg = 'dist/%s.dmg' % PACKAGE
+        cmd = 'bash -x osx/app2dmg.sh %s %s' % (app, dmg)
+        log.info('running %s', cmd)
+        subprocess.check_call(cmd.split())
+
+
 cmdclass = {
     'launch': Launch,
     'patch_version': PatchVersion,
@@ -287,6 +307,7 @@ if sys.platform.startswith('darwin'):
     # Py2app will not look at entry_points.
     kwargs['app'] = 'plover/main.py',
     cmdclass['bdist_app'] = BinaryDistApp
+    cmdclass['bdist_dmg'] = BinaryDistDmg
 
 if sys.platform.startswith('win32'):
     setup_requires.append('PyInstaller==3.1.1')

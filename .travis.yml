@@ -86,7 +86,7 @@ before_deploy:
       then
         # Downgrade setuptools so py2app works correctly...
         $PYTHON -m pip install --upgrade --user 'setuptools==19.2'
-        make -C osx
+        $PYTHON setup.py bdist_dmg
       fi
       ;;
     linux)
