@@ -202,6 +202,8 @@ python-wheel
 python-xlib
 )
 ubuntu_python2_extra_packages=(
+debhelper
+devscripts
 python-wxgtk3.0
 wmctrl
 )
