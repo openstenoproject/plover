@@ -7,8 +7,7 @@ TOP_DIR="$PWD"
 BUILD_DIR="$TOP_DIR/build"
 DIST_DIR="$TOP_DIR/dist"
 
-VERSION="$(python2)" <<\EOF
-from __future__ import print_function
+VERSION="$(python3)" <<\EOF
 from plover import __version__
 
 version = __version__
