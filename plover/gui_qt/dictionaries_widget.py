@@ -63,16 +63,17 @@ class DictionariesWidget(QWidget, Ui_DictionariesWidget):
 
     def on_config_changed(self, config_update):
         if 'dictionary_file_names' in config_update:
-            self._states = []
-            self._update_dictionaries(config_update['dictionary_file_names'],
-                                      record=False, save=False,
-                                      scroll=True)
+            if self._update_dictionaries(config_update['dictionary_file_names'],
+                                         record=False, save=False,
+                                         scroll=True):
+                self.action_Undo.setEnabled(False)
+                self._states = []
 
     def _update_dictionaries(self, dictionaries,
                              record=True, save=True,
                              scroll=False):
         if dictionaries == self._dictionaries:
-            return
+            return False
         if save:
             self._engine.config = { 'dictionary_file_names': dictionaries }
         if record:
@@ -88,6 +89,7 @@ class DictionariesWidget(QWidget, Ui_DictionariesWidget):
             self.table.setItem(row, 0, item)
         if scroll and item is not None:
             self.table.setCurrentItem(item)
+        return True
 
     @staticmethod
     def _supported_drop_actions():
