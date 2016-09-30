@@ -14,6 +14,6 @@ rm -rf "$BUILD_DIR/src" "$BUILD_DIR/pkg"
 mkdir -p "$src" "$DIST_DIR"
 sed "s/^pkgver=.*\$/pkgver=$pkgver/" "$ARCH_DIR/PKGBUILD" >"$BUILD_DIR/PKGBUILD"
 (cd "$TOP_DIR" && git ls-files -z | xargs -0 cp -a --no-dereference --parents --target-directory="$src")
-
+(cd "$BUILD_DIR/src" && prepare)
 (cd "$BUILD_DIR" && env PKGDEST="$PWD/../dist" makepkg --noextract --force "$@")
 
