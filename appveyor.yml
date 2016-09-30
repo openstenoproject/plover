@@ -64,10 +64,10 @@ before_build:
   - "python setup.py patch_version"
 
 build_script:
-  - "ECHO PATH=%PATH%"
+  - "python setup.py build"
 
 after_build:
-  - ps: "if ($Env:PYTHON_VERSION -eq \"nope\") { python windows\\helper.py dist }"
+  - ps: "if ($Env:PYTHON_VERSION -eq \"3.5\") { python windows\\helper.py dist }"
 
 test_script:
   - "python setup.py test"
