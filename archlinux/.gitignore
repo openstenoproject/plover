@@ -1,0 +1,4 @@
+/*.pkg.tar*
+/PKGBUILD.tmp
+/pkg/
+/src/
