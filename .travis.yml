@@ -59,7 +59,7 @@ before_install:
     set -ex
     # Bootstrap dev environment.
     bootstrap_cmd=(./bootstrap.sh)
-    if ! [ "$PYTHON" = 'python2' -a -n "$TRAVIS_TAG" ]
+    if ! [ "$PYTHON" = 'python3' -a -n "$TRAVIS_TAG" ]
     then
       bootstrap_cmd+=('--tests-only')
     fi
@@ -82,9 +82,17 @@ before_deploy:
     set -ex
     case "$TRAVIS_OS_NAME" in
     osx)
+      if [ $PYTHON = python3 ]
+      then
+        $PYTHON setup.py bdist_dmg
+      fi
       ;;
     linux)
       $PYTHON setup.py bdist_{egg,wheel}
+      if [ $PYTHON = python3 ]
+      then
+        ./linux/debuild.sh -us -uc
+      fi
       ;;
     esac
     # Not all builds will produce artifacts.
