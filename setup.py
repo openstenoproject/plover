@@ -9,6 +9,9 @@ import shutil
 import subprocess
 import sys
 
+from xml.etree import ElementTree
+from xml.etree.ElementTree import Element
+
 from distutils import log
 import pkg_resources
 import setuptools
@@ -24,8 +27,6 @@ from plover import (
     __license__,
     __copyright__,
 )
-
-from utils.metadata import copy_metadata
 
 
 # Don't use six to avoid dependency with 'write_requirements' command.
@@ -223,41 +224,29 @@ class Test(Command):
         sys.exit(main())
 
 
-class BinaryDistApp(setuptools.Command):
-
-    user_options = []
-    extra_args = []
-
-    def initialize_options(self):
-        pass
-
-    def finalize_options(self):
-        pass
+class BinaryDistApp(PyInstallerDist):
+    description = 'create an application for OSX'
+    extra_args = [
+        '--icon=osx/plover.icns',
+        '--osx-bundle-identifier=org.openstenoproject.plover',
+    ]
 
     def run(self):
-        # Make sure metadata are up-to-date first.
-        self.run_command('egg_info')
-        self.run_command('py2app')
-        app = 'dist/%s.app' % PACKAGE
-        libdir = '%s/Contents/Resources/lib/python2.7' % app
-        sitezip = '%s/site-packages.zip' % libdir
-        # Add version to filename and strip other architectures.
-        # (using py2app --arch is not enough).
-        tmp_app = 'dist/%s.app' % __software_name__
-        cmd = 'ditto --arch x86_64 %s %s' % (tmp_app, app)
-        log.info('running %s', cmd)
-        subprocess.check_call(cmd.split())
-        shutil.rmtree(tmp_app)
-        # We can't access package resources from the site zip,
-        # so extract module and package data to the lib directory.
-        cmd = 'unzip -d %s %s plover/*' % (libdir, sitezip)
-        log.info('running %s', cmd)
-        subprocess.check_call(cmd.split())
-        cmd = 'zip -d %s plover/*' % sitezip
-        log.info('running %s', cmd)
-        subprocess.check_call(cmd.split())
-        # Add packages metadata.
-        copy_metadata('.', libdir)
+        PyInstallerDist.run(self)
+        # Patch Info.plist.
+        plist_info_fname = 'dist/%s.app/Contents/Info.plist' % PACKAGE
+        tree = ElementTree.parse(plist_info_fname)
+        dictionary = tree.getroot().find('dict')
+        for name, value in (
+            # Enable retina display support.
+            ('key'   , 'NSPrincipalClass'),
+            ('string', 'NSApplication'   ),
+        ):
+            element = Element(name)
+            element.text = value
+            element.tail = '\n'
+            dictionary.append(element)
+        tree.write(plist_info_fname)
 
 
 class BinaryDistDmg(Command):
@@ -292,22 +281,7 @@ kwargs = {}
 build_dependencies = []
 
 if sys.platform.startswith('darwin'):
-    setup_requires.append('py2app')
-    options['py2app'] = {
-        'arch': 'x86_64',
-        'argv_emulation': False,
-        'iconfile': 'osx/plover.icns',
-        'plist': {
-            'CFBundleName': __software_name__.capitalize(),
-            'CFBundleShortVersionString': __version__,
-            'CFBundleVersion': __version__,
-            'CFBundleIdentifier': 'org.openstenoproject.plover',
-            'NSHumanReadableCopyright': __copyright__,
-            'CFBundleDevelopmentRegion': 'English',
-            }
-        }
-    # Py2app will not look at entry_points.
-    kwargs['app'] = 'plover/main.py',
+    setup_requires.append('PyInstaller==3.1.1')
     cmdclass['bdist_app'] = BinaryDistApp
     cmdclass['bdist_dmg'] = BinaryDistDmg
 

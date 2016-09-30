@@ -4,12 +4,7 @@ import threading
 from time import sleep
 
 # Python 2/3 compatibility.
-from six import PY3
-# Note: six.move is not used as it confuses py2app...
-if PY3:
-    from queue import Queue
-else:
-    from Queue import Queue
+from six.moves.queue import Queue
 
 from Quartz import (
     CFMachPortCreateRunLoopSource,

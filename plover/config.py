@@ -9,12 +9,8 @@ import codecs
 import shutil
 
 # Python 2/3 compatibility.
-from six import BytesIO, PY3
-# Note: six.move is not used as it confuses py2app...
-if PY3:
-    import configparser
-else:
-    import ConfigParser as configparser
+from six import BytesIO
+from six.moves import configparser
 
 from plover.exception import InvalidConfigurationError
 from plover.machine.keymap import Keymap
