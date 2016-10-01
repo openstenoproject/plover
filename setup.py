@@ -316,7 +316,8 @@ if sys.platform.startswith('win32'):
 setup_requires.append('pytest')
 
 dependency_links = [
-   'git+https://github.com/benoit-pierre/pyobjc.git@pyobjc-3.1.1+plover#egg=pyobjc-core&subdirectory=pyobjc-core',
+   'https://github.com/benoit-pierre/pyobjc/releases/download/pyobjc-3.1.1+plover2/pyobjc-core-3.1.1-plover2.tar.gz#egg=pyobjc-core',
+   'https://github.com/benoit-pierre/pyobjc/releases/download/pyobjc-3.1.1+plover2/pyobjc-framework-Cocoa-3.1.1-plover2.tar.gz#egg=pyobjc-framework-Cocoa',
 ]
 
 install_requires = [
@@ -335,8 +336,8 @@ extras_require = {
         'python-xlib>=0.16',
     ],
     ':"darwin" in sys_platform': [
-        'pyobjc-core==3.1.1+plover',
-        'pyobjc-framework-Cocoa>=3.0.3',
+        'pyobjc-core==3.1.1+plover2',
+        'pyobjc-framework-Cocoa==3.1.1+plover2',
         'pyobjc-framework-Quartz>=3.0.3',
         'appnope>=0.1.0',
     ],

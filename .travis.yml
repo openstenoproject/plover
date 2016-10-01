@@ -66,7 +66,7 @@ before_install:
     bootstrap_cmd+=("$PYTHON")
     "${bootstrap_cmd[@]}"
     # List installed packages versions.
-    pip list
+    $PYTHON -m pip list
     )
 
 install: true
