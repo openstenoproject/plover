@@ -133,6 +133,5 @@ class Keyboard(StenotypeBase):
         bool_converter = lambda s: s == 'True'
         return {
             'arpeggiate': (False, bool_converter),
-            # TODO don't use eval
-            'arpeggiate_group': (['space'], lambda s: eval(s)),
+            'arpeggiate_group': (['space'], lambda s: s.split()),
         }
