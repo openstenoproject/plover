@@ -24,6 +24,7 @@ class Keyboard(StenotypeBase):
         super(Keyboard, self).__init__()
         self._arpeggiate = params['arpeggiate']
         self._arpeggiate_group = params['arpeggiate_group']
+        self._arpeggiating = False
         self._is_suppressed = False
         self._bindings = {}
         self._down_keys = set()
@@ -94,6 +95,8 @@ class Keyboard(StenotypeBase):
     def _key_down(self, key):
         """Called when a key is pressed."""
         assert key is not None
+        if self._arpeggiate and key in self._arpeggiate_group:
+            self._arpeggiating = True
         if key in self._bindings:
             self._stroke_key_down_count += 1
         steno_key = self._bindings.get(key)
@@ -115,7 +118,8 @@ class Keyboard(StenotypeBase):
         send_strokes = bool(self._down_keys and
                             self._down_keys == self._released_keys)
         if self._arpeggiate:
-            send_strokes &= key in self._arpeggiate_group
+            send_strokes &= self._arpeggiating
+            self._arpeggiating &= not send_strokes
         if send_strokes:
             self._last_stroke_key_down_count = self._stroke_key_down_count
             steno_keys = list(self._down_keys)
