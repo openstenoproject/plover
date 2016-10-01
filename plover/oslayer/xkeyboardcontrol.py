@@ -213,16 +213,15 @@ class KeyboardCapture(threading.Thread):
             assert event.data.sourceid in self.devices
             keycode = event.data.detail
             modifiers = event.data.mods.effective_mods & ~0b10000 & 0xFF
-            # Ignore event if a modifier is set.
-            if modifiers != 0:
-                continue
             key = KEYCODE_TO_KEY.get(keycode)
             if key is None:
                 # Not a supported key, ignore...
                 continue
             # ...or pass it on to a callback method.
             if event.evtype == xinput.KeyPress:
-                self.key_down(key)
+                # Ignore event if a modifier is set.
+                if modifiers == 0:
+                    self.key_down(key)
             elif event.evtype == xinput.KeyRelease:
                 self.key_up(key)
 
