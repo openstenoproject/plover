@@ -27,15 +27,11 @@ for group in distribution.get_entry_map().values():
     for entrypoint in group.values():
         hiddenimports.append(entrypoint.module_name)
 
-hiddenimports.append('plover.gui_none.main')
-
 try:
     import PyQt5
 except ImportError:
     pass
 else:
-    hiddenimports.append('plover.gui_qt.main')
-
     # Qt GUI localization.
     from PyQt5.QtCore import QLibraryInfo
 

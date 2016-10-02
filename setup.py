@@ -436,6 +436,10 @@ if __name__ == '__main__':
         [console_scripts]
         plover = plover.main:main
 
+        [plover.gui]
+        none = plover.gui_none.main
+        qt   = plover.gui_qt.main
+
         [plover.machine]
         Gemini PR = plover.machine.geminipr:GeminiPr
         Keyboard  = plover.machine.keyboard:Keyboard
