@@ -31,6 +31,7 @@ class ProCAT(SerialStenotypeBase):
         S- K- W- R- * -R -B -G -S -Z
                A- O- -E -U
     '''
+    KEYMAP_MACHINE_TYPE = 'TX Bolt'
 
     def run(self):
         """Overrides base class run method. Do not call directly."""

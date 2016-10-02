@@ -236,6 +236,3 @@ KEYMAPS = {
         'no-op': ('X1-', 'X2-', 'X3'),
     },
 }
-
-KEYMAPS['ProCAT'] = KEYMAPS['TX Bolt']
-

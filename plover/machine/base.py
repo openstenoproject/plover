@@ -27,6 +27,9 @@ class StenotypeBase(object):
     KEYS_LAYOUT = ''
     # And special actions to map to.
     ACTIONS = ()
+    # Fallback to use as machine type for finding a compatible keymap
+    # if one is not already available for this machine type.
+    KEYMAP_MACHINE_TYPE = None
 
     def __init__(self):
         # Setup default keymap with no translation of keys.

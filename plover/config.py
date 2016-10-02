@@ -360,7 +360,10 @@ class Config(object):
             system_name = self.get_system_name()
         section = SYSTEM_CONFIG_SECTION % system_name
         option = SYSTEM_KEYMAP_OPTION % machine_type
-        self._set(section, option, json.dumps(sorted(dict(keymap).items())))
+        if keymap is None:
+            self._config.remove_option(section, option)
+        else:
+            self._set(section, option, json.dumps(sorted(dict(keymap).items())))
 
     def get_system_keymap(self, machine_type=None, system_name=None):
         if machine_type is None:
@@ -381,6 +384,7 @@ class Config(object):
         option = SYSTEM_KEYMAP_OPTION % machine_type
         mappings = self._get(section, option, None)
         if mappings is None:
+            # No user mappings, use system default.
             mappings = system.KEYMAPS.get(machine_type)
         else:
             try:
@@ -388,8 +392,17 @@ class Config(object):
             except ValueError as e:
                 log.error("invalid machine keymap, resetting to default",
                           exc_info=True)
+                self.set_system_keymap(None, machine_type)
                 mappings = system.KEYMAPS.get(machine_type)
-                self.set_system_keymap(mappings, machine_type)
+        if mappings is None:
+            if machine_class.KEYMAP_MACHINE_TYPE is not None:
+                # Try fallback.
+                return self.get_system_keymap(
+                    machine_type=machine_class.KEYMAP_MACHINE_TYPE,
+                    system_name=system_name
+                )
+            # No fallback...
+            mappings = {}
         keymap = Keymap(machine_class.get_keys(), system.KEYS + machine_class.get_actions())
         keymap.set_mappings(mappings)
         return keymap
