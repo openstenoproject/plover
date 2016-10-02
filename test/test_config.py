@@ -14,6 +14,7 @@ from six import BytesIO
 from mock import patch
 
 from plover import config
+from plover.machine.keymap import Keymap
 from plover.machine.registry import Registry
 from plover.oslayer.config import CONFIG_DIR
 
@@ -239,34 +240,36 @@ class ConfigTestCase(unittest.TestCase):
         section = config.SYSTEM_CONFIG_SECTION % config.DEFAULT_SYSTEM
         option = config.SYSTEM_KEYMAP_OPTION % machine.lower()
         cfg = config.Config()
-        # Mappings must be a dictionary.
-        mappings = cfg.get_system_keymap(machine)
-        self.assertIsInstance(mappings, dict)
-        # Mappings can be set from a dictionary.
+        # Must return a Keymap instance.
+        keymap = cfg.get_system_keymap(machine)
+        self.assertIsInstance(keymap, Keymap)
+        # Can be set from a Keymap.
+        keymap.set_mappings(mappings_list)
+        cfg.set_system_keymap(keymap, machine)
+        self.assertEqual(cfg.get_system_keymap(machine), keymap)
+        # Can also be set from a dictionary.
         cfg.set_system_keymap(mappings_dict, machine)
-        self.assertEqual(cfg.get_system_keymap(machine), mappings_dict)
+        self.assertEqual(cfg.get_system_keymap(machine), keymap)
         # Or from a compatible iterable of pairs (action, keys).
         cfg.set_system_keymap(mappings_list, machine)
-        self.assertEqual(cfg.get_system_keymap(machine), mappings_dict)
+        self.assertEqual(cfg.get_system_keymap(machine), keymap)
+        # The config format should allow both:
+        # - a list of pairs (action, keys)
+        # - a dictionary (mapping each action to keys)
         def make_config_file(mappings):
             return make_config('[%s]\n%s = %s\n\n' % (section, option, json.dumps(mappings)))
-        # And the config format allow both.
         for mappings in (mappings_list, mappings_dict):
             cfg = config.Config()
             cfg.load(make_config_file(mappings))
-            self.assertEqual(cfg.get_system_keymap(machine), mappings_dict)
+            self.assertEqual(cfg.get_system_keymap(machine), keymap)
         # On save, a sorted list of pairs (action, keys) is expected.
         # (to reduce differences between saves)
         cfg = config.Config()
-        cfg.set_system_keymap(mappings_dict, machine)
+        cfg.set_system_keymap(keymap, machine)
         contents = make_config()
         cfg.save(contents)
-        self.assertEqual(contents.getvalue(), make_config_file(sorted(mappings_list)).getvalue())
-        # Check we can get/set the current machine keymap.
-        cfg.set_machine_type(machine)
-        self.assertEqual(cfg.get_system_keymap(), mappings_dict)
-        cfg.set_system_keymap({})
-        self.assertEqual(cfg.get_system_keymap(), {})
+        expected = make_config_file(sorted(keymap.get_mappings().items()))
+        self.assertEqual(contents.getvalue(), expected.getvalue())
         # Check an invalid keymap is replaced by the default one.
         cfg = config.Config()
         default_keymap = cfg.get_system_keymap(machine)

@@ -11,7 +11,6 @@ import threading
 
 from plover import log
 from plover.machine.keymap import Keymap
-from plover import system
 
 
 STATE_STOPPED = 'stopped'
@@ -25,18 +24,21 @@ class StenotypeBase(object):
 
     # Layout of physical keys.
     KEYS_LAYOUT = ''
-    # And possible actions to map to.
-    ACTIONS = system.KEYS + ('no-op',)
+    # And special actions to map to.
+    ACTIONS = ()
 
     def __init__(self):
-        self.keymap = Keymap(self.KEYS_LAYOUT.split(), self.ACTIONS)
+        # Setup default keymap with no translation of keys.
+        keys = self.get_keys()
+        self.keymap = Keymap(keys, keys)
+        self.keymap.set_mappings(zip(keys, keys))
         self.stroke_subscribers = []
         self.state_subscribers = []
         self.state = STATE_STOPPED
 
-    def set_mappings(self, mappings):
-        """Setup machine keymap: mappings of action to keys."""
-        self.keymap.set_mappings(mappings)
+    def set_keymap(self, keymap):
+        """Setup machine keymap."""
+        self.keymap = keymap
 
     def start_capture(self):
         """Begin listening for output from the stenotype machine."""
@@ -114,6 +116,15 @@ class StenotypeBase(object):
             
     def _error(self):
         self._set_state(STATE_ERROR)
+
+    @classmethod
+    def get_actions(cls):
+        """List of supported actions to map to."""
+        return cls.ACTIONS
+
+    @classmethod
+    def get_keys(cls):
+        return tuple(set(cls.KEYS_LAYOUT.split()))
 
     @classmethod
     def get_option_info(cls):

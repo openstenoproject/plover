@@ -3,15 +3,15 @@
 
 """Unit tests for passport.py."""
 
-from operator import eq
-from itertools import starmap
 import time
 import unittest
+
+# Python 2/3 compatibility.
+from six import assertCountEqual
 
 from mock import patch
 
 from plover.machine.passport import Passport
-from plover import system
 
 
 class MockSerial(object):
@@ -43,9 +43,6 @@ class MockSerial(object):
         pass
 
 
-def cmp_keys(a, b):
-    return all(starmap(eq, zip(a, b)))
-
 class TestCase(unittest.TestCase):
     def test_passport(self):
         
@@ -55,13 +52,11 @@ class TestCase(unittest.TestCase):
         cases = (
             # Test all keys
             ((b'!f#f+f*fAfCfBfEfDfGfFfHfKfLfOfNfQfPfSfRfUfTfWfYfXfZf^f~f',),
-            [['#', '*', 'A-', 'S-', '-B', '-E', '-D', '-G', '-F', 'H-', 'K-', 
-              '-L', 'O-', '-P', '-R', 'P-', 'S-', 'R-', '-U', 'T-', 'W-', '-T', 
-              '-S', '-Z', '*'],]),
+            [Passport.get_keys(),]),
             # Anything below 8 is not registered
-            ((b'S9T8A7',), [['S-', 'T-'],]),
+            ((b'S9T8A7',), [['S', 'T'],]),
             # Sequence of strokes
-            ((b'SfTf', b'Zf', b'QfLf'), [['S-', 'T-'], ['-Z',], ['-R', '-L']]),
+            ((b'SfTf', b'Zf', b'QfLf'), [['S', 'T'], ['Z',], ['Q', 'L']]),
         )
 
         params = {k: v[0] for k, v in Passport.get_option_info().items()}
@@ -71,9 +66,10 @@ class TestCase(unittest.TestCase):
                 actual = []
                 m = Passport(params)
                 m.add_stroke_callback(actual.append)
-                m.set_mappings(system.KEYMAPS['Passport'])
                 m.start_capture()
                 while mock.index < len(mock.inputs):
                     time.sleep(0.00001)
                 m.stop_capture()
-                self.assertEqual(actual, expected)
+                self.assertEqual(len(actual), len(expected))
+                for actual_keys, expected_keys in zip(actual, expected):
+                    assertCountEqual(self, actual_keys, expected_keys)

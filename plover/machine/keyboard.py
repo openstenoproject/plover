@@ -17,7 +17,7 @@ class Keyboard(StenotypeBase):
     """
 
     KEYS_LAYOUT = KeyboardCapture.SUPPORTED_KEYS_LAYOUT
-    ACTIONS = StenotypeBase.ACTIONS + ('arpeggiate',)
+    ACTIONS = ('arpeggiate',)
 
     def __init__(self, params):
         """Monitor the keyboard's events."""
@@ -52,8 +52,8 @@ class Keyboard(StenotypeBase):
                     del self._bindings[key]
         self._suppress()
 
-    def set_mappings(self, mappings):
-        super(Keyboard, self).set_mappings(mappings)
+    def set_keymap(self, keymap):
+        super(Keyboard, self).set_keymap(keymap)
         self._update_bindings()
 
     def start_capture(self):

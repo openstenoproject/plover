@@ -17,6 +17,7 @@ else:
     import ConfigParser as configparser
 
 from plover.exception import InvalidConfigurationError
+from plover.machine.keymap import Keymap
 from plover.machine.registry import machine_registry, NoSuchMachineException
 from plover.oslayer.config import ASSETS_DIR, CONFIG_DIR
 from plover.misc import expand_path, shorten_path
@@ -334,16 +335,21 @@ class Config(object):
             opacity = DEFAULT_TRANSLATION_FRAME_OPACITY
         return opacity
 
-    def set_system_keymap(self, mappings, machine_type=None):
+    def set_system_keymap(self, keymap, machine_type=None):
         if machine_type is None:
             machine_type = self.get_machine_type()
         section = SYSTEM_CONFIG_SECTION % DEFAULT_SYSTEM
         option = SYSTEM_KEYMAP_OPTION % machine_type
-        self._set(section, option, json.dumps(sorted(dict(mappings).items())))
+        self._set(section, option, json.dumps(sorted(dict(keymap).items())))
 
     def get_system_keymap(self, machine_type=None):
         if machine_type is None:
             machine_type = self.get_machine_type()
+        try:
+            machine_class = machine_registry.get(machine_type)
+        except:
+            log.error("invalid machine type: %s", machine_type, exc_info=True)
+            return None
         section = SYSTEM_CONFIG_SECTION % DEFAULT_SYSTEM
         option = SYSTEM_KEYMAP_OPTION % machine_type
         mappings = self._get(section, option, None)
@@ -357,7 +363,9 @@ class Config(object):
                           exc_info=True)
                 mappings = system.KEYMAPS.get(machine_type)
                 self.set_system_keymap(mappings, machine_type)
-        return mappings
+        keymap = Keymap(machine_class.get_keys(), system.KEYS + machine_class.get_actions())
+        keymap.set_mappings(mappings)
+        return keymap
 
     def _set(self, section, option, value):
         if not self._config.has_section(section):
