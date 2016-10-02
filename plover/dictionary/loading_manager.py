@@ -57,6 +57,3 @@ class DictionaryLoadingOperation(object):
     def get(self):
         self.loading_thread.join()
         return self.dictionary, self.exc_info
-
-
-manager = DictionaryLoadingManager()

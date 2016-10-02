@@ -59,7 +59,7 @@ before_install:
     set -ex
     # Bootstrap dev environment.
     bootstrap_cmd=(./bootstrap.sh)
-    if ! [ "$PYTHON" = 'python2' -a -n "$TRAVIS_TAG" ]
+    if ! [ "$PYTHON" = 'python3' -a -n "$TRAVIS_TAG" ]
     then
       bootstrap_cmd+=('--tests-only')
     fi
@@ -82,16 +82,14 @@ before_deploy:
     set -ex
     case "$TRAVIS_OS_NAME" in
     osx)
-      if [ $PYTHON = python2 ]
+      if [ $PYTHON = python3 ]
       then
-        # Downgrade setuptools so py2app works correctly...
-        $PYTHON -m pip install --upgrade --user 'setuptools==19.2'
         $PYTHON setup.py bdist_dmg
       fi
       ;;
     linux)
       $PYTHON setup.py bdist_{egg,wheel}
-      if [ $PYTHON = python2 ]
+      if [ $PYTHON = python3 ]
       then
         ./linux/debuild.sh -us -uc
       fi
@@ -105,7 +103,7 @@ deploy:
   provider: releases
   skip_cleanup: true
   api_key:
-    secure: vBKvc1uV688/Jn2bYvlFYrhVb+1X9t8iCC4LN87cZvEFNe7DEhSU2DZhaYceTYVZGKNjSzT1ScGrAGc0IHVN9azor3syDJlZ5LvSjiN/sj83MDe0TfPURgYdd5UaLDKsfknd0fMOgJyUiDadNS7il0Yk3Tmu+bw0cLZr24QzHUFfI3xIeP6EfByPrO4yGctykTmhNPpMKqpBJv4Y4qfYkMQmujgR09nn+B6pkgVekl44+zScS/ivHy4Rgdyp1pakyiPGJf4zI5VG+BcW6SR3cJ8JF2h5oEM3S6gk0yDpw2WgfaA2c0qWsIHhy5fIYd7HivJjGpPsEEOOCm671QoLK66JZbFI2l6nP62nf01vxuQLX8sQIlOh6YSC17ML3UWJkrV3VSMvo31vznKsr8oiTDYFyaheOKc1wMj28StDI5oXfyyLEBA0RH6gYjRwTGblEVc2CWg9T3CgJb9RY1s8CyFEHChoj7RlJ6oeJpeiAPpsnUNPT6RIYrjaqVt/jnWAjBxmEOlWR3xPSZXVla5E3NwcB8CjXqxe7ZNU2AzQ/vcbSDtRCOvnbqV7CvUwh4ET02h4jr34SSYUyM8Zcnkw9RvHSy5vJj/xq2r3stB+xdxsPkLjybeTMaGeCNVJ9FKImgFgW5E8mzx9Hm3x1ECjDhtYI1g8g1kE9qmww7JaiOU=
+    secure: "oevnqcK1AKqtYg6KuA9VjsrvXLl0qbSjJRWWvqJthXxRobGDdaY7asNexemzogUlqIoeJcbmdmirp3pBTRhEWtxCUZa+/TgQ/0H9nMPT4pPo+7Tsucj3bKMIoXK7PUsomOMjM0QnlzaSk85rnrMzdPrl1d6DuW/V8A5ChsHW1k8="
   draft: true
   file_glob: true
   file:

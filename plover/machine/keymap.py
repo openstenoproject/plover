@@ -14,6 +14,7 @@ class Keymap(object):
         self._actions = OrderedDict((action, n)
                                     for n, action
                                     in enumerate(actions))
+        self._actions['no-op'] = len(self._actions)
         # List of supported keys.
         self._keys = OrderedDict((key, n)
                                  for n, key
@@ -55,13 +56,15 @@ class Keymap(object):
                 continue
             if isinstance(key_list, string_types):
                 key_list = (key_list,)
-            self._mappings[action] = tuple(sorted(key_list, key=self._keys.get))
+            valid_key_list = []
             for key in key_list:
                 if key not in self._keys:
                     errors.append('invalid key %s bound to action %s' % (key, action))
                     continue
+                valid_key_list.append(key)
                 bound_keys[key].append(action)
                 self._bindings[key] = action
+            self._mappings[action] = tuple(sorted(valid_key_list, key=self._keys.get))
         for action in (set(mappings) - set(self._actions)):
             key_list = mappings.get(action)
             if isinstance(key_list, string_types):
@@ -91,8 +94,43 @@ class Keymap(object):
                 action_list.append(action)
         return action_list
 
+    def keys(self):
+        return self._mappings.keys()
+
+    def values(self):
+        return self._mappings.values()
+
+    def __len__(self):
+        return len(self._mappings)
+
+    def __getitem__(self, key):
+        return self._mappings[key]
+
+    def __setitem__(self, action, key_list):
+        assert action in self._actions
+        if isinstance(key_list, string_types):
+            key_list = (key_list,)
+        # Delete previous bindings.
+        if action in self._mappings:
+            for old_key in self._mappings[action]:
+                if old_key in self._bindings:
+                    del self._bindings[old_key]
+        for new_key in key_list:
+            if new_key in self._bindings:
+                old_action = self._bindings[new_key]
+                log.warning('Keymap key %r rebound from %r to %r',
+                            new_key, old_action, action)
+                del self._bindings[new_key]
+            self._bindings[new_key] = action
+
+    def __iter__(self):
+        return iter(self._mappings)
+
+    def __eq__(self, other):
+        return self._mappings == other.get_mappings()
+
     def __str__(self):
         # Use the more compact list of mappings format:
         # [[action1, [key1, key2]], [action2, [key3]], ...]
-        return json.dumps(self._mappings.items())
+        return json.dumps(list(self._mappings.items()))
 

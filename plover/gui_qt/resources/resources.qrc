@@ -1,0 +1,24 @@
+<RCC>
+  <qresource>
+    <file>up.svg</file>
+    <file>down.svg</file>
+    <file>suggestions.svg</file>
+    <file>font.svg</file>
+    <file>tape.svg</file>
+    <file>on-top.svg</file>
+    <file>save.svg</file>
+    <file>clear.svg</file>
+    <file>new.svg</file>
+    <file>delete.svg</file>
+    <file>undo.svg</file>
+    <file>edit.svg</file>
+    <file>add.svg</file>
+    <file>search.svg</file>
+    <file>settings.svg</file>
+    <file>state-disabled.svg</file>
+    <file>state-disconnected.svg</file>
+    <file>state-enabled.svg</file>
+    <file>reconnect.svg</file>
+    <file>plover.png</file>
+  </qresource>
+</RCC>

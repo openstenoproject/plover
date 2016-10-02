@@ -4,23 +4,25 @@ Suggestion = collections.namedtuple('Suggestion', 'text steno_list')
 
 
 class Suggestions(object):
+
+    MODS = [
+        u'%s',       # Same
+        u'{%s}',     # Same (punctuation)
+        u'{%s^}',    # Prefix
+        u'%s{^}',
+        u'{^%s^}',   # Infix
+        u'{^}%s{^}',
+        u'{^%s}',    # Suffix
+        u'{^}%s',
+        u'{&%s}',    # Fingerspell
+        u'{#%s}',    # Command
+    ]
+
     def __init__(self, dictionary):
         self.dictionary = dictionary
 
     def find(self, translation):
         suggestions = []
-
-        mods = [
-            u'%s',  # Same
-            u'{^%s}',  # Prefix
-            u'{^}%s',
-            u'{^%s^}',  # Infix
-            u'{^}%s{^}',
-            u'{%s^}',  # Suffix
-            u'%s{^}',
-            u'{&%s}',  # Fingerspell
-            u'{#%s}',  # Command
-        ]
 
         possible_translations = set([translation])
 
@@ -38,7 +40,7 @@ class Suggestions(object):
             possible_translations |= similar_words
 
         for t in possible_translations:
-            for modded_translation in [mod % t for mod in mods]:
+            for modded_translation in [mod % t for mod in self.MODS]:
                 strokes_list = self.dictionary.reverse_lookup(modded_translation)
                 if not strokes_list:
                     continue

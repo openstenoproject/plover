@@ -1,4 +1,4 @@
 #!/usr/bin/make -f
 
 %:
-	dh $@ --buildsystem=pybuild
+	dh $@ --with=python3 --buildsystem=pybuild

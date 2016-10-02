@@ -3,10 +3,11 @@
 
 """Unit tests for passport.py."""
 
-from operator import eq
-from itertools import starmap
 import time
 import unittest
+
+# Python 2/3 compatibility.
+from six import assertCountEqual
 
 from mock import patch
 
@@ -35,7 +36,7 @@ class MockSerial(object):
 
     def read(self, size=1):
         assert size == self.inWaiting()
-        result = [ord(x) for x in self._get()]
+        result = self._get()
         MockSerial.index += 1
         return result
         
@@ -43,25 +44,20 @@ class MockSerial(object):
         pass
 
 
-def cmp_keys(a, b):
-    return all(starmap(eq, zip(a, b)))
-
 class TestCase(unittest.TestCase):
     def test_passport(self):
         
         def p(s):
-            return '<123/%s/something>' % s
+            return b'<123/' + s + b'/something>'
         
         cases = (
             # Test all keys
-            (('!f#f+f*fAfCfBfEfDfGfFfHfKfLfOfNfQfPfSfRfUfTfWfYfXfZf^f~f',),
-            [['#', '*', 'A-', 'S-', '-B', '-E', '-D', '-G', '-F', 'H-', 'K-', 
-              '-L', 'O-', '-P', '-R', 'P-', 'S-', 'R-', '-U', 'T-', 'W-', '-T', 
-              '-S', '-Z', '*'],]),
+            ((b'!f#f+f*fAfCfBfEfDfGfFfHfKfLfOfNfQfPfSfRfUfTfWfYfXfZf^f~f',),
+            [Passport.get_keys(),]),
             # Anything below 8 is not registered
-            (('S9T8A7',), [['S-', 'T-'],]),
+            ((b'S9T8A7',), [['S', 'T'],]),
             # Sequence of strokes
-            (('SfTf', 'Zf', 'QfLf'), [['S-', 'T-'], ['-Z',], ['-R', '-L']]),
+            ((b'SfTf', b'Zf', b'QfLf'), [['S', 'T'], ['Z',], ['Q', 'L']]),
         )
 
         params = {k: v[0] for k, v in Passport.get_option_info().items()}
@@ -71,9 +67,10 @@ class TestCase(unittest.TestCase):
                 actual = []
                 m = Passport(params)
                 m.add_stroke_callback(actual.append)
-                m.set_mappings(system.KEYMAPS['Passport'])
                 m.start_capture()
                 while mock.index < len(mock.inputs):
                     time.sleep(0.00001)
                 m.stop_capture()
-                self.assertEqual(actual, expected)
+                self.assertEqual(len(actual), len(expected))
+                for actual_keys, expected_keys in zip(actual, expected):
+                    assertCountEqual(self, actual_keys, expected_keys)

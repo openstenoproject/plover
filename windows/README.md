@@ -10,14 +10,13 @@ Everything required for Plover development can automatically be installed by exe
 
 It is best to develop using 32 bit tools for Plover.
 
-- [Python 2.7 x86_32](https://www.python.org/downloads/windows/)
+- [Python 3.5 x86_32](https://www.python.org/downloads/windows/)
 
 ### Externally hosted dependencies
 
 - [Cython](http://cython.org/)
-- [Microsoft Visual C++ Compiler for Python 2.7](https://www.microsoft.com/en-us/download/details.aspx?id=44266)
 - [Python for Windows Extensions](http://sourceforge.net/projects/pywin32/)
-- [wxPython](http://www.wxpython.org/)
+- [PyQt5](https://riverbankcomputing.com/software/pyqt/intro)
 
 ### Other dependencies
 
