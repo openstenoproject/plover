@@ -6,6 +6,8 @@
 # Python 2/3 compatibility.
 from six import iterbytes
 
+from monotonic import monotonic
+
 import plover.machine.base
 
 # In the TX Bolt protocol, there are four sets of keys grouped in
@@ -65,13 +67,20 @@ class TxBolt(plover.machine.base.SerialStenotypeBase):
 
     def run(self):
         """Overrides base class run method. Do not call directly."""
+        min_timeout = 0.025 # 25 ms
+        max_timeout = 0.050 # 50 ms
         settings = self.serial_port.getSettingsDict()
-        settings['timeout'] = 0.1 # seconds
+        settings['timeout'] = max_timeout
         self.serial_port.applySettingsDict(settings)
         self._ready()
+        last_read_time = monotonic()
         while not self.finished.isSet():
             # Grab data from the serial port, or wait for timeout if none available.
+            # Note: take processing time between reads into account.
+            elapsed = monotonic() - last_read_time
+            self.serial_port.timeout = max(min_timeout, max_timeout - elapsed)
             raw = self.serial_port.read(max(1, self.serial_port.inWaiting()))
+            last_read_time = monotonic()
 
             if not raw and len(self._pressed_keys) > 0:
                 self._finish_stroke()

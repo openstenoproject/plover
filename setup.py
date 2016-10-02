@@ -321,11 +321,12 @@ dependency_links = [
 ]
 
 install_requires = [
-    'six',
-    'setuptools',
-    'pyserial>=2.7',
     'appdirs>=1.3.0',
     'hidapi',
+    'monotonic',
+    'pyserial>=2.7',
+    'setuptools',
+    'six',
 ]
 
 extras_require = {
