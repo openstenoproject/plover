@@ -16,6 +16,7 @@ import wx.animate
 from wx.lib.utils import AdjustRectToScreen
 import plover.app as app
 from plover.config import ASSETS_DIR, SPINNER_FILE, copy_default_dictionaries
+from plover.dictionary.prioritize_dictionaries import prioritize_dictionaries
 from plover.gui.config import ConfigurationDialog
 import plover.gui.add_translation
 import plover.gui.lookup
@@ -249,6 +250,18 @@ class MainFrame(wx.Frame):
         except Exception:
             log.error('machine reset failed', exc_info=True)
 
+    def priority_dict(self, command):
+        selections = command.split(":")[1]
+        old_file_names = self.config.get_dictionary_file_names()
+        new_file_names = prioritize_dictionaries(selections, old_file_names)
+        self.config.set_dictionary_file_names(new_file_names)
+
+        try:
+            app.update_engine(self.steno_engine, self.config)
+        except Exception:
+            log.error('updating engine configuration failed', exc_info=True)
+            return
+
     def consume_command(self, command):
         # The first commands can be used whether plover has output enabled or not.
         if command == self.COMMAND_RESUME:
@@ -260,6 +273,9 @@ class MainFrame(wx.Frame):
             return True
         elif command == self.COMMAND_QUIT:
             wx.CallAfter(self._quit)
+            return True
+        elif command.startswith("PRIORITY_DICT:"):
+            wx.CallAfter(self.priority_dict, command)
             return True
 
         if not self.steno_engine.is_running:
