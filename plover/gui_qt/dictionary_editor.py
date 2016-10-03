@@ -1,6 +1,6 @@
 import re
 from operator import attrgetter, itemgetter
-from collections import namedtuple
+from collections import namedtuple, OrderedDict
 from itertools import chain
 
 # Python 2/3 compatibility.
@@ -40,6 +40,8 @@ class DictionaryItem(namedtuple('DictionaryItem', 'strokes translation dictionar
     def dictionary_path(self):
         return self.dictionary.get_path()
 
+    def __hash__(self):
+        return hash(self.strokes) + hash(self.translation)
 
 class DictionaryItemDelegate(QStyledItemDelegate):
 
@@ -72,15 +74,67 @@ class DictionaryItemModel(QAbstractTableModel):
         self._update_entries()
 
     def _update_entries(self, strokes_filter=None, translation_filter=None,
-                        case_sensitive=False, regex=None):
+                        case_sensitive=False, regex=None, collisions=False,
+                        duplicates=False):
         self._entries = []
+
+        entries_by_strokes = {}
+        entries_by_strokes_translation = {}
+        collided = False
+        duplicated = False
+
+        def filter_entry_custom(strokes, translation):
+            return filter_entry(
+                strokes, translation, strokes_filter, translation_filter,
+                case_sensitive, regex
+            )
         for dictionary in self._dictionary_list:
             for strokes, translation in iteritems(dictionary):
-                if filter_entry(strokes, translation, strokes_filter,
-                                translation_filter, case_sensitive, regex):
-                    self._entries.append(
-                        DictionaryItem(strokes, translation, dictionary)
-                    )
+                prior_entry = None
+                if collisions:
+                    # Include entries with matching strokes,
+                    # different translations.
+                    collided = False
+                    if strokes in entries_by_strokes:
+                        collision, new = entries_by_strokes[strokes]
+                        if collision.translation != translation:
+                            collided = True
+                            if new:
+                                prior_entry = collision
+                                entries_by_strokes[strokes] = (collision, False)
+                    else:
+                        entries_by_strokes[strokes] = (
+                            DictionaryItem(strokes, translation, dictionary),
+                            True
+                        )
+                if duplicates:
+                    # Include entries with matching strokes and translations.
+                    duplicated = False
+                    pair = (strokes, translation)
+                    if pair in entries_by_strokes_translation:
+                        duplicated = True
+                        dupe, new = entries_by_strokes_translation[pair]
+                        if new:
+                            prior_entry = dupe
+                            entries_by_strokes_translation[pair] = (
+                                dupe, False
+                            )
+                    else:
+                        entries_by_strokes_translation[pair] = (
+                            DictionaryItem(strokes, translation, dictionary),
+                            True
+                        )
+                # If we find a duplicate or collision, then we need to add both
+                # the current stroke, and the one we collided with / duplicated.
+                if prior_entry and filter_entry_custom(prior_entry.strokes,
+                                                       prior_entry.translation):
+                    self._entries.append(prior_entry)
+                if not collisions and not duplicates or collided or duplicated:
+                    if filter_entry(strokes, translation, strokes_filter,
+                                    translation_filter, case_sensitive, regex):
+                        self._entries.append(
+                            DictionaryItem(strokes, translation, dictionary)
+                        )
         self.sort(self._sort_column, self._sort_order)
 
     @property
@@ -203,10 +257,12 @@ class DictionaryItemModel(QAbstractTableModel):
         return f
 
     def filter(self, strokes_filter=None, translation_filter=None,
-               case_sensitive=False, regex=None):
+               case_sensitive=False, regex=None, collisions=False,
+               duplicates=False):
         self.modelAboutToBeReset.emit()
         self._update_entries(
-            strokes_filter, translation_filter, case_sensitive, regex
+            strokes_filter, translation_filter, case_sensitive, regex,
+            collisions, duplicates
         )
         self.modelReset.emit()
 
@@ -339,6 +395,12 @@ class DictionaryEditor(QDialog, Ui_DictionaryEditor, WindowState):
                                      background-color: %s;
                                      color: %s;
                                 }''' % (background, text_color))
+
+        # Sidebar should take minimal space
+        self.splitter.setStretchFactor(0, 0)
+        # Table stretches
+        self.splitter.setStretchFactor(1, 1)
+
         self.table.setFocus()
         for action in (
             self.action_Undo,
@@ -446,6 +508,8 @@ class DictionaryEditor(QDialog, Ui_DictionaryEditor, WindowState):
         unescaped_translation_filter = unescape_translation(translation_filter)
         case_sensitive = self.case_checkbox.checkState()
         is_regex = self.regex_checkbox.checkState()
+        collisions = self.collisions_checkbox.checkState()
+        duplicates = self.duplicates_checkbox.checkState()
         try:
             regex = re.compile(
                 translation_filter, flags=0 if case_sensitive else re.I
@@ -464,13 +528,16 @@ class DictionaryEditor(QDialog, Ui_DictionaryEditor, WindowState):
                 strokes_filter=None
                 case_sensitive=None
         self._model.filter(strokes_filter, unescaped_translation_filter,
-                           case_sensitive, regex)
+                           case_sensitive, regex, collisions,
+                           duplicates)
 
     def on_clear_filter(self):
         self.strokes_filter.setText('')
         self.translation_filter.setText('')
         self.case_checkbox.setChecked(False)
         self.regex_checkbox.setChecked(False)
+        self.collisions_checkbox.setChecked(False)
+        self.duplicates_checkbox.setChecked(False)
         self._model.filter()
 
     def on_finished(self, result):

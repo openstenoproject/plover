@@ -5,6 +5,15 @@
 import re
 import unittest
 
+try:
+    from PyQt5.QtCore import Qt
+    from plover.gui_qt.dictionary_editor import (
+        DictionaryItemModel, DictionaryItem)
+except:
+    qt_available = False
+else:
+    qt_available = True
+
 from plover.steno import (
     filter_entry,
     normalize_steno,
@@ -13,6 +22,7 @@ from plover.steno import (
     normalized_steno_to_indexes,
     normalize_stroke,
 )
+from plover.steno_dictionary import StenoDictionary
 
 
 class StenoTestCase(unittest.TestCase):
@@ -288,3 +298,56 @@ class StenoTestCase(unittest.TestCase):
         self.assertTrue(filter_entry(
             ('TKOG',), 'dog', regex=insensitive_regex('dog')
         ))
+
+    @unittest.skipUnless(qt_available, "requires PyQT")
+    def test_collisions_duplicates(self):
+
+        d1 = StenoDictionary()
+        d1.set_path('d1')
+        d1[('TOD',)] = 'today'
+        d1[('PWAOUT',)] = 'beautiful'
+
+        d2 = StenoDictionary()
+        d2.set_path('d2')
+        d2[('TED',)] = 'Ted'
+        d2[('TOD',)] = 'TODO'
+
+        d3 = StenoDictionary()
+        d3.set_path('d3')
+        d3[('TED',)] = 'Ted'
+
+        # Simple test.
+        model = DictionaryItemModel([d1, d2, d3], 0, Qt.AscendingOrder)
+        model.filter()
+        # No filter
+        self.assertEquals(sorted(model._entries),
+                          sorted([
+                              DictionaryItem(('TOD',), 'today', d1),
+                              DictionaryItem(('TOD',), 'TODO', d2),
+                              DictionaryItem(('TED',), 'Ted', d2),
+                              DictionaryItem(('TED',), 'Ted', d3),
+                              DictionaryItem(('PWAOUT',), 'beautiful', d1)
+                          ]))
+        # Looking for only collisions
+        model.filter(collisions=True)
+        self.assertEquals(sorted(model._entries),
+                          sorted([
+                              DictionaryItem(('TOD',), 'today', d1),
+                              DictionaryItem(('TOD',), 'TODO', d2),
+                          ]))
+        # Looking for only duplicates
+        model.filter(duplicates=True)
+        self.assertEquals(sorted(model._entries),
+                          sorted([
+                              DictionaryItem(('TED',), 'Ted', d2),
+                              DictionaryItem(('TED',), 'Ted', d3),
+                          ]))
+        # Looking for collisions or duplicates
+        model.filter(collisions=True, duplicates=True)
+        self.assertEquals(sorted(model._entries),
+                          sorted([
+                              DictionaryItem(('TED',), 'Ted', d2),
+                              DictionaryItem(('TED',), 'Ted', d3),
+                              DictionaryItem(('TOD',), 'today', d1),
+                              DictionaryItem(('TOD',), 'TODO', d2),
+                          ]))
