@@ -17,7 +17,6 @@ from plover.machine.keymap import Keymap
 from plover.registry import registry
 from plover.oslayer.config import ASSETS_DIR, CONFIG_DIR
 from plover.misc import expand_path, shorten_path
-from plover import system
 from plover import log
 
 
@@ -81,7 +80,10 @@ TRANSLATION_FRAME_SECTION = 'Translation Frame'
 TRANSLATION_FRAME_OPACITY_OPTION = 'opacity'
 DEFAULT_TRANSLATION_FRAME_OPACITY = 100
 
-DEFAULT_SYSTEM = 'English Stenotype'
+BASE_SYSTEM_SECTION = 'System'
+SYSTEM_NAME_OPTION = 'name'
+DEFAULT_SYSTEM_NAME = 'English Stenotype'
+
 SYSTEM_CONFIG_SECTION = 'System: %s'
 SYSTEM_KEYMAP_OPTION = 'keymap[%s]'
 
@@ -332,14 +334,35 @@ class Config(object):
             opacity = DEFAULT_TRANSLATION_FRAME_OPACITY
         return opacity
 
-    def set_system_keymap(self, keymap, machine_type=None):
+    def set_system_name(self, system_name):
+        self._set(BASE_SYSTEM_SECTION, SYSTEM_NAME_OPTION, system_name)
+
+    def get_system_name(self):
+        system_name = self._get(BASE_SYSTEM_SECTION,
+                                SYSTEM_NAME_OPTION,
+                                None)
+        if system_name is not None:
+            try:
+                system_name = registry.get_plugin('system', system_name).name
+            except:
+                log.error("invalid system name: %s",
+                          system_name, exc_info=True)
+                self.set_system_name(DEFAULT_SYSTEM_NAME)
+                system_name = None
+        if system_name is None:
+            system_name = DEFAULT_SYSTEM_NAME
+        return system_name
+
+    def set_system_keymap(self, keymap, machine_type=None, system_name=None):
         if machine_type is None:
             machine_type = self.get_machine_type()
-        section = SYSTEM_CONFIG_SECTION % DEFAULT_SYSTEM
+        if system_name is None:
+            system_name = self.get_system_name()
+        section = SYSTEM_CONFIG_SECTION % system_name
         option = SYSTEM_KEYMAP_OPTION % machine_type
         self._set(section, option, json.dumps(sorted(dict(keymap).items())))
 
-    def get_system_keymap(self, machine_type=None):
+    def get_system_keymap(self, machine_type=None, system_name=None):
         if machine_type is None:
             machine_type = self.get_machine_type()
         try:
@@ -347,7 +370,14 @@ class Config(object):
         except:
             log.error("invalid machine type: %s", machine_type, exc_info=True)
             return None
-        section = SYSTEM_CONFIG_SECTION % DEFAULT_SYSTEM
+        if system_name is None:
+            system_name = self.get_system_name()
+        try:
+            system = registry.get_plugin('system', system_name).resolve()
+        except:
+            log.error("invalid system name: %s", system_name, exc_info=True)
+            return None
+        section = SYSTEM_CONFIG_SECTION % system_name
         option = SYSTEM_KEYMAP_OPTION % machine_type
         mappings = self._get(section, option, None)
         if mappings is None:
@@ -425,6 +455,7 @@ class Config(object):
     suggestions_display_on_top
     translation_frame_opacity
 
+    system_name
     machine_type
     machine_specific_options
     system_keymap

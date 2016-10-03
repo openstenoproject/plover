@@ -241,7 +241,7 @@ class ConfigTestCase(unittest.TestCase):
         ]
         mappings_dict = dict(mappings_list)
         machine = 'Keyboard'
-        section = config.SYSTEM_CONFIG_SECTION % config.DEFAULT_SYSTEM
+        section = config.SYSTEM_CONFIG_SECTION % config.DEFAULT_SYSTEM_NAME
         option = config.SYSTEM_KEYMAP_OPTION % machine.lower()
         cfg = config.Config()
         # Must return a Keymap instance.
@@ -299,6 +299,7 @@ class ConfigTestCase(unittest.TestCase):
             stroke_display_style
             suggestions_display_on_top
             system_keymap
+            system_name
             translation_frame_opacity
             undo_levels
         '''.split()

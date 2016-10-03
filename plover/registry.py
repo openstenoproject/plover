@@ -14,6 +14,7 @@ class Registry(object):
 
     PLUGIN_TYPES = (
         'machine',
+        'system',
     )
 
     def __init__(self):

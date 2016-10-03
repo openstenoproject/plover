@@ -9,6 +9,7 @@ import mock
 from pkg_resources import EntryPoint
 
 from plover import system
+from plover.config import DEFAULT_SYSTEM_NAME
 from plover.engine import StenoEngine
 from plover.registry import Registry
 from plover.machine.base import StenotypeBase
@@ -20,6 +21,7 @@ class FakeConfig(object):
         'auto_start'                : False,
         'machine_type'              : 'Fake',
         'machine_specific_options'  : {},
+        'system_name'               : DEFAULT_SYSTEM_NAME,
         'system_keymap'             : [(k, k) for k in system.KEYS],
         'dictionary_file_names'     : [],
         'log_file_name'             : os.devnull,
@@ -51,14 +53,16 @@ class FakeConfig(object):
 
 class FakeMachine(StenotypeBase):
 
-    KEYS_LAYOUT = ' '.join(system.KEYS)
-
     instance = None
 
     def __init__(self, options):
         super(FakeMachine, self).__init__()
         self.options = options
         self.is_suppressed = False
+
+    @classmethod
+    def get_keys(cls):
+        return system.KEYS
 
     def start_capture(self):
         assert FakeMachine.instance is None

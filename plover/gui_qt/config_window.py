@@ -323,9 +323,9 @@ class ConfigWindow(QDialog, Ui_ConfigWindow, WindowState):
             (_('Machine'), (
                 ConfigOption(_('Type:'), 'machine_type', partial(ChoiceOption, choices=machines),
                              dependents=(
-                                   ('machine_specific_options', engine.machine_specific_options),
-                                   ('system_keymap', engine.system_keymap),
-                               )),
+                                 ('machine_specific_options', engine.machine_specific_options),
+                                 ('system_keymap', lambda v: self._update_keymap(machine_type=v)),
+                             )),
                 ConfigOption(_('Options:'), 'machine_specific_options',
                              lambda *args: machine_options.get(self._config['machine_type'],
                                                                SerialOption)(*args)),
@@ -354,7 +354,17 @@ class ConfigWindow(QDialog, Ui_ConfigWindow, WindowState):
                                '\n'
                                'Note: the effective value will take into account the\n'
                                'dictionaries entry with the maximum number of strokes.')),
-            ))
+            )),
+            (_('System'), (
+                ConfigOption(_('Type'), 'system_name',
+                             partial(ChoiceOption, choices={
+                                 name: name
+                                 for name in engine.list_plugins('system')
+                             }),
+                             dependents=(
+                                 ('system_keymap', lambda v: self._update_keymap(system_name=v)),
+                             )),
+            )),
         )
         # Only keep supported options, to avoid messing with things like
         # dictionaries, that are handled by another (possibly concurrent)
@@ -397,6 +407,15 @@ class ConfigWindow(QDialog, Ui_ConfigWindow, WindowState):
         buttons.button(QDialogButtonBox.Apply).clicked.connect(self.on_apply)
         self.restore_state()
         self.finished.connect(self.save_state)
+
+    def _update_keymap(self, machine_type=None, system_name=None):
+        if machine_type is None:
+            machine_type = self._config['machine_type']
+        if system_name is None:
+            system_name = self._config['system_name']
+        keymap = self._engine.system_keymap(machine_type=machine_type,
+                                            system_name=system_name)
+        return keymap
 
     def _create_option_widget(self, option):
         widget = option.widget_class()

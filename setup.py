@@ -445,6 +445,9 @@ if __name__ == '__main__':
         TX Bolt   = plover.machine.txbolt:TxBolt
         Treal     = plover.machine.treal:Treal
 
+        [plover.system]
+        English Stenotype = plover.system.english_stenotype
+
         [setuptools.installation]
         eggsecutable = plover.main:main
 
