@@ -19,6 +19,7 @@ if sys.platform.startswith('darwin'):
 import plover.oslayer.processlock
 from plover.oslayer.config import CONFIG_DIR
 from plover.config import CONFIG_FILE, Config
+from plover.registry import registry
 from plover import log
 from plover import __name__ as __software_name__
 from plover import __version__
@@ -57,6 +58,9 @@ def main():
     args = parser.parse_args(args=sys.argv[1:])
     if args.log_level is not None:
         log.set_level(args.log_level.upper())
+
+    registry.load_plugins()
+    registry.update()
 
     if not args.gui in gui_choices:
         raise ValueError('invalid gui: %r' % args.gui)

@@ -6,8 +6,11 @@ from functools import partial
 
 import mock
 
+from pkg_resources import EntryPoint
+
 from plover import system
 from plover.engine import StenoEngine
+from plover.registry import Registry
 from plover.machine.base import StenotypeBase
 
 
@@ -45,13 +48,6 @@ class FakeConfig(object):
     def update(self, **kwargs):
         self._options.update(kwargs)
 
-class FakeRegistry(object):
-
-    def __init__(self, **kwargs):
-        self._machines = kwargs
-
-    def get(self, name):
-        return self._machines[name]
 
 class FakeMachine(StenotypeBase):
 
@@ -102,7 +98,8 @@ class EngineTestCase(unittest.TestCase):
     @contextmanager
     def _setup(self, **kwargs):
         FakeMachine.instance = None
-        self.reg = FakeRegistry(Fake=FakeMachine)
+        self.reg = Registry()
+        self.reg.register_plugin('machine', EntryPoint.parse('Fake = test.test_engine:FakeMachine'))
         self.kbd = FakeKeyboardEmulation()
         self.cfg = FakeConfig(**kwargs)
         self.events = []
@@ -112,7 +109,7 @@ class EngineTestCase(unittest.TestCase):
         for hook in self.engine.HOOKS:
             self.engine.hook_connect(hook, partial(hook_callback, hook))
         try:
-            with mock.patch('plover.engine.machine_registry', self.reg):
+            with mock.patch('plover.engine.registry', self.reg):
                 yield
         finally:
             del self.reg

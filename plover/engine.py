@@ -11,7 +11,7 @@ from plover.config import copy_default_dictionaries
 from plover.dictionary.loading_manager import DictionaryLoadingManager
 from plover.exception import InvalidConfigurationError
 from plover.formatting import Formatter
-from plover.machine.registry import machine_registry, NoSuchMachineException
+from plover.registry import registry, PLUGINS_DIR
 from plover.steno import Stroke
 from plover.suggestions import Suggestions
 from plover.translation import Translator
@@ -151,8 +151,8 @@ class StenoEngine(object):
             machine_type = config['machine_type']
             machine_options = config['machine_specific_options']
             try:
-                machine_class = machine_registry.get(machine_type)
-            except NoSuchMachineException as e:
+                machine_class = registry.get_plugin('machine', machine_type).resolve()
+            except Exception as e:
                 raise InvalidConfigurationError(str(e))
             self._machine = machine_class(machine_options)
             self._machine.set_suppression(self._is_running)
@@ -319,10 +319,9 @@ class StenoEngine(object):
     def quit(self):
         self._same_thread_hook(self._quit)
 
-    @property
     @with_lock
-    def machines(self):
-        return sorted(machine_registry.get_all_names())
+    def list_plugins(self, plugin_type):
+        return sorted(registry.list_plugins(plugin_type))
 
     @with_lock
     def machine_specific_options(self, machine_type):

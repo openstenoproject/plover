@@ -14,7 +14,7 @@ from six.moves import configparser
 
 from plover.exception import InvalidConfigurationError
 from plover.machine.keymap import Keymap
-from plover.machine.registry import machine_registry, NoSuchMachineException
+from plover.registry import registry
 from plover.oslayer.config import ASSETS_DIR, CONFIG_DIR
 from plover.misc import expand_path, shorten_path
 from plover import system
@@ -149,9 +149,10 @@ class Config(object):
                                  None)
         if machine_type is not None:
             try:
-                machine_registry.get(machine_type)
-            except NoSuchMachineException:
-                log.error("invalid machine type: %s", machine_type)
+                machine_type = registry.get_plugin('machine', machine_type).name
+            except:
+                log.error("invalid machine type: %s",
+                          machine_type, exc_info=True)
                 self.set_machine_type(DEFAULT_MACHINE_TYPE)
                 machine_type = None
         if machine_type is None:
@@ -171,8 +172,8 @@ class Config(object):
                 return p[1](v)
             except ValueError:
                 return p[0]
-        machine = machine_registry.get(machine_type)
-        info = machine.get_option_info()
+        machine_class = registry.get_plugin('machine', machine_type).resolve()
+        info = machine_class.get_option_info()
         defaults = {k: v[0] for k, v in info.items()}
         if self._config.has_section(machine_type):
             options = {o: self._config.get(machine_type, o)
@@ -342,7 +343,7 @@ class Config(object):
         if machine_type is None:
             machine_type = self.get_machine_type()
         try:
-            machine_class = machine_registry.get(machine_type)
+            machine_class = registry.get_plugin('machine', machine_type).resolve()
         except:
             log.error("invalid machine type: %s", machine_type, exc_info=True)
             return None

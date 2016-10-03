@@ -23,6 +23,9 @@ log.info('adding metadata: %s', metadata_list)
 datas.extend(metadata_list)
 
 datas.append(('plover/assets', 'plover/assets'))
+for group in distribution.get_entry_map().values():
+    for entrypoint in group.values():
+        hiddenimports.append(entrypoint.module_name)
 
 hiddenimports.append('plover.gui_none.main')
 

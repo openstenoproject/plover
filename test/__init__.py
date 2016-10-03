@@ -1,6 +1,8 @@
 
 import unittest
 
+from plover.registry import registry
+
 
 # So our custom assertHelpers are not part of the test failure tracebacks.
 __unittest = True
@@ -21,3 +23,6 @@ class TestCase(unittest.TestCase):
                 return False
         return ContextManager()
 
+
+# Setup registry.
+registry.update()

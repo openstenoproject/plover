@@ -13,15 +13,31 @@ from six import BytesIO
 
 from mock import patch
 
+from pkg_resources import EntryPoint
+
 from plover import config
 from plover.machine.keymap import Keymap
-from plover.machine.registry import Registry
+from plover.registry import Registry
 from plover.oslayer.config import CONFIG_DIR
 
 
 def make_config(contents=''):
     return BytesIO(b'\n'.join(line.strip().encode('utf-8')
                               for line in contents.split('\n')))
+
+
+class FakeMachine(object):
+    @staticmethod
+    def get_option_info():
+        bool_converter = lambda s: s == 'True'
+        return {
+            'stroption1': (None, str),
+            'intoption1': (3, int),
+            'stroption2': ('abc', str),
+            'floatoption1': (1, float),
+            'booloption1': (True, bool_converter),
+            'booloption2': (False, bool_converter)
+        }
 
 
 class ConfigTestCase(unittest.TestCase):
@@ -100,24 +116,12 @@ class ConfigTestCase(unittest.TestCase):
         self.assertEqual(f1.getvalue(), f2.getvalue())
 
     def test_machine_specific_options(self):
-        class FakeMachine(object):
-            @staticmethod
-            def get_option_info():
-                bool_converter = lambda s: s == 'True'
-                return {
-                    'stroption1': (None, str),
-                    'intoption1': (3, int),
-                    'stroption2': ('abc', str),
-                    'floatoption1': (1, float),
-                    'booloption1': (True, bool_converter),
-                    'booloption2': (False, bool_converter)
-                }
         defaults = {k: v[0] for k, v in FakeMachine.get_option_info().items()}
 
         machine_name = 'machine foo'
         registry = Registry()
-        registry.register(machine_name, FakeMachine)
-        with patch('plover.config.machine_registry', registry):
+        registry.register_plugin('machine', EntryPoint.parse('%s = test.test_config:FakeMachine' % machine_name))
+        with patch('plover.config.registry', registry):
             c = config.Config()
             
             # Check default value.

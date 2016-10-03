@@ -293,7 +293,7 @@ class ConfigWindow(QDialog, Ui_ConfigWindow, WindowState):
         }
         machines = {
             machine: _(machine)
-            for machine in engine.machines
+            for machine in engine.list_plugins('machine')
         }
         mappings = (
             (_('Interface'), (
