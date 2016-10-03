@@ -11,14 +11,15 @@ depends=(
   'python2-appdirs'
   'python2-dbus'
   'python2-hidapi'
+  'python2-pyqt5'
   'python2-pyserial'
   'python2-setuptools'
   'python2-six'
   'python2-xlib'
   'wmctrl'
-  'wxpython'
 )
 makedepends=(
+  'python2-babel'
   'python2-mock'
   'python2-pytest'
   'python2-setuptools-scm'
@@ -28,6 +29,11 @@ conflicts=('plover-git')
 url="http://www.openstenoproject.org/plover/"
 source=(https://github.com/openstenoproject/plover/archive/v$pkgver.tar.gz)
 sha1sums=(89ca6af3fe002be218158930d105d25c1e1282be)
+
+prepare() {
+  cd "$pkgname-$pkgver"
+  sed 's/"py\(rcc\|uic\)5"/"python2-py\15"/' -i pyuic.json
+}
 
 check() {
   cd "$pkgname-$pkgver"

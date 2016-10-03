@@ -1,0 +1,46 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Generator: Adobe Illustrator 19.2.0, SVG Export Plug-In . SVG Version: 6.00 Build 0)  -->
+<svg version="1.1" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" x="0px" y="0px"
+	 viewBox="0 0 48 48" style="enable-background:new 0 0 48 48;" xml:space="preserve">
+<style type="text/css">
+	.st0{fill:#90CAF9;}
+	.st1{fill:#1976D2;}
+	.st2{fill:#E1F5FE;}
+	.st3{display:none;}
+	.st4{display:inline;fill:#1976D2;}
+	.st5{font-family:'MyriadPro-Regular';}
+	.st6{font-size:21px;}
+	.st7{fill:#E57373;}
+	.st8{fill:#FF9800;}
+	.st9{fill:#B0BEC5;}
+	.st10{fill:#FFC107;}
+	.st11{fill:#37474F;}
+</style>
+<g id="Layer_2">
+	<polygon class="st0" points="0.8,18.7 8.8,10.8 40,10.8 40,36.8 0.8,36.8 	"/>
+	<g>
+		<path class="st1" d="M5.9,29.3c0.8,0.5,2,0.9,3.3,0.9c1.9,0,3-1,3-2.4c0-1.3-0.8-2-2.7-2.8c-2.3-0.8-3.7-2-3.7-3.9
+			c0-2.2,1.8-3.8,4.6-3.8c1.4,0,2.5,0.3,3.1,0.7L13,19.5c-0.5-0.2-1.4-0.7-2.7-0.7c-1.9,0-2.7,1.1-2.7,2.1c0,1.3,0.9,1.9,2.8,2.7
+			c2.4,0.9,3.6,2,3.6,4.1c0,2.1-1.6,4-4.9,4c-1.4,0-2.9-0.4-3.6-0.9L5.9,29.3z"/>
+		<path class="st1" d="M19.2,19.1h-4.3v-1.5h10.5v1.5H21v12.4h-1.8V19.1z"/>
+		<path class="st1" d="M26.9,17.6h1.8v6.7h0.1c0.4-0.5,0.8-1,1.1-1.5l4.3-5.2h2.3l-5.1,5.9l5.5,8h-2.2l-4.7-6.8l-1.3,1.5v5.3h-1.8
+			V17.6z"/>
+	</g>
+	<polygon class="st0" points="10.4,12.2 10.4,19.9 2.7,19.9 	"/>
+	<polygon class="st2" points="9,12.8 9,18.6 3.2,18.6 	"/>
+</g>
+<g id="Layer_1" class="st3">
+	<rect x="16.2" y="14.1" class="st4" width="24.8" height="2"/>
+	<rect x="3.7" y="23.6" class="st4" width="37.3" height="2"/>
+	<rect x="3.7" y="28.3" class="st4" width="37.3" height="2"/>
+	<rect x="3.7" y="32.5" class="st4" width="37.3" height="2"/>
+	<text transform="matrix(1 0 0 1 3.1875 34.4732)" class="st4 st5 st6">STK</text>
+</g>
+<g id="Layer_3">
+	<path class="st7" d="M46.6,21.1l-3.4-3.4c-0.5-0.5-1.3-0.5-1.9,0l-1.6,1.6l5.3,5.3l1.6-1.6C47.1,22.6,47.1,21.7,46.6,21.1z"/>
+	<rect x="21.8" y="28.4" transform="matrix(0.7071 -0.7071 0.7071 0.7071 -13.239 32.233)" class="st8" width="21" height="7.5"/>
+	<rect x="39.2" y="19.6" transform="matrix(0.7071 -0.7071 0.7071 0.7071 -4.4578 35.8961)" class="st9" width="3.7" height="7.5"/>
+	<polygon class="st10" points="22.3,36.9 20.5,43.9 27.4,42.1 	"/>
+	<polygon class="st11" points="21.3,40.3 20.5,43.9 24.1,43.1 	"/>
+</g>
+</svg>

@@ -9,15 +9,12 @@ import codecs
 import shutil
 
 # Python 2/3 compatibility.
-from six import BytesIO, PY3
-# Note: six.move is not used as it confuses py2app...
-if PY3:
-    import configparser
-else:
-    import ConfigParser as configparser
+from six import BytesIO
+from six.moves import configparser
 
 from plover.exception import InvalidConfigurationError
-from plover.machine.registry import machine_registry
+from plover.machine.keymap import Keymap
+from plover.machine.registry import machine_registry, NoSuchMachineException
 from plover.oslayer.config import ASSETS_DIR, CONFIG_DIR
 from plover.misc import expand_path, shorten_path
 from plover import system
@@ -62,20 +59,12 @@ STROKE_DISPLAY_ON_TOP_OPTION = 'on_top'
 DEFAULT_STROKE_DISPLAY_ON_TOP = True
 STROKE_DISPLAY_STYLE_OPTION = 'style'
 DEFAULT_STROKE_DISPLAY_STYLE = 'Paper'
-STROKE_DISPLAY_X_OPTION = 'x'
-DEFAULT_STROKE_DISPLAY_X = -1
-STROKE_DISPLAY_Y_OPTION = 'y'
-DEFAULT_STROKE_DISPLAY_Y = -1
 
 SUGGESTIONS_DISPLAY_SECTION = 'Suggestions Display'
 SUGGESTIONS_DISPLAY_SHOW_OPTION = 'show'
 DEFAULT_SUGGESTIONS_DISPLAY_SHOW = False
 SUGGESTIONS_DISPLAY_ON_TOP_OPTION = 'on_top'
 DEFAULT_SUGGESTIONS_DISPLAY_ON_TOP = True
-SUGGESTIONS_DISPLAY_X_OPTION = 'x'
-DEFAULT_SUGGESTIONS_DISPLAY_X = -1
-SUGGESTIONS_DISPLAY_Y_OPTION = 'y'
-DEFAULT_SUGGESTIONS_DISPLAY_Y = -1
 
 OUTPUT_CONFIG_SECTION = 'Output Configuration'
 OUTPUT_CONFIG_SPACE_PLACEMENT_OPTION = 'space_placement'
@@ -88,53 +77,9 @@ DEFAULT_OUTPUT_CONFIG_START_CAPITALIZED = False
 OUTPUT_CONFIG_START_ATTACHED = 'start_attached'
 DEFAULT_OUTPUT_CONFIG_START_ATTACHED = False
 
-CONFIG_FRAME_SECTION = 'Config Frame'
-CONFIG_FRAME_X_OPTION = 'x'
-DEFAULT_CONFIG_FRAME_X = -1
-CONFIG_FRAME_Y_OPTION = 'y'
-DEFAULT_CONFIG_FRAME_Y = -1
-CONFIG_FRAME_WIDTH_OPTION = 'width'
-DEFAULT_CONFIG_FRAME_WIDTH = -1
-CONFIG_FRAME_HEIGHT_OPTION = 'height'
-DEFAULT_CONFIG_FRAME_HEIGHT = -1
-
-MAIN_FRAME_SECTION = 'Main Frame'
-MAIN_FRAME_X_OPTION = 'x'
-DEFAULT_MAIN_FRAME_X = -1
-MAIN_FRAME_Y_OPTION = 'y'
-DEFAULT_MAIN_FRAME_Y = -1
-
 TRANSLATION_FRAME_SECTION = 'Translation Frame'
-TRANSLATION_FRAME_X_OPTION = 'x'
-DEFAULT_TRANSLATION_FRAME_X = -1
-TRANSLATION_FRAME_Y_OPTION = 'y'
-DEFAULT_TRANSLATION_FRAME_Y = -1
 TRANSLATION_FRAME_OPACITY_OPTION = 'opacity'
 DEFAULT_TRANSLATION_FRAME_OPACITY = 100
-
-LOOKUP_FRAME_SECTION = 'Lookup Frame'
-LOOKUP_FRAME_X_OPTION = 'x'
-DEFAULT_LOOKUP_FRAME_X = -1
-LOOKUP_FRAME_Y_OPTION = 'y'
-DEFAULT_LOOKUP_FRAME_Y = -1
-
-DICTIONARY_EDITOR_FRAME_SECTION = 'Dictionary Editor Frame'
-DICTIONARY_EDITOR_FRAME_X_OPTION = 'x'
-DEFAULT_DICTIONARY_EDITOR_FRAME_X = -1
-DICTIONARY_EDITOR_FRAME_Y_OPTION = 'y'
-DEFAULT_DICTIONARY_EDITOR_FRAME_Y = -1
-
-SERIAL_CONFIG_FRAME_SECTION = 'Serial Config Frame'
-SERIAL_CONFIG_FRAME_X_OPTION = 'x'
-DEFAULT_SERIAL_CONFIG_FRAME_X = -1
-SERIAL_CONFIG_FRAME_Y_OPTION = 'y'
-DEFAULT_SERIAL_CONFIG_FRAME_Y = -1
-
-KEYBOARD_CONFIG_FRAME_SECTION = 'Keyboard Config Frame'
-KEYBOARD_CONFIG_FRAME_X_OPTION = 'x'
-DEFAULT_KEYBOARD_CONFIG_FRAME_X = -1
-KEYBOARD_CONFIG_FRAME_Y_OPTION = 'y'
-DEFAULT_KEYBOARD_CONFIG_FRAME_Y = -1
 
 DEFAULT_SYSTEM = 'English Stenotype'
 SYSTEM_CONFIG_SECTION = 'System: %s'
@@ -195,28 +140,43 @@ class Config(object):
         return c
 
     def set_machine_type(self, machine_type):
-        self._set(MACHINE_CONFIG_SECTION, MACHINE_TYPE_OPTION, 
+        self._set(MACHINE_CONFIG_SECTION, MACHINE_TYPE_OPTION,
                          machine_type)
 
     def get_machine_type(self):
-        return self._get(MACHINE_CONFIG_SECTION, MACHINE_TYPE_OPTION, 
-                         DEFAULT_MACHINE_TYPE)
+        machine_type = self._get(MACHINE_CONFIG_SECTION,
+                                 MACHINE_TYPE_OPTION,
+                                 None)
+        if machine_type is not None:
+            try:
+                machine_registry.get(machine_type)
+            except NoSuchMachineException:
+                log.error("invalid machine type: %s", machine_type)
+                self.set_machine_type(DEFAULT_MACHINE_TYPE)
+                machine_type = None
+        if machine_type is None:
+            machine_type = DEFAULT_MACHINE_TYPE
+        return machine_type
 
-    def set_machine_specific_options(self, machine_name, options):
-        self._update(machine_name, sorted(options.items()))
+    def set_machine_specific_options(self, options, machine_type=None):
+        if machine_type is None:
+            machine_type = self.get_machine_type()
+        self._update(machine_type, sorted(options.items()))
 
-    def get_machine_specific_options(self, machine_name):
+    def get_machine_specific_options(self, machine_type=None):
+        if machine_type is None:
+            machine_type = self.get_machine_type()
         def convert(p, v):
             try:
                 return p[1](v)
             except ValueError:
                 return p[0]
-        machine = machine_registry.get(machine_name)
+        machine = machine_registry.get(machine_type)
         info = machine.get_option_info()
         defaults = {k: v[0] for k, v in info.items()}
-        if self._config.has_section(machine_name):
-            options = {o: self._config.get(machine_name, o) 
-                       for o in self._config.options(machine_name)
+        if self._config.has_section(machine_type):
+            options = {o: self._config.get(machine_type, o)
+                       for o in self._config.options(machine_type)
                        if o in info}
             options = {k: convert(info[k], v) for k, v in options.items()}
             defaults.update(options)
@@ -353,92 +313,6 @@ class Config(object):
         return self._get(STROKE_DISPLAY_SECTION, STROKE_DISPLAY_STYLE_OPTION, 
                          DEFAULT_STROKE_DISPLAY_STYLE)
 
-    def set_stroke_display_x(self, x):
-        self._set(STROKE_DISPLAY_SECTION, STROKE_DISPLAY_X_OPTION, x)
-
-    def get_stroke_display_x(self):
-        return self._get_int(STROKE_DISPLAY_SECTION, STROKE_DISPLAY_X_OPTION, 
-                             DEFAULT_STROKE_DISPLAY_X)
-
-    def set_stroke_display_y(self, y):
-        self._set(STROKE_DISPLAY_SECTION, STROKE_DISPLAY_Y_OPTION, y)
-
-    def get_stroke_display_y(self):
-        return self._get_int(STROKE_DISPLAY_SECTION, STROKE_DISPLAY_Y_OPTION, 
-                             DEFAULT_STROKE_DISPLAY_Y)
-
-    def set_suggestions_display_x(self, x):
-        self._set(SUGGESTIONS_DISPLAY_SECTION, SUGGESTIONS_DISPLAY_X_OPTION, x)
-
-    def get_suggestions_display_x(self):
-        return self._get_int(SUGGESTIONS_DISPLAY_SECTION, SUGGESTIONS_DISPLAY_X_OPTION,
-                             DEFAULT_SUGGESTIONS_DISPLAY_X)
-
-    def set_suggestions_display_y(self, y):
-        self._set(SUGGESTIONS_DISPLAY_SECTION, SUGGESTIONS_DISPLAY_Y_OPTION, y)
-
-    def get_suggestions_display_y(self):
-        return self._get_int(SUGGESTIONS_DISPLAY_SECTION, SUGGESTIONS_DISPLAY_Y_OPTION,
-                             DEFAULT_SUGGESTIONS_DISPLAY_Y)
-
-    def set_config_frame_x(self, x):
-        self._set(CONFIG_FRAME_SECTION, CONFIG_FRAME_X_OPTION, x)
-        
-    def get_config_frame_x(self):
-        return self._get_int(CONFIG_FRAME_SECTION, CONFIG_FRAME_X_OPTION,
-                             DEFAULT_CONFIG_FRAME_X)
-
-    def set_config_frame_y(self, y):
-        self._set(CONFIG_FRAME_SECTION, CONFIG_FRAME_Y_OPTION, y)
-    
-    def get_config_frame_y(self):
-        return self._get_int(CONFIG_FRAME_SECTION, CONFIG_FRAME_Y_OPTION,
-                             DEFAULT_CONFIG_FRAME_Y)
-
-    def set_config_frame_width(self, width):
-        self._set(CONFIG_FRAME_SECTION, CONFIG_FRAME_WIDTH_OPTION, width)
-
-    def get_config_frame_width(self):
-        return self._get_int(CONFIG_FRAME_SECTION, CONFIG_FRAME_WIDTH_OPTION,
-                             DEFAULT_CONFIG_FRAME_WIDTH)
-
-    def set_config_frame_height(self, height):
-        self._set(CONFIG_FRAME_SECTION, CONFIG_FRAME_HEIGHT_OPTION, height)
-
-    def get_config_frame_height(self):
-        return self._get_int(CONFIG_FRAME_SECTION, CONFIG_FRAME_HEIGHT_OPTION,
-                             DEFAULT_CONFIG_FRAME_HEIGHT)
-
-    def set_main_frame_x(self, x):
-        self._set(MAIN_FRAME_SECTION, MAIN_FRAME_X_OPTION, x)
-    
-    def get_main_frame_x(self):
-        return self._get_int(MAIN_FRAME_SECTION, MAIN_FRAME_X_OPTION,
-                             DEFAULT_MAIN_FRAME_X)
-
-    def set_main_frame_y(self, y):
-        self._set(MAIN_FRAME_SECTION, MAIN_FRAME_Y_OPTION, y)
-
-    def get_main_frame_y(self):
-        return self._get_int(MAIN_FRAME_SECTION, MAIN_FRAME_Y_OPTION,
-                             DEFAULT_MAIN_FRAME_Y)
-
-    def set_translation_frame_x(self, x):
-        self._set(TRANSLATION_FRAME_SECTION, TRANSLATION_FRAME_X_OPTION, x)
-    
-    def get_translation_frame_x(self):
-        return self._get_int(TRANSLATION_FRAME_SECTION, 
-                             TRANSLATION_FRAME_X_OPTION,
-                             DEFAULT_TRANSLATION_FRAME_X)
-
-    def set_translation_frame_y(self, y):
-        self._set(TRANSLATION_FRAME_SECTION, TRANSLATION_FRAME_Y_OPTION, y)
-
-    def get_translation_frame_y(self):
-        return self._get_int(TRANSLATION_FRAME_SECTION, 
-                             TRANSLATION_FRAME_Y_OPTION,
-                             DEFAULT_TRANSLATION_FRAME_Y)
-
     def set_translation_frame_opacity(self, opacity):
         raise_if_invalid_opacity(opacity)
         self._set(TRANSLATION_FRAME_SECTION,
@@ -457,86 +331,37 @@ class Config(object):
             opacity = DEFAULT_TRANSLATION_FRAME_OPACITY
         return opacity
 
-    def set_lookup_frame_x(self, x):
-        self._set(LOOKUP_FRAME_SECTION, LOOKUP_FRAME_X_OPTION, x)
-    
-    def get_lookup_frame_x(self):
-        return self._get_int(LOOKUP_FRAME_SECTION, 
-                             LOOKUP_FRAME_X_OPTION,
-                             DEFAULT_LOOKUP_FRAME_X)
-
-    def set_lookup_frame_y(self, y):
-        self._set(LOOKUP_FRAME_SECTION, LOOKUP_FRAME_Y_OPTION, y)
-
-    def get_lookup_frame_y(self):
-        return self._get_int(LOOKUP_FRAME_SECTION, 
-                             LOOKUP_FRAME_Y_OPTION,
-                             DEFAULT_LOOKUP_FRAME_Y)
-
-    def set_dictionary_editor_frame_x(self, x):
-        self._set(DICTIONARY_EDITOR_FRAME_SECTION, DICTIONARY_EDITOR_FRAME_X_OPTION, x)
-
-    def get_dictionary_editor_frame_x(self):
-        return self._get_int(DICTIONARY_EDITOR_FRAME_SECTION,
-                             DICTIONARY_EDITOR_FRAME_X_OPTION,
-                             DEFAULT_DICTIONARY_EDITOR_FRAME_X)
-
-    def set_dictionary_editor_frame_y(self, y):
-        self._set(DICTIONARY_EDITOR_FRAME_SECTION, DICTIONARY_EDITOR_FRAME_Y_OPTION, y)
-
-    def get_dictionary_editor_frame_y(self):
-        return self._get_int(DICTIONARY_EDITOR_FRAME_SECTION,
-                             DICTIONARY_EDITOR_FRAME_Y_OPTION,
-                             DEFAULT_DICTIONARY_EDITOR_FRAME_Y)
-    
-    def set_serial_config_frame_x(self, x):
-        self._set(SERIAL_CONFIG_FRAME_SECTION, SERIAL_CONFIG_FRAME_X_OPTION, x)
-    
-    def get_serial_config_frame_x(self):
-        return self._get_int(SERIAL_CONFIG_FRAME_SECTION, 
-                             SERIAL_CONFIG_FRAME_X_OPTION,
-                             DEFAULT_SERIAL_CONFIG_FRAME_X)
-
-    def set_serial_config_frame_y(self, y):
-        self._set(SERIAL_CONFIG_FRAME_SECTION, SERIAL_CONFIG_FRAME_Y_OPTION, y)
-
-    def get_serial_config_frame_y(self):
-        return self._get_int(SERIAL_CONFIG_FRAME_SECTION, 
-                             SERIAL_CONFIG_FRAME_Y_OPTION,
-                             DEFAULT_SERIAL_CONFIG_FRAME_Y)
-
-    def set_keyboard_config_frame_x(self, x):
-        self._set(KEYBOARD_CONFIG_FRAME_SECTION, KEYBOARD_CONFIG_FRAME_X_OPTION, 
-                  x)
-    
-    def get_keyboard_config_frame_x(self):
-        return self._get_int(KEYBOARD_CONFIG_FRAME_SECTION, 
-                             KEYBOARD_CONFIG_FRAME_X_OPTION,
-                             DEFAULT_KEYBOARD_CONFIG_FRAME_X)
-
-    def set_keyboard_config_frame_y(self, y):
-        self._set(KEYBOARD_CONFIG_FRAME_SECTION, KEYBOARD_CONFIG_FRAME_Y_OPTION, 
-                  y)
-
-    def get_keyboard_config_frame_y(self):
-        return self._get_int(KEYBOARD_CONFIG_FRAME_SECTION, 
-                             KEYBOARD_CONFIG_FRAME_Y_OPTION,
-                             DEFAULT_KEYBOARD_CONFIG_FRAME_Y)
-
-    def set_system_keymap(self, machine_type, mappings):
+    def set_system_keymap(self, keymap, machine_type=None):
+        if machine_type is None:
+            machine_type = self.get_machine_type()
         section = SYSTEM_CONFIG_SECTION % DEFAULT_SYSTEM
         option = SYSTEM_KEYMAP_OPTION % machine_type
-        self._set(section, option, json.dumps(sorted(dict(mappings).items())))
+        self._set(section, option, json.dumps(sorted(dict(keymap).items())))
 
-    def get_system_keymap(self, machine_type):
+    def get_system_keymap(self, machine_type=None):
+        if machine_type is None:
+            machine_type = self.get_machine_type()
+        try:
+            machine_class = machine_registry.get(machine_type)
+        except:
+            log.error("invalid machine type: %s", machine_type, exc_info=True)
+            return None
         section = SYSTEM_CONFIG_SECTION % DEFAULT_SYSTEM
         option = SYSTEM_KEYMAP_OPTION % machine_type
         mappings = self._get(section, option, None)
         if mappings is None:
             mappings = system.KEYMAPS.get(machine_type)
         else:
-            mappings = dict(json.loads(mappings))
-        return mappings
+            try:
+                mappings = dict(json.loads(mappings))
+            except ValueError as e:
+                log.error("invalid machine keymap, resetting to default",
+                          exc_info=True)
+                mappings = system.KEYMAPS.get(machine_type)
+                self.set_system_keymap(mappings, machine_type)
+        keymap = Keymap(machine_class.get_keys(), system.KEYS + machine_class.get_actions())
+        keymap.set_mappings(mappings)
+        return keymap
 
     def _set(self, section, option, value):
         if not self._config.has_section(section):
@@ -573,6 +398,51 @@ class Config(object):
             self._set(section, opt, val)
         for opt in old_options:
             self._config.remove_option(section, opt)
+
+
+    # Note: order matters, e.g. machine_type comes before
+    # machine_specific_options and system_keymap because
+    # the laters depend on the former.
+    _OPTIONS = '''
+    auto_start
+    space_placement
+    start_attached
+    start_capitalized
+    start_minimized
+    undo_levels
+
+    dictionary_file_names
+
+    enable_stroke_logging
+    enable_translation_logging
+    log_file_name
+
+    show_stroke_display
+    show_suggestions_display
+    stroke_display_on_top
+    stroke_display_style
+    suggestions_display_on_top
+    translation_frame_opacity
+
+    machine_type
+    machine_specific_options
+    system_keymap
+    '''.split()
+
+    def as_dict(self):
+        d = {}
+        for option in self._OPTIONS:
+            assert hasattr(self, 'set_%s' % option)
+            getter = getattr(self, 'get_%s' % option)
+            d[option] = getter()
+        return d
+
+    def update(self, **kwargs):
+        for option in self._OPTIONS:
+            if option not in kwargs:
+                continue
+            setter = getattr(self, 'set_%s' % option)
+            setter(kwargs[option])
 
 
 def _dict_entry_key(s):

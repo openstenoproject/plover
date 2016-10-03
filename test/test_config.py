@@ -14,6 +14,7 @@ from six import BytesIO
 from mock import patch
 
 from plover import config
+from plover.machine.keymap import Keymap
 from plover.machine.registry import Registry
 from plover.oslayer.config import CONFIG_DIR
 
@@ -31,8 +32,8 @@ class ConfigTestCase(unittest.TestCase):
 
         cases = (
         ('machine_type', config.MACHINE_CONFIG_SECTION, 
-         config.MACHINE_TYPE_OPTION, config.DEFAULT_MACHINE_TYPE, 'foo', 'bar', 
-         'blee'),
+         config.MACHINE_TYPE_OPTION, config.DEFAULT_MACHINE_TYPE, 'Gemini PR', 'TX Bolt',
+         'Passport'),
         ('log_file_name', config.LOGGING_CONFIG_SECTION, config.LOG_FILE_OPTION, 
          os.path.realpath(os.path.join(CONFIG_DIR, config.DEFAULT_LOG_FILE)),
          os.path.abspath('/l1'), os.path.abspath('/log'), os.path.abspath('/sawzall')),
@@ -57,50 +58,6 @@ class ConfigTestCase(unittest.TestCase):
         ('stroke_display_style', config.STROKE_DISPLAY_SECTION, 
          config.STROKE_DISPLAY_STYLE_OPTION, 
          config.DEFAULT_STROKE_DISPLAY_STYLE, 'Raw', 'Paper', 'Pseudo'),
-        ('stroke_display_x', config.STROKE_DISPLAY_SECTION, 
-         config.STROKE_DISPLAY_X_OPTION, config.DEFAULT_STROKE_DISPLAY_X, 1, 2, 
-         3),
-        ('stroke_display_y', config.STROKE_DISPLAY_SECTION, 
-         config.STROKE_DISPLAY_Y_OPTION, config.DEFAULT_STROKE_DISPLAY_Y, 1, 2, 
-         3),
-        ('config_frame_x', config.CONFIG_FRAME_SECTION, 
-         config.CONFIG_FRAME_X_OPTION, config.DEFAULT_CONFIG_FRAME_X, 1, 2, 3),
-        ('config_frame_y', config.CONFIG_FRAME_SECTION, 
-         config.CONFIG_FRAME_Y_OPTION, config.DEFAULT_CONFIG_FRAME_Y, 1, 2, 3),
-        ('config_frame_width', config.CONFIG_FRAME_SECTION, 
-         config.CONFIG_FRAME_WIDTH_OPTION, config.DEFAULT_CONFIG_FRAME_WIDTH, 1, 
-         2, 3),
-        ('config_frame_height', config.CONFIG_FRAME_SECTION, 
-         config.CONFIG_FRAME_HEIGHT_OPTION, config.DEFAULT_CONFIG_FRAME_HEIGHT, 
-         1, 2, 3),
-        ('main_frame_x', config.MAIN_FRAME_SECTION, 
-         config.MAIN_FRAME_X_OPTION, config.DEFAULT_MAIN_FRAME_X, 1, 2, 3),
-        ('main_frame_y', config.MAIN_FRAME_SECTION, 
-         config.MAIN_FRAME_Y_OPTION, config.DEFAULT_MAIN_FRAME_Y, 1, 2, 3),
-        ('translation_frame_x', config.TRANSLATION_FRAME_SECTION, 
-         config.TRANSLATION_FRAME_X_OPTION, config.DEFAULT_TRANSLATION_FRAME_X, 
-         1, 2, 3),
-        ('translation_frame_y', config.TRANSLATION_FRAME_SECTION, 
-         config.TRANSLATION_FRAME_Y_OPTION, config.DEFAULT_TRANSLATION_FRAME_Y, 
-         1, 2, 3),
-        ('lookup_frame_x', config.LOOKUP_FRAME_SECTION, 
-         config.LOOKUP_FRAME_X_OPTION, config.DEFAULT_LOOKUP_FRAME_X, 
-         1, 2, 3),
-        ('lookup_frame_y', config.LOOKUP_FRAME_SECTION, 
-         config.LOOKUP_FRAME_Y_OPTION, config.DEFAULT_LOOKUP_FRAME_Y, 
-         1, 2, 3),
-        ('dictionary_editor_frame_x', config.DICTIONARY_EDITOR_FRAME_SECTION,
-         config.DICTIONARY_EDITOR_FRAME_X_OPTION, config.DEFAULT_DICTIONARY_EDITOR_FRAME_X,
-         1, 2, 3),
-        ('dictionary_editor_frame_y', config.DICTIONARY_EDITOR_FRAME_SECTION,
-         config.DICTIONARY_EDITOR_FRAME_Y_OPTION, config.DEFAULT_DICTIONARY_EDITOR_FRAME_Y,
-         1, 2, 3),
-        ('serial_config_frame_x', config.SERIAL_CONFIG_FRAME_SECTION, 
-         config.SERIAL_CONFIG_FRAME_X_OPTION, 
-         config.DEFAULT_SERIAL_CONFIG_FRAME_X, 1, 2, 3),
-        ('serial_config_frame_y', config.SERIAL_CONFIG_FRAME_SECTION, 
-         config.SERIAL_CONFIG_FRAME_Y_OPTION, 
-         config.DEFAULT_SERIAL_CONFIG_FRAME_Y, 1, 2, 3),
         )
 
         for case in cases:
@@ -174,7 +131,7 @@ class ConfigTestCase(unittest.TestCase):
                 'floatoption1': 5.9,
                 'booloption1': False,
             }
-            c.set_machine_specific_options(machine_name, options)
+            c.set_machine_specific_options(options, machine_name)
             actual = c.get_machine_specific_options(machine_name)
             expected = dict(list(defaults.items()) + list(options.items()))
             self.assertEqual(actual, expected)
@@ -212,6 +169,14 @@ class ConfigTestCase(unittest.TestCase):
             expected = dict(list(defaults.items()) + list(expected.items()))
             actual = c.get_machine_specific_options(machine_name)
             self.assertEqual(actual, expected)
+            # Check we can get/set the current machine options.
+            c.set_machine_type(machine_name)
+            self.assertEqual(c.get_machine_specific_options(), expected)
+            expected['stroption1'] = 'foobar'
+            expected['booloption2'] = False
+            expected['floatoption1'] = 42.0
+            c.set_machine_specific_options(expected)
+            self.assertEqual(c.get_machine_specific_options(), expected)
 
     def test_dictionary_option(self):
         c = config.Config()
@@ -275,26 +240,85 @@ class ConfigTestCase(unittest.TestCase):
         section = config.SYSTEM_CONFIG_SECTION % config.DEFAULT_SYSTEM
         option = config.SYSTEM_KEYMAP_OPTION % machine.lower()
         cfg = config.Config()
-        # Mappings must be a dictionary.
-        mappings = cfg.get_system_keymap(machine)
-        self.assertIsInstance(mappings, dict)
-        # Mappings can be set from a dictionary.
-        cfg.set_system_keymap(machine, mappings_dict)
-        self.assertEqual(cfg.get_system_keymap(machine), mappings_dict)
+        # Must return a Keymap instance.
+        keymap = cfg.get_system_keymap(machine)
+        self.assertIsInstance(keymap, Keymap)
+        # Can be set from a Keymap.
+        keymap.set_mappings(mappings_list)
+        cfg.set_system_keymap(keymap, machine)
+        self.assertEqual(cfg.get_system_keymap(machine), keymap)
+        # Can also be set from a dictionary.
+        cfg.set_system_keymap(mappings_dict, machine)
+        self.assertEqual(cfg.get_system_keymap(machine), keymap)
         # Or from a compatible iterable of pairs (action, keys).
-        cfg.set_system_keymap(machine, mappings_list)
-        self.assertEqual(cfg.get_system_keymap(machine), mappings_dict)
+        cfg.set_system_keymap(mappings_list, machine)
+        self.assertEqual(cfg.get_system_keymap(machine), keymap)
+        # The config format should allow both:
+        # - a list of pairs (action, keys)
+        # - a dictionary (mapping each action to keys)
         def make_config_file(mappings):
             return make_config('[%s]\n%s = %s\n\n' % (section, option, json.dumps(mappings)))
-        # And the config format allow both.
         for mappings in (mappings_list, mappings_dict):
             cfg = config.Config()
             cfg.load(make_config_file(mappings))
-            self.assertEqual(cfg.get_system_keymap(machine), mappings_dict)
+            self.assertEqual(cfg.get_system_keymap(machine), keymap)
         # On save, a sorted list of pairs (action, keys) is expected.
         # (to reduce differences between saves)
         cfg = config.Config()
-        cfg.set_system_keymap(machine, mappings_dict)
+        cfg.set_system_keymap(keymap, machine)
         contents = make_config()
         cfg.save(contents)
-        self.assertEqual(contents.getvalue(), make_config_file(sorted(mappings_list)).getvalue())
+        expected = make_config_file(sorted(keymap.get_mappings().items()))
+        self.assertEqual(contents.getvalue(), expected.getvalue())
+        # Check an invalid keymap is replaced by the default one.
+        cfg = config.Config()
+        default_keymap = cfg.get_system_keymap(machine)
+        cfg.load(make_config('[%s]\n%s = pouet!' % (section, option)))
+        self.assertEqual(cfg.get_system_keymap(machine), default_keymap)
+
+    def test_as_dict_update(self):
+        opt_list = '''
+            auto_start
+            dictionary_file_names
+            enable_stroke_logging
+            enable_translation_logging
+            log_file_name
+            machine_specific_options
+            machine_type
+            show_stroke_display
+            show_suggestions_display
+            space_placement
+            start_attached
+            start_capitalized
+            start_minimized
+            stroke_display_on_top
+            stroke_display_style
+            suggestions_display_on_top
+            system_keymap
+            translation_frame_opacity
+            undo_levels
+        '''.split()
+        cfg = config.Config()
+        excepted_dict = {
+            opt: getattr(cfg, 'get_' + opt)()
+            for opt in opt_list
+        }
+        self.assertEqual(cfg.as_dict(), excepted_dict)
+        update = {
+            'auto_start'           : False,
+            'dictionary_file_names': [os.path.abspath('user.json')],
+            'enable_stroke_logging': False,
+            'space_placement'      : 'After Output',
+            'start_minimized'      : False,
+        }
+        cfg.update(**update)
+        excepted_dict.update(update)
+        self.assertEqual(cfg.as_dict(), excepted_dict)
+
+    def test_invalid_machine(self):
+        cfg = config.Config()
+        cfg.load(make_config(
+            '[%s]\n%s: %s' % (config.MACHINE_CONFIG_SECTION,
+                              'machine_type',  'foobar')
+        ))
+        self.assertEqual(cfg.get_machine_type(), config.DEFAULT_MACHINE_TYPE)
