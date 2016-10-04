@@ -23,7 +23,7 @@ class Keyboard(StenotypeBase):
         """Monitor the keyboard's events."""
         super(Keyboard, self).__init__()
         self._arpeggiate = params['arpeggiate']
-        self._arpeggiate_group = params['arpeggiate_group']
+        self._arpeggiate_group = params['arpeggiate_group'].split()
         self._arpeggiating = False
         self._is_suppressed = False
         self._bindings = {}
@@ -133,5 +133,5 @@ class Keyboard(StenotypeBase):
         bool_converter = lambda s: s == 'True'
         return {
             'arpeggiate': (False, bool_converter),
-            'arpeggiate_group': (['space'], lambda s: s.split()),
+            'arpeggiate_group': ('space', lambda s: s),
         }

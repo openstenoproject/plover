@@ -139,9 +139,14 @@ class KeyboardOption(QWidget, Ui_KeyboardWidget):
     def setValue(self, value):
         self._value = value
         self.arpeggiate.setChecked(value['arpeggiate'])
+        self.arpeggiate_group.setText(value['arpeggiate_group'])
 
     def on_arpeggiate_changed(self, value):
         self._value['arpeggiate'] = value
+        self.valueChanged.emit(self._value)
+
+    def on_arpeggiate_group_changed(self, value):
+        self._value['arpeggiate_group'] = value
         self.valueChanged.emit(self._value)
 
 
