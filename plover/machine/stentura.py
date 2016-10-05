@@ -625,10 +625,11 @@ class Stentura(plover.machine.base.SerialStenotypeBase):
 
     def _connect(self):
         if super(Stentura, self)._connect():
-            port.flushInput()
-            port.flushOutput()
-            # Set serial port timeout to the timeout value
-            port.timeout = timeout
+            settings = self.serial_port.getSettingsDict()
+            settings['timeout'] = 1 # seconds
+            self.serial_port.applySettingsDict(settings)
+            self.serial_port.flushInput()
+            self.serial_port.flushOutput()
             # With Python 3, our replacement for buffer(), using memoryview, does not
             # allow resizing the original bytearray(), so make sure our buffers are big
             # enough to begin with.
@@ -636,14 +637,15 @@ class Stentura(plover.machine.base.SerialStenotypeBase):
             self._response_buf = _allocate_buffer()
             self._stroke_buf = _allocate_buffer()
             self._seq = _SequenceCounter()
-            self._request = _make_open(request_buf, seq(), b'A', b'REALTIME.000')
+            request = _make_open(self._request_buf, self._seq(), b'A', b'REALTIME.000')
             # Any checking needed on the response packet?
-            _send_receive(port, stop, request, response_buf)
+            _send_receive(self.serial_port, self.finished, request, self._response_buf)
             # Do a full read to get to the current position in the realtime file.
             self._block = 0
             self._byte = 0
-            block, byte, _ = _read(port, stop, seq, request_buf, response_buf, stroke_buf, block, byte)
-            ready_callback()
+            block, byte, _ = _read(self.serial_port, self.finished, self._seq, self._request_buf, self._response_buf, self._stroke_buf, self._block, self._byte)
+            return True
+        return False
 
     def _on_stroke(self, keys):
         steno_keys = self.keymap.keys_to_actions(keys)
@@ -651,7 +653,7 @@ class Stentura(plover.machine.base.SerialStenotypeBase):
             self._notify(steno_keys)
 
     def _loop_body(self):
-        block, byte, data = _read(port, stop, seq, request_buf, response_buf, stroke_buf, block, byte)
+        block, byte, data = _read(self.serial_port, self.finished, self._seq, self._request_buf, self._response_buf, self._stroke_buf, self._block, self._byte)
         strokes = _parse_strokes(data)
         for stroke in strokes:
             self._on_stroke(stroke)
