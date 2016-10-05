@@ -154,6 +154,8 @@ class ThreadedStenotypeBase(StenotypeBase, threading.Thread):
         while not self.finished.isSet() and not connected:
             sleep(0.5)
             connected = self._connect()
+        if connected:
+            self._ready()
         return connected
 
     def run(self):
