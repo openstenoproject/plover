@@ -7,7 +7,7 @@
 "KPH*F": "{#Super_L(v)}",
 "KPH*T": "{#Super_L(w)}",
 "KPH-BG": "{#Super_L(c)}",
-"PHROF": "{PLOVER:SUSPEND}",
+"PHRO*F": "{PLOVER:SUSPEND}",
 "PHROLG": "{PLOVER:TOGGLE}",
 "PHROPB": "{PLOVER:RESUME}",
 "PW*FP": "{#BackSpace}",

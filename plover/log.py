@@ -12,7 +12,7 @@ from logging.handlers import RotatingFileHandler
 from logging import DEBUG, INFO, WARNING, ERROR
 
 from plover.oslayer.config import CONFIG_DIR
-from plover.steno import Stroke
+
 
 LOG_FORMAT = '%(asctime)s [%(threadName)s] %(levelname)s: %(message)s'
 LOG_FILENAME = os.path.realpath(os.path.join(CONFIG_DIR, 'plover.log'))
@@ -110,10 +110,10 @@ class Logger(object):
         self.info('enable_translation_logging(%s)', b)
         self._log_translations = b
 
-    def log_stroke(self, steno_keys):
+    def log_stroke(self, stroke):
         if not self._log_strokes or self._stroke_handler is None:
             return
-        self._stroke_logger.info('%s', Stroke(steno_keys))
+        self._stroke_logger.info('%s', stroke)
 
     def log_translation(self, undo, do, prev):
         if not self._log_translations or self._stroke_handler is None:

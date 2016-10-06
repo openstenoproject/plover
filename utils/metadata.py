@@ -1,12 +1,13 @@
-#!/usr/bin/env python2
+#!/usr/bin/env python3
 
 # Python 2/3 compatibility.
 from __future__ import print_function
 
 import os
-import pkg_resources
 import sys
 import shutil
+
+import pkg_resources
 
 
 def collect_requirements(distribution, requirements=None):

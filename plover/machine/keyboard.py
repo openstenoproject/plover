@@ -17,18 +17,26 @@ class Keyboard(StenotypeBase):
     """
 
     KEYS_LAYOUT = KeyboardCapture.SUPPORTED_KEYS_LAYOUT
-    ACTIONS = StenotypeBase.ACTIONS + ('arpeggiate',)
+    ACTIONS = ('arpeggiate',)
 
     def __init__(self, params):
         """Monitor the keyboard's events."""
         super(Keyboard, self).__init__()
-        self.arpeggiate = params['arpeggiate']
+        self._arpeggiate = params['arpeggiate']
+        self._is_suppressed = False
         self._bindings = {}
         self._down_keys = set()
         self._released_keys = set()
         self._keyboard_capture = None
         self._last_stroke_key_down_count = 0
+        self._stroke_key_down_count = 0
         self._update_bindings()
+
+    def _suppress(self):
+        if self._keyboard_capture is None:
+            return
+        suppressed_keys = self._bindings.keys() if self._is_suppressed else ()
+        self._keyboard_capture.suppress_keyboard(suppressed_keys)
 
     def _update_bindings(self):
         self._bindings = dict(self.keymap.get_bindings())
@@ -36,26 +44,28 @@ class Keyboard(StenotypeBase):
             if 'no-op' == mapping:
                 self._bindings[key] = None
             elif 'arpeggiate' == mapping:
-                if self.arpeggiate:
+                if self._arpeggiate:
                     self._bindings[key] = None
                     self._arpeggiate_key = key
                 else:
                     # Don't suppress arpeggiate key if it's not used.
                     del self._bindings[key]
+        self._suppress()
 
-    def set_mappings(self, mappings):
-        super(Keyboard, self).set_mappings(mappings)
+    def set_keymap(self, keymap):
+        super(Keyboard, self).set_keymap(keymap)
         self._update_bindings()
 
     def start_capture(self):
         """Begin listening for output from the stenotype machine."""
         self._released_keys.clear()
-        self._last_stroke_key_down_count = 0
+        self._stroke_key_down_count = 0
         self._initializing()
         try:
             self._keyboard_capture = KeyboardCapture()
             self._keyboard_capture.key_down = self._key_down
             self._keyboard_capture.key_up = self._key_up
+            self._suppress()
             self._keyboard_capture.start()
         except:
             self._error()
@@ -65,22 +75,25 @@ class Keyboard(StenotypeBase):
     def stop_capture(self):
         """Stop listening for output from the stenotype machine."""
         if self._keyboard_capture is not None:
+            self._is_suppressed = False
+            self._suppress()
             self._keyboard_capture.cancel()
             self._keyboard_capture = None
         self._stopped()
 
     def set_suppression(self, enabled):
-        suppressed_keys = self._bindings.keys() if enabled else ()
-        self._keyboard_capture.suppress_keyboard(suppressed_keys)
+        self._is_suppressed = enabled
+        self._suppress()
 
     def suppress_last_stroke(self, send_backspaces):
         send_backspaces(self._last_stroke_key_down_count)
+        self._last_stroke_key_down_count = 0
 
     def _key_down(self, key):
         """Called when a key is pressed."""
         assert key is not None
         if key in self._bindings:
-            self._last_stroke_key_down_count += 1
+            self._stroke_key_down_count += 1
         steno_key = self._bindings.get(key)
         if steno_key is not None:
             self._down_keys.add(steno_key)
@@ -99,15 +112,15 @@ class Keyboard(StenotypeBase):
         # If we are in arpeggiate mode then only send stroke when spacebar is pressed.
         send_strokes = bool(self._down_keys and
                             self._down_keys == self._released_keys)
-        if self.arpeggiate:
+        if self._arpeggiate:
             send_strokes &= key == self._arpeggiate_key
         if send_strokes:
+            self._last_stroke_key_down_count = self._stroke_key_down_count
             steno_keys = list(self._down_keys)
-            if steno_keys:
-                self._down_keys.clear()
-                self._released_keys.clear()
-                self._notify(steno_keys)
-            self._last_stroke_key_down_count = 0
+            self._down_keys.clear()
+            self._released_keys.clear()
+            self._stroke_key_down_count = 0
+            self._notify(steno_keys)
 
     @classmethod
     def get_option_info(cls):

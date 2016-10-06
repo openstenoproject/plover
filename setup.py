@@ -1,4 +1,4 @@
-#!/usr/bin/env python2
+#!/usr/bin/env python3
 # Copyright (c) 2010 Joshua Harlan Lifton.
 # See LICENSE.txt for details.
 
@@ -9,9 +9,13 @@ import shutil
 import subprocess
 import sys
 
+from xml.etree import ElementTree
+from xml.etree.ElementTree import Element
+
 from distutils import log
 import pkg_resources
 import setuptools
+from setuptools.command.build_py import build_py
 
 from plover import (
     __name__ as __software_name__,
@@ -24,14 +28,22 @@ from plover import (
     __copyright__,
 )
 
-from utils.metadata import copy_metadata
+
+# Don't use six to avoid dependency with 'write_requirements' command.
+PY3 = sys.version_info[0] >= 3
+
+PACKAGE = '%s-%s-%s' % (
+    __software_name__,
+    __version__,
+    'py3' if PY3 else 'py2',
+)
 
 
 def get_version():
     if not os.path.exists('.git'):
         return None
     version = subprocess.check_output('git describe --tags --match=v[0-9]*'.split()).strip().decode()
-    m = re.match(r'^v(\d[\d.]*)(-\d+-g[a-f0-9]*)?$', version)
+    m = re.match(r'^v(\d[\d.]*(?:\.dev\d+)?)(-\d+-g[a-f0-9]*)?$', version)
     assert m is not None, version
     version = m.group(1)
     if m.group(2) is not None:
@@ -44,10 +56,7 @@ def pyinstaller(*args):
         '--log-level=INFO',
         '--specpath=build',
         '--additional-hooks-dir=windows',
-        '--name=%s-%s' % (
-            __software_name__,
-            __version__,
-        ),
+        '--name=%s' % PACKAGE,
         '--noconfirm',
         '--windowed',
         '--onefile',
@@ -215,7 +224,32 @@ class Test(Command):
         sys.exit(main())
 
 
-class BinaryDistApp(setuptools.Command):
+class BinaryDistApp(PyInstallerDist):
+    description = 'create an application for OSX'
+    extra_args = [
+        '--icon=osx/plover.icns',
+        '--osx-bundle-identifier=org.openstenoproject.plover',
+    ]
+
+    def run(self):
+        PyInstallerDist.run(self)
+        # Patch Info.plist.
+        plist_info_fname = 'dist/%s.app/Contents/Info.plist' % PACKAGE
+        tree = ElementTree.parse(plist_info_fname)
+        dictionary = tree.getroot().find('dict')
+        for name, value in (
+            # Enable retina display support.
+            ('key'   , 'NSPrincipalClass'),
+            ('string', 'NSApplication'   ),
+        ):
+            element = Element(name)
+            element.text = value
+            element.tail = '\n'
+            dictionary.append(element)
+        tree.write(plist_info_fname)
+
+
+class BinaryDistDmg(Command):
 
     user_options = []
     extra_args = []
@@ -227,29 +261,12 @@ class BinaryDistApp(setuptools.Command):
         pass
 
     def run(self):
-        # Make sure metadata are up-to-date first.
-        self.run_command('egg_info')
-        self.run_command('py2app')
-        app = 'dist/%s-%s.app' % (__software_name__, __version__)
-        libdir = '%s/Contents/Resources/lib/python2.7' % app
-        sitezip = '%s/site-packages.zip' % libdir
-        # Add version to filename and strip other architectures.
-        # (using py2app --arch is not enough).
-        tmp_app = 'dist/%s.app' % __software_name__
-        cmd = 'ditto --arch x86_64 %s %s' % (tmp_app, app)
+        self.run_command('bdist_app')
+        app = 'dist/%s.app' % PACKAGE
+        dmg = 'dist/%s.dmg' % PACKAGE
+        cmd = 'bash -x osx/app2dmg.sh %s %s' % (app, dmg)
         log.info('running %s', cmd)
         subprocess.check_call(cmd.split())
-        shutil.rmtree(tmp_app)
-        # We can't access package resources from the site zip,
-        # so extract module and package data to the lib directory.
-        cmd = 'unzip -d %s %s plover/*' % (libdir, sitezip)
-        log.info('running %s', cmd)
-        subprocess.check_call(cmd.split())
-        cmd = 'zip -d %s plover/*' % sitezip
-        log.info('running %s', cmd)
-        subprocess.check_call(cmd.split())
-        # Add packages metadata.
-        copy_metadata('.', libdir)
 
 
 cmdclass = {
@@ -258,28 +275,15 @@ cmdclass = {
     'tag_weekly': TagWeekly,
     'test': Test,
 }
-setup_requires = []
+setup_requires = ['setuptools-scm']
 options = {}
 kwargs = {}
+build_dependencies = []
 
 if sys.platform.startswith('darwin'):
-    setup_requires.append('py2app')
-    options['py2app'] = {
-        'arch': 'x86_64',
-        'argv_emulation': False,
-        'iconfile': 'osx/plover.icns',
-        'plist': {
-            'CFBundleName': __software_name__.capitalize(),
-            'CFBundleShortVersionString': __version__,
-            'CFBundleVersion': __version__,
-            'CFBundleIdentifier': 'org.openstenoproject.plover',
-            'NSHumanReadableCopyright': __copyright__,
-            'CFBundleDevelopmentRegion': 'English',
-            }
-        }
-    # Py2app will not look at entry_points.
-    kwargs['app'] = 'plover/main.py',
+    setup_requires.append('PyInstaller==3.1.1')
     cmdclass['bdist_app'] = BinaryDistApp
+    cmdclass['bdist_dmg'] = BinaryDistDmg
 
 if sys.platform.startswith('win32'):
     setup_requires.append('PyInstaller==3.1.1')
@@ -287,8 +291,62 @@ if sys.platform.startswith('win32'):
 
 setup_requires.append('pytest')
 
+try:
+    import PyQt5
+except ImportError:
+    pass
+else:
+    setup_requires.append('pyqt-distutils')
+    try:
+        from pyqt_distutils.build_ui import build_ui
+    except ImportError:
+        pass
+    else:
+        class BuildUi(build_ui):
+
+            def run(self):
+                from utils.pyqt import fix_icons
+                self._hooks['fix_icons'] = fix_icons
+                build_ui.run(self)
+
+        cmdclass['build_ui'] = BuildUi
+        build_dependencies.append('build_ui')
+
+setup_requires.append('Babel')
+try:
+    from babel.messages import frontend as babel
+except ImportError:
+    pass
+else:
+    cmdclass.update({
+        'compile_catalog': babel.compile_catalog,
+        'extract_messages': babel.extract_messages,
+        'init_catalog': babel.init_catalog,
+        'update_catalog': babel.update_catalog
+    })
+    locale_dir = 'plover/gui_qt/messages'
+    template = '%s/%s.pot' % (locale_dir, __software_name__)
+    options['compile_catalog'] = {
+        'domain': __software_name__,
+        'directory': locale_dir,
+    }
+    options['extract_messages'] = {
+        'output_file': template,
+    }
+    options['init_catalog'] = {
+        'domain': __software_name__,
+        'input_file': template,
+        'output_dir': locale_dir,
+    }
+    options['update_catalog'] = {
+        'domain': __software_name__,
+        'output_dir': locale_dir,
+    }
+    build_dependencies.append('compile_catalog')
+
 dependency_links = [
-   'git+https://github.com/benoit-pierre/pyobjc.git@pyobjc-3.1.1+plover#egg=pyobjc-core&subdirectory=pyobjc-core',
+   'https://github.com/benoit-pierre/pyobjc/releases/download/pyobjc-3.1.1+plover2/pyobjc-core-3.1.1-plover2.tar.gz#egg=pyobjc-core',
+   'https://github.com/benoit-pierre/pyobjc/releases/download/pyobjc-3.1.1+plover2/pyobjc-framework-Cocoa-3.1.1-plover2.tar.gz#egg=pyobjc-framework-Cocoa',
 ]
 
 install_requires = [
@@ -307,8 +365,8 @@ extras_require = {
         'python-xlib>=0.16',
     ],
     ':"darwin" in sys_platform': [
-        'pyobjc-core==3.1.1+plover',
-        'pyobjc-framework-Cocoa>=3.0.3',
+        'pyobjc-core==3.1.1+plover2',
+        'pyobjc-framework-Cocoa==3.1.1+plover2',
         'pyobjc-framework-Quartz>=3.0.3',
         'appnope>=0.1.0',
     ],
@@ -317,6 +375,15 @@ extras_require = {
 tests_require = [
     'mock',
 ]
+
+
+class CustomBuildPy(build_py):
+    def run(self):
+        for command in build_dependencies:
+            self.run_command(command)
+        build_py.run(self)
+
+cmdclass['build_py'] = CustomBuildPy
 
 
 def write_requirements(extra_features=()):
@@ -369,8 +436,11 @@ if __name__ == '__main__':
             'setuptools.installation': ['eggsecutable=plover.main:main'],
         },
         packages=[
-            'plover', 'plover.machine', 'plover.gui',
-            'plover.oslayer', 'plover.dictionary',
+            'plover',
+            'plover.dictionary',
+            'plover.gui_qt',
+            'plover.machine',
+            'plover.oslayer',
             'plover.system',
         ],
         data_files=[

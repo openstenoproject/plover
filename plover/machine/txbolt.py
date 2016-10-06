@@ -63,11 +63,10 @@ class TxBolt(plover.machine.base.SerialStenotypeBase):
             self._notify(self._pressed_keys)
         self._reset_stroke_state()
 
-
     def _connect(self):
         if super(TxBolt, self)._connect():
             settings = self.serial_port.getSettingsDict()
-            settings['timeout'] = 0.015 # seconds
+            settings['timeout'] = 0.1 # seconds
             self.serial_port.applySettingsDict(settings)
             return True
         return False

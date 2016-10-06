@@ -1,0 +1,78 @@
+<?xml version="1.0" encoding="UTF-8" standalone="no"?>
+<!-- Generator: Adobe Illustrator 19.2.0, SVG Export Plug-In . SVG Version: 6.00 Build 0)  -->
+
+<svg
+   xmlns:dc="http://purl.org/dc/elements/1.1/"
+   xmlns:cc="http://creativecommons.org/ns#"
+   xmlns:rdf="http://www.w3.org/1999/02/22-rdf-syntax-ns#"
+   xmlns:svg="http://www.w3.org/2000/svg"
+   xmlns="http://www.w3.org/2000/svg"
+   xmlns:sodipodi="http://sodipodi.sourceforge.net/DTD/sodipodi-0.dtd"
+   xmlns:inkscape="http://www.inkscape.org/namespaces/inkscape"
+   version="1.1"
+   id="Layer_1"
+   x="0px"
+   y="0px"
+   viewBox="0 0 48 48"
+   style="enable-background:new 0 0 48 48;"
+   xml:space="preserve"
+   inkscape:version="0.91 r13725"
+   sodipodi:docname="edit.svg"><metadata
+     id="metadata19"><rdf:RDF><cc:Work
+         rdf:about=""><dc:format>image/svg+xml</dc:format><dc:type
+           rdf:resource="http://purl.org/dc/dcmitype/StillImage" /></cc:Work></rdf:RDF></metadata><defs
+     id="defs17" /><sodipodi:namedview
+     pagecolor="#ffffff"
+     bordercolor="#666666"
+     borderopacity="1"
+     objecttolerance="10"
+     gridtolerance="10"
+     guidetolerance="10"
+     inkscape:pageopacity="0"
+     inkscape:pageshadow="2"
+     inkscape:window-width="1364"
+     inkscape:window-height="722"
+     id="namedview15"
+     showgrid="false"
+     inkscape:zoom="4.9166667"
+     inkscape:cx="-12.711865"
+     inkscape:cy="23.653901"
+     inkscape:window-x="0"
+     inkscape:window-y="22"
+     inkscape:window-maximized="0"
+     inkscape:current-layer="Layer_1" /><style
+     type="text/css"
+     id="style3">
+	.st0{fill:#E57373;}
+	.st1{fill:#FF9800;}
+	.st2{fill:#B0BEC5;}
+	.st3{fill:#FFC107;}
+	.st4{fill:#37474F;}
+</style><g
+     id="g3347"
+     transform="matrix(0.94170404,0,0,0.94170404,1.1165918,1.6816143)"><path
+       id="path5"
+       d="M 46,7.7 40.3,2 C 39.5,1.2 38.1,1.2 37.1,2 l -2.6,2.6 8.9,8.9 2.6,-2.6 c 0.8,-0.8 0.8,-2.2 0,-3.2 z"
+       class="st0"
+       inkscape:connector-curvature="0"
+       style="fill:#e57373" /><rect
+       id="rect7"
+       height="12.6"
+       width="35.200001"
+       class="st1"
+       transform="matrix(0.7071,-0.7071,0.7071,0.7071,-12.1059,23.1868)"
+       y="19.9"
+       x="4.3000002"
+       style="fill:#ff9800" /><polygon
+       id="polygon9"
+       points="43.4,13.5 38.8,18.2 29.9,9.3 34.5,4.6 "
+       class="st2"
+       style="fill:#b0bec5" /><polygon
+       id="polygon11"
+       points="5.1,34.2 2,46 13.8,43 "
+       class="st3"
+       style="fill:#ffc107" /><polygon
+       id="polygon13"
+       points="3.5,39.9 2,46 8.1,44.6 "
+       class="st4"
+       style="fill:#37474f" /></g></svg>

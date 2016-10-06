@@ -43,6 +43,9 @@ def normalize_steno(strokes_string):
     return tuple(normalize_stroke(stroke) for stroke
                  in strokes_string.split(STROKE_DELIMITER))
 
+def sort_steno_keys(steno_keys):
+    return sorted(steno_keys, key=lambda x: system.KEY_ORDER.get(x, -1))
+
 
 class Stroke(object):
     """A standardized data model for stenotype machine strokes.
@@ -68,11 +71,9 @@ class Stroke(object):
         # Remove duplicate keys and save local versions of the input 
         # parameters.
         steno_keys_set = set(steno_keys)
-        steno_keys = list(steno_keys_set)
-
         # Order the steno keys so comparisons can be made.
-        steno_keys.sort(key=lambda x: system.KEY_ORDER.get(x, -1))
-         
+        steno_keys = list(sort_steno_keys(steno_keys_set))
+
         # Convert strokes involving the number bar to numbers.
         if system.NUMBER_KEY in steno_keys:
             numeral = False

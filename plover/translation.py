@@ -265,35 +265,23 @@ class Translator(object):
                 add_to_history = False
                 do = [Translation([stroke], _back_string())]
         else:
-            # Figure out how much of the translation buffer can be involved in this
-            # stroke and build the stroke list for translation.
-            num_strokes = 1
-            translation_count = 0
-            for t in reversed(self._state.translations):
-                num_strokes += len(t)
-                if num_strokes > self._dictionary.longest_key:
-                    break
-                translation_count += 1
-            translation_index = len(self._state.translations) - translation_count
-            translations = self._state.translations[translation_index:]
-
             mapping = self._lookup([stroke])
 
             if mapping == '{*}':
                 # Toggle asterisk of previous stroke
-                new_stroke = _toggle_asterisk(translations, undo, do)
+                new_stroke = _toggle_asterisk(self._state.translations, undo, do)
                 if new_stroke is not None:
                     stroke = new_stroke
                     mapping = self._lookup([stroke])
 
             elif mapping == '{*+}':
                 # Repeat last stroke
-                new_stroke = _repeat_last_stroke(translations)
+                new_stroke = _repeat_last_stroke(self._state.translations)
                 if new_stroke is not None:
                     stroke = new_stroke
                     mapping = self._lookup([stroke])
 
-            t = self._find_translation(translations, stroke, mapping)
+            t = self._find_translation(stroke, mapping)
             if t is not None:
                 do.append(t)
                 undo.extend(t.replaced)
@@ -302,14 +290,14 @@ class Translator(object):
         if add_to_history:
             self._state.translations.extend(do)
 
-    def _find_translation(self, translations, stroke, mapping):
-        t = self._find_translation_helper(translations, stroke)
+    def _find_translation(self, stroke, mapping):
+        t = self._find_translation_helper(stroke)
         if t:
             return t
 
         if mapping == '{*?}':
             # Retrospective insert space
-            replaced = translations[-1:]
+            replaced = self._state.translations[-1:]
             if len(replaced) < 1:
                 return
             if replaced[0].is_retrospective_command:
@@ -328,7 +316,7 @@ class Translator(object):
 
         if mapping == '{*!}':
             # Retrospective delete space
-            replaced = translations[-2:]
+            replaced = self._state.translations[-2:]
             if len(replaced) < 2:
                 return
             if replaced[1].is_retrospective_command:
@@ -347,12 +335,23 @@ class Translator(object):
 
         if mapping is not None:  # Could be the empty string.
             return Translation([stroke], mapping)
-        t = self._find_translation_helper(translations, stroke, system.SUFFIX_KEYS)
+        t = self._find_translation_helper(stroke, system.SUFFIX_KEYS)
         if t:
             return t
         return Translation([stroke], self._lookup([stroke], system.SUFFIX_KEYS))
 
-    def _find_translation_helper(self, translations, stroke, suffixes=()):
+    def _find_translation_helper(self, stroke, suffixes=()):
+        # Figure out how much of the translation buffer can be involved in this
+        # stroke and build the stroke list for translation.
+        num_strokes = 1
+        translation_count = 0
+        for t in reversed(self._state.translations):
+            num_strokes += len(t)
+            if num_strokes > self._dictionary.longest_key:
+                break
+            translation_count += 1
+        translation_index = len(self._state.translations) - translation_count
+        translations = self._state.translations[translation_index:]
         # The new stroke can either create a new translation or replace
         # existing translations by matching a longer entry in the
         # dictionary.

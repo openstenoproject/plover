@@ -264,15 +264,15 @@ class KeyboardCaptureProcess(multiprocessing.Process):
                     passthrough_down_keys.add(event.vkCode)
                 else:
                     passthrough_down_keys.discard(event.vkCode)
-            if passthrough_down_keys:
-                # Modifier(s) pressed, ignore.
-                return False
             key = SCANCODE_TO_KEY.get(event.scanCode)
             if key is None:
                 # Unhandled, ignore and don't suppress.
                 return False
             suppressed = bool(self._suppressed_keys_bitmask[event.scanCode // 64] & (1 << (event.scanCode % 64)))
             if pressed:
+                if passthrough_down_keys:
+                    # Modifier(s) pressed, ignore.
+                    return False
                 down_keys.add(key)
             else:
                 down_keys.discard(key)
