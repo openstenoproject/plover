@@ -137,6 +137,7 @@ class ThreadedStenotypeBase(StenotypeBase, threading.Thread):
         self.name += '-machine'
         StenotypeBase.__init__(self)
         self.finished = threading.Event()
+        self._reconnecting = False
 
     def _connect(self):
         """This method should be overridden by a subclass."""
@@ -147,15 +148,19 @@ class ThreadedStenotypeBase(StenotypeBase, threading.Thread):
         pass
 
     def _reconnect(self):
-        self._disconnect()
-        i = 0
-        # Reconnect loop
-        while i < 30 and not self.finished.isSet():
-            if self._connect():
-                return True
-            i += 1
-            sleep(1)
-        return False
+        try:
+            self._reconnecting = True
+            self._disconnect()
+            i = 0
+            # Reconnect loop
+            while i < 30 and not self.finished.isSet():
+                if self._connect():
+                    return True
+                i += 1
+                sleep(1)
+            return False
+        finally:
+            self._reconnecting = False
 
     def run(self):
         self._ready()
@@ -220,11 +225,13 @@ class SerialStenotypeBase(ThreadedStenotypeBase):
         try:
             self.serial_port = serial.Serial(**self.serial_params)
         except (serial.SerialException, OSError):
-            log.warning('Can\'t open serial port', exc_info=True)
+            if not self._reconnecting:
+                log.warning('Can\'t open serial port', exc_info=True)
             return False
 
         if not self.serial_port.isOpen():
-            log.warning('Serial port is not open: %s', self.serial_params.get('port'))
+            if not self._reconnecting:
+                log.warning('Serial port is not open: %s', self.serial_params.get('port'))
             return False
 
         return True
