@@ -175,7 +175,7 @@ class ThreadedStenotypeBase(StenotypeBase, threading.Thread):
         while not self.finished.isSet():
             try:
                 self._loop_body()
-            except IOError:
+            except Exception:
                 log.warning(self.__class__.__name__ + ' disconnected, reconnecting...')
                 self._initializing()
                 if self._reconnect():
