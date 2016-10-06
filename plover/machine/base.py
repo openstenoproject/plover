@@ -148,12 +148,14 @@ class ThreadedStenotypeBase(StenotypeBase, threading.Thread):
 
     def _reconnect(self):
         self._disconnect()
-        connected = self._connect()
+        i = 0
         # Reconnect loop
-        while not self.finished.isSet() and not connected:
-            sleep(0.5)
-            connected = self._connect()
-        return connected
+        while i < 30 and not self.finished.isSet():
+            if self._connect():
+                return True
+            i += 1
+            sleep(1)
+        return False
 
     def run(self):
         self._ready()
