@@ -147,15 +147,12 @@ class ThreadedStenotypeBase(StenotypeBase, threading.Thread):
         pass
 
     def _reconnect(self):
-        self._initializing()
         self._disconnect()
         connected = self._connect()
         # Reconnect loop
         while not self.finished.isSet() and not connected:
             sleep(0.5)
             connected = self._connect()
-        if connected:
-            self._ready()
         return connected
 
     def run(self):
@@ -165,10 +162,13 @@ class ThreadedStenotypeBase(StenotypeBase, threading.Thread):
                 self._loop_body()
             except IOError:
                 log.warning(self.__class__.__name__ + ' disconnected, reconnecting...')
+                self._initializing()
                 if self._reconnect():
-                    log.warning(self.__class__.__name__ + ' stenotype machine reconnected.')
+                    self._ready()
+                    log.info(self.__class__.__name__ + ' reconnected.')
                 else:
                     self._error()
+                    log.warning(self.__class__.__name__ + ' could not be reconnected.')
 
     def _loop_body(self):
         """This method should be overridden by a subclass."""
