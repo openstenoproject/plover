@@ -302,7 +302,6 @@ class StenoEngine(object):
         return self._config.as_dict()
 
     @config.setter
-    @with_lock
     def config(self, update):
         self._same_thread_hook(self._update, config_update=update)
 
