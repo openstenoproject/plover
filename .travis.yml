@@ -90,9 +90,10 @@ before_deploy:
       fi
       ;;
     linux)
-      $PYTHON setup.py bdist_{egg,wheel}
+      $PYTHON setup.py bdist_egg
       if [ $PYTHON = python2 ]
       then
+        $PYTHON setup.py bdist_wheel
         ./linux/debuild.sh -us -uc
       fi
       ;;
