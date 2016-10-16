@@ -21,6 +21,7 @@ http://tronche.com/gui/x/xlib/input/keyboard-encoding.html
 
 """
 
+import errno
 import os
 import string
 import select
@@ -195,9 +196,18 @@ class KeyboardCapture(threading.Thread):
         display_fileno = self.display.fileno()
         while True:
             if not self.display.pending_events():
-                rlist, wlist, xlist = select.select((self.pipe[0],
-                                                     display_fileno),
-                                                    (), ())
+                try:
+                    rlist, wlist, xlist = select.select((self.pipe[0],
+                                                         display_fileno),
+                                                        (), ())
+                except select.error as err:
+                    if isinstance(err, OSError):
+                        code = err.errno
+                    else:
+                        code = err[0]
+                    if code != errno.EINTR:
+                        raise
+                    continue
                 assert not wlist
                 assert not xlist
                 if self.pipe[0] in rlist:
