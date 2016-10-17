@@ -1,3 +1,4 @@
+# -*- coding: utf-8 -*-
 # Copyright (c) 2013 Hesky Fisher
 # See LICENSE.txt for details.
 
@@ -774,6 +775,12 @@ class FormatterTestCase(unittest.TestCase):
 
         (('some text', action(word='test', space_char='_')),
          action(text='_some_text', word='text', space_char='_')),
+
+        (('some text', action(word='test', stitch_char='-')),
+         action(text=' s-o-m-e t-e-x-t', word='text', stitch_char='-')),
+
+        ((u'søme téxt', action(word='test', stitch_char='-')),
+         action(text=u' s-ø-m-e t-é-x-t', word=u'téxt', stitch_char='-')),
 
         (('some text', action(word='test', case=an_action.CASE_UPPER)),
          action(text=' SOME TEXT', word='text', case=an_action.CASE_UPPER)),

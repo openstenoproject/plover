@@ -12,6 +12,8 @@ from collections import namedtuple
 import re
 import string
 
+from six import viewkeys
+
 from plover import orthography
 
 
@@ -210,7 +212,7 @@ class _Action(object):
     CASE_NONE, CASE_UPPER, CASE_LOWER, CASE_TITLE = range(4)
 
     def __init__(self, attach=False, glue=False, word='', capitalize=False,
-                 lower=False, orthography=True, space_char=' ',
+                 lower=False, orthography=True, space_char=' ', stitch_char='',
                  upper=False, upper_carry=False,
                  case=CASE_NONE, text='', replace='', combo='',
                  command=''):
@@ -241,6 +243,9 @@ class _Action(object):
         space_char -- this character will replace spaces after all other
         formatting has been applied
 
+        stitch_char -- this character will be interspersed between each
+        character of output, except spaces
+
         case -- an integer to determine which case to output after formatting
 
         text -- The text that should be rendered for this action.
@@ -265,6 +270,7 @@ class _Action(object):
 
         # Persistent state variables
         self.space_char = space_char
+        self.stitch_char = stitch_char
         self.case = case
 
         # Instruction variables
@@ -272,6 +278,21 @@ class _Action(object):
         self.replace = replace
         self.combo = combo
         self.command = command
+
+    @classmethod
+    def from_last(self, last_action, *args, **kwargs):
+        """Construct a new action, persisting the appropriate variables."""
+        persistent_state = {
+            "case": last_action.case,
+            "space_char": last_action.space_char,
+            "stitch_char": last_action.stitch_char,
+        }
+        assert not (viewkeys(kwargs) & viewkeys(persistent_state)), (
+                "When trying to construct from the last action, one of the "
+                "explicit keyword arguments was a persistent state variable.")
+        kwargs.update(persistent_state)
+
+        return _Action(*args, **kwargs)
 
     def copy_state(self):
         """Clone this action but only clone the state variables."""
@@ -286,6 +307,7 @@ class _Action(object):
         a.orthography = self.orthography
         a.case = self.case
         a.space_char = self.space_char
+        a.stitch_char = self.stitch_char
         return a
 
     def __eq__(self, other):
@@ -392,7 +414,9 @@ MODE_TITLE = 'TITLE'
 MODE_LOWER = 'LOWER'
 MODE_SNAKE = 'SNAKE'
 MODE_SET_SPACE = 'SET_SPACE:'
+MODE_SET_STITCH = 'SET_STITCH:'
 MODE_RESET_SPACE = 'RESET_SPACE'
+MODE_RESET_STITCH = 'RESET_STITCH'
 MODE_RESET_CASE = 'RESET_CASE'
 MODE_CAMEL = 'CAMEL'
 MODE_RESET = 'RESET'
@@ -418,11 +442,11 @@ def _raw_to_actions(stroke, last_action, spaces_after):
         return _translation_to_actions(no_dash, last_action, spaces_after)
     else:
         if spaces_after:
-            return [_Action(text=(stroke + SPACE), word=stroke, case=last_action.case,
-                            space_char=last_action.space_char)]
+            text = stroke + SPACE
         else:
-            return [_Action(text=(SPACE + stroke), word=stroke, case=last_action.case,
-                            space_char=last_action.space_char)]
+            text = SPACE + stroke
+
+        return [_Action.from_last(last_action, text=text, word=stroke)]
 
 
 def _atom_to_action(atom, last_action, spaces_after):
@@ -461,7 +485,7 @@ def _atom_to_action_spaces_before(atom, last_action):
 
     """
 
-    action = _Action(space_char=last_action.space_char, case=last_action.case)
+    action = _Action.from_last(last_action)
     last_word = last_action.word
     last_glue = last_action.glue
     last_attach = last_action.attach
@@ -596,8 +620,8 @@ def _atom_to_action_spaces_before(atom, last_action):
         action.word = _rightmost_word(text)
 
     action.text = _apply_mode(action.text, action.case, action.space_char,
-                              begin, last_attach, last_glue,
-                              last_capitalize, last_upper, last_lower)
+                              action.stitch_char, begin, last_attach,
+                              last_glue, last_capitalize, last_upper, last_lower)
 
     return action
 
@@ -617,7 +641,7 @@ def _atom_to_action_spaces_after(atom, last_action):
 
     """
 
-    action = _Action(space_char=last_action.space_char, case=last_action.case)
+    action = _Action.from_last(last_action)
     last_word = last_action.word
     last_glue = last_action.glue
     last_attach = last_action.attach
@@ -789,12 +813,13 @@ def _atom_to_action_spaces_after(atom, last_action):
         action.word = _rightmost_word(text)
 
     action.text = _apply_mode(action.text, action.case, action.space_char,
-                              begin, last_attach, last_glue,
-                              last_capitalize, last_upper, last_lower)
+                              action.stitch_char, begin, last_attach,
+                              last_glue, last_capitalize, last_upper, last_lower)
+
     return action
 
 
-def _apply_mode(text, case, space_char, begin, last_attach,
+def _apply_mode(text, case, space_char, stitch_char, begin, last_attach,
                 last_glue, last_capitalize, last_upper, last_lower):
     # Should title case be applied to the beginning of the next string?
     lower_title_case = ((begin or
@@ -805,6 +830,7 @@ def _apply_mode(text, case, space_char, begin, last_attach,
     # Apply case, then replace space character
     text = _apply_case(text, case, lower_title_case)
     text = _apply_space_char(text, space_char)
+    text = _apply_stitch_char(text, space_char, stitch_char)
 
     # Title case is sensitive to lower flag
     if last_lower and len(text) > 0:  # Check for text
@@ -871,8 +897,8 @@ def _change_mode(command, action):
 
     """
     command should be:
-        CAPS, LOWER, TITLE, CAMEL, SNAKE, RESET_SPACE,
-            RESET_CASE, SET_SPACE or RESET
+        CAPS, LOWER, TITLE, CAMEL, SNAKE, RESET_SPACE, RESET_STITCH,
+            RESET_CASE, SET_SPACE, SET_STITCH, or RESET
 
         CAPS: UPPERCASE
         LOWER: lowercase
@@ -880,9 +906,11 @@ def _change_mode(command, action):
         CAMEL: titleCase, no space, initial lowercase
         SNAKE: Underscore_space
         RESET_SPACE: Space resets to ' '
+        RESET_STITCH: Stitch resets to ''
         RESET_CASE: Reset to normal case
         SET_SPACE:xy: Set space to xy
-        RESET: Reset to normal case, space resets to ' '
+        SET_STITCH:xy: Set stitch to xy
+        RESET: Reset to normal case, space resets to ' ', stitch resets to ''
     """
 
     if command == MODE_CAPS:
@@ -903,16 +931,23 @@ def _change_mode(command, action):
 
     elif command == MODE_RESET:
         action.space_char = SPACE
+        action.stitch_char = ''
         action.case = _Action.CASE_NONE
 
     elif command == MODE_RESET_SPACE:
         action.space_char = SPACE
+
+    elif command == MODE_RESET_STITCH:
+        action.stitch_char = ''
 
     elif command == MODE_RESET_CASE:
         action.case = _Action.CASE_NONE
 
     elif command.startswith(MODE_SET_SPACE):
         action.space_char = command[len(MODE_SET_SPACE):]
+
+    elif command.startswith(MODE_SET_STITCH):
+        action.stitch_char = command[len(MODE_SET_STITCH):]
 
     return action
 
@@ -935,6 +970,20 @@ def _apply_space_char(text, space_char):
         return text.replace(' ', space_char)
     else:
         return text
+
+
+def _apply_stitch_char(text, space_char, stitch_char):
+    if not text:
+        return text
+
+    new_chars = []
+    for i, j in zip(text, text[1:]):
+        if space_char not in [i, j]:
+            new_chars.extend([i, stitch_char])
+        else:
+            new_chars.append(i)
+    new_chars.append(text[-1])
+    return ''.join(new_chars)
 
 
 def _get_meta(atom):
