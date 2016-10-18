@@ -48,18 +48,19 @@ class PaperTape(QDialog, Ui_PaperTape, WindowState):
         self.finished.connect(self.save_state)
 
     def _restore_state(self, settings):
+        style = settings.value('style')
+        if style is not None:
+            self.styles.setCurrentText(self.STYLES[int(style)])
         font_string = settings.value('font')
-        if font_string is None:
-            return
-        font = QFont()
-        if not font.fromString(font_string):
-            return
-        self.header.setFont(font)
-        self.tape.setFont(font)
+        if font_string is not None:
+            font = QFont()
+            if font.fromString(font_string):
+                self.header.setFont(font)
+                self.tape.setFont(font)
 
     def _save_state(self, settings):
-        font_string = self.header.font().toString()
-        settings.setValue('font', font_string)
+        settings.setValue('style', self.STYLES.index(self._style))
+        settings.setValue('font', self.header.font().toString())
 
     def _setup_system(self, config):
         if 'stroke_display_on_top' in config:
