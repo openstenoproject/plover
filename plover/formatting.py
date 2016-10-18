@@ -280,7 +280,7 @@ class _Action(object):
         self.command = command
 
     @classmethod
-    def from_last(self, last_action, *args, **kwargs):
+    def from_last(cls, last_action, *args, **kwargs):
         """Construct a new action, persisting the appropriate variables."""
         persistent_state = {
             "case": last_action.case,
@@ -292,7 +292,7 @@ class _Action(object):
                 "explicit keyword arguments was a persistent state variable.")
         kwargs.update(persistent_state)
 
-        return _Action(*args, **kwargs)
+        return cls(*args, **kwargs)
 
     def copy_state(self):
         """Clone this action but only clone the state variables."""
