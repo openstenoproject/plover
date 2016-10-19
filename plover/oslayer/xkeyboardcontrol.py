@@ -148,8 +148,6 @@ class KeyboardCapture(threading.Thread):
         """Prepare to listen for keyboard events."""
         threading.Thread.__init__(self)
         self.name += '-capture'
-        self.context = None
-        self.key_events_to_ignore = []
         self._suppressed_keys = set()
         self.key_down = lambda key: None
         self.key_up = lambda key: None
@@ -1066,7 +1064,6 @@ def is_latin1(code):
     return 0x20 <= code <= 0x7e or 0xa0 <= code <= 0xff
 
 def uchr_to_keysym(char):
-    assert isinstance(char, str)
     code = ord(char)
     # Latin-1 characters: direct, 1:1 mapping.
     if is_latin1(code):
@@ -1124,19 +1121,19 @@ class KeyboardEmulation(object):
 
     def __init__(self):
         """Prepare to emulate keyboard events."""
-        self.display = display.Display()
+        self._display = display.Display()
         self._update_keymap()
 
     def _update_keymap(self):
         '''Analyse keymap, build a mapping of keysym to (keycode + modifiers),
         and find unused keycodes that can be used for unmapped keysyms.
         '''
-        self.keymap = {}
-        self.custom_mappings_queue = []
+        self._keymap = {}
+        self._custom_mappings_queue = []
         # Analyse X11 keymap.
-        keycode = self.display.display.info.min_keycode
-        keycode_count = self.display.display.info.max_keycode - keycode + 1
-        for mapping in self.display.get_keyboard_mapping(keycode, keycode_count):
+        keycode = self._display.display.info.min_keycode
+        keycode_count = self._display.display.info.max_keycode - keycode + 1
+        for mapping in self._display.get_keyboard_mapping(keycode, keycode_count):
             mapping = tuple(mapping)
             while mapping and X.NoSymbol == mapping[-1]:
                 mapping = mapping[:-1]
@@ -1167,23 +1164,23 @@ class KeyboardEmulation(object):
                 mapping = self.Mapping(keycode, modifiers, keysym, custom_mapping)
                 if keysym != X.NoSymbol:
                     # Some keysym are mapped multiple times, prefer lower modifiers combos.
-                    previous_mapping = self.keymap.get(keysym)
+                    previous_mapping = self._keymap.get(keysym)
                     if previous_mapping is None or mapping.modifiers < previous_mapping.modifiers:
-                        self.keymap[keysym] = mapping
+                        self._keymap[keysym] = mapping
                 if custom_mapping is not None:
-                    self.custom_mappings_queue.append(mapping)
+                    self._custom_mappings_queue.append(mapping)
             keycode += 1
         log.debug('keymap:')
-        for mapping in sorted(self.keymap.values(), key=lambda m: (m.keycode, m.modifiers)):
+        for mapping in sorted(self._keymap.values(), key=lambda m: (m.keycode, m.modifiers)):
             log.debug('%s', mapping)
-        log.info('%u custom mappings(s)', len(self.custom_mappings_queue))
+        log.info('%u custom mappings(s)', len(self._custom_mappings_queue))
         # Determine the backspace mapping.
         backspace_keysym = XK.string_to_keysym('BackSpace')
-        self.backspace_mapping = self._get_mapping(backspace_keysym)
-        assert self.backspace_mapping is not None
-        assert self.backspace_mapping.custom_mapping is None
+        self._backspace_mapping = self._get_mapping(backspace_keysym)
+        assert self._backspace_mapping is not None
+        assert self._backspace_mapping.custom_mapping is None
         # Get modifier mapping.
-        self.modifier_mapping = self.display.get_modifier_mapping()
+        self.modifier_mapping = self._display.get_modifier_mapping()
 
     def send_backspaces(self, number_of_backspaces):
         """Emulate the given number of backspaces.
@@ -1196,9 +1193,9 @@ class KeyboardEmulation(object):
 
         """
         for x in range(number_of_backspaces):
-            self._send_keycode(self.backspace_mapping.keycode,
-                               self.backspace_mapping.modifiers)
-        self.display.sync()
+            self._send_keycode(self._backspace_mapping.keycode,
+                               self._backspace_mapping.modifiers)
+        self._display.sync()
 
     def send_string(self, s):
         """Emulate the given string.
@@ -1210,7 +1207,6 @@ class KeyboardEmulation(object):
         s -- The string to emulate.
 
         """
-        assert isinstance(s, str)
         for char in s:
             keysym = uchr_to_keysym(char)
             mapping = self._get_mapping(keysym)
@@ -1218,7 +1214,7 @@ class KeyboardEmulation(object):
                 continue
             self._send_keycode(mapping.keycode,
                                mapping.modifiers)
-        self.display.sync()
+        self._display.sync()
 
     def send_key_combination(self, combo_string):
         """Emulate a sequence of key combinations.
@@ -1249,8 +1245,8 @@ class KeyboardEmulation(object):
         ]
         # Emulate the key combination by sending key events.
         for keycode, event_type in key_events:
-            xtest.fake_input(self.display, event_type, keycode)
-        self.display.sync()
+            xtest.fake_input(self._display, event_type, keycode)
+        self._display.sync()
 
     def _send_keycode(self, keycode, modifiers=0):
         """Emulate a key press and release.
@@ -1271,13 +1267,13 @@ class KeyboardEmulation(object):
         ]
         # Press modifiers.
         for mod_keycode in modifiers_list:
-            xtest.fake_input(self.display, X.KeyPress, mod_keycode)
+            xtest.fake_input(self._display, X.KeyPress, mod_keycode)
         # Press and release the base key.
-        xtest.fake_input(self.display, X.KeyPress, keycode)
-        xtest.fake_input(self.display, X.KeyRelease, keycode)
+        xtest.fake_input(self._display, X.KeyPress, keycode)
+        xtest.fake_input(self._display, X.KeyRelease, keycode)
         # Release modifiers.
         for mod_keycode in reversed(modifiers_list):
-            xtest.fake_input(self.display, X.KeyRelease, mod_keycode)
+            xtest.fake_input(self._display, X.KeyRelease, mod_keycode)
 
     def _get_keycode_from_keystring(self, keystring):
         '''Find the physical key <keystring> is mapped to.
@@ -1305,35 +1301,35 @@ class KeyboardEmulation(object):
         keysym -- A key symbol.
 
         """
-        mapping = self.keymap.get(keysym)
+        mapping = self._keymap.get(keysym)
         if mapping is None:
             # Automatically map?
             if not automatically_map:
                 # No.
                 return None
             # Can we map it?
-            if 0 == len(self.custom_mappings_queue):
+            if 0 == len(self._custom_mappings_queue):
                 # Nope...
                 return None
-            mapping = self.custom_mappings_queue.pop(0)
+            mapping = self._custom_mappings_queue.pop(0)
             previous_keysym = mapping.keysym
             keysym_index = mapping.custom_mapping.index(previous_keysym)
             # Update X11 keymap.
             mapping.custom_mapping[keysym_index] = keysym
-            self.display.change_keyboard_mapping(mapping.keycode, [mapping.custom_mapping])
+            self._display.change_keyboard_mapping(mapping.keycode, [mapping.custom_mapping])
             # Update our keymap.
-            if previous_keysym in self.keymap:
-                del self.keymap[previous_keysym]
+            if previous_keysym in self._keymap:
+                del self._keymap[previous_keysym]
             mapping.keysym = keysym
-            self.keymap[keysym] = mapping
+            self._keymap[keysym] = mapping
             log.debug(u'new mapping: %s', mapping)
             # Move custom mapping back at the end of
             # the queue so we don't use it too soon.
-            self.custom_mappings_queue.append(mapping)
+            self._custom_mappings_queue.append(mapping)
         elif mapping.custom_mapping is not None:
             # Same as above; prevent mapping
             # from being reused to soon.
-            self.custom_mappings_queue.remove(mapping)
-            self.custom_mappings_queue.append(mapping)
+            self._custom_mappings_queue.remove(mapping)
+            self._custom_mappings_queue.append(mapping)
         return mapping
 
