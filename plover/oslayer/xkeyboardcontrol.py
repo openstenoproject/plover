@@ -141,32 +141,69 @@ KEYCODE_TO_KEY = {
 
 KEY_TO_KEYCODE = dict(zip(KEYCODE_TO_KEY.values(), KEYCODE_TO_KEY.keys()))
 
-class KeyboardCapture(threading.Thread):
+class XEventLoop(threading.Thread):
+
+    def __init__(self, name='xev'):
+        super(XEventLoop, self).__init__()
+        self.name += '-' + name
+        self._display = display.Display()
+        self._pipe = os.pipe()
+
+    def _on_event(self, event):
+        pass
+
+    def run(self):
+        display_fileno = self._display.fileno()
+        while True:
+            if not self._display.pending_events():
+                try:
+                    rlist, wlist, xlist = select.select((self._pipe[0],
+                                                         display_fileno),
+                                                        (), ())
+                except select.error as err:
+                    if isinstance(err, OSError):
+                        code = err.errno
+                    else:
+                        code = err[0]
+                    if code != errno.EINTR:
+                        raise
+                    continue
+                assert not wlist
+                assert not xlist
+                if self._pipe[0] in rlist:
+                    break
+                # If we're here, rlist should contains display_fileno,
+                # trigger a new iteration to check for pending events.
+                continue
+            self._on_event(self._display.next_event())
+
+    def cancel(self):
+        # Wake up the capture thread...
+        os.write(self._pipe[1], b'quit')
+        # ...and wait for it to terminate.
+        self.join()
+        for fd in self._pipe:
+            os.close(fd)
+
+
+class KeyboardCapture(XEventLoop):
     """Listen to keyboard press and release events."""
 
     def __init__(self):
         """Prepare to listen for keyboard events."""
-        threading.Thread.__init__(self)
-        self.name += '-capture'
+        super(KeyboardCapture, self).__init__(name='capture')
+        self._window = self._display.screen().root
+        if not self._display.has_extension('XInputExtension'):
+            raise Exception('Xlib\'s XInput extension is required, but could not be found.')
         self._suppressed_keys = set()
+        self._devices = []
         self.key_down = lambda key: None
         self.key_up = lambda key: None
-
-        # Get references to the display.
-        self.display = display.Display()
-        self.window = self.display.screen().root
-
-        if not self.display.has_extension('XInputExtension'):
-            raise Exception('Xlib\'s XInput extension is required, but could not be found.')
-
-        self.devices = []
-        self.pipe = os.pipe()
-        self._update_devices()
 
     def _update_devices(self):
         # Find all keyboard devices.
         keyboard_devices = []
-        for devinfo in self.display.xinput_query_device(xinput.AllDevices).devices:
+        for devinfo in self._display.xinput_query_device(xinput.AllDevices).devices:
             # Only keep slave devices.
             # Note: we look at pointer devices too, as some keyboards (like the
             # VicTop mechanical gaming keyboard) register 2 devices, including
@@ -185,95 +222,75 @@ class KeyboardCapture(threading.Thread):
                     keyboard_devices.append(devinfo.deviceid)
                     break
         if XINPUT_DEVICE_ID == xinput.AllDevices:
-            self.devices = keyboard_devices
+            self._devices = keyboard_devices
         else:
-            self.devices = [XINPUT_DEVICE_ID]
-        log.info('XInput devices: %s', ', '.join(map(str, self.devices)))
+            self._devices = [XINPUT_DEVICE_ID]
+        log.info('XInput devices: %s', ', '.join(map(str, self._devices)))
 
-    def run(self):
-        self.window.xinput_select_events([
+    def _on_event(self, event):
+        if event.type != GenericEventCode:
+            return
+        if event.evtype not in (xinput.KeyPress, xinput.KeyRelease):
+            return
+        assert event.data.sourceid in self._devices
+        keycode = event.data.detail
+        modifiers = event.data.mods.effective_mods & ~0b10000 & 0xFF
+        key = KEYCODE_TO_KEY.get(keycode)
+        if key is None:
+            # Not a supported key, ignore...
+            return
+        # ...or pass it on to a callback method.
+        if event.evtype == xinput.KeyPress:
+            # Ignore event if a modifier is set.
+            if modifiers == 0:
+                self.key_down(key)
+        elif event.evtype == xinput.KeyRelease:
+            self.key_up(key)
+
+    def start(self):
+        self._update_devices()
+        self._window.xinput_select_events([
             (deviceid, XINPUT_EVENT_MASK)
-            for deviceid in self.devices
+            for deviceid in self._devices
         ])
-        display_fileno = self.display.fileno()
-        while True:
-            if not self.display.pending_events():
-                try:
-                    rlist, wlist, xlist = select.select((self.pipe[0],
-                                                         display_fileno),
-                                                        (), ())
-                except select.error as err:
-                    if isinstance(err, OSError):
-                        code = err.errno
-                    else:
-                        code = err[0]
-                    if code != errno.EINTR:
-                        raise
-                    continue
-                assert not wlist
-                assert not xlist
-                if self.pipe[0] in rlist:
-                    break
-                # If we're here, rlist should contains display_fileno,
-                # trigger a new iteration to check for pending events.
-                continue
-            event = self.display.next_event()
-            if event.type != GenericEventCode:
-                continue
-            if event.evtype not in (xinput.KeyPress, xinput.KeyRelease):
-                continue
-            assert event.data.sourceid in self.devices
-            keycode = event.data.detail
-            modifiers = event.data.mods.effective_mods & ~0b10000 & 0xFF
-            key = KEYCODE_TO_KEY.get(keycode)
-            if key is None:
-                # Not a supported key, ignore...
-                continue
-            # ...or pass it on to a callback method.
-            if event.evtype == xinput.KeyPress:
-                # Ignore event if a modifier is set.
-                if modifiers == 0:
-                    self.key_down(key)
-            elif event.evtype == xinput.KeyRelease:
-                self.key_up(key)
+        suppressed_keys = self._suppressed_keys
+        self._suppressed_keys = set()
+        self.suppress_keyboard(suppressed_keys)
+        super(KeyboardCapture, self).start()
 
     def cancel(self):
-        """Stop listening for keyboard events."""
         self.suppress_keyboard()
-        # Wake up the capture thread...
-        os.write(self.pipe[1], b'quit')
-        # ...and wait for it to terminate.
-        self.join()
+        super(KeyboardCapture, self).cancel()
 
-    def grab_key(self, keycode):
-        for deviceid in self.devices:
-            self.window.xinput_grab_keycode(deviceid,
-                                            X.CurrentTime,
-                                            keycode,
-                                            xinput.GrabModeAsync,
-                                            xinput.GrabModeAsync,
-                                            True,
-                                            XINPUT_EVENT_MASK,
-                                            (0, X.Mod2Mask))
+    def _grab_key(self, keycode):
+        for deviceid in self._devices:
+            self._window.xinput_grab_keycode(deviceid,
+                                             X.CurrentTime,
+                                             keycode,
+                                             xinput.GrabModeAsync,
+                                             xinput.GrabModeAsync,
+                                             True,
+                                             XINPUT_EVENT_MASK,
+                                             (0, X.Mod2Mask))
 
-    def ungrab_key(self, keycode):
-        for deviceid in self.devices:
-            self.window.xinput_ungrab_keycode(deviceid,
-                                              keycode,
-                                              (0, X.Mod2Mask))
+    def _ungrab_key(self, keycode):
+        for deviceid in self._devices:
+            self._window.xinput_ungrab_keycode(deviceid,
+                                               keycode,
+                                               (0, X.Mod2Mask))
 
     def suppress_keyboard(self, suppressed_keys=()):
         suppressed_keys = set(suppressed_keys)
         if self._suppressed_keys == suppressed_keys:
             return
         for key in self._suppressed_keys - suppressed_keys:
-            self.ungrab_key(KEY_TO_KEYCODE[key])
+            self._ungrab_key(KEY_TO_KEYCODE[key])
             self._suppressed_keys.remove(key)
         for key in suppressed_keys - self._suppressed_keys:
-            self.grab_key(KEY_TO_KEYCODE[key])
+            self._grab_key(KEY_TO_KEYCODE[key])
             self._suppressed_keys.add(key)
         assert self._suppressed_keys == suppressed_keys
-        self.display.sync()
+        self._display.sync()
 
 
 # Keysym to Unicode conversion table.
