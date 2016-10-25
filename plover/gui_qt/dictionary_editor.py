@@ -46,6 +46,7 @@ class DictionaryItemDelegate(QStyledItemDelegate):
             dictionary_paths = [
                 shorten_path(dictionary.get_path())
                 for dictionary in self._dictionary_list
+                if not dictionary.readonly
             ]
             combo = QComboBox(parent)
             combo.addItems(dictionary_paths)
@@ -182,7 +183,11 @@ class DictionaryItemModel(QAbstractTableModel):
     def flags(self, index):
         if not index.isValid():
             return Qt.NoItemFlags
-        return Qt.ItemIsEnabled | Qt.ItemIsSelectable | Qt.ItemIsEditable
+        f = Qt.ItemIsEnabled | Qt.ItemIsSelectable
+        item = self._entries[index.row()]
+        if not item.dictionary.readonly:
+            f |= Qt.ItemIsEditable
+        return f
 
     def filter(self, strokes_filter=None, translation_filter=None):
         self.modelAboutToBeReset.emit()
