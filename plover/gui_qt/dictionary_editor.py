@@ -25,6 +25,9 @@ from plover.gui_qt.dictionary_editor_ui import Ui_DictionaryEditor
 from plover.gui_qt.utils import ToolBar, WindowState
 
 
+_COL_STENO, _COL_TRANS, _COL_DICT, _COL_COUNT = range(3 + 1)
+
+
 class DictionaryItem(namedtuple('DictionaryItem', 'strokes translation dictionary')):
 
     @property
@@ -39,7 +42,7 @@ class DictionaryItemDelegate(QStyledItemDelegate):
         self._dictionary_list = dictionary_list
 
     def createEditor(self, parent, option, index):
-        if index.column() == 2:
+        if index.column() == _COL_DICT:
             dictionary_paths = [
                 shorten_path(dictionary.get_path())
                 for dictionary in self._dictionary_list
@@ -137,8 +140,8 @@ class DictionaryItemModel(QAbstractTableModel):
         else:
             old_item.dictionary[old_item.strokes] = old_item.translation
             self._entries[row] = old_item
-            self.dataChanged.emit(self.index(row, 0),
-                                  self.index(row, 1))
+            self.dataChanged.emit(self.index(row, _COL_STENO),
+                                  self.index(row, _COL_TRANS))
 
     def undo(self, op=None):
         op = self._operations.pop()
@@ -152,16 +155,16 @@ class DictionaryItemModel(QAbstractTableModel):
         return 0 if parent.isValid() else len(self._entries)
 
     def columnCount(self, parent):
-        return 3
+        return _COL_COUNT
 
     def headerData(self, section, orientation, role):
         if orientation != Qt.Horizontal or role != Qt.DisplayRole:
             return None
-        if section == 0:
+        if section == _COL_STENO:
             return _('Strokes')
-        if section == 1:
+        if section == _COL_TRANS:
             return _('Translation')
-        if section == 2:
+        if section == _COL_DICT:
             return _('Dictionary')
 
     def data(self, index, role):
@@ -169,11 +172,11 @@ class DictionaryItemModel(QAbstractTableModel):
             return None
         item = self._entries[index.row()]
         column = index.column()
-        if column == 0:
+        if column == _COL_STENO:
             return '/'.join(item.strokes)
-        if column == 1:
+        if column == _COL_TRANS:
             return escape_translation(item.translation)
-        if column == 2:
+        if column == _COL_DICT:
             return shorten_path(item.dictionary.get_path())
 
     def flags(self, index):
@@ -188,7 +191,7 @@ class DictionaryItemModel(QAbstractTableModel):
 
     def sort(self, column, order):
         self.layoutAboutToBeChanged.emit()
-        if column == 2:
+        if column == _COL_DICT:
             key = attrgetter('dictionary_path')
         else:
             key = itemgetter(column)
@@ -204,15 +207,15 @@ class DictionaryItemModel(QAbstractTableModel):
         column = index.column()
         old_item = self._entries[row]
         strokes, translation, dictionary = old_item
-        if column == 0:
+        if column == _COL_STENO:
             strokes = normalize_steno(value.strip())
             if not strokes or strokes == old_item.strokes:
                 return False
-        elif column == 1:
+        elif column == _COL_TRANS:
             translation = unescape_translation(value.strip())
             if translation == old_item.translation:
                 return False
-        elif column == 2:
+        elif column == _COL_DICT:
             path = expand_path(value)
             for dictionary in self._dictionary_list:
                 if dictionary.get_path() == path:
@@ -280,7 +283,7 @@ class DictionaryEditor(QDialog, Ui_DictionaryEditor, WindowState):
                 for dictionary in engine.dictionaries.dicts
                 if dictionary.get_path() in dictionary_paths
             ]
-        sort_column, sort_order = 0, Qt.AscendingOrder
+        sort_column, sort_order = _COL_STENO, Qt.AscendingOrder
         self._model = DictionaryItemModel(dictionary_list,
                                           sort_column,
                                           sort_order)
