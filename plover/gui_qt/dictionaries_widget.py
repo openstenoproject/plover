@@ -1,5 +1,8 @@
 
 import os
+import shutil
+import webbrowser
+import sys
 
 from PyQt5.QtCore import (
     QItemSelection,
@@ -12,14 +15,19 @@ from PyQt5.QtWidgets import (
     QFileDialog,
     QTableWidgetItem,
     QWidget,
+    QMenu,
+    QAction,
+    QMessageBox
 )
 
+from plover import log
 from plover.dictionary.base import dictionaries as dictionary_formats
 from plover.misc import shorten_path
 
 from plover.gui_qt.dictionaries_widget_ui import Ui_DictionariesWidget
 from plover.gui_qt.dictionary_editor import DictionaryEditor
 from plover.gui_qt.utils import ToolBar
+from plover.dictionary.base import convert_dictionary
 
 
 class DictionariesWidget(QWidget, Ui_DictionariesWidget):
@@ -57,6 +65,8 @@ class DictionariesWidget(QWidget, Ui_DictionariesWidget):
         self.table.dragEnterEvent = self._drag_enter_event
         self.table.dragMoveEvent = self._drag_move_event
         self.table.dropEvent = self._drop_event
+        self.table.setContextMenuPolicy(Qt.CustomContextMenu)
+        self.table.customContextMenuRequested.connect(self._row_selector)
         engine.signal_connect('config_changed', self.on_config_changed)
 
     def setFocus(self):
@@ -270,3 +280,72 @@ class DictionariesWidget(QWidget, Ui_DictionariesWidget):
             return
         self._update_dictionaries(dictionaries)
         self._set_selection(selection)
+
+    def _row_selector(self, pos):
+        menu = QMenu()
+
+        action = QAction('Save As...', self)
+        action.triggered.connect(self._save_as)
+        menu.addAction(action)
+
+        action = QAction('Open Containing Folder', self)
+        action.triggered.connect(self._open_file_directory)
+        menu.addAction(action)
+
+        menu.exec(self.table.viewport().mapToGlobal(pos))
+
+    def _open_file_directory(self):
+        file_name = [self._dictionaries[item.row()]
+                    for item in self.table.selectedItems()][0]
+        file_directory = os.path.dirname(file_name)
+        if sys.platform.startswith('darwin'):
+            file_directory = 'file://%s' % file_directory
+        webbrowser.open(file_directory)
+
+    def _save_as(self):
+        filename = [self._dictionaries[item.row()]
+                        for item in self.table.selectedItems()][0]
+        file_ext = os.path.splitext(filename)[-1].lower()
+        if file_ext in dictionary_formats:
+            selected_filter = '%s Dictionary (*%s)' % (
+                file_ext.upper().strip('.'), file_ext)
+
+        filters = ';;'.join('%s Dictionary (*%s)' % (
+            ext.upper().strip('.'), ext) for ext in dictionary_formats)
+
+        new_filename = QFileDialog.getSaveFileName(
+            self, _('Save Dictionary As...'), filename,
+            filters, selected_filter
+        )[0]
+
+        if new_filename:
+            file_name = os.path.basename(new_filename)
+            file_directory = os.path.dirname(new_filename)
+            new_ext = os.path.splitext(new_filename)[-1].lower()
+
+            try:
+                if file_ext == new_ext:
+                    shutil.copyfile(filename, new_filename)
+                else:
+                    open(new_filename, 'w')
+                    convert_dictionary(filename, new_filename)
+            except Exception:
+                log.error(
+                    'Error while saving new dictionary: %s',
+                    new_filename,
+                    exc_info = True
+                )
+            else:
+                msg = ('%s was saved to %s.\n\n'
+                       'Would you like to add the new dictionary to Plover?'
+                       % (file_name, file_directory)
+                       )
+                if QMessageBox.question(
+                        self, 'Dictionary Saved', msg,
+                        QMessageBox.Yes | QMessageBox.No,
+                        QMessageBox.Yes
+                        ) == QMessageBox.Yes:
+                    dictionaries = list(self._dictionaries)
+                    if new_filename not in self._dictionaries:
+                        dictionaries.append(new_filename)
+                    self._update_dictionaries(dictionaries)

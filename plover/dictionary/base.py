@@ -81,6 +81,12 @@ def save_dictionary(d, filename, saver):
 
     # Then move the new file to the final location.
     shutil.move(tmp, filename)
+
+def convert_dictionary(read_path, write_path):
+    dict_in = load_dictionary(read_path)
+    dict_out = create_dictionary(write_path)
+    dict_out.update(dict_in)
+    dict_out.save()
     
 class ThreadedSaver(object):
     """A callable that saves a dictionary in the background.
