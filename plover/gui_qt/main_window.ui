@@ -9,7 +9,7 @@
    <rect>
     <x>0</x>
     <y>0</y>
-    <width>319</width>
+    <width>329</width>
     <height>427</height>
    </rect>
   </property>
@@ -105,8 +105,8 @@
         <rect>
          <x>0</x>
          <y>0</y>
-         <width>301</width>
-         <height>245</height>
+         <width>311</width>
+         <height>233</height>
         </rect>
        </property>
       </widget>
@@ -151,8 +151,8 @@
     <rect>
      <x>0</x>
      <y>0</y>
-     <width>319</width>
-     <height>19</height>
+     <width>329</width>
+     <height>25</height>
     </rect>
    </property>
    <widget class="QMenu" name="menu_File">
@@ -164,7 +164,7 @@
     <addaction name="separator"/>
     <addaction name="action_Configure"/>
     <addaction name="separator"/>
-    <addaction name="action_ShowHide"/>
+    <addaction name="action_Show"/>
     <addaction name="action_Quit"/>
    </widget>
    <widget class="QMenu" name="menu_Tools">
@@ -326,15 +326,12 @@
     <string>Ctrl+R</string>
    </property>
   </action>
-  <action name="action_ShowHide">
+  <action name="action_Show">
    <property name="text">
-    <string>&amp;Show/Hide</string>
+    <string>&amp;Show</string>
    </property>
    <property name="toolTip">
-    <string>Show/Hide the main window.</string>
-   </property>
-   <property name="shortcut">
-    <string>Ctrl+W</string>
+    <string>Show the main window.</string>
    </property>
   </action>
   <action name="action_ToggleOutput">
@@ -405,10 +402,10 @@
    </hints>
   </connection>
   <connection>
-   <sender>action_ShowHide</sender>
+   <sender>action_Show</sender>
    <signal>triggered()</signal>
    <receiver>MainWindow</receiver>
-   <slot>on_show_hide()</slot>
+   <slot>on_show()</slot>
    <hints>
     <hint type="sourcelabel">
      <x>-1</x>

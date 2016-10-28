@@ -607,16 +607,12 @@ msgid "Ctrl+R"
 msgstr "Ctrl+R"
 
 #: plover/gui_qt/main_window_ui.py:220
-msgid "&Show/Hide"
-msgstr "Afficher/Cacher"
+msgid "&Show"
+msgstr "Afficher"
 
 #: plover/gui_qt/main_window_ui.py:221
-msgid "Show/Hide the main window."
-msgstr "Afficher/Cacher la fenêtre principale."
-
-#: plover/gui_qt/main_window_ui.py:222
-msgid "Ctrl+W"
-msgstr "Ctrl+W"
+msgid "Show the main window."
+msgstr "Afficher la fenêtre principale."
 
 #: plover/gui_qt/main_window_ui.py:223
 msgid "Toggle &output"
