@@ -236,3 +236,6 @@ KEYMAPS = {
         'no-op': ('X1-', 'X2-', 'X3'),
     },
 }
+
+DICTIONARIES_ROOT = 'asset:plover:assets'
+DEFAULT_DICTIONARIES = ('main.json', 'commands.json', 'user.json')

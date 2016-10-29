@@ -6,7 +6,6 @@
 import os
 import json
 import codecs
-import shutil
 
 # Python 2/3 compatibility.
 from six import BytesIO
@@ -32,12 +31,8 @@ DEFAULT_MACHINE_TYPE = 'Keyboard'
 MACHINE_AUTO_START_OPTION = 'auto_start'
 DEFAULT_MACHINE_AUTO_START = False
 
-DEFAULT_DICTIONARIES = ['main.json',
-                        'commands.json',
-                        'user.json']
-
-DICTIONARY_CONFIG_SECTION = 'Dictionary Configuration'
-DICTIONARY_FILE_OPTION = 'dictionary_file'
+LEGACY_DICTIONARY_CONFIG_SECTION = 'Dictionary Configuration'
+LEGACY_DICTIONARY_FILE_OPTION = 'dictionary_file'
 
 LOGGING_CONFIG_SECTION = 'Logging Configuration'
 LOG_FILE_OPTION = 'log_file'
@@ -86,6 +81,7 @@ DEFAULT_SYSTEM_NAME = 'English Stenotype'
 
 SYSTEM_CONFIG_SECTION = 'System: %s'
 SYSTEM_KEYMAP_OPTION = 'keymap[%s]'
+SYSTEM_DICTIONARIES_OPTION = 'dictionaries'
 
 # Dictionary constants.
 JSON_EXTENSION = '.json'
@@ -186,22 +182,58 @@ class Config(object):
         return defaults
 
     def set_dictionary_file_names(self, filenames):
-        self._update(DICTIONARY_CONFIG_SECTION, (
-            (DICTIONARY_FILE_OPTION + str(n), shorten_path(path))
-            for n, path in enumerate(filenames, start=1)
-        ))
+        system_name = self.get_system_name()
+        section = SYSTEM_CONFIG_SECTION % system_name
+        option = SYSTEM_DICTIONARIES_OPTION
+        if filenames is None:
+            self._config.remove_option(section, option)
+        else:
+            self._set(section, option, json.dumps(
+                list(shorten_path(path) for path in filenames)
+            ))
 
     def get_dictionary_file_names(self):
-        filenames = []
-        if self._config.has_section(DICTIONARY_CONFIG_SECTION):
-            options = [x for x in self._config.options(DICTIONARY_CONFIG_SECTION)
-                       if x.startswith(DICTIONARY_FILE_OPTION)]
-            options.sort(key=_dict_entry_key)
-            filenames = [self._config.get(DICTIONARY_CONFIG_SECTION, o)
-                         for o in options]
+        system_name = self.get_system_name()
+        try:
+            system = registry.get_plugin('system', system_name).resolve()
+        except:
+            log.error("invalid system name: %s", system_name, exc_info=True)
+            return []
+        section = SYSTEM_CONFIG_SECTION % system_name
+        option = SYSTEM_DICTIONARIES_OPTION
+        filenames = self._get(section, option, None)
+        if filenames is None:
+            filenames = self._legacy_get_dictionary_file_names()
+            if filenames is None:
+                filenames = system.DEFAULT_DICTIONARIES
+        else:
+            try:
+                filenames = tuple(json.loads(filenames))
+            except ValueError as e:
+                log.error("invalid system dictionaries, resetting to default",
+                          exc_info=True)
+                self.set_dictionary_file_names(None)
+                filenames = system.DEFAULT_DICTIONARIES
+        return [expand_path(path) for path in filenames]
+
+    def _legacy_get_dictionary_file_names(self):
+        if not self._config.has_section(LEGACY_DICTIONARY_CONFIG_SECTION):
+            return None
+        def _dict_entry_key(s):
+            try:
+                return int(s[len(LEGACY_DICTIONARY_FILE_OPTION):])
+            except ValueError:
+                return -1
+        options = [x for x in self._config.options(LEGACY_DICTIONARY_CONFIG_SECTION)
+                   if x.startswith(LEGACY_DICTIONARY_FILE_OPTION)]
+        options.sort(key=_dict_entry_key)
+        filenames = [self._config.get(LEGACY_DICTIONARY_CONFIG_SECTION, o)
+                     for o in options]
+        # Update to new format.
+        self._config.remove_section(LEGACY_DICTIONARY_CONFIG_SECTION)
         if not filenames:
-            filenames = DEFAULT_DICTIONARIES
-        filenames = [expand_path(path) for path in filenames]
+            return None
+        self.set_dictionary_file_names(filenames)
         return filenames
 
     def set_log_file_name(self, filename):
@@ -488,28 +520,3 @@ class Config(object):
                 continue
             setter = getattr(self, 'set_%s' % option)
             setter(kwargs[option])
-
-
-def _dict_entry_key(s):
-    try:
-        return int(s[len(DICTIONARY_FILE_OPTION):])
-    except ValueError:
-        return -1
-
-
-def copy_default_dictionaries(config):
-    '''Copy default dictionaries to the configuration directory.
-
-    Each default dictionary is copied to the configuration directory
-    if it's in use by the current config and missing.
-    '''
-
-    config_dictionaries = set(os.path.basename(dictionary) for dictionary
-                              in config.get_dictionary_file_names())
-    for dictionary in config_dictionaries & set(DEFAULT_DICTIONARIES):
-        dst = os.path.join(CONFIG_DIR, dictionary)
-        if os.path.exists(dst):
-            continue
-        src = os.path.join(ASSETS_DIR, dictionary)
-        log.info('copying %s to %s', src, dst)
-        shutil.copy(src, dst)

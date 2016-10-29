@@ -46,6 +46,8 @@ _EXPORTS = {
                                               for pattern, replacement in mod.ORTHOGRAPHY_RULES],
     'ORTHOGRAPHY_RULES_ALIASES': lambda mod: dict(mod.ORTHOGRAPHY_RULES_ALIASES),
     'KEYMAPS'                  : lambda mod: mod.KEYMAPS,
+    'DICTIONARIES_ROOT'        : lambda mod: mod.DICTIONARIES_ROOT,
+    'DEFAULT_DICTIONARIES'     : lambda mod: mod.DEFAULT_DICTIONARIES,
 }
 
 def setup(system_name):

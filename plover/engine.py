@@ -1,17 +1,19 @@
 
 from collections import namedtuple
 from functools import wraps
+import os
+import shutil
 import threading
 
 # Python 2/3 compatibility.
 from six.moves.queue import Queue
 
 from plover import log, system
-from plover.config import copy_default_dictionaries
 from plover.dictionary.loading_manager import DictionaryLoadingManager
 from plover.exception import InvalidConfigurationError
 from plover.formatting import Formatter
 from plover.registry import registry, PLUGINS_DIR
+from plover.resource import ASSET_SCHEME, resource_filename
 from plover.steno import Stroke
 from plover.suggestions import Suggestions
 from plover.translation import Translator
@@ -20,6 +22,31 @@ from plover.translation import Translator
 StartingStrokeState = namedtuple('StartingStrokeState', 'attach capitalize')
 
 MachineParams = namedtuple('MachineParams', 'type options keymap')
+
+
+def copy_default_dictionaries(dictionaries_files):
+    '''Recreate default dictionaries.
+
+    Each default dictionary is recreated if it's
+    in use by the current config and missing.
+    '''
+
+    config_dictionaries = set(os.path.basename(dictionary)
+                              for dictionary in dictionaries_files)
+    for dictionary in dictionaries_files:
+        # Ignore assets.
+        if dictionary.startswith(ASSET_SCHEME):
+            continue
+        # Nothing to do if dictionary file already exists.
+        if os.path.exists(dictionary):
+            continue
+        # Check it's actually a default dictionary.
+        basename = os.path.basename(dictionary)
+        if not basename in system.DEFAULT_DICTIONARIES:
+            continue
+        default_dictionary = os.path.join(system.DICTIONARIES_ROOT, basename)
+        log.info('recreating %s from %s', dictionary, default_dictionary)
+        shutil.copyfile(resource_filename(default_dictionary), dictionary)
 
 
 def with_lock(func):
@@ -103,7 +130,6 @@ class StenoEngine(object):
 
     def _start(self):
         self._set_output(self._config.get_auto_start())
-        copy_default_dictionaries(self._config)
         self._update(full=True)
 
     def _update(self, config_update=None, full=False, reset_machine=False):
@@ -177,6 +203,7 @@ class StenoEngine(object):
             self._machine.start_capture()
         # Update dictionaries.
         dictionaries_files = config['dictionary_file_names']
+        copy_default_dictionaries(dictionaries_files)
         dictionaries = self._dictionaries_manager.load(dictionaries_files)
         self._dictionaries.set_dicts(dictionaries)
         # Trigger `config_changed` hook.
