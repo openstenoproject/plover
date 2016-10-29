@@ -36,6 +36,10 @@ class StenoDictionary(collections.MutableMapping):
         """The length of the longest key in the dict."""
         return self._longest_key
 
+    @property
+    def readonly(self):
+        return self.save is None
+
     def __len__(self):
         return self._dict.__len__()
         
