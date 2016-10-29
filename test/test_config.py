@@ -15,7 +15,7 @@ from mock import patch
 
 from pkg_resources import EntryPoint
 
-from plover import config
+from plover import config, system
 from plover.machine.keymap import Keymap
 from plover.registry import Registry
 from plover.oslayer.config import CONFIG_DIR
@@ -182,15 +182,17 @@ class ConfigTestCase(unittest.TestCase):
             c.set_machine_specific_options(expected)
             self.assertEqual(c.get_machine_specific_options(), expected)
 
-    def test_dictionary_option(self):
+    def test_dictionaries_option(self):
+        section = config.SYSTEM_CONFIG_SECTION % config.DEFAULT_SYSTEM_NAME
+        option = config.SYSTEM_DICTIONARIES_OPTION
+        legacy_section = config.LEGACY_DICTIONARY_CONFIG_SECTION
+        legacy_option = config.LEGACY_DICTIONARY_FILE_OPTION
         c = config.Config()
-        section = config.DICTIONARY_CONFIG_SECTION
-        option = config.DICTIONARY_FILE_OPTION
         config_dir = os.path.realpath(config.CONFIG_DIR)
         # Check the default value.
         self.assertEqual(c.get_dictionary_file_names(),
                          [os.path.join(config_dir, name)
-                          for name in config.DEFAULT_DICTIONARIES])
+                          for name in system.DEFAULT_DICTIONARIES])
 
         # Relative paths as assumed to be relative to CONFIG_DIR.
         filenames = [os.path.abspath(os.path.join(config_dir, path))
@@ -202,34 +204,54 @@ class ConfigTestCase(unittest.TestCase):
                      for path in ('/b', '/a', '/d', '/c')]
         c.set_dictionary_file_names(filenames)
         self.assertEqual(c.get_dictionary_file_names(), filenames)
-        # Load from a file encoded the old way...
+        # Load from a file encoded the ancient way...
         filename = os.path.abspath('/some_file')
-        f = make_config('[%s]\n%s: %s' % (section, option, filename))
+        f = make_config('[%s]\n%s: %s' % (legacy_section, legacy_option, filename))
         c.load(f)
         # ..and make sure the right value is set.
         self.assertEqual(c.get_dictionary_file_names(), [filename])
-        # Load from a file encoded the new way...
+        # Load from a file encoded the old way...
         filenames = [os.path.abspath(path)
                      for path in ('/b', '/a', '/d', '/c')]
-        value = '\n'.join('%s%d: %s' % (option, d, v) 
+        value = '\n'.join('%s%d: %s' % (legacy_option, d, v)
                               for d, v in enumerate(filenames, start=1))
-        f = make_config('[%s]\n%s' % (section, value))
+        f = make_config('[%s]\n%s' % (legacy_section, value))
         c.load(f)
         # ...and make sure the right value is set.
         self.assertEqual(c.get_dictionary_file_names(), filenames)
-        
-        filenames.reverse()
-        
+        # Check the config is saved back converted to the new way.
+        f = make_config()
+        c.save(f)
+        self.assertEqual(f.getvalue().decode('utf-8'),
+                         '[%s]\n%s = %s\n\n' % (
+                             section, option, json.dumps(filenames)
+                         ))
+        # Load from a file encoded the new way...
+        f = make_config('[%s]\n%s = %s' % (
+            section, option, json.dumps(filenames)
+        ))
+        c.load(f)
+        # ...and make sure the right value is set.
+        self.assertEqual(c.get_dictionary_file_names(), filenames)
         # Set a value...
+        filenames.reverse()
         c.set_dictionary_file_names(filenames)
         f = make_config()
         # ...save it...
         c.save(f)
         # ...and make sure it's right.
-        value = '\n'.join('%s%d = %s' % (option, d, v) 
-                              for d, v in enumerate(filenames, start=1))
         self.assertEqual(f.getvalue().decode('utf-8'),
-                         '[%s]\n%s\n\n' % (section, value))
+                         '[%s]\n%s = %s\n\n' % (
+                             section, option, json.dumps(filenames)
+                         ))
+        # The new way must take precedence over the old way.
+        value = '\n'.join('%s%d = %s' % (legacy_option, d, v)
+                              for d, v in enumerate(['/foo', '/bar'], start=1))
+        f = make_config('[%s]\n%s\n[%s]\n%s = %s' % (
+            legacy_section, value, section, option, json.dumps(filenames)
+        ))
+        c.load(f)
+        self.assertEqual(c.get_dictionary_file_names(), filenames)
 
     def test_system_keymap(self):
         mappings_list = [
