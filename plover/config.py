@@ -14,10 +14,9 @@ from six.moves import configparser
 
 from plover.exception import InvalidConfigurationError
 from plover.machine.keymap import Keymap
-from plover.machine.registry import machine_registry, NoSuchMachineException
+from plover.registry import registry
 from plover.oslayer.config import ASSETS_DIR, CONFIG_DIR
 from plover.misc import expand_path, shorten_path
-from plover import system
 from plover import log
 
 
@@ -81,7 +80,10 @@ TRANSLATION_FRAME_SECTION = 'Translation Frame'
 TRANSLATION_FRAME_OPACITY_OPTION = 'opacity'
 DEFAULT_TRANSLATION_FRAME_OPACITY = 100
 
-DEFAULT_SYSTEM = 'English Stenotype'
+BASE_SYSTEM_SECTION = 'System'
+SYSTEM_NAME_OPTION = 'name'
+DEFAULT_SYSTEM_NAME = 'English Stenotype'
+
 SYSTEM_CONFIG_SECTION = 'System: %s'
 SYSTEM_KEYMAP_OPTION = 'keymap[%s]'
 
@@ -149,9 +151,10 @@ class Config(object):
                                  None)
         if machine_type is not None:
             try:
-                machine_registry.get(machine_type)
-            except NoSuchMachineException:
-                log.error("invalid machine type: %s", machine_type)
+                machine_type = registry.get_plugin('machine', machine_type).name
+            except:
+                log.error("invalid machine type: %s",
+                          machine_type, exc_info=True)
                 self.set_machine_type(DEFAULT_MACHINE_TYPE)
                 machine_type = None
         if machine_type is None:
@@ -171,8 +174,8 @@ class Config(object):
                 return p[1](v)
             except ValueError:
                 return p[0]
-        machine = machine_registry.get(machine_type)
-        info = machine.get_option_info()
+        machine_class = registry.get_plugin('machine', machine_type).resolve()
+        info = machine_class.get_option_info()
         defaults = {k: v[0] for k, v in info.items()}
         if self._config.has_section(machine_type):
             options = {o: self._config.get(machine_type, o)
@@ -331,25 +334,57 @@ class Config(object):
             opacity = DEFAULT_TRANSLATION_FRAME_OPACITY
         return opacity
 
-    def set_system_keymap(self, keymap, machine_type=None):
+    def set_system_name(self, system_name):
+        self._set(BASE_SYSTEM_SECTION, SYSTEM_NAME_OPTION, system_name)
+
+    def get_system_name(self):
+        system_name = self._get(BASE_SYSTEM_SECTION,
+                                SYSTEM_NAME_OPTION,
+                                None)
+        if system_name is not None:
+            try:
+                system_name = registry.get_plugin('system', system_name).name
+            except:
+                log.error("invalid system name: %s",
+                          system_name, exc_info=True)
+                self.set_system_name(DEFAULT_SYSTEM_NAME)
+                system_name = None
+        if system_name is None:
+            system_name = DEFAULT_SYSTEM_NAME
+        return system_name
+
+    def set_system_keymap(self, keymap, machine_type=None, system_name=None):
         if machine_type is None:
             machine_type = self.get_machine_type()
-        section = SYSTEM_CONFIG_SECTION % DEFAULT_SYSTEM
+        if system_name is None:
+            system_name = self.get_system_name()
+        section = SYSTEM_CONFIG_SECTION % system_name
         option = SYSTEM_KEYMAP_OPTION % machine_type
-        self._set(section, option, json.dumps(sorted(dict(keymap).items())))
+        if keymap is None:
+            self._config.remove_option(section, option)
+        else:
+            self._set(section, option, json.dumps(sorted(dict(keymap).items())))
 
-    def get_system_keymap(self, machine_type=None):
+    def get_system_keymap(self, machine_type=None, system_name=None):
         if machine_type is None:
             machine_type = self.get_machine_type()
         try:
-            machine_class = machine_registry.get(machine_type)
+            machine_class = registry.get_plugin('machine', machine_type).resolve()
         except:
             log.error("invalid machine type: %s", machine_type, exc_info=True)
             return None
-        section = SYSTEM_CONFIG_SECTION % DEFAULT_SYSTEM
+        if system_name is None:
+            system_name = self.get_system_name()
+        try:
+            system = registry.get_plugin('system', system_name).resolve()
+        except:
+            log.error("invalid system name: %s", system_name, exc_info=True)
+            return None
+        section = SYSTEM_CONFIG_SECTION % system_name
         option = SYSTEM_KEYMAP_OPTION % machine_type
         mappings = self._get(section, option, None)
         if mappings is None:
+            # No user mappings, use system default.
             mappings = system.KEYMAPS.get(machine_type)
         else:
             try:
@@ -357,8 +392,17 @@ class Config(object):
             except ValueError as e:
                 log.error("invalid machine keymap, resetting to default",
                           exc_info=True)
+                self.set_system_keymap(None, machine_type)
                 mappings = system.KEYMAPS.get(machine_type)
-                self.set_system_keymap(mappings, machine_type)
+        if mappings is None:
+            if machine_class.KEYMAP_MACHINE_TYPE is not None:
+                # Try fallback.
+                return self.get_system_keymap(
+                    machine_type=machine_class.KEYMAP_MACHINE_TYPE,
+                    system_name=system_name
+                )
+            # No fallback...
+            mappings = {}
         keymap = Keymap(machine_class.get_keys(), system.KEYS + machine_class.get_actions())
         keymap.set_mappings(mappings)
         return keymap
@@ -424,6 +468,7 @@ class Config(object):
     suggestions_display_on_top
     translation_frame_opacity
 
+    system_name
     machine_type
     machine_specific_options
     system_keymap

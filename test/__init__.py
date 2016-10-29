@@ -1,6 +1,10 @@
 
 import unittest
 
+from plover import system
+from plover.config import DEFAULT_SYSTEM_NAME
+from plover.registry import registry
+
 
 # So our custom assertHelpers are not part of the test failure tracebacks.
 __unittest = True
@@ -21,3 +25,8 @@ class TestCase(unittest.TestCase):
                 return False
         return ContextManager()
 
+
+# Setup registry.
+registry.update()
+# Setup default system.
+system.setup(DEFAULT_SYSTEM_NAME)

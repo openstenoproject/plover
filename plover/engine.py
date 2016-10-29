@@ -6,12 +6,12 @@ import threading
 # Python 2/3 compatibility.
 from six.moves.queue import Queue
 
-from plover import log
+from plover import log, system
 from plover.config import copy_default_dictionaries
 from plover.dictionary.loading_manager import DictionaryLoadingManager
 from plover.exception import InvalidConfigurationError
 from plover.formatting import Formatter
-from plover.machine.registry import machine_registry, NoSuchMachineException
+from plover.registry import registry, PLUGINS_DIR
 from plover.steno import Stroke
 from plover.suggestions import Suggestions
 from plover.translation import Translator
@@ -138,6 +138,11 @@ class StenoEngine(object):
         self._formatter.start_attached = config['start_attached']
         self._formatter.start_capitalized = config['start_capitalized']
         self._translator.set_min_undo_length(config['undo_levels'])
+        # Update system.
+        system_name = config['system_name']
+        if system.NAME != system_name:
+            log.info('loading system: %s', system_name)
+            system.setup(system_name)
         # Update machine.
         update_keymap = False
         start_machine = False
@@ -151,9 +156,10 @@ class StenoEngine(object):
             machine_type = config['machine_type']
             machine_options = config['machine_specific_options']
             try:
-                machine_class = machine_registry.get(machine_type)
-            except NoSuchMachineException as e:
+                machine_class = registry.get_plugin('machine', machine_type).resolve()
+            except Exception as e:
                 raise InvalidConfigurationError(str(e))
+            log.info('setting machine: %s', machine_type)
             self._machine = machine_class(machine_options)
             self._machine.set_suppression(self._is_running)
             self._machine.add_state_callback(self._machine_state_callback)
@@ -319,18 +325,17 @@ class StenoEngine(object):
     def quit(self):
         self._same_thread_hook(self._quit)
 
-    @property
     @with_lock
-    def machines(self):
-        return sorted(machine_registry.get_all_names())
+    def list_plugins(self, plugin_type):
+        return sorted(registry.list_plugins(plugin_type))
 
     @with_lock
     def machine_specific_options(self, machine_type):
         return self._config.get_machine_specific_options(machine_type)
 
     @with_lock
-    def system_keymap(self, machine_type):
-        return self._config.get_system_keymap(machine_type)
+    def system_keymap(self, machine_type, system_name):
+        return self._config.get_system_keymap(machine_type, system_name)
 
     @with_lock
     def lookup(self, translation):

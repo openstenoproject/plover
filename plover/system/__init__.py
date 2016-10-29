@@ -4,6 +4,7 @@ import os
 import re
 
 from plover.oslayer.config import CONFIG_DIR, ASSETS_DIR
+from plover.registry import registry
 
 
 def _load_wordlist(filename):
@@ -47,14 +48,12 @@ _EXPORTS = {
     'KEYMAPS'                  : lambda mod: mod.KEYMAPS,
 }
 
-def setup():
-    from plover.system import english_stenotype as mod
-    globs = globals()
+def setup(system_name):
+    system_symbols = {}
+    mod = registry.get_plugin('system', system_name).resolve()
     for symbol, init in _EXPORTS.items():
-        globs[symbol] = init(mod)
-    globs['NAME'] = 'English Stenotype'
+        system_symbols[symbol] = init(mod)
+    system_symbols['NAME'] = system_name
+    globals().update(system_symbols)
 
-
-# Setup default system.
-setup()
-
+NAME = None

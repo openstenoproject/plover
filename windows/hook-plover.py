@@ -23,16 +23,15 @@ log.info('adding metadata: %s', metadata_list)
 datas.extend(metadata_list)
 
 datas.append(('plover/assets', 'plover/assets'))
-
-hiddenimports.append('plover.gui_none.main')
+for group in distribution.get_entry_map().values():
+    for entrypoint in group.values():
+        hiddenimports.append(entrypoint.module_name)
 
 try:
     import PyQt5
 except ImportError:
     pass
 else:
-    hiddenimports.append('plover.gui_qt.main')
-
     # Qt GUI localization.
     from PyQt5.QtCore import QLibraryInfo
 

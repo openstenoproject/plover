@@ -41,7 +41,8 @@ class PaperTape(QDialog, Ui_PaperTape, WindowState):
         ))
         self.action_Clear.setEnabled(False)
         self.action_Save.setEnabled(False)
-        self._setup_system(engine.config)
+        engine.signal_connect('config_changed', self.on_config_changed)
+        self.on_config_changed(engine.config)
         engine.signal_connect('stroked', self.on_stroke)
         self.tape.setFocus()
         self.restore_state()
@@ -62,17 +63,17 @@ class PaperTape(QDialog, Ui_PaperTape, WindowState):
         settings.setValue('style', self.STYLES.index(self._style))
         settings.setValue('font', self.header.font().toString())
 
-    def _setup_system(self, config):
+    def on_config_changed(self, config):
         if 'stroke_display_on_top' in config:
             ontop = config['stroke_display_on_top']
             self.action_ToggleOnTop.setChecked(ontop)
             self.on_toggle_ontop(ontop)
-        self._all_keys = ''.join(key.strip('-') for key in system.KEYS)
-        self._numbers = set(system.NUMBERS.values())
-        self.header.setText(self._all_keys)
-        style = self.STYLE_PAPER
-        self.styles.setCurrentText(style)
-        self.on_style_changed(style)
+        if 'system_name' in config:
+            self._strokes = []
+            self._all_keys = ''.join(key.strip('-') for key in system.KEYS)
+            self._numbers = set(system.NUMBERS.values())
+            self.header.setText(self._all_keys)
+            self.on_style_changed(self._style)
 
     @property
     def _style(self):

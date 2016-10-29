@@ -88,7 +88,10 @@ class MainWindow(QMainWindow, Ui_MainWindow, WindowState):
         engine.signal_connect('machine_state_changed', self._trayicon.update_machine_state)
         engine.signal_connect('output_changed', self.on_output_changed)
         # Machine.
-        self.machine_type.addItems(_(machine) for machine in engine.machines)
+        self.machine_type.addItems(
+            _(machine)
+            for machine in engine.list_plugins('machine')
+        )
         engine.signal_connect('config_changed', self.on_config_changed)
         engine.signal_connect('machine_state_changed',
             lambda machine, state:

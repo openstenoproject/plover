@@ -11,7 +11,6 @@ import os
 import sys
 import traceback
 import argparse
-import importlib
 
 if sys.platform.startswith('darwin'):
     import appnope
@@ -19,6 +18,7 @@ if sys.platform.startswith('darwin'):
 import plover.oslayer.processlock
 from plover.oslayer.config import CONFIG_DIR
 from plover.config import CONFIG_FILE, Config
+from plover.registry import registry
 from plover import log
 from plover import __name__ as __software_name__
 from plover import __version__
@@ -47,20 +47,15 @@ def main():
                         % (__software_name__.capitalize(), __version__))
     parser.add_argument('-l', '--log-level', choices=['debug', 'info', 'warning', 'error'],
                         default=None, help='set log level')
-    gui_choices = {
-        'none': 'plover.gui_none.main',
-        'qt'  : 'plover.gui_qt.main',
-    }
-    gui_default = 'qt'
-    parser.add_argument('-g', '--gui', choices=gui_choices,
-                        default=gui_default, help='set gui')
+    parser.add_argument('-g', '--gui', default='qt', help='set gui')
     args = parser.parse_args(args=sys.argv[1:])
     if args.log_level is not None:
         log.set_level(args.log_level.upper())
 
-    if not args.gui in gui_choices:
-        raise ValueError('invalid gui: %r' % args.gui)
-    gui = importlib.import_module(gui_choices[args.gui])
+    registry.load_plugins()
+    registry.update()
+
+    gui = registry.get_plugin('gui', args.gui).resolve()
 
     try:
         # Ensure only one instance of Plover is running at a time.
