@@ -5,8 +5,6 @@
 
 """
 
-import io
-
 try:
     import simplejson as json
 except ImportError:
@@ -15,8 +13,10 @@ except ImportError:
 # Python 2/3 compatibility.
 from six import iteritems
 
+from plover.resource import resource_stream
 from plover.steno_dictionary import StenoDictionary
 from plover.steno import normalize_steno
+
 
 def create_dictionary():
     return StenoDictionary()
@@ -25,7 +25,7 @@ def load_dictionary(filename):
 
     for encoding in ('utf-8', 'latin-1'):
         try:
-            with io.open(filename, 'r', encoding=encoding) as fp:
+            with resource_stream(filename, encoding=encoding) as fp:
                 d = json.load(fp)
                 break
         except UnicodeDecodeError:
