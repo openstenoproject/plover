@@ -436,6 +436,10 @@ if __name__ == '__main__':
         [console_scripts]
         plover = plover.main:main
 
+        [plover.dictionary]
+        json = plover.dictionary.json_dict
+        rtf = plover.dictionary.rtfcre_dict
+
         [plover.gui]
         none = plover.gui_none.main
         qt   = plover.gui_qt.main
