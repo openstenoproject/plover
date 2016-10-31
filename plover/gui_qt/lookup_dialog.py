@@ -37,7 +37,7 @@ class LookupDialog(Tool, Ui_LookupDialog):
 
     def _update_suggestions(self, suggestion_list):
         self.suggestions.clear()
-        self.suggestions.prepend(suggestion_list)
+        self.suggestions.append(suggestion_list)
 
     def on_lookup(self, pattern):
         translation = unescape_translation(pattern.strip())

@@ -27,10 +27,11 @@ class SuggestionsWidget(QWidget, Ui_SuggestionsWidget):
         self._strokes_char_format = QTextCharFormat()
         self._strokes_char_format.font().setStyleHint(QFont.Monospace)
 
-    def prepend(self, suggestion_list):
-        before_height = self.suggestions.document().size().height()
+    def append(self, suggestion_list):
+        scrollbar = self.suggestions.verticalScrollBar()
+        scroll_at_end = scrollbar.value() == scrollbar.maximum()
         cursor = self.suggestions.textCursor()
-        cursor.movePosition(QTextCursor.Start)
+        cursor.movePosition(QTextCursor.End)
         for suggestion in suggestion_list:
             cursor.insertBlock()
             cursor.setCharFormat(self._translation_char_format)
@@ -45,12 +46,9 @@ class SuggestionsWidget(QWidget, Ui_SuggestionsWidget):
                 cursor.block().setUserState(self.STYLE_STROKES)
                 cursor.insertText(u'   ' + u'/'.join(strokes_list))
         cursor.insertText('\n')
-        # Keep current position when not at the top of the document.
-        scrollbar_value = self.suggestions.verticalScrollBar().value()
-        if scrollbar_value != 0:
-            after_height = self.suggestions.document().size().height()
-            delta_height = after_height - before_height
-            self.suggestions.verticalScrollBar().setValue(scrollbar_value + delta_height)
+        # Keep current position when not at the end of the document.
+        if scroll_at_end:
+            scrollbar.setValue(scrollbar.maximum())
 
     def clear(self):
         self.suggestions.clear()
