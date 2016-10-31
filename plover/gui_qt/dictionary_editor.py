@@ -1,3 +1,4 @@
+import locale
 import re
 from operator import attrgetter, itemgetter
 from collections import namedtuple, OrderedDict
@@ -182,6 +183,7 @@ class DictionaryItemModel(QAbstractTableModel):
             return
         if new_item is None:
             # Undo deletion.
+            old_item.dictionary[old_item.strokes] = old_item.translation
             self.new_row(0, item=old_item, record=False)
             return
         # Undo update.
@@ -209,6 +211,7 @@ class DictionaryItemModel(QAbstractTableModel):
                 self._undo(old_item, new_item)
         else:
             self._undo(*op)
+        self.sort(self._sort_column, self._sort_order)
 
     def rowCount(self, parent):
         return 0 if parent.isValid() else len(self._entries)
@@ -413,6 +416,7 @@ class DictionaryEditor(QDialog, Ui_DictionaryEditor, WindowState):
             self.action_Delete,
             self.action_New,
         ))
+        self._update_filtered_count()
         self.restore_state()
         self.finished.connect(self.save_state)
 
@@ -466,6 +470,7 @@ class DictionaryEditor(QDialog, Ui_DictionaryEditor, WindowState):
     def on_data_changed(self, top_left, bottom_right):
         self.table.setCurrentIndex(top_left)
         self.action_Undo.setEnabled(self._model.has_undo)
+        self._update_filtered_count()
 
     def on_row_changed(self, parent, first, last):
         index = self._model.index(first, 0)
@@ -480,15 +485,21 @@ class DictionaryEditor(QDialog, Ui_DictionaryEditor, WindowState):
             action.setEnabled(enabled)
 
     def on_undo(self):
+        prev_index = self.table.currentIndex()
         assert self._model.has_undo
         self._model.undo()
         self.action_Undo.setEnabled(self._model.has_undo)
+        self._update_filtered_count()
+        self.table.setCurrentIndex(prev_index)
+
 
     def on_delete(self):
         selection = self._selection
         assert selection
         self._model.remove_rows(selection)
         self.action_Undo.setEnabled(self._model.has_undo)
+        self._update_filtered_count()
+
 
     def on_new(self):
         selection = self._selection
@@ -501,6 +512,8 @@ class DictionaryEditor(QDialog, Ui_DictionaryEditor, WindowState):
         index = self._model.index(row, 0)
         self.table.setCurrentIndex(index)
         self.table.edit(index)
+        self._update_filtered_count()
+
 
     def on_apply_filter(self):
         strokes_filter = '/'.join(normalize_steno(self.strokes_filter.text().strip()))
@@ -530,6 +543,15 @@ class DictionaryEditor(QDialog, Ui_DictionaryEditor, WindowState):
         self._model.filter(strokes_filter, unescaped_translation_filter,
                            case_sensitive, regex, collisions,
                            duplicates)
+        self._update_filtered_count()
+
+
+    def _update_filtered_count(self):
+        self.filtered_label.setText(
+            'Showing %s / %s' %
+            (locale.format("%d", len(self._model._entries), grouping=True),
+             locale.format("%d", sum(len(dictionary) for dictionary in self._model._dictionary_list), grouping=True))
+        )
 
     def on_clear_filter(self):
         self.strokes_filter.setText('')
@@ -539,6 +561,8 @@ class DictionaryEditor(QDialog, Ui_DictionaryEditor, WindowState):
         self.collisions_checkbox.setChecked(False)
         self.duplicates_checkbox.setChecked(False)
         self._model.filter()
+        self._update_filtered_count()
+
 
     def on_finished(self, result):
         with self._engine:

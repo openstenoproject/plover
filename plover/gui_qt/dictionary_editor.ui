@@ -210,6 +210,16 @@
          </property>
         </widget>
        </item>
+       <item row="10" column="0" colspan="2">
+        <widget class="QLabel" name="filtered_label">
+         <property name="text">
+          <string>Showing 0 / 0</string>
+         </property>
+         <property name="alignment">
+          <set>Qt::AlignRight|Qt::AlignTrailing|Qt::AlignVCenter</set>
+         </property>
+        </widget>
+       </item>
       </layout>
      </widget>
      <widget class="QTableView" name="table">
