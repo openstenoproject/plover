@@ -2,7 +2,7 @@ import sys
 from plover import log
 
 
-handler = None
+handler_class = handler = None
 
 try:
     if sys.platform.startswith('linux'):
