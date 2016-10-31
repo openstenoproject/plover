@@ -77,7 +77,7 @@ class MainWindow(QMainWindow, Ui_MainWindow, WindowState):
             '',
             'menu_Help',
             '',
-            'action_ShowHide',
+            'action_Show',
             'action_Quit',
         ):
             if action_name:
@@ -214,8 +214,8 @@ class MainWindow(QMainWindow, Ui_MainWindow, WindowState):
         self._trayicon.disable()
         self.hide()
 
-    def on_show_hide(self):
-        self.set_visible(not self.isVisible())
+    def on_show(self):
+        self._focus()
 
     def closeEvent(self, event):
         if self._trayicon.is_enabled():
