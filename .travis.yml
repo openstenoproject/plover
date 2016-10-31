@@ -88,9 +88,10 @@ before_deploy:
       fi
       ;;
     linux)
-      $PYTHON setup.py bdist_{egg,wheel}
+      $PYTHON setup.py bdist_egg
       if [ $PYTHON = python3 ]
       then
+        $PYTHON setup.py bdist_wheel sdist
         ./linux/debuild.sh -us -uc
       fi
       ;;
@@ -110,6 +111,7 @@ deploy:
     - "dist/*.deb"
     - "dist/*.dmg"
     - "dist/*.egg"
+    - "dist/*.tar.gz"
     - "dist/*.whl"
   on:
     tags: true
