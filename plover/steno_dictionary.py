@@ -68,6 +68,12 @@ class StenoDictionary(collections.MutableMapping):
     def __contains__(self, key):
         return self.get(key) is not None
 
+    def reverse_lookup(self, value):
+        return self.reverse.get(value, ())
+
+    def casereverse_lookup(self, value):
+        return self.casereverse.get(value)
+
     def set_path(self, path):
         self._path = path    
 
@@ -135,7 +141,7 @@ class StenoDictionaryCollection(object):
     def reverse_lookup(self, value):
         keys = []
         for n, d in enumerate(self.dicts):
-            for k in d.reverse.get(value, ()):
+            for k in d.reverse_lookup(value):
                 # Ignore key if it's overriden by a higher priority dictionary.
                 if self._lookup(k, dicts=self.dicts[:n]) is None:
                     keys.append(k)
@@ -143,7 +149,7 @@ class StenoDictionaryCollection(object):
 
     def casereverse_lookup(self, value):
         for d in self.dicts:
-            key = d.casereverse.get(value)
+            key = d.casereverse_lookup(value)
             if key:
                 return key
 
