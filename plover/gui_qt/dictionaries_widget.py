@@ -32,6 +32,7 @@ class DictionariesWidget(QWidget, Ui_DictionariesWidget):
         self._engine = engine
         self._states = []
         self._dictionaries = []
+        self._editor = None
         for action in (
             self.action_Undo,
             self.action_EditDictionaries,
@@ -79,7 +80,12 @@ class DictionariesWidget(QWidget, Ui_DictionariesWidget):
         if record:
             self._states.append(self._dictionaries)
             self.action_Undo.setEnabled(True)
+        if self._editor:
+            for dictionary in self._editor.dictionary_paths:
+                if dictionary not in dictionaries:
+                    self._editor.close()
         self._dictionaries = dictionaries
+
         self.table.setRowCount(0)
         item = None
         for row, filename in enumerate(dictionaries):
@@ -188,8 +194,16 @@ class DictionariesWidget(QWidget, Ui_DictionariesWidget):
         self._update_dictionaries(dictionaries, record=False)
 
     def _edit(self, dictionaries):
-        editor = DictionaryEditor(self._engine, dictionaries, self)
-        editor.exec_()
+        if self._editor is not None:
+            self._editor.close()
+        self._editor = DictionaryEditor(self._engine, dictionaries, None)
+        def on_finished():
+            if self._editor:
+                self._editor.destroy()
+        self._editor.finished.connect(on_finished)
+        self._editor.show()
+        self._editor.activateWindow()
+        self._editor.raise_()
 
     def on_activate_cell(self, row, col):
         self._edit([self._dictionaries[row]])
