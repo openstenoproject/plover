@@ -19,6 +19,7 @@ import plover.dictionary.json_dict as json_dict
 import plover.dictionary.rtfcre_dict as rtfcre_dict
 from plover.config import JSON_EXTENSION, RTF_EXTENSION
 from plover.exception import DictionaryLoaderException
+from plover.resource import ASSET_SCHEME
 
 dictionaries = {
     JSON_EXTENSION.lower(): json_dict,
@@ -43,6 +44,7 @@ def create_dictionary(filename):
     Note: the file is not created! The resulting dictionary save
     method must be called to finalize the creation on disk.
     '''
+    assert not filename.startswith(ASSET_SCHEME)
     dictionary_module = _get_dictionary_module(filename)
     if dictionary_module.create_dictionary is None:
         raise DictionaryLoaderException('%s does not support creation' % dictionary_module.__name__)
@@ -67,7 +69,8 @@ def load_dictionary(filename):
         ne = DictionaryLoaderException('loading \'%s\' failed: %s' % (filename, str(e)))
         reraise(type(ne), ne, sys.exc_info()[2])
     d.set_path(filename)
-    d.save = ThreadedSaver(d, filename, dictionary_module.save_dictionary)
+    if not filename.startswith(ASSET_SCHEME):
+        d.save = ThreadedSaver(d, filename, dictionary_module.save_dictionary)
     return d
 
 def save_dictionary(d, filename, saver):

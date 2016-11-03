@@ -20,6 +20,7 @@ import re
 # Python 2/3 compatibility.
 from six import get_function_code
 
+from plover.resource import resource_stream
 from plover.steno import normalize_steno
 from plover.steno_dictionary import StenoDictionary
 # TODO: Move dictionary format somewhere more canonical than formatting.
@@ -288,7 +289,7 @@ def load_stylesheet(s):
 
 def load_dictionary(filename):
     """Load an RTF/CRE dictionary."""
-    with open(filename, 'rb') as fp:
+    with resource_stream(filename) as fp:
         s = fp.read().decode('cp1252')
     styles = load_stylesheet(s)
     d = {}

@@ -9,6 +9,7 @@ import unittest
 
 import plover.misc as misc
 import plover.oslayer.config as conf
+from plover.resource import ASSET_SCHEME
 
 
 class MiscTestCase(unittest.TestCase):
@@ -29,6 +30,9 @@ class MiscTestCase(unittest.TestCase):
 
     def test_dictionary_path(self):
         for short_path, full_path in (
+            # Asset, no change.
+            (ASSET_SCHEME + 'foo:bar',
+             ASSET_SCHEME + 'foo:bar'),
             # Absolute path, no change.
             (os.path.abspath('/foo/bar'),
              os.path.abspath('/foo/bar')),
