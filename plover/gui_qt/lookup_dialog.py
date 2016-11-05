@@ -1,27 +1,28 @@
 
 from PyQt5.QtCore import QEvent, Qt
-from PyQt5.QtWidgets import (
-    QDialog,
-)
 
 from plover.translation import unescape_translation
 
 from plover.gui_qt.lookup_dialog_ui import Ui_LookupDialog
 from plover.gui_qt.suggestions_widget import SuggestionsWidget
-from plover.gui_qt.utils import WindowState
+from plover.gui_qt.tool import Tool
 
 
-class LookupDialog(QDialog, Ui_LookupDialog, WindowState):
+class LookupDialog(Tool, Ui_LookupDialog):
 
+    ''' Search the dictionary for translations. '''
+
+    TITLE = _('Lookup')
+    ICON = ':/search.svg'
     ROLE = 'lookup'
+    SHORTCUT = 'Ctrl+L'
 
     def __init__(self, engine):
-        super(LookupDialog, self).__init__()
+        super(LookupDialog, self).__init__(engine)
         self.setupUi(self)
         suggestions = SuggestionsWidget()
         self.layout().replaceWidget(self.suggestions, suggestions)
         self.suggestions = suggestions
-        self._engine = engine
         self.pattern.installEventFilter(self)
         self.suggestions.installEventFilter(self)
         self.pattern.setFocus()

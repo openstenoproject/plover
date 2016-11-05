@@ -444,6 +444,12 @@ if __name__ == '__main__':
         none = plover.gui_none.main
         qt   = plover.gui_qt.main
 
+        [plover.gui.qt.tool]
+        add_translation = plover.gui_qt.add_translation:AddTranslation
+        lookup = plover.gui_qt.lookup_dialog:LookupDialog
+        paper_tape = plover.gui_qt.paper_tape:PaperTape
+        suggestions = plover.gui_qt.suggestions_dialog:SuggestionsDialog
+
         [plover.machine]
         Gemini PR = plover.machine.geminipr:GeminiPr
         Keyboard  = plover.machine.keyboard:Keyboard

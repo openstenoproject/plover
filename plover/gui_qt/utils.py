@@ -4,6 +4,7 @@ from PyQt5.QtWidgets import (
     QMainWindow,
     QToolBar,
     QToolButton,
+    QWidget,
 )
 
 
@@ -23,7 +24,7 @@ def ToolBar(*action_list):
     return toolbar
 
 
-class WindowState(object):
+class WindowState(QWidget):
 
     ROLE = None
 

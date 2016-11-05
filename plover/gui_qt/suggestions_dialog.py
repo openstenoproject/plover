@@ -9,7 +9,6 @@ from PyQt5.QtGui import (
 from PyQt5.QtWidgets import (
     QAction,
     QFontDialog,
-    QDialog,
     QMenu,
 )
 
@@ -17,12 +16,18 @@ from plover.suggestions import Suggestion
 
 from plover.gui_qt.suggestions_dialog_ui import Ui_SuggestionsDialog
 from plover.gui_qt.suggestions_widget import SuggestionsWidget
-from plover.gui_qt.utils import ToolBar, WindowState
+from plover.gui_qt.tool import Tool
+from plover.gui_qt.utils import ToolBar
 
 
-class SuggestionsDialog(QDialog, Ui_SuggestionsDialog, WindowState):
+class SuggestionsDialog(Tool, Ui_SuggestionsDialog):
 
+    ''' Suggest possible strokes for the last written words. '''
+
+    TITLE = _('Suggestions')
+    ICON = ':/suggestions.svg'
     ROLE = 'suggestions'
+    SHORTCUT = 'Ctrl+J'
 
     WORDS_RX = re.compile(r'[-\'"\w]+|[^\w\s]')
 
@@ -35,12 +40,11 @@ class SuggestionsDialog(QDialog, Ui_SuggestionsDialog, WindowState):
     #    - 1-10 "strokes" frames
 
     def __init__(self, engine):
-        super(SuggestionsDialog, self).__init__()
+        super(SuggestionsDialog, self).__init__(engine)
         self.setupUi(self)
         suggestions = SuggestionsWidget()
         self.layout().replaceWidget(self.suggestions, suggestions)
         self.suggestions = suggestions
-        self._engine = engine
         self._words = u''
         self._last_suggestions = None
         # Toolbar.

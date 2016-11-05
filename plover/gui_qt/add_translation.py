@@ -2,7 +2,6 @@
 from collections import namedtuple
 
 from PyQt5.QtCore import QEvent
-from PyQt5.QtWidgets import QDialog
 
 from plover.misc import expand_path, shorten_path
 from plover.steno import normalize_steno
@@ -10,19 +9,23 @@ from plover.engine import StartingStrokeState
 from plover.translation import escape_translation, unescape_translation
 
 from plover.gui_qt.add_translation_ui import Ui_AddTranslation
-from plover.gui_qt.utils import WindowState
+from plover.gui_qt.tool import Tool
 
 
-class AddTranslation(QDialog, Ui_AddTranslation, WindowState):
+class AddTranslation(Tool, Ui_AddTranslation):
 
+    ''' Add a new translation to the dictionary. '''
+
+    TITLE = _('Add Translation')
+    ICON = ':/new.svg'
     ROLE = 'add_translation'
+    SHORTCUT = 'Ctrl+N'
 
     EngineState = namedtuple('EngineState', 'dictionary_filter translator starting_stroke')
 
     def __init__(self, engine, dictionary=None):
-        super(AddTranslation, self).__init__()
+        super(AddTranslation, self).__init__(engine)
         self.setupUi(self)
-        self._engine = engine
         dictionaries = [d.get_path() for d in engine.dictionaries.dicts]
         self.dictionary.addItems(shorten_path(d) for d in dictionaries)
         if dictionary is None:

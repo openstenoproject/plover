@@ -321,7 +321,7 @@ class ConfigWindow(QDialog, Ui_ConfigWindow, WindowState):
                              _('Save translations to the logfile.')),
             )),
             (_('Machine'), (
-                ConfigOption(_('Type:'), 'machine_type', partial(ChoiceOption, choices=machines),
+                ConfigOption(_('Machine:'), 'machine_type', partial(ChoiceOption, choices=machines),
                              dependents=(
                                  ('machine_specific_options', engine.machine_specific_options),
                                  ('system_keymap', lambda v: self._update_keymap(machine_type=v)),
@@ -356,7 +356,7 @@ class ConfigWindow(QDialog, Ui_ConfigWindow, WindowState):
                                'dictionaries entry with the maximum number of strokes.')),
             )),
             (_('System'), (
-                ConfigOption(_('Type'), 'system_name',
+                ConfigOption(_('System:'), 'system_name',
                              partial(ChoiceOption, choices={
                                  name: name
                                  for name in engine.list_plugins('system')
