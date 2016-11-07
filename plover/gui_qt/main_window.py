@@ -108,13 +108,9 @@ class MainWindow(QMainWindow, Ui_MainWindow, WindowState):
             self.on_configure()
         # Apply configuration settings.
         config = self._engine.config
-        self.on_config_changed(config)
+        self._configured = False
         self.dictionaries.on_config_changed(config)
         self.set_visible(not config['start_minimized'])
-        if config['show_suggestions_display']:
-            self.on_suggestions()
-        if config['show_stroke_display']:
-            self.on_paper_tape()
         # Start the engine.
         engine.start()
 
@@ -164,6 +160,12 @@ class MainWindow(QMainWindow, Ui_MainWindow, WindowState):
     def on_config_changed(self, config_update):
         if 'machine_type' in config_update:
             self.machine_type.setCurrentText(config_update['machine_type'])
+        if not self._configured:
+            self._configured = True
+            if config_update.get('show_suggestions_display', False):
+                self.on_suggestions()
+            if config_update.get('show_stroke_display', False):
+                self.on_paper_tape()
 
     def on_machine_changed(self, machine_type):
         self._engine.config = { 'machine_type': machine_type }
