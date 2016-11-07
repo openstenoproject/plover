@@ -37,6 +37,28 @@ class AddTranslation(QDialog, Ui_AddTranslation, WindowState):
         self.installEventFilter(self)
         self.strokes.installEventFilter(self)
         self.translation.installEventFilter(self)
+
+        # Pre-populate the strokes or translations with last stroke/word.
+        last_translation = None
+        for t in reversed(engine.translator_state.translations):
+            # Find the last undoable stroke.
+            if t.has_undo():
+                last_translation = t
+                break
+        if last_translation:
+            # Grab the last-formatted word
+            last_word = last_translation.formatting[-1].word
+            if last_word:
+                # If the last translation was created with the dictionary...
+                if last_translation.english:
+                    self.translation.setText(last_word.strip())
+                    self.on_translation_edited()
+                # Otherwise, it's just raw steno
+                else:
+                    self.strokes.setText(last_word.strip())
+                    self.on_strokes_edited()
+                    self.strokes.selectAll()
+
         with engine:
             self._original_state = self.EngineState(None,
                                                     engine.translator_state,
