@@ -15,26 +15,20 @@ import threading
 # Python 2/3 compatibility.
 from six import reraise
 
-import plover.dictionary.json_dict as json_dict
-import plover.dictionary.rtfcre_dict as rtfcre_dict
-from plover.config import JSON_EXTENSION, RTF_EXTENSION
 from plover.exception import DictionaryLoaderException
+from plover.registry import registry
 from plover.resource import ASSET_SCHEME
 
-dictionaries = {
-    JSON_EXTENSION.lower(): json_dict,
-    RTF_EXTENSION.lower(): rtfcre_dict,
-}
 
 def _get_dictionary_module(filename):
-    extension = splitext(filename)[1].lower()
+    extension = splitext(filename)[1].lower()[1:]
     try:
-        dictionary_module = dictionaries[extension]
+        entrypoint = registry.get_plugin('dictionary', extension)
     except KeyError:
         raise DictionaryLoaderException(
             'Unsupported extension: %s. Supported extensions: %s' %
-            (extension, ', '.join(sorted(dictionaries.keys()))))
-    return dictionary_module
+            (extension, ', '.join(sorted(registry.list_plugins('dictionary')))))
+    return entrypoint.resolve()
 
 def create_dictionary(filename):
     '''Create a new dictionary.
@@ -46,7 +40,7 @@ def create_dictionary(filename):
     '''
     assert not filename.startswith(ASSET_SCHEME)
     dictionary_module = _get_dictionary_module(filename)
-    if dictionary_module.create_dictionary is None:
+    if not hasattr(dictionary_module, 'create_dictionary'):
         raise DictionaryLoaderException('%s does not support creation' % dictionary_module.__name__)
     try:
         d = dictionary_module.create_dictionary()
@@ -69,7 +63,8 @@ def load_dictionary(filename):
         ne = DictionaryLoaderException('loading \'%s\' failed: %s' % (filename, str(e)))
         reraise(type(ne), ne, sys.exc_info()[2])
     d.set_path(filename)
-    if not filename.startswith(ASSET_SCHEME):
+    if not filename.startswith(ASSET_SCHEME) and \
+       hasattr(dictionary_module, 'save_dictionary'):
         d.save = ThreadedSaver(d, filename, dictionary_module.save_dictionary)
     return d
 

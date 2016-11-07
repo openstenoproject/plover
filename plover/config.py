@@ -83,10 +83,6 @@ SYSTEM_CONFIG_SECTION = 'System: %s'
 SYSTEM_KEYMAP_OPTION = 'keymap[%s]'
 SYSTEM_DICTIONARIES_OPTION = 'dictionaries'
 
-# Dictionary constants.
-JSON_EXTENSION = '.json'
-RTF_EXTENSION = '.rtf'
-
 # Logging constants.
 LOG_EXTENSION = '.log'
 

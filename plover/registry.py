@@ -13,6 +13,7 @@ PLUGINS_DIR = os.path.join(CONFIG_DIR, 'plugins')
 class Registry(object):
 
     PLUGIN_TYPES = (
+        'dictionary',
         'gui',
         'machine',
         'system',

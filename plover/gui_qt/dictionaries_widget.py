@@ -14,12 +14,16 @@ from PyQt5.QtWidgets import (
     QWidget,
 )
 
-from plover.dictionary.base import dictionaries as dictionary_formats
 from plover.misc import shorten_path
+from plover.registry import registry
 
 from plover.gui_qt.dictionaries_widget_ui import Ui_DictionariesWidget
 from plover.gui_qt.dictionary_editor import DictionaryEditor
 from plover.gui_qt.utils import ToolBar
+
+
+def _dictionary_formats():
+    return set(registry.list_plugins('dictionary'))
 
 
 class DictionariesWidget(QWidget, Ui_DictionariesWidget):
@@ -106,8 +110,8 @@ class DictionariesWidget(QWidget, Ui_DictionariesWidget):
                     break
                 # And only allow supported extensions.
                 filename = url.toLocalFile()
-                extension = os.path.splitext(filename)[1].lower()
-                if not extension in dictionary_formats:
+                extension = os.path.splitext(filename)[1].lower()[1:]
+                if not extension in _dictionary_formats():
                     break
             else:
                 return True
@@ -209,7 +213,7 @@ class DictionariesWidget(QWidget, Ui_DictionariesWidget):
         self._update_dictionaries(dictionaries)
 
     def on_add_dictionaries(self):
-        filters = ['*' + ext for ext in dictionary_formats]
+        filters = ['*.' + ext for ext in sorted(_dictionary_formats())]
         new_filenames = QFileDialog.getOpenFileNames(
             self, _('Add dictionaries'), None,
             _('Dictionary Files') + ' (%s)' % ' '.join(filters),
