@@ -266,6 +266,10 @@ class StenoEngine(object):
             self._trigger_hook('add_translation')
         elif command == 'LOOKUP':
             self._trigger_hook('lookup')
+        else:
+            command_args = command.split(':', 2)
+            command_fn = registry.get_plugin('command', command_args[0]).resolve()
+            command_fn(self, command_args[1] if len(command_args) == 2 else '')
         return False
 
     def _on_stroked(self, steno_keys):
