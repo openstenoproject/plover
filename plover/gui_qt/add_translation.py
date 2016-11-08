@@ -2,9 +2,7 @@
 from collections import namedtuple
 
 from PyQt5.QtCore import QEvent
-from PyQt5.QtWidgets import (
-    QDialog,
-)
+from PyQt5.QtWidgets import QDialog
 
 from plover.misc import expand_path, shorten_path
 from plover.steno import normalize_steno
