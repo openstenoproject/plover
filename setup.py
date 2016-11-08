@@ -440,6 +440,9 @@ if __name__ == '__main__':
         json = plover.dictionary.json_dict
         rtf = plover.dictionary.rtfcre_dict
 
+        [plover.command]
+        priority_dict = plover.command.priority_dict:priority_dict
+
         [plover.gui]
         none = plover.gui_none.main
         qt   = plover.gui_qt.main
