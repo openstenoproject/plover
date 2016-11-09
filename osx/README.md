@@ -39,7 +39,7 @@ After each build, you need to approve Plover as an Assistive Device:
 
 Now you can run the app by double-clicking on it or by using open(1):
 
-`open dist/Plover.app`
+`open dist/plover.app`
 
 ### Dev Workaround: run as `root`
 
