@@ -60,7 +60,7 @@ To run from source, use: `./launch.sh`.
 
 A self-contained executable egg can be created with: `./setup.py bdist_egg`. The egg will be created in `dist`, `chmod +x` it and you can run Plover directly from it:
 
-`chmod +x dist/Plover-3.0.0-py2.7.egg && ./dist/Plover-3.0.0-py2.7.egg`
+`chmod +x dist/plover-3.1.0-py2.7.egg && ./dist/plover-3.1.0-py2.7.egg`
 
 Note: the egg file can be moved, but it cannot however be renamed (as the package version is encoded in the name).
 
@@ -68,7 +68,7 @@ Note: the egg file can be moved, but it cannot however be renamed (as the packag
 
 A wheel file can be created with: `./setup.py bdist_wheel`. The resulting file can then be installed using pip, e.g. for a user install:
 
-`pip2 install dist/Plover-3.0.0-py2-none-any.whl`
+`pip2 install dist/plover-3.1.0-py2.py3-none-any.whl`
 
 ### Using `setup.py`
 
