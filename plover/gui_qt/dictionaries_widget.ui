@@ -171,6 +171,18 @@
     <string>Move selected dictionaries down.</string>
    </property>
   </action>
+  <action name="action_CreateDictionary">
+   <property name="icon">
+    <iconset resource="resources/resources.qrc">
+     <normaloff>:/new.svg</normaloff>:/new.svg</iconset>
+   </property>
+   <property name="text">
+    <string>Create Dictionary</string>
+   </property>
+   <property name="toolTip">
+    <string>Create a new empty dictionary</string>
+   </property>
+  </action>
  </widget>
  <layoutdefault spacing="5" margin="8"/>
  <resources>
@@ -230,22 +242,6 @@
    <signal>triggered()</signal>
    <receiver>DictionariesWidget</receiver>
    <slot>on_edit_dictionaries()</slot>
-   <hints>
-    <hint type="sourcelabel">
-     <x>-1</x>
-     <y>-1</y>
-    </hint>
-    <hint type="destinationlabel">
-     <x>199</x>
-     <y>149</y>
-    </hint>
-   </hints>
-  </connection>
-  <connection>
-   <sender>action_AddDictionaries</sender>
-   <signal>triggered()</signal>
-   <receiver>DictionariesWidget</receiver>
-   <slot>on_add_dictionaries()</slot>
    <hints>
     <hint type="sourcelabel">
      <x>-1</x>
@@ -321,6 +317,38 @@
     </hint>
    </hints>
   </connection>
+  <connection>
+   <sender>action_AddDictionaries</sender>
+   <signal>triggered()</signal>
+   <receiver>DictionariesWidget</receiver>
+   <slot>on_add_dictionaries()</slot>
+   <hints>
+    <hint type="sourcelabel">
+     <x>-1</x>
+     <y>-1</y>
+    </hint>
+    <hint type="destinationlabel">
+     <x>199</x>
+     <y>149</y>
+    </hint>
+   </hints>
+  </connection>
+  <connection>
+   <sender>action_CreateDictionary</sender>
+   <signal>triggered()</signal>
+   <receiver>DictionariesWidget</receiver>
+   <slot>on_create_dictionary()</slot>
+   <hints>
+    <hint type="sourcelabel">
+     <x>-1</x>
+     <y>-1</y>
+    </hint>
+    <hint type="destinationlabel">
+     <x>182</x>
+     <y>118</y>
+    </hint>
+   </hints>
+  </connection>
  </connections>
  <slots>
   <slot>on_selection_changed()</slot>
@@ -332,5 +360,6 @@
   <slot>on_activate_cell(int,int)</slot>
   <slot>on_move_dictionaries_up()</slot>
   <slot>on_move_dictionaries_down()</slot>
+  <slot>on_create_dictionary()</slot>
  </slots>
 </ui>

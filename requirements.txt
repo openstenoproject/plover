@@ -1,0 +1,17 @@
+Babel
+PyInstaller==3.1.1
+appdirs>=1.3.0
+appnope>=0.1.0; "darwin" in sys_platform
+hidapi
+mock
+pyobjc-core==3.1.1+plover2; "darwin" in sys_platform
+pyobjc-framework-Cocoa==3.1.1+plover2; "darwin" in sys_platform
+pyobjc-framework-Quartz>=3.0.3; "darwin" in sys_platform
+pyqt-distutils
+pyserial>=2.7
+pytest
+python-xlib>=0.16; "linux" in sys_platform
+pywin32>=219; "win32" in sys_platform
+setuptools
+setuptools-scm
+six

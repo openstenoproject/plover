@@ -28,6 +28,7 @@ from plover.gui_qt.dictionaries_widget_ui import Ui_DictionariesWidget
 from plover.gui_qt.dictionary_editor import DictionaryEditor
 from plover.gui_qt.utils import ToolBar
 from plover.dictionary.base import convert_dictionary
+from plover.dictionary.base import create_dictionary
 
 
 class DictionariesWidget(QWidget, Ui_DictionariesWidget):
@@ -53,6 +54,7 @@ class DictionariesWidget(QWidget, Ui_DictionariesWidget):
         self.layout().addWidget(ToolBar(
             self.action_Undo,
             None,
+            self.action_CreateDictionary,
             self.action_EditDictionaries,
             self.action_RemoveDictionaries,
             self.action_AddDictionaries,
@@ -218,6 +220,10 @@ class DictionariesWidget(QWidget, Ui_DictionariesWidget):
     def on_activate_cell(self, row, col):
         self._edit([self._dictionaries[row]])
 
+    def on_create_dictionary(self):
+        self._save_new()
+
+
     def on_edit_dictionaries(self):
         dictionaries = [self._dictionaries[item.row()]
                         for item in self.table.selectedItems()]
@@ -301,6 +307,42 @@ class DictionariesWidget(QWidget, Ui_DictionariesWidget):
         if sys.platform.startswith('darwin'):
             file_directory = 'file://%s' % file_directory
         webbrowser.open(file_directory)
+
+    def _save_new(self):
+        filename = 'Dictionary.json'
+        file_ext = os.path.splitext(filename)[-1].lower()
+        if file_ext in dictionary_formats:
+            selected_filter = '%s Dictionary (*%s)' % (
+                file_ext.upper().strip('.'), file_ext)
+
+        filters = ';;'.join('%s Dictionary (*%s)' % (
+            ext.upper().strip('.'), ext) for ext in dictionary_formats)
+
+        new_filename = QFileDialog.getSaveFileName(
+            self, _('Save New Dictionary as...'), filename,
+            filters, selected_filter
+        )[0]
+
+        if new_filename:
+            file_name = os.path.basename(new_filename)
+            file_directory = os.path.dirname(new_filename)
+            new_ext = os.path.splitext(new_filename)[-1].lower()
+
+            try:
+                open(new_filename, 'w')
+                dictionary = create_dictionary(new_filename)
+                dictionary.save()
+            except Exception:
+                log.error(
+                    'Error while saving new dictionary: %s',
+                    new_filename,
+                    exc_info = True
+                )
+            else:
+                dictionaries = list(self._dictionaries)
+                if new_filename not in self._dictionaries:
+                    dictionaries.append(new_filename)
+                self._update_dictionaries(dictionaries)
 
     def _save_as(self):
         filename = [self._dictionaries[item.row()]
