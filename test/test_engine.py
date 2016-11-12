@@ -31,6 +31,7 @@ class FakeConfig(object):
         'undo_levels'               : 10,
         'start_capitalized'         : True,
         'start_attached'            : False,
+        'enabled_extensions'        : set(),
     }
 
     def __init__(self, **kwargs):

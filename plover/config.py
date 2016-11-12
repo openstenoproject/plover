@@ -83,6 +83,9 @@ SYSTEM_CONFIG_SECTION = 'System: %s'
 SYSTEM_KEYMAP_OPTION = 'keymap[%s]'
 SYSTEM_DICTIONARIES_OPTION = 'dictionaries'
 
+PLUGINS_CONFIG_SECTION = 'Plugins'
+ENABLED_EXTENSIONS_OPTION = 'enabled_extensions'
+
 # Logging constants.
 LOG_EXTENSION = '.log'
 
@@ -435,6 +438,29 @@ class Config(object):
         keymap.set_mappings(mappings)
         return keymap
 
+    def set_enabled_extensions(self, extensions):
+        if extensions is None:
+            self._config.remove_option(PLUGINS_CONFIG_SECTION,
+                                       ENABLED_EXTENSIONS_OPTION)
+        else:
+            self._set(PLUGINS_CONFIG_SECTION,
+                      ENABLED_EXTENSIONS_OPTION,
+                      json.dumps(sorted(list(set(extensions)))))
+
+    def get_enabled_extensions(self):
+        extensions = ()
+        value = self._get(PLUGINS_CONFIG_SECTION,
+                          ENABLED_EXTENSIONS_OPTION,
+                          None)
+        if value is not None:
+            try:
+                extensions = set(json.loads(value))
+            except ValueError:
+                log.error("invalid enabled extensions set, resetting to default",
+                          exc_info=True)
+                self.set_enabled_extensions(None)
+        return set(extensions)
+
     def _set(self, section, option, value):
         if not self._config.has_section(section):
             self._config.add_section(section)
@@ -484,6 +510,8 @@ class Config(object):
     undo_levels
 
     dictionary_file_names
+
+    enabled_extensions
 
     enable_stroke_logging
     enable_translation_logging
