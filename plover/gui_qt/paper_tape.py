@@ -6,27 +6,31 @@ from PyQt5.QtGui import QFont
 from PyQt5.QtWidgets import (
     QFileDialog,
     QFontDialog,
-    QDialog,
     QMessageBox,
 )
 
 from plover import system
 
 from plover.gui_qt.paper_tape_ui import Ui_PaperTape
-from plover.gui_qt.utils import ToolBar, WindowState
+from plover.gui_qt.tool import Tool
+from plover.gui_qt.utils import ToolBar
 
 
-class PaperTape(QDialog, Ui_PaperTape, WindowState):
+class PaperTape(Tool, Ui_PaperTape):
 
+    ''' Paper tape display of strokes. '''
+
+    TITLE = _('Paper Tape')
+    ICON = ':/tape.svg'
     ROLE = 'paper_tape'
+    SHORTCUT = 'Ctrl+T'
 
     STYLE_PAPER, STYLE_RAW = (_('Paper'), _('Raw'))
     STYLES = (STYLE_PAPER, STYLE_RAW)
 
     def __init__(self, engine):
-        super(PaperTape, self).__init__()
+        super(PaperTape, self).__init__(engine)
         self.setupUi(self)
-        self._engine = engine
         self._strokes = []
         self._all_keys = None
         self._formatter = None

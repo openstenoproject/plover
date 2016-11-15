@@ -1,7 +1,9 @@
 
 from functools import partial
+import json
 
-from PyQt5.QtCore import QCoreApplication
+from PyQt5.QtCore import QCoreApplication, Qt
+from PyQt5.QtGui import QCursor, QIcon, QKeySequence
 from PyQt5.QtWidgets import (
     QMainWindow,
     QMenu,
@@ -9,16 +11,14 @@ from PyQt5.QtWidgets import (
 
 from plover import log
 from plover.oslayer import wmctrl
+from plover.registry import registry
+from plover.resource import resource_filename
 
 from plover.gui_qt.log_qt import NotificationHandler
 from plover.gui_qt.main_window_ui import Ui_MainWindow
 from plover.gui_qt.config_window import ConfigWindow
 from plover.gui_qt.dictionaries_widget import DictionariesWidget
-from plover.gui_qt.add_translation import AddTranslation
-from plover.gui_qt.lookup_dialog import LookupDialog
-from plover.gui_qt.suggestions_dialog import SuggestionsDialog
 from plover.gui_qt.about_dialog import AboutDialog
-from plover.gui_qt.paper_tape import PaperTape
 from plover.gui_qt.trayicon import TrayIcon
 from plover.gui_qt.utils import WindowState, find_menu_actions
 
@@ -36,11 +36,7 @@ class MainWindow(QMainWindow, Ui_MainWindow, WindowState):
         self._active_dialogs = {}
         self._dialog_class = {
             'about'             : AboutDialog,
-            'add_translation'   : AddTranslation,
             'configuration'     : ConfigWindow,
-            'lookup'            : LookupDialog,
-            'paper_tape'        : PaperTape,
-            'suggestions'       : SuggestionsDialog,
         }
         self.action_Quit.triggered.connect(QCoreApplication.quit)
         all_actions = find_menu_actions(self.menubar)
@@ -86,6 +82,44 @@ class MainWindow(QMainWindow, Ui_MainWindow, WindowState):
                 popup_menu.addSeparator()
         self._trayicon.set_menu(popup_menu)
         engine.signal_connect('machine_state_changed', self._trayicon.update_machine_state)
+        # Populate tools bar/menu.
+        tools_menu = all_actions['menu_Tools'].menu()
+        # Toolbar popup menu for selecting which tools are shown.
+        self.toolbar_menu = QMenu()
+        self.toolbar.setContextMenuPolicy(Qt.CustomContextMenu)
+        self.toolbar.customContextMenuRequested.connect(
+            lambda: self.toolbar_menu.popup(QCursor.pos())
+        )
+        for tool_name in sorted(registry.list_plugins('gui.qt.tool')):
+            tool = registry.get_plugin('gui.qt.tool', tool_name).resolve()
+            action_parameters = []
+            if tool.ICON is not None:
+                icon = tool.ICON
+                # Internal QT resources start with a `:`.
+                if not icon.startswith(':'):
+                    icon = resource_filename(icon)
+                action_parameters.append(QIcon(icon))
+            action_parameters.append(tool.TITLE)
+            toolbar_action = None
+            for parent in (tools_menu, self.toolbar, self.toolbar_menu):
+                action = parent.addAction(*action_parameters)
+                action.setObjectName(tool_name)
+                if tool.__doc__ is not None:
+                    action.setToolTip(tool.__doc__)
+                if tool.SHORTCUT is not None:
+                    action.setShortcut(QKeySequence.fromString(tool.SHORTCUT))
+                if parent == self.toolbar_menu:
+                    action.setCheckable(True)
+                    action.setChecked(True)
+                    assert toolbar_action is not None
+                    action.toggled.connect(toolbar_action.setVisible)
+                else:
+                    if parent == self.toolbar:
+                        toolbar_action = action
+                    action.triggered.connect(partial(self._activate_dialog,
+                                                     tool_name,
+                                                     args=()))
+            self._dialog_class[tool_name] = tool
         engine.signal_connect('output_changed', self.on_output_changed)
         # Machine.
         self.machine_type.addItems(
@@ -102,7 +136,8 @@ class MainWindow(QMainWindow, Ui_MainWindow, WindowState):
         engine.signal_connect('add_translation', partial(self._add_translation, manage_windows=True))
         engine.signal_connect('focus', self._focus)
         engine.signal_connect('configure', partial(self._configure, manage_windows=True))
-        engine.signal_connect('lookup', partial(self._lookup, manage_windows=True))
+        engine.signal_connect('lookup', partial(self._activate_dialog, 'lookup',
+                                                manage_windows=True))
         # Load the configuration (but do not start the engine yet).
         if not engine.load_config():
             self.on_configure()
@@ -157,15 +192,29 @@ class MainWindow(QMainWindow, Ui_MainWindow, WindowState):
     def _lookup(self, manage_windows=False):
         self._activate_dialog('lookup', manage_windows=manage_windows)
 
+    def _restore_state(self, settings):
+        if settings.contains('hidden_toolbar_tools'):
+            hidden_toolbar_tools = json.loads(settings.value('hidden_toolbar_tools'))
+            for action in self.toolbar_menu.actions():
+                if action.objectName() in hidden_toolbar_tools:
+                    action.setChecked(False)
+
+    def _save_state(self, settings):
+        hidden_toolbar_tools = set()
+        for action in self.toolbar_menu.actions():
+            if not action.isChecked():
+                hidden_toolbar_tools.add(action.objectName())
+        settings.setValue('hidden_toolbar_tools', json.dumps(list(sorted(hidden_toolbar_tools))))
+
     def on_config_changed(self, config_update):
         if 'machine_type' in config_update:
             self.machine_type.setCurrentText(config_update['machine_type'])
         if not self._configured:
             self._configured = True
             if config_update.get('show_suggestions_display', False):
-                self.on_suggestions()
+                self._activate_dialog('suggestions')
             if config_update.get('show_stroke_display', False):
-                self.on_paper_tape()
+                self._activate_dialog('paper_tape')
 
     def on_machine_changed(self, machine_type):
         self._engine.config = { 'machine_type': machine_type }
@@ -193,18 +242,6 @@ class MainWindow(QMainWindow, Ui_MainWindow, WindowState):
 
     def on_manage_dictionaries(self):
         self._activate_dialog('dictionary_manager')
-
-    def on_add_translation(self):
-        self._add_translation()
-
-    def on_lookup(self):
-        self._lookup()
-
-    def on_suggestions(self):
-        self._activate_dialog('suggestions')
-
-    def on_paper_tape(self):
-        self._activate_dialog('paper_tape')
 
     def on_about(self):
         self._activate_dialog('about')

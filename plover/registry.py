@@ -16,6 +16,7 @@ class Registry(object):
         'command',
         'dictionary',
         'gui',
+        'gui.qt.tool',
         'machine',
         'system',
     )

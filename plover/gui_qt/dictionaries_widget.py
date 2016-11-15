@@ -111,7 +111,7 @@ class DictionariesWidget(QWidget, Ui_DictionariesWidget):
                 # And only allow supported extensions.
                 filename = url.toLocalFile()
                 extension = os.path.splitext(filename)[1].lower()[1:]
-                if not extension in _dictionary_formats():
+                if extension not in _dictionary_formats():
                     break
             else:
                 return True
@@ -192,7 +192,7 @@ class DictionariesWidget(QWidget, Ui_DictionariesWidget):
         self._update_dictionaries(dictionaries, record=False)
 
     def _edit(self, dictionaries):
-        editor = DictionaryEditor(self._engine, dictionaries, self)
+        editor = DictionaryEditor(self._engine, dictionaries)
         editor.exec_()
 
     def on_activate_cell(self, row, col):

@@ -278,8 +278,8 @@ class DictionaryEditor(QDialog, Ui_DictionaryEditor, WindowState):
 
     ROLE = 'dictionary_editor'
 
-    def __init__(self, engine, dictionary_paths, parent=None):
-        super(DictionaryEditor, self).__init__(parent)
+    def __init__(self, engine, dictionary_paths):
+        super(DictionaryEditor, self).__init__()
         self.setupUi(self)
         self._engine = engine
         with engine:
