@@ -112,7 +112,8 @@ class SuggestionsDialog(Tool, Ui_SuggestionsDialog):
     def on_translation(self, old, new):
         for action in old:
             remove = len(action.text)
-            self._words = self._words[:-remove]
+            if remove > 0:
+                self._words = self._words[:-remove]
             self._words = self._words + action.replace
 
         for action in new:
