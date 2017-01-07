@@ -31,8 +31,8 @@ class TestCase(unittest.TestCase):
         (r'\}', '}'),
         (r'\~', '{^ ^}'),
         (r'\_', '-'),
-        ('\\\r', '{#Return}{#Return}'),
-        ('\\\n', '{#Return}{#Return}'),
+        ('\\r', '\n'),
+        ('\\n', '\n'),
         (r'\cxds', '{^}'),
         (r'pre\cxds ', '{pre^}'),
         (r'pre\cxds  ', '{pre^} '),
@@ -45,14 +45,14 @@ class TestCase(unittest.TestCase):
         (r'pre\cxfl', 'pre{>}'),
         (r'{\*\cxsvatdictflags N}', '{-|}'),
         (r'{\*\cxsvatdictflags LN1}', '{-|}'),
-        (r'\par', '{#Return}{#Return}'),
+        (r'\par', '{^\n\n^}{-|}'),
         # caseCATalyst declares new styles without a preceding \par so we treat
         # it as an implicit par.
-        (r'\s1', '{#Return}{#Return}'),
+        (r'\s1', '{^\n\n^}{-|}'),
         # But if the \par is present we don't treat \s as an implicit par.
-        (r'\par\s1', '{#Return}{#Return}'),
+        (r'\par\s1', '{^\n\n^}{-|}'),
         # Continuation styles are indented too.
-        (r'\par\s2', '{#Return}{#Return}{^    ^}'),
+        (r'\par\s2', '{^\n\n^}{-|}{^    ^}'),
         # caseCATalyst punctuation.
         (r'.', '{.}'),
         (r'. ', '{.} '),
@@ -200,8 +200,9 @@ class TestCase(unittest.TestCase):
         ('', ''),
         ('{^in^}', '\cxds in\cxds '),
         ('{pre^}', 'pre\cxds '),
-        ('{pre^} ', 'pre\cxds '),
-        ('{pre^}  ', 'pre\cxds ')
+        ('{pre^} ', 'pre\cxds  '),
+        ('{pre^}  ', 'pre\cxds   '),
+        ('\n', '\\n'),
         )
         for before, expected in cases:
             result = format_translation(before)
@@ -209,6 +210,46 @@ class TestCase(unittest.TestCase):
                 before, expected, result
             )
             self.assertEqual(result, expected, msg=msg)
+
+    def test_round_trip_json(self):
+        styles = {1: 'Normal', 2: 'Continuation'}
+
+        convert = TranslationConverter(styles)
+
+        err = (
+            'Expected {initial} to turn into {end} in round trip.\n' +
+            'Instead, {result} was found. See process:\n{states}'
+        )
+
+        cases = (
+            ('{^\n^}',),
+            ('{#Return}',),
+            ('{^^}', '{^}{^}'),
+            ('{^test}',),
+            ('{^toast^}',),
+            ('Mr. {-|}',),
+            ('Mr.{-|}',),
+            ('state your{^ ^} name, please{^\n\n^}{-|}',),
+        )
+        for case in cases:
+            initial = case[0]
+            expected = case[-1]
+            states = [initial]
+            settled = False
+            iterations = 0
+            while not settled and iterations < 10:
+                states.append(format_translation(states[-1]))
+                states.append(convert(states[-1]))
+                if states[-1] == states[-3]:
+                    settled = True
+                iterations += 1
+
+            self.assertEqual(expected, states[-1],
+                             err.format(initial=repr(initial),
+                                        end=repr(expected),
+                                        result=repr(states[-1]),
+                                        states=states))
+
 
     def test_save_dictionary(self):
         f = BytesIO()

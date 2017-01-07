@@ -23,6 +23,7 @@ from six import get_function_code
 from plover.resource import resource_stream
 from plover.steno import normalize_steno
 from plover.steno_dictionary import StenoDictionary
+from plover.translation import escape_translation, unescape_translation
 # TODO: Move dictionary format somewhere more canonical than formatting.
 from plover.formatting import META_RE
 
@@ -32,6 +33,8 @@ DICT_ENTRY_PATTERN = re.compile(r'(?s)(?<!\\){\\\*\\cxs (?P<steno>[^}]+)}' +
                                 r'(?P<translation>.*?)(?:(?<!\\)(?:\r\n|\n))*?'+
                                 r'(?=(?:(?<!\\){\\\*\\cxs [^}]+})|' +
                                 r'(?:(?:(?<!\\)(?:\r\n|\n)\s*)*}\s*\Z))')
+
+JSON_PAR = '{^\n\n^}{-|}'
 
 class TranslationConverter(object):
     """Convert an RTF/CRE translation into plover's internal format."""
@@ -84,14 +87,14 @@ class TranslationConverter(object):
     def _re_handle_dash(self, m):
         r'\\_'
         return '-'
-        
+
     def _re_handle_escaped_newline(self, m):
-        r'\\\r|\\\n'
-        return '{#Return}{#Return}'
-        
+        r'\\r|\\n'
+        return '\n'
+
     def _re_handle_infix(self, m):
-        r'\\cxds ([^{}\\\r\n]+)\\cxds ?'
-        return '{^%s^}' % m.group(1)
+        r'\\cxds (([^{}\\\r\n]|\\n|\\r|\\t)+)\\cxds ?'
+        return unescape_translation('{^%s^}' % m.group(1))
         
     def _re_handle_suffix(self, m):
         r'\\cxds ([^{}\\\r\n ]+)'
@@ -120,12 +123,12 @@ class TranslationConverter(object):
 
         if command == 'par':
             self.seen_par = True
-            return '{#Return}{#Return}'
+            return JSON_PAR
             
         if command == 's':
             result = []
             if not self.seen_par:
-                result.append('{#Return}{#Return}')
+                result.append(JSON_PAR)
             style_name = self.styles.get(arg, '')
             if style_name.startswith('Contin'):
                 result.append('{^    ^}')
@@ -307,8 +310,9 @@ HEADER = ("{\\rtf1\\ansi{\\*\\cxrev100}\\cxdict{\\*\\cxsystem Plover}" +
           "{\\stylesheet{\\s0 Normal;}}\r\n")
 
 def format_translation(t):
-    t = ' '.join([x.strip() for x in META_RE.findall(t) if x.strip()])
-    
+    t = escape_translation(t)
+    t = ''.join(META_RE.findall(t))
+
     t = re.sub(r'{\.}', '{\\cxp. }', t)
     t = re.sub(r'{!}', '{\\cxp! }', t)
     t = re.sub(r'{\?}', '{\\cxp? }', t)
@@ -316,6 +320,8 @@ def format_translation(t):
     t = re.sub(r'{:}', '{\\cxp: }', t)
     t = re.sub(r'{;}', '{\\cxp; }', t)
     t = re.sub(r'{\^}', '\\cxds ', t)
+    t = re.sub(r'{\^ \^}', '\\~', t)
+    t = re.sub(r'{\^\n\n\^}{-\|}', '\\par', t)
     t = re.sub(r'{\^([^^}]*)}', '\\cxds \\1', t)
     t = re.sub(r'{([^^}]*)\^}', '\\1\\cxds ', t)
     t = re.sub(r'{\^([^^}]*)\^}', '\\cxds \\1\\cxds ', t)
