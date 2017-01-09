@@ -809,7 +809,7 @@ def _apply_mode(text, case, space_char, begin, last_attach,
     # Title case is sensitive to lower flag
     if last_lower and len(text) > 0:  # Check for text
         if case is _Action.CASE_TITLE:
-            text = _lower(text)
+            text = _lower_nowhitespace(text)
 
     return text
 
