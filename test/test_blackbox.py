@@ -105,6 +105,39 @@ class BlackboxTest(unittest.TestCase):
             self.translator.translate(stroke)
         self.assertEqual(self.output.text, u' $1.20')
 
+    def test_bug606(self):
+        for steno, translation in (
+            ('KWEGS', 'question'),
+            ('-S'   , '{^s}'    ),
+            ('TP-PL', '{.}'     ),
+        ):
+            self.dictionary.set(normalize_steno(steno), translation)
+        self.formatter.set_space_placement('After Output')
+        for steno in (
+            'KWEGS',
+            '-S',
+            'TP-PL',
+        ):
+            stroke = steno_to_stroke(steno)
+            self.translator.translate(stroke)
+        self.assertEqual(self.output.text, u'questions. ')
+
+    def test_bug535_spaces_after(self):
+        # Currency formatting a number with a decimal fails by not erasing
+        # the previous output.
+        self.formatter.set_space_placement('After Output')
+        self.dictionary.set(('P-P',), '{^.^}')
+        self.dictionary.set(('KR*UR',), '{*($c)}')
+        for steno in (
+            '1',
+            'P-P',
+            '2',
+            'KR*UR',
+        ):
+            stroke = steno_to_stroke(steno)
+            self.translator.translate(stroke)
+        self.assertEqual(self.output.text, u'$1.20 ')
+
     def test_bug557(self):
         # Using the asterisk key to delete letters in fingerspelled words
         # occasionally causes problems when the space placement is set to
@@ -129,6 +162,79 @@ class BlackboxTest(unittest.TestCase):
             stroke = steno_to_stroke(steno)
             self.translator.translate(stroke)
         self.assertEqual(self.output.text, u'I like ta ')
+
+    def test_bug557_resumed(self):
+        # Using the asterisk key to delete letters in fingerspelled words
+        # occasionally causes problems when the space placement is set to
+        # "After Output".
+        for steno, translation in (
+            ('EU'      , 'I'      ),
+            ('HRAOEUBG', 'like'   ),
+            ('T*'      , '{>}{&t}'),
+            ('A*'      , '{>}{&a}'),
+            ('KR*'     , '{>}{&c}'),
+            ('O*'      , '{>}{&o}'),
+            ('S*'      , '{>}{&s}'),
+        ):
+            self.dictionary.set(normalize_steno(steno), translation)
+        self.formatter.set_space_placement('After Output')
+        for steno in (
+            'EU',
+            'HRAOEUBG',
+            'T*', 'A*', 'KR*', 'O*', 'S*',
+            '*', '*', '*', '*', '*',
+            'HRAOEUBG',
+        ):
+            stroke = steno_to_stroke(steno)
+            self.translator.translate(stroke)
+        self.assertEqual(self.output.text, u'I like like ')
+
+    def test_bug557_capitalized(self):
+        # Using the asterisk key to delete letters in fingerspelled words
+        # occasionally causes problems when the space placement is set to
+        # "After Output".
+        for steno, translation in (
+            ('EU'      , 'I'      ),
+            ('HRAOEUBG', 'like'   ),
+            ('T*'      , '{-|}{&t}'),
+            ('A*'      , '{-|}{&a}'),
+            ('KR*'     , '{-|}{&c}'),
+            ('O*'      , '{-|}{&o}'),
+            ('S*'      , '{-|}{&s}'),
+        ):
+            self.dictionary.set(normalize_steno(steno), translation)
+        self.formatter.set_space_placement('After Output')
+        for steno in (
+            'EU',
+            'HRAOEUBG',
+            'T*', 'A*', 'KR*', 'O*', 'S*',
+                          '*',  '*',  '*',
+        ):
+            stroke = steno_to_stroke(steno)
+            self.translator.translate(stroke)
+        self.assertEqual(self.output.text, u'I like TA ')
+
+    def test_capitalized_fingerspelling_spaces_after(self):
+        # Using the asterisk key to delete letters in fingerspelled words
+        # occasionally causes problems when the space placement is set to
+        # "After Output".
+        for steno, translation in (
+            ('HRAOEUBG', 'like'   ),
+            ('T*'      , '{&T}'),
+            ('A*'      , '{&A}'),
+            ('KR*'     , '{&C}'),
+            ('O*'      , '{&O}'),
+            ('S*'      , '{&S}'),
+        ):
+            self.dictionary.set(normalize_steno(steno), translation)
+        self.formatter.set_space_placement('After Output')
+        for steno in (
+            'HRAOEUBG',
+            'T*', 'A*', 'KR*', 'O*', 'S*',
+        ):
+            stroke = steno_to_stroke(steno)
+            self.translator.translate(stroke)
+        self.assertEqual(self.output.text, u'like TACOS ')
 
     def test_special_characters(self):
         self.dictionary.set(('R-R',), '{^}\n{^}')
