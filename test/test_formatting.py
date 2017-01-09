@@ -838,7 +838,7 @@ class FormatterTestCase(unittest.TestCase):
          action(text='! ', replace=' ', capitalize=True)),
 
         (('{-|}', action(word='test', text='test ')),
-         action(capitalize=True, word='test')),
+         action(capitalize=True, word='test', text=' ', replace=' ')),
 
         (('{>}', action(word='test', text='test ')),
          action(lower=True, word='test', replace=' ', text=' ')),
