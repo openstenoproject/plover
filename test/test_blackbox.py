@@ -65,6 +65,17 @@ class BlackboxTest(unittest.TestCase):
             self.translator.translate(stroke)
         self.assertEqual(self.output.text, u' test test')
 
+    def test_force_lowercase_title(self):
+        self.dictionary.set(('T-LT',), '{MODE:TITLE}')
+        self.dictionary.set(('TEFT',), '{>}test')
+        for keys in (
+            ('T-', '-L', '-T'),
+            ('T-', '-E', '-F', '-T'),
+        ):
+            stroke = Stroke(keys)
+            self.translator.translate(stroke)
+        self.assertEqual(self.output.text, u' test')
+
     def test_bug471(self):
         # Repeat-last-stroke after typing two numbers outputs the numbers
         # reversed for some combos.

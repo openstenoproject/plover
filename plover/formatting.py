@@ -809,7 +809,7 @@ def _apply_mode(text, case, space_char, begin, last_attach,
     # Title case is sensitive to lower flag
     if last_lower and len(text) > 0:  # Check for text
         if case is _Action.CASE_TITLE:
-            text = _lower(text)
+            text = _lower_nowhitespace(text)
 
     return text
 
@@ -978,30 +978,16 @@ def _lower(s):
 
 def _capitalize_nowhitespace(s):
     """Capitalize the first letter of s (ignoring spaces)."""
-    word_list = s.split(' ')
-    final_list = []
-    first_word = True
-    for word in word_list:
-        if len(word) > 0:
-            if first_word is True:
-                word = word[0:1].upper() + word[1:]
-                first_word = False
-        final_list.append(word)
-    return ' '.join(final_list)
+    s_no_space = s.lstrip(' ')
+    spaces = ' ' * (len(s) - len(s_no_space))
+    return spaces + s_no_space[:1].upper() + s_no_space[1:]
 
 
 def _lower_nowhitespace(s):
     """Lowercase the first letter of s (ignoring spaces)."""
-    word_list = s.split(' ')
-    final_list = []
-    first_word = True
-    for word in word_list:
-        if len(word) > 0:
-            if first_word is True:
-                word = word[0:1].lower() + word[1:]
-                first_word = False
-        final_list.append(word)
-    return ' '.join(final_list)
+    s_no_space = s.lstrip(' ')
+    spaces = ' ' * (len(s) - len(s_no_space))
+    return spaces + s_no_space[:1].lower() + s_no_space[1:]
 
 
 def _upper(s):
