@@ -105,7 +105,6 @@ class BlackboxTest(unittest.TestCase):
             self.translator.translate(stroke)
         self.assertEqual(self.output.text, u' $1.20')
 
-    @unittest.expectedFailure
     def test_bug557(self):
         # Using the asterisk key to delete letters in fingerspelled words
         # occasionally causes problems when the space placement is set to

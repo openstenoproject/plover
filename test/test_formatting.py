@@ -109,7 +109,7 @@ class FormatterTestCase(unittest.TestCase):
         (
          ([], 
           [translation(rtfcre=('S'), english='hello')], 
-          translation(rtfcre=('T'), english='a', formatting=[action(text='f')])
+          [translation(rtfcre=('T'), english='a', formatting=[action(text='f')])]
          ),
          ([action(text=' hello', word='hello')],),
          [('s', ' hello')]
@@ -130,7 +130,7 @@ class FormatterTestCase(unittest.TestCase):
         (
          ([], 
           [translation(rtfcre=('ST-T',))], 
-          translation(formatting=[action(text='hi')])),
+          [translation(formatting=[action(text='hi')])]),
          ([action(text=' ST-T', word='ST-T')],),
          [('s', ' ST-T')]
         ),
@@ -138,7 +138,7 @@ class FormatterTestCase(unittest.TestCase):
         (
          ([translation(formatting=[action(text=' test')])],
           [translation(english='rest')],
-          translation(formatting=[action(capitalize=True)])),
+          [translation(formatting=[action(capitalize=True)])]),
          ([action(text=' Rest', word='Rest')],),
          [('b', 4), ('s', 'Rest')]
         ),
@@ -147,7 +147,7 @@ class FormatterTestCase(unittest.TestCase):
          ([translation(formatting=[action(text='dare'), 
                                    action(text='ing', replace='e')])],
          [translation(english='rest')],
-         translation(formatting=[action(capitalize=True)])),
+         [translation(formatting=[action(capitalize=True)])]),
          ([action(text=' Rest', word='Rest')],),
          [('b', 6), ('s', ' Rest')]
         ),
@@ -187,7 +187,7 @@ class FormatterTestCase(unittest.TestCase):
         (
          ([],
           [translation(rtfcre=('1',))],
-          translation(formatting=[action(text='hi', word='hi')])),
+          [translation(formatting=[action(text='hi', word='hi')])]),
          ([action(text=' 1', word='1', glue=True)],),
          [('s', ' 1')]
         ),
@@ -195,7 +195,7 @@ class FormatterTestCase(unittest.TestCase):
         (
          ([],
           [translation(rtfcre=('1',))],
-          translation(formatting=[action(text='hi', word='hi', glue=True)])),
+          [translation(formatting=[action(text='hi', word='hi', glue=True)])]),
          ([action(text='1', word='hi1', glue=True)],),
          [('s', '1')]
         ),
@@ -203,7 +203,7 @@ class FormatterTestCase(unittest.TestCase):
         (
          ([],
           [translation(rtfcre=('1-9',))],
-          translation(formatting=[action(text='hi', word='hi', glue=True)])),
+          [translation(formatting=[action(text='hi', word='hi', glue=True)])]),
          ([action(text='19', word='hi19', glue=True)],),
          [('s', '19')]
         ),
@@ -211,7 +211,7 @@ class FormatterTestCase(unittest.TestCase):
         (
          ([],
           [translation(rtfcre=('ST-PL',))],
-          translation(formatting=[action(text='hi', word='hi')])),
+          [translation(formatting=[action(text='hi', word='hi')])]),
          ([action(text=' ST-PL', word='ST-PL')],),
          [('s', ' ST-PL')]
         ),
@@ -1125,10 +1125,10 @@ class FormatterTestCase(unittest.TestCase):
             formatter = formatting.Formatter()
             formatter.set_output(output)
             formatter.set_space_placement('After Output')
-            prev = None
+            prev = []
             for t in translations:
                 formatter.format([], [t], prev)
-                prev = t
+                prev.append(t)
             self.assertEqual(output.instructions, expected_instructions)
 
     def test_undo_replace(self):
@@ -1137,8 +1137,8 @@ class FormatterTestCase(unittest.TestCase):
             formatter = formatting.Formatter()
             formatter.set_output(output)
             formatter.set_space_placement('After Output')
-            prev = translation(english='test')
-            formatter.format([], [prev], None)
+            prev = [translation(english='test')]
+            formatter.format([], prev, None)
             undo = translation(english='{^,}')
             formatter.format([], [undo], prev)
             # Undo.

@@ -286,7 +286,7 @@ class Translator(object):
                 do.append(t)
                 undo.extend(t.replaced)
         del self._state.translations[len(self._state.translations) - len(undo):]
-        self._output(undo, do, self._state.last())
+        self._output(undo, do, self._state.prev())
         if add_to_history:
             self._state.translations.extend(do)
 
@@ -404,11 +404,14 @@ class _State(object):
         self.translations = []
         self.tail = None
 
-    def last(self):
-        """Get the most recent translation."""
+    def prev(self):
+        """Get the most recent translations."""
         if self.translations:
-            return self.translations[-1]
-        return self.tail
+            return self.translations
+        if self.tail is not None:
+            return [self.tail]
+        return None
+
 
     def restrict_size(self, n):
         """Reduce the history of translations to n."""
