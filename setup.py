@@ -367,7 +367,7 @@ extras_require = {
     ':"darwin" in sys_platform': [
         'pyobjc-core==3.1.1+plover2',
         'pyobjc-framework-Cocoa==3.1.1+plover2',
-        'pyobjc-framework-Quartz>=3.0.3',
+        'pyobjc-framework-Quartz==3.1.1',
         'appnope>=0.1.0',
     ],
 }
