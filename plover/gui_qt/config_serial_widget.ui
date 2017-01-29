@@ -443,6 +443,22 @@
     </hint>
    </hints>
   </connection>
+  <connection>
+   <sender>timeout</sender>
+   <signal>valueChanged(double)</signal>
+   <receiver>SerialWidget</receiver>
+   <slot>on_timeout_changed(double)</slot>
+   <hints>
+    <hint type="sourcelabel">
+     <x>75</x>
+     <y>373</y>
+    </hint>
+    <hint type="destinationlabel">
+     <x>156</x>
+     <y>215</y>
+    </hint>
+   </hints>
+  </connection>
  </connections>
  <slots>
   <slot>on_scan()</slot>
@@ -453,6 +469,7 @@
   <slot>on_parity_changed(QString)</slot>
   <slot>on_use_timeout_changed(bool)</slot>
   <slot>on_rtscts_changed(bool)</slot>
+  <slot>on_timeout_changed(double)</slot>
   <slot>on_xonxoff_changed(bool)</slot>
  </slots>
 </ui>
