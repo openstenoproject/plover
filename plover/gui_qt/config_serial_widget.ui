@@ -365,7 +365,7 @@
   </connection>
   <connection>
    <sender>port</sender>
-   <signal>activated(QString)</signal>
+   <signal>editTextChanged(QString)</signal>
    <receiver>SerialWidget</receiver>
    <slot>on_port_changed(QString)</slot>
    <hints>
