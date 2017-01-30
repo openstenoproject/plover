@@ -1,3 +1,4 @@
+# -*- coding: utf-8 -*-
 # Copyright (c) 2013 Hesky Fisher
 # See LICENSE.txt for details.
 
@@ -16,16 +17,16 @@ def action(**kwargs):
 class CaptureOutput(object):
     def __init__(self):
         self.instructions = []
-    
+
     def send_backspaces(self, n):
         self.instructions.append(('b', n))
-        
+
     def send_string(self, s):
         self.instructions.append(('s', s))
-        
+
     def send_key_combination(self, c):
         self.instructions.append(('c', c))
-        
+
     def send_engine_command(self, c):
         self.instructions.append(('e', c))
 
@@ -34,10 +35,10 @@ class MockTranslation(object):
         self.rtfcre = rtfcre
         self.english = english
         self.formatting = formatting
-        
+
     def __str__(self):
         return str(self.__dict__)
-        
+
 def translation(**kwargs):
     return MockTranslation(**kwargs)
 
@@ -49,7 +50,7 @@ class FormatterTestCase(unittest.TestCase):
     def check(self, f, cases):
         for input, output in cases:
             self.assertEqual(f(input), output)
-            
+
     def check_arglist(self, f, cases):
         for inputs, expected in cases:
             actual = f(*inputs)
@@ -105,36 +106,36 @@ class FormatterTestCase(unittest.TestCase):
          (),
          [('b', 5)]
         ),
-        
+
         (
-         ([], 
-          [translation(rtfcre=('S'), english='hello')], 
+         ([],
+          [translation(rtfcre=('S'), english='hello')],
           translation(rtfcre=('T'), english='a', formatting=[action(text='f')])
          ),
          ([action(text=' hello', word='hello')],),
          [('s', ' hello')]
         ),
-        
+
         (
          ([], [translation(rtfcre=('S'), english='hello')], None),
          ([action(text=' hello', word='hello')],),
          [('s', ' hello')]
         ),
-        
+
         (
          ([], [translation(rtfcre=('ST-T',))], None),
          ([action(text=' ST-T', word='ST-T')],),
          [('s', ' ST-T')]
         ),
-        
+
         (
-         ([], 
-          [translation(rtfcre=('ST-T',))], 
+         ([],
+          [translation(rtfcre=('ST-T',))],
           translation(formatting=[action(text='hi')])),
          ([action(text=' ST-T', word='ST-T')],),
          [('s', ' ST-T')]
         ),
-        
+
         (
          ([translation(formatting=[action(text=' test')])],
           [translation(english='rest')],
@@ -142,16 +143,16 @@ class FormatterTestCase(unittest.TestCase):
          ([action(text=' Rest', word='Rest')],),
          [('b', 4), ('s', 'Rest')]
         ),
-        
+
         (
-         ([translation(formatting=[action(text='dare'), 
+         ([translation(formatting=[action(text='dare'),
                                    action(text='ing', replace='e')])],
          [translation(english='rest')],
          translation(formatting=[action(capitalize=True)])),
          ([action(text=' Rest', word='Rest')],),
          [('b', 6), ('s', ' Rest')]
         ),
-        
+
         (
          ([translation(formatting=[action(text=' drive')])],
          [translation(english='driving')],
@@ -167,7 +168,7 @@ class FormatterTestCase(unittest.TestCase):
          ([action(combo='c'), action(text=' driving', word='driving')],),
          [('b', 6), ('c', 'c'), ('s', ' driving')]
         ),
-        
+
         (
          ([translation(formatting=[action(text=' drive')])],
          [translation(english='{PLOVER:c}driving')],
@@ -175,7 +176,7 @@ class FormatterTestCase(unittest.TestCase):
          ([action(command='c'), action(text=' driving', word='driving')],),
          [('b', 6), ('e', 'c'), ('s', ' driving')]
         ),
-        
+
         (
          ([],
           [translation(rtfcre=('1',))],
@@ -183,7 +184,7 @@ class FormatterTestCase(unittest.TestCase):
          ([action(text=' 1', word='1', glue=True)],),
          [('s', ' 1')]
         ),
-        
+
         (
          ([],
           [translation(rtfcre=('1',))],
@@ -250,7 +251,7 @@ class FormatterTestCase(unittest.TestCase):
 
 
     def test_action(self):
-        self.assertNotEqual(action(word='test'), 
+        self.assertNotEqual(action(word='test'),
                             action(word='test', attach=True))
         self.assertEqual(action(text='test'), action(text='test'))
         self.assertEqual(action(text='test', word='test').copy_state(),
@@ -258,28 +259,28 @@ class FormatterTestCase(unittest.TestCase):
 
     def test_translation_to_actions(self):
         cases = [
-        (('test', action(), False), 
+        (('test', action(), False),
          [action(text=' test', word='test')]),
-        
+
         (('{^^}', action(), False), [action(attach=True, orthography=False)]),
-         
-        (('1-9', action(), False), 
+
+        (('1-9', action(), False),
          [action(word='1-9', text=' 1-9')]),
-         
-        (('32', action(), False), 
+
+        (('32', action(), False),
          [action(word='32', text=' 32', glue=True)]),
-         
+
         (('', action(text=' test', word='test', attach=True), False),
          [action(word='test', attach=True)]),
-         
+
         (('  ', action(text=' test', word='test', attach=True), False),
          [action(word='test', attach=True)]),
-         
+
         (('{^} {.} hello {.} {#ALT_L(Grave)}{^ ^}', action(), False),
-         [action(attach=True, orthography=False), 
-          action(text='.', capitalize=True), 
-          action(text=' Hello', word='Hello'), 
-          action(text='.', capitalize=True), 
+         [action(attach=True, orthography=False),
+          action(text='.', capitalize=True),
+          action(text=' Hello', word='Hello'),
+          action(text='.', capitalize=True),
           action(combo='ALT_L(Grave)', capitalize=True),
           action(text=' ', attach=True)
          ]),
@@ -299,7 +300,7 @@ class FormatterTestCase(unittest.TestCase):
           action(lower=True, word='a', text=' ', replace=' ', glue=True),
           action(text='b ', replace=' ', word='ab', glue=True),
          ]),
-         
+
          (('{-|} equip {^s}', action(), False),
           [action(capitalize=True),
            action(text=' Equip', word='Equip'),
@@ -416,7 +417,7 @@ class FormatterTestCase(unittest.TestCase):
           action(word='equip', attach=True, orthography=False),
           action(text='ed', word='equiped'),
          ]),
-         
+
          (('{prefix^} test {^ing}', action(), False),
          [action(text=' prefix', word='prefix', attach=True),
           action(text='test', word='test'),
@@ -464,32 +465,32 @@ class FormatterTestCase(unittest.TestCase):
           action(text='Heyyo ', word='Heyyo'),
          ]),
 
-        (('test', action(), True), 
+        (('test', action(), True),
          [action(text='test ', word='test')]),
-        
+
         (('{^^}', action(), True), [action(attach=True, orthography=False)]),
-         
-        (('1-9', action(), True), 
+
+        (('1-9', action(), True),
          [action(word='1-9', text='1-9 ')]),
-         
-        (('32', action(), True), 
+
+        (('32', action(), True),
          [action(word='32', text='32 ', glue=True)]),
-         
+
         (('', action(text='test ', word='test', attach=True), True),
          [action(word='test', attach=True)]),
-         
+
         (('  ', action(text='test ', word='test', attach=True), True),
          [action(word='test', attach=True)]),
-         
+
         (('{^} {.} hello {.} {#ALT_L(Grave)}{^ ^}', action(), True),
-         [action(attach=True, orthography=False), 
-          action(text='. ', capitalize=True), 
-          action(text='Hello ', word='Hello'), 
-          action(text='. ', capitalize=True, replace=' '), 
+         [action(attach=True, orthography=False),
+          action(text='. ', capitalize=True),
+          action(text='Hello ', word='Hello'),
+          action(text='. ', capitalize=True, replace=' '),
           action(combo='ALT_L(Grave)', capitalize=True),
           action(text=' ', attach=True)
          ]),
-         
+
          (('{-|} equip {^s}', action(), True),
           [action(capitalize=True),
            action(text='Equip ', word='Equip'),
@@ -605,13 +606,13 @@ class FormatterTestCase(unittest.TestCase):
          [action(text='1234.567 ', word='1234.567'),
           action(text='$1,234.57 ', word='$1,234.57', replace='1234.567 '),
          ]),
-         
+
         (('equip {^} {^ed}', action(), True),
          [action(text='equip ', word='equip'),
           action(word='equip', attach=True, orthography=False, replace=' '),
           action(text='ed ', word='equiped'),
          ]),
-         
+
          (('{prefix^} test {^ing}', action(), True),
          [action(text='prefix', word='prefix', attach=True),
           action(text='test ', word='test'),
@@ -662,39 +663,39 @@ class FormatterTestCase(unittest.TestCase):
     def test_atom_to_action_spaces_before(self):
         an_action = action()
         cases = [
-        (('{^ed}', action(word='test')), 
+        (('{^ed}', action(word='test')),
          action(text='ed', replace='', word='tested')),
-         
-        (('{^ed}', action(word='carry')), 
+
+        (('{^ed}', action(word='carry')),
          action(text='ied', replace='y', word='carried')),
-          
-        (('{^er}', action(word='test')), 
+
+        (('{^er}', action(word='test')),
          action(text='er', replace='', word='tester')),
-         
-        (('{^er}', action(word='carry')), 
+
+        (('{^er}', action(word='carry')),
          action(text='ier', replace='y', word='carrier')),
-                 
-        (('{^ing}', action(word='test')), 
+
+        (('{^ing}', action(word='test')),
          action(text='ing', replace='', word='testing')),
 
-        (('{^ing}', action(word='begin')), 
+        (('{^ing}', action(word='begin')),
          action(text='ning', replace='', word='beginning')),
-        
-        (('{^ing}', action(word='parade')), 
+
+        (('{^ing}', action(word='parade')),
          action(text='ing', replace='e', word='parading')),
-                 
-        (('{^s}', action(word='test')), 
+
+        (('{^s}', action(word='test')),
          action(text='s', replace='', word='tests')),
-                 
+
         (('{,}', action(word='test')), action(text=',')),
-         
+
         (('{:}', action(word='test')), action(text=':')),
-         
+
         (('{;}', action(word='test')), action(text=';')),
-         
-        (('{.}', action(word='test')), 
+
+        (('{.}', action(word='test')),
          action(text='.', capitalize=True)),
-         
+
         (('{?}', action(word='test')),
          action(text='?', capitalize=True)),
 
@@ -718,44 +719,44 @@ class FormatterTestCase(unittest.TestCase):
 
         (('{*<}', action(word='test')),
          action(word='TEST', text='TEST', replace='test', upper_carry=True)),
-          
+
         (('{PLOVER:test_command}', action(word='test')),
          action(word='test', command='test_command')),
-          
+
         (('{&glue_text}', action(word='test')),
          action(text=' glue_text', word='glue_text', glue=True)),
 
         (('{&glue_text}', action(word='test', glue=True)),
          action(text='glue_text', word='testglue_text', glue=True)),
-           
+
         (('{&glue_text}', action(word='test', attach=True)),
          action(text='glue_text', word='testglue_text', glue=True)),
-           
+
         (('{^attach_text}', action(word='test')),
          action(text='attach_text', word='testattach_text')),
-          
+
         (('{^attach_text^}', action(word='test')),
          action(text='attach_text', word='testattach_text', attach=True)),
-          
+
         (('{attach_text^}', action(word='test')),
          action(text=' attach_text', word='attach_text', attach=True)),
-                
-        (('{#ALT_L(A)}', action(word='test')), 
+
+        (('{#ALT_L(A)}', action(word='test')),
          action(combo='ALT_L(A)', word='test')),
-         
-        (('text', action(word='test')), 
+
+        (('text', action(word='test')),
          action(text=' text', word='text')),
 
-        (('text', action(word='test', glue=True)), 
+        (('text', action(word='test', glue=True)),
          action(text=' text', word='text')),
-         
-        (('text', action(word='test', attach=True)), 
+
+        (('text', action(word='test', attach=True)),
          action(text='text', word='text')),
-         
-        (('text', action(word='test', capitalize=True)), 
+
+        (('text', action(word='test', capitalize=True)),
          action(text=' Text', word='Text')),
 
-        (('some text', action(word='test')), 
+        (('some text', action(word='test')),
          action(text=' some text', word='text')),
 
         (('some text', action(word='test',
@@ -774,6 +775,12 @@ class FormatterTestCase(unittest.TestCase):
 
         (('some text', action(word='test', space_char='_')),
          action(text='_some_text', word='text', space_char='_')),
+
+        (('some text', action(word='test', stitch_char='-')),
+         action(text=' s-o-m-e t-e-x-t', word='text', stitch_char='-')),
+
+        ((u'søme téxt', action(word='test', stitch_char='-')),
+         action(text=u' s-ø-m-e t-é-x-t', word=u'téxt', stitch_char='-')),
 
         (('some text', action(word='test', case=an_action.CASE_UPPER)),
          action(text=' SOME TEXT', word='text', case=an_action.CASE_UPPER)),
@@ -1073,26 +1080,26 @@ class FormatterTestCase(unittest.TestCase):
     def test_get_meta(self):
         cases = [('', None), ('{abc}', 'abc'), ('abc', None)]
         self.check(formatting._get_meta, cases)
-    
+
     def test_apply_glue(self):
         cases = [('abc', '{&abc}'), ('1', '{&1}')]
         self.check(formatting._apply_glue, cases)
-    
+
     def test_unescape_atom(self):
-        cases = [('', ''), ('abc', 'abc'), (r'\{', '{'), (r'\}', '}'), 
+        cases = [('', ''), ('abc', 'abc'), (r'\{', '{'), (r'\}', '}'),
                  (r'\{abc\}}{', '{abc}}{')]
         self.check(formatting._unescape_atom, cases)
-    
+
     def test_get_engine_command(self):
         cases = [('', None), ('{PLOVER:command}', 'command')]
         self.check(formatting._get_engine_command, cases)
-    
+
     def test_capitalize(self):
         cases = [('', ''), ('abc', 'Abc'), ('ABC', 'ABC')]
         self.check(formatting._capitalize, cases)
-    
+
     def test_rightmost_word(self):
-        cases = [('', ''), ('abc', 'abc'), ('a word', 'word'), 
+        cases = [('', ''), ('abc', 'abc'), ('a word', 'word'),
                  ('word.', 'word.')]
         self.check(formatting._rightmost_word, cases)
 
