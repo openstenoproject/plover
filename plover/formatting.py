@@ -156,16 +156,31 @@ class OutputHelper(object):
         for a in action_list:
             if a.replace and text.endswith(a.replace):
                 text = text[:-len(a.replace)]
+
+            # Annoyance from after spaces: with certain commands spaces are placed to maintain state.
+            if a.replace == a.text == a.space_char and text == '':
+                text = a.word + a.text
             # With numbers, it's possible to have a.text='2' with a.word='1.2'
-            # folowing by an action that replaces '1.2' by '$1.20'...
-            if len(a.word) > len(a.text) and a.word.endswith(text):
-                text = a.word
+            # following by an action that replaces '1.2' by '$1.20'...
+            elif (len(a.word) > len(a.text)
+                      and a.word.endswith(text)):
+                text = OutputHelper._squish_strings(a.word, a.text)
             else:
                 text += a.text
         return text
 
-    def render(self, undo, do):
+    @staticmethod
+    def _squish_strings(beginning, ending):
+        # Credit: http://stackoverflow.com/a/4697972
+        max_n = 0
+        for n in range(1, 1 + min(len(beginning), len(ending))):
+            suffix = beginning[-n:]
+            prefix = ending[:n]
+            if prefix == suffix:
+                max_n = n
+        return beginning + ending[max_n:]
 
+    def render(self, undo, do):
         initial_text = self._actions_to_text(self.initial_formatting)
 
         min_length = min(len(undo), len(do))
@@ -654,6 +669,10 @@ def _atom_to_action_spaces_after(atom, last_action):
                 action.replace = NO_SPACE
         elif meta == META_CAPITALIZE:
             action = last_action.copy_state()
+            if was_space:
+                # Persist space state
+                action.replace = SPACE
+                action.text = SPACE
             action.capitalize = True
             action.lower = False
         elif meta == META_LOWER:
