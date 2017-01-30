@@ -93,7 +93,7 @@ class SuggestionsDialog(Tool, Ui_SuggestionsDialog):
             settings.setValue(name, font_string)
 
     def _show_suggestions(self, suggestion_list):
-        self.suggestions.prepend(suggestion_list)
+        self.suggestions.append(suggestion_list)
         self.action_Clear.setEnabled(True)
 
     @staticmethod
