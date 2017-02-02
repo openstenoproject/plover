@@ -127,7 +127,7 @@ class TranslatorTestCase(unittest.TestCase):
         t = Translator()
         s = stroke('S')
         tr = Translation([s], None)
-        expected_output = [([], [tr], tr)]
+        expected_output = [([], [tr], [tr])]
         
         t.translate(s)
         
@@ -165,6 +165,7 @@ class TranslatorTestCase(unittest.TestCase):
     def test_changing_state(self):
         output = []
         def listener(undo, do, prev):
+            prev = list(prev) if prev else None
             output.append((undo, do, prev))
 
         d = StenoDictionary()
@@ -181,7 +182,7 @@ class TranslatorTestCase(unittest.TestCase):
         
         expected = [([Translation([stroke('S')], None)], 
                      [Translation([stroke('S'), stroke('P')], 'hi')], 
-                     Translation([stroke('T')], None))]
+                     [Translation([stroke('T')], None)])]
         t.translate(stroke('P'))
         self.assertEqual(output, expected)
         
@@ -201,7 +202,7 @@ class TranslatorTestCase(unittest.TestCase):
         self.assertEqual(output, 
                          [([], 
                            [Translation([stroke('P')], None)], 
-                           Translation([stroke('S'), stroke('P')], 'hi'))])
+                           [Translation([stroke('S'), stroke('P')], 'hi')])])
 
     def test_translator(self):
 
@@ -338,30 +339,30 @@ class StateTestCase(unittest.TestCase):
         self.b = Translation([stroke('T'), stroke('-D')], None)
         self.c = Translation([stroke('-Z'), stroke('P'), stroke('T*')], None)
     
-    def test_last_list0(self):
+    def test_prev_list0(self):
         s = _State()
-        self.assertIsNone(s.last())    
+        self.assertIsNone(s.prev())
     
-    def test_last_list1(self):
+    def test_prev_list1(self):
         s = _State()
         s.translations = [self.a]
-        self.assertEqual(s.last(), self.a)
+        self.assertEqual(s.prev(), [self.a])
 
-    def test_last_list2(self):
+    def test_prev_list2(self):
         s = _State()
         s.translations = [self.a, self.b]
-        self.assertEqual(s.last(), self.b)        
+        self.assertEqual(s.prev(), [self.a, self.b])
 
-    def test_last_tail1(self):
+    def test_prev_tail1(self):
         s = _State()
         s.translations = [self.a]
         s.tail = self.b
-        self.assertEqual(s.last(), self.a)
+        self.assertEqual(s.prev(), [self.a])
 
-    def test_last_tail0(self):
+    def test_prev_tail0(self):
         s = _State()
         s.tail = self.b
-        self.assertEqual(s.last(), self.b)
+        self.assertEqual(s.prev(), [self.b])
         
     def test_restrict_size_zero_on_empty(self):
         s = _State()
@@ -427,6 +428,7 @@ class TranslateStrokeTestCase(unittest.TestCase):
             self.output = []
 
         def __call__(self, undo, new, prev):
+            prev = list(prev) if prev else None
             self.output = type(self).output(undo, new, prev)
 
     def t(self, strokes):
@@ -474,13 +476,13 @@ class TranslateStrokeTestCase(unittest.TestCase):
         self.s.translations = self.lt('S')
         self.translate(stroke('-T'))
         self.assertTranslations(self.lt('S -T'))
-        self.assertOutput([], self.lt('-T'), self.t('S'))
+        self.assertOutput([], self.lt('-T'), self.lt('S'))
 
     def test_second_stroke_tail(self):
         self.s.tail = self.t('T/A/I/L')
         self.translate(stroke('-E'))
         self.assertTranslations(self.lt('E'))
-        self.assertOutput([], self.lt('E'), self.t('T/A/I/L'))
+        self.assertOutput([], self.lt('E'), self.lt('T/A/I/L'))
 
     def test_with_translation_1(self):
         self.define('S', 'is')
@@ -489,7 +491,7 @@ class TranslateStrokeTestCase(unittest.TestCase):
         self.tlor.set_min_undo_length(2)
         self.translate(stroke('-T'))
         self.assertTranslations(self.lt('S -T'))
-        self.assertOutput([], self.lt('-T'), self.t('S'))
+        self.assertOutput([], self.lt('-T'), self.lt('S'))
         self.assertEqual(self.o.output.do[0].english, 'that')
 
     def test_with_translation_2(self):
@@ -499,7 +501,7 @@ class TranslateStrokeTestCase(unittest.TestCase):
         self.tlor.set_min_undo_length(1)
         self.translate(stroke('-T'))
         self.assertTranslations(self.lt('-T'))
-        self.assertOutput([], self.lt('-T'), self.t('S'))
+        self.assertOutput([], self.lt('-T'), self.lt('S'))
         self.assertEqual(self.o.output.do[0].english, 'that')
 
     def test_finish_two_translation(self):
@@ -561,7 +563,7 @@ class TranslateStrokeTestCase(unittest.TestCase):
         self.s.tail = self.t('T/A/I/L')
         self.translate(stroke('*'))
         self.assertTranslations([])
-        self.assertOutput([], [Translation([Stroke('*')], _back_string())], self.t('T/A/I/L'))
+        self.assertOutput([], [Translation([Stroke('*')], _back_string())], self.lt('T/A/I/L'))
         
     def test_suffix_folding(self):
         self.define('K-L', 'look')
@@ -709,7 +711,7 @@ class TranslateStrokeTestCase(unittest.TestCase):
         do = self.lt('TH')
         state = self.lt('TH TH')
         self.assertTranslations(state)
-        self.assertOutput(undo, do, do[0])
+        self.assertOutput(undo, do, do)
 
     def test_repeat_last_stroke2(self):
         self.define('T/E/S/T', 'a longer key')
@@ -721,7 +723,7 @@ class TranslateStrokeTestCase(unittest.TestCase):
         do = self.lt('THA')
         state = self.lt('THA THA')
         self.assertTranslations(state)
-        self.assertOutput(undo, do, do[0])
+        self.assertOutput(undo, do, do)
 
 
 class TranslationEscapeTest(unittest.TestCase):
