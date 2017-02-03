@@ -263,6 +263,11 @@ class KeymapOption(QTableWidget):
         action = self.item(row, 0).data(Qt.DisplayRole)
         keys = self.item(row, 1).data(Qt.DisplayRole)
         self._value[action] = keys.split()
+        new_keys = self._value[action]
+        if new_keys != keys:
+            self._updating = True
+            self.item(row, 1).setData(Qt.DisplayRole, ' '.join(sorted(new_keys)))
+            self._updating = False
         self.valueChanged.emit(self._value)
 
 
