@@ -447,10 +447,24 @@ class TranslateStrokeTestCase(unittest.TestCase):
         self.tlor.translate(stroke)
 
     def assertTranslations(self, expected):
-        self.assertEqual(self.s.translations, expected)
+        msg = '''
+        translations:
+            results: %s
+            expected: %s
+        ''' % (self.s.translations, expected)
+        self.assertEqual(self.s.translations, expected, msg=msg)
 
     def assertOutput(self, undo, do, prev):
-        self.assertEqual(self.o.output, (undo, do, prev))
+        msg = '''
+        output:
+            results: -%s
+                     +%s
+                     [%s]
+            expected: -%s
+                      +%s
+                      [%s]
+        ''' % (self.o.output + (undo, do, prev))
+        self.assertEqual(self.o.output, (undo, do, prev), msg=msg)
 
     def setUp(self):
         self.d = StenoDictionary()
@@ -559,8 +573,8 @@ class TranslateStrokeTestCase(unittest.TestCase):
         self.s.tail = self.t('T/A/I/L')
         self.translate(stroke('*'))
         self.assertTranslations([])
-        self.assertOutput([], [Translation([Stroke('*')], _back_string())], self.lt('T/A/I/L'))
-        
+        self.assertOutput([], [Translation([Stroke('*')], _back_string())], [self.s.tail])
+
     def test_suffix_folding(self):
         self.define('K-L', 'look')
         self.define('-G', '{^ing}')
@@ -692,10 +706,44 @@ class TranslateStrokeTestCase(unittest.TestCase):
         self.define('A*', '{*}')
         self.translate(stroke('S'))
         self.translate(stroke('A*'))
-        undo = self.lt('S')
-        do = self.lt('S*')
-        self.assertTranslations(do)
-        self.assertOutput(undo, do, None)
+        self.assertTranslations(self.lt('S*'))
+        self.assertOutput(self.lt('S'), self.lt('S*'), None)
+
+    def test_retrospective_toggle_empty(self):
+        self.define('A*', '{*}')
+        self.translate(stroke('A*'))
+        self.assertTranslations(self.lt(''))
+        self.assertEqual(self.o.output, [])
+
+    def test_retrospective_toggle_asterisk_replaced1(self):
+        self.define('P-P', '{.}')
+        self.define('SKEL', 'cancel')
+        self.define('SKEL/TO-PB', 'skeleton')
+        self.define('SKEL/TO*PB', 'not skeleton!')
+        self.define('A*', '{*}')
+        self.translate(stroke('P-P'))
+        self.translate(stroke('SKEL'))
+        self.translate(stroke('TO-PB'))
+        self.translate(stroke('A*'))
+        self.assertTranslations(self.lt('SKEL/TO*PB'))
+        self.assertOutput(self.lt('SKEL/TO-PB'),
+                          self.lt('SKEL/TO*PB'),
+                          self.lt('P-P'))
+
+    def test_retrospective_toggle_asterisk_replaced2(self):
+        self.define('P-P', '{.}')
+        self.define('SKEL', 'cancel')
+        self.define('SKEL/TO-PB', 'skeleton')
+        self.define('TO*PB', '{^ton}')
+        self.define('A*', '{*}')
+        self.translate(stroke('P-P'))
+        self.translate(stroke('SKEL'))
+        self.translate(stroke('TO-PB'))
+        self.translate(stroke('A*'))
+        self.assertTranslations(self.lt('SKEL TO*PB'))
+        self.assertOutput(self.lt('SKEL/TO-PB'),
+                          self.lt('SKEL TO*PB'),
+                          self.lt('P-P'))
 
     def test_repeat_last_stroke1(self):
         self.define('T/E/S/T', 'a longer key')

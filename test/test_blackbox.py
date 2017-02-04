@@ -199,6 +199,65 @@ class TestBlackboxReplays(object):
         1/P-P/2/KR*UR  "$1.20 "
         '''
 
+    def test_undo_fingerspelling_1(self):
+        r'''
+        'T*': '{>}{&t}',
+        '*E': '{>}{&e}',
+        'S*': '{>}{&s}',
+        'T*': '{>}{&t}',
+
+        T*/*E/S*/T*  ' test'
+        */*          ' te'
+        */*          ''
+        '''
+
+    def test_undo_fingerspelling_2(self):
+        r'''
+        'T*': '{>}{&t}',
+        '*E': '{>}{&e}',
+        'S*': '{>}{&s}',
+        'T*': '{>}{&t}',
+
+        :spaces_after
+        T*/*E/S*/T*  'test '
+        */*          'te '
+        */*          ''
+        '''
+
+    def test_undo_replaced_1(self):
+        r'''
+        "TEFT": "test",
+        "TEFT/TKPWOEFT": "{}",
+
+        TEFT      ' test'
+        TKPWOEFT  ''
+        *         ' test'
+        '''
+
+    def test_undo_replaced_2(self):
+        r'''
+        "HROS": "loss",
+        "HRO*S": "lost",
+        "*P": "{*}",
+
+        HROS   ' loss'
+        *P     ' lost'
+        *      ''
+        '''
+
+    def test_undo_replaced_3(self):
+        r'''
+        'PER': 'perfect',
+        'SWAEUGS': 'situation',
+        'PER/SWAEUGS': 'persuasion',
+        'SP*': '{*?}',
+
+        PER      ' perfect'
+        SWAEUGS  ' persuasion'
+        SP*      ' perfect situation'
+        *        ' persuasion'
+        '''
+
     def test_bug557(self):
         r'''
         # Using the asterisk key to delete letters in fingerspelled words
