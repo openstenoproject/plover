@@ -173,10 +173,13 @@ class AddTranslationWidget(QWidget, Ui_AddTranslationWidget):
         self._focus = None
 
     def _strokes(self):
-        strokes = self.strokes.text().replace('/', ' ').split()
-        if not strokes:
-            return ()
-        return normalize_steno('/'.join(strokes))
+        strokes = self.strokes.text().strip()
+        has_prefix = strokes.startswith('/')
+        strokes = '/'.join(strokes.replace('/', ' ').split())
+        if has_prefix:
+            strokes = '/' + strokes
+        strokes = normalize_steno(strokes)
+        return strokes
 
     def _translation(self):
         translation = self.translation.text().strip()
