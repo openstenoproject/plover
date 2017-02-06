@@ -60,12 +60,15 @@ _EXPORTS = {
     'DEFAULT_DICTIONARIES'     : lambda mod: mod.DEFAULT_DICTIONARIES,
 }
 
-def setup(system_name):
+def setup(system_name, system_mod=None, system_dict=None):
     system_symbols = {}
-    mod = registry.get_plugin('system', system_name).obj
+    if system_mod is None:
+        system_mod = registry.get_plugin('system', system_name).obj
     for symbol, init in _EXPORTS.items():
-        system_symbols[symbol] = init(mod)
+        system_symbols[symbol] = init(system_mod)
     system_symbols['NAME'] = system_name
-    globals().update(system_symbols)
+    if system_dict is None:
+        system_dict = globals()
+    system_dict.update(system_symbols)
 
 NAME = None
