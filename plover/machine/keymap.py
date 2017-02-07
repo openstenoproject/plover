@@ -116,14 +116,17 @@ class Keymap(object):
                 if old_key in self._bindings:
                     del self._bindings[old_key]
         errors = []
+        valid_key_list = []
         for key in key_list:
             if key not in self._keys:
                 errors.append('invalid key %s bound to action %s' % (key, action))
+                continue
             if key in self._bindings:
-                action_list = (action, self._bindings[key])
-                errors.append('key %s is bound multiple times: %s' % (key, str(action_list)))
-                del self._bindings[key]
+                errors.append('key %s is already bound to: %s' % (key, self._bindings[key]))
+                continue
+            valid_key_list.append(key)
             self._bindings[key] = action
+        self._mappings[action] = tuple(sorted(valid_key_list, key=self._keys.get))
         if len(errors) > 0:
             log.warning('Keymap is invalid, behavior undefined:\n\n- ' + '\n- '.join(errors))
 
