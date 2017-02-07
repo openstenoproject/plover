@@ -101,6 +101,9 @@ class Stroke:
         # Determine if this stroke is a correction stroke.
         self.is_correction = (self.rtfcre == system.UNDO_STROKE_STENO)
 
+    def __hash__(self):
+        return hash(self.rtfcre)
+
     def __str__(self):
         if self.is_correction:
             prefix = '*'
