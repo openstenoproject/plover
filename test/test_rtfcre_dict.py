@@ -31,8 +31,8 @@ class TestCase(unittest.TestCase):
         (r'\}', '}'),
         (r'\~', '{^ ^}'),
         (r'\_', '-'),
-        ('\\r', '\n'),
-        ('\\n', '\n'),
+        ('\\r', '{^~|\n\n^}'),
+        ('\\n', '{^~|\n\n^}'),
         (r'\cxds', '{^}'),
         (r'pre\cxds ', '{pre^}'),
         (r'pre\cxds  ', '{pre^} '),
@@ -45,14 +45,14 @@ class TestCase(unittest.TestCase):
         (r'pre\cxfl', 'pre{>}'),
         (r'{\*\cxsvatdictflags N}', '{-|}'),
         (r'{\*\cxsvatdictflags LN1}', '{-|}'),
-        (r'\par', '{^\n\n^}{-|}'),
+        (r'\par', '{^~|\n\n^}'),
         # caseCATalyst declares new styles without a preceding \par so we treat
         # it as an implicit par.
-        (r'\s1', '{^\n\n^}{-|}'),
+        (r'\s1', '{^~|\n\n^}'),
         # But if the \par is present we don't treat \s as an implicit par.
-        (r'\par\s1', '{^\n\n^}{-|}'),
+        (r'\par\s1', '{^~|\n\n^}'),
         # Continuation styles are indented too.
-        (r'\par\s2', '{^\n\n^}{-|}{^    ^}'),
+        (r'\par\s2', '{^~|\n\n^}{^    ^}'),
         # caseCATalyst punctuation.
         (r'.', '{.}'),
         (r'. ', '{.} '),
@@ -230,6 +230,9 @@ class TestCase(unittest.TestCase):
             ('Mr. {-|}',),
             ('Mr.{-|}',),
             ('state your{^ ^} name, please{^\n\n^}{-|}',),
+            ('{PLOVER:ON}',),
+            ('{^~|\n\n^}',),
+            ('{^~|\n\n}',),
         )
         for case in cases:
             initial = case[0]

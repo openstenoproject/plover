@@ -35,7 +35,7 @@ DICT_ENTRY_PATTERN = re.compile(r'(?s)(?<!\\){\\\*\\cxs (?P<steno>[^}]+)}' +
                                 r'(?:(?:(?<!\\)(?:\r\n|\n)\s*)*}\s*\Z))')
 
 JSON_PAR = '{^~|\n\n^}'
-JSON_LINE = '{^\n^}'
+JSON_LINE = '{^~|\n^}'
 
 class TranslationConverter(object):
     """Convert an RTF/CRE translation into plover's internal format."""
@@ -98,12 +98,12 @@ class TranslationConverter(object):
         return unescape_translation('{^%s^}' % m.group(1))
         
     def _re_handle_suffix(self, m):
-        r'\\cxds ([^{}\\\r\n ]+)'
-        return '{^%s}' % m.group(1)
+        r'\\cxds (([^{}\\\r\n]|\\n|\\r|\\t)+)'
+        return unescape_translation('{^%s}' % m.group(1))
 
     def _re_handle_prefix(self, m):
-        r'([^{}\\\r\n ]+)\\cxds ?'
-        return '{%s^}' % m.group(1)
+        r'(([^{}\\\r\n ]|\\n|\\r|\\t)+)\\cxds ?'
+        return unescape_translation('{%s^}' % m.group(1))
 
     def _re_handle_commands(self, m):
         r'(\\\*)?\\([a-z]+)(-?[0-9]+)? ?'
@@ -326,7 +326,6 @@ def format_translation(t):
     t = re.sub(r'{;}', '{\\cxp; }', t)
     t = re.sub(r'{\^}', '\\cxds ', t)
     t = re.sub(r'{\^ \^}', '\\~', t)
-    t = re.sub(r'{\^\n\n\^}{-\|}', '\\par', t)
     t = re.sub(r'{\^([^^}]*)}', '\\cxds \\1', t)
     t = re.sub(r'{([^^}]*)\^}', '\\1\\cxds ', t)
     t = re.sub(r'{\^([^^}]*)\^}', '\\cxds \\1\\cxds ', t)
@@ -334,10 +333,10 @@ def format_translation(t):
     t = re.sub(r'{>}', '\\cxfls ', t)
     t = re.sub(r'{ }', ' ', t)
     t = re.sub(r'{&([^}]+)}', '{\\cxfing \\1}', t)
-    t = re.sub(r'{#([^}]+)}', '\\{#\\1\\}', t)
-    t = re.sub(r'{PLOVER:([a-zA-Z]+)}', '\\{PLOVER:\\1\\}', t)
+    t = re.sub(r'{#([^}]+)}', r'{\*\plover_combo \1}', t)
+    t = re.sub(r'{PLOVER:([a-zA-Z]+)}', r'{\*\plover_command \1}', t)
     t = re.sub(r'\\"', '"', t)
-    
+    t = escape_translation(t)
     return t
     
 
