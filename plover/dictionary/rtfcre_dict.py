@@ -93,6 +93,14 @@ class TranslationConverter(object):
         r'\\r|\\n'
         return JSON_PAR
 
+    def _re_handle_plover_combo(self, m):
+        r'{\\\*\\plover_combo ([^}]+)}'
+        return '{#%s}' % m.group(1)
+
+    def _re_handle_plover_command(self, m):
+        r'{\\\*\\plover_command ([^}]+)}'
+        return '{PLOVER:%s}' % m.group(1)
+
     def _re_handle_infix(self, m):
         r'\\cxds (([^{}\\\r\n]|\\n|\\r|\\t)+)\\cxds ?'
         return unescape_translation('{^%s^}' % m.group(1))
