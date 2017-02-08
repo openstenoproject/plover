@@ -34,7 +34,8 @@ DICT_ENTRY_PATTERN = re.compile(r'(?s)(?<!\\){\\\*\\cxs (?P<steno>[^}]+)}' +
                                 r'(?=(?:(?<!\\){\\\*\\cxs [^}]+})|' +
                                 r'(?:(?:(?<!\\)(?:\r\n|\n)\s*)*}\s*\Z))')
 
-JSON_PAR = '{^\n\n^}{-|}'
+JSON_PAR = '{^~|\n\n^}'
+JSON_LINE = '{^\n^}'
 
 class TranslationConverter(object):
     """Convert an RTF/CRE translation into plover's internal format."""
@@ -90,7 +91,7 @@ class TranslationConverter(object):
 
     def _re_handle_escaped_newline(self, m):
         r'\\r|\\n'
-        return '\n'
+        return JSON_PAR
 
     def _re_handle_infix(self, m):
         r'\\cxds (([^{}\\\r\n]|\\n|\\r|\\t)+)\\cxds ?'
@@ -124,7 +125,10 @@ class TranslationConverter(object):
         if command == 'par':
             self.seen_par = True
             return JSON_PAR
-            
+
+        if command == 'line':
+            return JSON_LINE
+
         if command == 's':
             result = []
             if not self.seen_par:
@@ -310,9 +314,10 @@ HEADER = ("{\\rtf1\\ansi{\\*\\cxrev100}\\cxdict{\\*\\cxsystem Plover}" +
           "{\\stylesheet{\\s0 Normal;}}\r\n")
 
 def format_translation(t):
-    t = escape_translation(t)
     t = ''.join(META_RE.findall(t))
 
+    t = t.replace(JSON_PAR, r'\par')
+    t = t.replace(JSON_LINE, r'\line')
     t = re.sub(r'{\.}', '{\\cxp. }', t)
     t = re.sub(r'{!}', '{\\cxp! }', t)
     t = re.sub(r'{\?}', '{\\cxp? }', t)
