@@ -271,6 +271,61 @@ class KeymapOption(QTableWidget):
         self.valueChanged.emit(self._value)
 
 
+class MultipleChoicesOption(QTableWidget):
+
+    valueChanged = pyqtSignal(QVariant)
+
+    def __init__(self, choices=None, labels=(_('Choice'), _('Selected'))):
+        super(MultipleChoicesOption, self).__init__()
+        self._value = {}
+        self._updating = False
+        self._choices = {} if choices is None else choices
+        self._reversed_choices = {
+            translation: choice
+            for choice, translation in choices.items()
+        }
+        self.setColumnCount(2)
+        self.setHorizontalHeaderLabels(labels)
+        self.horizontalHeader().setStretchLastSection(True)
+        self.verticalHeader().hide()
+        self.setVerticalScrollBarPolicy(Qt.ScrollBarAlwaysOff)
+        self.cellChanged.connect(self._on_cell_changed)
+
+    def setValue(self, value):
+        self._updating = True
+        self.resizeColumnsToContents()
+        self.setMinimumSize(self.viewportSizeHint())
+        self.setRowCount(0)
+        if value is None:
+            value = set()
+        self._value = value
+        row = -1
+        for choice in sorted(self._reversed_choices):
+            row += 1
+            self.insertRow(row)
+            item = QTableWidgetItem(self._choices[choice])
+            item.setFlags(item.flags() & ~Qt.ItemIsEditable)
+            self.setItem(row, 0, item)
+            item = QTableWidgetItem()
+            item.setFlags((item.flags() & ~Qt.ItemIsEditable) | Qt.ItemIsUserCheckable)
+            item.setCheckState(Qt.Checked if choice in value else Qt.Unchecked)
+            self.setItem(row, 1, item)
+        self.resizeColumnsToContents()
+        self.setMinimumSize(self.viewportSizeHint())
+        self._updating = False
+
+    def _on_cell_changed(self, row, column):
+        if self._updating:
+            return
+        assert (row, column) == (0, 1)
+        choice = self._reversed_choices[self.item(row, 0).data(Qt.DisplayRole)]
+        if self.item(row, 1).checkState():
+            self._value.add(choice)
+        else:
+            self._value.discard(choice)
+        self.valueChanged.emit(self._value)
+
+
 class ConfigOption(object):
 
     def __init__(self, display_name, option_name, widget_class,
@@ -359,6 +414,14 @@ class ConfigWindow(QDialog, Ui_ConfigWindow, WindowState):
                                '\n'
                                'Note: the effective value will take into account the\n'
                                'dictionaries entry with the maximum number of strokes.')),
+            )),
+            (_('Plugins'), (
+                ConfigOption(_('Extension:'), 'enabled_extensions',
+                             partial(MultipleChoicesOption, choices={
+                                 name: name
+                                 for name in engine.list_plugins('extension')
+                             }, labels=(_('Name'), _('Enabled'))),
+                             _('Configure enabled plugin extensions.')),
             )),
             (_('System'), (
                 ConfigOption(_('System:'), 'system_name',

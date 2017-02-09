@@ -15,6 +15,7 @@ class Registry(object):
     PLUGIN_TYPES = (
         'command',
         'dictionary',
+        'extension',
         'gui',
         'gui.qt.tool',
         'machine',

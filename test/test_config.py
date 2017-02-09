@@ -308,6 +308,7 @@ class ConfigTestCase(unittest.TestCase):
             dictionary_file_names
             enable_stroke_logging
             enable_translation_logging
+            enabled_extensions
             log_file_name
             machine_specific_options
             machine_type

@@ -96,6 +96,7 @@ class StenoEngine(object):
         self._suggestions = Suggestions(self._dictionaries)
         self._keyboard_emulation = keyboard_emulation
         self._hooks = { hook: [] for hook in self.HOOKS }
+        self._running_extensions = {}
 
     def __enter__(self):
         self._lock.__enter__()
@@ -124,6 +125,7 @@ class StenoEngine(object):
                 log.error('engine %s failed', func.__name__[1:], exc_info=True)
 
     def _stop(self):
+        self._stop_extensions(self._running_extensions.keys())
         if self._machine is not None:
             self._machine.stop_capture()
             self._machine = None
@@ -206,9 +208,32 @@ class StenoEngine(object):
         copy_default_dictionaries(dictionaries_files)
         dictionaries = self._dictionaries_manager.load(dictionaries_files)
         self._dictionaries.set_dicts(dictionaries)
+        # Update running extensions.
+        enabled_extensions = config['enabled_extensions']
+        running_extensons = set(self._running_extensions)
+        self._stop_extensions(running_extensons - enabled_extensions)
+        self._start_extensions(enabled_extensions - running_extensons)
         # Trigger `config_changed` hook.
         if config_update:
             self._trigger_hook('config_changed', config_update)
+
+    def _start_extensions(self, extension_list):
+        for extension_name in extension_list:
+            log.info('starting `%s` extension' % extension_name)
+            try:
+                extension = registry.get_plugin('extension', extension_name).resolve()(self)
+                extension.start()
+            except Exception:
+                log.error('initializing extension `%s` failed', extension_name, exc_info=True)
+            else:
+                self._running_extensions[extension_name] = extension
+
+    def _stop_extensions(self, extension_list):
+        for extension_name in list(extension_list):
+            log.info('stopping `%s` extension' % extension_name)
+            extension = self._running_extensions.pop(extension_name)
+            extension.stop()
+            del extension
 
     def _quit(self):
         self._stop()
