@@ -852,7 +852,11 @@ def _apply_currency(meta, last_action, spaces_after=False):
 
 def _apply_carry_capitalize(meta, last_action, spaces_after=False):
     # Meta format: ^~|content^ (attach flags are optional)
-    attach_last = meta.startswith(META_ATTACH_FLAG)
+
+    # We don't need to attach to the last action if it is already attached.
+    last_attach = last_action and last_action.attach
+    attach_last = meta.startswith(META_ATTACH_FLAG) and not last_attach
+
     attach_next = meta.endswith(META_ATTACH_FLAG)
 
     content_start = meta.index(META_CARRY_CAPITALIZATION) + len(META_CARRY_CAPITALIZATION)
@@ -863,7 +867,11 @@ def _apply_carry_capitalize(meta, last_action, spaces_after=False):
     action.attach = attach_next
 
     # Spaces after: delete last space if we're attaching.
-    replace_last = last_action.text.endswith(SPACE) and attach_last
+    replace_last = (
+        spaces_after
+        and attach_last
+        and last_action.text.endswith(SPACE)
+    )
     action.replace = SPACE if replace_last else NO_SPACE
 
     if meta_content:

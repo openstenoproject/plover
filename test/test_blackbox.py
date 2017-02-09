@@ -246,3 +246,24 @@ class BlackboxTest(unittest.TestCase):
             stroke = steno_to_stroke(steno)
             self.translator.translate(stroke)
         self.assertEqual(self.output.text, u'\n\t')
+
+    def test_carry_capitalization_spacing(self):
+        self.dictionary.set(('R-R',), '{^~|\n^}')
+        self.dictionary.set(('R*R',), '{^\n^}')
+        self.dictionary.set(('S-P',), '{^ ^}')
+
+        def space_then_return(return_stroke):
+            for steno in (
+                'S-P',
+                return_stroke,
+            ):
+                stroke = steno_to_stroke(steno)
+                self.translator.translate(stroke)
+            self.assertEqual(self.output.text, u' \n')
+            self.output.text = ''
+
+        space_then_return('R*R')
+        space_then_return('R-R')
+        self.formatter.set_space_placement('After Output')
+        space_then_return('R*R')
+        space_then_return('R-R')
