@@ -1,4 +1,5 @@
 
+import sys
 import os
 
 import pkg_resources
@@ -8,6 +9,15 @@ from plover import log
 
 
 PLUGINS_DIR = os.path.join(CONFIG_DIR, 'plugins')
+
+if sys.platform.startswith('darwin'):
+    PLUGINS_PLATFORM = 'mac'
+elif sys.platform.startswith('linux'):
+    PLUGINS_PLATFORM = 'linux'
+elif sys.platform.startswith('win'):
+    PLUGINS_PLATFORM = 'win'
+else:
+    PLUGINS_PLATFORM = None
 
 
 class Registry(object):
@@ -55,6 +65,10 @@ class Registry(object):
             entrypoint_type = 'plover.%s' % plugin_type
             for entrypoint in pkg_resources.iter_entry_points(entrypoint_type):
                 self.register_plugin(plugin_type, entrypoint)
+            if PLUGINS_PLATFORM is not None:
+                entrypoint_type = 'plover.%s.%s' % (PLUGINS_PLATFORM, plugin_type)
+                for entrypoint in pkg_resources.iter_entry_points(entrypoint_type):
+                    self.register_plugin(plugin_type, entrypoint)
 
 
 registry = Registry()
