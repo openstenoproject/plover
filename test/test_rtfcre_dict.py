@@ -91,8 +91,8 @@ class TestCase(unittest.TestCase):
         (r'be\cxds{\*\cxsvatdictentrydate\yr2006\mo5\dy10}', '{be^}'),
         (r'{\nonexistant {\cxp .}}', '{.}'),
         (r'{\*\nonexistant {\cxp .}}', ''),
-        (r'{\*\plover_command TOGGLE}', '{PLOVER:TOGGLE}'),
-        (r'{\*\plover_combo Delete right left shift(up)}', '{#Delete right left shift(up)}')
+        (r'{\*\plover_meta PLOVER:TOGGLE}', '{PLOVER:TOGGLE}'),
+        (r'{\*\plover_meta #Delete right left shift(up)}', '{#Delete right left shift(up)}')
         )
         for before, after in cases:
             result = convert(before)
@@ -204,8 +204,10 @@ class TestCase(unittest.TestCase):
         ('{pre^}', 'pre\cxds '),
         ('{pre^} ', 'pre\cxds  '),
         ('{pre^}  ', 'pre\cxds   '),
-        ('{#Return}', r'{\*\plover_combo Return}'),
-        ('{PLOVER:TEST}', r'{\*\plover_command TEST}'),
+        ('{:}{:}', '{\cxp: }{\cxp: }'),
+        ('{^~|\n\n^}{^~|\n\n^}', '\\par\\par'),
+        ('{#Return}', r'{\*\plover_meta #Return}'),
+        ('{PLOVER:TEST}', r'{\*\plover_meta PLOVER:TEST}'),
         ('\n', '\\n'),
         )
         for before, expected in cases:

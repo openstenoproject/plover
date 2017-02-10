@@ -93,13 +93,9 @@ class TranslationConverter(object):
         r'\\r|\\n'
         return JSON_PAR
 
-    def _re_handle_plover_combo(self, m):
-        r'{\\\*\\plover_combo ([^}]+)}'
-        return '{#%s}' % m.group(1)
-
-    def _re_handle_plover_command(self, m):
-        r'{\\\*\\plover_command ([^}]+)}'
-        return '{PLOVER:%s}' % m.group(1)
+    def _re_handle_plover_meta(self, m):
+        r'{\\\*\\plover_meta ([^}]+)}'
+        return '{%s}' % m.group(1)
 
     def _re_handle_infix(self, m):
         r'\\cxds (([^{}\\\r\n]|\\n|\\r|\\t)+)\\cxds ?'
@@ -326,24 +322,30 @@ def format_translation(t):
 
     t = t.replace(JSON_PAR, r'\par')
     t = t.replace(JSON_LINE, r'\line')
-    t = re.sub(r'{\.}', '{\\cxp. }', t)
-    t = re.sub(r'{!}', '{\\cxp! }', t)
-    t = re.sub(r'{\?}', '{\\cxp? }', t)
-    t = re.sub(r'{\,}', '{\\cxp, }', t)
-    t = re.sub(r'{:}', '{\\cxp: }', t)
-    t = re.sub(r'{;}', '{\\cxp; }', t)
-    t = re.sub(r'{\^}', '\\cxds ', t)
-    t = re.sub(r'{\^ \^}', '\\~', t)
-    t = re.sub(r'{\^([^^}]*)}', '\\cxds \\1', t)
-    t = re.sub(r'{([^^}]*)\^}', '\\1\\cxds ', t)
-    t = re.sub(r'{\^([^^}]*)\^}', '\\cxds \\1\\cxds ', t)
-    t = re.sub(r'{-\|}', '\\cxfc ', t)
-    t = re.sub(r'{>}', '\\cxfls ', t)
-    t = re.sub(r'{ }', ' ', t)
-    t = re.sub(r'{&([^}]+)}', '{\\cxfing \\1}', t)
-    t = re.sub(r'{#([^}]+)}', r'{\*\plover_combo \1}', t)
-    t = re.sub(r'{PLOVER:([a-zA-Z]+)}', r'{\*\plover_command \1}', t)
-    t = re.sub(r'\\"', '"', t)
+
+    substitutions = (
+        ('{\.}', '{\\cxp. }'),
+        ('{!}', '{\\cxp! }'),
+        ('{\?}', '{\\cxp? }'),
+        ('{\,}', '{\\cxp, }'),
+        ('{:}', '{\\cxp: }'),
+        ('{;}', '{\\cxp; }'),
+        ('{\^}', '\\cxds '),
+        ('{\^ \^}', '\\~'),
+        ('{\^([^^}]*)}', '\\cxds \\1'),
+        ('{([^^}]*)\^}', '\\1\\cxds '),
+        ('{\^([^^}]*)\^}', '\\cxds \\1\\cxds '),
+        ('{-\|}', '\\cxfc '),
+        ('{>}', '\\cxfls '),
+        ('{ }', ' '),
+        ('{&([^}]+)}', '{\\cxfing \\1}'),
+        (r'\"', '"'),
+        # Handle any other meta as an ignored group
+        (r'{([^}\\]+)}', r'{\*\plover_meta \1}'),
+    )
+    for (pattern, substitute) in substitutions:
+        t = re.sub(pattern, substitute, t)
+
     t = escape_translation(t)
     return t
     
