@@ -307,3 +307,22 @@ class TestBlackboxReplays(object):
 
         TPAO/KPA*TS/KAUPB/TPAO  " FOO confoo"
         '''
+
+    @pytest.mark.xfail
+    def test_carry_capitalization_spacing1(self):
+        r'''
+        'S-P': '{^ ^}',
+        'R-R': '{^~|\n^}',
+
+        S-P/R-R  ' \n'
+        '''
+
+    @pytest.mark.xfail
+    def test_carry_capitalization_spacing2(self):
+        r'''
+        'S-P': '{^ ^}',
+        'R-R': '{^~|\n^}',
+
+        :spaces_after
+        S-P/R-R  ' \n'
+        '''
