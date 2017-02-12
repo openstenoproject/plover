@@ -2,6 +2,9 @@
 import io
 import os
 
+# Python 2/3 compatibility.
+from six import text_type
+
 import pkg_resources
 
 
@@ -28,7 +31,7 @@ def resource_stream(resource_name, encoding=None):
 def resource_string(resource_name, encoding=None):
     if resource_name.startswith(ASSET_SCHEME):
         s = pkg_resources.resource_string(*_asset_split(resource_name))
-        return s if encoding is None else unicode(s, encoding)
+        return s if encoding is None else text_type(s, encoding)
     mode = 'rb' if encoding is None else 'r'
     with io.open(resource_name, mode, encoding=encoding) as fp:
         return fp.read()
