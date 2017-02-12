@@ -29,6 +29,7 @@ class StenoDictionary(collections.MutableMapping):
         self.filters = []
         self.update(*args, **kw)
         self.save = None
+        self.enabled = True
         self._path = ''
 
     @property
@@ -123,6 +124,8 @@ class StenoDictionaryCollection(object):
         if key_len > self.longest_key:
             return None
         for d in dicts:
+            if not d.enabled:
+                continue
             if key_len > d.longest_key:
                 continue
             value = d.get(key)

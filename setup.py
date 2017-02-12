@@ -442,6 +442,7 @@ if __name__ == '__main__':
 
         [plover.command]
         priority_dict = plover.command.priority_dict:priority_dict
+        toggle_dict = plover.command.toggle_dict:toggle_dict
 
         [plover.gui]
         none = plover.gui_none.main
