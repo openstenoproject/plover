@@ -208,7 +208,7 @@ class Config(object):
         else:
             try:
                 filenames = tuple(json.loads(filenames))
-            except ValueError as e:
+            except ValueError:
                 log.error("invalid system dictionaries, resetting to default",
                           exc_info=True)
                 self.set_dictionary_file_names(None)
@@ -248,23 +248,23 @@ class Config(object):
         self._set(LOGGING_CONFIG_SECTION, ENABLE_STROKE_LOGGING_OPTION, log)
 
     def get_enable_stroke_logging(self):
-        return self._get_bool(LOGGING_CONFIG_SECTION, 
-                              ENABLE_STROKE_LOGGING_OPTION, 
+        return self._get_bool(LOGGING_CONFIG_SECTION,
+                              ENABLE_STROKE_LOGGING_OPTION,
                               DEFAULT_ENABLE_STROKE_LOGGING)
 
     def set_enable_translation_logging(self, log):
         self._set(LOGGING_CONFIG_SECTION, ENABLE_TRANSLATION_LOGGING_OPTION, log)
 
     def get_enable_translation_logging(self):
-        return self._get_bool(LOGGING_CONFIG_SECTION, 
-                              ENABLE_TRANSLATION_LOGGING_OPTION, 
+        return self._get_bool(LOGGING_CONFIG_SECTION,
+                              ENABLE_TRANSLATION_LOGGING_OPTION,
                               DEFAULT_ENABLE_TRANSLATION_LOGGING)
 
     def set_auto_start(self, b):
         self._set(MACHINE_CONFIG_SECTION, MACHINE_AUTO_START_OPTION, b)
 
     def get_auto_start(self):
-        return self._get_bool(MACHINE_CONFIG_SECTION, MACHINE_AUTO_START_OPTION, 
+        return self._get_bool(MACHINE_CONFIG_SECTION, MACHINE_AUTO_START_OPTION,
                               DEFAULT_MACHINE_AUTO_START)
 
     def set_start_minimized(self, b):
@@ -278,7 +278,7 @@ class Config(object):
         self._set(STROKE_DISPLAY_SECTION, STROKE_DISPLAY_SHOW_OPTION, b)
 
     def get_show_stroke_display(self):
-        return self._get_bool(STROKE_DISPLAY_SECTION, 
+        return self._get_bool(STROKE_DISPLAY_SECTION,
             STROKE_DISPLAY_SHOW_OPTION, DEFAULT_STROKE_DISPLAY_SHOW)
 
     def set_show_suggestions_display(self, b):
@@ -289,7 +289,7 @@ class Config(object):
             SUGGESTIONS_DISPLAY_SHOW_OPTION, DEFAULT_SUGGESTIONS_DISPLAY_SHOW)
 
     def get_space_placement(self):
-        return self._get(OUTPUT_CONFIG_SECTION, OUTPUT_CONFIG_SPACE_PLACEMENT_OPTION, 
+        return self._get(OUTPUT_CONFIG_SECTION, OUTPUT_CONFIG_SPACE_PLACEMENT_OPTION,
                          DEFAULT_OUTPUT_CONFIG_SPACE_PLACEMENT)
 
     def set_space_placement(self, s):
@@ -330,7 +330,7 @@ class Config(object):
         self._set(STROKE_DISPLAY_SECTION, STROKE_DISPLAY_ON_TOP_OPTION, b)
 
     def get_stroke_display_on_top(self):
-        return self._get_bool(STROKE_DISPLAY_SECTION, 
+        return self._get_bool(STROKE_DISPLAY_SECTION,
             STROKE_DISPLAY_ON_TOP_OPTION, DEFAULT_STROKE_DISPLAY_ON_TOP)
 
     def set_suggestions_display_on_top(self, b):
@@ -344,7 +344,7 @@ class Config(object):
         self._set(STROKE_DISPLAY_SECTION, STROKE_DISPLAY_STYLE_OPTION, s)
 
     def get_stroke_display_style(self):
-        return self._get(STROKE_DISPLAY_SECTION, STROKE_DISPLAY_STYLE_OPTION, 
+        return self._get(STROKE_DISPLAY_SECTION, STROKE_DISPLAY_STYLE_OPTION,
                          DEFAULT_STROKE_DISPLAY_STYLE)
 
     def set_translation_frame_opacity(self, opacity):
@@ -420,7 +420,7 @@ class Config(object):
         else:
             try:
                 mappings = dict(json.loads(mappings))
-            except ValueError as e:
+            except ValueError:
                 log.error("invalid machine keymap, resetting to default",
                           exc_info=True)
                 self.set_system_keymap(None, machine_type)
