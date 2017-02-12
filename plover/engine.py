@@ -12,7 +12,7 @@ from plover import log, system
 from plover.dictionary.loading_manager import DictionaryLoadingManager
 from plover.exception import InvalidConfigurationError
 from plover.formatting import Formatter
-from plover.registry import registry, PLUGINS_DIR
+from plover.registry import registry
 from plover.resource import ASSET_SCHEME, resource_filename
 from plover.steno import Stroke
 from plover.suggestions import Suggestions
@@ -31,8 +31,6 @@ def copy_default_dictionaries(dictionaries_files):
     in use by the current config and missing.
     '''
 
-    config_dictionaries = set(os.path.basename(dictionary)
-                              for dictionary in dictionaries_files)
     for dictionary in dictionaries_files:
         # Ignore assets.
         if dictionary.startswith(ASSET_SCHEME):
