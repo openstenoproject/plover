@@ -33,7 +33,7 @@ def normalize_stroke(stroke):
             return stroke[:start] + '-' + stroke[start:]
     if '-' in letters:
         if stroke.endswith('-'):
-             stroke = stroke[:-1]
+            stroke = stroke[:-1]
         elif letters & system.IMPLICIT_HYPHENS:
             stroke = stroke.replace('-', '')
     return stroke
