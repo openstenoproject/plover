@@ -9,16 +9,16 @@ import sys
 
 
 class LockNotAcquiredException(Exception):
-
     pass
 
+
 if sys.platform.startswith('win32'):
-    import win32event
-    import win32api
-    import winerror
+
+    from ctypes import windll
 
 
     class PloverLock(object):
+
         # A GUID from http://createguid.com/
         guid = 'plover_{F8C06652-2C51-410B-8D15-C94DF96FC1F9}'
 
@@ -26,13 +26,13 @@ if sys.platform.startswith('win32'):
             pass
 
         def acquire(self):
-            self.mutex = win32event.CreateMutex(None, False, self.guid)
-            if win32api.GetLastError() == winerror.ERROR_ALREADY_EXISTS:
+            self.mutex = windll.kernel32.CreateMutexA(None, False, self.guid)
+            if windll.kernel32.GetLastError() == 0xB7: # ERROR_ALREADY_EXISTS
                 raise LockNotAcquiredException()
 
         def release(self):
             if hasattr(self, 'mutex'):
-                win32api.CloseHandle(self.mutex)
+                windll.kernel32.CloseHandle(self.mutex)
                 del self.mutex
 
         def __del__(self):
@@ -45,11 +45,13 @@ if sys.platform.startswith('win32'):
             self.release()
 
 else:
+
     import fcntl
     import os
 
 
     class PloverLock(object):
+
         def __init__(self):
             # Check the environment for items to make the lockfile unique
             # fallback if not found
