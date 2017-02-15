@@ -4,10 +4,10 @@ import sys
 
 if sys.platform.startswith('win32'):
 
-    import win32gui
+    from ctypes import windll
 
-    GetForegroundWindow = win32gui.GetForegroundWindow
-    SetForegroundWindow = win32gui.SetForegroundWindow
+    GetForegroundWindow = windll.user32.GetForegroundWindow
+    SetForegroundWindow = windll.user32.SetForegroundWindow
 
 
 elif sys.platform.startswith('darwin'):

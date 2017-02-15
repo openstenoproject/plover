@@ -9,10 +9,9 @@ import ctypes
 from ctypes import windll, wintypes
 from collections import defaultdict, namedtuple
 
-import win32gui
-
 from plover.key_combo import CHAR_TO_KEYNAME, add_modifiers_aliases
 from plover.misc import popcount_8
+
 
 GetKeyboardLayout = windll.user32.GetKeyboardLayout
 GetWindowThreadProcessId = windll.user32.GetWindowThreadProcessId
@@ -443,7 +442,7 @@ class KeyboardLayout(object): # {{{
 
     @staticmethod
     def current_layout_id():
-        pid = GetWindowThreadProcessId(win32gui.GetForegroundWindow(), 0)
+        pid = GetWindowThreadProcessId(windll.user32.GetForegroundWindow(), 0)
         return GetKeyboardLayout(pid)
 
 # }}}

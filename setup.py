@@ -359,7 +359,6 @@ install_requires = [
 
 extras_require = {
     ':"win32" in sys_platform': [
-        'pywin32>=219',
     ],
     ':"linux" in sys_platform': [
         'python-xlib>=0.16',

@@ -254,13 +254,9 @@ class Helper(object):
              None, None, (), None),
             ('PyQt5', 'pip:PyQt5',
              None, None, (), None),
-            ('pywin32', 'https://downloads.sourceforge.net/project/pywin32/pywin32/Build 220/pywin32-220.win32-py3.5.exe',
-             '5c9bd9643982dbfea4aba500503227dd997931df', 'easy_install', (), None),
         )
     else:
         DEPENDENCIES = (
-            ('pywin32', 'https://downloads.sourceforge.net/project/pywin32/pywin32/Build 219/pywin32-219.win32-py2.7.exe',
-             '8bc39008383c646bed01942584117113ddaefe6b', 'easy_install', (), None),
             ('Cython', 'https://pypi.python.org/packages/2.7/C/Cython/Cython-0.23.4-cp27-none-win32.whl',
              'd7c1978fe2037674b151622158881c700ac2f06a', None, (), None),
             ('VC for Python', 'https://download.microsoft.com/download/7/9/6/796EF2E4-801B-4FC4-AB28-B59FBF6D907B/VCForPython27.msi',
