@@ -20,6 +20,7 @@ VENDOR_ID = 0x112b
 MAX_OFFSET = 0xFFFFFFFF
 HEADER_BYTES = 32
 PACKET_ERROR = 0x06
+OPEN_FILE = 0x12
 READ_BYTES = 0x13
 
 if sys.platform.startswith('win32'):
@@ -137,6 +138,26 @@ if sys.platform.startswith('win32'):
                 device_info, classguid)
             return usb_device
 
+        def _usb_open_realtime(self):
+            self._host_packet.SyncSeqType[0] = ord('S')
+            self._host_packet.SyncSeqType[1] = ord('G')
+            self._host_packet.SyncSeqType[2] = self._sequence_number % 255
+            self._host_packet.SyncSeqType[6] = OPEN_FILE
+            self._host_packet.uiFileOffset = ord('A')
+            self._host_packet.data = 'REALTIME.000'.encode('ascii')
+            if self._usb_device == INVALID_HANDLE_VALUE:
+                return 0
+            bytes_written = DWORD(0)
+
+            WriteFile(
+                self._usb_device,
+                byref(self._host_packet),
+                32 + self._host_packet.uiDataLen + len(self._host_packet.data),
+                byref(bytes_written),
+                None
+            )
+            return bytes_written.value
+
         def _usb_write_packet(self):
             self._host_packet.SyncSeqType[0] = ord('S')
             self._host_packet.SyncSeqType[1] = ord('G')
@@ -220,7 +241,10 @@ if sys.platform.startswith('win32'):
             self._usb_device = (
                 self._open_device_by_class_interface_and_instance(
                     USB_WRITER_GUID))
-            return self._usb_device != INVALID_HANDLE_VALUE
+            if self._usb_device == INVALID_HANDLE_VALUE:
+                return False
+            self._usb_open_realtime()
+            return True
 
         def read(self, file_offset):
             result = self._read_steno(file_offset)
