@@ -30,7 +30,8 @@ if sys.platform.startswith('win32'):
     from ctypes.wintypes import DWORD, HANDLE, WORD, BYTE
     import uuid
 
-    REALTIME_FILENAME = (c_ubyte * DATA_SIZE).from_buffer_copy('REALTIME.000'.encode())
+    REALTIME_FILENAME = 'REALTIME.000'
+    FILENAME_BYTES = (c_ubyte * len(REALTIME_FILENAME)).from_buffer_copy(REALTIME_FILENAME.encode())
 
 
     class GUID(Structure):
@@ -149,7 +150,8 @@ if sys.platform.startswith('win32'):
             self._host_packet.SyncSeqType[2] = self._sequence_number % 255
             self._host_packet.SyncSeqType[6] = ACTION_OPEN
             self._host_packet.uiFileOffset = ord('A')
-            self._host_packet.data = REALTIME_FILENAME
+            self._host_packet.uiDataLen = len(REALTIME_FILENAME)
+            self._host_packet.data = FILENAME_BYTES
             if self._usb_device == INVALID_HANDLE_VALUE:
                 return 0
             bytes_written = DWORD(0)
@@ -157,7 +159,7 @@ if sys.platform.startswith('win32'):
             WriteFile(
                 self._usb_device,
                 byref(self._host_packet),
-                32 + self._host_packet.uiDataLen + len(self._host_packet.data),
+                32 + self._host_packet.uiDataLen,
                 byref(bytes_written),
                 None
             )
