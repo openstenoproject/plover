@@ -30,7 +30,7 @@ if sys.platform.startswith('win32'):
     from ctypes.wintypes import DWORD, HANDLE, WORD, BYTE
     import uuid
 
-    REALTIME_FILENAME = (c_ubyte * DATA_SIZE).from_buffer_copy('REALTIME.000')
+    REALTIME_FILENAME = (c_ubyte * DATA_SIZE).from_buffer_copy('REALTIME.000'.encode())
 
 
     class GUID(Structure):
@@ -206,7 +206,7 @@ if sys.platform.startswith('win32'):
             self._host_packet.uiParam3 = 0
             self._host_packet.uiParam4 = 0
             self._host_packet.uiParam5 = 0
-            self._host_packet.uiFileOffset = file_offset
+            self._host_packet.uiFileOffset = 1
             self._host_packet.uiByteCount = 512
             if self._usb_write_packet() == 0:
                 return USB_NO_RESPONSE
