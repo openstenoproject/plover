@@ -20,13 +20,18 @@ VENDOR_ID = 0x112b
 MAX_OFFSET = 0xFFFFFFFF
 HEADER_BYTES = 32
 PACKET_ERROR = 0x06
-OPEN_FILE = 0x12
-READ_BYTES = 0x13
+ACTION_OPEN = 0x12
+ACTION_READ = 0x13
+DATA_SIZE = 1024
+
 
 if sys.platform.startswith('win32'):
     from ctypes import *
     from ctypes.wintypes import DWORD, HANDLE, WORD, BYTE
     import uuid
+
+    REALTIME_FILENAME = (c_ubyte * DATA_SIZE).from_buffer_copy('REALTIME.000')
+
 
     class GUID(Structure):
         _fields_ = [("Data1", DWORD),
@@ -51,7 +56,7 @@ if sys.platform.startswith('win32'):
             ("uiParam3", DWORD),
             ("uiParam4", DWORD),
             ("uiParam5", DWORD),
-            ("data", c_ubyte * 1024)
+            ("data", c_ubyte * DATA_SIZE)
         ]  # limiting data to 1024 bytes (should only ask for 512 at a time)
 
     # Class GUID / UUID for Stenograph USB Writer
@@ -142,9 +147,9 @@ if sys.platform.startswith('win32'):
             self._host_packet.SyncSeqType[0] = ord('S')
             self._host_packet.SyncSeqType[1] = ord('G')
             self._host_packet.SyncSeqType[2] = self._sequence_number % 255
-            self._host_packet.SyncSeqType[6] = OPEN_FILE
+            self._host_packet.SyncSeqType[6] = ACTION_OPEN
             self._host_packet.uiFileOffset = ord('A')
-            self._host_packet.data = 'REALTIME.000'.encode('ascii')
+            self._host_packet.data = REALTIME_FILENAME
             if self._usb_device == INVALID_HANDLE_VALUE:
                 return 0
             bytes_written = DWORD(0)
@@ -162,7 +167,7 @@ if sys.platform.startswith('win32'):
             self._host_packet.SyncSeqType[0] = ord('S')
             self._host_packet.SyncSeqType[1] = ord('G')
             self._host_packet.SyncSeqType[2] = self._sequence_number % 255
-            self._host_packet.SyncSeqType[6] = READ_BYTES
+            self._host_packet.SyncSeqType[6] = ACTION_READ
             if self._usb_device == INVALID_HANDLE_VALUE:
                 return 0
             bytes_written = DWORD(0)
@@ -185,7 +190,7 @@ if sys.platform.startswith('win32'):
           ReadFile(
               self._usb_device,
               byref(self._writer_packet),
-              32 + 1024,
+              32 + DATA_SIZE,
               byref(bytes_read),
               None
           )
@@ -196,7 +201,7 @@ if sys.platform.startswith('win32'):
           return 32 + self._writer_packet.uiDataLen
 
         def _read_steno(self, file_offset):
-            self._host_packet.SyncSeqType[6] = READ_BYTES
+            self._host_packet.SyncSeqType[6] = ACTION_READ
             self._host_packet.uiDataLen = 0
             self._host_packet.uiParam3 = 0
             self._host_packet.uiParam4 = 0
@@ -220,7 +225,7 @@ if sys.platform.startswith('win32'):
                     self._host_packet.SyncSeqType[2]):
                 self._sequence_number += 1
 
-                if self._writer_packet.SyncSeqType[6] == READ_BYTES:
+                if self._writer_packet.SyncSeqType[6] == ACTION_READ:
                     return self._writer_packet.uiDataLen
                 else:
                     # Could check the error code for more specific errors here
@@ -244,6 +249,9 @@ if sys.platform.startswith('win32'):
             if self._usb_device == INVALID_HANDLE_VALUE:
                 return False
             self._usb_open_realtime()
+            log.info('Reading back')
+            log.info(self._usb_read_packet())
+            self._sequence_number += 1
             return True
 
         def read(self, file_offset):
@@ -271,7 +279,7 @@ else:
             self._packet = bytearray(
                 [0x53, 0x47,  # SG → sync (static)
                  0, 0, 0, 0,  # Sequence number
-                 READ_BYTES, 0,  # Action (static)
+                 ACTION_READ, 0,  # Action (static)
                  0, 0, 0, 0,  # Data length
                  0, 0, 0, 0,  # File offset
                  0, 0x02, 0, 0,  # Requested byte count (static 512)
@@ -332,7 +340,7 @@ else:
                 self._packet[12 + i] = file_offset >> 8 * i & 255
             try:
                 self._endpoint_out.write(self._packet)
-                response = self._endpoint_in.read(1024, 3000)
+                response = self._endpoint_in.read(DATA_SIZE, 3000)
             except core.USBError:
                 raise IOError('Machine read or write failed')
             else:
@@ -341,7 +349,7 @@ else:
                     if writer_action == PACKET_ERROR:
                         raise EOFError(
                             'No open file on writer, open file and reconnect')
-                    elif writer_action == READ_BYTES:
+                    elif writer_action == ACTION_READ:
                         return response[HEADER_BYTES:]
                 return response
     StenographMachine = LibUSBStenographMachine
