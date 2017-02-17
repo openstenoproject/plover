@@ -32,6 +32,7 @@ if sys.platform.startswith('win32'):
 
     REALTIME_FILENAME = 'REALTIME.000'
     FILENAME_BYTES = (c_ubyte * len(REALTIME_FILENAME)).from_buffer_copy(REALTIME_FILENAME.encode())
+    resize(FILENAME_BYTES, DATA_SIZE)
 
 
     class GUID(Structure):
@@ -151,11 +152,13 @@ if sys.platform.startswith('win32'):
             self._host_packet.SyncSeqType[6] = ACTION_OPEN
             self._host_packet.uiFileOffset = ord('A')
             self._host_packet.uiDataLen = len(REALTIME_FILENAME)
+
             self._host_packet.data = FILENAME_BYTES
             if self._usb_device == INVALID_HANDLE_VALUE:
                 return 0
             bytes_written = DWORD(0)
-
+            log.info('writing open packet')
+            log.info(self._host_packet)
             WriteFile(
                 self._usb_device,
                 byref(self._host_packet),
@@ -163,6 +166,8 @@ if sys.platform.startswith('win32'):
                 byref(bytes_written),
                 None
             )
+            log.info('wrote it')
+            log.info(bytes_written.value)
             return bytes_written.value
 
         def _usb_write_packet(self):
@@ -173,7 +178,8 @@ if sys.platform.startswith('win32'):
             if self._usb_device == INVALID_HANDLE_VALUE:
                 return 0
             bytes_written = DWORD(0)
-
+            log.info('writing read packet')
+            log.info(self._host_packet)
             WriteFile(
                 self._usb_device,
                 byref(self._host_packet),
@@ -181,6 +187,7 @@ if sys.platform.startswith('win32'):
                 byref(bytes_written),
                 None
             )
+            log.info('yo.')
             return bytes_written.value
 
         def _usb_read_packet(self):
@@ -248,8 +255,10 @@ if sys.platform.startswith('win32'):
             self._usb_device = (
                 self._open_device_by_class_interface_and_instance(
                     USB_WRITER_GUID))
+            log.info('checking USB device')
             if self._usb_device == INVALID_HANDLE_VALUE:
                 return False
+            log.info('opening realtime...')
             self._usb_open_realtime()
             log.info('Reading back')
             log.info(self._usb_read_packet())
@@ -419,12 +428,17 @@ class Stenograph(ThreadedStenotypeBase):
         connected = False
         try:
             connected = self._machine.connect()
+            print('connected?')
+            print(connected)
         except ValueError:
             log.warning('Stenograph: libusb must be installed.')
             self._error()
         except AssertionError as e:
             log.warning('Error connecting: %s', str(e))
             self._error()
+        except Exception as e:
+            log.info('other exception!')
+            log.info(str(e))
         finally:
             return connected
 
@@ -448,7 +462,7 @@ class Stenograph(ThreadedStenotypeBase):
                 response = self._machine.read(self._file_offset)
             except IOError as e:
                 log.warning(u'Stenograph machine disconnected, reconnecting…')
-                log.debug('Stenograph exception: %s', str(e))
+                log.info('Stenograph exception: %s', str(e))
                 self._reset_state()
                 if self._reconnect():
                     log.warning('Stenograph reconnected.')
