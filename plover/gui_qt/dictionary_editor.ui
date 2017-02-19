@@ -119,7 +119,7 @@
   <action name="action_Delete">
    <property name="icon">
     <iconset resource="resources/resources.qrc">
-     <normaloff>:/delete.svg</normaloff>:/delete.svg</iconset>
+     <normaloff>:/remove.svg</normaloff>:/remove.svg</iconset>
    </property>
    <property name="text">
     <string>&amp;Delete</string>
@@ -149,7 +149,7 @@
   <action name="action_New">
    <property name="icon">
     <iconset resource="resources/resources.qrc">
-     <normaloff>:/new.svg</normaloff>:/new.svg</iconset>
+     <normaloff>:/add.svg</normaloff>:/add.svg</iconset>
    </property>
    <property name="text">
     <string>&amp;New translation</string>

@@ -76,7 +76,7 @@
   <action name="action_Clear">
    <property name="icon">
     <iconset resource="resources/resources.qrc">
-     <normaloff>:/clear.svg</normaloff>:/clear.svg</iconset>
+     <normaloff>:/trash.svg</normaloff>:/trash.svg</iconset>
    </property>
    <property name="text">
     <string>&amp;Clear</string>
@@ -109,7 +109,7 @@
    </property>
    <property name="icon">
     <iconset resource="resources/resources.qrc">
-     <normaloff>:/on-top.svg</normaloff>:/on-top.svg</iconset>
+     <normaloff>:/pin.svg</normaloff>:/pin.svg</iconset>
    </property>
    <property name="text">
     <string>&amp;Toggle &quot;always on top&quot;</string>
@@ -124,7 +124,7 @@
   <action name="action_SelectFont">
    <property name="icon">
     <iconset resource="resources/resources.qrc">
-     <normaloff>:/font.svg</normaloff>:/font.svg</iconset>
+     <normaloff>:/font_selector.svg</normaloff>:/font_selector.svg</iconset>
    </property>
    <property name="text">
     <string>Select &amp;font</string>

@@ -75,7 +75,7 @@
   <action name="action_EditDictionaries">
    <property name="icon">
     <iconset resource="resources/resources.qrc">
-     <normaloff>:/edit.svg</normaloff>:/edit.svg</iconset>
+     <normaloff>:/pencil.svg</normaloff>:/pencil.svg</iconset>
    </property>
    <property name="text">
     <string>&amp;Edit dictionaries</string>
@@ -90,7 +90,7 @@
   <action name="action_RemoveDictionaries">
    <property name="icon">
     <iconset resource="resources/resources.qrc">
-     <normaloff>:/delete.svg</normaloff>:/delete.svg</iconset>
+     <normaloff>:/remove.svg</normaloff>:/remove.svg</iconset>
    </property>
    <property name="text">
     <string>&amp;Remove dictionaries</string>
@@ -135,7 +135,7 @@
   <action name="action_AddTranslation">
    <property name="icon">
     <iconset resource="resources/resources.qrc">
-     <normaloff>:/new.svg</normaloff>:/new.svg</iconset>
+     <normaloff>:/translation_add.svg</normaloff>:/translation_add.svg</iconset>
    </property>
    <property name="text">
     <string>Add &amp;translation</string>

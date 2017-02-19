@@ -21,7 +21,7 @@ class AddTranslation(Tool, Ui_AddTranslation):
     ''' Add a new translation to the dictionary. '''
 
     TITLE = _('Add Translation')
-    ICON = ':/new.svg'
+    ICON = ':/translation_add.svg'
     ROLE = 'add_translation'
     SHORTCUT = 'Ctrl+N'
 
