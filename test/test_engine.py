@@ -6,8 +6,6 @@ from functools import partial
 
 import mock
 
-from pkg_resources import EntryPoint
-
 from plover import system
 from plover.config import DEFAULT_SYSTEM_NAME
 from plover.engine import StenoEngine
@@ -104,7 +102,7 @@ class EngineTestCase(unittest.TestCase):
     def _setup(self, **kwargs):
         FakeMachine.instance = None
         self.reg = Registry()
-        self.reg.register_plugin('machine', EntryPoint.parse('Fake = test.test_engine:FakeMachine'))
+        self.reg.register_plugin('machine', 'Fake', FakeMachine)
         self.kbd = FakeKeyboardEmulation()
         self.cfg = FakeConfig(**kwargs)
         self.events = []

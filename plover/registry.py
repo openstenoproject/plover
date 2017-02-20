@@ -20,6 +20,15 @@ else:
     PLUGINS_PLATFORM = None
 
 
+class Plugin(object):
+
+    def __init__(self, plugin_type, name, obj):
+        self.plugin_type = plugin_type
+        self.name = name
+        self.obj = obj
+        self.__doc__ = obj.__doc__ or ''
+
+
 class Registry(object):
 
     PLUGIN_TYPES = (
@@ -37,19 +46,26 @@ class Registry(object):
         for plugin_type in self.PLUGIN_TYPES:
             self._plugins[plugin_type] = {}
 
-    def register_plugin(self, plugin_type, entrypoint):
+    def register_plugin(self, plugin_type, name, obj):
+        plugin = Plugin(plugin_type, name, obj)
+        self._plugins[plugin_type][name.lower()] = plugin
+
+    def register_plugin_from_entrypoint(self, plugin_type, entrypoint):
         log.info('%s: %s (from %s)', plugin_type,
                  entrypoint.name, entrypoint.module_name)
-        self._plugins[plugin_type][entrypoint.name.lower()] = entrypoint
+        try:
+            obj = entrypoint.resolve()
+        except:
+            log.error('error loading %s plugin: %s (from %s)', plugin_type,
+                      entrypoint.name, entrypoint.module_name, exc_info=True)
+        else:
+            self.register_plugin(plugin_type, entrypoint.name, obj)
 
     def get_plugin(self, plugin_type, plugin_name):
         return self._plugins[plugin_type][plugin_name.lower()]
 
     def list_plugins(self, plugin_type):
-        return [
-            entrypoint.name
-            for entrypoint in self._plugins[plugin_type].values()
-        ]
+        return self._plugins[plugin_type].values()
 
     def load_plugins(self, plugins_dir=PLUGINS_DIR):
         log.info('loading plugins from %s', plugins_dir)
@@ -64,11 +80,11 @@ class Registry(object):
         for plugin_type in self.PLUGIN_TYPES:
             entrypoint_type = 'plover.%s' % plugin_type
             for entrypoint in pkg_resources.iter_entry_points(entrypoint_type):
-                self.register_plugin(plugin_type, entrypoint)
+                self.register_plugin_from_entrypoint(plugin_type, entrypoint)
             if PLUGINS_PLATFORM is not None:
                 entrypoint_type = 'plover.%s.%s' % (PLUGINS_PLATFORM, plugin_type)
                 for entrypoint in pkg_resources.iter_entry_points(entrypoint_type):
-                    self.register_plugin(plugin_type, entrypoint)
+                    self.register_plugin_from_entrypoint(plugin_type, entrypoint)
 
 
 registry = Registry()

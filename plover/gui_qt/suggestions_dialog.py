@@ -16,8 +16,12 @@ from plover.suggestions import Suggestion
 
 from plover.gui_qt.suggestions_dialog_ui import Ui_SuggestionsDialog
 from plover.gui_qt.suggestions_widget import SuggestionsWidget
-from plover.gui_qt.tool import Tool
+from plover.gui_qt.i18n import get_gettext
 from plover.gui_qt.utils import ToolBar
+from plover.gui_qt.tool import Tool
+
+
+_ = get_gettext()
 
 
 class SuggestionsDialog(Tool, Ui_SuggestionsDialog):

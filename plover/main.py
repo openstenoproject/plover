@@ -55,7 +55,7 @@ def main():
     registry.load_plugins()
     registry.update()
 
-    gui = registry.get_plugin('gui', args.gui).resolve()
+    gui = registry.get_plugin('gui', args.gui).obj
 
     try:
         # Ensure only one instance of Plover is running at a time.
