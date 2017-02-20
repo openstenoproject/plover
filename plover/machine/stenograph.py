@@ -32,7 +32,10 @@ if sys.platform.startswith('win32'):
 
     REALTIME_FILENAME = 'REALTIME.000'
     FILENAME_BYTES = (c_ubyte * len(REALTIME_FILENAME)).from_buffer_copy(REALTIME_FILENAME.encode())
+    log.info(sizeof(FILENAME_BYTES))
     resize(FILENAME_BYTES, DATA_SIZE)
+    log.info(sizeof(FILENAME_BYTES))
+
 
 
     class GUID(Structure):
