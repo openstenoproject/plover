@@ -168,7 +168,7 @@ class MainWindow(QMainWindow, Ui_MainWindow, WindowState):
             dialog = self._active_dialogs[name] = dialog_class(self._engine, *args)
             def on_finished():
                 del self._active_dialogs[name]
-                dialog.destroy()
+                dialog.deleteLater()
                 if manage_windows:
                     wmctrl.SetForegroundWindow(previous_window)
             dialog.finished.connect(on_finished)
