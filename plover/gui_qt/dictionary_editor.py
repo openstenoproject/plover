@@ -292,8 +292,6 @@ class DictionaryEditor(QDialog, Ui_DictionaryEditor, WindowState):
         self._model = DictionaryItemModel(dictionary_list,
                                           sort_column,
                                           sort_order)
-        self._model.rowsInserted.connect(self.on_row_changed)
-        self._model.rowsRemoved.connect(self.on_row_changed)
         self._model.dataChanged.connect(self.on_data_changed)
         self.table.sortByColumn(sort_column, sort_order)
         self.table.setModel(self._model)
@@ -330,13 +328,15 @@ class DictionaryEditor(QDialog, Ui_DictionaryEditor, WindowState):
             self.table.selectionModel().selectedRows(0)
         ))
 
+    def _select(self, row, edit=False):
+        row = min(row, self._model.rowCount(QModelIndex()) - 1)
+        index = self._model.index(row, 0)
+        self.table.setCurrentIndex(index)
+        if edit:
+            self.table.edit(index)
+
     def on_data_changed(self, top_left, bottom_right):
         self.table.setCurrentIndex(top_left)
-        self.action_Undo.setEnabled(self._model.has_undo)
-
-    def on_row_changed(self, parent, first, last):
-        index = self._model.index(first, 0)
-        self.table.setCurrentIndex(index)
         self.action_Undo.setEnabled(self._model.has_undo)
 
     def on_selection_changed(self):
@@ -355,6 +355,7 @@ class DictionaryEditor(QDialog, Ui_DictionaryEditor, WindowState):
         selection = self._selection
         assert selection
         self._model.remove_rows(selection)
+        self._select(selection[0])
         self.action_Undo.setEnabled(self._model.has_undo)
 
     def on_new(self):
@@ -364,10 +365,8 @@ class DictionaryEditor(QDialog, Ui_DictionaryEditor, WindowState):
         else:
             row = 0
         self._model.new_row(row)
-        self.table.selectionModel().clearSelection()
-        index = self._model.index(row, 0)
-        self.table.setCurrentIndex(index)
-        self.table.edit(index)
+        self._select(row, edit=True)
+        self.action_Undo.setEnabled(self._model.has_undo)
 
     def on_apply_filter(self):
         strokes_filter = '/'.join(normalize_steno(self.strokes_filter.text().strip()))
