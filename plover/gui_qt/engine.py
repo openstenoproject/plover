@@ -1,4 +1,6 @@
 
+import sys
+
 from PyQt5.QtCore import (
     QCoreApplication,
     QThread,
@@ -42,6 +44,12 @@ class Engine(StenoEngine, QThread):
     def start(self):
         QThread.start(self)
         StenoEngine.start(self)
+
+    def run(self):
+        if sys.platform.startswith('darwin'):
+            import appnope
+            appnope.nope()
+        super(Engine, self).run()
 
     def signal_connect(self, name, callback):
         self._signals[name].connect(callback)
