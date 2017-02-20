@@ -23,8 +23,6 @@ from ctypes import windll, wintypes
 # Python 2/3 compatibility.
 from six.moves import winreg
 
-import win32api
-
 from plover.key_combo import parse_key_combo
 from plover.oslayer.winkeyboardlayout import KeyboardLayout
 from plover import log
@@ -249,7 +247,7 @@ class KeyboardCaptureProcess(multiprocessing.Process):
         # Ignore KeyboardInterrupt when attached to a console...
         signal.signal(signal.SIGINT, signal.SIG_IGN)
 
-        self._tid = win32api.GetCurrentThreadId()
+        self._tid = windll.kernel32.GetCurrentThreadId()
         self._queue.put(self._tid)
 
         down_keys = set()
