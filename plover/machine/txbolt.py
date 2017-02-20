@@ -60,7 +60,7 @@ class TxBolt(plover.machine.base.SerialStenotypeBase):
     def _finish_stroke(self):
         steno_keys = self.keymap.keys_to_actions(self._pressed_keys)
         if steno_keys:
-            self._notify(self._pressed_keys)
+            self._notify(steno_keys)
         self._reset_stroke_state()
 
     def run(self):
