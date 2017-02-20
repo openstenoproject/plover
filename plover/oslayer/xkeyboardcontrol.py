@@ -1128,7 +1128,6 @@ class KeyboardEmulation(object):
     def __init__(self):
         """Prepare to emulate keyboard events."""
         self.display = display.Display()
-        self.time = 0
         self._update_keymap()
 
     def _update_keymap(self):

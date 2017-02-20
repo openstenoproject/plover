@@ -15,12 +15,12 @@ from plover.machine.passport import Passport
 
 
 class MockSerial(object):
-    
+
     inputs = []
     index = 0
-    
+
     def __init__(self, **params):
-      MockSerial.index = 0
+        MockSerial.index = 0
 
     def isOpen(self):
         return True
