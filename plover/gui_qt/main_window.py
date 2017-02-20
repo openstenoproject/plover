@@ -166,6 +166,7 @@ class MainWindow(QMainWindow, Ui_MainWindow, WindowState):
         if dialog is None:
             dialog_class = self._dialog_class[name]
             dialog = self._active_dialogs[name] = dialog_class(self._engine, *args)
+            dialog.setWindowIcon(self.windowIcon())
             def on_finished():
                 del self._active_dialogs[name]
                 dialog.deleteLater()
