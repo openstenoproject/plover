@@ -31,11 +31,11 @@ if sys.platform.startswith('win32'):
     import uuid
 
     REALTIME_FILENAME = 'REALTIME.000'
-    FILENAME_BYTES = (c_ubyte * len(REALTIME_FILENAME)).from_buffer_copy(REALTIME_FILENAME.encode())
-    log.info(sizeof(FILENAME_BYTES))
-    resize(FILENAME_BYTES, DATA_SIZE)
-    log.info(sizeof(FILENAME_BYTES))
 
+    FILENAME_BYTES = cast(REALTIME_FILENAME.encode(), POINTER(c_ubyte * DATA_SIZE))[0]
+
+    log.info(sizeof(FILENAME_BYTES))
+    log.info(type(FILENAME_BYTES))
 
 
     class GUID(Structure):
