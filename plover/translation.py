@@ -178,13 +178,13 @@ class Translator(object):
             self._dictionary.remove_longest_key_listener(callback)
         self._dictionary = d
         d.add_longest_key_listener(callback)
-        
+
     def get_dictionary(self):
         return self._dictionary
 
     def add_listener(self, callback):
         """Add a listener for translation outputs.
-        
+
         Arguments:
 
         callback -- A function that takes: a list of translations to undo, a
@@ -218,15 +218,15 @@ class Translator(object):
 
     def _dict_callback(self, value):
         self._resize_translations()
-        
+
     def get_state(self):
         """Get the state of the translator."""
         return self._state
-        
+
     def set_state(self, state):
         """Set the state of the translator."""
         self._state = state
-        
+
     def clear_state(self):
         """Reset the sate of the translator."""
         self._state = _State()
@@ -392,7 +392,7 @@ class Translator(object):
 
 class _State(object):
     """An object representing the current state of the translator state machine.
-    
+
     Attributes:
 
     translations -- A list of all previous translations that are still undoable.
