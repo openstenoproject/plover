@@ -362,11 +362,13 @@ extras_require = {
     ],
     ':"linux" in sys_platform': [
         'python-xlib>=0.16',
+        'pyusb>=1.0.0',
     ],
     ':"darwin" in sys_platform': [
         'pyobjc-core==3.1.1+plover2',
         'pyobjc-framework-Cocoa==3.1.1+plover2',
         'pyobjc-framework-Quartz==3.1.1',
+        'pyusb>=1.0.0',
         'appnope>=0.1.0',
     ],
 }
@@ -450,13 +452,14 @@ if __name__ == '__main__':
         suggestions = plover.gui_qt.suggestions_dialog:SuggestionsDialog
 
         [plover.machine]
-        Gemini PR = plover.machine.geminipr:GeminiPr
-        Keyboard  = plover.machine.keyboard:Keyboard
-        Passport  = plover.machine.passport:Passport
-        ProCAT    = plover.machine.procat:ProCAT
-        Stentura  = plover.machine.stentura:Stentura
-        TX Bolt   = plover.machine.txbolt:TxBolt
-        Treal     = plover.machine.treal:Treal
+        Gemini PR       = plover.machine.geminipr:GeminiPr
+        Keyboard        = plover.machine.keyboard:Keyboard
+        Passport        = plover.machine.passport:Passport
+        ProCAT          = plover.machine.procat:ProCAT
+        Stenograph USB  = plover.machine.stenograph:Stenograph
+        Stentura        = plover.machine.stentura:Stentura
+        TX Bolt         = plover.machine.txbolt:TxBolt
+        Treal           = plover.machine.treal:Treal
 
         [plover.system]
         English Stenotype = plover.system.english_stenotype
