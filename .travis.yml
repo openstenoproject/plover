@@ -47,10 +47,6 @@ before_install:
     set -ex
     # Bootstrap dev environment.
     bootstrap_cmd=(./bootstrap.sh)
-    if ! [ "$PYTHON" = 'python3' -a -n "$TRAVIS_TAG" ]
-    then
-      bootstrap_cmd+=('--tests-only')
-    fi
     bootstrap_cmd+=("$PYTHON")
     "${bootstrap_cmd[@]}"
     # List installed packages versions.
