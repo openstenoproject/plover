@@ -28,18 +28,6 @@ matrix:
           - $HOME/.cache/wheels
       before_cache:
         - rm -rf $HOME/.cache/pip/log
-    # OSX / Python 2
-    - os: osx
-      osx_image: xcode8
-      env:
-        - PYTHON=python2
-        - CACHE_NAME=osx_py2
-      cache:
-        directories:
-          - $HOME/Library/Caches/pip
-          - $HOME/Library/Caches/wheels
-      before_cache:
-        - rm -rf $HOME/Library/Caches/pip/log
     # OSX / Python 3
     - os: osx
       osx_image: xcode8
