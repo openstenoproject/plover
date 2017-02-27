@@ -23,7 +23,7 @@ from plover.gui_qt.utils import ToolBar
 
 
 def _dictionary_formats():
-    return set(registry.list_plugins('dictionary'))
+    return set(plugin.name for plugin in registry.list_plugins('dictionary'))
 
 
 class DictionariesWidget(QWidget, Ui_DictionariesWidget):

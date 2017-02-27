@@ -182,7 +182,7 @@ class StenoEngine(object):
             machine_type = config['machine_type']
             machine_options = config['machine_specific_options']
             try:
-                machine_class = registry.get_plugin('machine', machine_type).resolve()
+                machine_class = registry.get_plugin('machine', machine_type).obj
             except Exception as e:
                 raise InvalidConfigurationError(str(e))
             log.info('setting machine: %s', machine_type)
@@ -219,7 +219,7 @@ class StenoEngine(object):
         for extension_name in extension_list:
             log.info('starting `%s` extension' % extension_name)
             try:
-                extension = registry.get_plugin('extension', extension_name).resolve()(self)
+                extension = registry.get_plugin('extension', extension_name).obj(self)
                 extension.start()
             except Exception:
                 log.error('initializing extension `%s` failed', extension_name, exc_info=True)
@@ -291,7 +291,7 @@ class StenoEngine(object):
             self._trigger_hook('lookup')
         else:
             command_args = command.split(':', 2)
-            command_fn = registry.get_plugin('command', command_args[0]).resolve()
+            command_fn = registry.get_plugin('command', command_args[0]).obj
             command_fn(self, command_args[1] if len(command_args) == 2 else '')
         return False
 
@@ -377,10 +377,6 @@ class StenoEngine(object):
 
     def quit(self):
         self._same_thread_hook(self._quit)
-
-    @with_lock
-    def list_plugins(self, plugin_type):
-        return sorted(registry.list_plugins(plugin_type))
 
     @with_lock
     def machine_specific_options(self, machine_type):

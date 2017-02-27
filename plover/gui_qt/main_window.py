@@ -90,8 +90,9 @@ class MainWindow(QMainWindow, Ui_MainWindow, WindowState):
         self.toolbar.customContextMenuRequested.connect(
             lambda: self.toolbar_menu.popup(QCursor.pos())
         )
-        for tool_name in sorted(registry.list_plugins('gui.qt.tool')):
-            tool = registry.get_plugin('gui.qt.tool', tool_name).resolve()
+        for tool_plugin in sorted(registry.list_plugins('gui.qt.tool'),
+                                  key=lambda p: p.name):
+            tool = tool_plugin.obj
             action_parameters = []
             if tool.ICON is not None:
                 icon = tool.ICON
@@ -103,7 +104,7 @@ class MainWindow(QMainWindow, Ui_MainWindow, WindowState):
             toolbar_action = None
             for parent in (tools_menu, self.toolbar, self.toolbar_menu):
                 action = parent.addAction(*action_parameters)
-                action.setObjectName(tool_name)
+                action.setObjectName(tool_plugin.name)
                 if tool.__doc__ is not None:
                     action.setToolTip(tool.__doc__)
                 if tool.SHORTCUT is not None:
@@ -117,14 +118,14 @@ class MainWindow(QMainWindow, Ui_MainWindow, WindowState):
                     if parent == self.toolbar:
                         toolbar_action = action
                     action.triggered.connect(partial(self._activate_dialog,
-                                                     tool_name,
+                                                     tool_plugin.name,
                                                      args=()))
-            self._dialog_class[tool_name] = tool
+            self._dialog_class[tool_plugin.name] = tool
         engine.signal_connect('output_changed', self.on_output_changed)
         # Machine.
         self.machine_type.addItems(
-            _(machine)
-            for machine in engine.list_plugins('machine')
+            _(plugin.name)
+            for plugin in registry.list_plugins('machine')
         )
         engine.signal_connect('config_changed', self.on_config_changed)
         engine.signal_connect('machine_state_changed',

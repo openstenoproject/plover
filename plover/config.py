@@ -169,7 +169,7 @@ class Config(object):
                 return p[1](v)
             except ValueError:
                 return p[0]
-        machine_class = registry.get_plugin('machine', machine_type).resolve()
+        machine_class = registry.get_plugin('machine', machine_type).obj
         info = machine_class.get_option_info()
         defaults = {k: v[0] for k, v in info.items()}
         if self._config.has_section(machine_type):
@@ -194,7 +194,7 @@ class Config(object):
     def get_dictionary_file_names(self):
         system_name = self.get_system_name()
         try:
-            system = registry.get_plugin('system', system_name).resolve()
+            system = registry.get_plugin('system', system_name).obj
         except:
             log.error("invalid system name: %s", system_name, exc_info=True)
             return []
@@ -400,14 +400,14 @@ class Config(object):
         if machine_type is None:
             machine_type = self.get_machine_type()
         try:
-            machine_class = registry.get_plugin('machine', machine_type).resolve()
+            machine_class = registry.get_plugin('machine', machine_type).obj
         except:
             log.error("invalid machine type: %s", machine_type, exc_info=True)
             return None
         if system_name is None:
             system_name = self.get_system_name()
         try:
-            system = registry.get_plugin('system', system_name).resolve()
+            system = registry.get_plugin('system', system_name).obj
         except:
             log.error("invalid system name: %s", system_name, exc_info=True)
             return None

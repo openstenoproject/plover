@@ -27,6 +27,7 @@ from serial.tools.list_ports import comports
 
 from plover.config import MINIMUM_OUTPUT_CONFIG_UNDO_LEVELS
 from plover.misc import expand_path, shorten_path
+from plover.registry import registry
 
 from plover.gui_qt.config_window_ui import Ui_ConfigWindow
 from plover.gui_qt.config_file_widget_ui import Ui_FileWidget
@@ -352,8 +353,8 @@ class ConfigWindow(QDialog, Ui_ConfigWindow, WindowState):
             'Treal': NopeOption,
         }
         machines = {
-            machine: _(machine)
-            for machine in engine.list_plugins('machine')
+            plugin.name: _(plugin.name)
+            for plugin in registry.list_plugins('machine')
         }
         mappings = (
             (_('Interface'), (
@@ -418,16 +419,16 @@ class ConfigWindow(QDialog, Ui_ConfigWindow, WindowState):
             (_('Plugins'), (
                 ConfigOption(_('Extension:'), 'enabled_extensions',
                              partial(MultipleChoicesOption, choices={
-                                 name: name
-                                 for name in engine.list_plugins('extension')
+                                 plugin.name: plugin.name
+                                 for plugin in registry.list_plugins('extension')
                              }, labels=(_('Name'), _('Enabled'))),
                              _('Configure enabled plugin extensions.')),
             )),
             (_('System'), (
                 ConfigOption(_('System:'), 'system_name',
                              partial(ChoiceOption, choices={
-                                 name: name
-                                 for name in engine.list_plugins('system')
+                                 plugin.name: plugin.name
+                                 for plugin in registry.list_plugins('system')
                              }),
                              dependents=(
                                  ('system_keymap', lambda v: self._update_keymap(system_name=v)),

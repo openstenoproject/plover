@@ -23,12 +23,12 @@ from plover.resource import ASSET_SCHEME
 def _get_dictionary_module(filename):
     extension = splitext(filename)[1].lower()[1:]
     try:
-        entrypoint = registry.get_plugin('dictionary', extension)
+        dict_module = registry.get_plugin('dictionary', extension).obj
     except KeyError:
         raise DictionaryLoaderException(
             'Unsupported extension: %s. Supported extensions: %s' %
             (extension, ', '.join(sorted(registry.list_plugins('dictionary')))))
-    return entrypoint.resolve()
+    return dict_module
 
 def create_dictionary(filename):
     '''Create a new dictionary.

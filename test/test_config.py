@@ -13,8 +13,6 @@ from six import BytesIO
 
 from mock import patch
 
-from pkg_resources import EntryPoint
-
 from plover import config, system
 from plover.machine.keymap import Keymap
 from plover.registry import Registry
@@ -120,7 +118,7 @@ class ConfigTestCase(unittest.TestCase):
 
         machine_name = 'machine foo'
         registry = Registry()
-        registry.register_plugin('machine', EntryPoint.parse('%s = test.test_config:FakeMachine' % machine_name))
+        registry.register_plugin('machine', machine_name, FakeMachine)
         with patch('plover.config.registry', registry):
             c = config.Config()
             

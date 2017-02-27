@@ -280,6 +280,39 @@ options = {}
 kwargs = {}
 build_dependencies = []
 
+entrypoints = {
+    'console_scripts': [
+        'plover = plover.main:main',
+    ],
+
+    'plover.dictionary': [
+        'json = plover.dictionary.json_dict',
+        'rtf = plover.dictionary.rtfcre_dict',
+    ],
+
+    'plover.gui': [
+        'none = plover.gui_none.main',
+    ],
+
+    'plover.machine': [
+        'Gemini PR = plover.machine.geminipr:GeminiPr',
+        'Keyboard  = plover.machine.keyboard:Keyboard',
+        'Passport  = plover.machine.passport:Passport',
+        'ProCAT    = plover.machine.procat:ProCAT',
+        'Stentura  = plover.machine.stentura:Stentura',
+        'TX Bolt   = plover.machine.txbolt:TxBolt',
+        'Treal     = plover.machine.treal:Treal',
+    ],
+
+    'plover.system': [
+        'English Stenotype = plover.system.english_stenotype',
+    ],
+
+    'setuptools.installation': [
+        'eggsecutable = plover.main:main',
+    ],
+}
+
 if sys.platform.startswith('darwin'):
     setup_requires.append('PyInstaller==3.1.1')
     cmdclass['bdist_app'] = BinaryDistApp
@@ -296,6 +329,13 @@ try:
 except ImportError:
     pass
 else:
+    entrypoints['plover.gui'].append('qt = plover.gui_qt.main')
+    entrypoints['plover.gui.qt.tool'] = [
+        'add_translation = plover.gui_qt.add_translation:AddTranslation',
+        'lookup          = plover.gui_qt.lookup_dialog:LookupDialog',
+        'paper_tape      = plover.gui_qt.paper_tape:PaperTape',
+        'suggestions     = plover.gui_qt.suggestions_dialog:SuggestionsDialog',
+    ]
     setup_requires.append('pyqt-distutils')
     try:
         from pyqt_distutils.build_ui import build_ui
@@ -430,41 +470,10 @@ if __name__ == '__main__':
         extras_require=extras_require,
         tests_require=tests_require,
         dependency_links=dependency_links,
-        entry_points='''
-
-        [console_scripts]
-        plover = plover.main:main
-
-        [plover.dictionary]
-        json = plover.dictionary.json_dict
-        rtf = plover.dictionary.rtfcre_dict
-
-        [plover.gui]
-        none = plover.gui_none.main
-        qt   = plover.gui_qt.main
-
-        [plover.gui.qt.tool]
-        add_translation = plover.gui_qt.add_translation:AddTranslation
-        lookup = plover.gui_qt.lookup_dialog:LookupDialog
-        paper_tape = plover.gui_qt.paper_tape:PaperTape
-        suggestions = plover.gui_qt.suggestions_dialog:SuggestionsDialog
-
-        [plover.machine]
-        Gemini PR = plover.machine.geminipr:GeminiPr
-        Keyboard  = plover.machine.keyboard:Keyboard
-        Passport  = plover.machine.passport:Passport
-        ProCAT    = plover.machine.procat:ProCAT
-        Stentura  = plover.machine.stentura:Stentura
-        TX Bolt   = plover.machine.txbolt:TxBolt
-        Treal     = plover.machine.treal:Treal
-
-        [plover.system]
-        English Stenotype = plover.system.english_stenotype
-
-        [setuptools.installation]
-        eggsecutable = plover.main:main
-
-        ''',
+        entry_points='\n'.join('[' + section + ']\n' + '\n'.join(
+            entrypoint for entrypoint in entrypoint_list)
+            for section, entrypoint_list in entrypoints.items()
+        ),
         packages=[
             'plover',
             'plover.dictionary',

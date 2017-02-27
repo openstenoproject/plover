@@ -52,7 +52,7 @@ _EXPORTS = {
 
 def setup(system_name):
     system_symbols = {}
-    mod = registry.get_plugin('system', system_name).resolve()
+    mod = registry.get_plugin('system', system_name).obj
     for symbol, init in _EXPORTS.items():
         system_symbols[symbol] = init(mod)
     system_symbols['NAME'] = system_name

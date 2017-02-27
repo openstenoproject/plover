@@ -9,7 +9,11 @@ from plover.engine import StartingStrokeState
 from plover.translation import escape_translation, unescape_translation
 
 from plover.gui_qt.add_translation_ui import Ui_AddTranslation
+from plover.gui_qt.i18n import get_gettext
 from plover.gui_qt.tool import Tool
+
+
+_ = get_gettext()
 
 
 class AddTranslation(Tool, Ui_AddTranslation):
