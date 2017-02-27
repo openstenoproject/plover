@@ -13,7 +13,6 @@ import sys
 import traceback
 
 
-PY3 = sys.version_info[0] >= 3
 WIN_DIR = os.path.dirname(os.path.abspath(__file__))
 TOP_DIR = os.path.dirname(WIN_DIR)
 NULL = open(os.devnull, 'r+b')
@@ -247,21 +246,13 @@ class Win32Environment(Environment):
 
 class Helper(object):
 
-    if PY3:
-        # Note: update pip so hidapi install from wheel works.
-        DEPENDENCIES = (
-            ('pip', 'pip:pip',
-             None, None, (), None),
-            ('PyQt5', 'pip:PyQt5',
-             None, None, (), None),
-        )
-    else:
-        DEPENDENCIES = (
-            ('Cython', 'https://pypi.python.org/packages/2.7/C/Cython/Cython-0.23.4-cp27-none-win32.whl',
-             'd7c1978fe2037674b151622158881c700ac2f06a', None, (), None),
-            ('VC for Python', 'https://download.microsoft.com/download/7/9/6/796EF2E4-801B-4FC4-AB28-B59FBF6D907B/VCForPython27.msi',
-             '7800d037ba962f288f9b952001106d35ef57befe', None, (), None),
-        )
+    # Note: update pip so hidapi install from wheel works.
+    DEPENDENCIES = (
+        ('pip', 'pip:pip',
+         None, None, (), None),
+        ('PyQt5', 'pip:PyQt5',
+         None, None, (), None),
+    )
 
     def __init__(self):
         self.dry_run = False
@@ -556,16 +547,10 @@ class Helper(object):
 
 class WineHelper(Helper):
 
-    if PY3:
-        DEPENDENCIES = (
-            ('Python', 'https://www.python.org/ftp/python/3.5.2/python-3.5.2.exe',
-             '3873deb137833a724be8932e3ce659f93741c20b', None, ('PrependPath=1', '/S'), None),
-        ) + Helper.DEPENDENCIES
-    else:
-        DEPENDENCIES = (
-            ('Python', 'https://www.python.org/ftp/python/2.7.12/python-2.7.12.msi',
-             '662142691e0beba07a0bacee48e5e93a02537ff7', None, (), None),
-        ) + Helper.DEPENDENCIES
+    DEPENDENCIES = (
+        ('Python', 'https://www.python.org/ftp/python/3.5.2/python-3.5.2.exe',
+         '3873deb137833a724be8932e3ce659f93741c20b', None, ('PrependPath=1', '/S'), None),
+    ) + Helper.DEPENDENCIES
 
     def __init__(self):
         super(WineHelper, self).__init__()
