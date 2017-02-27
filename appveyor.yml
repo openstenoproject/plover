@@ -51,7 +51,7 @@ install:
   # Setup the rest of the environment.
   - "python windows\\helper.py setup"
 
-  - "pip --disable-pip-version-check list"
+  - "pip --disable-pip-version-check list --format=columns"
 
 build:
   verbosity: minimal
