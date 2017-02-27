@@ -82,16 +82,10 @@ pip_install_requirements()
 osx_bootstrap()
 {
   run brew update
-  if [ "$python" == 'python2' ]
-  then
-    python_package='python'
-  else
-    python_package="$python"
-    run export HOMEBREW_NO_AUTO_UPDATE=1
-    run git -C "$(brew --repo)/Library/Taps/homebrew/homebrew-core" checkout '5596439c4ca5a9963a7fec0146d3ce2b27e07a17^' Formula/python3.rb
-  fi
-  osx_packages_install $python_package
-  run brew link --overwrite $python_package
+  run export HOMEBREW_NO_AUTO_UPDATE=1
+  run git -C "$(brew --repo)/Library/Taps/homebrew/homebrew-core" checkout '5596439c4ca5a9963a7fec0146d3ce2b27e07a17^' Formula/python3.rb
+  osx_packages_install $python
+  run brew link --overwrite $python
 }
 
 osx_packages_install()
@@ -103,11 +97,6 @@ osx_packages_install()
     run brew upgrade $package
   done
 }
-
-osx_python2_base_packages=(
-)
-osx_python2_extra_packages=(
-)
 
 osx_python3_base_packages=(
 )
@@ -290,6 +279,12 @@ case "$OSTYPE" in
     exit 1
     ;;
 esac
+
+if [ "$python" == 'python2' -a "$OSTYPE" != 'linux-gnu' ]
+then
+  err "Python 2 is only supported on Linux"
+  exit 1
+fi
 
 var="${dist}_${python}_base_packages[@]"
 packages=("${!var}")
