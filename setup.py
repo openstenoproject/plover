@@ -324,33 +324,28 @@ if sys.platform.startswith('win32'):
 
 setup_requires.append('pytest')
 
+entrypoints['plover.gui'].append('qt = plover.gui_qt.main')
+entrypoints['plover.gui.qt.tool'] = [
+    'add_translation = plover.gui_qt.add_translation:AddTranslation',
+    'lookup          = plover.gui_qt.lookup_dialog:LookupDialog',
+    'paper_tape      = plover.gui_qt.paper_tape:PaperTape',
+    'suggestions     = plover.gui_qt.suggestions_dialog:SuggestionsDialog',
+]
+setup_requires.append('pyqt-distutils')
 try:
-    import PyQt5
+    from pyqt_distutils.build_ui import build_ui
 except ImportError:
     pass
 else:
-    entrypoints['plover.gui'].append('qt = plover.gui_qt.main')
-    entrypoints['plover.gui.qt.tool'] = [
-        'add_translation = plover.gui_qt.add_translation:AddTranslation',
-        'lookup          = plover.gui_qt.lookup_dialog:LookupDialog',
-        'paper_tape      = plover.gui_qt.paper_tape:PaperTape',
-        'suggestions     = plover.gui_qt.suggestions_dialog:SuggestionsDialog',
-    ]
-    setup_requires.append('pyqt-distutils')
-    try:
-        from pyqt_distutils.build_ui import build_ui
-    except ImportError:
-        pass
-    else:
-        class BuildUi(build_ui):
+    class BuildUi(build_ui):
 
-            def run(self):
-                from utils.pyqt import fix_icons
-                self._hooks['fix_icons'] = fix_icons
-                build_ui.run(self)
+        def run(self):
+            from utils.pyqt import fix_icons
+            self._hooks['fix_icons'] = fix_icons
+            build_ui.run(self)
 
-        cmdclass['build_ui'] = BuildUi
-        build_dependencies.append('build_ui')
+    cmdclass['build_ui'] = BuildUi
+    build_dependencies.append('build_ui')
 
 setup_requires.append('Babel')
 try:
