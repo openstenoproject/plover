@@ -98,7 +98,6 @@ osx_packages_install()
 }
 
 osx_python3_packages=(
-pyqt5
 )
 
 # }}}

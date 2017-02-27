@@ -51,6 +51,15 @@ before_install:
     "${bootstrap_cmd[@]}"
     # List installed packages versions.
     $PYTHON -m pip list
+    if [ $TRAVIS_OS_NAME = osx ]
+    then
+      # For some reason, pyrcc5/pyuic55 are not found,
+      # so just use the right Python modules directly.
+      sed -i '' \
+        -e 's/"pyrcc5"/"'$PYTHON' -m PyQt5.pyrcc_main"/' \
+        -e 's/"pyuic5"/"'$PYTHON' -m PyQt5.uic.pyuic"/' \
+        pyuic.json
+    fi
     )
 
 install: true

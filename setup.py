@@ -403,6 +403,7 @@ extras_require = {
         'python-xlib>=0.16',
     ],
     ':"darwin" in sys_platform': [
+        'PyQt5',
         'pyobjc-core==3.1.1+plover2',
         'pyobjc-framework-Cocoa==3.1.1+plover2',
         'pyobjc-framework-Quartz==3.1.1',
