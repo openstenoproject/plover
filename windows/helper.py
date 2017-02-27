@@ -250,8 +250,6 @@ class Helper(object):
     DEPENDENCIES = (
         ('pip', 'pip:pip',
          None, None, (), None),
-        ('PyQt5', 'pip:PyQt5',
-         None, None, (), None),
     )
 
     def __init__(self):
