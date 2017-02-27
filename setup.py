@@ -319,7 +319,10 @@ if sys.platform.startswith('darwin'):
     cmdclass['bdist_dmg'] = BinaryDistDmg
 
 if sys.platform.startswith('win32'):
-    setup_requires.append('PyInstaller==3.1.1')
+    setup_requires.extend([
+        'PyInstaller==3.1.1',
+        'requests',
+    ])
     cmdclass['bdist_win'] = BinaryDistWin
 
 setup_requires.append('pytest')

@@ -4,7 +4,6 @@
 from __future__ import print_function
 
 import argparse
-import hashlib
 import inspect
 import os
 import shutil
@@ -422,30 +421,8 @@ class Helper(object):
         self._env.run(cmd)
 
     def _download(self, url, checksum, dst):
-        import wget
-        retries = 0
-        while retries < 2:
-            if not os.path.exists(dst):
-                retries += 1
-                try:
-                    wget.download(url, out=dst)
-                    print()
-                except Exception as e:
-                    print()
-                    print('error', e)
-                    continue
-            h = hashlib.sha1()
-            with open(dst, 'rb') as fp:
-                while True:
-                    d = fp.read(4 * 1024 * 1024)
-                    if not d:
-                        break
-                    h.update(d)
-            if h.hexdigest() == checksum:
-                break
-            print('sha1 does not match: %s instead of %s' % (h.hexdigest(), checksum))
-            os.unlink(dst)
-        assert os.path.exists(dst), 'could not successfully retrieve %s' % url
+        from utils.download import download
+        download(url, checksum, dst)
 
     def install(self, name, src, checksum, handler_format=None, handler_args=(), path_dir=None):
         info('installing %s', name)
