@@ -63,11 +63,11 @@ before_build:
 build_script:
   - "python setup.py build"
 
-after_build:
-  - ps: "python windows\\helper.py dist"
-
 test_script:
   - "python setup.py test"
+
+after_test:
+  - ps: "python windows\\helper.py dist"
 
 artifacts:
 
