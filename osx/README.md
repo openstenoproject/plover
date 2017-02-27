@@ -12,7 +12,6 @@ Note: you can use `./bootstrap.sh -n` to get a list of the commands that would b
 
 - install [Homebrew](http://brew.sh/)
 - install Python3.5: `brew install python3`
-- install PyQt5: `brew install pyqt5`
 - install other dependencies:
 ```
 ./setup.py write_requirements

@@ -27,16 +27,11 @@ for group in distribution.get_entry_map().values():
     for entrypoint in group.values():
         hiddenimports.append(entrypoint.module_name)
 
-try:
-    import PyQt5
-except ImportError:
-    pass
-else:
-    # Qt GUI localization.
-    from PyQt5.QtCore import QLibraryInfo
+# Qt GUI localization.
+from PyQt5.QtCore import QLibraryInfo
 
-    for catalog in glob('plover/gui_qt/messages/*/*/*.mo'):
-        datas.append((catalog, os.path.dirname(catalog)))
-    translations_dir = QLibraryInfo.location(QLibraryInfo.TranslationsPath)
-    for filename in glob(os.path.join(translations_dir, 'qtbase_*.qm')):
-        datas.append((filename, 'PyQt5/Qt/translations'))
+for catalog in glob('plover/gui_qt/messages/*/*/*.mo'):
+    datas.append((catalog, os.path.dirname(catalog)))
+translations_dir = QLibraryInfo.location(QLibraryInfo.TranslationsPath)
+for filename in glob(os.path.join(translations_dir, 'qtbase_*.qm')):
+    datas.append((filename, 'PyQt5/Qt/translations'))

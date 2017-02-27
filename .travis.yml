@@ -28,18 +28,6 @@ matrix:
           - $HOME/.cache/wheels
       before_cache:
         - rm -rf $HOME/.cache/pip/log
-    # OSX / Python 2
-    - os: osx
-      osx_image: xcode8
-      env:
-        - PYTHON=python2
-        - CACHE_NAME=osx_py2
-      cache:
-        directories:
-          - $HOME/Library/Caches/pip
-          - $HOME/Library/Caches/wheels
-      before_cache:
-        - rm -rf $HOME/Library/Caches/pip/log
     # OSX / Python 3
     - os: osx
       osx_image: xcode8
@@ -59,14 +47,19 @@ before_install:
     set -ex
     # Bootstrap dev environment.
     bootstrap_cmd=(./bootstrap.sh)
-    if ! [ "$PYTHON" = 'python3' -a -n "$TRAVIS_TAG" ]
-    then
-      bootstrap_cmd+=('--tests-only')
-    fi
     bootstrap_cmd+=("$PYTHON")
     "${bootstrap_cmd[@]}"
     # List installed packages versions.
-    $PYTHON -m pip list
+    $PYTHON -m pip list --format=columns
+    if [ $TRAVIS_OS_NAME = osx ]
+    then
+      # For some reason, pyrcc5/pyuic55 are not found,
+      # so just use the right Python modules directly.
+      sed -i '' \
+        -e 's/"pyrcc5"/"'$PYTHON' -m PyQt5.pyrcc_main"/' \
+        -e 's/"pyuic5"/"'$PYTHON' -m PyQt5.uic.pyuic"/' \
+        pyuic.json
+    fi
     )
 
 install: true
