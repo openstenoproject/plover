@@ -1,6 +1,5 @@
 #!/bin/bash
 
-opt_tests_only=0
 opt_dry_run=0
 
 python='false'
@@ -98,9 +97,7 @@ osx_packages_install()
   done
 }
 
-osx_python3_base_packages=(
-)
-osx_python3_extra_packages=(
+osx_python3_packages=(
 pyqt5
 )
 
@@ -118,7 +115,8 @@ arch_packages_install()
   run sudo pacman --sync --needed "$@"
 }
 
-arch_python2_base_packages=(
+arch_python2_packages=(
+base-devel
 cython2
 libusb
 python2-appdirs
@@ -127,6 +125,7 @@ python2-dbus
 python2-hidapi
 python2-mock
 python2-pip
+python2-pyqt5
 python2-pyserial
 python2-pytest
 python2-setuptools
@@ -134,14 +133,10 @@ python2-setuptools-scm
 python2-six
 python2-wheel
 python2-xlib
-)
-arch_python2_extra_packages=(
-base-devel
-python2-pyqt5
 wmctrl
 )
 
-arch_python3_base_packages=(
+arch_python3_packages=(
 cython
 libusb
 python-appdirs
@@ -149,6 +144,7 @@ python-babel
 python-dbus
 python-mock
 python-pip
+python-pyqt5
 python-pyserial
 python-pytest
 python-setuptools
@@ -156,9 +152,6 @@ python-setuptools-scm
 python-six
 python-wheel
 python-xlib
-)
-arch_python3_extra_packages=(
-python-pyqt5
 wmctrl
 )
 
@@ -177,10 +170,11 @@ ubuntu_packages_install()
   run sudo apt-get install -y "$@"
 }
 
-ubuntu_python2_base_packages=(
+ubuntu_python2_packages=(
 cython
 libudev-dev
 libusb-1.0-0-dev
+pyqt5-dev-tools
 python-appdirs
 python-babel
 python-dbus
@@ -189,25 +183,25 @@ python-hid
 python-mock
 python-pip
 python-pkg-resources
+python-pyqt5
 python-pytest
 python-serial
 python-setuptools
+python-setuptools-pyqt
 python-setuptools-scm
 python-six
 python-wheel
 python-xlib
-)
-ubuntu_python2_extra_packages=(
-pyqt5-dev-tools
-python-pyqt5
-python-setuptools-pyqt
 wmctrl
 )
 
-ubuntu_python3_base_packages=(
+ubuntu_python3_packages=(
 cython3
+debhelper
+devscripts
 libudev-dev
 libusb-1.0-0-dev
+pyqt5-dev-tools
 python3-appdirs
 python3-babel
 python3-dbus
@@ -216,20 +210,15 @@ python3-hid
 python3-mock
 python3-pip
 python3-pkg-resources
+python3-pyqt5
 python3-pytest
 python3-serial
 python3-setuptools
+python3-setuptools-pyqt
 python3-setuptools-scm
 python3-six
 python3-wheel
 python3-xlib
-)
-ubuntu_python3_extra_packages=(
-debhelper
-devscripts
-pyqt5-dev-tools
-python3-pyqt5
-python3-setuptools-pyqt
 wmctrl
 )
 
@@ -240,9 +229,6 @@ set -e
 while [ $# -ne 0 ]
 do
   case "$1" in
-    --tests-only|-t)
-      opt_tests_only=1
-      ;;
     --dry-run|-n)
       opt_dry_run=1
       ;;
@@ -286,13 +272,8 @@ then
   exit 1
 fi
 
-var="${dist}_${python}_base_packages[@]"
+var="${dist}_${python}_packages[@]"
 packages=("${!var}")
-if [ $opt_tests_only -eq 0 ]
-then
-  var="${dist}_${python}_extra_packages[@]"
-  packages+=("${!var}")
-fi
 
 "${dist}_bootstrap"
 if [ -n "$packages" ]
