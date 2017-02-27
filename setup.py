@@ -396,6 +396,9 @@ extras_require = {
     ':"win32" in sys_platform': [
     ],
     ':"linux" in sys_platform': [
+        # Note: do not require PyQt5 on Linux, as official distribution
+        # packages are missing the required Python distribution info.
+        # 'PyQt5',
         'python-xlib>=0.16',
     ],
     ':"darwin" in sys_platform': [
