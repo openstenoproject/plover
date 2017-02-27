@@ -57,10 +57,5 @@ def install_gettext():
 
 def get_gettext(package='plover', resource_dir='gui_qt/messages'):
     locale_dir = pkg_resources.resource_filename(package, resource_dir)
-    if PY2:
-        # unicode=True
-        args = [True]
-    else:
-        args = []
     translation = gettext.translation(package, locale_dir, fallback=True)
     return translation.ugettext if PY2 else translation.gettext
