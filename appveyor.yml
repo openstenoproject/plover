@@ -26,9 +26,6 @@ environment:
 
   matrix:
 
-    - PYTHON: "C:\\Python27"
-      PYTHON_VERSION: "2.7"
-      PYTHON_ARCH: "32"
     - PYTHON: "C:\\Python35"
       PYTHON_VERSION: "3.5"
       PYTHON_ARCH: "32"
@@ -67,7 +64,7 @@ build_script:
   - "python setup.py build"
 
 after_build:
-  - ps: "if ($Env:PYTHON_VERSION -eq \"3.5\") { python windows\\helper.py dist }"
+  - ps: "python windows\\helper.py dist"
 
 test_script:
   - "python setup.py test"
