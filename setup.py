@@ -3,11 +3,13 @@
 # See LICENSE.txt for details.
 
 import contextlib
+import glob
 import os
 import re
 import shutil
 import subprocess
 import sys
+import zipfile
 
 from xml.etree import ElementTree
 from xml.etree.ElementTree import Element
@@ -111,11 +113,129 @@ class PyInstallerDist(Command):
             sys.exit(code)
 
 
-class BinaryDistWin(PyInstallerDist):
-    description = 'create an executable for MS Windows'
-    extra_args = [
-        '--icon=plover/assets/plover.ico',
+class BinaryDistWin(Command):
+
+    description = 'create distribution(s) for MS Windows'
+    user_options = [
+        ('trim', 't',
+         'trim the resulting distribution to reduce size'),
+        ('zipdir', 'z',
+         'create a zip of the resulting directory'),
+        ('wheel-dir=', 'w',
+         'directory used for caching wheels'),
     ]
+    boolean_options = ['trim', 'zipdir']
+    extra_args = []
+
+    def initialize_options(self):
+        self.trim = False
+        self.zipdir = False
+        self.wheel_dir = None
+
+    def finalize_options(self):
+        pass
+
+    def run(self):
+        cache_dir = os.path.abspath('.cache')
+        downloads_dir = os.path.join(cache_dir, 'downloads')
+        # Download helper.
+        def download(src, checksum):
+            log.info('downloading %s', src)
+            from utils.download import download
+            dst = os.path.join(downloads_dir, os.path.basename(src))
+            if not os.path.exists(downloads_dir):
+                os.makedirs(downloads_dir)
+            download(src, checksum, dst)
+            return dst
+        # Run command helper.
+        def run(*args):
+            if self.verbose:
+                log.info('running %s', ' '.join(repr(a) for a in args))
+            subprocess.check_call(args)
+        # First things first: create Plover wheel.
+        wheel_cmd = self.get_finalized_command('bdist_wheel')
+        wheel_cmd.run()
+        plover_wheel = glob.glob(os.path.join(wheel_cmd.dist_dir,
+                                              wheel_cmd.wheel_dist_name)
+                                 + '*.whl')[0]
+        # Setup embedded Python distribution.
+        # Note: python35.zip is decompressed to prevent errors when 2to3
+        # is used (including indirectly by setuptools `build_py` command).
+        py_embedded = download('https://www.python.org/ftp/python/3.5.2/python-3.5.2-embed-win32.zip',
+                               'a62675cd88736688bb87999e8b86d13ef2656312')
+        dist_dir = os.path.join(wheel_cmd.dist_dir, 'plover-%s-py3' % __version__)
+        data_dir = os.path.join(dist_dir, 'data')
+        stdlib = os.path.join(data_dir, 'python35.zip')
+        if os.path.exists(dist_dir):
+            shutil.rmtree(dist_dir)
+        os.makedirs(data_dir)
+        for path in (py_embedded, stdlib):
+            with zipfile.ZipFile(path) as zip:
+                zip.extractall(data_dir)
+        os.unlink(stdlib)
+        dist_py = os.path.join(data_dir, 'python.exe')
+        # Install pip.
+        get_pip = download('https://bootstrap.pypa.io/get-pip.py',
+                           '3d45cef22b043b2b333baa63abaa99544e9c031d')
+        cmd = [dist_py, get_pip]
+        if self.wheel_dir is not None:
+            cmd.extend(('-f', self.wheel_dir))
+        run(*cmd)
+        # Install Plover and dependencies.
+        # Note: do not use the embedded Python executable with `setup.py
+        # install` to prevent setuptools from installing extra development
+        # dependencies...
+        cmd = [
+            dist_py,
+            '-m', 'utils.install_wheels',
+            '--ignore-installed',
+        ]
+        if self.wheel_dir is not None:
+            cmd.extend(('-w', self.wheel_dir))
+        cmd.append(plover_wheel)
+        run(*cmd)
+        # List installed packages.
+        if self.verbose:
+            run(dist_py, '-m', 'pip', 'list', '--format=columns')
+        # Trim the fat...
+        if self.trim:
+            from utils.trim import trim
+            trim(data_dir, 'windows/dist_blacklist.txt', verbose=self.verbose)
+        # Add miscellaneous files: icon, license, ...
+        for src in (
+            'LICENSE.txt',
+            'plover/assets/plover.ico',
+        ):
+            dst = os.path.join(dist_dir, os.path.basename(src))
+            shutil.copyfile(src, dst)
+        # Create launchers.
+        for entrypoint, gui in (
+            ('plover         = plover.main:main', True ),
+            ('plover_console = plover.main:main', False),
+        ):
+            run(dist_py, '-c', ';'.join(
+                '''
+                from pip._vendor.distlib.scripts import ScriptMaker
+                sm = ScriptMaker(source_dir='{dist_dir}', target_dir='{dist_dir}')
+                sm.executable = 'data\\python.exe'
+                sm.variants = set(('',))
+                sm.make('{entrypoint}', options={{'gui': {gui}}})
+                '''.format(dist_dir=dist_dir,
+                           entrypoint=entrypoint,
+                           gui=gui).strip().split('\n')))
+        # Make distribution source-less.
+        run(dist_py,
+            '-m', 'utils.source_less',
+            # Don't touch pip._vendor.distlib sources,
+            # or `pip install` will not be usable...
+            data_dir, '*/pip/_vendor/distlib/*',
+        )
+        # Zip results.
+        if self.zipdir:
+            from utils.zipdir import zipdir
+            if self.verbose:
+                log.info('zipping %s', dist_dir)
+            zipdir(dist_dir)
 
 
 class Launch(Command):
@@ -320,8 +440,9 @@ if sys.platform.startswith('darwin'):
 
 if sys.platform.startswith('win32'):
     setup_requires.extend([
-        'PyInstaller==3.1.1',
+        'pip',
         'requests',
+        'wheel',
     ])
     cmdclass['bdist_win'] = BinaryDistWin
 

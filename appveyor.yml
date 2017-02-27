@@ -31,10 +31,8 @@ environment:
       PYTHON_ARCH: "32"
 
 cache:
-  # Keep cache of downloaded pip packages.
-  - C:\Users\appveyor\AppData\Local\pip
-  # Keep downloaded packages.
-  - C:\Dist
+  # Keep cache of wheel packages.
+  - C:\Users\appveyor\AppData\Local\wheels
 
 init:
   - "ECHO %PYTHON% %PYTHON_VERSION% %PYTHON_ARCH%"
@@ -67,10 +65,10 @@ test_script:
   - "python setup.py test"
 
 after_test:
-  - ps: "python windows\\helper.py dist"
+  - ps: "python windows\\helper.py dist -t -z"
 
 artifacts:
 
-  - path: dist\*.exe
-    name: executable
+  - path: dist\*.zip
+    name: all-in-one zip
 

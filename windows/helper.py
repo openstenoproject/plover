@@ -23,6 +23,9 @@ sys.path.insert(0, TOP_DIR)
 os.chdir(TOP_DIR)
 
 
+from utils.install_wheels import WHEELS_CACHE
+
+
 if sys.stdout.isatty() and not sys.platform.startswith('win32'):
 
     def info(fmt, *args):
@@ -245,10 +248,7 @@ class Win32Environment(Environment):
 
 class Helper(object):
 
-    # Note: update pip so hidapi install from wheel works.
     DEPENDENCIES = (
-        ('pip', 'pip:pip',
-         None, None, (), None),
     )
 
     def __init__(self):
@@ -467,7 +467,13 @@ class Helper(object):
             self.install(name, src, checksum, handler_format=handler_format, handler_args=handler_args, path_dir=path_dir)
         info('install requirements')
         self._env.run(('python.exe', 'setup.py', 'write_requirements'))
-        self._pip_install('-r', 'requirements.txt', '-c', 'requirements_constraints.txt')
+        self._pip_install('wheel')
+        self._env.run(('python.exe', '-m', 'utils.install_wheels',
+                       # Override cache directory so it's not
+                       # stored in the prefix when using Wine.
+                       '-w', WHEELS_CACHE,
+                       '-r', 'requirements.txt',
+                       '-c', 'requirements_constraints.txt'))
 
     def cmd_run(self, executable, *args):
         '''run command in environment
@@ -477,13 +483,27 @@ class Helper(object):
         '''
         self._env.run((executable,) + tuple(args), redirection='never')
 
-    def cmd_dist(self):
+    def cmd_dist(self, trim=False, zipdir=False):
         '''create windows distribution
+
+        trim: trim the result to reduce size
+        zipdir: zip the resulting directory
         '''
         self._rmtree('build')
         self._rmtree('dist')
         info('creating distribution')
-        self._env.run(('python.exe', 'setup.py', 'bdist_win'))
+        cmd = ['python.exe', 'setup.py']
+        if self.verbose:
+            cmd.append('-v')
+        cmd.append('bdist_win')
+        if trim:
+            cmd.append('-t')
+        if zipdir:
+            cmd.append('-z')
+        # Override cache directory so it's not
+        # stored in the prefix when using Wine.
+        cmd.extend(('-w', WHEELS_CACHE))
+        self._env.run(cmd)
 
     def main(self, args):
         opts = self._parser.parse_args(args)
