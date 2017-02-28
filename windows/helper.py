@@ -507,9 +507,9 @@ class Helper(object):
             cmd(*args)
         except CommandExecutionException as e:
             if e.stdout:
-                print(e.stdout, file=sys.stdout)
+                print(e.stdout.decode(), file=sys.stdout)
             if e.stderr:
-                print(e.stderr, file=sys.stderr)
+                print(e.stderr.decode(), file=sys.stderr)
             error('execution failed, returned %u: %s',
                   e.exitcode, ' '.join(e.args))
             return e.exitcode
