@@ -11,10 +11,7 @@ matrix:
       sudo: required
       cache:
         directories:
-          - $HOME/.cache/pip
           - $HOME/.cache/wheels
-      before_cache:
-        - rm -rf $HOME/.cache/pip/log
     # Linux / Python 3
     - os: linux
       env:
@@ -24,10 +21,7 @@ matrix:
       sudo: required
       cache:
         directories:
-          - $HOME/.cache/pip
           - $HOME/.cache/wheels
-      before_cache:
-        - rm -rf $HOME/.cache/pip/log
     # OSX / Python 3
     - os: osx
       osx_image: xcode8
@@ -36,10 +30,7 @@ matrix:
         - CACHE_NAME=osx_py3
       cache:
         directories:
-          - $HOME/Library/Caches/pip
           - $HOME/Library/Caches/wheels
-      before_cache:
-        - rm -rf $HOME/Library/Caches/pip/log
 
 before_install:
   - |
