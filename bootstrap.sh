@@ -3,7 +3,6 @@
 opt_dry_run=0
 
 python='false'
-wheels=''
 
 info()
 {
@@ -61,19 +60,9 @@ run()
   fi
 }
 
-pip()
+wheels_install()
 {
-  run "$python" -m pip --disable-pip-version-check --timeout=5 --retries=2 "$@"
-}
-
-pip_cache_requirements()
-{
-  run pip wheel -r requirements.txt -w "$wheels" --find-links "$wheels" "$@"
-}
-
-pip_install_requirements()
-{
-  run pip install --user --upgrade --no-index -r requirements.txt --find-links "$wheels" "$@"
+  run "$python" utils/install_wheels.py --disable-pip-version-check --timeout=5 --retries=2 "$@"
 }
 
 # Mac OS X. {{{
@@ -253,11 +242,9 @@ python="${1:-python3}"
 case "$OSTYPE" in
   linux-gnu)
     dist="$(find_dist)"
-    wheels="${XDG_CACHE_HOME:-$HOME/.cache}/wheels"
     ;;
   darwin*)
     dist='osx'
-    wheels="$HOME/Library/Caches/wheels"
     ;;
   *)
     err "unsupported OS type: $OSTYPE"
@@ -283,19 +270,11 @@ fi
 # Update antiquated version of pip on Ubuntu...
 run "$python" -m pip install --upgrade --user pip
 # Upgrade setuptools, we need at least 19.6 to prevent issues with Cython patched 'build_ext' command.
-pip install --upgrade --user 'setuptools>=19.6'
+wheels_install --upgrade --user 'setuptools>=19.6'
 # Manually install Cython if not already to speedup hidapi build.
-pip install --user Cython
+wheels_install --user Cython
 # Generate requirements.
 run "$python" setup.py write_requirements
-# Since pip will not build and cache wheels for VCS links, we do it ourselves:
-# - first, update the cache (without VCS links), and try to install from it
-if ! { pip_cache_requirements && pip_install_requirements; }
-then
-  # - if it failed, try to update the cache again, this time with VCS links
-  pip_cache_requirements -c requirements_constraints.txt
-  # - and try again
-  pip_install_requirements
-fi
+wheels_install --user -c requirements_constraints.txt -r requirements.txt
 
 # vim: foldmethod=marker
