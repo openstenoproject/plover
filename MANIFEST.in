@@ -1,4 +1,4 @@
-include README.rst LICENSE.txt
+include README.md LICENSE.txt
 recursive-include plover/assets *
 recursive-include plover/gui_qt/messages *
 recursive-include application *
