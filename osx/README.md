@@ -1,6 +1,21 @@
-# OS X Development
+# Mac Development
 
-## Semi-automatic development environment setup
+<!-- START doctoc generated TOC please keep comment here to allow auto update -->
+<!-- DON'T EDIT THIS SECTION, INSTEAD RE-RUN doctoc TO UPDATE -->
+**Table of Contents**
+
+- [Environment Setup](#environment-setup)
+  - [Semi-automatic](#semi-automatic)
+  - [Manual](#manual)
+- [Running in Development](#running-in-development)
+- [Building](#building)
+- [Gotcha: Assistive Devices Permissions](#gotcha-assistive-devices-permissions)
+
+<!-- END doctoc generated TOC please keep comment here to allow auto update -->
+
+## Environment Setup
+
+### Semi-automatic
 
 With Homebrew installed, you should be able to have everything setup automatically by using: `./bootstrap.sh`.
 
@@ -8,44 +23,31 @@ At the moment, we need to overwrite the Python formula to get Python 3.5, as 3.6
 
 Note: you can use `./bootstrap.sh -n` to get a list of the commands that would be run.
 
-## Manual development environment setup
+### Manual
 
 - install [Homebrew](http://brew.sh/)
 - install Python3.5: `brew install python3`
 - install other dependencies:
-```
-./setup.py write_requirements
-pip3 install -r requirements.txt -c requirements_constraints.txt
-```
 
-## Running Plover in development
+  ```
+  ./setup.py write_requirements
+  pip3 install -r requirements.txt -c requirements_constraints.txt
+  ```
 
-To run from source, from the root of the Git repository, use `./launch.sh`.
+## Running in Development
+
+To run from source, use `./launch.sh`.
 
 ## Building
 
-- to build to an application, use: `./setup.py bdist_app`
-- to create a disk image instead, use: `./setup.py bdist_dmg`
+To build to an **application bundle**, use: `./setup.py bdist_app`
 
-## Gotcha: Granting Assistive Device Permission
+To create a **disk image**, use: `./setup.py bdist_dmg`
 
-After each build, you need to approve Plover as an Assistive Device:
+## Gotcha: Assistive Devices Permissions
 
-- open "System Preferences"
-- open the "Security & Privacy" pane
-- select the "Privacy" tab
-- select "Accessibility" from the source list on the left
-- click the "+" button below the list off apps
-- use the file picker to select the `plover.app` that you just built
+To grab user inputs and use the keyboard as a steno machine, Plover requires [Assistive Devices permissions to be granted (instructions included).](https://support.apple.com/kb/ph18391?locale=en_US)
 
-Now you can run the app by double-clicking on it or by using open(1):
+When running from source, your terminal application must be granted Assistive Devices permissions.
 
-`open dist/plover.app`
-
-### Dev Workaround: run as `root`
-
-Root doesn't need permission to use event taps, so during development, you can avoid this rigmarole by running Plover via:
-
-`sudo ./launch.sh`
-
-**Warning**: running things as root is never a good idea from a security standpoint!
+If you are running from an application bundle (both in development and for releases), every new build will require a regranting of permissions.
