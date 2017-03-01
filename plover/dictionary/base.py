@@ -27,7 +27,9 @@ def _get_dictionary_module(filename):
     except KeyError:
         raise DictionaryLoaderException(
             'Unsupported extension: %s. Supported extensions: %s' %
-            (extension, ', '.join(sorted(registry.list_plugins('dictionary')))))
+            (extension, ', '.join(sorted(
+                plugin.name for plugin in registry.list_plugins('dictionary')
+            ))))
     return dict_module
 
 def create_dictionary(filename):
