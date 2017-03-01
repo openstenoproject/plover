@@ -440,7 +440,7 @@ class TestCase(unittest.TestCase):
                 self.count = count
                 self.data = data
                 self.stop = stop
-                
+
             def __repr__(self):
                 return '<{}, {}, {}>'.format(self.count, self.data, self.stop)
 
@@ -494,6 +494,13 @@ class TestCase(unittest.TestCase):
             def flushOutput(self):
                 pass
 
+        class TestStentura(stentura.Stentura):
+            def __init__(self):
+                self.read_data = []
+
+            def _on_stroke(self, keys):
+                self.read_data.append(keys)
+
         data1 = bytearray([0b11001010] * 4 * 9)
         data1_trans = [['S-', 'K-', 'R-', 'O-', '-F', '-P', '-T', '-D']] * 9
         data2 = bytearray([0b11001011] * 4 * 30)
@@ -510,24 +517,19 @@ class TestCase(unittest.TestCase):
         ]
 
         for test in tests:
-            read_data = []
-
-            def callback(data):
-                read_data.append(data)
 
             port = test[0]
             expected = test[1]
-            
-            ready_called = [False]
-            def ready():
-                ready_called[0] = True
-            
+
+            machine = TestStentura()
+            machine.serial_port = port
+            machine.finished = port.event
+            machine._initialize()
             try:
-                ready_called[0] = False
-                stentura._loop(port, port.event, callback, ready, timeout=0)
+                while not machine.finished.isSet():
+                    machine._loop_body()
             except stentura._StopException:
                 pass
-            self.assertEqual(read_data, expected)
-            self.assertTrue(ready_called[0])
+            self.assertEqual(machine.read_data, expected)
 
 # TODO: add a test on the machine itself with mocks

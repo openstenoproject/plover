@@ -39,25 +39,20 @@ class GeminiPr(SerialStenotypeBase):
         res2
     '''
 
-    def run(self):
-        """Overrides base class run method. Do not call directly."""
-        self._ready()
-        while not self.finished.isSet():
+    def _loop_body(self):
+        # Grab data from the serial port.
+        raw = self.serial_port.read(BYTES_PER_STROKE)
+        if not raw:
+            return
 
-            # Grab data from the serial port.
-            raw = self.serial_port.read(BYTES_PER_STROKE)
-            if not raw:
-                continue
+        # Convert the raw to a list of steno keys.
+        steno_keys = []
+        for i, b in enumerate(iterbytes(raw)):
+            for j in range(1, 8):
+                if (b & (0x80 >> j)):
+                    steno_keys.append(STENO_KEY_CHART[i * 7 + j - 1])
 
-            # Convert the raw to a list of steno keys.
-            steno_keys = []
-            for i, b in enumerate(iterbytes(raw)):
-                for j in range(1, 8):
-                    if (b & (0x80 >> j)):
-                        steno_keys.append(STENO_KEY_CHART[i * 7 + j - 1])
-
-            steno_keys = self.keymap.keys_to_actions(steno_keys)
-            if steno_keys:
-                # Notify all subscribers.
-                self._notify(steno_keys)
-
+        steno_keys = self.keymap.keys_to_actions(steno_keys)
+        if steno_keys:
+            # Notify all subscribers.
+            self._notify(steno_keys)
