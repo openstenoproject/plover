@@ -107,6 +107,7 @@ DEADKEY_SYMBOLS = {
     'dead_tilde': '~',
 }
 
+
 def down(seq):
     return [(x, True) for x in seq]
 
@@ -122,15 +123,14 @@ def down_up(seq):
 MODIFIER_KEYS_TO_MASKS = {
     58: kCGEventFlagMaskAlternate,
     61: kCGEventFlagMaskAlternate,
-    59: kCGEventFlagMaskControl,
-    62: kCGEventFlagMaskControl,
+    # As of Sierra we *require* secondary fn to get control to work properly.
+    59: kCGEventFlagMaskControl | kCGEventFlagMaskSecondaryFn,
+    62: kCGEventFlagMaskControl | kCGEventFlagMaskSecondaryFn,
     56: kCGEventFlagMaskShift,
     60: kCGEventFlagMaskShift,
     55: kCGEventFlagMaskCommand,
     63: kCGEventFlagMaskSecondaryFn,
 }
-
-OUTPUT_SOURCE = CGEventSourceCreate(kCGEventSourceStateHIDSystemState)
 
 # For the purposes of this class, we're only watching these keys.
 # We could calculate the keys, but our default layout would be misleading:
@@ -308,9 +308,9 @@ class KeyboardEmulation(object):
     def send_backspaces(number_of_backspaces):
         for _ in range(number_of_backspaces):
             backspace_down = CGEventCreateKeyboardEvent(
-                OUTPUT_SOURCE, BACK_SPACE, True)
+                None, BACK_SPACE, True)
             backspace_up = CGEventCreateKeyboardEvent(
-                OUTPUT_SOURCE, BACK_SPACE, False)
+                None, BACK_SPACE, False)
             CGEventPost(kCGSessionEventTap, backspace_down)
             CGEventPost(kCGSessionEventTap, backspace_up)
 
@@ -377,10 +377,10 @@ class KeyboardEmulation(object):
 
     @staticmethod
     def _send_string_press(c):
-        event = CGEventCreateKeyboardEvent(OUTPUT_SOURCE, 0, True)
+        event = CGEventCreateKeyboardEvent(None, 0, True)
         KeyboardEmulation._set_event_string(event, c)
         CGEventPost(kCGSessionEventTap, event)
-        event = CGEventCreateKeyboardEvent(OUTPUT_SOURCE, 0, False)
+        event = CGEventCreateKeyboardEvent(None, 0, False)
         KeyboardEmulation._set_event_string(event, c)
         CGEventPost(kCGSessionEventTap, event)
 
@@ -480,7 +480,7 @@ class KeyboardEmulation(object):
                     mods_flags &= ~MODIFIER_KEYS_TO_MASKS[keycode]
 
                 event = CGEventCreateKeyboardEvent(
-                    OUTPUT_SOURCE, keycode, key_down)
+                    None, keycode, key_down)
 
                 if key_down and keycode not in MODIFIER_KEYS_TO_MASKS:
                     event_flags = CGEventGetFlags(event)
