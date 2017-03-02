@@ -368,6 +368,7 @@ class KeyboardEmulation(object):
                     apply_raw.sequence.extend(down_up([keycode]))
                 else:
                     # Flush on type change.
+                    last_modifier = None
                     apply_raw()
                     key_plan.append((self.STRING_PRESS, c))
         # Flush after string is complete.
