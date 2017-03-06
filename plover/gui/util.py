@@ -6,9 +6,11 @@ import wx
 
 
 if sys.platform.startswith('win32'):
-    import win32gui
-    GetForegroundWindow = win32gui.GetForegroundWindow
-    SetForegroundWindow = win32gui.SetForegroundWindow
+
+    from ctypes import windll
+
+    GetForegroundWindow = windll.user32.GetForegroundWindow
+    SetForegroundWindow = windll.user32.SetForegroundWindow
 
     def SetTopApp(w):
         # Nothing else is necessary for windows.

@@ -330,7 +330,6 @@ install_requires = [
 
 extras_require = {
     ':"win32" in sys_platform': [
-        'pywin32>=219',
     ],
     ':"linux" in sys_platform': [
         'python-xlib>=0.16',
@@ -338,7 +337,7 @@ extras_require = {
     ':"darwin" in sys_platform': [
         'pyobjc-core==3.1.1+plover2',
         'pyobjc-framework-Cocoa==3.1.1+plover2',
-        'pyobjc-framework-Quartz>=3.0.3',
+        'pyobjc-framework-Quartz==3.1.1',
         'appnope>=0.1.0',
     ],
 }
