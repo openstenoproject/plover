@@ -477,6 +477,7 @@ if __name__ == '__main__':
         packages=[
             'plover',
             'plover.dictionary',
+            'plover.gui_none',
             'plover.gui_qt',
             'plover.machine',
             'plover.oslayer',
