@@ -141,6 +141,7 @@ libusb
 python-appdirs
 python-babel
 python-dbus
+python-hidapi
 python-mock
 python-pip
 python-pyqt5
