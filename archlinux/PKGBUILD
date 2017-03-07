@@ -2,27 +2,27 @@
 
 pkgname=plover
 pkgdesc="Free and open source real-time stenography engine."
-pkgver=3.0.0
-pkgrel=3
+pkgver=4.0.0.dev0
+pkgrel=1
 arch=('any')
-license=('GPLv2 or any later version')
+license=('GPL2')
 depends=(
-  'python2'
-  'python2-appdirs'
-  'python2-dbus'
-  'python2-hidapi'
-  'python2-pyqt5'
-  'python2-pyserial'
-  'python2-setuptools'
-  'python2-six'
-  'python2-xlib'
+  'python'
+  'python-appdirs'
+  'python-dbus'
+  'python-hidapi'
+  'python-pyqt5'
+  'python-pyserial'
+  'python-setuptools'
+  'python-six'
+  'python-xlib'
   'wmctrl'
 )
 makedepends=(
-  'python2-babel'
-  'python2-mock'
-  'python2-pytest'
-  'python2-setuptools-scm'
+  'python-babel'
+  'python-mock'
+  'python-pytest'
+  'python-setuptools-scm'
 )
 provides=('plover')
 conflicts=('plover-git')
@@ -32,17 +32,16 @@ sha1sums=(89ca6af3fe002be218158930d105d25c1e1282be)
 
 prepare() {
   cd "$pkgname-$pkgver"
-  sed 's/"py\(rcc\|uic\)5"/"python2-py\15"/' -i pyuic.json
 }
 
 check() {
   cd "$pkgname-$pkgver"
-  python2 setup.py test
+  python setup.py test
 }
 
 package() {
   cd "$pkgname-$pkgver"
-  python2 setup.py install --root="$pkgdir"
+  python setup.py install --root="$pkgdir"
   chmod og+rX -R "$pkgdir"
 }
 
