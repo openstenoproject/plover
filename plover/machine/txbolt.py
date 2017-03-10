@@ -73,20 +73,21 @@ class TxBolt(plover.machine.base.SerialStenotypeBase):
             # Grab data from the serial port, or wait for timeout if none available.
             raw = self.serial_port.read(max(1, self.serial_port.inWaiting()))
 
-            if not raw and len(self._pressed_keys) > 0:
+            if not raw:
+                # Timeout, finish the current stroke.
                 self._finish_stroke()
                 continue
 
             for byte in iterbytes(raw):
                 key_set = byte >> 6
-                if (key_set <= self._last_key_set
-                    and len(self._pressed_keys) > 0):
+                if key_set <= self._last_key_set:
+                    # Starting a new stroke, finish previous one.
                     self._finish_stroke()
                 self._last_key_set = key_set
                 for i in range(6):
                     if (byte >> i) & 1:
-                        self._pressed_keys.append(
-                            STENO_KEY_CHART[(key_set * 6) + i])
-                if 3 == key_set:
+                        key = STENO_KEY_CHART[(key_set * 6) + i]
+                        self._pressed_keys.append(key)
+                if key_set == 3:
                     # Last possible set, the stroke is finished.
                     self._finish_stroke()
