@@ -89,6 +89,9 @@ class Logger(object):
             elif sys.platform.startswith('darwin'):
                 from plover.oslayer.log_osx import OSXNotificationHandler
                 handler_class = OSXNotificationHandler
+            elif sys.platform.startswith('win32'):
+                from plover.oslayer.log_plyer import PlyerNotificationHandler
+                handler_class = PlyerNotificationHandler
         except Exception:
             self.info('could not import platform gui log', exc_info=True)
         if handler_class is None:
