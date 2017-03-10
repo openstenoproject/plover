@@ -64,6 +64,7 @@ class Logger(object):
         self._print_handler = PrintHandler()
         self._print_handler.setLevel(WARNING)
         self._file_handler = None
+        self._platform_handler = None
         self._logger = logging.getLogger('plover')
         self._logger.addHandler(self._print_handler)
         self._logger.setLevel(INFO)
@@ -73,6 +74,32 @@ class Logger(object):
         self._stroke_handler = None
         self._log_strokes = False
         self._log_translations = False
+
+    def has_platform_handler(self):
+        return self._platform_handler is not None
+
+    def setup_platform_handler(self):
+        if self.has_platform_handler():
+            return
+        handler_class = None
+        try:
+            if sys.platform.startswith('linux'):
+                from plover.oslayer.log_dbus import DbusNotificationHandler
+                handler_class = DbusNotificationHandler
+            elif sys.platform.startswith('darwin'):
+                from plover.oslayer.log_osx import OSXNotificationHandler
+                handler_class = OSXNotificationHandler
+        except Exception:
+            self.info('could not import platform gui log', exc_info=True)
+        if handler_class is None:
+            return
+        try:
+            handler = handler_class()
+        except Exception:
+            self.info('could not initialize platform gui log', exc_info=True)
+        else:
+            self.addHandler(handler)
+            self._platform_handler = handler
 
     def set_level(self, level):
         self._print_handler.setLevel(level)
@@ -140,6 +167,8 @@ error = __logger.error
 set_level = __logger.set_level
 add_handler = __logger.addHandler
 remove_handler = __logger.removeHandler
+has_platform_handler = __logger.has_platform_handler
+setup_platform_handler = __logger.setup_platform_handler
 # Strokes/translation logging.
 set_stroke_filename = __logger.set_stroke_filename
 stroke = __logger.log_stroke

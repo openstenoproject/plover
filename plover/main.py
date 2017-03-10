@@ -51,6 +51,7 @@ def main():
     args = parser.parse_args(args=sys.argv[1:])
     if args.log_level is not None:
         log.set_level(args.log_level.upper())
+    log.setup_platform_handler()
 
     registry.load_plugins()
     registry.update()
