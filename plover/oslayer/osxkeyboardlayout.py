@@ -377,23 +377,28 @@ class KeyboardLayout(object):
                 if not isinstance(new_sequence[0], tuple):
                     new_sequence = new_sequence,
 
-                a_favored_b = favored_modifiers(
+                first_current_better = favored_modifiers(
                     current_sequence[-1][1], new_sequence[-1][1]
                 )
+                last_current_better = favored_modifiers(
+                    current_sequence[0][1], new_sequence[0][1]
+                )
 
+                # Favor key sequence with best modifiers (avoids a short sequence with awful modifiers)
+                # e.g. ABC Extended wants ¯ from (⌘⌥a,) instead of the saner (⌥a, space)
+                if first_current_better == last_current_better != 0:
+                    if first_current_better < 0:
+                        char_to_key_sequence[character] = new_sequence
                 # Favor shortest sequence (fewer separate key presses)
-                if len(current_sequence) < len(new_sequence):
-                    return
+                elif len(current_sequence) < len(new_sequence):
+                    pass
                 elif len(new_sequence) < len(current_sequence):
                     char_to_key_sequence[character] = new_sequence[0]
                 # Favor fewer modifiers on last item
-                elif a_favored_b < 0:
+                elif last_current_better < 0:
                     char_to_key_sequence[character] = new_sequence
                 # Favor lower modifiers on first item if last item is the same
-                elif (a_favored_b == 0 and
-                              favored_modifiers(
-                                  current_sequence[0][1], new_sequence[0][1]
-                              ) < 0):
+                elif last_current_better == 0 and first_current_better < 0:
                     char_to_key_sequence[character] = new_sequence
 
         def lookup_and_add(key, j, mod):
