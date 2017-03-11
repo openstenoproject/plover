@@ -18,8 +18,8 @@ import AppKit
 import Foundation
 from PyObjCTools import AppHelper
 from plover import log
-from plover.key_combo import CHAR_TO_KEYNAME
 from plover.misc import popcount_8
+from plover.key_combo import CHAR_TO_KEYNAME
 
 try:
     unichr
@@ -410,7 +410,6 @@ class KeyboardLayout(object):
                             current_deadkey = deadkey_state_to_key_sequence.setdefault(
                                 nextstate, new_deadkey
                             )
-                            dead_key_name = None
                             if new_deadkey != current_deadkey:
                                 if favored_modifiers(current_deadkey[1],
                                                      new_deadkey[1]) < 0:
@@ -422,9 +421,10 @@ class KeyboardLayout(object):
                                 dead_key_name = u'dk#{}'.format(nextstate)
                             key_sequence_to_char[j, mod] = dead_key_name
                             save_shortest_key_sequence(dead_key_name, (j, mod))
-                        elif eformat == 1:
+                        elif eformat == 1 or (eformat == 0 and not nextstate):
                             # Terminal: letters, e.g. a, e, o, A, E, O
                             key_sequence_to_deadkey_state[j, mod] = deadkeys[dead]
+
                             lookup_and_add(cdata, j, mod)
                         elif eformat == 2:  # range
                             # TODO!
