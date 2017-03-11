@@ -111,6 +111,8 @@ def is_printable(string):
 
 
 def get_printable_string(s):
+    if s is None:
+        return 'None'
     return s if is_printable(s) else SPECIAL_KEY_NAMES.setdefault(
         s, s.encode('unicode_escape').decode("utf-8")
     )
@@ -456,10 +458,12 @@ class KeyboardLayout(object):
             entries = [struct.unpack_from('HH', edata, i * 4) for i in
                        range(ecount)]
             for state, key in entries:
-                dj, dmod = deadkey_state_to_key_sequence[state]
-                ch = lookupseq(key)
-                save_shortest_key_sequence(ch, ((dj, dmod), (j, mod)))
-                key_sequence_to_char[(dj, dmod), (j, mod)] = ch
+                # Ignore if unknown state...
+                if state in deadkey_state_to_key_sequence:
+                    dj, dmod = deadkey_state_to_key_sequence[state]
+                    ch = lookupseq(key)
+                    save_shortest_key_sequence(ch, ((dj, dmod), (j, mod)))
+                    key_sequence_to_char[(dj, dmod), (j, mod)] = ch
 
         char_to_key_sequence[u'\n'] = (36, 0)
         char_to_key_sequence[u'\r'] = (36, 0)
