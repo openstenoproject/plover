@@ -39,6 +39,9 @@ class CFRange(ctypes.Structure):
 
 carbon.TISCopyCurrentKeyboardInputSource.argtypes = []
 carbon.TISCopyCurrentKeyboardInputSource.restype = ctypes.c_void_p
+carbon.TISCopyCurrentASCIICapableKeyboardLayoutInputSource.argtypes = []
+carbon.TISCopyCurrentASCIICapableKeyboardLayoutInputSource.restype = ctypes.c_void_p
+
 carbon.TISGetInputSourceProperty.argtypes = [ctypes.c_void_p, ctypes.c_void_p]
 carbon.TISGetInputSourceProperty.restype = ctypes.c_void_p
 carbon.LMGetKbdType.argtypes = []
@@ -54,6 +57,8 @@ kTISPropertyUnicodeKeyLayoutData = ctypes.c_void_p.in_dll(
     carbon, 'kTISPropertyUnicodeKeyLayoutData')
 kTISPropertyInputSourceID = ctypes.c_void_p.in_dll(
     carbon, 'kTISPropertyInputSourceID')
+kTISPropertyInputSourceIsASCIICapable = ctypes.c_void_p.in_dll(
+    carbon, 'kTISPropertyInputSourceIsASCIICapable')
 COMMAND = u'⌘'
 SHIFT = u'⇧'
 OPTION = u'⌥'
@@ -238,9 +243,17 @@ class KeyboardLayout(object):
     @staticmethod
     def _get_layout():
         keyboard_input_source = carbon.TISCopyCurrentKeyboardInputSource()
+
         layout_source = carbon.TISGetInputSourceProperty(
             keyboard_input_source, kTISPropertyUnicodeKeyLayoutData
         )
+        # Some keyboard layouts don't return UnicodeKeyLayoutData so we turn to a different source.
+        if layout_source is None:
+            carbon.CFRelease(keyboard_input_source)
+            keyboard_input_source = carbon.TISCopyCurrentASCIICapableKeyboardLayoutInputSource()
+            layout_source = carbon.TISGetInputSourceProperty(
+                keyboard_input_source, kTISPropertyUnicodeKeyLayoutData
+            )
         layout_size = carbon.CFDataGetLength(layout_source)
         layout_buffer = ctypes.create_string_buffer(b'\000' * layout_size)
         carbon.CFDataGetBytes(
