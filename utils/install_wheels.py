@@ -70,6 +70,7 @@ _PIP_INSTALL_OPTS = _split_opts(
 def _pip(args, verbose=True):
     if verbose:
         print('running pip %s' % ' '.join(a for a in args))
+        sys.stdout.flush()
     return subprocess.call([sys.executable, '-m', 'pip'] + args)
 
 def install_wheels(args, verbose=True):
