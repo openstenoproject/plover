@@ -53,7 +53,7 @@ before_install:
     $PYTHON -m pip list --format=columns
     if [ $TRAVIS_OS_NAME = osx ]
     then
-      # For some reason, pyrcc5/pyuic55 are not found,
+      # The directory containing pyrcc5/pyuic55 is not in $PATH,
       # so just use the right Python modules directly.
       sed -i '' \
         -e 's/"pyrcc5"/"'$PYTHON' -m PyQt5.pyrcc_main"/' \
