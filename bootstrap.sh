@@ -155,7 +155,7 @@ ubuntu_bootstrap()
 
 ubuntu_packages_install()
 {
-  run sudo apt-get install -y "$@"
+  run sudo apt-get install -qq "$@"
 }
 
 ubuntu_python2_packages=(
