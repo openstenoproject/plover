@@ -9,9 +9,6 @@ matrix:
         - CACHE_NAME=linux_py2
       dist: trusty
       sudo: required
-      cache:
-        directories:
-          - $HOME/.cache/wheels
     # Linux / Python 3
     - os: linux
       env:
@@ -19,18 +16,16 @@ matrix:
         - CACHE_NAME=linux_py3
       dist: trusty
       sudo: required
-      cache:
-        directories:
-          - $HOME/.cache/wheels
     # OSX / Python 3
     - os: osx
       osx_image: xcode8
       env:
         - PYTHON=python3
         - CACHE_NAME=osx_py3
-      cache:
-        directories:
-          - $HOME/Library/Caches/wheels
+
+cache:
+  directories:
+    - .cache
 
 before_install:
   - |

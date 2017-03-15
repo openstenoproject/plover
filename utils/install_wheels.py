@@ -6,12 +6,7 @@ import sys
 
 
 # Default directory for caching wheels.
-if sys.platform.startswith('darwin'):
-    WHEELS_CACHE = os.path.expanduser('~/Library/Caches/wheels')
-elif sys.platform.startswith('linux'):
-    WHEELS_CACHE = os.path.join(os.environ.get('XDG_CACHE_HOME', os.path.expanduser('~/.cache')), 'wheels')
-elif sys.platform.startswith('win32'):
-    WHEELS_CACHE = os.path.expanduser(r'~\AppData\Local\wheels')
+WHEELS_CACHE = os.path.join('.cache', 'wheels')
 
 
 def _split_opts(text):

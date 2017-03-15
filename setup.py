@@ -121,8 +121,6 @@ class BinaryDistWin(Command):
          'trim the resulting distribution to reduce size'),
         ('zipdir', 'z',
          'create a zip of the resulting directory'),
-        ('wheel-dir=', 'w',
-         'directory used for caching wheels'),
     ]
     boolean_options = ['trim', 'zipdir']
     extra_args = []
@@ -130,23 +128,15 @@ class BinaryDistWin(Command):
     def initialize_options(self):
         self.trim = False
         self.zipdir = False
-        self.wheel_dir = None
 
     def finalize_options(self):
         pass
 
     def run(self):
-        cache_dir = os.path.abspath('.cache')
-        downloads_dir = os.path.join(cache_dir, 'downloads')
+        # Wheels cache directory.
+        from utils.install_wheels import WHEELS_CACHE
         # Download helper.
-        def download(src, checksum):
-            log.info('downloading %s', src)
-            from utils.download import download
-            dst = os.path.join(downloads_dir, os.path.basename(src))
-            if not os.path.exists(downloads_dir):
-                os.makedirs(downloads_dir)
-            download(src, checksum, dst)
-            return dst
+        from utils.download import download
         # Run command helper.
         def run(*args):
             if self.verbose:
@@ -177,23 +167,13 @@ class BinaryDistWin(Command):
         # Install pip.
         get_pip = download('https://bootstrap.pypa.io/get-pip.py',
                            '3d45cef22b043b2b333baa63abaa99544e9c031d')
-        cmd = [dist_py, get_pip]
-        if self.wheel_dir is not None:
-            cmd.extend(('-f', self.wheel_dir))
-        run(*cmd)
+        run(dist_py, get_pip, '-f', WHEELS_CACHE)
         # Install Plover and dependencies.
         # Note: do not use the embedded Python executable with `setup.py
         # install` to prevent setuptools from installing extra development
         # dependencies...
-        cmd = [
-            dist_py,
-            '-m', 'utils.install_wheels',
-            '--ignore-installed',
-        ]
-        if self.wheel_dir is not None:
-            cmd.extend(('-w', self.wheel_dir))
-        cmd.append(plover_wheel)
-        run(*cmd)
+        run(dist_py, '-m', 'utils.install_wheels',
+            '--ignore-installed', plover_wheel)
         # List installed packages.
         if self.verbose:
             run(dist_py, '-m', 'pip', 'list', '--format=columns')
@@ -224,8 +204,7 @@ class BinaryDistWin(Command):
                            entrypoint=entrypoint,
                            gui=gui).strip().split('\n')))
         # Make distribution source-less.
-        run(dist_py,
-            '-m', 'utils.source_less',
+        run(dist_py, '-m', 'utils.source_less',
             # Don't touch pip._vendor.distlib sources,
             # or `pip install` will not be usable...
             data_dir, '*/pip/_vendor/distlib/*',

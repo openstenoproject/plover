@@ -23,9 +23,6 @@ sys.path.insert(0, TOP_DIR)
 os.chdir(TOP_DIR)
 
 
-from utils.install_wheels import WHEELS_CACHE
-
-
 if sys.stdout.isatty() and not sys.platform.startswith('win32'):
 
     def info(fmt, *args):
@@ -420,9 +417,11 @@ class Helper(object):
         cmd.extend(args)
         self._env.run(cmd)
 
-    def _download(self, url, checksum, dst):
-        from utils.download import download
-        download(url, checksum, dst)
+    def _download(self, url, checksum):
+        from utils.download import DOWNLOADS_DIR, download
+        if not self.dry_run:
+            return download(url, checksum)
+        return os.path.join(DOWNLOADS_DIR, os.path.basename(url))
 
     def install(self, name, src, checksum, handler_format=None, handler_args=(), path_dir=None):
         info('installing %s', name)
@@ -432,8 +431,7 @@ class Helper(object):
         else:
             distdir = self._env.get_distdir()
             dst = os.path.join(distdir, os.path.basename(src))
-            if not self.dry_run:
-                self._download(src, checksum, dst)
+            dst = self._download(src, checksum)
             if handler_format is None:
                 root, handler_format = os.path.splitext(dst)
         handler = self._install_handlers.get(handler_format)
@@ -469,9 +467,6 @@ class Helper(object):
         self._env.run(('python.exe', 'setup.py', 'write_requirements'))
         self._pip_install('wheel')
         self._env.run(('python.exe', '-m', 'utils.install_wheels',
-                       # Override cache directory so it's not
-                       # stored in the prefix when using Wine.
-                       '-w', WHEELS_CACHE,
                        '-r', 'requirements.txt',
                        '-c', 'requirements_constraints.txt'))
 
@@ -500,9 +495,6 @@ class Helper(object):
             cmd.append('-t')
         if zipdir:
             cmd.append('-z')
-        # Override cache directory so it's not
-        # stored in the prefix when using Wine.
-        cmd.extend(('-w', WHEELS_CACHE))
         self._env.run(cmd)
 
     def main(self, args):

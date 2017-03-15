@@ -62,7 +62,7 @@ run()
 
 wheels_install()
 {
-  run "$python" utils/install_wheels.py --disable-pip-version-check --timeout=5 --retries=2 "$@"
+  run "$python" -m utils.install_wheels --disable-pip-version-check --timeout=5 --retries=2 "$@"
 }
 
 # Mac OS X. {{{
