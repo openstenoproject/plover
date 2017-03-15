@@ -9,6 +9,7 @@ import re
 import shutil
 import subprocess
 import sys
+import textwrap
 import zipfile
 
 from xml.etree import ElementTree
@@ -140,7 +141,7 @@ class BinaryDistWin(Command):
         # Run command helper.
         def run(*args):
             if self.verbose:
-                log.info('running %s', ' '.join(repr(a) for a in args))
+                log.info('running %s', ' '.join(a for a in args))
             subprocess.check_call(args)
         # First things first: create Plover wheel.
         wheel_cmd = self.get_finalized_command('bdist_wheel')
@@ -193,16 +194,16 @@ class BinaryDistWin(Command):
             ('plover         = plover.main:main', True ),
             ('plover_console = plover.main:main', False),
         ):
-            run(dist_py, '-c', ';'.join(
+            run(dist_py, '-c', textwrap.dedent(
                 '''
                 from pip._vendor.distlib.scripts import ScriptMaker
                 sm = ScriptMaker(source_dir='{dist_dir}', target_dir='{dist_dir}')
                 sm.executable = 'data\\python.exe'
                 sm.variants = set(('',))
                 sm.make('{entrypoint}', options={{'gui': {gui}}})
-                '''.format(dist_dir=dist_dir,
-                           entrypoint=entrypoint,
-                           gui=gui).strip().split('\n')))
+                '''.rstrip()).format(dist_dir=dist_dir,
+                                     entrypoint=entrypoint,
+                                     gui=gui))
         # Make distribution source-less.
         run(dist_py, '-m', 'utils.source_less',
             # Don't touch pip._vendor.distlib sources,
