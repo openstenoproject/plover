@@ -7,7 +7,7 @@ TOP_DIR="$PWD"
 BUILD_DIR="$TOP_DIR/build"
 DIST_DIR="$TOP_DIR/dist"
 
-VERSION="$(python3)" <<\EOF
+VERSION="$(python3 - <<\EOF
 from plover import __version__
 
 version = __version__
@@ -15,6 +15,7 @@ version = version.replace('+', '-')
 version = version.replace('.g', '-g')
 print(version)
 EOF
+)"
 
 BASENAME="${PACKAGE}_${VERSION}"
 
