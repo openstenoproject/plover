@@ -35,6 +35,7 @@ _PIP_OPTS = _split_opts(
     --cache-dir 1
     --no-cache-dir 0
     --disable-pip-version-check 0
+    --progress-bar 1
     '''
     # Install/Wheel.
     '''
@@ -67,13 +68,37 @@ _PIP_INSTALL_OPTS = _split_opts(
     '''
 )
 
-def _pip(args, verbose=True):
+_PIP_SCRIPT = '''
+import sys
+
+from pkg_resources import load_entry_point
+
+# Work around isatty attribute being read-only with Python 2.
+class NoTTY(object):
+    def __init__(self, fp):
+        self._fp = fp
+    def isatty(self):
+        return False
+    def __getattr__(self, name):
+        return getattr(self._fp, name)
+
+if len(sys.argv) > 1 and sys.argv[1] == '--no-tty':
+    sys.stdout = NoTTY(sys.stdout)
+    del sys.argv[1]
+sys.exit(load_entry_point('pip', 'console_scripts', 'pip')())
+'''
+
+def _pip(args, verbose=True, no_progress=True):
     if verbose:
         print('running pip %s' % ' '.join(a for a in args))
         sys.stdout.flush()
-    return subprocess.call([sys.executable, '-m', 'pip'] + args)
+    cmd = [sys.executable, '-c', _PIP_SCRIPT]
+    if no_progress:
+        cmd.append('--no-tty')
+    cmd.extend(args)
+    return subprocess.call(cmd)
 
-def install_wheels(args, verbose=True):
+def install_wheels(args, verbose=True, no_progress=True):
     wheels_cache = WHEELS_CACHE
     wheel_args = []
     install_args = []
@@ -92,6 +117,12 @@ def install_wheels(args, verbose=True):
         if opt == '-w':
             wheels_cache = args.pop(0)
             continue
+        if opt == '--progress-bar':
+            if args[0] == 'off':
+                no_progress = True
+                del args[0]
+                continue
+            no_progress = False
         if opt in _PIP_OPTS:
             nb_args = _PIP_OPTS[opt]
             install_only = False
@@ -113,17 +144,17 @@ def install_wheels(args, verbose=True):
     if constraint_args:
         # Since pip will not build and cache wheels for VCS links, we do it ourselves:
         # - first, update the cache (without VCS links), and try to install from it
-        code = _pip(wheel_args)
+        code = _pip(wheel_args, no_progress=no_progress)
         if code == 0:
-            code = _pip(install_args)
+            code = _pip(install_args, no_progress=no_progress)
     else:
         code = 1
     if code != 0:
       # - if it failed, try to update the cache again, this time with VCS links
-      code = _pip(wheel_args + constraint_args)
+      code = _pip(wheel_args + constraint_args, no_progress=no_progress)
       if code == 0:
           # - and try again
-          code = _pip(install_args)
+          code = _pip(install_args, no_progress=no_progress)
     if code != 0:
         raise Exception('wheels installation failed: pip execution returned %u' % code)
 
