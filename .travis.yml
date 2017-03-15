@@ -51,7 +51,7 @@ before_install:
 install: true
 
 script:
-  - git fetch --unshallow
+  - git fetch --quiet --unshallow
   - $PYTHON setup.py patch_version
   - $PYTHON setup.py test
 
