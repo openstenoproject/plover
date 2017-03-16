@@ -1,91 +1,6 @@
 #!/bin/bash
 
-opt_dry_run=0
-opt_timings=0
-
-python='false'
-
-info()
-{
-  color=34
-  case "$1" in
-    -c*)
-      color="${1#-c}"
-      shift
-      ;;
-  esac
-  if [ -t 1 ]
-  then
-    echo "[${color}m$@[0m"
-  else
-    echo "$@"
-  fi
-}
-
-err()
-{
-  if [ -t 2 ]
-  then
-    echo "[31m$@[0m" 1>&2
-  else
-    echo "$@" 1>&2
-  fi
-}
-
-find_dist()
-{
-  if ! [ -r /etc/lsb-release ]
-  then
-    if [ -r /etc/arch-release ]
-    then
-      echo arch
-      return
-    fi
-    err "unsuported distribution: $dist"
-    return 1
-  fi
-  dist="$(lsb_release -i -s | tr A-Z a-z)"
-  case "$dist" in
-    arch)
-      echo 'arch'
-      ;;
-    linuxmint|ubuntu)
-      echo 'ubuntu'
-      ;;
-    *)
-      err "unsuported distribution: $dist"
-      return 1
-      ;;
-  esac
-}
-
-run()
-{
-  info "$@"
-  [ $opt_dry_run -ne 0 ] && return
-  if [ $opt_timings -ne 0 ]
-  then
-    time "$@"
-  else
-    "$@"
-  fi
-}
-
-# Crude version of wheels_install, that will work
-# if wheel is not installed and for installing it,
-# but still tries to hit/update the wheels cache.
-pip_install()
-{
-  cache='.cache/wheels'
-  run mkdir -p "$cache"
-  run "$python" -m pip install --user -d "$cache" -f "$cache" "$@" || true
-  run "$python" -m pip install --user -f "$cache" "$@"
-}
-
-wheels_install()
-{
-  run "$python" -m utils.install_wheels --user "$@"
-}
+. ./utils/functions.sh
 
 # Mac OS X. {{{
 
@@ -112,12 +27,12 @@ osx_bootstrap()
   done
   [ $opt_dry_run -ne 0 -o -r "$dst" ]
   run sudo installer -pkg "$dst" -target /
-  pip_install wheel
+  pip_install --user wheel
 }
 
 osx_packages_install()
 {
-  wheels_install "$@"
+  wheels_install --user "$@"
 }
 
 osx_python3_packages=(
@@ -248,32 +163,20 @@ wmctrl
 
 # }}}
 
+help()
+{
+  echo "Usage: $0 [python2|python3]"
+  exit 1
+}
+
 set -e
 
-while [ $# -ne 0 ]
-do
-  case "$1" in
-    --dry-run|-n)
-      opt_dry_run=1
-      ;;
-    --debug|-d)
-      set -x
-      ;;
-    --help|-h)
-      exit 0
-      ;;
-    -*)
-      err "invalid option: $1"
-      exit 1
-      ;;
-    *)
-      break
-      ;;
-  esac
-  shift
-done
-
-python="${1:-python3}"
+parse_opts args "$@" && [ "${#args[@]}" -le 1 ] || help
+python="${args[0]:-python3}"
+case "$python" in
+  python2|python3) ;;
+  *) help;;
+esac
 
 case "$OSTYPE" in
   linux-gnu)
@@ -304,14 +207,14 @@ then
 fi
 
 # Update antiquated version of pip on Ubuntu...
-pip_install --upgrade pip
+pip_install --user --upgrade pip
 # Upgrade setuptools, we need at least 19.6 to prevent issues with Cython patched 'build_ext' command.
-wheels_install --upgrade 'setuptools>=19.6'
+wheels_install --user --upgrade 'setuptools>=19.6'
 # Manually install Cython if not already to speedup hidapi build.
-wheels_install Cython
+wheels_install --user Cython
 # Generate requirements.
 run "$python" setup.py write_requirements
-wheels_install -c requirements_constraints.txt -r requirements.txt
+wheels_install --user -c requirements_constraints.txt -r requirements.txt
 
 user_bin="$("$python" - <<\EOF
 import os
