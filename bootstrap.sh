@@ -71,33 +71,57 @@ run()
   fi
 }
 
+# Crude version of wheels_install, that will work
+# if wheel is not installed and for installing it,
+# but still tries to hit/update the wheels cache.
+pip_install()
+{
+  cache='.cache/wheels'
+  run mkdir -p "$cache"
+  run "$python" -m pip install --user -d "$cache" -f "$cache" "$@" || true
+  run "$python" -m pip install --user -f "$cache" "$@"
+}
+
 wheels_install()
 {
-  run "$python" -m utils.install_wheels --disable-pip-version-check --timeout=5 --retries=2 "$@"
+  run "$python" -m utils.install_wheels --user "$@"
 }
 
 # Mac OS X. {{{
 
 osx_bootstrap()
 {
-  run brew update
-  run export HOMEBREW_NO_AUTO_UPDATE=1
-  run git -C "$(brew --repo)/Library/Taps/homebrew/homebrew-core" checkout '5596439c4ca5a9963a7fec0146d3ce2b27e07a17^' Formula/python3.rb
-  osx_packages_install $python
-  run brew link --overwrite $python
+  url='https://www.python.org/ftp/python/3.5.3/python-3.5.3-macosx10.6.pkg'
+  md5='6f9ee2ad1fceb1a7c66c9ec565e57102'
+  dst='.cache/downloads/python35.pkg'
+  run mkdir -p "$(dirname "$dst")"
+  for retry in $(seq 3)
+  do
+    if ! [ -r "$dst" ] && ! run curl --show-error --silent -o "$dst" "$url"
+    then
+      err "python download failed"
+      rm -f "$dst"
+      continue
+    fi
+    if [ $opt_dry_run -ne 0 ] || [ "$(md5 -q "$dst")" = "$md5" ]
+    then
+      break
+    fi
+    err "python md5 did not match"
+    rm -f "$dst"
+  done
+  [ $opt_dry_run -ne 0 -o -r "$dst" ]
+  run sudo installer -pkg "$dst" -target /
+  pip_install wheel
 }
 
 osx_packages_install()
 {
-  for package in "$@"
-  do
-    run brew install $package ||
-    run brew outdated $package ||
-    run brew upgrade $package
-  done
+  wheels_install "$@"
 }
 
 osx_python3_packages=(
+certifi
 )
 
 # }}}
@@ -280,14 +304,14 @@ then
 fi
 
 # Update antiquated version of pip on Ubuntu...
-run "$python" -m pip install --upgrade --user pip
+pip_install --upgrade pip
 # Upgrade setuptools, we need at least 19.6 to prevent issues with Cython patched 'build_ext' command.
-wheels_install --upgrade --user 'setuptools>=19.6'
+wheels_install --upgrade 'setuptools>=19.6'
 # Manually install Cython if not already to speedup hidapi build.
-wheels_install --user Cython
+wheels_install Cython
 # Generate requirements.
 run "$python" setup.py write_requirements
-wheels_install --user -c requirements_constraints.txt -r requirements.txt
+wheels_install -c requirements_constraints.txt -r requirements.txt
 
 user_bin="$("$python" - <<\EOF
 import os
