@@ -1,6 +1,7 @@
 #!/bin/bash
 
 opt_dry_run=0
+opt_timings=0
 
 python='false'
 
@@ -61,8 +62,11 @@ find_dist()
 run()
 {
   info "$@"
-  if [ $opt_dry_run -eq 0 ]
+  [ $opt_dry_run -ne 0 ] && return
+  if [ $opt_timings -ne 0 ]
   then
+    time "$@"
+  else
     "$@"
   fi
 }
