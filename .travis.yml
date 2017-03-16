@@ -32,9 +32,7 @@ before_install:
     (
     set -ex
     # Bootstrap dev environment.
-    bootstrap_cmd=(./bootstrap.sh)
-    bootstrap_cmd+=("$PYTHON")
-    "${bootstrap_cmd[@]}"
+    ./bootstrap.sh "$PYTHON"
     # List installed packages versions.
     $PYTHON -m pip list --format=columns
     if [ $TRAVIS_OS_NAME = osx ]
