@@ -1,30 +1,25 @@
-#!/bin/sh
+#!/bin/bash
 
 set -e
 
-PACKAGE='plover'
-TOP_DIR="$PWD"
-BUILD_DIR="$TOP_DIR/build"
-DIST_DIR="$TOP_DIR/dist"
+BUILD_DIR="build/debian"
+DIST_DIR="dist"
 
-VERSION="$(python3 - <<\EOF
-from plover import __version__
+. ./utils/functions.sh
+parse_opts args "$@"
+set -- "${args[@]}"
 
-version = __version__
-version = version.replace('+', '-')
-version = version.replace('.g', '-g')
-print(version)
-EOF
-)"
+NAME='plover'
+VERSION="$(./setup.py --version | sed 's/+/-/g;s/\.g/-g/')"
+SDIST="$DIST_DIR/$NAME-$VERSION.tar.gz"
 
-BASENAME="${PACKAGE}_${VERSION}"
-
-rm -rf "$BUILD_DIR/$BASENAME"
-mkdir -p "$BUILD_DIR/$BASENAME" "$DIST_DIR"
-git ls-files -z | xargs -0 cp -a --no-dereference --parents --target-directory="$BUILD_DIR/$BASENAME"
-cd "$BUILD_DIR"
-tar cvzf "${BASENAME%%-g*}.orig.tar.gz" "$BASENAME"
-cd "$BASENAME"
-dch -b -v "$VERSION" "weekly build $VERSION"
-debuild -i "$@"
-find .. \( -name "${BASENAME}_all.deb" -o -name "${BASENAME}_source.changes" \) -print0 | xargs -0 --no-run-if-empty mv --target-directory="$DIST_DIR"
+run rm -rf "$BUILD_DIR"
+run mkdir -p "$BUILD_DIR" "$DIST_DIR"
+run ./setup.py -q sdist --format=gztar
+run tar xf "$SDIST" -C "$BUILD_DIR"
+run cp "$SDIST" "$BUILD_DIR/plover_$VERSION.orig.tar.gz"
+run cd "$BUILD_DIR/$NAME-$VERSION"
+run dch -b -v "$VERSION" "automatic build $VERSION"
+run debuild -i "$@"
+run cd -
+run mv "$BUILD_DIR/${NAME}_${VERSION}_all.deb" "$DIST_DIR/"
