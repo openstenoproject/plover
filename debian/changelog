@@ -1,3 +1,9 @@
+plover (4.0.0.dev0-1) xenial; urgency=low
+
+  * Switch to Python 3 / PyQt5.
+
+ -- Benoit Pierre <benoit.pierre@gmail.com>  Fri, 30 Sep 2017 17:20:03 +0200
+
 plover (3.0.0-3) xenial; urgency=low
 
   * Drop unnecessary python-hidapi dependency.
