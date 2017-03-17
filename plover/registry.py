@@ -65,7 +65,8 @@ class Registry(object):
         return self._plugins[plugin_type][plugin_name.lower()]
 
     def list_plugins(self, plugin_type):
-        return self._plugins[plugin_type].values()
+        return sorted(self._plugins[plugin_type].values(),
+                      key=lambda p: p.name)
 
     def load_plugins(self, plugins_dir=PLUGINS_DIR):
         log.info('loading plugins from %s', plugins_dir)

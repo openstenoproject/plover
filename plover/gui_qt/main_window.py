@@ -90,8 +90,7 @@ class MainWindow(QMainWindow, Ui_MainWindow, WindowState):
         self.toolbar.customContextMenuRequested.connect(
             lambda: self.toolbar_menu.popup(QCursor.pos())
         )
-        for tool_plugin in sorted(registry.list_plugins('gui.qt.tool'),
-                                  key=lambda p: p.name):
+        for tool_plugin in registry.list_plugins('gui.qt.tool'):
             tool = tool_plugin.obj
             action_parameters = []
             if tool.ICON is not None:
