@@ -28,7 +28,7 @@ def download(url, sha1=None, filename=None, downloads_dir=DOWNLOADS_DIR):
             try:
                 with contextlib.closing(session.send(prepped, stream=True)) as resp:
                     with open(dst, 'wb') as fp:
-                        for chunk in iter(lambda: resp.raw.read(4 * 1024), b''):
+                        for chunk in resp.iter_content(chunk_size=4 * 1024):
                             fp.write(chunk)
             except Exception as e:
                 print('error', e)
