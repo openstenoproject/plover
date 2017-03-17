@@ -7,9 +7,16 @@ wheels=''
 
 info()
 {
+  color=34
+  case "$1" in
+    -c*)
+      color="${1#-c}"
+      shift
+      ;;
+  esac
   if [ -t 1 ]
   then
-    echo "[34m$@[0m"
+    echo "[${color}m$@[0m"
   else
     echo "$@"
   fi
@@ -298,5 +305,18 @@ then
   # - and try again
   pip_install_requirements
 fi
+
+user_bin="$("$python" - <<\EOF
+import os
+import site
+
+user_bin = os.path.join(site.USER_BASE, "bin")
+home = os.path.expanduser("~/")
+if user_bin.startswith(home):
+  user_bin = os.path.join("~", user_bin[len(home):])
+print(user_bin)
+EOF
+)"
+info -c32 "Note: please make sure $user_bin is in your \$PATH!"
 
 # vim: foldmethod=marker
