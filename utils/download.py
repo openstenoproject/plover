@@ -51,6 +51,12 @@ def download(url, sha1=None, filename=None, downloads_dir=DOWNLOADS_DIR):
 
 
 if __name__ == '__main__':
-    url = sys.argv[1]
-    sha1 = sys.argv[2] if len(sys.argv) > 2 else None
-    print(download(url, sha1))
+    args = sys.argv[1:]
+    url = args.pop(0)
+    sha1 = None
+    filename = None
+    if args:
+        sha1 = args.pop(0) or None
+    if args:
+        filename = args.pop(0)
+    print(download(url, sha1, filename))
