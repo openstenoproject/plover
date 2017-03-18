@@ -18,8 +18,8 @@ import AppKit
 import Foundation
 from PyObjCTools import AppHelper
 from plover import log
-from plover.key_combo import CHAR_TO_KEYNAME
 from plover.misc import popcount_8
+from plover.key_combo import CHAR_TO_KEYNAME
 
 try:
     unichr
@@ -39,6 +39,9 @@ class CFRange(ctypes.Structure):
 
 carbon.TISCopyCurrentKeyboardInputSource.argtypes = []
 carbon.TISCopyCurrentKeyboardInputSource.restype = ctypes.c_void_p
+carbon.TISCopyCurrentASCIICapableKeyboardLayoutInputSource.argtypes = []
+carbon.TISCopyCurrentASCIICapableKeyboardLayoutInputSource.restype = ctypes.c_void_p
+
 carbon.TISGetInputSourceProperty.argtypes = [ctypes.c_void_p, ctypes.c_void_p]
 carbon.TISGetInputSourceProperty.restype = ctypes.c_void_p
 carbon.LMGetKbdType.argtypes = []
@@ -54,6 +57,8 @@ kTISPropertyUnicodeKeyLayoutData = ctypes.c_void_p.in_dll(
     carbon, 'kTISPropertyUnicodeKeyLayoutData')
 kTISPropertyInputSourceID = ctypes.c_void_p.in_dll(
     carbon, 'kTISPropertyInputSourceID')
+kTISPropertyInputSourceIsASCIICapable = ctypes.c_void_p.in_dll(
+    carbon, 'kTISPropertyInputSourceIsASCIICapable')
 COMMAND = u'⌘'
 SHIFT = u'⇧'
 OPTION = u'⌥'
@@ -106,6 +111,8 @@ def is_printable(string):
 
 
 def get_printable_string(s):
+    if s is None:
+        return 'None'
     return s if is_printable(s) else SPECIAL_KEY_NAMES.setdefault(
         s, s.encode('unicode_escape').decode("utf-8")
     )
@@ -238,9 +245,17 @@ class KeyboardLayout(object):
     @staticmethod
     def _get_layout():
         keyboard_input_source = carbon.TISCopyCurrentKeyboardInputSource()
+
         layout_source = carbon.TISGetInputSourceProperty(
             keyboard_input_source, kTISPropertyUnicodeKeyLayoutData
         )
+        # Some keyboard layouts don't return UnicodeKeyLayoutData so we turn to a different source.
+        if layout_source is None:
+            carbon.CFRelease(keyboard_input_source)
+            keyboard_input_source = carbon.TISCopyCurrentASCIICapableKeyboardLayoutInputSource()
+            layout_source = carbon.TISGetInputSourceProperty(
+                keyboard_input_source, kTISPropertyUnicodeKeyLayoutData
+            )
         layout_size = carbon.CFDataGetLength(layout_source)
         layout_buffer = ctypes.create_string_buffer(b'\000' * layout_size)
         carbon.CFDataGetBytes(
@@ -364,23 +379,28 @@ class KeyboardLayout(object):
                 if not isinstance(new_sequence[0], tuple):
                     new_sequence = new_sequence,
 
-                a_favored_b = favored_modifiers(
+                first_current_better = favored_modifiers(
                     current_sequence[-1][1], new_sequence[-1][1]
                 )
+                last_current_better = favored_modifiers(
+                    current_sequence[0][1], new_sequence[0][1]
+                )
 
+                # Favor key sequence with best modifiers (avoids a short sequence with awful modifiers)
+                # e.g. ABC Extended wants ¯ from (⌘⌥a,) instead of the saner (⌥a, space)
+                if first_current_better == last_current_better != 0:
+                    if first_current_better < 0:
+                        char_to_key_sequence[character] = new_sequence
                 # Favor shortest sequence (fewer separate key presses)
-                if len(current_sequence) < len(new_sequence):
-                    return
+                elif len(current_sequence) < len(new_sequence):
+                    pass
                 elif len(new_sequence) < len(current_sequence):
                     char_to_key_sequence[character] = new_sequence[0]
                 # Favor fewer modifiers on last item
-                elif a_favored_b < 0:
+                elif last_current_better < 0:
                     char_to_key_sequence[character] = new_sequence
                 # Favor lower modifiers on first item if last item is the same
-                elif (a_favored_b == 0 and
-                              favored_modifiers(
-                                  current_sequence[0][1], new_sequence[0][1]
-                              ) < 0):
+                elif last_current_better == 0 and first_current_better < 0:
                     char_to_key_sequence[character] = new_sequence
 
         def lookup_and_add(key, j, mod):
@@ -410,7 +430,6 @@ class KeyboardLayout(object):
                             current_deadkey = deadkey_state_to_key_sequence.setdefault(
                                 nextstate, new_deadkey
                             )
-                            dead_key_name = None
                             if new_deadkey != current_deadkey:
                                 if favored_modifiers(current_deadkey[1],
                                                      new_deadkey[1]) < 0:
@@ -422,9 +441,10 @@ class KeyboardLayout(object):
                                 dead_key_name = u'dk#{}'.format(nextstate)
                             key_sequence_to_char[j, mod] = dead_key_name
                             save_shortest_key_sequence(dead_key_name, (j, mod))
-                        elif eformat == 1:
+                        elif eformat == 1 or (eformat == 0 and not nextstate):
                             # Terminal: letters, e.g. a, e, o, A, E, O
                             key_sequence_to_deadkey_state[j, mod] = deadkeys[dead]
+
                             lookup_and_add(cdata, j, mod)
                         elif eformat == 2:  # range
                             # TODO!
@@ -438,10 +458,12 @@ class KeyboardLayout(object):
             entries = [struct.unpack_from('HH', edata, i * 4) for i in
                        range(ecount)]
             for state, key in entries:
-                dj, dmod = deadkey_state_to_key_sequence[state]
-                ch = lookupseq(key)
-                save_shortest_key_sequence(ch, ((dj, dmod), (j, mod)))
-                key_sequence_to_char[(dj, dmod), (j, mod)] = ch
+                # Ignore if unknown state...
+                if state in deadkey_state_to_key_sequence:
+                    dj, dmod = deadkey_state_to_key_sequence[state]
+                    ch = lookupseq(key)
+                    save_shortest_key_sequence(ch, ((dj, dmod), (j, mod)))
+                    key_sequence_to_char[(dj, dmod), (j, mod)] = ch
 
         char_to_key_sequence[u'\n'] = (36, 0)
         char_to_key_sequence[u'\r'] = (36, 0)
