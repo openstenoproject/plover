@@ -33,6 +33,12 @@ done
 
 REPO='plover/packpack'
 case "$1" in
+  appimage)
+    OS='appimage'
+    DIST='2'
+    EXT='AppImage'
+    TARGET="appimage"
+    ;;
   rawhide)
     OS='fedora'
     DIST='rawhide'
@@ -64,7 +70,13 @@ SDIST="$DIST_DIR/$NAME-$VERSION.tar.xz"
 
 run rm -rf "$BUILD_DIR"
 run mkdir -p "$BUILD_DIR" "$DIST_DIR" .cache
-run ./setup.py -q sdist --format=xztar
+
+setup_cmd=(./setup.py -q sdist --format=xztar)
+if [ "$TARGET" = 'appimage' ]
+then
+  setup_cmd+=(bdist_wheel)
+fi
+run "${setup_cmd[@]}"
 run cp "$SDIST" "$BUILD_DIR/"
 cmd=(env)
 if [ $opt_no_pull -ne 0 ]
@@ -76,7 +88,7 @@ cmd+=(
   DOCKER_REPO="$REPO"
   OS="$OS" DIST="$DIST"
   PRODUCT="$NAME" VERSION="$VERSION"
-  packpack "$TARGET"
+  packpack -f /source/linux/packpack.mk "$TARGET"
 )
 run "${cmd[@]}"
 run_eval "mv '$BUILD_DIR/'*.$EXT '$DIST_DIR/'"

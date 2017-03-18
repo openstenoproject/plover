@@ -134,3 +134,23 @@ wheels_install()
 {
   run "$python" -m utils.install_wheels "$@"
 }
+
+# Crude version of https://github.com/jaraco/rwt
+rwt()
+{(
+  local rwt_args=()
+  while [ $# -ne 0 ]
+  do
+    if [ "x$1" = 'x--' ]
+    then
+      shift
+      break
+    fi
+    rwt_args+=("$1")
+    shift
+  done
+  wheels_install -t "$PWD/.rwt" "${rwt_args[@]}"
+  run export PYTHONPATH="$PWD/.rwt${PYTHONPATH:+:$PYTHONPATH}"
+  "$@"
+  run rm -rf .rwt
+)}
