@@ -39,6 +39,12 @@ case "$1" in
     EXT='deb'
     TARGET="package"
     ;;
+  xenial)
+    OS='ubuntu'
+    DIST='xenial'
+    EXT='deb'
+    TARGET="package"
+    ;;
   *)
     err "unsupported target: $1"
     exit 1
