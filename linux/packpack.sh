@@ -33,6 +33,12 @@ done
 
 REPO='plover/packpack'
 case "$1" in
+  rawhide)
+    OS='fedora'
+    DIST='rawhide'
+    EXT='noarch.rpm'
+    TARGET="package"
+    ;;
   trusty)
     OS='ubuntu'
     DIST='trusty'
