@@ -66,12 +66,6 @@ class ConfigTestCase(unittest.TestCase):
         ('space_placement', config.OUTPUT_CONFIG_SECTION, 
          config.OUTPUT_CONFIG_SPACE_PLACEMENT_OPTION, config.DEFAULT_OUTPUT_CONFIG_SPACE_PLACEMENT, 
          'Before Output', 'After Output', 'None'),
-        ('stroke_display_on_top', config.STROKE_DISPLAY_SECTION, 
-         config.STROKE_DISPLAY_ON_TOP_OPTION, 
-         config.DEFAULT_STROKE_DISPLAY_ON_TOP, False, True, False),
-        ('stroke_display_style', config.STROKE_DISPLAY_SECTION, 
-         config.STROKE_DISPLAY_STYLE_OPTION, 
-         config.DEFAULT_STROKE_DISPLAY_STYLE, 'Raw', 'Paper', 'Pseudo'),
         )
 
         for case in cases:
@@ -316,9 +310,6 @@ class ConfigTestCase(unittest.TestCase):
             start_attached
             start_capitalized
             start_minimized
-            stroke_display_on_top
-            stroke_display_style
-            suggestions_display_on_top
             system_keymap
             system_name
             translation_frame_opacity
