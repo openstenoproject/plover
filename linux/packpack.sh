@@ -39,6 +39,12 @@ case "$1" in
     EXT='AppImage'
     TARGET="appimage"
     ;;
+  archlinux)
+    OS='archlinux'
+    DIST='1'
+    EXT='pkg.tar.xz'
+    TARGET='makepkg'
+    ;;
   rawhide)
     OS='fedora'
     DIST='rawhide'
