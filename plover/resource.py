@@ -18,3 +18,7 @@ def resource_filename(resource_name):
     if resource_name.startswith(ASSET_SCHEME):
         return pkg_resources.resource_filename(*_asset_split(resource_name))
     return resource_name
+
+def resource_timestamp(resource_name):
+    filename = resource_filename(resource_name)
+    return os.path.getmtime(filename)
