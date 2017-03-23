@@ -61,14 +61,12 @@ class PaperTape(Tool, Ui_PaperTape):
         if style is not None:
             self.styles.setCurrentText(self.STYLES[style])
             self.on_style_changed(self.STYLES[style])
-
         font_string = settings.value('font')
         if font_string is not None:
             font = QFont()
             if font.fromString(font_string):
                 self.header.setFont(font)
                 self.tape.setFont(font)
-
         ontop = settings.value('ontop', None, bool)
         if ontop is not None:
             self.action_ToggleOnTop.setChecked(ontop)
@@ -77,7 +75,6 @@ class PaperTape(Tool, Ui_PaperTape):
     def _save_state(self, settings):
         settings.setValue('style', self.STYLES.index(self._style))
         settings.setValue('font', self.header.font().toString())
-
         ontop = bool(self.windowFlags() & Qt.WindowStaysOnTopHint)
         settings.setValue('ontop', ontop)
 

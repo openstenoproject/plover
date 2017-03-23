@@ -86,7 +86,6 @@ class SuggestionsDialog(Tool, Ui_SuggestionsDialog):
             if not font.fromString(font_string):
                 continue
             self._set_font(name, font)
-
         ontop = settings.value('ontop', None, bool)
         if ontop is not None:
             self.action_ToggleOnTop.setChecked(ontop)
@@ -100,7 +99,6 @@ class SuggestionsDialog(Tool, Ui_SuggestionsDialog):
             font = self._get_font(name)
             font_string = font.toString()
             settings.setValue(name, font_string)
-
         ontop = bool(self.windowFlags() & Qt.WindowStaysOnTopHint)
         settings.setValue('ontop', ontop)
 
