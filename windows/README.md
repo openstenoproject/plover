@@ -29,4 +29,6 @@ To run from source, from the root of the Git repository, use `launch.bat`.
 
 ## Building
 
-To build to an `exe`, you can `pip install pyinstaller`. Then, run `python windows\helper.py dist`; the result will be in `dist`.
+To build the Windows distribution, run `python windows\helper.py dist -t -z`; the results will be in `dist`.
+
+Note: the `-t` option reduces the size of the resulting distribution by pruning some files according to the list in `windows\dist_blacklist.txt`. The majority of those removed files are extra Qt features (normally) not used by Plover. So if the distribution does not work, it's a good idea to regenerate it without `-t` first, and see if this fixes the problem.

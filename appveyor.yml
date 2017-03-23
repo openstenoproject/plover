@@ -31,10 +31,7 @@ environment:
       PYTHON_ARCH: "32"
 
 cache:
-  # Keep cache of downloaded pip packages.
-  - C:\Users\appveyor\AppData\Local\pip
-  # Keep downloaded packages.
-  - C:\Dist
+  - .cache
 
 init:
   - "ECHO %PYTHON% %PYTHON_VERSION% %PYTHON_ARCH%"
@@ -63,14 +60,14 @@ before_build:
 build_script:
   - "python setup.py build"
 
-after_build:
-  - ps: "python windows\\helper.py dist"
-
 test_script:
   - "python setup.py test"
 
+after_test:
+  - ps: "python windows\\helper.py dist -t -z"
+
 artifacts:
 
-  - path: dist\*.exe
-    name: executable
+  - path: dist\*.zip
+    name: all-in-one zip
 

@@ -4,7 +4,6 @@
 from __future__ import print_function
 
 import argparse
-import hashlib
 import inspect
 import os
 import shutil
@@ -246,10 +245,7 @@ class Win32Environment(Environment):
 
 class Helper(object):
 
-    # Note: update pip so hidapi install from wheel works.
     DEPENDENCIES = (
-        ('pip', 'pip:pip',
-         None, None, (), None),
     )
 
     def __init__(self):
@@ -421,31 +417,11 @@ class Helper(object):
         cmd.extend(args)
         self._env.run(cmd)
 
-    def _download(self, url, checksum, dst):
-        import wget
-        retries = 0
-        while retries < 2:
-            if not os.path.exists(dst):
-                retries += 1
-                try:
-                    wget.download(url, out=dst)
-                    print()
-                except Exception as e:
-                    print()
-                    print('error', e)
-                    continue
-            h = hashlib.sha1()
-            with open(dst, 'rb') as fp:
-                while True:
-                    d = fp.read(4 * 1024 * 1024)
-                    if not d:
-                        break
-                    h.update(d)
-            if h.hexdigest() == checksum:
-                break
-            print('sha1 does not match: %s instead of %s' % (h.hexdigest(), checksum))
-            os.unlink(dst)
-        assert os.path.exists(dst), 'could not successfully retrieve %s' % url
+    def _download(self, url, checksum):
+        from utils.download import DOWNLOADS_DIR, download
+        if not self.dry_run:
+            return download(url, checksum)
+        return os.path.join(DOWNLOADS_DIR, os.path.basename(url))
 
     def install(self, name, src, checksum, handler_format=None, handler_args=(), path_dir=None):
         info('installing %s', name)
@@ -455,8 +431,7 @@ class Helper(object):
         else:
             distdir = self._env.get_distdir()
             dst = os.path.join(distdir, os.path.basename(src))
-            if not self.dry_run:
-                self._download(src, checksum, dst)
+            dst = self._download(src, checksum)
             if handler_format is None:
                 root, handler_format = os.path.splitext(dst)
         handler = self._install_handlers.get(handler_format)
@@ -490,7 +465,10 @@ class Helper(object):
             self.install(name, src, checksum, handler_format=handler_format, handler_args=handler_args, path_dir=path_dir)
         info('install requirements')
         self._env.run(('python.exe', 'setup.py', 'write_requirements'))
-        self._pip_install('-r', 'requirements.txt', '-c', 'requirements_constraints.txt')
+        self._pip_install('wheel')
+        self._env.run(('python.exe', '-m', 'utils.install_wheels',
+                       '-r', 'requirements.txt',
+                       '-c', 'requirements_constraints.txt'))
 
     def cmd_run(self, executable, *args):
         '''run command in environment
@@ -500,13 +478,24 @@ class Helper(object):
         '''
         self._env.run((executable,) + tuple(args), redirection='never')
 
-    def cmd_dist(self):
+    def cmd_dist(self, trim=False, zipdir=False):
         '''create windows distribution
+
+        trim: trim the result to reduce size
+        zipdir: zip the resulting directory
         '''
         self._rmtree('build')
         self._rmtree('dist')
         info('creating distribution')
-        self._env.run(('python.exe', 'setup.py', 'bdist_win'))
+        cmd = ['python.exe', 'setup.py']
+        if self.verbose:
+            cmd.append('-v')
+        cmd.append('bdist_win')
+        if trim:
+            cmd.append('-t')
+        if zipdir:
+            cmd.append('-z')
+        self._env.run(cmd)
 
     def main(self, args):
         opts = self._parser.parse_args(args)
@@ -530,9 +519,9 @@ class Helper(object):
             cmd(*args)
         except CommandExecutionException as e:
             if e.stdout:
-                print(e.stdout, file=sys.stdout)
+                print(e.stdout.decode(), file=sys.stdout)
             if e.stderr:
-                print(e.stderr, file=sys.stderr)
+                print(e.stderr.decode(), file=sys.stderr)
             error('execution failed, returned %u: %s',
                   e.exitcode, ' '.join(e.args))
             return e.exitcode
