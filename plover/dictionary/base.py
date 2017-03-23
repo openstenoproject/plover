@@ -17,7 +17,7 @@ from six import reraise
 
 from plover.exception import DictionaryLoaderException
 from plover.registry import registry
-from plover.resource import ASSET_SCHEME
+from plover.resource import ASSET_SCHEME, resource_filename
 
 
 def _get_dictionary_module(filename):
@@ -31,7 +31,7 @@ def _get_dictionary_module(filename):
                                   registry.list_plugins('dictionary'))))
     return dict_module
 
-def create_dictionary(filename):
+def create_dictionary(resource):
     '''Create a new dictionary.
 
     The format is inferred from the extension.
@@ -39,7 +39,8 @@ def create_dictionary(filename):
     Note: the file is not created! The resulting dictionary save
     method must be called to finalize the creation on disk.
     '''
-    assert not filename.startswith(ASSET_SCHEME)
+    assert not resource.startswith(ASSET_SCHEME)
+    filename = resource_filename(resource)
     dictionary_module = _get_dictionary_module(filename)
     if not hasattr(dictionary_module, 'create_dictionary'):
         raise DictionaryLoaderException('%s does not support creation' % dictionary_module.__name__)
@@ -48,23 +49,24 @@ def create_dictionary(filename):
     except Exception as e:
         ne = DictionaryLoaderException('creating %s failed: %s' % (filename, str(e)))
         reraise(type(ne), ne, sys.exc_info()[2])
-    d.set_path(filename)
+    d.set_path(resource)
     d.save = ThreadedSaver(d, filename, dictionary_module.save_dictionary)
     return d
 
-def load_dictionary(filename):
+def load_dictionary(resource):
     '''Load a dictionary from a file.
 
     The format is inferred from the extension.
     '''
+    filename = resource_filename(resource)
     dictionary_module = _get_dictionary_module(filename)
     try:
         d = dictionary_module.load_dictionary(filename)
     except Exception as e:
         ne = DictionaryLoaderException('loading \'%s\' failed: %s' % (filename, str(e)))
         reraise(type(ne), ne, sys.exc_info()[2])
-    d.set_path(filename)
-    if not filename.startswith(ASSET_SCHEME) and \
+    d.set_path(resource)
+    if not resource.startswith(ASSET_SCHEME) and \
        hasattr(dictionary_module, 'save_dictionary'):
         d.save = ThreadedSaver(d, filename, dictionary_module.save_dictionary)
     return d

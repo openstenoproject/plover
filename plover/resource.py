@@ -1,5 +1,4 @@
 
-import io
 import os
 
 import pkg_resources
@@ -19,8 +18,3 @@ def resource_filename(resource_name):
     if resource_name.startswith(ASSET_SCHEME):
         return pkg_resources.resource_filename(*_asset_split(resource_name))
     return resource_name
-
-def resource_stream(resource_name, encoding=None):
-    filename = resource_filename(resource_name)
-    mode = 'rb' if encoding is None else 'r'
-    return io.open(filename, mode, encoding=encoding)
