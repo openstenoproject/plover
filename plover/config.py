@@ -49,16 +49,10 @@ DEFAULT_START_MINIMIZED = False
 STROKE_DISPLAY_SECTION = 'Stroke Display'
 STROKE_DISPLAY_SHOW_OPTION = 'show'
 DEFAULT_STROKE_DISPLAY_SHOW = False
-STROKE_DISPLAY_ON_TOP_OPTION = 'on_top'
-DEFAULT_STROKE_DISPLAY_ON_TOP = True
-STROKE_DISPLAY_STYLE_OPTION = 'style'
-DEFAULT_STROKE_DISPLAY_STYLE = 'Paper'
 
 SUGGESTIONS_DISPLAY_SECTION = 'Suggestions Display'
 SUGGESTIONS_DISPLAY_SHOW_OPTION = 'show'
 DEFAULT_SUGGESTIONS_DISPLAY_SHOW = False
-SUGGESTIONS_DISPLAY_ON_TOP_OPTION = 'on_top'
-DEFAULT_SUGGESTIONS_DISPLAY_ON_TOP = True
 
 OUTPUT_CONFIG_SECTION = 'Output Configuration'
 OUTPUT_CONFIG_SPACE_PLACEMENT_OPTION = 'space_placement'
@@ -326,27 +320,6 @@ class Config(object):
     def set_start_attached(self, b):
         self._set(OUTPUT_CONFIG_SECTION, OUTPUT_CONFIG_START_ATTACHED, b)
 
-    def set_stroke_display_on_top(self, b):
-        self._set(STROKE_DISPLAY_SECTION, STROKE_DISPLAY_ON_TOP_OPTION, b)
-
-    def get_stroke_display_on_top(self):
-        return self._get_bool(STROKE_DISPLAY_SECTION,
-            STROKE_DISPLAY_ON_TOP_OPTION, DEFAULT_STROKE_DISPLAY_ON_TOP)
-
-    def set_suggestions_display_on_top(self, b):
-        self._set(SUGGESTIONS_DISPLAY_SECTION, SUGGESTIONS_DISPLAY_ON_TOP_OPTION, b)
-
-    def get_suggestions_display_on_top(self):
-        return self._get_bool(SUGGESTIONS_DISPLAY_SECTION,
-            SUGGESTIONS_DISPLAY_ON_TOP_OPTION, DEFAULT_SUGGESTIONS_DISPLAY_ON_TOP)
-
-    def set_stroke_display_style(self, s):
-        self._set(STROKE_DISPLAY_SECTION, STROKE_DISPLAY_STYLE_OPTION, s)
-
-    def get_stroke_display_style(self):
-        return self._get(STROKE_DISPLAY_SECTION, STROKE_DISPLAY_STYLE_OPTION,
-                         DEFAULT_STROKE_DISPLAY_STYLE)
-
     def set_translation_frame_opacity(self, opacity):
         raise_if_invalid_opacity(opacity)
         self._set(TRANSLATION_FRAME_SECTION,
@@ -519,9 +492,6 @@ class Config(object):
 
     show_stroke_display
     show_suggestions_display
-    stroke_display_on_top
-    stroke_display_style
-    suggestions_display_on_top
     translation_frame_opacity
 
     system_name

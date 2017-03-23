@@ -57,25 +57,28 @@ class PaperTape(Tool, Ui_PaperTape):
         self.finished.connect(self.save_state)
 
     def _restore_state(self, settings):
-        style = settings.value('style')
+        style = settings.value('style', None, int)
         if style is not None:
-            self.styles.setCurrentText(self.STYLES[int(style)])
+            self.styles.setCurrentText(self.STYLES[style])
+            self.on_style_changed(self.STYLES[style])
         font_string = settings.value('font')
         if font_string is not None:
             font = QFont()
             if font.fromString(font_string):
                 self.header.setFont(font)
                 self.tape.setFont(font)
+        ontop = settings.value('ontop', None, bool)
+        if ontop is not None:
+            self.action_ToggleOnTop.setChecked(ontop)
+            self.on_toggle_ontop(ontop)
 
     def _save_state(self, settings):
         settings.setValue('style', self.STYLES.index(self._style))
         settings.setValue('font', self.header.font().toString())
+        ontop = bool(self.windowFlags() & Qt.WindowStaysOnTopHint)
+        settings.setValue('ontop', ontop)
 
     def on_config_changed(self, config):
-        if 'stroke_display_on_top' in config:
-            ontop = config['stroke_display_on_top']
-            self.action_ToggleOnTop.setChecked(ontop)
-            self.on_toggle_ontop(ontop)
         if 'system_name' in config:
             self._strokes = []
             self._all_keys = ''.join(key.strip('-') for key in system.KEYS)

@@ -86,6 +86,10 @@ class SuggestionsDialog(Tool, Ui_SuggestionsDialog):
             if not font.fromString(font_string):
                 continue
             self._set_font(name, font)
+        ontop = settings.value('ontop', None, bool)
+        if ontop is not None:
+            self.action_ToggleOnTop.setChecked(ontop)
+            self.on_toggle_ontop(ontop)
 
     def _save_state(self, settings):
         for name in (
@@ -95,6 +99,8 @@ class SuggestionsDialog(Tool, Ui_SuggestionsDialog):
             font = self._get_font(name)
             font_string = font.toString()
             settings.setValue(name, font_string)
+        ontop = bool(self.windowFlags() & Qt.WindowStaysOnTopHint)
+        settings.setValue('ontop', ontop)
 
     def _show_suggestions(self, suggestion_list):
         self.suggestions.append(suggestion_list)
