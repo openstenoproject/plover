@@ -107,7 +107,6 @@ DEADKEY_SYMBOLS = {
     'dead_tilde': '~',
 }
 
-
 def down(seq):
     return [(x, True) for x in seq]
 
@@ -131,6 +130,8 @@ MODIFIER_KEYS_TO_MASKS = {
     55: kCGEventFlagMaskCommand,
     63: kCGEventFlagMaskSecondaryFn,
 }
+
+OUTPUT_SOURCE = CGEventSourceCreate(kCGEventSourceStateHIDSystemState)
 
 # For the purposes of this class, we're only watching these keys.
 # We could calculate the keys, but our default layout would be misleading:
@@ -308,9 +309,9 @@ class KeyboardEmulation(object):
     def send_backspaces(number_of_backspaces):
         for _ in range(number_of_backspaces):
             backspace_down = CGEventCreateKeyboardEvent(
-                None, BACK_SPACE, True)
+                OUTPUT_SOURCE, BACK_SPACE, True)
             backspace_up = CGEventCreateKeyboardEvent(
-                None, BACK_SPACE, False)
+                OUTPUT_SOURCE, BACK_SPACE, False)
             CGEventPost(kCGSessionEventTap, backspace_down)
             CGEventPost(kCGSessionEventTap, backspace_up)
 
@@ -378,10 +379,10 @@ class KeyboardEmulation(object):
 
     @staticmethod
     def _send_string_press(c):
-        event = CGEventCreateKeyboardEvent(None, 0, True)
+        event = CGEventCreateKeyboardEvent(OUTPUT_SOURCE, 0, True)
         KeyboardEmulation._set_event_string(event, c)
         CGEventPost(kCGSessionEventTap, event)
-        event = CGEventCreateKeyboardEvent(None, 0, False)
+        event = CGEventCreateKeyboardEvent(OUTPUT_SOURCE, 0, False)
         KeyboardEmulation._set_event_string(event, c)
         CGEventPost(kCGSessionEventTap, event)
 
@@ -481,7 +482,7 @@ class KeyboardEmulation(object):
                     mods_flags &= ~MODIFIER_KEYS_TO_MASKS[keycode]
 
                 event = CGEventCreateKeyboardEvent(
-                    None, keycode, key_down)
+                    OUTPUT_SOURCE, keycode, key_down)
 
                 if key_down and keycode not in MODIFIER_KEYS_TO_MASKS:
                     event_flags = CGEventGetFlags(event)
