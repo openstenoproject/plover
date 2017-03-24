@@ -1,12 +1,15 @@
 
+import os
 import logging
 
 import dbus
 
 from plover import log, __name__ as __software_name__
+from plover.oslayer.config import ASSETS_DIR
 
 
 APPNAME = __software_name__.capitalize()
+APPICON = os.path.join(ASSETS_DIR, 'plover.png')
 SERVICE = 'org.freedesktop.Notifications'
 INTERFACE = '/org/freedesktop/Notifications'
 
@@ -36,7 +39,7 @@ class DbusNotificationHandler(logging.Handler):
         else:
             timeout = 0
             urgency = 2
-        self._notify.Notify(APPNAME, 0, '',       # replaces_id, app_icon
+        self._notify.Notify(APPNAME, 0, APPICON,  # app_name, replaces_id, app_icon
                             APPNAME, message, '', # actions
                             { 'urgency': dbus.Byte(urgency) },
                             timeout * 1000)
