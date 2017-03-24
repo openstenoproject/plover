@@ -127,7 +127,7 @@ MODIFIER_KEYS_TO_MASKS = {
     62: kCGEventFlagMaskControl | kCGEventFlagMaskSecondaryFn,
     56: kCGEventFlagMaskShift,
     60: kCGEventFlagMaskShift,
-    55: kCGEventFlagMaskCommand,
+    55: kCGEventFlagMaskCommand | kCGEventFlagMaskSecondaryFn,
     63: kCGEventFlagMaskSecondaryFn,
 }
 
