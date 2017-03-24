@@ -123,8 +123,8 @@ MODIFIER_KEYS_TO_MASKS = {
     58: kCGEventFlagMaskAlternate,
     61: kCGEventFlagMaskAlternate,
     # As of Sierra we *require* secondary fn to get control to work properly.
-    59: kCGEventFlagMaskControl | kCGEventFlagMaskSecondaryFn,
-    62: kCGEventFlagMaskControl | kCGEventFlagMaskSecondaryFn,
+    59: kCGEventFlagMaskControl,
+    62: kCGEventFlagMaskControl,
     56: kCGEventFlagMaskShift,
     60: kCGEventFlagMaskShift,
     55: kCGEventFlagMaskCommand,
@@ -160,6 +160,11 @@ KEYCODE_TO_KEY = {
     36: "Return", 124: "Right", 48: "Tab", 126: "Up",
 }
 
+def keycode_needs_fn_mask(keycode):
+    return (
+        keycode >= KEYNAME_TO_KEYCODE['escape']
+        and keycode not in MODIFIER_KEYS_TO_MASKS
+    )
 
 class KeyboardCapture(threading.Thread):
     """Implementation of KeyboardCapture for OSX."""
@@ -481,6 +486,9 @@ class KeyboardEmulation(object):
                 if not key_down and keycode in MODIFIER_KEYS_TO_MASKS:
                     mods_flags &= ~MODIFIER_KEYS_TO_MASKS[keycode]
 
+                if key_down and keycode_needs_fn_mask(keycode):
+                    mods_flags |= kCGEventFlagMaskSecondaryFn
+
                 event = CGEventCreateKeyboardEvent(
                     OUTPUT_SOURCE, keycode, key_down)
 
@@ -494,7 +502,11 @@ class KeyboardEmulation(object):
 
                     # Half millisecond pause after key down.
                     sleep(0.0005)
+
                 if key_down and keycode in MODIFIER_KEYS_TO_MASKS:
                     mods_flags |= MODIFIER_KEYS_TO_MASKS[keycode]
+
+                if not key_down and keycode_needs_fn_mask(keycode):
+                    mods_flags &= ~kCGEventFlagMaskSecondaryFn
 
             CGEventPost(kCGSessionEventTap, event)
