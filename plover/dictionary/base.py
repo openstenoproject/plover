@@ -12,10 +12,6 @@ import shutil
 import sys
 import threading
 
-# Python 2/3 compatibility.
-from six import reraise
-
-from plover.exception import DictionaryLoaderException
 from plover.registry import registry
 from plover.resource import ASSET_SCHEME, resource_filename
 
@@ -25,7 +21,7 @@ def _get_dictionary_module(filename):
     try:
         dict_module = registry.get_plugin('dictionary', extension).obj
     except KeyError:
-        raise DictionaryLoaderException(
+        raise ValueError(
             'Unsupported extension: %s. Supported extensions: %s' %
             (extension, ', '.join(plugin.name for plugin in
                                   registry.list_plugins('dictionary'))))
@@ -43,12 +39,8 @@ def create_dictionary(resource):
     filename = resource_filename(resource)
     dictionary_module = _get_dictionary_module(filename)
     if not hasattr(dictionary_module, 'create_dictionary'):
-        raise DictionaryLoaderException('%s does not support creation' % dictionary_module.__name__)
-    try:
-        d = dictionary_module.create_dictionary()
-    except Exception as e:
-        ne = DictionaryLoaderException('creating %s failed: %s' % (filename, str(e)))
-        reraise(type(ne), ne, sys.exc_info()[2])
+        raise ValueError('%s does not support creation' % dictionary_module.__name__)
+    d = dictionary_module.create_dictionary()
     d.set_path(resource)
     d.save = ThreadedSaver(d, filename, dictionary_module.save_dictionary)
     return d
@@ -60,11 +52,7 @@ def load_dictionary(resource):
     '''
     filename = resource_filename(resource)
     dictionary_module = _get_dictionary_module(filename)
-    try:
-        d = dictionary_module.load_dictionary(filename)
-    except Exception as e:
-        ne = DictionaryLoaderException('loading \'%s\' failed: %s' % (filename, str(e)))
-        reraise(type(ne), ne, sys.exc_info()[2])
+    d = dictionary_module.load_dictionary(filename)
     d.set_path(resource)
     if not resource.startswith(ASSET_SCHEME) and \
        hasattr(dictionary_module, 'save_dictionary'):

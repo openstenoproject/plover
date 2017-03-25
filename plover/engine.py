@@ -10,8 +10,9 @@ from six.moves.queue import Queue
 
 from plover import log, system
 from plover.dictionary.loading_manager import DictionaryLoadingManager
-from plover.exception import InvalidConfigurationError
+from plover.exception import DictionaryLoaderException, InvalidConfigurationError
 from plover.formatting import Formatter
+from plover.misc import shorten_path
 from plover.registry import registry
 from plover.resource import ASSET_SCHEME, resource_filename
 from plover.steno import Stroke
@@ -204,7 +205,14 @@ class StenoEngine(object):
         # Update dictionaries.
         dictionaries_files = config['dictionary_file_names']
         copy_default_dictionaries(dictionaries_files)
-        dictionaries = self._dictionaries_manager.load(dictionaries_files)
+        dictionaries = []
+        for result in self._dictionaries_manager.load(dictionaries_files):
+            if isinstance(result, DictionaryLoaderException):
+                log.error('loading dictionary `%s` failed: %s',
+                          shorten_path(result.filename),
+                          str(result.exception))
+            else:
+                dictionaries.append(result)
         self._dictionaries.set_dicts(dictionaries)
         # Update running extensions.
         enabled_extensions = config['enabled_extensions']

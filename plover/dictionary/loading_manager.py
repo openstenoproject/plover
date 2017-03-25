@@ -30,13 +30,10 @@ class DictionaryLoadingManager(object):
 
     def load(self, filenames):
         self.dictionaries = {f: self.start_loading(f) for f in filenames}
-        dicts = []
-        for f in filenames:
-            d, exc_info = self.dictionaries[f].get()
-            if exc_info is not None:
-                reraise(*exc_info)
-            dicts.append(d)
-        return dicts
+        return [
+            self.dictionaries[f].get()
+            for f in filenames
+        ]
 
 
 class DictionaryLoadingOperation(object):
@@ -44,16 +41,16 @@ class DictionaryLoadingOperation(object):
     def __init__(self, filename):
         self.loading_thread = threading.Thread(target=self.load)
         self.filename = filename
-        self.exc_info = None
-        self.dictionary = None
+        self.result = None
         self.loading_thread.start()
 
     def load(self):
         try:
-            self.dictionary = load_dictionary(self.filename)
-        except DictionaryLoaderException:
-            self.exc_info = sys.exc_info()
+            self.result = load_dictionary(self.filename)
+        except Exception as e:
+            log.debug('loading dictionary %s failed', self.filename, exc_info=True)
+            self.result = DictionaryLoaderException(self.filename, e)
 
     def get(self):
         self.loading_thread.join()
-        return self.dictionary, self.exc_info
+        return self.result

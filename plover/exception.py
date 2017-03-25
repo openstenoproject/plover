@@ -14,4 +14,14 @@ class InvalidConfigurationError(Exception):
 
 class DictionaryLoaderException(Exception):
     """Dictionary file could not be loaded."""
-    pass
+
+    def __init__(self, filename, exception):
+        super(DictionaryLoaderException, self).__init__(filename, exception)
+        self.filename = filename
+        self.exception = exception
+
+    def get_path(self):
+        return self.filename
+
+    def __str__(self):
+        return 'loading dictionary `%s` failed: %s' % (self.filename, self.exception)
