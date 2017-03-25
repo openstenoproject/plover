@@ -122,11 +122,14 @@ class BinaryDistWin(Command):
          'trim the resulting distribution to reduce size'),
         ('zipdir', 'z',
          'create a zip of the resulting directory'),
+        ('installer', 'i',
+         'create an executable installer for the resulting distribution'),
     ]
-    boolean_options = ['trim', 'zipdir']
+    boolean_options = ['installer', 'trim', 'zipdir']
     extra_args = []
 
     def initialize_options(self):
+        self.installer = False
         self.trim = False
         self.zipdir = False
 
@@ -154,7 +157,7 @@ class BinaryDistWin(Command):
         # is used (including indirectly by setuptools `build_py` command).
         py_embedded = download('https://www.python.org/ftp/python/3.5.2/python-3.5.2-embed-win32.zip',
                                'a62675cd88736688bb87999e8b86d13ef2656312')
-        dist_dir = os.path.join(wheel_cmd.dist_dir, 'plover-%s-py3' % __version__)
+        dist_dir = os.path.join(wheel_cmd.dist_dir, 'plover-%s-py3-win32' % __version__)
         data_dir = os.path.join(dist_dir, 'data')
         stdlib = os.path.join(data_dir, 'python35.zip')
         if os.path.exists(dist_dir):
@@ -183,11 +186,11 @@ class BinaryDistWin(Command):
             from utils.trim import trim
             trim(data_dir, 'windows/dist_blacklist.txt', verbose=self.verbose)
         # Add miscellaneous files: icon, license, ...
-        for src in (
-            'LICENSE.txt',
-            'plover/assets/plover.ico',
+        for src, target_dir in (
+            ('LICENSE.txt'             , '.'   ),
+            ('plover/assets/plover.ico', 'data')
         ):
-            dst = os.path.join(dist_dir, os.path.basename(src))
+            dst = os.path.join(dist_dir, target_dir, os.path.basename(src))
             shutil.copyfile(src, dst)
         # Create launchers.
         for entrypoint, gui in (
@@ -216,6 +219,19 @@ class BinaryDistWin(Command):
             if self.verbose:
                 log.info('zipping %s', dist_dir)
             zipdir(dist_dir)
+        # Create an installer.
+        if self.installer:
+            installer_exe = '%s.setup.exe' % dist_dir
+            # Compute install size for "Add/Remove Programs" entry.
+            install_size = sum(os.path.getsize(os.path.join(dirpath, f))
+                               for dirpath, dirnames, filenames
+                               in os.walk(dist_dir) for f in filenames)
+            run('makensis.exe', '-NOCD',
+                '-Dsrcdir=' + dist_dir,
+                '-Dversion=' + __version__,
+                '-Dinstall_size=' + str(install_size // 1024),
+                'windows/installer.nsi',
+                '-XOutFile ' + installer_exe)
 
 
 class Launch(Command):
