@@ -555,8 +555,8 @@ class WineHelper(Helper):
 class Win32Helper(Helper):
 
     DEPENDENCIES = (
-        # Install wget first, since we'll be using it for fetching some of the other dependencies.
-        ('wget', 'pip:wget', None, None, (), None),
+        # Install requests first, since we'll be using it for fetching some of the other dependencies.
+        ('requests', 'pip:requests', None, None, (), None),
     ) + Helper.DEPENDENCIES
 
     def __init__(self):
