@@ -42,6 +42,8 @@ install:
   # done from inside the powershell script as it would require to restart
   # the parent CMD process).
   - "SET PATH=%PYTHON%;%PYTHON%\\Scripts;%PATH%"
+  # Add Nullsoft Scriptable Install System to the PATH.
+  - "SET PATH=C:\\Program Files (x86)\\NSIS;%PATH%"
 
   - "python --version"
 
@@ -64,9 +66,12 @@ test_script:
   - "python setup.py test"
 
 after_test:
-  - ps: "python windows\\helper.py dist -t -z"
+  - ps: "python windows\\helper.py dist -t -z -i"
 
 artifacts:
+
+  - path: dist\*.exe
+    name: installer
 
   - path: dist\*.zip
     name: all-in-one zip
