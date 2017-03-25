@@ -4,6 +4,7 @@
 """Tests for loading_manager.py."""
 
 from collections import defaultdict
+import os
 import tempfile
 import unittest
 
@@ -20,18 +21,27 @@ class DictionaryLoadingManagerTestCase(unittest.TestCase):
 
     def test_loading(self):
 
-        class FakeDictionary(object):
+        class FakeDictionaryContents(object):
+
+            def __init__(self, contents, timestamp):
+                self.contents = contents
+                self.timestamp = timestamp
+
+            def __eq__(self, other):
+                if isinstance(other, FakeDictionaryContents):
+                    return self.contents == other.contents
+                return self.contents == other
+
+        class FakeDictionaryInfo(object):
 
             def __init__(self, name, contents):
                 self.name = name
                 self.contents = contents
                 self.tf = tempfile.NamedTemporaryFile()
-
-            def __hash__(self):
-                return hash(self.name)
+                self.timestamp = os.path.getmtime(self.tf.name)
 
             def __repr__(self):
-                return 'FakeDictionary(%r, %r)' % (self.name, self.contents)
+                return 'FakeDictionaryInfo(%r, %r)' % (self.name, self.contents)
 
         class MockLoader(object):
             def __init__(self, files):
@@ -40,10 +50,10 @@ class DictionaryLoadingManagerTestCase(unittest.TestCase):
 
             def __call__(self, filename):
                 self.load_counts[filename] += 1
-                contents = self.files[filename].contents
-                if isinstance(contents, Exception):
-                    raise contents
-                return contents
+                d = self.files[filename]
+                if isinstance(d.contents, Exception):
+                    raise d.contents
+                return FakeDictionaryContents(d.contents, d.timestamp)
 
         dictionaries = {}
         for i in range(8):
@@ -51,7 +61,7 @@ class DictionaryLoadingManagerTestCase(unittest.TestCase):
             contents = c * 5
             if i >= 4:
                 contents = Exception(contents)
-            d = FakeDictionary(c, contents)
+            d = FakeDictionaryInfo(c, contents)
             assert d.tf.name not in dictionaries
             dictionaries[d.tf.name] = d
             assert c not in dictionaries
@@ -83,3 +93,22 @@ class DictionaryLoadingManagerTestCase(unittest.TestCase):
             self.assertIsInstance(results[3].exception, Exception)
             # Only loaded the files once.
             self.assertTrue(all(x == 1 for x in loader.load_counts.values()))
+            # No reload if timestamp is unchanged, or more recent.
+            # (use case: dictionary edited with Plover and saved back)
+            dictionaries['c'].contents = 'CCCCC'
+            dictionaries['c'].timestamp += 1
+            results = manager.load([df('c')])
+            self.assertEqual(results, ['ccccc'])
+            self.assertEqual(loader.load_counts[df('c')], 1)
+            # Check files are reloaded when modified.
+            # Note: do not try to "touch" the file using os.utime
+            # as it's not reliable without sleeping to account
+            # for operating system resolution.
+            mtime = os.path.getmtime(df('c'))
+            def getmtime(path):
+                assert path == df('c')
+                return mtime + 1
+            with patch('os.path.getmtime', getmtime):
+                results = manager.load([df('c')])
+            self.assertEqual(results, ['CCCCC'])
+            self.assertEqual(loader.load_counts[df('c')], 2)

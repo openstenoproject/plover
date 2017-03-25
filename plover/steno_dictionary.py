@@ -17,6 +17,7 @@ class StenoDictionary(collections.MutableMapping):
 
     Attributes:
     longest_key -- A read only property holding the length of the longest key.
+    timestamp -- File last modification time, used to detect external changes.
     save -- If set, is a function that will save this dictionary.
 
     """
@@ -28,6 +29,7 @@ class StenoDictionary(collections.MutableMapping):
         self.casereverse = collections.defaultdict(set)
         self.filters = []
         self.update(*args, **kw)
+        self.timestamp = 0
         self.save = None
         self._path = ''
 

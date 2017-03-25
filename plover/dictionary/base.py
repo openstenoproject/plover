@@ -13,7 +13,7 @@ import sys
 import threading
 
 from plover.registry import registry
-from plover.resource import ASSET_SCHEME, resource_filename
+from plover.resource import ASSET_SCHEME, resource_filename, resource_timestamp
 
 
 def _get_dictionary_module(filename):
@@ -51,22 +51,28 @@ def load_dictionary(resource):
     The format is inferred from the extension.
     '''
     filename = resource_filename(resource)
+    timestamp = resource_timestamp(filename)
     dictionary_module = _get_dictionary_module(filename)
     d = dictionary_module.load_dictionary(filename)
     d.set_path(resource)
+    d.timestamp = timestamp
     if not resource.startswith(ASSET_SCHEME) and \
        hasattr(dictionary_module, 'save_dictionary'):
         d.save = ThreadedSaver(d, filename, dictionary_module.save_dictionary)
     return d
 
-def save_dictionary(d, filename, saver):
+def save_dictionary(d, resource, saver):
+    assert not resource.startswith(ASSET_SCHEME)
+    filename = resource_filename(resource)
     # Write the new file to a temp location.
     tmp = filename + '.tmp'
     with open(tmp, 'wb') as fp:
         saver(d, fp)
-
+    timestamp = resource_timestamp(tmp)
     # Then move the new file to the final location.
     shutil.move(tmp, filename)
+    # And update our timestamp.
+    d.timestamp = timestamp
     
 class ThreadedSaver(object):
     """A callable that saves a dictionary in the background.
