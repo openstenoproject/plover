@@ -499,7 +499,7 @@ install_requires = [
 extras_require = {
     ':"win32" in sys_platform': [
         'PyQt5',
-        'plyer', # For notifications.
+        'plyer==1.2.4', # For notifications.
     ],
     ':"linux" in sys_platform': [
         # Note: do not require PyQt5 on Linux, as official distribution
