@@ -162,7 +162,7 @@ class WineEnvironment(Environment):
         if self.dry_run:
             return
         path = self.run(('wine', 'cmd.exe', '/c', 'echo', '%PATH%'), redirection='always')
-        path = path.strip().replace("\\", "\\\\")
+        path = path.decode().strip().replace("\\", "\\\\")
         directory = directory.replace("\\", "\\\\")
         regfile = r'%s\path.reg' % TEMP_DIR
         real_regfile = self.get_realpath(regfile)
@@ -231,7 +231,7 @@ class Win32Environment(Environment):
         if self.verbose:
             print('adding "%s" to PATH' % directory)
         if self._path is None:
-            self._path = self.run(('cmd.exe', '/c', 'echo', '%PATH%'), redirection='always').strip()
+            self._path = self.run(('cmd.exe', '/c', 'echo', '%PATH%'), redirection='always').strip().decode()
         self._path = directory + ';' + self._path
         batch = r'%s\setpath.bat' % TEMP_DIR
         with open(batch, 'w') as fp:
