@@ -91,6 +91,7 @@ class StenoEngine(object):
         self._translator.add_listener(self._formatter.format)
         self._dictionaries = self._translator.get_dictionary()
         self._dictionaries_manager = DictionaryLoadingManager()
+        self._loaded_dictionaries = {}
         self._running_state = self._translator.get_state()
         self._suggestions = Suggestions(self._dictionaries)
         self._keyboard_emulation = keyboard_emulation
@@ -205,14 +206,21 @@ class StenoEngine(object):
         # Update dictionaries.
         dictionaries_files = config['dictionary_file_names']
         copy_default_dictionaries(dictionaries_files)
+        loaded_dictionaries = {
+            result.get_path(): result
+            for result in self._dictionaries_manager.load(dictionaries_files)
+        }
         dictionaries = []
-        for result in self._dictionaries_manager.load(dictionaries_files):
+        for result in loaded_dictionaries.values():
             if isinstance(result, DictionaryLoaderException):
-                log.error('loading dictionary `%s` failed: %s',
-                          shorten_path(result.filename),
-                          str(result.exception))
+                filename = result.get_path()
+                # Only show an error if it's new.
+                if result != self._loaded_dictionaries.get(filename):
+                    log.error('loading dictionary `%s` failed: %s',
+                              shorten_path(filename), str(result.exception))
             else:
                 dictionaries.append(result)
+        self._loaded_dictionaries = loaded_dictionaries
         self._dictionaries.set_dicts(dictionaries)
         # Update running extensions.
         enabled_extensions = config['enabled_extensions']
