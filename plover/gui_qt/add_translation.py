@@ -240,7 +240,7 @@ class AddTranslation(Tool, Ui_AddTranslation):
                 index = -index - 1
             dictionary = self._dictionaries[index]
             self._engine.add_translation(strokes, translation,
-                                         dictionary=dictionary.get_path())
+                                         dictionary_path=dictionary.get_path())
         super(AddTranslation, self).accept()
 
     def reject(self):
