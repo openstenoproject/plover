@@ -162,7 +162,8 @@ class AddTranslation(Tool, Ui_AddTranslation):
             dictionary_path = self.dictionary.currentText()
             self.dictionary.clear()
             self.dictionary.addItems(shorten_path(d.get_path())
-                                     for d in self._engine.dictionaries.dicts)
+                                     for d in self._engine.dictionaries.dicts
+                                     if not d.readonly)
             self.select_dictionary(dictionary_path)
         if 'translation_frame_opacity' in config_update:
             opacity = config_update.get('translation_frame_opacity')
