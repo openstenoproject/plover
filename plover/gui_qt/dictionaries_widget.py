@@ -38,6 +38,7 @@ class DictionariesWidget(QWidget, Ui_DictionariesWidget):
         self._states = []
         self._updating = False
         self._dictionaries = []
+        self._reverse_order = False
         for action in (
             self.action_Undo,
             self.action_EditDictionaries,
@@ -68,17 +69,30 @@ class DictionariesWidget(QWidget, Ui_DictionariesWidget):
         self.table.setFocus()
 
     def on_config_changed(self, config_update):
+        update_kwargs = {}
         if 'dictionaries' in config_update:
-            if self._update_dictionaries(config_update['dictionaries'],
-                                         record=False, save=False):
-                self.action_Undo.setEnabled(False)
-                self._states = []
+            update_kwargs.update(
+                dictionaries=config_update['dictionaries'],
+                record=False, save=False, reset_undo=True
+            )
+        if 'classic_dictionaries_display_order' in config_update:
+            update_kwargs.update(
+                reverse_order=config_update['classic_dictionaries_display_order'],
+                record=False, save=False,
+            )
+        if update_kwargs:
+            self._update_dictionaries(**update_kwargs)
 
-    def _update_dictionaries(self, dictionaries,
-                             record=True, save=True,
+    def _update_dictionaries(self, dictionaries=None, reverse_order=None,
+                             record=True, save=True, reset_undo=False,
                              keep_selection=True):
-        if dictionaries == self._dictionaries:
-            return False
+        if reverse_order is None:
+            reverse_order = self._reverse_order
+        if dictionaries is None:
+            dictionaries = self._dictionaries
+        if dictionaries == self._dictionaries and \
+           reverse_order == self._reverse_order:
+            return
         if save:
             self._engine.config = { 'dictionaries': dictionaries }
         if record:
@@ -90,13 +104,20 @@ class DictionariesWidget(QWidget, Ui_DictionariesWidget):
                 for row in self._get_selection()
             ]
         self._dictionaries = dictionaries
+        self._reverse_order = reverse_order
         self._updating = True
         self.table.setRowCount(len(dictionaries))
-        for row, dictionary in enumerate(dictionaries):
+        for n, dictionary in enumerate(dictionaries):
             item = QTableWidgetItem(dictionary.short_path)
             item.setFlags((item.flags() | Qt.ItemIsUserCheckable) & ~Qt.ItemIsEditable)
             item.setCheckState(Qt.Checked if dictionary.enabled else Qt.Unchecked)
+            row = n
+            if self._reverse_order:
+                row = len(dictionaries) - row - 1
             self.table.setItem(row, 0, item)
+            item = QTableWidgetItem(str(n + 1))
+            item.setTextAlignment(Qt.AlignRight | Qt.AlignVCenter)
+            self.table.setVerticalHeaderItem(row, item)
         if keep_selection:
             row_list = []
             for path in selected:
@@ -105,8 +126,10 @@ class DictionariesWidget(QWidget, Ui_DictionariesWidget):
                         row_list.append(n)
                         break
             self._set_selection(row_list)
+        if reset_undo:
+            self.action_Undo.setEnabled(False)
+            self._states = []
         self._updating = False
-        return True
 
     @staticmethod
     def _supported_drop_actions():
@@ -144,9 +167,14 @@ class DictionariesWidget(QWidget, Ui_DictionariesWidget):
         dictionaries = self._dictionaries[:]
         dest_item = self.table.itemAt(event.pos())
         if dest_item is None:
-            dest_index = self.table.rowCount()
+            if self._reverse_order:
+                dest_index = 0
+            else:
+                dest_index = len(self._dictionaries)
         else:
             dest_index = dest_item.row()
+            if self._reverse_order:
+                dest_index = len(self._dictionaries) - dest_index - 1
         if event.source() == self.table:
             sources = [
                 dictionaries[row]
@@ -175,6 +203,9 @@ class DictionariesWidget(QWidget, Ui_DictionariesWidget):
 
     def _get_selection(self):
         row_list = [item.row() for item in self.table.selectedItems()]
+        if self._reverse_order:
+            row_count = len(self._dictionaries)
+            row_list = [row_count - row - 1 for row in row_list]
         row_list.sort()
         return row_list
 
@@ -182,6 +213,8 @@ class DictionariesWidget(QWidget, Ui_DictionariesWidget):
         selection = QItemSelection()
         model = self.table.model()
         for row in row_list:
+            if self._reverse_order:
+                row = len(self._dictionaries) - row - 1
             index = model.index(row, 0)
             selection.select(index, index)
         self.table.selectionModel().select(selection, QItemSelectionModel.Rows |
@@ -203,9 +236,12 @@ class DictionariesWidget(QWidget, Ui_DictionariesWidget):
     def on_dictionary_changed(self, item):
         if self._updating:
             return
+        row = item.row()
+        if self._reverse_order:
+            row = len(self._dictionaries) - row - 1
         dictionaries = self._dictionaries[:]
-        dictionaries[item.row()] = DictionaryConfig(
-            item.text(), item.checkState() == Qt.Checked
+        dictionaries[row] = dictionaries[row].replace(
+            enabled=bool(item.checkState() == Qt.Checked)
         )
         self._update_dictionaries(dictionaries)
 
@@ -259,6 +295,18 @@ class DictionariesWidget(QWidget, Ui_DictionariesWidget):
         self.add_translation.emit(dictionary_path)
 
     def on_move_dictionaries_up(self):
+        if self._reverse_order:
+            self._decrease_dictionaries_priority()
+        else:
+            self._increase_dictionaries_priority()
+
+    def on_move_dictionaries_down(self):
+        if self._reverse_order:
+            self._increase_dictionaries_priority()
+        else:
+            self._decrease_dictionaries_priority()
+
+    def _increase_dictionaries_priority(self):
         dictionaries = self._dictionaries[:]
         selection = []
         min_row = 0
@@ -271,7 +319,7 @@ class DictionariesWidget(QWidget, Ui_DictionariesWidget):
             return
         self._update_dictionaries(dictionaries)
 
-    def on_move_dictionaries_down(self):
+    def _decrease_dictionaries_priority(self):
         dictionaries = self._dictionaries[:]
         selection = []
         max_row = len(dictionaries) - 1

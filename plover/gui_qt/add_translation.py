@@ -30,10 +30,11 @@ class AddTranslation(Tool, Ui_AddTranslation):
     def __init__(self, engine, dictionary_path=None):
         super(AddTranslation, self).__init__(engine)
         self.setupUi(self)
+        self._dictionaries = []
+        self._reverse_order = False
+        self._selected_dictionary = dictionary_path
         engine.signal_connect('config_changed', self.on_config_changed)
         self.on_config_changed(engine.config)
-        if dictionary_path is not None:
-            self.select_dictionary(dictionary_path)
         self.installEventFilter(self)
         self.strokes.installEventFilter(self)
         self.translation.installEventFilter(self)
@@ -148,36 +149,56 @@ class AddTranslation(Tool, Ui_AddTranslation):
         translation = self.translation.text().strip()
         return unescape_translation(translation)
 
-    def select_dictionary(self, dictionary_path):
-        dictionary_path = shorten_path(dictionary_path)
-        for n in range(self.dictionary.count()):
-            if self.dictionary.itemText(n) == dictionary_path:
-                break
+    def _update_items(self, dictionaries=None, reverse_order=None):
+        if dictionaries is not None:
+            self._dictionaries = dictionaries
+        if reverse_order is not None:
+            self._reverse_order = reverse_order
+        iterable = self._dictionaries
+        if self._reverse_order:
+            iterable = reversed(iterable)
+        self.dictionary.clear()
+        for d in iterable:
+            item = shorten_path(d.get_path())
+            if not d.enabled:
+                item += ' [' + _('disabled') + ']'
+            self.dictionary.addItem(item)
+        selected_index = 0
+        if self._selected_dictionary is None:
+            # No user selection, select first enabled dictionary.
+            for n, d in enumerate(self._dictionaries):
+                if d.enabled:
+                    selected_index = n
+                    break
         else:
-            n = 0
-        self.dictionary.setCurrentIndex(n)
+            # Keep user selection.
+            for n, d in enumerate(self._dictionaries):
+                if d.get_path() == self._selected_dictionary:
+                    selected_index = n
+                    break
+        if self._reverse_order:
+            selected_index = self.dictionary.count() - selected_index - 1
+        self.dictionary.setCurrentIndex(selected_index)
 
     def on_config_changed(self, config_update):
+        update_kwargs = {}
         if 'dictionaries' in config_update:
-            dictionary_path = self.dictionary.currentText()
-            # List enabled dictionaries first, so they are
-            # preferred over disabled dictionaries.
-            enabled = []
-            disabled = []
-            for d in self._engine.dictionaries.dicts:
-                if d.readonly:
-                    continue
-                (enabled if d.enabled else disabled).append(d)
-            self.dictionary.clear()
-            self.dictionary.addItems(shorten_path(d.get_path())
-                                     for d in enabled + disabled)
-            self.select_dictionary(dictionary_path)
+            update_kwargs['dictionaries'] = dictionaries=self._engine.dictionaries.dicts[:]
+        if 'classic_dictionaries_display_order' in config_update:
+            update_kwargs['reverse_order'] = config_update['classic_dictionaries_display_order']
         if 'translation_frame_opacity' in config_update:
             opacity = config_update.get('translation_frame_opacity')
             if opacity is None:
                 return
             assert 0 <= opacity <= 100
             self.setWindowOpacity(opacity / 100.0)
+        if update_kwargs:
+            self._update_items(**update_kwargs)
+
+    def on_dictionary_selected(self, index):
+        if self._reverse_order:
+            index = len(self._dictionaries) - index - 1
+        self._selected_dictionary = self._dictionaries[index].get_path()
 
     def on_strokes_edited(self):
         strokes = self._strokes()
@@ -214,9 +235,12 @@ class AddTranslation(Tool, Ui_AddTranslation):
         strokes = self._strokes()
         translation = self._translation()
         if strokes and translation:
-            dictionary = expand_path(self.dictionary.currentText())
+            index = self.dictionary.currentIndex()
+            if self._reverse_order:
+                index = -index - 1
+            dictionary = self._dictionaries[index]
             self._engine.add_translation(strokes, translation,
-                                         dictionary=dictionary)
+                                         dictionary=dictionary.get_path())
         super(AddTranslation, self).accept()
 
     def reject(self):

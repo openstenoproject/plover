@@ -332,6 +332,7 @@ class ConfigTestCase(unittest.TestCase):
     def test_as_dict_update(self):
         opt_list = '''
             auto_start
+            classic_dictionaries_display_order
             dictionaries
             enable_stroke_logging
             enable_translation_logging

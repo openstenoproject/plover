@@ -55,6 +55,10 @@ SUGGESTIONS_DISPLAY_SECTION = 'Suggestions Display'
 SUGGESTIONS_DISPLAY_SHOW_OPTION = 'show'
 DEFAULT_SUGGESTIONS_DISPLAY_SHOW = False
 
+GUI_SECTION = 'GUI'
+CLASSIC_DICTIONARIES_DISPLAY_ORDER_OPTION = 'classic_dictionaries_display_order'
+DEFAULT_CLASSIC_DICTIONARIES_DISPLAY_ORDER = False
+
 OUTPUT_CONFIG_SECTION = 'Output Configuration'
 OUTPUT_CONFIG_SPACE_PLACEMENT_OPTION = 'space_placement'
 DEFAULT_OUTPUT_CONFIG_SPACE_PLACEMENT = 'Before Output'
@@ -366,6 +370,14 @@ class Config(object):
             opacity = DEFAULT_TRANSLATION_FRAME_OPACITY
         return opacity
 
+    def set_classic_dictionaries_display_order(self, b):
+        self._set(GUI_SECTION, CLASSIC_DICTIONARIES_DISPLAY_ORDER_OPTION, bool(b))
+
+    def get_classic_dictionaries_display_order(self):
+        return self._get_bool(GUI_SECTION,
+                              CLASSIC_DICTIONARIES_DISPLAY_ORDER_OPTION,
+                              DEFAULT_CLASSIC_DICTIONARIES_DISPLAY_ORDER)
+
     def set_system_name(self, system_name):
         self._set(BASE_SYSTEM_SECTION, SYSTEM_NAME_OPTION, system_name)
 
@@ -521,6 +533,7 @@ class Config(object):
     show_stroke_display
     show_suggestions_display
     translation_frame_opacity
+    classic_dictionaries_display_order
 
     system_name
     machine_type
