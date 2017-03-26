@@ -414,7 +414,7 @@ entrypoints = {
 }
 
 if sys.platform.startswith('darwin'):
-    setup_requires.append('PyInstaller==3.1.1')
+    setup_requires.append('PyInstaller==3.2.1')
     cmdclass['bdist_app'] = BinaryDistApp
     cmdclass['bdist_dmg'] = BinaryDistDmg
 
