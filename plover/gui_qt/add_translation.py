@@ -5,7 +5,7 @@ from PyQt5.QtCore import QEvent
 
 from plover.misc import expand_path, shorten_path
 from plover.steno import normalize_steno
-from plover.engine import StartingStrokeState
+from plover.engine import ErroredDictionary, StartingStrokeState
 from plover.translation import escape_translation, unescape_translation
 
 from plover.gui_qt.add_translation_ui import Ui_AddTranslation
@@ -35,6 +35,8 @@ class AddTranslation(Tool, Ui_AddTranslation):
         self._selected_dictionary = dictionary_path
         engine.signal_connect('config_changed', self.on_config_changed)
         self.on_config_changed(engine.config)
+        engine.signal_connect('dictionaries_loaded', self.on_dictionaries_loaded)
+        self.on_dictionaries_loaded(self._engine.dictionaries)
         self.installEventFilter(self)
         self.strokes.installEventFilter(self)
         self.translation.installEventFilter(self)
@@ -180,20 +182,25 @@ class AddTranslation(Tool, Ui_AddTranslation):
             selected_index = self.dictionary.count() - selected_index - 1
         self.dictionary.setCurrentIndex(selected_index)
 
+    def on_dictionaries_loaded(self, dictionaries):
+        # We only care about loaded writable dictionaries.
+        dictionaries = [
+            d
+            for d in dictionaries.dicts
+            if not d.readonly
+        ]
+        if dictionaries != self._dictionaries:
+            self._update_items(dictionaries=dictionaries)
+
     def on_config_changed(self, config_update):
-        update_kwargs = {}
-        if 'dictionaries' in config_update:
-            update_kwargs['dictionaries'] = dictionaries=self._engine.dictionaries.dicts[:]
-        if 'classic_dictionaries_display_order' in config_update:
-            update_kwargs['reverse_order'] = config_update['classic_dictionaries_display_order']
         if 'translation_frame_opacity' in config_update:
             opacity = config_update.get('translation_frame_opacity')
             if opacity is None:
                 return
             assert 0 <= opacity <= 100
             self.setWindowOpacity(opacity / 100.0)
-        if update_kwargs:
-            self._update_items(**update_kwargs)
+        if 'classic_dictionaries_display_order' in config_update:
+            self._update_items(reverse_order=config_update['classic_dictionaries_display_order'])
 
     def on_dictionary_selected(self, index):
         if self._reverse_order:
