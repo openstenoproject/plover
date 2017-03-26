@@ -27,18 +27,13 @@ class AddTranslation(Tool, Ui_AddTranslation):
 
     EngineState = namedtuple('EngineState', 'dictionary_filter translator starting_stroke')
 
-    def __init__(self, engine, dictionary=None):
+    def __init__(self, engine, dictionary_path=None):
         super(AddTranslation, self).__init__(engine)
         self.setupUi(self)
-        dictionaries = [d.get_path() for d in engine.dictionaries.dicts]
-        self.dictionary.addItems(shorten_path(d) for d in dictionaries)
-        if dictionary is None:
-            self.dictionary.setCurrentIndex(0)
-        else:
-            assert dictionary in dictionaries
-            self.dictionary.setCurrentIndex(dictionaries.index(dictionary))
         engine.signal_connect('config_changed', self.on_config_changed)
         self.on_config_changed(engine.config)
+        if dictionary_path is not None:
+            self.select_dictionary(dictionary_path)
         self.installEventFilter(self)
         self.strokes.installEventFilter(self)
         self.translation.installEventFilter(self)
@@ -153,12 +148,28 @@ class AddTranslation(Tool, Ui_AddTranslation):
         translation = self.translation.text().strip()
         return unescape_translation(translation)
 
+    def select_dictionary(self, dictionary_path):
+        dictionary_path = shorten_path(dictionary_path)
+        for n in range(self.dictionary.count()):
+            if self.dictionary.itemText(n) == dictionary_path:
+                break
+        else:
+            n = 0
+        self.dictionary.setCurrentIndex(n)
+
     def on_config_changed(self, config_update):
-        opacity = config_update.get('translation_frame_opacity')
-        if opacity is None:
-            return
-        assert 0 <= opacity <= 100
-        self.setWindowOpacity(opacity / 100.0)
+        if 'dictionary_file_names' in config_update:
+            dictionary_path = self.dictionary.currentText()
+            self.dictionary.clear()
+            self.dictionary.addItems(shorten_path(d.get_path())
+                                     for d in self._engine.dictionaries.dicts)
+            self.select_dictionary(dictionary_path)
+        if 'translation_frame_opacity' in config_update:
+            opacity = config_update.get('translation_frame_opacity')
+            if opacity is None:
+                return
+            assert 0 <= opacity <= 100
+            self.setWindowOpacity(opacity / 100.0)
 
     def on_strokes_edited(self):
         strokes = self._strokes()

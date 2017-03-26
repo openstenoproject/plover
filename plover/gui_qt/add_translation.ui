@@ -81,7 +81,7 @@
      <item row="0" column="1">
       <widget class="QComboBox" name="dictionary">
        <property name="editable">
-        <bool>true</bool>
+        <bool>false</bool>
        </property>
       </widget>
      </item>
