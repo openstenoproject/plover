@@ -128,7 +128,7 @@ class DictionariesWidget(QWidget, Ui_DictionariesWidget):
     def _drop_event(self, event):
         if not self.is_accepted_drag_event(event):
             return
-        dictionaries = list(self._dictionaries)
+        dictionaries = self._dictionaries[:]
         dest_item = self.table.itemAt(event.pos())
         if dest_item is None:
             dest_index = self.table.rowCount()
@@ -207,7 +207,7 @@ class DictionariesWidget(QWidget, Ui_DictionariesWidget):
     def on_remove_dictionaries(self):
         selection = self._get_selection()
         assert selection
-        dictionaries = list(self._dictionaries)
+        dictionaries = self._dictionaries[:]
         for row in sorted(selection, reverse=True):
             del dictionaries[row]
         self._update_dictionaries(dictionaries)
@@ -218,7 +218,7 @@ class DictionariesWidget(QWidget, Ui_DictionariesWidget):
             self, _('Add dictionaries'), None,
             _('Dictionary Files') + ' (%s)' % ' '.join(filters),
         )[0]
-        dictionaries = list(self._dictionaries)
+        dictionaries = self._dictionaries[:]
         for filename in new_filenames:
             if filename not in dictionaries:
                 dictionaries.append(filename)
@@ -227,7 +227,6 @@ class DictionariesWidget(QWidget, Ui_DictionariesWidget):
     def on_add_translation(self):
         selection = self._get_selection()
         if selection:
-            selection.sort()
             dictionary = self._dictionaries[selection[-1]]
         else:
             dictionary = None
