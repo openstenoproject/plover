@@ -6,6 +6,7 @@
 import os
 import json
 import codecs
+from collections import namedtuple
 
 # Python 2/3 compatibility.
 from six import BytesIO
@@ -98,6 +99,32 @@ def raise_if_invalid_opacity(opacity):
             % (opacity, MIN_FRAME_OPACITY, MAX_FRAME_OPACITY)
         raise ValueError(message)
 
+
+class DictionaryConfig(namedtuple('DictionaryConfig', 'path enabled')):
+
+    def __new__(cls, path, enabled=True):
+        return super(DictionaryConfig, cls).__new__(cls, expand_path(path), enabled)
+
+    @property
+    def short_path(self):
+        return shorten_path(self.path)
+
+    def to_dict(self):
+        # Note: do not use _asdict because of
+        # https://bugs.python.org/issue24931
+        return {
+            'path': self.short_path,
+            'enabled': self.enabled,
+        }
+
+    def replace(self, **kwargs):
+        return self._replace(**kwargs)
+
+    @staticmethod
+    def from_dict(d):
+        return DictionaryConfig(**d)
+
+
 # TODO: Unit test this class
 
 class Config(object):
@@ -174,18 +201,18 @@ class Config(object):
             defaults.update(options)
         return defaults
 
-    def set_dictionary_file_names(self, filenames):
+    def set_dictionaries(self, dictionaries):
         system_name = self.get_system_name()
         section = SYSTEM_CONFIG_SECTION % system_name
         option = SYSTEM_DICTIONARIES_OPTION
-        if filenames is None:
+        if dictionaries is None:
             self._config.remove_option(section, option)
         else:
-            self._set(section, option, json.dumps(
-                list(shorten_path(path) for path in filenames)
-            ))
+            self._set(section, option, json.dumps([
+                d.to_dict() for d in dictionaries
+            ], sort_keys=True))
 
-    def get_dictionary_file_names(self):
+    def get_dictionaries(self):
         system_name = self.get_system_name()
         try:
             system = registry.get_plugin('system', system_name).obj
@@ -194,20 +221,20 @@ class Config(object):
             return []
         section = SYSTEM_CONFIG_SECTION % system_name
         option = SYSTEM_DICTIONARIES_OPTION
-        filenames = self._get(section, option, None)
-        if filenames is None:
-            filenames = self._legacy_get_dictionary_file_names()
-            if filenames is None:
-                filenames = system.DEFAULT_DICTIONARIES
-        else:
-            try:
-                filenames = tuple(json.loads(filenames))
-            except ValueError:
-                log.error("invalid system dictionaries, resetting to default",
-                          exc_info=True)
-                self.set_dictionary_file_names(None)
-                filenames = system.DEFAULT_DICTIONARIES
-        return [expand_path(path) for path in filenames]
+        dictionaries = self._get(section, option, None)
+        if dictionaries is None:
+            dictionaries = self._legacy_get_dictionary_file_names()
+            if dictionaries is None:
+                dictionaries = [DictionaryConfig(path)
+                                for path in system.DEFAULT_DICTIONARIES]
+            return dictionaries
+        try:
+            return [DictionaryConfig.from_dict(d)
+                    for d in json.loads(dictionaries)]
+        except:
+            log.error("invalid system dictionaries, resetting to default", exc_info=True)
+            self.set_dictionaries(None)
+            return self.get_dictionaries()
 
     def _legacy_get_dictionary_file_names(self):
         if not self._config.has_section(LEGACY_DICTIONARY_CONFIG_SECTION):
@@ -226,8 +253,9 @@ class Config(object):
         self._config.remove_section(LEGACY_DICTIONARY_CONFIG_SECTION)
         if not filenames:
             return None
-        self.set_dictionary_file_names(filenames)
-        return filenames
+        dictionaries = [DictionaryConfig(path) for path in filenames]
+        self.set_dictionaries(dictionaries)
+        return dictionaries
 
     def set_log_file_name(self, filename):
         filename = shorten_path(filename)
@@ -482,7 +510,7 @@ class Config(object):
     start_minimized
     undo_levels
 
-    dictionary_file_names
+    dictionaries
 
     enabled_extensions
 

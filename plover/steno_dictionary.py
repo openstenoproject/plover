@@ -31,6 +31,7 @@ class StenoDictionary(collections.MutableMapping):
         self.update(*args, **kw)
         self.timestamp = 0
         self.save = None
+        self.enabled = True
         self._path = ''
 
     @property
@@ -125,6 +126,8 @@ class StenoDictionaryCollection(object):
         if key_len > self.longest_key:
             return None
         for d in dicts:
+            if not d.enabled:
+                continue
             if key_len > d.longest_key:
                 continue
             value = d.get(key)
@@ -143,6 +146,8 @@ class StenoDictionaryCollection(object):
     def reverse_lookup(self, value):
         keys = []
         for n, d in enumerate(self.dicts):
+            if not d.enabled:
+                continue
             for k in d.reverse_lookup(value):
                 # Ignore key if it's overriden by a higher priority dictionary.
                 if self._lookup(k, dicts=self.dicts[:n]) is None:
@@ -151,6 +156,8 @@ class StenoDictionaryCollection(object):
 
     def casereverse_lookup(self, value):
         for d in self.dicts:
+            if not d.enabled:
+                continue
             key = d.casereverse_lookup(value)
             if key:
                 return key

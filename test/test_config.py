@@ -14,6 +14,7 @@ from six import BytesIO
 from mock import patch
 
 from plover import config, system
+from plover.config import DictionaryConfig
 from plover.machine.keymap import Keymap
 from plover.registry import Registry
 from plover.oslayer.config import CONFIG_DIR
@@ -174,6 +175,49 @@ class ConfigTestCase(unittest.TestCase):
             c.set_machine_specific_options(expected)
             self.assertEqual(c.get_machine_specific_options(), expected)
 
+    def test_config_dict(self):
+        short_path = os.path.normpath('~/foo/bar')
+        full_path = os.path.expanduser(os.path.normpath('~/foo/bar'))
+        # Path should be expanded.
+        self.assertEqual(DictionaryConfig(short_path).path, full_path)
+        self.assertEqual(DictionaryConfig(full_path).path, full_path)
+        # Short path is available through `short_path`.
+        self.assertEqual(DictionaryConfig(full_path).short_path, short_path)
+        self.assertEqual(DictionaryConfig(short_path).short_path, short_path)
+        # Enabled default to True.
+        self.assertEqual(DictionaryConfig('foo').enabled, True)
+        self.assertEqual(DictionaryConfig('foo', False).enabled, False)
+        # When converting to a dict (for dumping to JSON),
+        # a dictionary with the shortened path is used.
+        self.assertEqual(DictionaryConfig(full_path).to_dict(),
+                         {'path': short_path, 'enabled': True})
+        self.assertEqual(DictionaryConfig(short_path, False).to_dict(),
+                         {'path': short_path, 'enabled': False})
+        # Test from_dict creation helper.
+        self.assertEqual(config.DictionaryConfig.from_dict(
+            {'path': short_path}), DictionaryConfig(short_path))
+        self.assertEqual(config.DictionaryConfig.from_dict(
+            {'path': full_path, 'enabled': False}), DictionaryConfig(short_path, False))
+
+    def test_dictionary_config(self):
+        short_path = os.path.normpath('~/foo/bar')
+        full_path = os.path.expanduser(os.path.normpath('~/foo/bar'))
+        dc = DictionaryConfig(short_path)
+        # Path should be expanded.
+        self.assertEqual(dc.path, full_path)
+        # Shortened path is available through short_path.
+        self.assertEqual(dc.short_path, short_path)
+        # Enabled default to True.
+        self.assertEqual(dc.enabled, True)
+        # Check conversion to dict: short path should be used.
+        self.assertEqual(dc.to_dict(), {'path': short_path, 'enabled': True})
+        # Test replace method.
+        dc = dc.replace(enabled=False)
+        self.assertEqual(dc.path, full_path)
+        self.assertEqual(dc.enabled, False)
+        # Test creation from dict.
+        self.assertEqual(DictionaryConfig.from_dict({'path': short_path, 'enabled': False}), dc)
+
     def test_dictionaries_option(self):
         section = config.SYSTEM_CONFIG_SECTION % config.DEFAULT_SYSTEM_NAME
         option = config.SYSTEM_DICTIONARIES_OPTION
@@ -182,68 +226,59 @@ class ConfigTestCase(unittest.TestCase):
         c = config.Config()
         config_dir = os.path.realpath(config.CONFIG_DIR)
         # Check the default value.
-        self.assertEqual(c.get_dictionary_file_names(),
-                         [os.path.join(config_dir, name)
-                          for name in system.DEFAULT_DICTIONARIES])
-
-        # Relative paths as assumed to be relative to CONFIG_DIR.
-        filenames = [os.path.abspath(os.path.join(config_dir, path))
-                     for path in ('b', 'a', 'd/c', 'e/f')]
-        c.set_dictionary_file_names(filenames)
-        self.assertEqual(c.get_dictionary_file_names(), filenames)
-        # Absolute paths must remain unchanged...
-        filenames = [os.path.abspath(path)
-                     for path in ('/b', '/a', '/d', '/c')]
-        c.set_dictionary_file_names(filenames)
-        self.assertEqual(c.get_dictionary_file_names(), filenames)
+        self.assertEqual(c.get_dictionaries(),
+                         [DictionaryConfig(path)
+                          for path in system.DEFAULT_DICTIONARIES])
         # Load from a file encoded the ancient way...
         filename = os.path.abspath('/some_file')
         f = make_config('[%s]\n%s: %s' % (legacy_section, legacy_option, filename))
         c.load(f)
         # ..and make sure the right value is set.
-        self.assertEqual(c.get_dictionary_file_names(), [filename])
+        self.assertEqual(c.get_dictionaries(), [DictionaryConfig(filename)])
         # Load from a file encoded the old way...
         filenames = [os.path.abspath(path)
                      for path in ('/b', '/a', '/d', '/c')]
+        dictionaries = [DictionaryConfig(path) for path in filenames]
         value = '\n'.join('%s%d: %s' % (legacy_option, d, v)
                               for d, v in enumerate(filenames, start=1))
         f = make_config('[%s]\n%s' % (legacy_section, value))
         c.load(f)
         # ...and make sure the right value is set.
-        self.assertEqual(c.get_dictionary_file_names(), filenames)
+        self.assertEqual(c.get_dictionaries(), dictionaries)
         # Check the config is saved back converted to the new way.
         f = make_config()
         c.save(f)
-        self.assertEqual(f.getvalue().decode('utf-8'),
-                         '[%s]\n%s = %s\n\n' % (
-                             section, option, json.dumps(filenames)
-                         ))
+        new_config_contents = '[%s]\n%s = %s\n\n' % (
+            section, option, json.dumps([
+                {'path': path, 'enabled': True}
+                for path in filenames
+            ], sort_keys=True))
+        self.assertEqual(f.getvalue().decode('utf-8'), new_config_contents)
         # Load from a file encoded the new way...
-        f = make_config('[%s]\n%s = %s' % (
-            section, option, json.dumps(filenames)
-        ))
+        f = make_config(new_config_contents)
         c.load(f)
         # ...and make sure the right value is set.
-        self.assertEqual(c.get_dictionary_file_names(), filenames)
+        self.assertEqual(c.get_dictionaries(), dictionaries)
         # Set a value...
+        dictionaries.reverse()
         filenames.reverse()
-        c.set_dictionary_file_names(filenames)
+        c.set_dictionaries(dictionaries)
         f = make_config()
         # ...save it...
         c.save(f)
         # ...and make sure it's right.
-        self.assertEqual(f.getvalue().decode('utf-8'),
-                         '[%s]\n%s = %s\n\n' % (
-                             section, option, json.dumps(filenames)
-                         ))
+        new_config_contents = '[%s]\n%s = %s\n\n' % (
+            section, option, json.dumps([
+                {'path': path, 'enabled': True}
+                for path in filenames
+            ], sort_keys=True))
+        self.assertEqual(f.getvalue().decode('utf-8'), new_config_contents)
         # The new way must take precedence over the old way.
-        value = '\n'.join('%s%d = %s' % (legacy_option, d, v)
+        legacy_value = '\n'.join('%s%d = %s' % (legacy_option, d, v)
                               for d, v in enumerate(['/foo', '/bar'], start=1))
-        f = make_config('[%s]\n%s\n[%s]\n%s = %s' % (
-            legacy_section, value, section, option, json.dumps(filenames)
-        ))
+        f = make_config(new_config_contents + '\n[%s]\n%s\n' % ( legacy_section, legacy_value))
         c.load(f)
-        self.assertEqual(c.get_dictionary_file_names(), filenames)
+        self.assertEqual(c.get_dictionaries(), dictionaries)
 
     def test_system_keymap(self):
         mappings_list = [
@@ -297,7 +332,7 @@ class ConfigTestCase(unittest.TestCase):
     def test_as_dict_update(self):
         opt_list = '''
             auto_start
-            dictionary_file_names
+            dictionaries
             enable_stroke_logging
             enable_translation_logging
             enabled_extensions
@@ -323,7 +358,7 @@ class ConfigTestCase(unittest.TestCase):
         self.assertEqual(cfg.as_dict(), excepted_dict)
         update = {
             'auto_start'           : False,
-            'dictionary_file_names': [os.path.abspath('user.json')],
+            'dictionaries'         : [DictionaryConfig('user.json', False)],
             'enable_stroke_logging': False,
             'space_placement'      : 'After Output',
             'start_minimized'      : False,

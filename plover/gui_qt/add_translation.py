@@ -158,12 +158,19 @@ class AddTranslation(Tool, Ui_AddTranslation):
         self.dictionary.setCurrentIndex(n)
 
     def on_config_changed(self, config_update):
-        if 'dictionary_file_names' in config_update:
+        if 'dictionaries' in config_update:
             dictionary_path = self.dictionary.currentText()
+            # List enabled dictionaries first, so they are
+            # preferred over disabled dictionaries.
+            enabled = []
+            disabled = []
+            for d in self._engine.dictionaries.dicts:
+                if d.readonly:
+                    continue
+                (enabled if d.enabled else disabled).append(d)
             self.dictionary.clear()
             self.dictionary.addItems(shorten_path(d.get_path())
-                                     for d in self._engine.dictionaries.dicts
-                                     if not d.readonly)
+                                     for d in enabled + disabled)
             self.select_dictionary(dictionary_path)
         if 'translation_frame_opacity' in config_update:
             opacity = config_update.get('translation_frame_opacity')

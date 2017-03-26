@@ -160,3 +160,29 @@ class StenoDictionaryTestCase(unittest.TestCase):
         assertCountEqual(self,
                          dc.reverse_lookup('beautiful'),
                          [('PWAOUFL',), ('PW-FL',)])
+
+    def test_dictionary_enabled(self):
+        dc = StenoDictionaryCollection()
+        d1 = StenoDictionary()
+        d1.set_path('d1')
+        d1[('TEFT',)] = 'test1'
+        d1[('TEFGT',)] = 'Testing'
+        d2 = StenoDictionary()
+        d2[('TEFT',)] = 'test2'
+        d2[('TEFT','-G')] = 'Testing'
+        d2.set_path('d2')
+        dc.set_dicts([d1, d2])
+        self.assertEqual(dc.lookup(('TEFT',)), 'test2')
+        self.assertEqual(dc.raw_lookup(('TEFT',)), 'test2')
+        self.assertEqual(dc.casereverse_lookup('testing'), set(['Testing']))
+        assertCountEqual(self, dc.reverse_lookup('Testing'), [('TEFGT',), ('TEFT', '-G')])
+        d2.enabled = False
+        self.assertEqual(dc.lookup(('TEFT',)), 'test1')
+        self.assertEqual(dc.raw_lookup(('TEFT',)), 'test1')
+        self.assertEqual(dc.casereverse_lookup('testing'), set(['Testing']))
+        assertCountEqual(self, dc.reverse_lookup('Testing'), [('TEFGT',)])
+        d1.enabled = False
+        self.assertEqual(dc.lookup(('TEST',)), None)
+        self.assertEqual(dc.raw_lookup(('TEFT',)), None)
+        self.assertEqual(dc.casereverse_lookup('testing'), None)
+        assertCountEqual(self, dc.reverse_lookup('Testing'), [])

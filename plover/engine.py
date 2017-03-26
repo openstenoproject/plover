@@ -1,5 +1,5 @@
 
-from collections import namedtuple
+from collections import namedtuple, OrderedDict
 from functools import wraps
 import os
 import shutil
@@ -204,11 +204,14 @@ class StenoEngine(object):
         if start_machine:
             self._machine.start_capture()
         # Update dictionaries.
-        dictionaries_files = config['dictionary_file_names']
-        copy_default_dictionaries(dictionaries_files)
+        config_dictionaries = OrderedDict(
+            (d.path, d)
+            for d in config['dictionaries']
+        )
+        copy_default_dictionaries(config_dictionaries.keys())
         loaded_dictionaries = {
             result.get_path(): result
-            for result in self._dictionaries_manager.load(dictionaries_files)
+            for result in self._dictionaries_manager.load(config_dictionaries.keys())
         }
         dictionaries = []
         for result in loaded_dictionaries.values():
@@ -219,6 +222,8 @@ class StenoEngine(object):
                     log.error('loading dictionary `%s` failed: %s',
                               shorten_path(filename), str(result.exception))
             else:
+                d = config_dictionaries[result.get_path()]
+                result.enabled = d.enabled
                 dictionaries.append(result)
         self._loaded_dictionaries = loaded_dictionaries
         self._dictionaries.set_dicts(dictionaries)
