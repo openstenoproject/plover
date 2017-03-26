@@ -36,6 +36,7 @@ class DictionariesWidget(QWidget, Ui_DictionariesWidget):
         self.setupUi(self)
         self._engine = engine
         self._states = []
+        self._updating = False
         self._dictionaries = []
         for action in (
             self.action_Undo,
@@ -69,14 +70,13 @@ class DictionariesWidget(QWidget, Ui_DictionariesWidget):
     def on_config_changed(self, config_update):
         if 'dictionaries' in config_update:
             if self._update_dictionaries(config_update['dictionaries'],
-                                         record=False, save=False,
-                                         scroll=True):
+                                         record=False, save=False):
                 self.action_Undo.setEnabled(False)
                 self._states = []
 
     def _update_dictionaries(self, dictionaries,
                              record=True, save=True,
-                             scroll=False):
+                             keep_selection=True):
         if dictionaries == self._dictionaries:
             return False
         if save:
@@ -84,17 +84,28 @@ class DictionariesWidget(QWidget, Ui_DictionariesWidget):
         if record:
             self._states.append(self._dictionaries)
             self.action_Undo.setEnabled(True)
+        if keep_selection:
+            selected = [
+                self._dictionaries[row].path
+                for row in self._get_selection()
+            ]
         self._dictionaries = dictionaries
-        self.table.setRowCount(0)
-        item = None
+        self._updating = True
+        self.table.setRowCount(len(dictionaries))
         for row, dictionary in enumerate(dictionaries):
-            self.table.insertRow(row)
             item = QTableWidgetItem(dictionary.short_path)
             item.setFlags((item.flags() | Qt.ItemIsUserCheckable) & ~Qt.ItemIsEditable)
             item.setCheckState(Qt.Checked if dictionary.enabled else Qt.Unchecked)
             self.table.setItem(row, 0, item)
-        if scroll and item is not None:
-            self.table.setCurrentItem(item)
+        if keep_selection:
+            row_list = []
+            for path in selected:
+                for n, d in enumerate(dictionaries):
+                    if d.path == path:
+                        row_list.append(n)
+                        break
+            self._set_selection(row_list)
+        self._updating = False
         return True
 
     @staticmethod
@@ -160,7 +171,7 @@ class DictionariesWidget(QWidget, Ui_DictionariesWidget):
                     dest_index -= 1
             dictionaries.insert(dest_index, dictionary)
             dest_index += 1
-        self._update_dictionaries(dictionaries)
+        self._update_dictionaries(dictionaries, keep_selection=False)
 
     def _get_selection(self):
         row_list = [item.row() for item in self.table.selectedItems()]
@@ -178,6 +189,8 @@ class DictionariesWidget(QWidget, Ui_DictionariesWidget):
                                            QItemSelectionModel.Current)
 
     def on_selection_changed(self):
+        if self._updating:
+            return
         enabled = bool(self.table.selectedItems())
         for action in (
             self.action_RemoveDictionaries,
@@ -188,6 +201,8 @@ class DictionariesWidget(QWidget, Ui_DictionariesWidget):
             action.setEnabled(enabled)
 
     def on_dictionary_changed(self, item):
+        if self._updating:
+            return
         dictionaries = self._dictionaries[:]
         dictionaries[item.row()] = DictionaryConfig(
             item.text(), item.checkState() == Qt.Checked
@@ -218,7 +233,7 @@ class DictionariesWidget(QWidget, Ui_DictionariesWidget):
         dictionaries = self._dictionaries[:]
         for row in sorted(selection, reverse=True):
             del dictionaries[row]
-        self._update_dictionaries(dictionaries)
+        self._update_dictionaries(dictionaries, keep_selection=False)
 
     def on_add_dictionaries(self):
         filters = ['*.' + ext for ext in sorted(_dictionary_formats())]
@@ -233,7 +248,7 @@ class DictionariesWidget(QWidget, Ui_DictionariesWidget):
                     break
             else:
                 dictionaries.append(DictionaryConfig(filename))
-        self._update_dictionaries(dictionaries)
+        self._update_dictionaries(dictionaries, keep_selection=False)
 
     def on_add_translation(self):
         selection = self._get_selection()
@@ -255,7 +270,6 @@ class DictionariesWidget(QWidget, Ui_DictionariesWidget):
         if dictionaries == self._dictionaries:
             return
         self._update_dictionaries(dictionaries)
-        self._set_selection(selection)
 
     def on_move_dictionaries_down(self):
         dictionaries = self._dictionaries[:]
@@ -269,4 +283,3 @@ class DictionariesWidget(QWidget, Ui_DictionariesWidget):
         if dictionaries == self._dictionaries:
             return
         self._update_dictionaries(dictionaries)
-        self._set_selection(selection)
