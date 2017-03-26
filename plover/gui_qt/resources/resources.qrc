@@ -22,5 +22,10 @@
         <file>lightbulb.svg</file>
         <file>pencil.svg</file>
         <file>remove.svg</file>
+        <file>dictionary_error.svg</file>
+        <file>dictionary_favorite.svg</file>
+        <file>dictionary_normal.svg</file>
+        <file>dictionary_readonly.svg</file>
+        <file>dictionary_loading.svg</file>
     </qresource>
 </RCC>

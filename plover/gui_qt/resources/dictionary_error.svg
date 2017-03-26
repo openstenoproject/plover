@@ -1,0 +1,23 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!-- Created with Inkscape (http://www.inkscape.org/) -->
+<svg width="96" height="96" version="1.0" xmlns="http://www.w3.org/2000/svg" xmlns:cc="http://creativecommons.org/ns#" xmlns:dc="http://purl.org/dc/elements/1.1/" xmlns:rdf="http://www.w3.org/1999/02/22-rdf-syntax-ns#">
+<defs>
+<filter id="filter3899" color-interpolation-filters="sRGB">
+<feGaussianBlur stdDeviation="0.57"/>
+</filter>
+</defs>
+<metadata>
+<rdf:RDF>
+<cc:Work rdf:about="">
+<dc:format>image/svg+xml</dc:format>
+<dc:type rdf:resource="http://purl.org/dc/dcmitype/StillImage"/>
+<dc:title/>
+</cc:Work>
+</rdf:RDF>
+</metadata>
+<g transform="translate(0,80)">
+<path d="m43-62c-1.662 0-3 1.338-3 3v3 24 3c0 1.662 1.338 3 3 3h3 4 3c1.662 0 3-1.338 3-3v-3-24-3c0-1.662-1.4233-2.4744-3-3h-3-4zm0 44c-1.662 0-3 1.338-3 3v3 4 3c0 1.662 1.4233 2.4744 3 3h3 4 3c1.662 0 3-1.338 3-3v-3-4-3c0-1.662-1.338-3-3-3h-3-4z" color="#000000" fill="none" filter="url(#filter3899)" opacity=".2" stroke="#fff" stroke-width="4"/>
+<path d="m43-62c-1.662 0-3 1.338-3 3v3 24 3c0 1.662 1.338 3 3 3h3 4 3c1.662 0 3-1.338 3-3v-3-24-3c0-1.662-1.4233-2.4744-3-3h-3-4zm0 44c-1.662 0-3 1.338-3 3v3 4 3c0 1.662 1.4233 2.4744 3 3h3 4 3c1.662 0 3-1.338 3-3v-3-4-3c0-1.662-1.338-3-3-3h-3-4z" color="#000000" fill="#f00" stroke="#000" stroke-width="2"/>
+<rect x="-100" y="-80" width="96" height="96" color="#000000" fill="#f00" opacity=".3"/>
+</g>
+</svg>
