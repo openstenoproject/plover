@@ -253,7 +253,7 @@ class Config(object):
         self._config.remove_section(LEGACY_DICTIONARY_CONFIG_SECTION)
         if not filenames:
             return None
-        dictionaries = [DictionaryConfig(path) for path in filenames]
+        dictionaries = [DictionaryConfig(path) for path in reversed(filenames)]
         self.set_dictionaries(dictionaries)
         return dictionaries
 

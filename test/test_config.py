@@ -240,7 +240,7 @@ class ConfigTestCase(unittest.TestCase):
                      for path in ('/b', '/a', '/d', '/c')]
         dictionaries = [DictionaryConfig(path) for path in filenames]
         value = '\n'.join('%s%d: %s' % (legacy_option, d, v)
-                              for d, v in enumerate(filenames, start=1))
+                              for d, v in enumerate(reversed(filenames), start=1))
         f = make_config('[%s]\n%s' % (legacy_section, value))
         c.load(f)
         # ...and make sure the right value is set.

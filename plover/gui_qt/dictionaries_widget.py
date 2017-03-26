@@ -247,13 +247,13 @@ class DictionariesWidget(QWidget, Ui_DictionariesWidget):
                 if d.path == filename:
                     break
             else:
-                dictionaries.append(DictionaryConfig(filename))
+                dictionaries.insert(0, DictionaryConfig(filename))
         self._update_dictionaries(dictionaries, keep_selection=False)
 
     def on_add_translation(self):
         selection = self._get_selection()
         if selection:
-            dictionary_path = self._dictionaries[selection[-1]].path
+            dictionary_path = self._dictionaries[selection[0]].path
         else:
             dictionary_path = None
         self.add_translation.emit(dictionary_path)

@@ -114,8 +114,7 @@ class StenoDictionaryCollection(object):
         for d in self.dicts:
             d.remove_longest_key_listener(self._longest_key_listener)
         self.dicts = dicts[:]
-        self.dicts.reverse()
-        for d in dicts:
+        for d in self.dicts:
             d.add_longest_key_listener(self._longest_key_listener)
         self._longest_key_listener()
 

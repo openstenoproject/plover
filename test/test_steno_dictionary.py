@@ -60,7 +60,7 @@ class StenoDictionaryTestCase(unittest.TestCase):
         d2[('S',)] = 'c'
         d2[('W',)] = 'd'
         d2.set_path('d2')
-        dc.set_dicts([d1, d2])
+        dc.set_dicts([d2, d1])
         self.assertEqual(dc.lookup(('S',)), 'c')
         self.assertEqual(dc.lookup(('W',)), 'd')
         self.assertEqual(dc.lookup(('T',)), 'b')
@@ -112,7 +112,7 @@ class StenoDictionaryTestCase(unittest.TestCase):
         d2._path = 'd2'
         d2[k3] = 'c'
 
-        dc.set_dicts([d1, d2])
+        dc.set_dicts([d2, d1])
         self.assertEqual(dc.longest_key, 3)
 
         del d1[k2]
@@ -144,19 +144,19 @@ class StenoDictionaryTestCase(unittest.TestCase):
                          [('PWAOUFL',), ('WAOUFL',)])
 
         # No duplicates.
-        dc.set_dicts([d2, StenoDictionary(d2)])
+        dc.set_dicts([StenoDictionary(d2), d2])
         assertCountEqual(self,
                          dc.reverse_lookup('beautiful'),
                          [('PW-FL',)])
 
         # Don't stop at the first dictionary with matches.
-        dc.set_dicts([d1, d2])
+        dc.set_dicts([d2, d1])
         assertCountEqual(self,
                          dc.reverse_lookup('beautiful'),
                          [('PWAOUFL',), ('WAOUFL',), ('PW-FL',)])
 
         # Ignore keys overriden by a higher precedence dictionary.
-        dc.set_dicts([d1, d2, d3])
+        dc.set_dicts([d3, d2, d1])
         assertCountEqual(self,
                          dc.reverse_lookup('beautiful'),
                          [('PWAOUFL',), ('PW-FL',)])
@@ -171,7 +171,7 @@ class StenoDictionaryTestCase(unittest.TestCase):
         d2[('TEFT',)] = 'test2'
         d2[('TEFT','-G')] = 'Testing'
         d2.set_path('d2')
-        dc.set_dicts([d1, d2])
+        dc.set_dicts([d2, d1])
         self.assertEqual(dc.lookup(('TEFT',)), 'test2')
         self.assertEqual(dc.raw_lookup(('TEFT',)), 'test2')
         self.assertEqual(dc.casereverse_lookup('testing'), set(['Testing']))
