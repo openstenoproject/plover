@@ -161,11 +161,11 @@ class StenoDictionaryCollection(object):
             if key:
                 return key
 
-    def set(self, key, value, dictionary=None):
-        if dictionary is None:
+    def set(self, key, value, path=None):
+        if path is None:
             d = self.dicts[0]
         else:
-            d = self.get_by_path(dictionary)
+            d = self[path]
         d[key] = value
 
     def save(self, path_list=None):
@@ -173,19 +173,26 @@ class StenoDictionaryCollection(object):
 
         If <path_list> is None, all writable dictionaries are saved'''
         if path_list is None:
-            dict_list = [dictionary
-                         for dictionary in self.dicts
-                         if dictionary.save is not None]
+            dict_list = [d for d in self if dictionary.save is not None]
         else:
-            dict_list = [self.get_by_path(path)
-                         for path in path_list]
-        for dictionary in dict_list:
-            dictionary.save()
+            dict_list = [self[path] for path in path_list]
+        for d in dict_list:
+            d.save()
 
-    def get_by_path(self, path):
+    def get(self, path):
         for d in self.dicts:
             if d.get_path() == path:
                 return d
+
+    def __getitem__(self, path):
+        d = self.get(path)
+        if d is None:
+            raise KeyError(repr(path))
+        return d
+
+    def __iter__(self):
+        for d in self.dicts:
+            yield d.get_path()
 
     def add_filter(self, f):
         self.filters.append(f)

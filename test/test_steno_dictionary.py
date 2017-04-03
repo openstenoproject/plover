@@ -83,10 +83,21 @@ class StenoDictionaryTestCase(unittest.TestCase):
         self.assertEqual(dc.lookup(('S',)), 'e')
         self.assertEqual(d2[('S',)], 'e')
 
-        dc.set(('S',), 'f', dictionary='d1')
+        dc.set(('S',), 'f', path='d1')
         self.assertEqual(dc.lookup(('S',)), 'e')
         self.assertEqual(d1[('S',)], 'f')
         self.assertEqual(d2[('S',)], 'e')
+
+        # Iterating on a StenoDictionaryCollection is
+        # the same as iterating on its dictionaries' paths.
+        self.assertEqual(list(dc), ['d2', 'd1'])
+
+        # Test get and [].
+        self.assertEqual(dc.get('d1'), d1)
+        self.assertEqual(dc['d1'], d1)
+        self.assertEqual(dc.get('invalid'), None)
+        with self.assertRaises(KeyError):
+            dc['invalid']
 
     def test_dictionary_collection_longest_key(self):
 
