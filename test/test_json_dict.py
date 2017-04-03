@@ -4,29 +4,16 @@
 
 """Unit tests for json.py."""
 
-import os
 import unittest
-import tempfile
-from contextlib import contextmanager
 
-from plover.dictionary.json_dict import load_dictionary, save_dictionary
+from plover.dictionary.json_dict import JsonDictionary
 
+from .utils import make_dict
 
-@contextmanager
-def make_dict(contents):
-    tf = tempfile.NamedTemporaryFile(delete=False)
-    try:
-        tf.write(contents)
-        tf.close()
-        yield tf.name
-    finally:
-        os.unlink(tf.name)
 
 class JsonDictionaryTestCase(unittest.TestCase):
 
     def test_load_dictionary(self):
-        def assertEqual(a, b):
-            self.assertEqual(a._dict, b)
 
         for contents, expected in (
             (u'{"S": "a"}'.encode('utf-8'), {('S', ): u'a'}),
@@ -37,7 +24,8 @@ class JsonDictionaryTestCase(unittest.TestCase):
             (u'{"S": "café"}'.encode('latin-1'), {('S', ): u'café'}),
         ):
             with make_dict(contents) as filename:
-                assertEqual(load_dictionary(filename), expected)
+                d = JsonDictionary.load(filename)
+                self.assertEqual(dict(d.items()), expected)
 
         for contents, exception in (
             # Invalid JSON.
@@ -50,7 +38,7 @@ class JsonDictionaryTestCase(unittest.TestCase):
             (u'4.2', TypeError),
         ):
             with make_dict(contents.encode('utf-8')) as filename:
-                self.assertRaises(exception, load_dictionary, filename)
+                self.assertRaises(exception, JsonDictionary.load, filename)
 
     def test_save_dictionary(self):
         for contents, expected in (
@@ -71,8 +59,9 @@ class JsonDictionaryTestCase(unittest.TestCase):
              u'{\n"A": "alpha",\n"B": "bravo",\n"C": "charlie"\n}'),
         ):
             with make_dict(b'foo') as filename:
-                with open(filename, 'wb') as fp:
-                    save_dictionary(contents, fp)
+                d = JsonDictionary.create(filename)
+                d.update(contents)
+                d.save()
                 with open(filename, 'rb') as fp:
                     contents = fp.read().decode('utf-8')
                 self.assertEqual(contents, expected)

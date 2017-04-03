@@ -8,6 +8,10 @@ A steno dictionary maps sequences of steno strokes to translations.
 """
 
 import collections
+import shutil
+
+from plover.resource import ASSET_SCHEME, resource_filename, resource_timestamp
+
 
 class StenoDictionary(collections.MutableMapping):
     """A steno dictionary.
@@ -18,34 +22,68 @@ class StenoDictionary(collections.MutableMapping):
     Attributes:
     longest_key -- A read only property holding the length of the longest key.
     timestamp -- File last modification time, used to detect external changes.
-    save -- If set, is a function that will save this dictionary.
 
     """
-    def __init__(self, *args, **kw):
+    def __init__(self):
         self._dict = {}
         self._longest_key_length = 0
         self._longest_listener_callbacks = set()
         self.reverse = collections.defaultdict(list)
+        # Case-insensitive reverse dict
         self.casereverse = collections.defaultdict(set)
         self.filters = []
-        self.update(*args, **kw)
         self.timestamp = 0
-        self.save = None
+        self.readonly = False
         self.enabled = True
         self.path = None
+
+    @classmethod
+    def create(cls, resource):
+        assert not resource.startswith(ASSET_SCHEME)
+        d = cls()
+        if d.readonly:
+            raise ValueError('%s does not support creation' % cls.__name__)
+        d.path = resource
+        return d
+
+    @classmethod
+    def load(cls, resource):
+        filename = resource_filename(resource)
+        timestamp = resource_timestamp(filename)
+        d = cls()
+        d._load(filename)
+        if resource.startswith(ASSET_SCHEME):
+            d.readonly = True
+        d.path = resource
+        d.timestamp = timestamp
+        return d
+
+    def save(self):
+        assert not self.readonly
+        filename = resource_filename(self.path)
+        # Write the new file to a temp location.
+        tmp = filename + '.tmp'
+        self._save(tmp)
+        timestamp = resource_timestamp(tmp)
+        # Then move the new file to the final location.
+        shutil.move(tmp, filename)
+        # And update our timestamp.
+        self.timestamp = timestamp
+
+    def _load(self, filename):
+        raise NotImplementedError()
+
+    def _save(self, filename):
+        raise NotImplementedError()
 
     @property
     def longest_key(self):
         """The length of the longest key in the dict."""
         return self._longest_key
 
-    @property
-    def readonly(self):
-        return self.save is None
-
     def __len__(self):
         return self._dict.__len__()
-        
+
     def __iter__(self):
         return self._dict.__iter__()
 
@@ -53,13 +91,14 @@ class StenoDictionary(collections.MutableMapping):
         return self._dict.__getitem__(key)
 
     def __setitem__(self, key, value):
+        assert not self.readonly
         self._longest_key = max(self._longest_key, len(key))
         self._dict[key] = value
         self.reverse[value].append(key)
-        # Case-insensitive reverse dict
         self.casereverse[value.lower()].add(value)
 
     def __delitem__(self, key):
+        assert not self.readonly
         value = self._dict.pop(key)
         self.reverse[value].remove(key)
         if len(key) == self.longest_key:

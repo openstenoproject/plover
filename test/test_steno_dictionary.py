@@ -17,10 +17,10 @@ class StenoDictionaryTestCase(unittest.TestCase):
         notifications = []
         def listener(longest_key):
             notifications.append(longest_key)
-        
+
         d = StenoDictionary()
         self.assertEqual(d.longest_key, 0)
-        
+
         d.add_longest_key_listener(listener)
         d[('S',)] = 'a'
         self.assertEqual(d.longest_key, 1)
@@ -41,14 +41,11 @@ class StenoDictionaryTestCase(unittest.TestCase):
         d.clear()
         self.assertEqual(d.longest_key, 0)
         self.assertEqual(notifications, [1, 4, 2, 0])
-        
+
         d.remove_longest_key_listener(listener)
         d[('S', 'S')] = 'c'
         self.assertEqual(d.longest_key, 2)
         self.assertEqual(notifications, [1, 4, 2, 0])
-        
-        self.assertEqual(list(StenoDictionary([('a', 'b')]).items()), [('a', 'b')])
-        self.assertEqual(list(StenoDictionary(a='b').items()), [('a', 'b')])
 
     def test_dictionary_collection(self):
         dc = StenoDictionaryCollection()
@@ -71,14 +68,14 @@ class StenoDictionaryTestCase(unittest.TestCase):
         self.assertEqual(dc.lookup(('W',)), 'd')
         self.assertEqual(dc.lookup(('T',)), 'b')
         self.assertEqual(dc.reverse_lookup('c'), [('S',)])
-        
+
         dc.remove_filter(f)
         self.assertEqual(dc.lookup(('S',)), 'c')
         self.assertEqual(dc.lookup(('W',)), 'd')
         self.assertEqual(dc.lookup(('T',)), 'b')
-        
+
         self.assertEqual(dc.reverse_lookup('c'), [('S',)])
-        
+
         dc.set(('S',), 'e')
         self.assertEqual(dc.lookup(('S',)), 'e')
         self.assertEqual(d2[('S',)], 'e')
@@ -110,7 +107,6 @@ class StenoDictionaryTestCase(unittest.TestCase):
 
         d1 = StenoDictionary()
         d1._path = 'd1'
-        d1.save = lambda: None
         d1[k1] = 'a'
 
         dc.set_dicts([d1])
@@ -155,7 +151,9 @@ class StenoDictionaryTestCase(unittest.TestCase):
                          [('PWAOUFL',), ('WAOUFL',)])
 
         # No duplicates.
-        dc.set_dicts([StenoDictionary(d2), d2])
+        d2_copy = StenoDictionary()
+        d2_copy.update(d2)
+        dc.set_dicts([d2_copy, d2])
         assertCountEqual(self,
                          dc.reverse_lookup('beautiful'),
                          [('PW-FL',)])

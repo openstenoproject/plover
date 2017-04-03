@@ -13,8 +13,8 @@ http://www.legalxml.org/workgroups/substantive/transcripts/cre-spec.htm
 
 """
 
-import inspect
 import codecs
+import inspect
 import re
 
 # Python 2/3 compatibility.
@@ -286,22 +286,6 @@ def load_stylesheet(s):
     """Returns a dictionary mapping a number to a style name."""
     return dict((int(k), v) for k, v in STYLESHEET_RE.findall(s))
 
-def load_dictionary(filename):
-    """Load an RTF/CRE dictionary."""
-    with open(filename, 'rb') as fp:
-        s = fp.read().decode('cp1252')
-    styles = load_stylesheet(s)
-    d = {}
-    converter = TranslationConverter(styles)
-    for m in DICT_ENTRY_PATTERN.finditer(s):
-        steno = normalize_steno(m.group('steno'))
-        translation = m.group('translation')
-        converted = converter(translation)
-        if converted is not None:
-            d[steno] = converted
-    return StenoDictionary(d)
-
-
 HEADER = ("{\\rtf1\\ansi{\\*\\cxrev100}\\cxdict{\\*\\cxsystem Plover}" +
           "{\\stylesheet{\\s0 Normal;}}\r\n")
 
@@ -325,22 +309,31 @@ def format_translation(t):
     t = re.sub(r'{#([^}]+)}', '\\{#\\1\\}', t)
     t = re.sub(r'{PLOVER:([a-zA-Z]+)}', '\\{PLOVER:\\1\\}', t)
     t = re.sub(r'\\"', '"', t)
-    
+
     return t
-    
 
-# TODO: test this
-def save_dictionary(d, fp):
-    writer = codecs.getwriter('cp1252')(fp)
-    writer.write(HEADER)
 
-    for s, t in d.items():
-        s = '/'.join(s)
-        t = format_translation(t)
-        entry = "{\\*\\cxs %s}%s\r\n" % (s, t)
-        writer.write(entry)
+class RtfDictionary(StenoDictionary):
 
-    writer.write("}\r\n")
+    def _load(self, filename):
+        with open(filename, 'rb') as fp:
+            s = fp.read().decode('cp1252')
+        styles = load_stylesheet(s)
+        converter = TranslationConverter(styles)
+        for m in DICT_ENTRY_PATTERN.finditer(s):
+            steno = normalize_steno(m.group('steno'))
+            translation = m.group('translation')
+            converted = converter(translation)
+            if converted is not None:
+                self[steno] = converted
 
-def create_dictionary():
-    return StenoDictionary()
+    def _save(self, filename):
+        with open(filename, 'wb') as fp:
+            writer = codecs.getwriter('cp1252')(fp)
+            writer.write(HEADER)
+            for s, t in self.items():
+                s = '/'.join(s)
+                t = format_translation(t)
+                entry = "{\\*\\cxs %s}%s\r\n" % (s, t)
+                writer.write(entry)
+            writer.write("}\r\n")
