@@ -5,6 +5,7 @@
 
 import sys
 import threading
+import time
 
 # Python 2/3 compatibility.
 from six import reraise
@@ -30,11 +31,15 @@ class DictionaryLoadingManager(object):
         return op
 
     def load(self, filenames):
+        start_time = time.time()
         self.dictionaries = {f: self.start_loading(f) for f in filenames}
-        return [
+        results = [
             self.dictionaries[f].get()
             for f in filenames
         ]
+        log.info('loaded %u dictionaries in %.3fs',
+                 len(results), time.time() - start_time)
+        return results
 
 
 class DictionaryLoadingOperation(object):
