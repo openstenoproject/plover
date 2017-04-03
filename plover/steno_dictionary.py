@@ -32,7 +32,7 @@ class StenoDictionary(collections.MutableMapping):
         self.timestamp = 0
         self.save = None
         self.enabled = True
-        self._path = ''
+        self.path = None
 
     @property
     def longest_key(self):
@@ -76,12 +76,6 @@ class StenoDictionary(collections.MutableMapping):
 
     def casereverse_lookup(self, value):
         return self.casereverse.get(value)
-
-    def set_path(self, path):
-        self._path = path    
-
-    def get_path(self):
-        return self._path    
 
     @property
     def _longest_key(self):
@@ -181,7 +175,7 @@ class StenoDictionaryCollection(object):
 
     def get(self, path):
         for d in self.dicts:
-            if d.get_path() == path:
+            if d.path == path:
                 return d
 
     def __getitem__(self, path):
@@ -192,7 +186,7 @@ class StenoDictionaryCollection(object):
 
     def __iter__(self):
         for d in self.dicts:
-            yield d.get_path()
+            yield d.path
 
     def add_filter(self, f):
         self.filters.append(f)

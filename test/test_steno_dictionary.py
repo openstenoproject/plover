@@ -55,11 +55,11 @@ class StenoDictionaryTestCase(unittest.TestCase):
         d1 = StenoDictionary()
         d1[('S',)] = 'a'
         d1[('T',)] = 'b'
-        d1.set_path('d1')
+        d1.path = 'd1'
         d2 = StenoDictionary()
         d2[('S',)] = 'c'
         d2[('W',)] = 'd'
-        d2.set_path('d2')
+        d2.path = 'd2'
         dc.set_dicts([d2, d1])
         self.assertEqual(dc.lookup(('S',)), 'c')
         self.assertEqual(dc.lookup(('W',)), 'd')
@@ -175,13 +175,13 @@ class StenoDictionaryTestCase(unittest.TestCase):
     def test_dictionary_enabled(self):
         dc = StenoDictionaryCollection()
         d1 = StenoDictionary()
-        d1.set_path('d1')
+        d1.path = 'd1'
         d1[('TEFT',)] = 'test1'
         d1[('TEFGT',)] = 'Testing'
         d2 = StenoDictionary()
         d2[('TEFT',)] = 'test2'
         d2[('TEFT','-G')] = 'Testing'
-        d2.set_path('d2')
+        d2.path = 'd2'
         dc.set_dicts([d2, d1])
         self.assertEqual(dc.lookup(('TEFT',)), 'test2')
         self.assertEqual(dc.raw_lookup(('TEFT',)), 'test2')

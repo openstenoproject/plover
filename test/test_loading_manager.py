@@ -86,10 +86,10 @@ class DictionaryLoadingManagerTestCase(unittest.TestCase):
             self.assertEqual(results[0], 'ccccc')
             self.assertEqual(results[2], 'bbbbb')
             self.assertIsInstance(results[1], DictionaryLoaderException)
-            self.assertEqual(results[1].filename, df('e'))
+            self.assertEqual(results[1].path, df('e'))
             self.assertIsInstance(results[1].exception, Exception)
             self.assertIsInstance(results[3], DictionaryLoaderException)
-            self.assertEqual(results[3].filename, df('f'))
+            self.assertEqual(results[3].path, df('f'))
             self.assertIsInstance(results[3].exception, Exception)
             # Only loaded the files once.
             self.assertTrue(all(x == 1 for x in loader.load_counts.values()))

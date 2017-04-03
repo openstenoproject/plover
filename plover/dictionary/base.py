@@ -41,7 +41,7 @@ def create_dictionary(resource):
     if not hasattr(dictionary_module, 'create_dictionary'):
         raise ValueError('%s does not support creation' % dictionary_module.__name__)
     d = dictionary_module.create_dictionary()
-    d.set_path(resource)
+    d.path = resource
     d.save = ThreadedSaver(d, filename, dictionary_module.save_dictionary)
     return d
 
@@ -54,7 +54,7 @@ def load_dictionary(resource):
     timestamp = resource_timestamp(filename)
     dictionary_module = _get_dictionary_module(filename)
     d = dictionary_module.load_dictionary(filename)
-    d.set_path(resource)
+    d.path = resource
     d.timestamp = timestamp
     if not resource.startswith(ASSET_SCHEME) and \
        hasattr(dictionary_module, 'save_dictionary'):

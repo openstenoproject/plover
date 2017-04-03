@@ -161,7 +161,7 @@ class AddTranslation(Tool, Ui_AddTranslation):
             iterable = reversed(iterable)
         self.dictionary.clear()
         for d in iterable:
-            item = shorten_path(d.get_path())
+            item = shorten_path(d.path)
             if not d.enabled:
                 item += ' [' + _('disabled') + ']'
             self.dictionary.addItem(item)
@@ -175,7 +175,7 @@ class AddTranslation(Tool, Ui_AddTranslation):
         else:
             # Keep user selection.
             for n, d in enumerate(self._dictionaries):
-                if d.get_path() == self._selected_dictionary:
+                if d.path == self._selected_dictionary:
                     selected_index = n
                     break
         if self._reverse_order:
@@ -205,7 +205,7 @@ class AddTranslation(Tool, Ui_AddTranslation):
     def on_dictionary_selected(self, index):
         if self._reverse_order:
             index = len(self._dictionaries) - index - 1
-        self._selected_dictionary = self._dictionaries[index].get_path()
+        self._selected_dictionary = self._dictionaries[index].path
 
     def on_strokes_edited(self):
         strokes = self._strokes()
@@ -247,7 +247,7 @@ class AddTranslation(Tool, Ui_AddTranslation):
                 index = -index - 1
             dictionary = self._dictionaries[index]
             self._engine.add_translation(strokes, translation,
-                                         dictionary_path=dictionary.get_path())
+                                         dictionary_path=dictionary.path)
         super(AddTranslation, self).accept()
 
     def reject(self):

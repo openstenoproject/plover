@@ -32,13 +32,13 @@ class ErroredDictionary(StenoDictionary):
     def __init__(self, path, exception):
         super(ErroredDictionary, self).__init__()
         self.enabled = False
-        self._path = path
+        self.path = path
         self.exception = exception
 
     def __eq__(self, other):
         if not isinstance(other, ErroredDictionary):
             return False
-        return (self._path, self.exception) == (other._path, other.exception)
+        return (self.path, self.exception) == (other.path, other.exception)
 
 
 def copy_default_dictionaries(dictionaries_files):
@@ -235,16 +235,15 @@ class StenoEngine(object):
         copy_default_dictionaries(config_dictionaries.keys())
         dictionaries = []
         for result in self._dictionaries_manager.load(config_dictionaries.keys()):
-            filename = result.get_path()
             if isinstance(result, DictionaryLoaderException):
-                d = ErroredDictionary(filename, result.exception)
+                d = ErroredDictionary(result.path, result.exception)
                 # Only show an error if it's new.
-                if d != self._dictionaries.get(filename):
+                if d != self._dictionaries.get(result.path):
                     log.error('loading dictionary `%s` failed: %s',
-                              shorten_path(filename), str(result.exception))
+                              shorten_path(result.path), str(result.exception))
             else:
                 d = result
-            d.enabled = config_dictionaries[filename].enabled
+            d.enabled = config_dictionaries[d.path].enabled
             dictionaries.append(d)
         def dictionaries_changed(l1, l2):
             if len(l1) != len(l2):
@@ -492,7 +491,7 @@ class StenoEngine(object):
         if dictionary_path is None:
             for d in self._dictionaries.value():
                 if not d.readonly:
-                    dictionary_path = d.get_path()
+                    dictionary_path = d.path
                     break
             else:
                 return

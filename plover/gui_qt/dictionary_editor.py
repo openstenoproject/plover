@@ -32,7 +32,7 @@ class DictionaryItem(namedtuple('DictionaryItem', 'strokes translation dictionar
 
     @property
     def dictionary_path(self):
-        return self.dictionary.get_path()
+        return self.dictionary.path
 
 
 class DictionaryItemDelegate(QStyledItemDelegate):
@@ -44,7 +44,7 @@ class DictionaryItemDelegate(QStyledItemDelegate):
     def createEditor(self, parent, option, index):
         if index.column() == _COL_DICT:
             dictionary_paths = [
-                shorten_path(dictionary.get_path())
+                shorten_path(dictionary.path)
                 for dictionary in self._dictionary_list
                 if not dictionary.readonly
             ]
@@ -94,9 +94,9 @@ class DictionaryItemModel(QAbstractTableModel):
                 if item is None:
                     continue
                 dictionary = item.dictionary
-                if dictionary.get_path() in paths:
+                if dictionary.path in paths:
                     continue
-                paths.add(dictionary.get_path())
+                paths.add(dictionary.path)
                 dictionary_list.append(dictionary)
         return dictionary_list
 
@@ -178,7 +178,7 @@ class DictionaryItemModel(QAbstractTableModel):
         if column == _COL_TRANS:
             return escape_translation(item.translation)
         if column == _COL_DICT:
-            return shorten_path(item.dictionary.get_path())
+            return shorten_path(item.dictionary.path)
 
     def flags(self, index):
         if not index.isValid():
@@ -223,7 +223,7 @@ class DictionaryItemModel(QAbstractTableModel):
         elif column == _COL_DICT:
             path = expand_path(value)
             for dictionary in self._dictionary_list:
-                if dictionary.get_path() == path:
+                if dictionary.path == path:
                     break
             if dictionary == old_item.dictionary:
                 return False
@@ -286,7 +286,7 @@ class DictionaryEditor(QDialog, Ui_DictionaryEditor, WindowState):
             dictionary_list = [
                 dictionary
                 for dictionary in engine.dictionaries.dicts
-                if dictionary.get_path() in dictionary_paths
+                if dictionary.path in dictionary_paths
             ]
         sort_column, sort_order = _COL_STENO, Qt.AscendingOrder
         self._model = DictionaryItemModel(dictionary_list,
@@ -381,6 +381,6 @@ class DictionaryEditor(QDialog, Ui_DictionaryEditor, WindowState):
 
     def on_finished(self, result):
         with self._engine:
-            self._engine.dictionaries.save(dictionary.get_path()
+            self._engine.dictionaries.save(dictionary.path
                                            for dictionary
                                            in self._model.modified)
