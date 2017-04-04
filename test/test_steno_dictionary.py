@@ -38,9 +38,13 @@ class StenoDictionaryTestCase(unittest.TestCase):
         del d[('S',)]
         self.assertEqual(d.longest_key, 2)
         self.assertEqual(notifications, [1, 4, 2])
+        self.assertEqual(d.reverse_lookup('c'), [('S', 'S')])
+        self.assertEqual(d.casereverse_lookup('c'), ['c'])
         d.clear()
         self.assertEqual(d.longest_key, 0)
         self.assertEqual(notifications, [1, 4, 2, 0])
+        self.assertEqual(d.reverse_lookup('c'), [])
+        self.assertEqual(d.casereverse_lookup('c'), [])
 
         d.remove_longest_key_listener(listener)
         d[('S', 'S')] = 'c'
@@ -131,6 +135,16 @@ class StenoDictionaryTestCase(unittest.TestCase):
         dc.set_dicts([])
         self.assertEqual(dc.longest_key, 0)
 
+    def test_casereverse_del(self):
+        d = StenoDictionary()
+        d[('S-G',)] = 'something'
+        d[('SPH-G',)] = 'something'
+        self.assertEqual(d.casereverse_lookup('something'), ['something'])
+        del d[('S-G',)]
+        self.assertEqual(d.casereverse_lookup('something'), ['something'])
+        del d[('SPH-G',)]
+        self.assertEqual(d.casereverse_lookup('something'), [])
+
     def test_reverse_lookup(self):
         dc = StenoDictionaryCollection()
 
@@ -183,12 +197,12 @@ class StenoDictionaryTestCase(unittest.TestCase):
         dc.set_dicts([d2, d1])
         self.assertEqual(dc.lookup(('TEFT',)), 'test2')
         self.assertEqual(dc.raw_lookup(('TEFT',)), 'test2')
-        self.assertEqual(dc.casereverse_lookup('testing'), set(['Testing']))
+        self.assertEqual(dc.casereverse_lookup('testing'), ['Testing'])
         assertCountEqual(self, dc.reverse_lookup('Testing'), [('TEFGT',), ('TEFT', '-G')])
         d2.enabled = False
         self.assertEqual(dc.lookup(('TEFT',)), 'test1')
         self.assertEqual(dc.raw_lookup(('TEFT',)), 'test1')
-        self.assertEqual(dc.casereverse_lookup('testing'), set(['Testing']))
+        self.assertEqual(dc.casereverse_lookup('testing'), ['Testing'])
         assertCountEqual(self, dc.reverse_lookup('Testing'), [('TEFGT',)])
         d1.enabled = False
         self.assertEqual(dc.lookup(('TEST',)), None)
