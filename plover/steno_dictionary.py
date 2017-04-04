@@ -232,9 +232,16 @@ class StenoDictionaryCollection(object):
             if key:
                 return key
 
+    def first_writable(self):
+        '''Return the first writable dictionary.'''
+        for d in self.dicts:
+            if not d.readonly:
+                return d
+        raise KeyError('no writable dictionary')
+
     def set(self, key, value, path=None):
         if path is None:
-            d = self.dicts[0]
+            d = self.first_writable()
         else:
             d = self[path]
         d[key] = value

@@ -489,12 +489,7 @@ class StenoEngine(object):
     @with_lock
     def add_translation(self, strokes, translation, dictionary_path=None):
         if dictionary_path is None:
-            for d in self._dictionaries.value():
-                if not d.readonly:
-                    dictionary_path = d.path
-                    break
-            else:
-                return
+            dictionary_path = self._dictionaries.first_writable().path
         self._dictionaries.set(strokes, translation, path=dictionary_path)
         self._dictionaries.save(path_list=(dictionary_path,))
 

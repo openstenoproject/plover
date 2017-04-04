@@ -100,6 +100,21 @@ class StenoDictionaryTestCase(unittest.TestCase):
         with self.assertRaises(KeyError):
             dc['invalid']
 
+    def test_dictionary_collection_writeable(self):
+        dc = StenoDictionaryCollection()
+        d1 = StenoDictionary()
+        d1[('S',)] = 'a'
+        d1[('T',)] = 'b'
+        d2 = StenoDictionary()
+        d2[('S',)] = 'c'
+        d2[('W',)] = 'd'
+        d2.readonly = True
+        dc.set_dicts([d2, d1])
+        self.assertEqual(dc.first_writable(), d1)
+        dc.set(('S',), 'A')
+        self.assertEqual(d1[('S',)], 'A')
+        self.assertEqual(d2[('S',)], 'c')
+
     def test_dictionary_collection_longest_key(self):
 
         k1 = ('S',)
