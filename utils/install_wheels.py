@@ -98,7 +98,7 @@ def _pip(args, verbose=True, no_progress=True):
     cmd.extend(args)
     return subprocess.call(cmd)
 
-def install_wheels(args, verbose=True, no_progress=True):
+def install_wheels(args, verbose=True, no_install=False, no_progress=True):
     wheels_cache = WHEELS_CACHE
     wheel_args = []
     install_args = []
@@ -116,6 +116,9 @@ def install_wheels(args, verbose=True, no_progress=True):
         opt = a
         if opt == '-w':
             wheels_cache = args.pop(0)
+            continue
+        if opt == '--no-install':
+            no_install = True
             continue
         if opt == '--progress-bar':
             if args[0] == 'off':
@@ -145,14 +148,14 @@ def install_wheels(args, verbose=True, no_progress=True):
         # Since pip will not build and cache wheels for VCS links, we do it ourselves:
         # - first, update the cache (without VCS links), and try to install from it
         code = _pip(wheel_args, no_progress=no_progress)
-        if code == 0:
+        if code == 0 and not no_install:
             code = _pip(install_args, no_progress=no_progress)
     else:
         code = 1
     if code != 0:
       # - if it failed, try to update the cache again, this time with VCS links
       code = _pip(wheel_args + constraint_args, no_progress=no_progress)
-      if code == 0:
+      if code == 0 and not no_install:
           # - and try again
           code = _pip(install_args, no_progress=no_progress)
     if code != 0:

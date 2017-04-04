@@ -30,10 +30,6 @@ url="http://www.openstenoproject.org/plover/"
 source=(https://github.com/openstenoproject/plover/archive/v$pkgver.tar.gz)
 sha1sums=(89ca6af3fe002be218158930d105d25c1e1282be)
 
-prepare() {
-  cd "$pkgname-$pkgver"
-}
-
 check() {
   cd "$pkgname-$pkgver"
   python setup.py test

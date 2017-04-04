@@ -1,19 +1,21 @@
-#! /bin/bash
+#!/bin/bash
 
-set -xe
+set -e
 
-TOP_DIR="$(realpath -m "$0"/../../)"
-ARCH_DIR="$TOP_DIR/archlinux"
-BUILD_DIR="$TOP_DIR/build"
-DIST_DIR="$TOP_DIR/dist"
+BUILD_DIR='build/archlinux'
+DIST_DIR='dist'
 
-. "$ARCH_DIR/PKGBUILD"
-pkgver="$(cd "$TOP_DIR" && ./setup.py --version)"
-src="$BUILD_DIR/src/$pkgname-$pkgver"
-rm -rf "$BUILD_DIR/src" "$BUILD_DIR/pkg"
-mkdir -p "$src" "$DIST_DIR"
-sed "s/^pkgver=.*\$/pkgver=$pkgver/" "$ARCH_DIR/PKGBUILD" >"$BUILD_DIR/PKGBUILD"
-(cd "$TOP_DIR" && git ls-files -z | xargs -0 cp -a --no-dereference --parents --target-directory="$src")
-(cd "$BUILD_DIR/src" && prepare)
-(cd "$BUILD_DIR" && env PKGDEST="$PWD/../dist" makepkg --noextract --force "$@")
+. ./utils/functions.sh
+parse_opts args "$@"
+set -- "${args[@]}"
 
+NAME='plover'
+VERSION="$(./setup.py --version)"
+SDIST="$DIST_DIR/$NAME-$VERSION.tar.gz"
+
+run rm -rf "$BUILD_DIR"
+run mkdir -p "$BUILD_DIR/src" "$DIST_DIR"
+run ./setup.py -q sdist --format=gztar
+run tar xf "$SDIST" -C "$BUILD_DIR/src"
+run_eval "sed 's/^pkgver=.*\$/pkgver=$VERSION/' archlinux/PKGBUILD >'$BUILD_DIR/PKGBUILD'"
+run_eval "(cd '$BUILD_DIR' && env PKGDEST='$PWD/$DIST_DIR' makepkg --noextract --force ${@@Q})"

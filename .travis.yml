@@ -52,11 +52,17 @@ script:
   - git fetch --quiet --unshallow
   - $PYTHON setup.py patch_version
   - $PYTHON setup.py test
-
-before_deploy:
   - |
     (
     set -ex
+    # Only generate artifacts if we're actually going to deploy them.
+    # Note: if we moved this to the `before_deploy` phase, we would
+    # not have to check, but we'd also lose caching; since the cache
+    # is stored before the `before_install` phase...
+    if [ -z "$TRAVIS_TAG" ]
+    then
+      exit 0
+    fi
     case "$TRAVIS_OS_NAME" in
     osx)
       if [ $PYTHON = python3 ]
@@ -65,11 +71,30 @@ before_deploy:
       fi
       ;;
     linux)
-      $PYTHON setup.py bdist_egg
       if [ $PYTHON = python3 ]
       then
         $PYTHON setup.py bdist_wheel sdist
-        ./linux/debuild.sh -us -uc
+        sudo apt-get install -qq \
+          libfuse2 \
+          python3-requests \
+          libglib2.0-dev \
+          libx11-dev \
+          libxmu-dev \
+          libbz2-dev \
+          libgdbm-dev \
+          liblzma-dev \
+          libncurses5-dev \
+          libreadline-dev \
+          libsqlite3-dev \
+          libssl-dev \
+          zlib1g-dev \
+          libudev-dev \
+          libusb-1.0-0-dev \
+          libdbus-1-dev \
+          libdbus-glib-1-dev \
+          ;
+        ./linux/appimage.sh -c -j 2 -w dist/*.whl
+        rm -rf .cache/pip
       fi
       ;;
     esac
@@ -85,7 +110,7 @@ deploy:
   draft: true
   file_glob: true
   file:
-    - "dist/*.deb"
+    - "dist/*.AppImage"
     - "dist/*.dmg"
     - "dist/*.egg"
     - "dist/*.tar.gz"

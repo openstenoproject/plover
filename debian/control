@@ -26,6 +26,7 @@ Homepage: http://plover.stenoknight.com/
 Depends:
 	${python3:Depends},
 	python3-appdirs,
+	python3-dbus,
 	python3-hid,
 	python3-pkg-resources,
 	python3-pyqt5,

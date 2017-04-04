@@ -1,99 +1,42 @@
 #!/bin/bash
 
-opt_dry_run=0
-
-python='false'
-
-info()
-{
-  color=34
-  case "$1" in
-    -c*)
-      color="${1#-c}"
-      shift
-      ;;
-  esac
-  if [ -t 1 ]
-  then
-    echo "[${color}m$@[0m"
-  else
-    echo "$@"
-  fi
-}
-
-err()
-{
-  if [ -t 2 ]
-  then
-    echo "[31m$@[0m" 1>&2
-  else
-    echo "$@" 1>&2
-  fi
-}
-
-find_dist()
-{
-  if ! [ -r /etc/lsb-release ]
-  then
-    if [ -r /etc/arch-release ]
-    then
-      echo arch
-      return
-    fi
-    err "unsuported distribution: $dist"
-    return 1
-  fi
-  dist="$(lsb_release -i -s | tr A-Z a-z)"
-  case "$dist" in
-    arch)
-      echo 'arch'
-      ;;
-    linuxmint|ubuntu)
-      echo 'ubuntu'
-      ;;
-    *)
-      err "unsuported distribution: $dist"
-      return 1
-      ;;
-  esac
-}
-
-run()
-{
-  info "$@"
-  if [ $opt_dry_run -eq 0 ]
-  then
-    "$@"
-  fi
-}
-
-wheels_install()
-{
-  run "$python" -m utils.install_wheels --disable-pip-version-check --timeout=5 --retries=2 "$@"
-}
+. ./utils/functions.sh
 
 # Mac OS X. {{{
 
 osx_bootstrap()
 {
-  run brew update
-  run export HOMEBREW_NO_AUTO_UPDATE=1
-  run git -C "$(brew --repo)/Library/Taps/homebrew/homebrew-core" checkout '5596439c4ca5a9963a7fec0146d3ce2b27e07a17^' Formula/python3.rb
-  osx_packages_install $python
-  run brew link --overwrite $python
+  url='https://www.python.org/ftp/python/3.5.3/python-3.5.3-macosx10.6.pkg'
+  md5='6f9ee2ad1fceb1a7c66c9ec565e57102'
+  dst='.cache/downloads/python35.pkg'
+  run mkdir -p "$(dirname "$dst")"
+  for retry in $(seq 3)
+  do
+    if ! [ -r "$dst" ] && ! run curl --show-error --silent -o "$dst" "$url"
+    then
+      err "python download failed"
+      rm -f "$dst"
+      continue
+    fi
+    if [ $opt_dry_run -ne 0 ] || [ "$(md5 -q "$dst")" = "$md5" ]
+    then
+      break
+    fi
+    err "python md5 did not match"
+    rm -f "$dst"
+  done
+  [ $opt_dry_run -ne 0 -o -r "$dst" ]
+  run sudo installer -pkg "$dst" -target /
+  pip_install --user wheel
 }
 
 osx_packages_install()
 {
-  for package in "$@"
-  do
-    run brew install $package ||
-    run brew outdated $package ||
-    run brew upgrade $package
-  done
+  wheels_install --user "$@"
 }
 
 osx_python3_packages=(
+certifi
 )
 
 # }}}
@@ -220,32 +163,20 @@ wmctrl
 
 # }}}
 
+help()
+{
+  echo "Usage: $0 [python2|python3]"
+  exit 1
+}
+
 set -e
 
-while [ $# -ne 0 ]
-do
-  case "$1" in
-    --dry-run|-n)
-      opt_dry_run=1
-      ;;
-    --debug|-d)
-      set -x
-      ;;
-    --help|-h)
-      exit 0
-      ;;
-    -*)
-      err "invalid option: $1"
-      exit 1
-      ;;
-    *)
-      break
-      ;;
-  esac
-  shift
-done
-
-python="${1:-python3}"
+parse_opts args "$@" && [ "${#args[@]}" -le 1 ] || help
+python="${args[0]:-python3}"
+case "$python" in
+  python2|python3) ;;
+  *) help;;
+esac
 
 case "$OSTYPE" in
   linux-gnu)
@@ -276,9 +207,9 @@ then
 fi
 
 # Update antiquated version of pip on Ubuntu...
-run "$python" -m pip install --upgrade --user pip
+pip_install --user --upgrade pip
 # Upgrade setuptools, we need at least 19.6 to prevent issues with Cython patched 'build_ext' command.
-wheels_install --upgrade --user 'setuptools>=19.6'
+wheels_install --user --upgrade 'setuptools>=19.6'
 # Manually install Cython if not already to speedup hidapi build.
 wheels_install --user Cython
 # Generate requirements.
