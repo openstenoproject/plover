@@ -10,10 +10,13 @@ A steno dictionary maps sequences of steno strokes to translations.
 import collections
 import shutil
 
+# Python 2/3 compatibility.
+from six import iteritems
+
 from plover.resource import ASSET_SCHEME, resource_filename, resource_timestamp
 
 
-class StenoDictionary(collections.MutableMapping):
+class StenoDictionary(object):
     """A steno dictionary.
 
     This dictionary maps immutable sequences to translations and tracks the
@@ -90,12 +93,43 @@ class StenoDictionary(collections.MutableMapping):
     def __getitem__(self, key):
         return self._dict.__getitem__(key)
 
+    def clear(self):
+        self._dict.clear()
+        self.reverse.clear()
+        self.casereverse.clear()
+        self._longest_key = 0
+
+    def items(self):
+        return iteritems(self._dict)
+
+    def iteritems(self):
+        return iteritems(self._dict)
+
+    def update(self, *args, **kwargs):
+        assert not self.readonly
+        longest_key = 0
+        _dict = self._dict
+        reverse = self.reverse
+        casereverse = self.casereverse
+        for iterable in args + (kwargs,):
+            if isinstance(iterable, (dict, StenoDictionary)):
+                iterable = iteritems(iterable)
+            for key, value in iterable:
+                longest_key = max(longest_key, len(key))
+                _dict[key] = value
+                reverse[value].append(key)
+                casereverse[value.lower()][value] += 1
+        self._longest_key = max(self._longest_key, longest_key)
+
     def __setitem__(self, key, value):
         assert not self.readonly
         self._longest_key = max(self._longest_key, len(key))
         self._dict[key] = value
         self.reverse[value].append(key)
         self.casereverse[value.lower()][value] += 1
+
+    def get(self, key, fallback=None):
+        return self._dict.get(key, fallback)
 
     def __delitem__(self, key):
         assert not self.readonly

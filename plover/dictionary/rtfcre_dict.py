@@ -318,14 +318,16 @@ class RtfDictionary(StenoDictionary):
     def _load(self, filename):
         with open(filename, 'rb') as fp:
             s = fp.read().decode('cp1252')
-        styles = load_stylesheet(s)
-        converter = TranslationConverter(styles)
-        for m in DICT_ENTRY_PATTERN.finditer(s):
-            steno = normalize_steno(m.group('steno'))
-            translation = m.group('translation')
-            converted = converter(translation)
-            if converted is not None:
-                self[steno] = converted
+        def parse():
+            styles = load_stylesheet(s)
+            converter = TranslationConverter(styles)
+            for m in DICT_ENTRY_PATTERN.finditer(s):
+                steno = normalize_steno(m.group('steno'))
+                translation = m.group('translation')
+                converted = converter(translation)
+                if converted is not None:
+                    yield steno, converted
+        self.update(parse())
 
     def _save(self, filename):
         with open(filename, 'wb') as fp:
