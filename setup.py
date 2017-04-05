@@ -373,12 +373,17 @@ class BinaryDistDmg(Command):
 
     def run(self):
         self.run_command('bdist_app')
-        app = 'dist/Plover.app'
+        # Get dmgbuild
+        from utils.download import download
+        dmgbuild = download(
+          'https://github.com/morinted/dmgbuild/releases/download/v1.2.1%2Bplover/dmgbuild-1.2.1.pex',
+          '548a5c3336fd30b966060b84d86faa9a697b7f94'
+        )
         dmg = 'dist/%s.dmg' % PACKAGE
-        cmd = 'bash -x osx/app2dmg.sh %s %s' % (app, dmg)
+        # Use Apple's built-in python2 to run dmgbuild
+        cmd = '/usr/bin/python %s -s osx/dmg_resources/settings.py Plover %s' % (dmgbuild, dmg)
         log.info('running %s', cmd)
         subprocess.check_call(cmd.split())
-
 
 cmdclass = {
     'launch': Launch,
