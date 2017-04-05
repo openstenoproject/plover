@@ -29,7 +29,7 @@ class SuggestionsDialog(Tool, Ui_SuggestionsDialog):
     ''' Suggest possible strokes for the last written words. '''
 
     TITLE = _('Suggestions')
-    ICON = ':/suggestions.svg'
+    ICON = ':/lightbulb.svg'
     ROLE = 'suggestions'
     SHORTCUT = 'Ctrl+J'
 
