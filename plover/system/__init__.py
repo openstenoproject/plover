@@ -36,7 +36,7 @@ _EXPORTS = {
     'KEY_ORDER'                : lambda mod: _key_order(mod.KEYS, mod.NUMBERS),
     'NUMBER_KEY'               : lambda mod: mod.NUMBER_KEY,
     'NUMBERS'                  : lambda mod: dict(mod.NUMBERS),
-    'SUFFIX_KEYS'              : lambda mod: set(mod.SUFFIX_KEYS),
+    'SUFFIX_KEYS'              : lambda mod: mod.SUFFIX_KEYS,
     'UNDO_STROKE_STENO'        : lambda mod: mod.UNDO_STROKE_STENO,
     'IMPLICIT_HYPHEN_KEYS'     : lambda mod: set(mod.IMPLICIT_HYPHEN_KEYS),
     'IMPLICIT_HYPHENS'         : lambda mod: set(l.replace('-', '')
