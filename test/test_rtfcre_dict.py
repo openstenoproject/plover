@@ -12,18 +12,20 @@ from six import BytesIO
 
 import mock
 
-from plover.dictionary.rtfcre_dict import load_dictionary, TranslationConverter, format_translation, save_dictionary
+from plover.dictionary.rtfcre_dict import RtfDictionary, TranslationConverter, format_translation
+
+from .utils import make_dict
 
 
 class TestCase(unittest.TestCase):
-    
+
     def test_converter(self):
         styles = {1: 'Normal', 2: 'Continuation'}
-        
+
         convert = TranslationConverter(styles)
-        
+
         cases = (
-        
+
         ('', ''),
         (r'\-', '-'),
         (r'\\', '\\'),
@@ -98,7 +100,7 @@ class TestCase(unittest.TestCase):
                 before, after, result
             )
             self.assertEqual(result, after, msg=msg)
-    
+
     def test_load_dict(self):
         """Test the load_dict function.
 
@@ -106,7 +108,7 @@ class TestCase(unittest.TestCase):
         verifies that they are called.
 
         """
-        
+
         expected_styles = {
             0: 'Normal',
             1: 'Question',
@@ -118,28 +120,12 @@ class TestCase(unittest.TestCase):
             7: 'Paren',
             8: 'Centered',
         }
-        
+
         header = '\r\n'.join(
             [r'{\rtf1\ansi\cxdict{\*\cxrev100}{\*\cxsystem Fake Software}'] +
-            [r'{\s%d %s;}' % (k, v) for k, v in expected_styles.items()] + 
+            [r'{\s%d %s;}' % (k, v) for k, v in expected_styles.items()] +
             ['}'])
         footer = '\r\n}'
-        
-        @contextmanager
-        def make_dict(contents):
-            tf = tempfile.NamedTemporaryFile(delete=False)
-            writer = codecs.getwriter('cp1252')(tf)
-            try:
-                writer.write(header)
-                writer.write(contents)
-                writer.write(footer)
-                tf.close()
-                yield tf.name
-            finally:
-                os.unlink(tf.name)
-
-        def assertEqual(a, b):
-            self.assertEqual(a._dict, b)
 
         this = self
 
@@ -151,23 +137,23 @@ class TestCase(unittest.TestCase):
                 if s == 'return_none':
                     return None
                 return 'converted(%s)' % s
-                
+
         convert = Converter(expected_styles)
         normalize = lambda x: 'normalized(%s)' % x
-        
+
         cases = (
-        
+
         # Empty dictionary.
         ('', {}),
         # Only one translation.
         ('{\\*\\cxs SP}translation', {'SP': 'translation'}),
         # Multiple translations no newlines.
-        ('{\\*\\cxs SP}translation{\\*\\cxs S}translation2', 
+        ('{\\*\\cxs SP}translation{\\*\\cxs S}translation2',
          {'SP': 'translation', 'S': 'translation2'}),
         # Multiple translations on separate lines.
-        ('{\\*\\cxs SP}translation\r\n{\\*\\cxs S}translation2', 
+        ('{\\*\\cxs SP}translation\r\n{\\*\\cxs S}translation2',
          {'SP': 'translation', 'S': 'translation2'}),
-        ('{\\*\\cxs SP}translation\n{\\*\\cxs S}translation2', 
+        ('{\\*\\cxs SP}translation\n{\\*\\cxs S}translation2',
          {'SP': 'translation', 'S': 'translation2'}),
         # Escaped \r and \n handled
         ('{\\*\\cxs SP}trans\\\r\\\n', {'SP': 'trans\\\r\\\n'}),
@@ -185,15 +171,16 @@ class TestCase(unittest.TestCase):
         ('{\\*\\cxs T}t{\\*\\cxs T}g', {'T': 'g'}),
         ('{\\*\\cxs T}t{\\*\\cxs T}return_none', {'T': 't'}),
         )
-        
+
         patch_path = 'plover.dictionary.rtfcre_dict'
-        with mock.patch.multiple(patch_path, normalize_steno=normalize, 
+        with mock.patch.multiple(patch_path, normalize_steno=normalize,
                                  TranslationConverter=Converter):
             for contents, expected in cases:
-                expected = dict((normalize(k), convert(v)) 
+                expected = dict((normalize(k), convert(v))
                                 for k, v in expected.items())
-                with make_dict(contents) as filename:
-                    assertEqual(load_dictionary(filename), expected)
+                with make_dict((header + contents + footer).encode('cp1252')) as filename:
+                    d = RtfDictionary.load(filename)
+                    self.assertEqual(dict(d.items()), expected)
 
     def test_format_translation(self):
         cases = (
@@ -211,10 +198,14 @@ class TestCase(unittest.TestCase):
             self.assertEqual(result, expected, msg=msg)
 
     def test_save_dictionary(self):
-        f = BytesIO()
-        d = {
-        'S/T': '{pre^}',
+        contents = {
+            'S/T': '{pre^}',
         }
-        save_dictionary(d, f)
         expected = b'{\\rtf1\\ansi{\\*\\cxrev100}\\cxdict{\\*\\cxsystem Plover}{\\stylesheet{\\s0 Normal;}}\r\n{\\*\\cxs S///T}pre\\cxds \r\n}\r\n'
-        self.assertEqual(f.getvalue(), expected)
+        with make_dict(b'foo') as filename:
+            d = RtfDictionary.create(filename)
+            d.update(contents)
+            d.save()
+            with open(filename, 'rb') as fp:
+                contents = fp.read()
+        self.assertEqual(contents, expected)

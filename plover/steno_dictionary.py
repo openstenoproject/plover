@@ -8,8 +8,15 @@ A steno dictionary maps sequences of steno strokes to translations.
 """
 
 import collections
+import shutil
 
-class StenoDictionary(collections.MutableMapping):
+# Python 2/3 compatibility.
+from six import iteritems
+
+from plover.resource import ASSET_SCHEME, resource_filename, resource_timestamp
+
+
+class StenoDictionary(object):
     """A steno dictionary.
 
     This dictionary maps immutable sequences to translations and tracks the
@@ -17,48 +24,124 @@ class StenoDictionary(collections.MutableMapping):
 
     Attributes:
     longest_key -- A read only property holding the length of the longest key.
-    save -- If set, is a function that will save this dictionary.
+    timestamp -- File last modification time, used to detect external changes.
 
     """
-    def __init__(self, *args, **kw):
+    def __init__(self):
         self._dict = {}
         self._longest_key_length = 0
         self._longest_listener_callbacks = set()
         self.reverse = collections.defaultdict(list)
-        self.casereverse = collections.defaultdict(set)
+        # Case-insensitive reverse dict
+        self.casereverse = collections.defaultdict(collections.Counter)
         self.filters = []
-        self.update(*args, **kw)
-        self.save = None
-        self._path = ''
+        self.timestamp = 0
+        self.readonly = False
+        self.enabled = True
+        self.path = None
+
+    def __str__(self):
+        return '%s(%r)' % (self.__class__.__name__, self.path)
+
+    @classmethod
+    def create(cls, resource):
+        assert not resource.startswith(ASSET_SCHEME)
+        d = cls()
+        if d.readonly:
+            raise ValueError('%s does not support creation' % cls.__name__)
+        d.path = resource
+        return d
+
+    @classmethod
+    def load(cls, resource):
+        filename = resource_filename(resource)
+        timestamp = resource_timestamp(filename)
+        d = cls()
+        d._load(filename)
+        if resource.startswith(ASSET_SCHEME):
+            d.readonly = True
+        d.path = resource
+        d.timestamp = timestamp
+        return d
+
+    def save(self):
+        assert not self.readonly
+        filename = resource_filename(self.path)
+        # Write the new file to a temp location.
+        tmp = filename + '.tmp'
+        self._save(tmp)
+        timestamp = resource_timestamp(tmp)
+        # Then move the new file to the final location.
+        shutil.move(tmp, filename)
+        # And update our timestamp.
+        self.timestamp = timestamp
+
+    def _load(self, filename):
+        raise NotImplementedError()
+
+    def _save(self, filename):
+        raise NotImplementedError()
 
     @property
     def longest_key(self):
         """The length of the longest key in the dict."""
         return self._longest_key
 
-    @property
-    def readonly(self):
-        return self.save is None
-
     def __len__(self):
         return self._dict.__len__()
-        
+
     def __iter__(self):
         return self._dict.__iter__()
 
     def __getitem__(self, key):
         return self._dict.__getitem__(key)
 
+    def clear(self):
+        self._dict.clear()
+        self.reverse.clear()
+        self.casereverse.clear()
+        self._longest_key = 0
+
+    def items(self):
+        return iteritems(self._dict)
+
+    def iteritems(self):
+        return iteritems(self._dict)
+
+    def update(self, *args, **kwargs):
+        assert not self.readonly
+        longest_key = 0
+        _dict = self._dict
+        reverse = self.reverse
+        casereverse = self.casereverse
+        for iterable in args + (kwargs,):
+            if isinstance(iterable, (dict, StenoDictionary)):
+                iterable = iteritems(iterable)
+            for key, value in iterable:
+                longest_key = max(longest_key, len(key))
+                _dict[key] = value
+                reverse[value].append(key)
+                casereverse[value.lower()][value] += 1
+        self._longest_key = max(self._longest_key, longest_key)
+
     def __setitem__(self, key, value):
+        assert not self.readonly
         self._longest_key = max(self._longest_key, len(key))
         self._dict[key] = value
         self.reverse[value].append(key)
-        # Case-insensitive reverse dict
-        self.casereverse[value.lower()].add(value)
+        self.casereverse[value.lower()][value] += 1
+
+    def get(self, key, fallback=None):
+        return self._dict.get(key, fallback)
 
     def __delitem__(self, key):
+        assert not self.readonly
         value = self._dict.pop(key)
         self.reverse[value].remove(key)
+        counter = self.casereverse[value.lower()]
+        count = counter.pop(value) - 1
+        if count:
+            counter[value] = count
         if len(key) == self.longest_key:
             if self._dict:
                 self._longest_key = max(len(x) for x in self._dict)
@@ -69,16 +152,10 @@ class StenoDictionary(collections.MutableMapping):
         return self.get(key) is not None
 
     def reverse_lookup(self, value):
-        return self.reverse.get(value, ())
+        return self.reverse[value]
 
     def casereverse_lookup(self, value):
-        return self.casereverse.get(value)
-
-    def set_path(self, path):
-        self._path = path    
-
-    def get_path(self):
-        return self._path    
+        return list(self.casereverse[value].keys())
 
     @property
     def _longest_key(self):
@@ -111,8 +188,7 @@ class StenoDictionaryCollection(object):
         for d in self.dicts:
             d.remove_longest_key_listener(self._longest_key_listener)
         self.dicts = dicts[:]
-        self.dicts.reverse()
-        for d in dicts:
+        for d in self.dicts:
             d.add_longest_key_listener(self._longest_key_listener)
         self._longest_key_listener()
 
@@ -123,6 +199,8 @@ class StenoDictionaryCollection(object):
         if key_len > self.longest_key:
             return None
         for d in dicts:
+            if not d.enabled:
+                continue
             if key_len > d.longest_key:
                 continue
             value = d.get(key)
@@ -141,6 +219,8 @@ class StenoDictionaryCollection(object):
     def reverse_lookup(self, value):
         keys = []
         for n, d in enumerate(self.dicts):
+            if not d.enabled:
+                continue
             for k in d.reverse_lookup(value):
                 # Ignore key if it's overriden by a higher priority dictionary.
                 if self._lookup(k, dicts=self.dicts[:n]) is None:
@@ -149,15 +229,24 @@ class StenoDictionaryCollection(object):
 
     def casereverse_lookup(self, value):
         for d in self.dicts:
+            if not d.enabled:
+                continue
             key = d.casereverse_lookup(value)
             if key:
                 return key
 
-    def set(self, key, value, dictionary=None):
-        if dictionary is None:
-            d = self.dicts[0]
+    def first_writable(self):
+        '''Return the first writable dictionary.'''
+        for d in self.dicts:
+            if not d.readonly:
+                return d
+        raise KeyError('no writable dictionary')
+
+    def set(self, key, value, path=None):
+        if path is None:
+            d = self.first_writable()
         else:
-            d = self.get_by_path(dictionary)
+            d = self[path]
         d[key] = value
 
     def save(self, path_list=None):
@@ -165,19 +254,26 @@ class StenoDictionaryCollection(object):
 
         If <path_list> is None, all writable dictionaries are saved'''
         if path_list is None:
-            dict_list = [dictionary
-                         for dictionary in self.dicts
-                         if dictionary.save is not None]
+            dict_list = [d for d in self if dictionary.save is not None]
         else:
-            dict_list = [self.get_by_path(path)
-                         for path in path_list]
-        for dictionary in dict_list:
-            dictionary.save()
+            dict_list = [self[path] for path in path_list]
+        for d in dict_list:
+            d.save()
 
-    def get_by_path(self, path):
+    def get(self, path):
         for d in self.dicts:
-            if d.get_path() == path:
+            if d.path == path:
                 return d
+
+    def __getitem__(self, path):
+        d = self.get(path)
+        if d is None:
+            raise KeyError(repr(path))
+        return d
+
+    def __iter__(self):
+        for d in self.dicts:
+            yield d.path
 
     def add_filter(self, f):
         self.filters.append(f)

@@ -238,4 +238,4 @@ KEYMAPS = {
 }
 
 DICTIONARIES_ROOT = 'asset:plover:assets'
-DEFAULT_DICTIONARIES = ('main.json', 'commands.json', 'user.json')
+DEFAULT_DICTIONARIES = ('user.json', 'commands.json', 'main.json')

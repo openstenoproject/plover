@@ -1,5 +1,5 @@
 
-from collections import namedtuple
+from collections import namedtuple, OrderedDict
 from functools import wraps
 import os
 import shutil
@@ -10,11 +10,13 @@ from six.moves.queue import Queue
 
 from plover import log, system
 from plover.dictionary.loading_manager import DictionaryLoadingManager
-from plover.exception import InvalidConfigurationError
+from plover.exception import DictionaryLoaderException, InvalidConfigurationError
 from plover.formatting import Formatter
+from plover.misc import shorten_path
 from plover.registry import registry
 from plover.resource import ASSET_SCHEME, resource_filename
 from plover.steno import Stroke
+from plover.steno_dictionary import StenoDictionary
 from plover.suggestions import Suggestions
 from plover.translation import Translator
 
@@ -22,6 +24,21 @@ from plover.translation import Translator
 StartingStrokeState = namedtuple('StartingStrokeState', 'attach capitalize')
 
 MachineParams = namedtuple('MachineParams', 'type options keymap')
+
+
+class ErroredDictionary(StenoDictionary):
+    """ Placeholder for dictionaries that failed to load. """
+
+    def __init__(self, path, exception):
+        super(ErroredDictionary, self).__init__()
+        self.enabled = False
+        self.path = path
+        self.exception = exception
+
+    def __eq__(self, other):
+        if not isinstance(other, ErroredDictionary):
+            return False
+        return (self.path, self.exception) == (other.path, other.exception)
 
 
 def copy_default_dictionaries(dictionaries_files):
@@ -64,6 +81,7 @@ class StenoEngine(object):
     machine_state_changed
     output_changed
     config_changed
+    dictionaries_loaded
     send_string
     send_backspaces
     send_key_combination
@@ -201,11 +219,6 @@ class StenoEngine(object):
                 self._machine.set_keymap(machine_keymap)
         if start_machine:
             self._machine.start_capture()
-        # Update dictionaries.
-        dictionaries_files = config['dictionary_file_names']
-        copy_default_dictionaries(dictionaries_files)
-        dictionaries = self._dictionaries_manager.load(dictionaries_files)
-        self._dictionaries.set_dicts(dictionaries)
         # Update running extensions.
         enabled_extensions = config['enabled_extensions']
         running_extensons = set(self._running_extensions)
@@ -214,6 +227,34 @@ class StenoEngine(object):
         # Trigger `config_changed` hook.
         if config_update:
             self._trigger_hook('config_changed', config_update)
+        # Update dictionaries.
+        config_dictionaries = OrderedDict(
+            (d.path, d)
+            for d in config['dictionaries']
+        )
+        copy_default_dictionaries(config_dictionaries.keys())
+        dictionaries = []
+        for result in self._dictionaries_manager.load(config_dictionaries.keys()):
+            if isinstance(result, DictionaryLoaderException):
+                d = ErroredDictionary(result.path, result.exception)
+                # Only show an error if it's new.
+                if d != self._dictionaries.get(result.path):
+                    log.error('loading dictionary `%s` failed: %s',
+                              shorten_path(result.path), str(result.exception))
+            else:
+                d = result
+            d.enabled = config_dictionaries[d.path].enabled
+            dictionaries.append(d)
+        def dictionaries_changed(l1, l2):
+            if len(l1) != len(l2):
+                return True
+            for d1, d2 in zip(l1, l2):
+                if d1 is not d2:
+                    return True
+            return False
+        if dictionaries_changed(dictionaries, self._dictionaries.dicts):
+            self._dictionaries.set_dicts(dictionaries)
+            self._trigger_hook('dictionaries_loaded', self._dictionaries)
 
     def _start_extensions(self, extension_list):
         for extension_name in extension_list:
@@ -446,12 +487,11 @@ class StenoEngine(object):
         self._formatter.start_capitalized = state.capitalize
 
     @with_lock
-    def add_translation(self, strokes, translation, dictionary=None):
-        if dictionary is None:
-            dictionary = self._dictionaries.dicts[0].get_path()
-        self._dictionaries.set(strokes, translation,
-                               dictionary=dictionary)
-        self._dictionaries.save(path_list=(dictionary,))
+    def add_translation(self, strokes, translation, dictionary_path=None):
+        if dictionary_path is None:
+            dictionary_path = self._dictionaries.first_writable().path
+        self._dictionaries.set(strokes, translation, path=dictionary_path)
+        self._dictionaries.save(path_list=(dictionary_path,))
 
     @property
     @with_lock

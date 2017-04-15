@@ -5,6 +5,8 @@
 
 """
 
+import codecs
+
 try:
     import simplejson as json
 except ImportError:
@@ -13,32 +15,30 @@ except ImportError:
 # Python 2/3 compatibility.
 from six import iteritems
 
-from plover.resource import resource_stream
 from plover.steno_dictionary import StenoDictionary
 from plover.steno import normalize_steno
 
 
-def create_dictionary():
-    return StenoDictionary()
+class JsonDictionary(StenoDictionary):
 
-def load_dictionary(filename):
-
-    for encoding in ('utf-8', 'latin-1'):
-        try:
-            with resource_stream(filename, encoding=encoding) as fp:
-                d = json.load(fp)
+    def _load(self, filename):
+        with open(filename, 'rb') as fp:
+            contents = fp.read()
+        for encoding in ('utf-8', 'latin-1'):
+            try:
+                contents = contents.decode(encoding)
+            except UnicodeDecodeError:
+                continue
+            else:
                 break
-        except UnicodeDecodeError:
-            continue
-    else:
-        raise ValueError('\'%s\' encoding could not be determined' % (filename,))
+        else:
+            raise ValueError('\'%s\' encoding could not be determined' % (filename,))
+        d = dict(json.loads(contents))
+        self.update((normalize_steno(x[0]), x[1]) for x in iteritems(d))
 
-    return StenoDictionary((normalize_steno(x[0]), x[1])
-                           for x in iteritems(dict(d)))
-
-
-def save_dictionary(d, fp):
-    contents = json.dumps(dict(('/'.join(k), v) for k, v in iteritems(d)),
-                          ensure_ascii=False, sort_keys=True,
-                          indent=0, separators=(',', ': '))
-    fp.write(contents.encode('utf-8'))
+    def _save(self, filename):
+        with open(filename, 'wb') as fp:
+            writer = codecs.getwriter('utf-8')(fp)
+            json.dump(dict(('/'.join(k), v) for k, v in iteritems(self)),
+                      writer, ensure_ascii=False, sort_keys=True,
+                      indent=0, separators=(',', ': '))

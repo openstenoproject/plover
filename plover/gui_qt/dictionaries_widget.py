@@ -8,12 +8,15 @@ from PyQt5.QtCore import (
     Qt,
     pyqtSignal,
 )
+from PyQt5.QtGui import QIcon
 from PyQt5.QtWidgets import (
     QFileDialog,
     QTableWidgetItem,
     QWidget,
 )
 
+from plover.config import DictionaryConfig
+from plover.engine import ErroredDictionary
 from plover.misc import shorten_path
 from plover.registry import registry
 
@@ -35,7 +38,10 @@ class DictionariesWidget(QWidget, Ui_DictionariesWidget):
         self.setupUi(self)
         self._engine = engine
         self._states = []
-        self._dictionaries = []
+        self._updating = False
+        self._config_dictionaries = {}
+        self._loaded_dictionaries = {}
+        self._reverse_order = False
         for action in (
             self.action_Undo,
             self.action_EditDictionaries,
@@ -61,39 +67,98 @@ class DictionariesWidget(QWidget, Ui_DictionariesWidget):
         self.table.dragMoveEvent = self._drag_move_event
         self.table.dropEvent = self._drop_event
         engine.signal_connect('config_changed', self.on_config_changed)
+        engine.signal_connect('dictionaries_loaded', self.on_dictionaries_loaded)
 
     def setFocus(self):
         self.table.setFocus()
 
-    def on_config_changed(self, config_update):
-        if 'dictionary_file_names' in config_update:
-            if self._update_dictionaries(config_update['dictionary_file_names'],
-                                         record=False, save=False,
-                                         scroll=True):
-                self.action_Undo.setEnabled(False)
-                self._states = []
+    def on_dictionaries_loaded(self, loaded_dictionaries):
+        self._update_dictionaries(loaded_dictionaries=loaded_dictionaries,
+                                  record=False, save=False)
 
-    def _update_dictionaries(self, dictionaries,
-                             record=True, save=True,
-                             scroll=False):
-        if dictionaries == self._dictionaries:
-            return False
+    def on_config_changed(self, config_update):
+        update_kwargs = {}
+        if 'dictionaries' in config_update:
+            update_kwargs.update(
+                config_dictionaries=config_update['dictionaries'],
+                record=False, save=False, reset_undo=True
+            )
+        if 'classic_dictionaries_display_order' in config_update:
+            update_kwargs.update(
+                reverse_order=config_update['classic_dictionaries_display_order'],
+                record=False, save=False,
+            )
+        if update_kwargs:
+            self._update_dictionaries(**update_kwargs)
+
+    def _update_dictionaries(self, config_dictionaries=None, loaded_dictionaries=None,
+                             reverse_order=None, record=True, save=True,
+                             reset_undo=False, keep_selection=True):
+        if reverse_order is None:
+            reverse_order = self._reverse_order
+        if config_dictionaries is None:
+            config_dictionaries = self._config_dictionaries
+        if config_dictionaries == self._config_dictionaries and \
+           reverse_order == self._reverse_order and \
+           loaded_dictionaries is None:
+            return
         if save:
-            self._engine.config = { 'dictionary_file_names': dictionaries }
+            self._engine.config = { 'dictionaries': config_dictionaries }
         if record:
-            self._states.append(self._dictionaries)
+            self._states.append(self._config_dictionaries)
             self.action_Undo.setEnabled(True)
-        self._dictionaries = dictionaries
-        self.table.setRowCount(0)
-        item = None
-        for row, filename in enumerate(dictionaries):
-            self.table.insertRow(row)
-            item = QTableWidgetItem(shorten_path(filename))
-            item.setFlags(item.flags() & ~Qt.ItemIsEditable)
+        if keep_selection:
+            selected = [
+                self._config_dictionaries[row].path
+                for row in self._get_selection()
+            ]
+        self._config_dictionaries = config_dictionaries
+        if loaded_dictionaries is None:
+            loaded_dictionaries = self._loaded_dictionaries
+        else:
+            self._loaded_dictionaries = loaded_dictionaries
+        self._reverse_order = reverse_order
+        self._updating = True
+        self.table.setRowCount(len(config_dictionaries))
+        favorite_set = False
+        for n, dictionary in enumerate(config_dictionaries):
+            row = n
+            if self._reverse_order:
+                row = len(config_dictionaries) - row - 1
+            item = QTableWidgetItem(dictionary.short_path)
+            item.setFlags((item.flags() | Qt.ItemIsUserCheckable) & ~Qt.ItemIsEditable)
+            item.setCheckState(Qt.Checked if dictionary.enabled else Qt.Unchecked)
+            item.setToolTip(dictionary.path)
             self.table.setItem(row, 0, item)
-        if scroll and item is not None:
-            self.table.setCurrentItem(item)
-        return True
+            item = QTableWidgetItem(str(n + 1))
+            if dictionary.path not in loaded_dictionaries:
+                icon = 'loading'
+            else:
+                d = loaded_dictionaries.get(dictionary.path)
+                if isinstance(d, ErroredDictionary):
+                    icon = 'error'
+                    item.setToolTip(str(d.exception))
+                elif d.readonly:
+                    icon = 'readonly'
+                elif not favorite_set and dictionary.enabled:
+                    icon = 'favorite'
+                    favorite_set = True
+                else:
+                    icon = 'normal'
+            item.setIcon(QIcon(':/dictionary_%s.svg' % icon))
+            self.table.setVerticalHeaderItem(row, item)
+        if keep_selection:
+            row_list = []
+            for path in selected:
+                for n, d in enumerate(config_dictionaries):
+                    if d.path == path:
+                        row_list.append(n)
+                        break
+            self._set_selection(row_list)
+        if reset_undo:
+            self.action_Undo.setEnabled(False)
+            self._states = []
+        self._updating = False
 
     @staticmethod
     def _supported_drop_actions():
@@ -128,25 +193,30 @@ class DictionariesWidget(QWidget, Ui_DictionariesWidget):
     def _drop_event(self, event):
         if not self.is_accepted_drag_event(event):
             return
-        dictionaries = list(self._dictionaries)
+        dictionaries = self._config_dictionaries[:]
         dest_item = self.table.itemAt(event.pos())
         if dest_item is None:
-            dest_index = self.table.rowCount()
+            if self._reverse_order:
+                dest_index = 0
+            else:
+                dest_index = len(self._config_dictionaries)
         else:
             dest_index = dest_item.row()
+            if self._reverse_order:
+                dest_index = len(self._config_dictionaries) - dest_index - 1
         if event.source() == self.table:
             sources = [
-                dictionaries[item.row()]
-                for item in self.table.selectedItems()
+                dictionaries[row]
+                for row in self._get_selection()
             ]
         else:
             sources = [
-                url.toLocalFile()
+                DictionaryConfig(url.toLocalFile())
                 for url in event.mimeData().urls()
             ]
-        for filename in sources:
+        for dictionary in sources:
             try:
-                source_index = dictionaries.index(filename)
+                source_index = [d.path for d in dictionaries].index(dictionary.path)
             except ValueError:
                 pass
             else:
@@ -156,12 +226,15 @@ class DictionariesWidget(QWidget, Ui_DictionariesWidget):
                 del dictionaries[source_index]
                 if source_index < dest_index:
                     dest_index -= 1
-            dictionaries.insert(dest_index, filename)
+            dictionaries.insert(dest_index, dictionary)
             dest_index += 1
-        self._update_dictionaries(dictionaries)
+        self._update_dictionaries(dictionaries, keep_selection=False)
 
     def _get_selection(self):
         row_list = [item.row() for item in self.table.selectedItems()]
+        if self._reverse_order:
+            row_count = len(self._config_dictionaries)
+            row_list = [row_count - row - 1 for row in row_list]
         row_list.sort()
         return row_list
 
@@ -169,6 +242,8 @@ class DictionariesWidget(QWidget, Ui_DictionariesWidget):
         selection = QItemSelection()
         model = self.table.model()
         for row in row_list:
+            if self._reverse_order:
+                row = len(self._config_dictionaries) - row - 1
             index = model.index(row, 0)
             selection.select(index, index)
         self.table.selectionModel().select(selection, QItemSelectionModel.Rows |
@@ -176,6 +251,8 @@ class DictionariesWidget(QWidget, Ui_DictionariesWidget):
                                            QItemSelectionModel.Current)
 
     def on_selection_changed(self):
+        if self._updating:
+            return
         enabled = bool(self.table.selectedItems())
         for action in (
             self.action_RemoveDictionaries,
@@ -185,6 +262,18 @@ class DictionariesWidget(QWidget, Ui_DictionariesWidget):
         ):
             action.setEnabled(enabled)
 
+    def on_dictionary_changed(self, item):
+        if self._updating:
+            return
+        row = item.row()
+        if self._reverse_order:
+            row = len(self._config_dictionaries) - row - 1
+        dictionaries = self._config_dictionaries[:]
+        dictionaries[row] = dictionaries[row].replace(
+            enabled=bool(item.checkState() == Qt.Checked)
+        )
+        self._update_dictionaries(dictionaries)
+
     def on_undo(self):
         assert self._states
         dictionaries = self._states.pop()
@@ -192,25 +281,24 @@ class DictionariesWidget(QWidget, Ui_DictionariesWidget):
         self._update_dictionaries(dictionaries, record=False)
 
     def _edit(self, dictionaries):
-        editor = DictionaryEditor(self._engine, dictionaries)
+        editor = DictionaryEditor(self._engine, [d.path for d in dictionaries])
         editor.exec_()
 
     def on_activate_cell(self, row, col):
-        self._edit([self._dictionaries[row]])
+        self._edit([self._config_dictionaries[row]])
 
     def on_edit_dictionaries(self):
-        dictionaries = [self._dictionaries[item.row()]
-                        for item in self.table.selectedItems()]
-        assert dictionaries
-        self._edit(dictionaries)
+        selection = self._get_selection()
+        assert selection
+        self._edit([self._config_dictionaries[row] for row in selection])
 
     def on_remove_dictionaries(self):
         selection = self._get_selection()
         assert selection
-        dictionaries = list(self._dictionaries)
+        dictionaries = self._config_dictionaries[:]
         for row in sorted(selection, reverse=True):
             del dictionaries[row]
-        self._update_dictionaries(dictionaries)
+        self._update_dictionaries(dictionaries, keep_selection=False)
 
     def on_add_dictionaries(self):
         filters = ['*.' + ext for ext in sorted(_dictionary_formats())]
@@ -218,23 +306,37 @@ class DictionariesWidget(QWidget, Ui_DictionariesWidget):
             self, _('Add dictionaries'), None,
             _('Dictionary Files') + ' (%s)' % ' '.join(filters),
         )[0]
-        dictionaries = list(self._dictionaries)
+        dictionaries = self._config_dictionaries[:]
         for filename in new_filenames:
-            if filename not in dictionaries:
-                dictionaries.append(filename)
-        self._update_dictionaries(dictionaries)
+            for d in dictionaries:
+                if d.path == filename:
+                    break
+            else:
+                dictionaries.insert(0, DictionaryConfig(filename))
+        self._update_dictionaries(dictionaries, keep_selection=False)
 
     def on_add_translation(self):
         selection = self._get_selection()
         if selection:
-            selection.sort()
-            dictionary = self._dictionaries[selection[-1]]
+            dictionary_path = self._config_dictionaries[selection[0]].path
         else:
-            dictionary = None
-        self.add_translation.emit(dictionary)
+            dictionary_path = None
+        self.add_translation.emit(dictionary_path)
 
     def on_move_dictionaries_up(self):
-        dictionaries = self._dictionaries[:]
+        if self._reverse_order:
+            self._decrease_dictionaries_priority()
+        else:
+            self._increase_dictionaries_priority()
+
+    def on_move_dictionaries_down(self):
+        if self._reverse_order:
+            self._increase_dictionaries_priority()
+        else:
+            self._decrease_dictionaries_priority()
+
+    def _increase_dictionaries_priority(self):
+        dictionaries = self._config_dictionaries[:]
         selection = []
         min_row = 0
         for old_row in self._get_selection():
@@ -242,13 +344,12 @@ class DictionariesWidget(QWidget, Ui_DictionariesWidget):
             dictionaries.insert(new_row, dictionaries.pop(old_row))
             selection.append(new_row)
             min_row = new_row + 1
-        if dictionaries == self._dictionaries:
+        if dictionaries == self._config_dictionaries:
             return
         self._update_dictionaries(dictionaries)
-        self._set_selection(selection)
 
-    def on_move_dictionaries_down(self):
-        dictionaries = self._dictionaries[:]
+    def _decrease_dictionaries_priority(self):
+        dictionaries = self._config_dictionaries[:]
         selection = []
         max_row = len(dictionaries) - 1
         for old_row in reversed(self._get_selection()):
@@ -256,7 +357,6 @@ class DictionariesWidget(QWidget, Ui_DictionariesWidget):
             dictionaries.insert(new_row, dictionaries.pop(old_row))
             selection.append(new_row)
             max_row = new_row - 1
-        if dictionaries == self._dictionaries:
+        if dictionaries == self._config_dictionaries:
             return
         self._update_dictionaries(dictionaries)
-        self._set_selection(selection)

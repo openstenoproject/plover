@@ -1,0 +1,26 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!-- Created with Inkscape (http://www.inkscape.org/) -->
+<svg width="96" height="96" version="1.0" xmlns="http://www.w3.org/2000/svg" xmlns:cc="http://creativecommons.org/ns#" xmlns:dc="http://purl.org/dc/elements/1.1/" xmlns:rdf="http://www.w3.org/1999/02/22-rdf-syntax-ns#">
+<defs>
+<clipPath id="clipPath3732">
+<path d="m-100-74v96h96v-96h-96zm40 16h16c4.432 0 8 3.568 8 8v16c4.432 0 8 3.568 8 8v24c0 4.432-3.568 8-8 8h-32c-4.432 0-8-3.568-8-8v-24c0-4.432 3.568-8 8-8v-16c0-4.432 3.568-8 8-8zm4 8c-2.216 0-4 1.784-4 4v12h16v-12c0-2.216-1.784-4-4-4h-8z" color="#000000" fill="#f00" opacity=".3"/>
+</clipPath>
+<filter id="filter3736" color-interpolation-filters="sRGB">
+<feGaussianBlur stdDeviation="0.84"/>
+</filter>
+</defs>
+<metadata>
+<rdf:RDF>
+<cc:Work rdf:about="">
+<dc:format>image/svg+xml</dc:format>
+<dc:type rdf:resource="http://purl.org/dc/dcmitype/StillImage"/>
+<dc:title/>
+</cc:Work>
+</rdf:RDF>
+</metadata>
+<g transform="translate(0,74)">
+<path transform="translate(100)" d="m-60-58c-4.432 0-8 3.568-8 8v16c-4.432 0-8 3.568-8 8v24c0 4.432 3.568 8 8 8h32c4.432 0 8-3.568 8-8v-24c0-4.432-3.568-8-8-8v-16c0-4.432-3.568-8-8-8h-16zm4 8h8c2.216 0 4 1.784 4 4v12h-16v-12c0-2.216 1.784-4 4-4z" clip-path="url(#clipPath3732)" color="#000000" fill="none" filter="url(#filter3736)" opacity=".2" stroke="#fff" stroke-width="4"/>
+<path d="m40-58c-4.432 0-8 3.568-8 8v16c-4.432 0-8 3.568-8 8v24c0 4.432 3.568 8 8 8h32c4.432 0 8-3.568 8-8v-24c0-4.432-3.568-8-8-8v-16c0-4.432-3.568-8-8-8h-16zm4 8h8c2.216 0 4 1.784 4 4v12h-16v-12c0-2.216 1.784-4 4-4z" color="#000000" fill="#c8c8c8" stroke="#000" stroke-width="3"/>
+<rect x="-100" y="-74" width="96" height="96" color="#000000" fill="#f00" opacity=".3"/>
+</g>
+</svg>

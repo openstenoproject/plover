@@ -66,7 +66,7 @@
      </attribute>
      <column>
       <property name="text">
-       <string>Dictionary</string>
+       <string>Dictionaries</string>
       </property>
      </column>
     </widget>
@@ -321,6 +321,22 @@
     </hint>
    </hints>
   </connection>
+  <connection>
+   <sender>table</sender>
+   <signal>itemChanged(QTableWidgetItem*)</signal>
+   <receiver>DictionariesWidget</receiver>
+   <slot>on_dictionary_changed(QTableWidgetItem*)</slot>
+   <hints>
+    <hint type="sourcelabel">
+     <x>182</x>
+     <y>118</y>
+    </hint>
+    <hint type="destinationlabel">
+     <x>182</x>
+     <y>118</y>
+    </hint>
+   </hints>
+  </connection>
  </connections>
  <slots>
   <slot>on_selection_changed()</slot>
@@ -332,5 +348,6 @@
   <slot>on_activate_cell(int,int)</slot>
   <slot>on_move_dictionaries_up()</slot>
   <slot>on_move_dictionaries_down()</slot>
+  <slot>on_dictionary_changed(QTableWidgetItem*)</slot>
  </slots>
 </ui>

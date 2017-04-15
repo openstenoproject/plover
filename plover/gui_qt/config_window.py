@@ -327,6 +327,15 @@ class MultipleChoicesOption(QTableWidget):
         self.valueChanged.emit(self._value)
 
 
+class BooleanAsDualChoiceOption(ChoiceOption):
+
+    valueChanged = pyqtSignal(bool)
+
+    def __init__(self, choice_false, choice_true):
+        choices = { False: choice_false, True: choice_true }
+        super(BooleanAsDualChoiceOption, self).__init__(choices)
+
+
 class ConfigOption(object):
 
     def __init__(self, display_name, option_name, widget_class,
@@ -369,6 +378,12 @@ class ConfigWindow(QDialog, Ui_ConfigWindow, WindowState):
                              _('Set the translation dialog opacity:\n'
                                '- 0 makes the dialog invisible\n'
                                '- 100 is fully opaque')),
+                ConfigOption(_('Dictionaries display order:'), 'classic_dictionaries_display_order',
+                             partial(BooleanAsDualChoiceOption,
+                                     _('top-down'), _('bottom-up')),
+                             _('Set the display order for dictionaries:\n'
+                               '- top-down: match the search order; highest priority first\n'
+                               '- bottom-up: reverse search order; lowest priority first\n')),
             )),
             (_('Logging'), (
                 ConfigOption(_('Log file:'), 'log_file_name',

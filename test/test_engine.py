@@ -21,7 +21,7 @@ class FakeConfig(object):
         'machine_specific_options'  : {},
         'system_name'               : DEFAULT_SYSTEM_NAME,
         'system_keymap'             : [(k, k) for k in system.KEYS],
-        'dictionary_file_names'     : [],
+        'dictionaries'              : {},
         'log_file_name'             : os.devnull,
         'enable_stroke_logging'     : False,
         'enable_translation_logging': False,

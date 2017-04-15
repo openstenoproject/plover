@@ -81,7 +81,7 @@
      <item row="0" column="1">
       <widget class="QComboBox" name="dictionary">
        <property name="editable">
-        <bool>true</bool>
+        <bool>false</bool>
        </property>
       </widget>
      </item>
@@ -209,9 +209,26 @@
     </hint>
    </hints>
   </connection>
+  <connection>
+   <sender>dictionary</sender>
+   <signal>activated(int)</signal>
+   <receiver>AddTranslation</receiver>
+   <slot>on_dictionary_selected(int)</slot>
+   <hints>
+    <hint type="sourcelabel">
+     <x>187</x>
+     <y>19</y>
+    </hint>
+    <hint type="destinationlabel">
+     <x>149</x>
+     <y>127</y>
+    </hint>
+   </hints>
+  </connection>
  </connections>
  <slots>
   <slot>on_strokes_edited(QString)</slot>
   <slot>on_translation_edited(QString)</slot>
+  <slot>on_dictionary_selected(int)</slot>
  </slots>
 </ui>

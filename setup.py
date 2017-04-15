@@ -402,8 +402,8 @@ entrypoints = {
     ],
 
     'plover.dictionary': [
-        'json = plover.dictionary.json_dict',
-        'rtf = plover.dictionary.rtfcre_dict',
+        'json = plover.dictionary.json_dict:JsonDictionary',
+        'rtf = plover.dictionary.rtfcre_dict:RtfDictionary',
     ],
 
     'plover.gui': [
