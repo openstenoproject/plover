@@ -38,7 +38,7 @@ class MiscTestCase(unittest.TestCase):
              os.path.abspath('/foo/bar')),
             # Relative path, resolve relative to configuration directory.
             (os.path.normpath('foo/bar'),
-             os.path.join(conf.CONFIG_DIR, 'foo', 'bar')),
+             os.path.join(os.path.realpath(conf.CONFIG_DIR), 'foo', 'bar')),
             # Path below the user home directory.
             (os.path.normpath('~/foo/bar'),
              os.path.expanduser(os.path.normpath('~/foo/bar'))),
