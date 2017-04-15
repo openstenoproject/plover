@@ -40,6 +40,9 @@ class StenoDictionary(object):
         self.enabled = True
         self.path = None
 
+    def __str__(self):
+        return '%s(%r)' % (self.__class__.__name__, self.path)
+
     @classmethod
     def create(cls, resource):
         assert not resource.startswith(ASSET_SCHEME)
