@@ -162,7 +162,7 @@ class WineEnvironment(Environment):
         if self.dry_run:
             return
         path = self.run(('wine', 'cmd.exe', '/c', 'echo', '%PATH%'), redirection='always')
-        path = path.strip().replace("\\", "\\\\")
+        path = path.decode().strip().replace("\\", "\\\\")
         directory = directory.replace("\\", "\\\\")
         regfile = r'%s\path.reg' % TEMP_DIR
         real_regfile = self.get_realpath(regfile)
@@ -231,7 +231,7 @@ class Win32Environment(Environment):
         if self.verbose:
             print('adding "%s" to PATH' % directory)
         if self._path is None:
-            self._path = self.run(('cmd.exe', '/c', 'echo', '%PATH%'), redirection='always').strip()
+            self._path = self.run(('cmd.exe', '/c', 'echo', '%PATH%'), redirection='always').strip().decode()
         self._path = directory + ';' + self._path
         batch = r'%s\setpath.bat' % TEMP_DIR
         with open(batch, 'w') as fp:
@@ -246,6 +246,12 @@ class Win32Environment(Environment):
 class Helper(object):
 
     DEPENDENCIES = (
+        ('nsis', 'http://prdownloads.sourceforge.net/nsis/nsis-3.01-setup.exe',
+         'f47f59956cdf1de42a5476649a4973bc11956987', None,
+         # Note: the NSIS installer itself does support `/D` to set the
+         # installation directory, and is installed in `C:\Program Files
+         # (x86)\NSIS` on AppVeyor, but `C:\Program Files\NSIS` in Wine...
+         ('/S',), (r'C:\Program Files\NSIS', r'C:\Program Files (x86)\NSIS')),
     )
 
     def __init__(self):
@@ -438,7 +444,11 @@ class Helper(object):
         assert handler, 'no handler for installing format %s' % handler_format
         handler(dst, *handler_args)
         if path_dir is not None:
-            self._env.add_to_path(path_dir)
+            if isinstance(path_dir, (list, tuple)):
+                for d in path_dir:
+                    self._env.add_to_path(d)
+            else:
+                self._env.add_to_path(path_dir)
 
     def cmd_help(self, *commands):
         '''print detailed help'''
@@ -478,11 +488,12 @@ class Helper(object):
         '''
         self._env.run((executable,) + tuple(args), redirection='never')
 
-    def cmd_dist(self, trim=False, zipdir=False):
+    def cmd_dist(self, trim=False, zipdir=False, installer=False):
         '''create windows distribution
 
         trim: trim the result to reduce size
         zipdir: zip the resulting directory
+        installer: also create an installer
         '''
         self._rmtree('build')
         self._rmtree('dist')
@@ -495,6 +506,8 @@ class Helper(object):
             cmd.append('-t')
         if zipdir:
             cmd.append('-z')
+        if installer:
+            cmd.append('-i')
         self._env.run(cmd)
 
     def main(self, args):
@@ -555,8 +568,8 @@ class WineHelper(Helper):
 class Win32Helper(Helper):
 
     DEPENDENCIES = (
-        # Install wget first, since we'll be using it for fetching some of the other dependencies.
-        ('wget', 'pip:wget', None, None, (), None),
+        # Install requests first, since we'll be using it for fetching some of the other dependencies.
+        ('requests', 'pip:requests', None, None, (), None),
     ) + Helper.DEPENDENCIES
 
     def __init__(self):
