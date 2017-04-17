@@ -323,7 +323,7 @@
   </connection>
   <connection>
    <sender>table</sender>
-   <signal>itemChanged(QTableWidgetItem*)</signal>
+   <signal>itemChanged()</signal>
    <receiver>DictionariesWidget</receiver>
    <slot>on_dictionary_changed(QTableWidgetItem*)</slot>
    <hints>
