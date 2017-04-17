@@ -246,3 +246,12 @@ class BlackboxTest(unittest.TestCase):
             stroke = steno_to_stroke(steno)
             self.translator.translate(stroke)
         self.assertEqual(self.output.text, u'\n\t')
+
+    def test_automatic_suffix_keys_1(self):
+        self.dictionary.set(('RAEUS',), 'race')
+        self.dictionary.set(('RAEUZ',), 'raise')
+        self.dictionary.set(('-S',), '{^s}')
+        self.dictionary.set(('-Z',), '{^s}')
+        stroke = Stroke(('R-', 'A-', '-E', '-U', '-S', '-Z'))
+        self.translator.translate(stroke)
+        self.assertEqual(self.output.text, u' races')
