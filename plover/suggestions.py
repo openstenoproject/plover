@@ -35,7 +35,7 @@ class Suggestions(object):
 
         similar_words = self.dictionary.casereverse_lookup(translation.lower())
         if similar_words:
-            possible_translations |= similar_words
+            possible_translations |= set(similar_words)
 
         for t in possible_translations:
             for modded_translation in [mod % t for mod in mods]:
