@@ -3,9 +3,9 @@ from collections import namedtuple
 
 from PyQt5.QtCore import QEvent
 
-from plover.misc import expand_path, shorten_path
+from plover.misc import shorten_path
 from plover.steno import normalize_steno
-from plover.engine import ErroredDictionary, StartingStrokeState
+from plover.engine import StartingStrokeState
 from plover.translation import escape_translation, unescape_translation
 
 from plover.gui_qt.add_translation_ui import Ui_AddTranslation
