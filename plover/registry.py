@@ -28,6 +28,9 @@ class Plugin(object):
         self.obj = obj
         self.__doc__ = obj.__doc__ or ''
 
+    def __str__(self):
+        return '%s:%s' % (self.plugin_type, self.name)
+
 
 class Registry(object):
 
