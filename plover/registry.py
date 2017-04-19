@@ -1,24 +1,10 @@
 
 from collections import namedtuple
-import sys
-import os
 
 import pkg_resources
 
-from plover.oslayer.config import CONFIG_DIR
+from plover.oslayer.config import PLUGINS_PLATFORM
 from plover import log
-
-
-PLUGINS_DIR = os.path.join(CONFIG_DIR, 'plugins')
-
-if sys.platform.startswith('darwin'):
-    PLUGINS_PLATFORM = 'mac'
-elif sys.platform.startswith('linux'):
-    PLUGINS_PLATFORM = 'linux'
-elif sys.platform.startswith('win'):
-    PLUGINS_PLATFORM = 'win'
-else:
-    PLUGINS_PLATFORM = None
 
 
 class Plugin(object):
@@ -83,15 +69,6 @@ class Registry(object):
     def list_plugins(self, plugin_type):
         return sorted(self._plugins[plugin_type].values(),
                       key=lambda p: p.name)
-
-    def load_plugins(self, plugins_dir=PLUGINS_DIR):
-        log.info('loading plugins from %s', plugins_dir)
-        working_set = pkg_resources.working_set
-        environment = pkg_resources.Environment([plugins_dir])
-        distributions, errors = working_set.find_plugins(environment)
-        if errors:
-            log.error("error(s) while loading plugins: %s", errors)
-        list(map(working_set.add, distributions))
 
     def list_distributions(self):
         return [dist for dist_id, dist in sorted(self._distributions.items())]

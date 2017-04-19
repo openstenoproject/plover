@@ -211,9 +211,7 @@ class Launch(Command):
 
     def run(self):
         with self.project_on_sys_path():
-            from plover.main import main
-            sys.argv = [' '.join(sys.argv[0:2]) + ' --'] + self.args
-            sys.exit(main())
+            os.execv(sys.executable, 'plover -m plover.main'.split() + self.args)
 
 
 class PatchVersion(Command):
