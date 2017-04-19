@@ -3,12 +3,8 @@
 
 """Centralized place for dictionary loading operation."""
 
-import sys
 import threading
 import time
-
-# Python 2/3 compatibility.
-from six import reraise
 
 from plover.dictionary.base import load_dictionary
 from plover.exception import DictionaryLoaderException

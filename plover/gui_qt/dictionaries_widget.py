@@ -17,7 +17,6 @@ from PyQt5.QtWidgets import (
 
 from plover.config import DictionaryConfig
 from plover.engine import ErroredDictionary
-from plover.misc import shorten_path
 from plover.registry import registry
 
 from plover.gui_qt.dictionaries_widget_ui import Ui_DictionariesWidget

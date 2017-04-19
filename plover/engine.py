@@ -57,7 +57,7 @@ def copy_default_dictionaries(dictionaries_files):
             continue
         # Check it's actually a default dictionary.
         basename = os.path.basename(dictionary)
-        if not basename in system.DEFAULT_DICTIONARIES:
+        if basename not in system.DEFAULT_DICTIONARIES:
             continue
         default_dictionary = os.path.join(system.DICTIONARIES_ROOT, basename)
         log.info('recreating %s from %s', dictionary, default_dictionary)
@@ -221,9 +221,9 @@ class StenoEngine(object):
             self._machine.start_capture()
         # Update running extensions.
         enabled_extensions = config['enabled_extensions']
-        running_extensons = set(self._running_extensions)
-        self._stop_extensions(running_extensons - enabled_extensions)
-        self._start_extensions(enabled_extensions - running_extensons)
+        running_extensions = set(self._running_extensions)
+        self._stop_extensions(running_extensions - enabled_extensions)
+        self._start_extensions(enabled_extensions - running_extensions)
         # Trigger `config_changed` hook.
         if config_update:
             self._trigger_hook('config_changed', config_update)
@@ -258,7 +258,7 @@ class StenoEngine(object):
 
     def _start_extensions(self, extension_list):
         for extension_name in extension_list:
-            log.info('starting `%s` extension' % extension_name)
+            log.info('starting `%s` extension', extension_name)
             try:
                 extension = registry.get_plugin('extension', extension_name).obj(self)
                 extension.start()
@@ -269,7 +269,7 @@ class StenoEngine(object):
 
     def _stop_extensions(self, extension_list):
         for extension_name in list(extension_list):
-            log.info('stopping `%s` extension' % extension_name)
+            log.info('stopping `%s` extension', extension_name)
             extension = self._running_extensions.pop(extension_name)
             extension.stop()
             del extension
