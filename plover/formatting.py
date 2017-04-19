@@ -101,6 +101,8 @@ _parse_meta = _build_metas_parser((
     (r'\*-\|', 'retro_case', Case.CAP_FIRST_WORD.value  ),
     (r'\*>'  , 'retro_case', Case.LOWER_FIRST_CHAR.value),
     (r'\*<'  , 'retro_case', Case.UPPER_FIRST_WORD.value),
+    # Explicit word end.
+    (r'(\$)', 'word_end', 0),
     # Mode.
     (r'MODE:(.*)', 'mode', 0),
     # Currency.
@@ -554,7 +556,7 @@ class _Action:
                  # Current.
                  glue=False, word=None, orthography=True, space_char=' ',
                  upper_carry=False, case=None, text=None, trailing_space='',
-                 combo=None, command=None,
+                 word_is_finished=None, combo=None, command=None,
                  # Next.
                  next_attach=False, next_case=None
                 ):
@@ -575,6 +577,8 @@ class _Action:
                 suffixes.
 
         upper_carry -- True if we are uppercasing the current word.
+
+        word_is_finished -- True if word is finished.
 
         othography -- True if orthography rules should be applies when adding
                       a suffix to this action.
@@ -609,6 +613,10 @@ class _Action:
         self.orthography = orthography
         self.next_attach = next_attach
         self.next_case = next_case
+        if word_is_finished is None:
+            self.word_is_finished = not self.next_attach
+        else:
+            self.word_is_finished = word_is_finished
         # Persistent state variables
         self.space_char = space_char
         self.case = case
@@ -628,6 +636,7 @@ class _Action:
             case=self.case, glue=self.glue, orthography=self.orthography,
             space_char=self.space_char, upper_carry=self.upper_carry,
             word=self.word, trailing_space=self.trailing_space,
+            word_is_finished=self.word_is_finished,
             # Next.
             next_attach=self.next_attach, next_case=self.next_case,
         )
