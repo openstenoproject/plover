@@ -1,4 +1,5 @@
 
+from collections import namedtuple
 import sys
 import os
 
@@ -32,6 +33,9 @@ class Plugin(object):
         return '%s:%s' % (self.plugin_type, self.name)
 
 
+PluginDistribution = namedtuple('PluginDistribution', 'dist plugins')
+
+
 class Registry(object):
 
     PLUGIN_TYPES = (
@@ -46,23 +50,32 @@ class Registry(object):
 
     def __init__(self):
         self._plugins = {}
+        self._distributions = {}
         for plugin_type in self.PLUGIN_TYPES:
             self._plugins[plugin_type] = {}
 
     def register_plugin(self, plugin_type, name, obj):
         plugin = Plugin(plugin_type, name, obj)
         self._plugins[plugin_type][name.lower()] = plugin
+        return plugin
 
     def register_plugin_from_entrypoint(self, plugin_type, entrypoint):
         log.info('%s: %s (from %s)', plugin_type,
-                 entrypoint.name, entrypoint.module_name)
+                 entrypoint.name, entrypoint.dist)
         try:
             obj = entrypoint.resolve()
         except:
             log.error('error loading %s plugin: %s (from %s)', plugin_type,
                       entrypoint.name, entrypoint.module_name, exc_info=True)
         else:
-            self.register_plugin(plugin_type, entrypoint.name, obj)
+            plugin = self.register_plugin(plugin_type, entrypoint.name, obj)
+            # Keep track of distributions providing plugins.
+            dist_id = str(entrypoint.dist)
+            dist = self._distributions.get(dist_id)
+            if dist is None:
+                dist = PluginDistribution(entrypoint.dist, set())
+                self._distributions[dist_id] = dist
+            dist.plugins.add(plugin)
 
     def get_plugin(self, plugin_type, plugin_name):
         return self._plugins[plugin_type][plugin_name.lower()]
@@ -79,6 +92,9 @@ class Registry(object):
         if errors:
             log.error("error(s) while loading plugins: %s", errors)
         list(map(working_set.add, distributions))
+
+    def list_distributions(self):
+        return [dist for dist_id, dist in sorted(self._distributions.items())]
 
     def update(self):
         for plugin_type in self.PLUGIN_TYPES:
