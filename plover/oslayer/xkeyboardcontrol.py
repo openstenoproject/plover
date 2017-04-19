@@ -1158,7 +1158,7 @@ class KeyboardEmulation(object):
             for keysym_index, keysym in enumerate(mapping):
                 if keysym == self.PLOVER_MAPPING_KEYSYM:
                     continue
-                if not keysym_index in (0, 1, 4, 5):
+                if keysym_index not in (0, 1, 4, 5):
                     continue
                 modifiers = 0
                 if 1 == (keysym_index % 2):
