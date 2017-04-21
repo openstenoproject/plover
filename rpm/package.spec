@@ -1,5 +1,5 @@
 Name:    plover
-Version: 4.0.0.dev0
+Version: 4.0.0.dev1
 Release: 1%{?dist}
 Summary: Open Source Stenography Software
 URL:     http://www.openstenoproject.org/
