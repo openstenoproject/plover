@@ -1,3 +1,9 @@
+plover (4.0.0.dev1-1) xenial; urgency=low
+
+  * Update to latest development version.
+
+ -- Benoit Pierre <benoit.pierre@gmail.com>  Fri, 21 Apr 2017 14:40:36 +0200
+
 plover (4.0.0.dev0-1) xenial; urgency=low
 
   * Switch to Python 3 / PyQt5.
