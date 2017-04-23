@@ -95,6 +95,9 @@ class FakeEngine(StenoEngine):
     def _in_engine_thread(self):
         return True
 
+    def quit(self, code=0):
+        self._same_thread_hook(self._quit, code)
+
     def start(self):
         StenoEngine.start(self)
 
@@ -173,9 +176,11 @@ class EngineTestCase(unittest.TestCase):
             self.assertFalse(FakeMachine.instance.is_suppressed)
             # Stopped.
             self.events = []
-            self.engine.quit()
+            self.engine.quit(42)
+            self.assertEqual(self.engine.join(), 42)
             self.assertEqual(self.events, [
                 ('machine_state_changed', ('Fake', 'stopped'), {}),
+                ('quit', (), {}),
             ])
             self.assertIsNone(FakeMachine.instance)
 

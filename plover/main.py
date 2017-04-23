@@ -4,10 +4,13 @@
 
 "Launch the plover application."
 
+
+import argparse
+import atexit
 import os
 import sys
+import subprocess
 import traceback
-import argparse
 
 # This need to be imported before pkg_resources.
 from plover.oslayer.config import CONFIG_DIR
@@ -123,6 +126,21 @@ def main():
     except:
         gui.show_error('Unexpected error', traceback.format_exc())
         code = 2
+    if code == -1:
+        # Restart.
+        args = sys.argv[:]
+        if args[0].endswith('.py') or args[0].endswith('.pyc'):
+            # We're running from source.
+            assert args[0] == __file__
+            args[0:1] = [sys.executable, '-m', __spec__.name]
+        # Execute atexit handlers.
+        atexit._run_exitfuncs()
+        if sys.platform.startswith('win32'):
+            # Workaround https://bugs.python.org/issue19066
+            subprocess.Popen(args, cwd=os.getcwd())
+            code = 0
+        else:
+            os.execv(args[0], args)
     os._exit(code)
 
 if __name__ == '__main__':

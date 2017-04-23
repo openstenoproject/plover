@@ -38,7 +38,6 @@ class MainWindow(QMainWindow, Ui_MainWindow, WindowState):
             'about'             : AboutDialog,
             'configuration'     : ConfigWindow,
         }
-        self.action_Quit.triggered.connect(QCoreApplication.quit)
         all_actions = find_menu_actions(self.menubar)
         # Dictionaries.
         self.dictionaries = DictionariesWidget(engine)
@@ -82,6 +81,8 @@ class MainWindow(QMainWindow, Ui_MainWindow, WindowState):
                 popup_menu.addSeparator()
         self._trayicon.set_menu(popup_menu)
         engine.signal_connect('machine_state_changed', self._trayicon.update_machine_state)
+        engine.signal_connect('quit', self.on_quit)
+        self.action_Quit.triggered.connect(engine.quit)
         # Populate tools bar/menu.
         tools_menu = all_actions['menu_Tools'].menu()
         # Toolbar popup menu for selecting which tools are shown.
@@ -254,14 +255,13 @@ class MainWindow(QMainWindow, Ui_MainWindow, WindowState):
         self.save_state()
         self._trayicon.disable()
         self.hide()
+        QCoreApplication.quit()
 
     def on_show(self):
         self._focus()
 
     def closeEvent(self, event):
-        if self._trayicon.is_enabled():
-            self.hide()
-            event.ignore()
-        else:
-            QCoreApplication.quit()
-            event.accept()
+        self.hide()
+        if not self._trayicon.is_enabled():
+            self._engine.quit()
+        event.ignore()

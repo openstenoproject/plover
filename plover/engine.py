@@ -290,8 +290,10 @@ class StenoEngine(object):
             extension.stop()
             del extension
 
-    def _quit(self):
+    def _quit(self, code):
         self._stop()
+        self.code = code
+        self._trigger_hook('quit')
         return True
 
     def _toggle_output(self):
@@ -331,7 +333,7 @@ class StenoEngine(object):
             self._toggle_output()
             return True
         elif command == 'QUIT':
-            self._trigger_hook('quit')
+            self.quit()
             return True
         if not self._is_running:
             return False
@@ -432,8 +434,17 @@ class StenoEngine(object):
     def start(self):
         self._same_thread_hook(self._start)
 
-    def quit(self):
-        self._same_thread_hook(self._quit)
+    def quit(self, code=0):
+        # We need to go through the queue, even when already called
+        # from the engine thread so _quit's return code does break
+        # the thread out of its main loop.
+        self._queue.put((self._quit, (code,), {}))
+
+    def restart(self):
+        self.quit(-1)
+
+    def join(self):
+        return self.code
 
     @with_lock
     def machine_specific_options(self, machine_type):

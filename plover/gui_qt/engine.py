@@ -32,7 +32,6 @@ class Engine(StenoEngine, QThread):
     def __init__(self, config, keyboard_emulation):
         StenoEngine.__init__(self, config, keyboard_emulation)
         QThread.__init__(self)
-        self.hook_connect('quit', QCoreApplication.quit)
         self._signals = {}
         for hook in self.HOOKS:
             signal = getattr(self, 'signal_' + hook)
@@ -45,6 +44,10 @@ class Engine(StenoEngine, QThread):
     def start(self):
         QThread.start(self)
         StenoEngine.start(self)
+
+    def join(self):
+        QThread.wait(self)
+        return self.code
 
     def run(self):
         if sys.platform.startswith('darwin'):
