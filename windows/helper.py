@@ -279,7 +279,7 @@ class Helper(object):
                 line = line.strip()
                 if not line:
                     continue
-                name, doc = line.split(': ', 2)
+                name, doc = line.split(': ', 1)
                 args_help[name] = doc
             short_opts = set()
             assert 'self' == argspec.args[0]
