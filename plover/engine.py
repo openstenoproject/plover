@@ -331,7 +331,7 @@ class StenoEngine(object):
         elif command == 'LOOKUP':
             self._trigger_hook('lookup')
         else:
-            command_args = command.split(':', 2)
+            command_args = command.split(':', 1)
             command_fn = registry.get_plugin('command', command_args[0]).obj
             command_fn(self, command_args[1] if len(command_args) == 2 else '')
         return False
