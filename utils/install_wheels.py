@@ -110,7 +110,7 @@ def install_wheels(args, verbose=True, no_install=False, no_progress=True):
             install_args.append(a)
             continue
         if '=' in a:
-            a = a.split('=', 2)
+            a = a.split('=', 1)
             args.insert(0, a[1])
             a = a[0]
         opt = a
