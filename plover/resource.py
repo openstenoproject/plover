@@ -7,7 +7,7 @@ import pkg_resources
 ASSET_SCHEME = 'asset:'
 
 def _asset_split(resource_name):
-    components = resource_name[len(ASSET_SCHEME):].split(':', 2)
+    components = resource_name[len(ASSET_SCHEME):].split(':', 1)
     if len(components) != 2:
         raise ValueError('invalid asset: %s' % resource_name)
     return components
