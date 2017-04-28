@@ -340,29 +340,24 @@ class Test(Command):
         sys.exit(main())
 
 
-class BinaryDistApp(PyInstallerDist):
-    description = 'create an application for OSX'
-    extra_args = [
-        '--icon=osx/plover.icns',
-        '--osx-bundle-identifier=org.openstenoproject.plover',
-    ]
+class BinaryDistApp(Command):
+    description = 'create an application bundle for Mac'
+    user_options = []
+    extra_args = []
+
+    def initialize_options(self):
+        pass
+
+    def finalize_options(self):
+        pass
 
     def run(self):
-        PyInstallerDist.run(self)
-        # Patch Info.plist.
-        plist_info_fname = 'dist/%s.app/Contents/Info.plist' % PACKAGE
-        tree = ElementTree.parse(plist_info_fname)
-        dictionary = tree.getroot().find('dict')
-        for name, value in (
-            # Enable retina display support.
-            ('key'   , 'NSPrincipalClass'),
-            ('string', 'NSApplication'   ),
-        ):
-            element = Element(name)
-            element.text = value
-            element.tail = '\n'
-            dictionary.append(element)
-        tree.write(plist_info_fname)
+        whl_cmd = self.get_finalized_command('bdist_wheel')
+        whl_cmd.run()
+        wheel_path = whl_cmd.get_archive_basename()
+        cmd = 'bash osx/make_app.sh %s %s' % (wheel_path, PACKAGE)
+        log.info('running %s', cmd)
+        subprocess.check_call(cmd.split())
 
 
 class BinaryDistDmg(Command):
@@ -378,12 +373,17 @@ class BinaryDistDmg(Command):
 
     def run(self):
         self.run_command('bdist_app')
-        app = 'dist/%s.app' % PACKAGE
+        # Get dmgbuild
+        from utils.download import download
+        dmgbuild = download(
+          'https://github.com/morinted/dmgbuild/releases/download/v1.2.1%2Bplover/dmgbuild-1.2.1.pex',
+          '548a5c3336fd30b966060b84d86faa9a697b7f94'
+        )
         dmg = 'dist/%s.dmg' % PACKAGE
-        cmd = 'bash -x osx/app2dmg.sh %s %s' % (app, dmg)
+        # Use Apple's built-in python2 to run dmgbuild
+        cmd = '/usr/bin/python %s -s osx/dmg_resources/settings.py Plover %s' % (dmgbuild, dmg)
         log.info('running %s', cmd)
         subprocess.check_call(cmd.split())
-
 
 cmdclass = {
     'launch': Launch,
@@ -430,7 +430,12 @@ entrypoints = {
 }
 
 if sys.platform.startswith('darwin'):
-    setup_requires.append('PyInstaller==3.2.1')
+    setup_requires.extend([
+        'macholib',
+        'pip',
+        'requests',
+        'wheel',
+    ])
     cmdclass['bdist_app'] = BinaryDistApp
     cmdclass['bdist_dmg'] = BinaryDistDmg
 
