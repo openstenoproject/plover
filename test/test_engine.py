@@ -151,6 +151,16 @@ class EngineTestCase(unittest.TestCase):
             ])
             self.assertIsNotNone(FakeMachine.instance)
             self.assertTrue(FakeMachine.instance.is_suppressed)
+            # No machine reset on keymap change.
+            self.events = []
+            new_keymap = list(zip(system.KEYS, reversed(system.KEYS)))
+            config_update = { 'system_keymap': new_keymap }
+            self.assertNotEqual(FakeMachine.instance.keymap, new_keymap)
+            self.engine.config = config_update
+            self.assertEqual(self.events, [
+                ('config_changed', (config_update,), {}),
+            ])
+            self.assertEqual(FakeMachine.instance.keymap, new_keymap)
             # Output disabled
             self.events = []
             self.engine.output = False

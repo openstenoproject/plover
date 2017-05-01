@@ -193,7 +193,12 @@ class StenoEngine(object):
         machine_params = MachineParams(config['machine_type'],
                                        config['machine_specific_options'],
                                        config['system_keymap'])
-        if reset_machine or machine_params != self._machine_params:
+        # Do not reset if only the keymap changed.
+        if self._machine_params is None or \
+           self._machine_params.type != machine_params.type or \
+           self._machine_params.options != machine_params.options:
+            reset_machine = True
+        if reset_machine:
             if self._machine is not None:
                 self._machine.stop_capture()
                 self._machine = None
