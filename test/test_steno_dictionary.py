@@ -3,6 +3,9 @@
 
 """Unit tests for steno_dictionary.py."""
 
+import os
+import stat
+import tempfile
 import unittest
 
 # Python 2/3 compatibility.
@@ -224,3 +227,26 @@ class StenoDictionaryTestCase(unittest.TestCase):
         self.assertEqual(dc.raw_lookup(('TEFT',)), None)
         self.assertEqual(dc.casereverse_lookup('testing'), None)
         assertCountEqual(self, dc.reverse_lookup('Testing'), [])
+
+    def test_dictionary_readonly(self):
+        class FakeDictionary(StenoDictionary):
+            def _load(self, filename):
+                pass
+        tf = tempfile.NamedTemporaryFile(delete=False)
+        try:
+            tf.close()
+            d = FakeDictionary.load(tf.name)
+            # Writable file: not readonly.
+            self.assertFalse(d.readonly)
+            # Readonly file: readonly dictionary.
+            os.chmod(tf.name, stat.S_IREAD)
+            d = FakeDictionary.load(tf.name)
+            self.assertTrue(d.readonly)
+        finally:
+            # Deleting the file will fail on Windows
+            # if we don't restore write permission.
+            os.chmod(tf.name, stat.S_IWRITE)
+            os.unlink(tf.name)
+        # Assets are always readonly.
+        d = FakeDictionary.load('asset:plover:assets/main.json')
+        self.assertTrue(d.readonly)
