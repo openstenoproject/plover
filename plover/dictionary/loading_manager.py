@@ -17,6 +17,15 @@ class DictionaryLoadingManager(object):
     def __init__(self):
         self.dictionaries = {}
 
+    def __len__(self):
+        return len(self.dictionaries)
+
+    def __getitem__(self, filename):
+        return self.dictionaries[filename].get()
+
+    def __contains__(self, filename):
+        return filename in self.dictionaries
+
     def start_loading(self, filename):
         op = self.dictionaries.get(filename)
         if op is not None and not op.needs_reloading():
@@ -25,6 +34,11 @@ class DictionaryLoadingManager(object):
         op = DictionaryLoadingOperation(filename)
         self.dictionaries[filename] = op
         return op
+
+    def unload_outdated(self):
+        for filename, op in list(self.dictionaries.items()):
+            if op.needs_reloading():
+                del self.dictionaries[filename]
 
     def load(self, filenames):
         start_time = time.time()

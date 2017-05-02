@@ -38,7 +38,6 @@ class DictionaryLoadingManagerTestCase(unittest.TestCase):
                 self.name = name
                 self.contents = contents
                 self.tf = tempfile.NamedTemporaryFile()
-                self.timestamp = os.path.getmtime(self.tf.name)
 
             def __repr__(self):
                 return 'FakeDictionaryInfo(%r, %r)' % (self.name, self.contents)
@@ -53,7 +52,8 @@ class DictionaryLoadingManagerTestCase(unittest.TestCase):
                 d = self.files[filename]
                 if isinstance(d.contents, Exception):
                     raise d.contents
-                return FakeDictionaryContents(d.contents, d.timestamp)
+                timestamp = os.path.getmtime(filename)
+                return FakeDictionaryContents(d.contents, timestamp)
 
         dictionaries = {}
         for i in range(8):
@@ -73,13 +73,21 @@ class DictionaryLoadingManagerTestCase(unittest.TestCase):
         loader = MockLoader(dictionaries)
         with patch('plover.dictionary.loading_manager.load_dictionary', loader):
             manager = loading_manager.DictionaryLoadingManager()
-            manager.start_loading(df('a'))
-            manager.start_loading(df('b'))
+            manager.start_loading(df('a')).get()
+            manager.start_loading(df('b')).get()
             results = manager.load([df('c'), df('b')])
             # Returns the right values in the right order.
             self.assertEqual(results, ['ccccc', 'bbbbb'])
             # Dropped superfluous files.
             assertCountEqual(self, [df('b'), df('c')], manager.dictionaries.keys())
+            # Check dict like interface.
+            self.assertEqual(len(manager), 2)
+            self.assertFalse(df('a') in manager)
+            with self.assertRaises(KeyError):
+                manager[df('a')]
+            self.assertTrue(df('b') in manager)
+            self.assertTrue(df('c') in manager)
+            self.assertEqual(results, [manager[df('c')], manager[df('b')]])
             # Return a DictionaryLoaderException for load errors.
             results = manager.load([df('c'), df('e'), df('b'), df('f')])
             self.assertEqual(len(results), 4)
@@ -93,22 +101,22 @@ class DictionaryLoadingManagerTestCase(unittest.TestCase):
             self.assertIsInstance(results[3].exception, Exception)
             # Only loaded the files once.
             self.assertTrue(all(x == 1 for x in loader.load_counts.values()))
-            # No reload if timestamp is unchanged, or more recent.
-            # (use case: dictionary edited with Plover and saved back)
+            # No reload if file timestamp is unchanged, or the dictionary
+            # timestamp is more recent. (use case: dictionary edited with
+            # Plover and saved back)
+            file_timestamp = results[0].timestamp
+            results[0].timestamp = file_timestamp + 1
             dictionaries['c'].contents = 'CCCCC'
-            dictionaries['c'].timestamp += 1
             results = manager.load([df('c')])
             self.assertEqual(results, ['ccccc'])
             self.assertEqual(loader.load_counts[df('c')], 1)
-            # Check files are reloaded when modified.
-            # Note: do not try to "touch" the file using os.utime
-            # as it's not reliable without sleeping to account
-            # for operating system resolution.
-            mtime = os.path.getmtime(df('c'))
-            def getmtime(path):
-                assert path == df('c')
-                return mtime + 1
-            with patch('os.path.getmtime', getmtime):
-                results = manager.load([df('c')])
+            # Check outdated dictionaries are reloaded.
+            results[0].timestamp = file_timestamp - 1
+            results = manager.load([df('c')])
             self.assertEqual(results, ['CCCCC'])
             self.assertEqual(loader.load_counts[df('c')], 2)
+            # Check trimming of outdated dictionaries.
+            results[0].timestamp = file_timestamp - 1
+            manager.unload_outdated()
+            self.assertEqual(len(manager), 0)
+            self.assertFalse(df('c') in manager)
