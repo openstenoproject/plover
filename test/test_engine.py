@@ -7,10 +7,13 @@ from functools import partial
 import mock
 
 from plover import system
-from plover.config import DEFAULT_SYSTEM_NAME
-from plover.engine import StenoEngine
+from plover.config import DEFAULT_SYSTEM_NAME, DictionaryConfig
+from plover.engine import ErroredDictionary, StenoEngine
 from plover.registry import Registry
 from plover.machine.base import StenotypeBase
+from plover.steno_dictionary import StenoDictionaryCollection
+
+from .utils import make_dict
 
 
 class FakeConfig(object):
@@ -175,3 +178,80 @@ class EngineTestCase(unittest.TestCase):
                 ('machine_state_changed', ('Fake', 'stopped'), {}),
             ])
             self.assertIsNone(FakeMachine.instance)
+
+    def test_loading_dictionaries(self):
+        def check_loaded_events(actual_events, expected_events):
+            self.assertEqual(len(actual_events), len(expected_events), msg='events: %r' % self.events)
+            for n, event in enumerate(actual_events):
+                event_type, event_args, event_kwargs = event
+                msg = 'event %u: %r' % (n, event)
+                self.assertEqual(event_type, 'dictionaries_loaded', msg=msg)
+                self.assertEqual(event_kwargs, {}, msg=msg)
+                self.assertEqual(len(event_args), 1, msg=msg)
+                self.assertIsInstance(event_args[0], StenoDictionaryCollection, msg=msg)
+                self.assertEqual([
+                    (d.path, d.enabled, isinstance(d, ErroredDictionary))
+                    for d in event_args[0].dicts
+                ], expected_events[n], msg=msg)
+        with \
+                make_dict(b'{}', 'json', 'valid1') as valid_dict_1, \
+                make_dict(b'{}', 'json', 'valid2') as valid_dict_2, \
+                make_dict(b'', 'json', 'invalid1') as invalid_dict_1, \
+                make_dict(b'', 'json', 'invalid2') as invalid_dict_2, \
+                self._setup():
+            self.engine.start()
+            for test in (
+                # Load one valid dictionary.
+                [[
+                    # path, enabled
+                    (valid_dict_1, True),
+                ], [
+                    # path, enabled, errored
+                    (valid_dict_1, True, False),
+                ]],
+                # Load another invalid dictionary.
+                [[
+                    (valid_dict_1, True),
+                    (invalid_dict_1, True),
+                ], [
+                    (valid_dict_1, True, False),
+                    (invalid_dict_1, True, True),
+                ]],
+                # Disable first dictionary.
+                [[
+                    (valid_dict_1, False),
+                    (invalid_dict_1, True),
+                ], [
+                    (valid_dict_1, False, False),
+                    (invalid_dict_1, True, True),
+                ]],
+                # Replace invalid dictonary with another invalid one.
+                [[
+                    (valid_dict_1, False),
+                    (invalid_dict_2, True),
+                ], [
+                    (valid_dict_1, False, False),
+                ], [
+                    (valid_dict_1, False, False),
+                    (invalid_dict_2, True, True),
+                ]]
+            ):
+                config_dictionaries = [
+                    DictionaryConfig(path, enabled)
+                    for path, enabled in test[0]
+                ]
+                self.events = []
+                config_update = { 'dictionaries': list(config_dictionaries), }
+                self.engine.config = dict(config_update)
+                self.assertEqual(self.events[0], ('config_changed', (config_update,), {}))
+                check_loaded_events(self.events[1:], test[1:])
+            # Simulate an outdated dictionary.
+            self.events = []
+            self.engine.dictionaries[valid_dict_1].timestamp -= 1
+            self.engine.config = {}
+            check_loaded_events(self.events, [[
+                (invalid_dict_2, True, True),
+            ], [
+                (valid_dict_1, False, False),
+                (invalid_dict_2, True, True),
+            ]])

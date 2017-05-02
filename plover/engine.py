@@ -16,7 +16,7 @@ from plover.misc import shorten_path
 from plover.registry import registry
 from plover.resource import ASSET_SCHEME, resource_filename
 from plover.steno import Stroke
-from plover.steno_dictionary import StenoDictionary
+from plover.steno_dictionary import StenoDictionary, StenoDictionaryCollection
 from plover.suggestions import Suggestions
 from plover.translation import Translator
 
@@ -109,7 +109,6 @@ class StenoEngine(object):
         self._dictionaries = self._translator.get_dictionary()
         self._dictionaries_manager = DictionaryLoadingManager()
         self._running_state = self._translator.get_state()
-        self._suggestions = Suggestions(self._dictionaries)
         self._keyboard_emulation = keyboard_emulation
         self._hooks = { hook: [] for hook in self.HOOKS }
         self._running_extensions = {}
@@ -149,6 +148,21 @@ class StenoEngine(object):
     def _start(self):
         self._set_output(self._config.get_auto_start())
         self._update(full=True)
+
+    def _set_dictionaries(self, dictionaries):
+        def dictionaries_changed(l1, l2):
+            if len(l1) != len(l2):
+                return True
+            for d1, d2 in zip(l1, l2):
+                if d1 is not d2:
+                    return True
+            return False
+        if not dictionaries_changed(dictionaries, self._dictionaries.dicts):
+            # No change.
+            return
+        self._dictionaries = StenoDictionaryCollection(dictionaries)
+        self._translator.set_dictionary(self._dictionaries)
+        self._trigger_hook('dictionaries_loaded', self._dictionaries)
 
     def _update(self, config_update=None, full=False, reset_machine=False):
         original_config = self._config.as_dict()
@@ -238,6 +252,14 @@ class StenoEngine(object):
             for d in config['dictionaries']
         )
         copy_default_dictionaries(config_dictionaries.keys())
+        # Start by unloading outdated dictionaries.
+        self._dictionaries_manager.unload_outdated()
+        self._set_dictionaries([
+            d for d in self._dictionaries.dicts
+            if d.path in config_dictionaries and \
+               d.path in self._dictionaries_manager
+        ])
+        # And then (re)load all dictionaries.
         dictionaries = []
         for result in self._dictionaries_manager.load(config_dictionaries.keys()):
             if isinstance(result, DictionaryLoaderException):
@@ -250,16 +272,7 @@ class StenoEngine(object):
                 d = result
             d.enabled = config_dictionaries[d.path].enabled
             dictionaries.append(d)
-        def dictionaries_changed(l1, l2):
-            if len(l1) != len(l2):
-                return True
-            for d1, d2 in zip(l1, l2):
-                if d1 is not d2:
-                    return True
-            return False
-        if dictionaries_changed(dictionaries, self._dictionaries.dicts):
-            self._dictionaries.set_dicts(dictionaries)
-            self._trigger_hook('dictionaries_loaded', self._dictionaries)
+        self._set_dictionaries(dictionaries)
 
     def _start_extensions(self, extension_list):
         for extension_name in extension_list:
@@ -460,7 +473,7 @@ class StenoEngine(object):
 
     @with_lock
     def get_suggestions(self, translation):
-        return self._suggestions.find(translation)
+        return Suggestions(self._dictionaries).find(translation)
 
     @property
     @with_lock
