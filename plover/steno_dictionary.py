@@ -8,6 +8,7 @@ A steno dictionary maps sequences of steno strokes to translations.
 """
 
 import collections
+import os
 import shutil
 
 # Python 2/3 compatibility.
@@ -58,7 +59,8 @@ class StenoDictionary(object):
         timestamp = resource_timestamp(filename)
         d = cls()
         d._load(filename)
-        if resource.startswith(ASSET_SCHEME):
+        if resource.startswith(ASSET_SCHEME) or \
+           not os.access(filename, os.W_OK):
             d.readonly = True
         d.path = resource
         d.timestamp = timestamp
