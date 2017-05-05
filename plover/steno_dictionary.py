@@ -183,11 +183,12 @@ class StenoDictionary(object):
 
 class StenoDictionaryCollection(object):
 
-    def __init__(self):
+    def __init__(self, dicts=[]):
         self.dicts = []
         self.filters = []
         self.longest_key = 0
         self.longest_key_callbacks = set()
+        self.set_dicts(dicts)
 
     def set_dicts(self, dicts):
         for d in self.dicts:
