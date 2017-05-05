@@ -44,6 +44,9 @@ class StenoDictionary(object):
     def __str__(self):
         return '%s(%r)' % (self.__class__.__name__, self.path)
 
+    def __repr__(self):
+        return str(self)
+
     @classmethod
     def create(cls, resource):
         assert not resource.startswith(ASSET_SCHEME)
@@ -211,6 +214,12 @@ class StenoDictionaryCollection(object):
                     if f(key, value):
                         return None
                 return value
+
+    def __str__(self):
+        return 'StenoDictionaryCollection' + repr(tuple(self.dicts))
+
+    def __repr__(self):
+        return str(self)
 
     def lookup(self, key):
         return self._lookup(key, filters=self.filters)
