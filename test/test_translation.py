@@ -75,8 +75,7 @@ class TranslatorStateSizeTestCase(unittest.TestCase):
         self.s = type(self).FakeState()
         self.t._state = self.s
         self.d = StenoDictionary()
-        self.dc = StenoDictionaryCollection()
-        self.dc.set_dicts([self.d])
+        self.dc = StenoDictionaryCollection([self.d])
         self.t.set_dictionary(self.dc)
 
     def test_dictionary_update_grows_size1(self):
@@ -170,8 +169,7 @@ class TranslatorTestCase(unittest.TestCase):
 
         d = StenoDictionary()
         d[('S', 'P')] = 'hi'
-        dc = StenoDictionaryCollection()
-        dc.set_dicts([d])
+        dc = StenoDictionaryCollection([d])
         t = Translator()
         t.set_dictionary(dc)
         t.translate(stroke('T'))
@@ -230,11 +228,10 @@ class TranslatorTestCase(unittest.TestCase):
             def clear(self):
                 del self._output[:]
                 
-        d = StenoDictionary()        
-        out = Output()        
+        d = StenoDictionary()
+        out = Output()
         t = Translator()
-        dc = StenoDictionaryCollection()
-        dc.set_dicts([d])
+        dc = StenoDictionaryCollection([d])
         t.set_dictionary(dc)
         t.add_listener(out.write)
         
@@ -457,8 +454,7 @@ class TranslateStrokeTestCase(unittest.TestCase):
 
     def setUp(self):
         self.d = StenoDictionary()
-        self.dc = StenoDictionaryCollection()
-        self.dc.set_dicts([self.d])
+        self.dc = StenoDictionaryCollection([self.d])
         self.s = _State()
         self.o = self.CaptureOutput()
         self.tlor = Translator()
