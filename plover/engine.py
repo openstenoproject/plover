@@ -391,6 +391,11 @@ class StenoEngine(object):
         if suppress:
             self._machine.suppress_last_stroke(self._keyboard_emulation.send_backspaces)
 
+    @with_lock
+    def run_engine_command(self, command):
+        # Using a lambda function here because if an engine thread function returns true, the engine thread will quit
+        self._same_thread_hook(lambda command: self._consume_engine_command(command) and False, command)
+
     def toggle_output(self):
         self._same_thread_hook(self._toggle_output)
 
