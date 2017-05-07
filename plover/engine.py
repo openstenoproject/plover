@@ -112,6 +112,7 @@ class StenoEngine(object):
         self._keyboard_emulation = keyboard_emulation
         self._hooks = { hook: [] for hook in self.HOOKS }
         self._running_extensions = {}
+        self._thread_ident = None
 
     def __enter__(self):
         self._lock.__enter__()
@@ -121,7 +122,7 @@ class StenoEngine(object):
         self._lock.__exit__(exc_type, exc_value, traceback)
 
     def _in_engine_thread(self):
-        raise NotImplementedError()
+        return self._thread_ident == threading.get_ident()
 
     def _same_thread_hook(self, func, *args, **kwargs):
         if self._in_engine_thread():
@@ -130,6 +131,7 @@ class StenoEngine(object):
             self._queue.put((func, args, kwargs))
 
     def run(self):
+        self._thread_ident = threading.get_ident()
         while True:
             func, args, kwargs = self._queue.get()
             try:
