@@ -610,7 +610,7 @@ if __name__ == '__main__':
             'plover.system',
         ],
         data_files=[
-            ('share/applications', ['application/Plover.desktop']),
+            ('share/applications', ['application/plover.desktop']),
             ('share/pixmaps', ['plover/assets/plover.png']),
         ],
         classifiers=[

@@ -134,7 +134,7 @@ run "$python" -m pip list --format=columns
 # Note: those will re-appear in their respective
 # locations when creating the AppImage...
 # ¯\_(ツ)_/¯
-run mv "$appdir/usr/share/applications/Plover.desktop" "$appdir/plover.desktop"
+run mv "$appdir/usr/share/applications/plover.desktop" "$appdir/plover.desktop"
 run mv "$appdir/usr/share/pixmaps/plover.png" "$appdir/plover.png"
 
 # Trim the fat.
