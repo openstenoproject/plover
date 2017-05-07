@@ -138,7 +138,7 @@ run mv "$appdir/usr/share/applications/Plover.desktop" "$appdir/plover.desktop"
 run mv "$appdir/usr/share/pixmaps/plover.png" "$appdir/plover.png"
 
 # Trim the fat.
-run "$python" -m utils.trim "$appdir" linux/appimage_blacklist.txt
+run "$python" -m utils.trim "$appdir" linux/appimage/blacklist.txt
 
 # Make distribution source-less.
 run "$python" -m utils.source_less "$appdir/usr/lib/python3.5" '*/pip/_vendor/distlib/*'
@@ -146,19 +146,7 @@ run "$python" -m utils.source_less "$appdir/usr/lib/python3.5" '*/pip/_vendor/di
 # Add launcher.
 # Note: don't use AppImage's AppRun because
 # it will change the working directory.
-create_apprun()
-{
-  cat >"$appdir/AppRun" <<\EOF
-#!/bin/sh
-set -e
-APPDIR="$(dirname "$(readlink -e "$0")")"
-export LD_LIBRARY_PATH="${APPDIR}/usr/lib/:${APPDIR}/usr/lib/x86_64-linux-gnu${LD_LIBRARY_PATH+:$LD_LIBRARY_PATH}"
-export PATH="${APPDIR}/usr/bin:${PATH}"
-exec "${APPDIR}/usr/bin/python3.5" -m plover.main "$@"
-EOF
-  chmod +x "$appdir/AppRun"
-}
-run create_apprun
+run cp linux/appimage/apprun.sh "$appdir/AppRun"
 
 # Finalize AppDir.
 (
