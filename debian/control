@@ -29,7 +29,7 @@ Depends:
 	python3-dbus,
 	python3-hid,
 	python3-pkg-resources,
-	python3-pyqt5,
+	python3-pyqt5 (>= 5.5),
 	python3-serial (>= 2.7),
 	python3-xlib (>= 0.16),
 	wmctrl,
