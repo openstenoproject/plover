@@ -428,6 +428,10 @@ entrypoints = {
         'English Stenotype = plover.system.english_stenotype',
     ],
 
+    'plover.linux.extension': [
+        'fifo_commands = plover.extension.fifo_commands:FIFOCommands',
+    ],
+
     'setuptools.installation': [
         'eggsecutable = plover.main:main',
     ],
