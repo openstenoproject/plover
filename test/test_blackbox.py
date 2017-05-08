@@ -282,3 +282,29 @@ class BlackboxTest(unittest.TestCase):
 
         " races"
         '''
+
+    @simple_replay
+    @spaces_after
+    def test_bug719(self):
+        # Glue (&) does not work with "Spaces After".
+        r'''
+        "P*": "{&P}"
+
+        P*/P*/P*/P*/P*/P*
+
+        'PPPPPP '
+        '''
+
+    @unittest.expectedFailure
+    @simple_replay
+    def test_bug741(self):
+        # Uppercase last word also uppercases next word's prefix.
+        r'''
+        "KPA*TS": "{*<}",
+        "TPAO": "foo",
+        "KAUPB": "{con^}",
+
+        TPAO/KPA*TS/KAUPB/TPAO
+
+        " FOO confoo"
+        '''
