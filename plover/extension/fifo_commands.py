@@ -6,6 +6,9 @@ from threading import Lock, Thread
 
 from plover import log
 
+
+FIFO_PATH = '/tmp/PLOVER_CMD'
+
 class FIFOCommands(Thread):
 
     def __init__(self, engine, name='FIFOCommand'):
@@ -15,7 +18,6 @@ class FIFOCommands(Thread):
         self._pipe = os.pipe()
 
     def run(self):
-        FIFO_PATH = '/tmp/PLOVER_CMD'
 
         # Ensure that the FIFO exists
         try:
@@ -64,7 +66,11 @@ class FIFOCommands(Thread):
         # ... and waits for it to terminate
         self.join()
 
+        # Closes the pipes
         for fd in self._pipe:
             os.close(fd)
+
+        # Removes the FIFO
+        os.remove(FIFO_PATH)
 
 
