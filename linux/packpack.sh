@@ -51,12 +51,6 @@ case "$1" in
     EXT='noarch.rpm'
     TARGET="package"
     ;;
-  trusty)
-    OS='ubuntu'
-    DIST='trusty'
-    EXT='deb'
-    TARGET="package"
-    ;;
   xenial)
     OS='ubuntu'
     DIST='xenial'
