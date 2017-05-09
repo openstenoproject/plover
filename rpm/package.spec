@@ -55,7 +55,7 @@ env PYTHONPATH="$PWD/.deps" %{__python3} setup.py test
 %license LICENSE.txt
 %{_bindir}/plover
 %{python3_sitelib}/plover*
-/usr/share/applications/Plover.desktop
+/usr/share/applications/plover.desktop
 /usr/share/pixmaps/plover.png
 
 %changelog
