@@ -22,6 +22,10 @@ lib64
 # Installer logs
 pip-log.txt
 
+# bootstrap.sh generated
+/requirements.txt
+/requirements_constraints.txt
+
 # Unit test / coverage reports
 .coverage
 .tox
