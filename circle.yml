@@ -1,0 +1,52 @@
+# https://discuss.circleci.com/t/python-pip-dependencies-are-not-cached-reinstalled-every-time/6965
+machine:
+  pre:
+    - sudo -H pip install --upgrade virtualenv
+  environment:
+    PYTHON: python3
+
+dependencies:
+  override:
+    - ./bootstrap.sh "$PYTHON"
+  cache_directories:
+    - .cache
+
+compile:
+  pre:
+    - |
+      (
+      set -ex
+      # The directory containing pyrcc5/pyuic55 is not in $PATH,
+      # so just use the right Python modules directly.
+      sed -i '' \
+        -e 's/"pyrcc5"/"'$PYTHON' -m PyQt5.pyrcc_main"/' \
+        -e 's/"pyuic5"/"'$PYTHON' -m PyQt5.uic.pyuic"/' \
+        pyuic.json
+      )
+    - $PYTHON -m pip list --format=columns # List installed packages versions.
+    - git fetch --unshallow --quiet
+    - $PYTHON setup.py patch_version
+  override:
+    - $PYTHON setup.py bdist_dmg
+  post:
+    - mv dist/*.dmg $CIRCLE_ARTIFACTS
+
+test:
+  override:
+    - $PYTHON setup.py test
+
+deployment:
+  release:
+    tag: /.+/
+    owner: openstenoproject
+    commands:
+      - |
+        (
+        set -ex
+        github_release="$(python3 -m utils.download 'https://github.com/aktau/github-release/releases/download/v0.7.2/darwin-amd64-github-release.tar.bz2' '16d40bcb4de7e29055789453f0d5fdbf1bfd3b49')"
+        tar xvjf "$github_release"
+        ./bin/darwin/amd64/github-release release --user openstenoproject --repo plover --tag "$(git describe --tags)" --draft
+        ./bin/darwin/amd64/github-release upload --user openstenoproject --repo plover --tag "$(git describe --tags)" --file "$(find $CIRCLE_ARTIFACTS/*.dmg)" --name "$(basename $(find $CIRCLE_ARTIFACTS/*.dmg))"
+        )
+
+
