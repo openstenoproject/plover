@@ -27,14 +27,14 @@ pip-log.txt
 .tox
 nosetests.xml
 
-#Translations
+# Translations
 *.mo
 
 # PyCharm
 .idea
 .cache
 
-#Mr Developer
+# Mr Developer
 .mr.developer.cfg
 
 # mac files
