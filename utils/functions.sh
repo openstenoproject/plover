@@ -86,7 +86,7 @@ find_dist()
     arch)
       echo 'arch'
       ;;
-    linuxmint|ubuntu)
+    linuxmint|trisquel|ubuntu)
       echo 'ubuntu'
       ;;
     *)
