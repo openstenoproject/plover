@@ -2,7 +2,7 @@
 
 > Bringing stenography to everyone.
 
-[![Windows build status](https://ci.appveyor.com/api/projects/status/9edrnjpukrag17h7?svg=true)](https://ci.appveyor.com/project/morinted/plover) [![Linux and Mac build Status](https://travis-ci.org/openstenoproject/plover.svg?branch=master)](https://travis-ci.org/openstenoproject/plover)
+[![Windows build status](https://ci.appveyor.com/api/projects/status/9edrnjpukrag17h7?svg=true)](https://ci.appveyor.com/project/morinted/plover) [![Linux build status](https://travis-ci.org/openstenoproject/plover.svg?branch=master)](https://travis-ci.org/openstenoproject/plover) [![Mac build status](https://circleci.com/gh/openstenoproject/plover.svg?style=svg)](https://circleci.com/gh/openstenoproject/plover)
 
 | [Homepage] | [Releases] | [Wiki] | [Blog] | [Google Group] | [Discord Chat][discord] |
 |------------|------------|--------|--------|----------------|-------------------------|
