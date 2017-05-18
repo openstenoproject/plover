@@ -16,12 +16,6 @@ matrix:
         - CACHE_NAME=linux_py3
       dist: trusty
       sudo: required
-    # OSX / Python 3
-    - os: osx
-      osx_image: xcode8
-      env:
-        - PYTHON=python3
-        - CACHE_NAME=osx_py3
 
 cache:
   directories:
@@ -35,15 +29,6 @@ before_install:
     ./bootstrap.sh "$PYTHON"
     # List installed packages versions.
     $PYTHON -m pip list --format=columns
-    if [ $TRAVIS_OS_NAME = osx ]
-    then
-      # The directory containing pyrcc5/pyuic55 is not in $PATH,
-      # so just use the right Python modules directly.
-      sed -i '' \
-        -e 's/"pyrcc5"/"'$PYTHON' -m PyQt5.pyrcc_main"/' \
-        -e 's/"pyuic5"/"'$PYTHON' -m PyQt5.uic.pyuic"/' \
-        pyuic.json
-    fi
     )
 
 install: true
@@ -64,12 +49,6 @@ script:
       exit 0
     fi
     case "$TRAVIS_OS_NAME" in
-    osx)
-      if [ $PYTHON = python3 ]
-      then
-        $PYTHON setup.py bdist_dmg
-      fi
-      ;;
     linux)
       if [ $PYTHON = python3 ]
       then
@@ -111,7 +90,6 @@ deploy:
   file_glob: true
   file:
     - "dist/*.AppImage"
-    - "dist/*.dmg"
     - "dist/*.egg"
     - "dist/*.tar.gz"
     - "dist/*.whl"
