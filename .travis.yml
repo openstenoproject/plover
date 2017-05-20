@@ -93,7 +93,7 @@ script:
           libdbus-1-dev \
           libdbus-glib-1-dev \
           ;
-        ./linux/appimage.sh -c -j 2 -w dist/*.whl
+        ./linux/appimage/build.sh -c -j 2 -w dist/*.whl
         rm -rf .cache/pip
       fi
       ;;
