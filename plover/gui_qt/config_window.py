@@ -26,6 +26,8 @@ from serial import Serial
 from serial.tools.list_ports import comports
 
 from plover.config import MINIMUM_OUTPUT_CONFIG_UNDO_LEVELS
+from plover.machine.base import SerialStenotypeBase
+from plover.machine.keyboard import Keyboard
 from plover.misc import expand_path, shorten_path
 from plover.registry import registry
 
@@ -357,10 +359,6 @@ class ConfigWindow(QDialog, Ui_ConfigWindow, WindowState):
         super(ConfigWindow, self).__init__()
         self.setupUi(self)
         self._engine = engine
-        machine_options = {
-            'Keyboard': KeyboardOption,
-            'Treal': NopeOption,
-        }
         machines = {
             plugin.name: _(plugin.name)
             for plugin in registry.list_plugins('machine')
@@ -402,9 +400,7 @@ class ConfigWindow(QDialog, Ui_ConfigWindow, WindowState):
                                  ('machine_specific_options', engine.machine_specific_options),
                                  ('system_keymap', lambda v: self._update_keymap(machine_type=v)),
                              )),
-                ConfigOption(_('Options:'), 'machine_specific_options',
-                             lambda *args: machine_options.get(self._config['machine_type'],
-                                                               SerialOption)(*args)),
+                ConfigOption(_('Options:'), 'machine_specific_options', self._machine_option),
                 ConfigOption(_('Keymap:'), 'system_keymap', KeymapOption),
             )),
             (_('Output'), (
@@ -491,6 +487,17 @@ class ConfigWindow(QDialog, Ui_ConfigWindow, WindowState):
         buttons.button(QDialogButtonBox.Apply).clicked.connect(self.on_apply)
         self.restore_state()
         self.finished.connect(self.save_state)
+
+    def _machine_option(self, *args):
+        machine_type = self._config['machine_type']
+        machine_class = registry.get_plugin('machine', machine_type).obj
+        if issubclass(machine_class, Keyboard):
+            opt_class = KeyboardOption
+        elif issubclass(machine_class, SerialStenotypeBase):
+            opt_class = SerialOption
+        else:
+            opt_class = NopeOption
+        return opt_class(*args)
 
     def _update_keymap(self, machine_type=None, system_name=None):
         if machine_type is None:
