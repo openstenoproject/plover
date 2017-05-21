@@ -1,3 +1,4 @@
+# -*- coding: utf-8 -*-
 # Copyright (c) 2010 Joshua Harlan Lifton.
 # See LICENSE.txt for details.
 
@@ -24,9 +25,10 @@ class Keyboard(StenotypeBase):
         super(Keyboard, self).__init__()
         self._arpeggiate = params['arpeggiate']
         self._is_suppressed = False
-        self._bindings = {}
+        # Currently held keys.
         self._down_keys = set()
-        self._released_keys = set()
+        # All keys part of the stroke.
+        self._stroke_keys = set()
         self._keyboard_capture = None
         self._last_stroke_key_down_count = 0
         self._stroke_key_down_count = 0
@@ -39,6 +41,7 @@ class Keyboard(StenotypeBase):
         self._keyboard_capture.suppress_keyboard(suppressed_keys)
 
     def _update_bindings(self):
+        self._arpeggiate_key = None
         self._bindings = dict(self.keymap.get_bindings())
         for key, mapping in list(self._bindings.items()):
             if 'no-op' == mapping:
@@ -58,8 +61,6 @@ class Keyboard(StenotypeBase):
 
     def start_capture(self):
         """Begin listening for output from the stenotype machine."""
-        self._released_keys.clear()
-        self._stroke_key_down_count = 0
         self._initializing()
         try:
             self._keyboard_capture = KeyboardCapture()
@@ -92,35 +93,30 @@ class Keyboard(StenotypeBase):
     def _key_down(self, key):
         """Called when a key is pressed."""
         assert key is not None
-        if key in self._bindings:
-            self._stroke_key_down_count += 1
-        steno_key = self._bindings.get(key)
-        if steno_key is not None:
-            self._down_keys.add(steno_key)
+        self._stroke_key_down_count += 1
+        self._down_keys.add(key)
+        self._stroke_keys.add(key)
 
     def _key_up(self, key):
         """Called when a key is released."""
         assert key is not None
-        steno_key = self._bindings.get(key)
-        if steno_key is not None:
-            # Process the newly released key.
-            self._released_keys.add(steno_key)
-            # Remove invalid released keys.
-            self._released_keys = self._released_keys.intersection(self._down_keys)
-
-        # A stroke is complete if all pressed keys have been released.
-        # If we are in arpeggiate mode then only send stroke when spacebar is pressed.
-        send_strokes = bool(self._down_keys and
-                            self._down_keys == self._released_keys)
-        if self._arpeggiate:
-            send_strokes &= key == self._arpeggiate_key
-        if send_strokes:
-            self._last_stroke_key_down_count = self._stroke_key_down_count
-            steno_keys = list(self._down_keys)
-            self._down_keys.clear()
-            self._released_keys.clear()
-            self._stroke_key_down_count = 0
+        self._down_keys.discard(key)
+        # A stroke is complete if all pressed keys have been released,
+        # and — when arpeggiate mode is enabled — the arpeggiate key
+        # is part of it.
+        if (
+            self._down_keys or
+            not self._stroke_keys or
+            (self._arpeggiate and self._arpeggiate_key not in self._stroke_keys)
+        ):
+            return
+        self._last_stroke_key_down_count = self._stroke_key_down_count
+        steno_keys = set(self._bindings.get(k) for k in self._stroke_keys)
+        steno_keys -= {None}
+        if steno_keys:
             self._notify(steno_keys)
+        self._stroke_keys.clear()
+        self._stroke_key_down_count = 0
 
     @classmethod
     def get_option_info(cls):

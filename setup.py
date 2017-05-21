@@ -447,7 +447,7 @@ if sys.platform.startswith('win32'):
     ])
     cmdclass['bdist_win'] = BinaryDistWin
 
-setup_requires.append('pytest')
+setup_requires.append('pytest>=3.1.0')
 
 entrypoints['plover.gui'].append('qt = plover.gui_qt.main')
 entrypoints['plover.gui.qt.tool'] = [
