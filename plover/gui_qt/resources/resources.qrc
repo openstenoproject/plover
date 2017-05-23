@@ -2,7 +2,6 @@
     <qresource prefix="/">
         <file>up.svg</file>
         <file>down.svg</file>
-        <file>suggestions.svg</file>
         <file>tape.svg</file>
         <file>save.svg</file>
         <file>undo.svg</file>
