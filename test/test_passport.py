@@ -49,7 +49,7 @@ class TestCase(unittest.TestCase):
         cases = (
             # Test all keys
             ((b'!f#f+f*fAfCfBfEfDfGfFfHfKfLfOfNfQfPfSfRfUfTfWfYfXfZf^f~f',),
-            [Passport.get_keys(),]),
+            [set(Passport.get_keys()),]),
             # Anything below 8 is not registered
             ((b'S9T8A7',), [['S', 'T'],]),
             # Sequence of strokes
