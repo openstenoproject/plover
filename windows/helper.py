@@ -567,11 +567,6 @@ class WineHelper(Helper):
 
 class Win32Helper(Helper):
 
-    DEPENDENCIES = (
-        # Install requests first, since we'll be using it for fetching some of the other dependencies.
-        ('requests', 'pip:requests', None, None, (), None),
-    ) + Helper.DEPENDENCIES
-
     def __init__(self):
         super(Win32Helper, self).__init__()
         self._env = Win32Environment()

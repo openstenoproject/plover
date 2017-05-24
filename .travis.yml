@@ -76,7 +76,6 @@ script:
         $PYTHON setup.py bdist_wheel sdist
         sudo apt-get install -qq \
           libfuse2 \
-          python3-requests \
           libglib2.0-dev \
           libx11-dev \
           libxmu-dev \

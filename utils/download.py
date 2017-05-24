@@ -1,22 +1,25 @@
 #!/usr/bin/env python3
 
-import contextlib
 import hashlib
 import os
 import sys
 
-import requests
+if sys.version_info[0] < 3:
+    # Python 2.
+    from urllib import urlretrieve
+    from urlparse import urlsplit
+else:
+    # Python 3.
+    from urllib.request import urlretrieve
+    from urllib.parse import urlsplit
 
 
 DOWNLOADS_DIR = os.path.join('.cache', 'downloads')
 
 
 def download(url, sha1=None, filename=None, downloads_dir=DOWNLOADS_DIR):
-    session = requests.Session()
-    req = requests.Request('GET', url)
-    prepped = session.prepare_request(req)
     if filename is None:
-        filename = os.path.basename(prepped.path_url)
+        filename = os.path.basename(urlsplit(url).path)
     dst = os.path.join(downloads_dir, filename)
     dst_dir = os.path.dirname(dst)
     if not os.path.exists(dst_dir):
@@ -26,10 +29,7 @@ def download(url, sha1=None, filename=None, downloads_dir=DOWNLOADS_DIR):
         if sha1 is None or not os.path.exists(dst):
             retries += 1
             try:
-                with contextlib.closing(session.send(prepped, stream=True)) as resp:
-                    with open(dst, 'wb') as fp:
-                        for chunk in resp.iter_content(chunk_size=4 * 1024):
-                            fp.write(chunk)
+                urlretrieve(url, dst)
             except Exception as e:
                 print('error', e)
                 continue
