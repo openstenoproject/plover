@@ -15,9 +15,6 @@ make_opts=(-s)
 opt_ccache=0
 opt_optimize=0
 
-parse_opts args "$@"
-set -- "${args[@]}"
-
 while [ $# -ne 0 ]
 do
   case "$1" in
@@ -59,7 +56,6 @@ run "$python" -m utils.download 'https://github.com/probonopd/AppImageKit/releas
 run "$python" -m utils.download 'https://www.python.org/ftp/python/3.5.3/Python-3.5.3.tar.xz' '127121fdca11e735b3686e300d66f73aba663e93'
 run "$python" -m utils.download 'http://ftp.debian.org/debian/pool/main/w/wmctrl/wmctrl_1.07.orig.tar.gz' 'a123019a7fd5adc3e393fc1108cb706268a34e4d'
 run "$python" -m utils.download 'http://ftp.debian.org/debian/pool/main/w/wmctrl/wmctrl_1.07-7.debian.tar.gz' 'e8ac68f7600907be5489c0fd9ffcf2047daaf8cb'
-run "$python" -m utils.download 'https://bootstrap.pypa.io/get-pip.py' '3d45cef22b043b2b333baa63abaa99544e9c031d'
 
 # Generate Plover wheel.
 if [ -z "$wheel" ]
@@ -119,17 +115,8 @@ appdir_python()
 }
 python='appdir_python'
 
-# Install pip/wheel...
-run "$python" "$downloads/get-pip.py" -f "$wheels"
-# ...and cache them for the next iteration.
-wheels_install --no-install pip wheel
-
 # Install Plover and dependencies.
-# Note: temporarily install Cython so building cython-hidapi's wheel is faster.
-rwt Cython -- wheels_install --ignore-installed "$wheel" PyQt5 dbus-python pip wheel
-
-# List installed Python packages.
-run "$python" -m pip list --format=columns
+bootstrap_dist "$wheel"
 
 # Note: those will re-appear in their respective
 # locations when creating the AppImage...

@@ -9,9 +9,6 @@ DIST_DIR="dist"
 
 opt_no_pull=0
 
-parse_opts args "$@"
-set -- "${args[@]}"
-
 while [ $# -ne 0 ]
 do
   case "$1" in

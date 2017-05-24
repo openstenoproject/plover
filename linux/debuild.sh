@@ -6,8 +6,6 @@ BUILD_DIR="build/debian"
 DIST_DIR="dist"
 
 . ./utils/functions.sh
-parse_opts args "$@"
-set -- "${args[@]}"
 
 NAME='plover'
 VERSION="$(./setup.py --version | sed 's/+/-/g;s/\.g/-g/')"

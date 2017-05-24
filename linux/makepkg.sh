@@ -6,8 +6,6 @@ BUILD_DIR='build/archlinux'
 DIST_DIR='dist'
 
 . ./utils/functions.sh
-parse_opts args "$@"
-set -- "${args[@]}"
 
 NAME='plover'
 VERSION="$(./setup.py --version)"

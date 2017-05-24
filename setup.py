@@ -4,6 +4,7 @@
 
 import contextlib
 import glob
+import json
 import os
 import re
 import shutil
@@ -29,7 +30,6 @@ from plover import (
 )
 
 
-# Don't use six to avoid dependency with 'write_requirements' command.
 PY3 = sys.version_info[0] >= 3
 
 PACKAGE = '%s-%s-%s' % (
@@ -100,8 +100,6 @@ class BinaryDistWin(Command):
         pass
 
     def run(self):
-        # Wheels cache directory.
-        from utils.install_wheels import WHEELS_CACHE
         # Download helper.
         from utils.download import download
         # Run command helper.
@@ -131,16 +129,16 @@ class BinaryDistWin(Command):
                 zip.extractall(data_dir)
         os.unlink(stdlib)
         dist_py = os.path.join(data_dir, 'python.exe')
-        # Install pip.
-        get_pip = download('https://bootstrap.pypa.io/get-pip.py',
-                           '3d45cef22b043b2b333baa63abaa99544e9c031d')
-        run(dist_py, get_pip, '-f', WHEELS_CACHE)
+        # Install pip/wheel.
+        run(dist_py, '-m', 'utils.get_pip')
         # Install Plover and dependencies.
         # Note: do not use the embedded Python executable with `setup.py
         # install` to prevent setuptools from installing extra development
         # dependencies...
         run(dist_py, '-m', 'utils.install_wheels',
-            '--ignore-installed', plover_wheel)
+            '-r', 'requirements_distribution.txt')
+        run(dist_py, '-m', 'utils.install_wheels',
+            '--ignore-installed', '--no-deps', plover_wheel)
         # List installed packages.
         if self.verbose:
             run(dist_py, '-m', 'pip', 'list', '--format=columns')
@@ -417,21 +415,37 @@ entrypoints['plover.gui.qt.tool'] = [
     'paper_tape      = plover.gui_qt.paper_tape:PaperTape',
     'suggestions     = plover.gui_qt.suggestions_dialog:SuggestionsDialog',
 ]
-setup_requires.append('pyqt-distutils')
 try:
-    from pyqt_distutils.build_ui import build_ui
+    import PyQt5
 except ImportError:
     pass
 else:
-    class BuildUi(build_ui):
+    setup_requires.append('pyqt-distutils')
+    try:
+        from pyqt_distutils.build_ui import build_ui
+    except ImportError:
+        pass
+    else:
+        class BuildUi(build_ui):
 
-        def run(self):
-            from utils.pyqt import fix_icons
-            self._hooks['fix_icons'] = fix_icons
-            build_ui.run(self)
+            def finalize_options(self):
+                # Patch-in correct Python interpreter before the call
+                # to build_ui.finalize_options load the configuration.
+                with open('pyuic.json.in') as fp:
+                    cfg = json.load(fp)
+                for opt in 'pyrcc pyuic'.split():
+                    cfg[opt] = cfg[opt].replace('$PYTHON', sys.executable)
+                with open('pyuic.json', 'w') as fp:
+                    json.dump(cfg, fp)
+                build_ui.finalize_options(self)
 
-    cmdclass['build_ui'] = BuildUi
-    build_dependencies.append('build_ui')
+            def run(self):
+                from utils.pyqt import fix_icons
+                self._hooks['fix_icons'] = fix_icons
+                build_ui.run(self)
+
+        cmdclass['build_ui'] = BuildUi
+        build_dependencies.append('build_ui')
 
 setup_requires.append('Babel')
 try:
@@ -512,87 +526,62 @@ class CustomBuildPy(build_py):
 cmdclass['build_py'] = CustomBuildPy
 
 
-def write_requirements(extra_features=()):
-    requirements = setup_requires + install_requires + tests_require
-    for feature, dependencies in extras_require.items():
-        if feature.startswith(':'):
-            condition = feature[1:]
-            for require in dependencies:
-                requirements.append('%s; %s' % (require, condition))
-        elif feature in extra_features:
-            requirements.extend(dependencies)
-    requirements = sorted(set(requirements))
-    with open('requirements.txt', 'w') as fp:
-        fp.write('\n'.join(requirements))
-        fp.write('\n')
-    with open('requirements_constraints.txt', 'w') as fp:
-        fp.write('\n'.join(dependency_links))
-        fp.write('\n')
-
-
-if __name__ == '__main__':
-
-    if len(sys.argv) > 1 and sys.argv[1] == 'write_requirements':
-        write_requirements(extra_features=sys.argv[2:])
-        sys.exit(0)
-
-    setuptools.setup(
-        name=__software_name__,
-        version=__version__,
-        description=__description__,
-        long_description=__long_description__,
-        url=__url__,
-        download_url=__download_url__,
-        license=__license__,
-        author='Joshua Harlan Lifton',
-        author_email='joshua.harlan.lifton@gmail.com',
-        maintainer='Ted Morin',
-        maintainer_email='morinted@gmail.com',
-        include_package_data=True,
-        zip_safe=True,
-        options=options,
-        cmdclass=cmdclass,
-        setup_requires=setup_requires,
-        install_requires=install_requires,
-        extras_require=extras_require,
-        tests_require=tests_require,
-        dependency_links=dependency_links,
-        entry_points='\n'.join('[' + section + ']\n' + '\n'.join(
-            entrypoint for entrypoint in entrypoint_list)
-            for section, entrypoint_list in entrypoints.items()
-        ),
-        packages=[
-            'plover',
-            'plover.dictionary',
-            'plover.gui_none',
-            'plover.gui_qt',
-            'plover.machine',
-            'plover.oslayer',
-            'plover.system',
-        ],
-        data_files=[
-            ('share/applications', ['application/plover.desktop']),
-            ('share/pixmaps', ['plover/assets/plover.png']),
-        ],
-        classifiers=[
-            'Programming Language :: Python :: 2',
-            'Programming Language :: Python :: 2.7',
-            'Programming Language :: Python :: 3',
-            'Programming Language :: Python :: 3.4',
-            'Programming Language :: Python :: 3.5',
-            'License :: OSI Approved :: GNU General Public License v2 or later (GPLv2+)',
-            'Development Status :: 5 - Production/Stable',
-            'Environment :: X11 Applications',
-            'Environment :: MacOS X',
-            'Environment :: Win32 (MS Windows)',
-            'Intended Audience :: End Users/Desktop',
-            'Natural Language :: English',
-            'Operating System :: POSIX :: Linux',
-            'Operating System :: MacOS :: MacOS X',
-            'Operating System :: Microsoft :: Windows',
-            'Topic :: Adaptive Technologies',
-            'Topic :: Desktop Environment',
-        ],
-        **kwargs
-    )
-
+setuptools.setup(
+    name=__software_name__,
+    version=__version__,
+    description=__description__,
+    long_description=__long_description__,
+    url=__url__,
+    download_url=__download_url__,
+    license=__license__,
+    author='Joshua Harlan Lifton',
+    author_email='joshua.harlan.lifton@gmail.com',
+    maintainer='Ted Morin',
+    maintainer_email='morinted@gmail.com',
+    include_package_data=True,
+    zip_safe=True,
+    options=options,
+    cmdclass=cmdclass,
+    setup_requires=setup_requires,
+    install_requires=install_requires,
+    extras_require=extras_require,
+    tests_require=tests_require,
+    dependency_links=dependency_links,
+    entry_points='\n'.join('[' + section + ']\n' + '\n'.join(
+        entrypoint for entrypoint in entrypoint_list)
+        for section, entrypoint_list in entrypoints.items()
+    ),
+    packages=[
+        'plover',
+        'plover.dictionary',
+        'plover.gui_none',
+        'plover.gui_qt',
+        'plover.machine',
+        'plover.oslayer',
+        'plover.system',
+    ],
+    data_files=[
+        ('share/applications', ['application/plover.desktop']),
+        ('share/pixmaps', ['plover/assets/plover.png']),
+    ],
+    classifiers=[
+        'Programming Language :: Python :: 2',
+        'Programming Language :: Python :: 2.7',
+        'Programming Language :: Python :: 3',
+        'Programming Language :: Python :: 3.4',
+        'Programming Language :: Python :: 3.5',
+        'License :: OSI Approved :: GNU General Public License v2 or later (GPLv2+)',
+        'Development Status :: 5 - Production/Stable',
+        'Environment :: X11 Applications',
+        'Environment :: MacOS X',
+        'Environment :: Win32 (MS Windows)',
+        'Intended Audience :: End Users/Desktop',
+        'Natural Language :: English',
+        'Operating System :: POSIX :: Linux',
+        'Operating System :: MacOS :: MacOS X',
+        'Operating System :: Microsoft :: Windows',
+        'Topic :: Adaptive Technologies',
+        'Topic :: Desktop Environment',
+    ],
+    **kwargs
+)

@@ -15,6 +15,9 @@ PACKAGE="$2"
 
 echo "Making Plover.app with Plover wheel $plover_wheel"
 
+# Get Plover's version
+plover_version="$("$python" -c "from plover import __version__; print(__version__)")"
+
 # Find system Python
 python3_bin_dir="$(python3 -c 'import os, sys; print(os.path.dirname(os.path.realpath(sys.executable)))')"
 python3_dir="$(dirname "$python3_bin_dir")"
@@ -58,16 +61,12 @@ cp "$plover_dir/osx/app_resources/sitecustomize.py" "$target_libs/sitecustomize.
 # Disable user site-packages by changing a constant in site.py
 sed -ie 's/ENABLE_USER_SITE = None/ENABLE_USER_SITE = False/g' "$target_libs/site.py"
 
-# Absolute path to our python executable
-full_target_python="$target_dir/$target_python"
-# The correct prefix for this Python (necessary because pip seems to get it wrong)
-local_sys_prefix="$($full_target_python -c 'import sys; print(sys.prefix)')"
-# Install pip for this local python
-"$python" -m utils.download 'https://bootstrap.pypa.io/get-pip.py' '3d45cef22b043b2b333baa63abaa99544e9c031d'
-"$full_target_python" "$downloads/get-pip.py" -f "$wheels" --prefix="$local_sys_prefix"
+# Switch to target Python.
+python="$PWD/$target_dir/$target_python"
+unset __PYVENV_LAUNCHER__
 
-# Install Plover
-"$full_target_python" -m utils.install_wheels --ignore-installed --prefix="$local_sys_prefix" "$plover_wheel"
+# Install Plover and dependencies.
+bootstrap_dist "$plover_wheel"
 
 # Make launcher
 plover_executable=MacOS/Plover
@@ -77,9 +76,6 @@ chmod +x "$launcher_file"
 
 # Copy icon
 cp "$osx_dir/app_resources/plover.icns" "$app_dir/Contents/Resources/plover.icns"
-
-# Get Plover's version
-plover_version="$("$full_target_python" -c "from plover import __version__; print(__version__)")"
 
 # This allows notifications from our Python binary to identify as from Plover...
 /usr/libexec/PlistBuddy -c 'Add :CFBundleIdentifier string "org.openstenoproject.plover"' "$app_dir/Contents/Frameworks/Info.plist"

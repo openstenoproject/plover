@@ -120,6 +120,11 @@ run_eval()
   fi
 }
 
+get_pip()
+{
+  run "$python" -m utils.get_pip "$@"
+}
+
 # Crude version of wheels_install, that will work
 # if wheel is not installed and for installing it,
 # but still tries to hit/update the wheels cache.
@@ -154,3 +159,32 @@ rwt()
   "$@"
   run rm -rf .rwt
 )}
+
+bootstrap_dev()
+{
+  # Install/upgrade pip/wheel.
+  get_pip --upgrade "$@"
+  # Install requirements.
+  # Note: install Cython first to speed up hidapi install.
+  wheels_install Cython "$@"
+  wheels_install -r requirements.txt "$@"
+  # List installed Python packages.
+  run "$python" -m pip list --format=columns
+}
+
+bootstrap_dist()
+{
+  wheel="$1"
+  shift
+  # Install pip/wheel...
+  get_pip "$@"
+  # Install Plover and dependencies.
+  # Note: temporarily install Cython so building cython-hidapi's wheel is faster.
+  rwt Cython -- wheels_install -r requirements_distribution.txt "$@"
+  wheels_install --ignore-installed --no-deps "$wheel" "$@"
+  # List installed Python packages.
+  run "$python" -m pip list --format=columns
+}
+
+parse_opts args "$@"
+set -- "${args[@]}"
