@@ -51,22 +51,6 @@ def get_version():
     return version
 
 
-def pyinstaller(*args):
-    py_args = [
-        '--log-level=INFO',
-        '--specpath=build',
-        '--additional-hooks-dir=windows',
-        '--name=%s' % PACKAGE,
-        '--noconfirm',
-        '--windowed',
-        '--onefile',
-    ]
-    py_args.extend(args)
-    py_args.append('windows/main.py')
-    main = pkg_resources.load_entry_point('PyInstaller', 'console_scripts', 'pyinstaller')
-    return main(py_args) or 0
-
-
 class Command(setuptools.Command):
 
     def build_in_place(self):
@@ -91,24 +75,6 @@ class Command(setuptools.Command):
             sys.modules.clear()
             sys.modules.update(old_modules)
             pkg_resources.working_set.__init__()
-
-
-class PyInstallerDist(Command):
-
-    user_options = []
-    extra_args = []
-
-    def initialize_options(self):
-        pass
-
-    def finalize_options(self):
-        pass
-
-    def run(self):
-        self.build_in_place()
-        code = pyinstaller(*self.extra_args)
-        if code != 0:
-            sys.exit(code)
 
 
 class BinaryDistWin(Command):
