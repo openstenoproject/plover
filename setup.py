@@ -466,8 +466,4 @@ setuptools.setup(
     options=options,
     cmdclass=cmdclass,
     extras_require=extras_require,
-    data_files=[
-        ('share/applications', ['application/plover.desktop']),
-        ('share/pixmaps', ['plover/assets/plover.png']),
-    ],
 )

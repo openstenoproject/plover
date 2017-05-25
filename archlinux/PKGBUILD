@@ -38,6 +38,8 @@ check() {
 package() {
   cd "$pkgname-$pkgver"
   python setup.py install --root="$pkgdir"
+  install -vDm644 -t "${pkgdir}/usr/share/pixmaps" plover/assets/plover.png
+  install -vDm644 -t "${pkgdir}/usr/share/applications" application/plover.desktop
   chmod og+rX -R "$pkgdir"
 }
 

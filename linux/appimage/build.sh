@@ -118,11 +118,9 @@ python='appdir_python'
 # Install Plover and dependencies.
 bootstrap_dist "$wheel"
 
-# Note: those will re-appear in their respective
-# locations when creating the AppImage...
-# ¯\_(ツ)_/¯
-run mv "$appdir/usr/share/applications/plover.desktop" "$appdir/plover.desktop"
-run mv "$appdir/usr/share/pixmaps/plover.png" "$appdir/plover.png"
+# Add desktop integration.
+run cp 'application/plover.desktop' "$appdir/plover.desktop"
+run cp 'plover/assets/plover.png' "$appdir/plover.png"
 
 # Trim the fat.
 run "$python" -m utils.trim "$appdir" linux/appimage/blacklist.txt

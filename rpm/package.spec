@@ -46,6 +46,8 @@ env PYTHONPATH="$PWD/.deps" %{__python3} setup.py compile_catalog build_ui build
 
 %install
 env PYTHONPATH="$PWD/.deps" %py3_install
+install -vDm644 -t "%{buildroot}/usr/share/pixmaps" plover/assets/plover.png
+install -vDm644 -t "%{buildroot}/usr/share/applications" application/plover.desktop
 
 %check
 env PYTHONPATH="$PWD/.deps" %{__python3} setup.py test
