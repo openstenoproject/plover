@@ -352,75 +352,21 @@ cmdclass = {
     'tag_weekly': TagWeekly,
     'test': Test,
 }
-setup_requires = ['setuptools-scm']
 options = {}
-kwargs = {}
 build_dependencies = []
 
-entrypoints = {
-    'console_scripts': [
-        'plover = plover.main:main',
-    ],
-
-    'plover.dictionary': [
-        'json = plover.dictionary.json_dict:JsonDictionary',
-        'rtf = plover.dictionary.rtfcre_dict:RtfDictionary',
-    ],
-
-    'plover.gui': [
-        'none = plover.gui_none.main',
-    ],
-
-    'plover.machine': [
-        'Gemini PR = plover.machine.geminipr:GeminiPr',
-        'Keyboard  = plover.machine.keyboard:Keyboard',
-        'Passport  = plover.machine.passport:Passport',
-        'ProCAT    = plover.machine.procat:ProCAT',
-        'Stentura  = plover.machine.stentura:Stentura',
-        'TX Bolt   = plover.machine.txbolt:TxBolt',
-        'Treal     = plover.machine.treal:Treal',
-    ],
-
-    'plover.system': [
-        'English Stenotype = plover.system.english_stenotype',
-    ],
-
-    'setuptools.installation': [
-        'eggsecutable = plover.main:main',
-    ],
-}
-
 if sys.platform.startswith('darwin'):
-    setup_requires.extend([
-        'macholib',
-        'pip',
-        'wheel',
-    ])
     cmdclass['bdist_app'] = BinaryDistApp
     cmdclass['bdist_dmg'] = BinaryDistDmg
 
 if sys.platform.startswith('win32'):
-    setup_requires.extend([
-        'pip',
-        'wheel',
-    ])
     cmdclass['bdist_win'] = BinaryDistWin
 
-setup_requires.append('pytest>=3.1.0')
-
-entrypoints['plover.gui'].append('qt = plover.gui_qt.main')
-entrypoints['plover.gui.qt.tool'] = [
-    'add_translation = plover.gui_qt.add_translation:AddTranslation',
-    'lookup          = plover.gui_qt.lookup_dialog:LookupDialog',
-    'paper_tape      = plover.gui_qt.paper_tape:PaperTape',
-    'suggestions     = plover.gui_qt.suggestions_dialog:SuggestionsDialog',
-]
 try:
     import PyQt5
 except ImportError:
     pass
 else:
-    setup_requires.append('pyqt-distutils')
     try:
         from pyqt_distutils.build_ui import build_ui
     except ImportError:
@@ -447,7 +393,6 @@ else:
         cmdclass['build_ui'] = BuildUi
         build_dependencies.append('build_ui')
 
-setup_requires.append('Babel')
 try:
     from babel.messages import frontend as babel
 except ImportError:
@@ -479,18 +424,6 @@ else:
     }
     build_dependencies.append('compile_catalog')
 
-dependency_links = [
-   'https://github.com/benoit-pierre/pyobjc/releases/download/pyobjc-3.1.1+plover2/pyobjc-core-3.1.1-plover2.tar.gz#egg=pyobjc-core',
-   'https://github.com/benoit-pierre/pyobjc/releases/download/pyobjc-3.1.1+plover2/pyobjc-framework-Cocoa-3.1.1-plover2.tar.gz#egg=pyobjc-framework-Cocoa',
-]
-
-install_requires = [
-    'six',
-    'setuptools',
-    'pyserial>=2.7',
-    'appdirs>=1.3.0',
-    'hidapi',
-]
 
 extras_require = {
     ':"win32" in sys_platform': [
@@ -512,10 +445,6 @@ extras_require = {
     ],
 }
 
-tests_require = [
-    'mock',
-]
-
 
 class CustomBuildPy(build_py):
     def run(self):
@@ -534,54 +463,11 @@ setuptools.setup(
     url=__url__,
     download_url=__download_url__,
     license=__license__,
-    author='Joshua Harlan Lifton',
-    author_email='joshua.harlan.lifton@gmail.com',
-    maintainer='Ted Morin',
-    maintainer_email='morinted@gmail.com',
-    include_package_data=True,
-    zip_safe=True,
     options=options,
     cmdclass=cmdclass,
-    setup_requires=setup_requires,
-    install_requires=install_requires,
     extras_require=extras_require,
-    tests_require=tests_require,
-    dependency_links=dependency_links,
-    entry_points='\n'.join('[' + section + ']\n' + '\n'.join(
-        entrypoint for entrypoint in entrypoint_list)
-        for section, entrypoint_list in entrypoints.items()
-    ),
-    packages=[
-        'plover',
-        'plover.dictionary',
-        'plover.gui_none',
-        'plover.gui_qt',
-        'plover.machine',
-        'plover.oslayer',
-        'plover.system',
-    ],
     data_files=[
         ('share/applications', ['application/plover.desktop']),
         ('share/pixmaps', ['plover/assets/plover.png']),
     ],
-    classifiers=[
-        'Programming Language :: Python :: 2',
-        'Programming Language :: Python :: 2.7',
-        'Programming Language :: Python :: 3',
-        'Programming Language :: Python :: 3.4',
-        'Programming Language :: Python :: 3.5',
-        'License :: OSI Approved :: GNU General Public License v2 or later (GPLv2+)',
-        'Development Status :: 5 - Production/Stable',
-        'Environment :: X11 Applications',
-        'Environment :: MacOS X',
-        'Environment :: Win32 (MS Windows)',
-        'Intended Audience :: End Users/Desktop',
-        'Natural Language :: English',
-        'Operating System :: POSIX :: Linux',
-        'Operating System :: MacOS :: MacOS X',
-        'Operating System :: Microsoft :: Windows',
-        'Topic :: Adaptive Technologies',
-        'Topic :: Desktop Environment',
-    ],
-    **kwargs
 )
