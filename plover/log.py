@@ -124,6 +124,7 @@ class Logger(object):
         self.info('set_stroke_filename(%s)', filename)
         if self._stroke_handler is not None:
             self._stroke_logger.removeHandler(self._stroke_handler)
+            self._stroke_handler.close()
             self._stroke_handler = None
         if filename is not None:
             assert filename != LOG_FILENAME

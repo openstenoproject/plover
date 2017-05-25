@@ -23,8 +23,8 @@ class TestCase(unittest.TestCase):
                 d[key].append((value, dictionary))
             return d
         for dictionary in map(lambda x: DICT_PATH + x, DICT_NAMES):
-            json.load(io.open(dictionary, encoding='utf-8'),
-                      object_pairs_hook=read_key_pairs)
+            with io.open(dictionary, encoding='utf-8') as fp:
+                json.load(fp, object_pairs_hook=read_key_pairs)
         msg_list = []
         has_duplicate = False
         for key, value_list in d.items():
