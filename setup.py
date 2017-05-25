@@ -12,9 +12,6 @@ import sys
 import textwrap
 import zipfile
 
-from xml.etree import ElementTree
-from xml.etree.ElementTree import Element
-
 from distutils import log
 import pkg_resources
 import setuptools
