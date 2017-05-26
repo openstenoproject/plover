@@ -16,12 +16,6 @@ matrix:
         - CACHE_NAME=linux_py3
       dist: trusty
       sudo: required
-    # OSX / Python 3
-    - os: osx
-      osx_image: xcode8
-      env:
-        - PYTHON=python3
-        - CACHE_NAME=osx_py3
 
 cache:
   directories:
@@ -35,15 +29,6 @@ before_install:
     ./bootstrap.sh "$PYTHON"
     # List installed packages versions.
     $PYTHON -m pip list --format=columns
-    if [ $TRAVIS_OS_NAME = osx ]
-    then
-      # The directory containing pyrcc5/pyuic55 is not in $PATH,
-      # so just use the right Python modules directly.
-      sed -i '' \
-        -e 's/"pyrcc5"/"'$PYTHON' -m PyQt5.pyrcc_main"/' \
-        -e 's/"pyuic5"/"'$PYTHON' -m PyQt5.uic.pyuic"/' \
-        pyuic.json
-    fi
     )
 
 install: true
@@ -59,46 +44,32 @@ script:
     # Note: if we moved this to the `before_deploy` phase, we would
     # not have to check, but we'd also lose caching; since the cache
     # is stored before the `before_install` phase...
-    if [ -z "$TRAVIS_TAG" ]
+    if [ -z "$TRAVIS_TAG" ] || [ $PYTHON != python3 ]
     then
       exit 0
     fi
-    case "$TRAVIS_OS_NAME" in
-    osx)
-      if [ $PYTHON = python3 ]
-      then
-        $PYTHON setup.py bdist_dmg
-      fi
-      ;;
-    linux)
-      if [ $PYTHON = python3 ]
-      then
-        $PYTHON setup.py bdist_wheel sdist
-        sudo apt-get install -qq \
-          libfuse2 \
-          libglib2.0-dev \
-          libx11-dev \
-          libxmu-dev \
-          libbz2-dev \
-          libgdbm-dev \
-          liblzma-dev \
-          libncurses5-dev \
-          libreadline-dev \
-          libsqlite3-dev \
-          libssl-dev \
-          zlib1g-dev \
-          libudev-dev \
-          libusb-1.0-0-dev \
-          libdbus-1-dev \
-          libdbus-glib-1-dev \
-          ;
-        ./linux/appimage/build.sh -c -j 2 -w dist/*.whl
-        rm -rf .cache/pip
-      fi
-      ;;
-    esac
-    # Not all builds will produce artifacts.
-    du -hs dist/* || true
+    $PYTHON setup.py bdist_wheel sdist
+    sudo apt-get install -qq \
+      libfuse2 \
+      libglib2.0-dev \
+      libx11-dev \
+      libxmu-dev \
+      libbz2-dev \
+      libgdbm-dev \
+      liblzma-dev \
+      libncurses5-dev \
+      libreadline-dev \
+      libsqlite3-dev \
+      libssl-dev \
+      zlib1g-dev \
+      libudev-dev \
+      libusb-1.0-0-dev \
+      libdbus-1-dev \
+      libdbus-glib-1-dev \
+      ;
+    ./linux/appimage/build.sh -c -j 2 -w dist/*.whl
+    rm -rf .cache/pip
+    du -hs dist/*
     )
 
 deploy:
@@ -110,7 +81,6 @@ deploy:
   file_glob: true
   file:
     - "dist/*.AppImage"
-    - "dist/*.dmg"
     - "dist/*.egg"
     - "dist/*.tar.gz"
     - "dist/*.whl"
