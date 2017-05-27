@@ -1,7 +1,5 @@
 # https://discuss.circleci.com/t/python-pip-dependencies-are-not-cached-reinstalled-every-time/6965
 machine:
-  pre:
-    - sudo -H pip install --upgrade virtualenv
   environment:
     PYTHON: python3
 
@@ -46,7 +44,7 @@ deployment:
         github_release="$(python3 -m utils.download 'https://github.com/aktau/github-release/releases/download/v0.7.2/darwin-amd64-github-release.tar.bz2' '16d40bcb4de7e29055789453f0d5fdbf1bfd3b49')"
         tar xvjf "$github_release"
         ./bin/darwin/amd64/github-release release --user openstenoproject --repo plover --tag "$(git describe --tags)" --draft
-        ./bin/darwin/amd64/github-release upload --user openstenoproject --repo plover --tag "$(git describe --tags)" --file "$(find $CIRCLE_ARTIFACTS/*.dmg)" --name "$(basename $(find $CIRCLE_ARTIFACTS/*.dmg))"
+        ./bin/darwin/amd64/github-release upload --user openstenoproject --repo plover --tag "$(git describe --tags)" --file $CIRCLE_ARTIFACTS/*.dmg --name "$(basename $CIRCLE_ARTIFACTS/*.dmg)"
         )
 
 
