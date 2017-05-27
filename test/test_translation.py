@@ -364,56 +364,56 @@ class StateTestCase(unittest.TestCase):
     def test_restrict_size_zero_on_empty(self):
         s = _State()
         s.restrict_size(0)
-        self.assertEquals(s.translations, [])
+        self.assertEqual(s.translations, [])
         self.assertIsNone(s.tail)
 
     def test_restrict_size_zero_on_one_stroke(self):
         s = _State()
         s.translations = [self.a]
         s.restrict_size(0)
-        self.assertEquals(s.translations, [self.a])
+        self.assertEqual(s.translations, [self.a])
         self.assertIsNone(s.tail)
 
     def test_restrict_size_to_exactly_one_stroke(self):
         s = _State()
         s.translations = [self.a]
         s.restrict_size(1)
-        self.assertEquals(s.translations, [self.a])
+        self.assertEqual(s.translations, [self.a])
         self.assertIsNone(s.tail)
         
     def test_restrict_size_to_one_on_two_strokes(self):
         s = _State()
         s.translations = [self.b]
         s.restrict_size(1)
-        self.assertEquals(s.translations, [self.b])
+        self.assertEqual(s.translations, [self.b])
         self.assertIsNone(s.tail)
 
     def test_restrict_size_to_one_on_two_translations(self):
         s = _State()
         s.translations = [self.b, self.a]
         s.restrict_size(1)
-        self.assertEquals(s.translations, [self.a])
+        self.assertEqual(s.translations, [self.a])
         self.assertEqual(s.tail, self.b)
 
     def test_restrict_size_to_one_on_two_translations_too_big(self):
         s = _State()
         s.translations = [self.a, self.b]
         s.restrict_size(1)
-        self.assertEquals(s.translations, [self.b])
+        self.assertEqual(s.translations, [self.b])
         self.assertEqual(s.tail, self.a)
 
     def test_restrict_size_lose_translations(self):
         s = _State()
         s.translations = [self.a, self.b, self.c]
         s.restrict_size(2)
-        self.assertEquals(s.translations, [self.c])
+        self.assertEqual(s.translations, [self.c])
         self.assertEqual(s.tail, self.b)
 
     def test_restrict_size_multiple_translations(self):
         s = _State()
         s.translations = [self.a, self.b, self.c]
         s.restrict_size(5)
-        self.assertEquals(s.translations, [self.b, self.c])
+        self.assertEqual(s.translations, [self.b, self.c])
         self.assertEqual(s.tail, self.a)
 
 class TranslateStrokeTestCase(unittest.TestCase):

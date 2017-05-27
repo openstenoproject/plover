@@ -185,10 +185,10 @@ class TestCase(unittest.TestCase):
     def test_format_translation(self):
         cases = (
         ('', ''),
-        ('{^in^}', '\cxds in\cxds '),
-        ('{pre^}', 'pre\cxds '),
-        ('{pre^} ', 'pre\cxds '),
-        ('{pre^}  ', 'pre\cxds ')
+        ('{^in^}', r'\cxds in\cxds '),
+        ('{pre^}', r'pre\cxds '),
+        ('{pre^} ', r'pre\cxds '),
+        ('{pre^}  ', r'pre\cxds ')
         )
         for before, expected in cases:
             result = format_translation(before)
