@@ -78,7 +78,7 @@ find_dist()
       echo arch
       return
     fi
-    err "unsuported distribution: $dist"
+    err "unsupported distribution: $dist"
     return 1
   fi
   dist="$(lsb_release -i -s | tr A-Z a-z)"
@@ -86,11 +86,11 @@ find_dist()
     arch)
       echo 'arch'
       ;;
-    linuxmint|ubuntu)
+    linuxmint|trisquel|ubuntu)
       echo 'ubuntu'
       ;;
     *)
-      err "unsuported distribution: $dist"
+      err "unsupported distribution: $dist"
       return 1
       ;;
   esac
