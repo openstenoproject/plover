@@ -76,7 +76,7 @@ sed "s/pythonexecutable/$target_python/g" "$osx_dir/app_resources/plover_launche
 chmod +x "$launcher_file"
 
 # Copy icon
-cp "$osx_dir/plover.icns" "$app_dir/Contents/Resources/plover.icns"
+cp "$osx_dir/app_resources/plover.icns" "$app_dir/Contents/Resources/plover.icns"
 
 # Get Plover's version
 plover_version="$("$full_target_python" -c "from plover import __version__; print(__version__)")"
