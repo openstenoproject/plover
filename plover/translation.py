@@ -439,27 +439,18 @@ def _back_string():
     return _back_string.mapping
 
 def _toggle_asterisk(translations, undo, do):
-    replaced = translations[len(translations)-1:]
-    if len(replaced) < 1:
-        return
-    undo.extend(replaced)
-    redo = replaced[0].replaced
-    do.extend(redo)
-    translations.remove(replaced[0])
-    translations.extend(redo)
-    last_stroke = replaced[0].strokes[len(replaced[0].strokes)-1]
-    keys = last_stroke.steno_keys[:]
+    if not translations:
+        return None
+    replaced = translations[-1]
+    undo.append(replaced)
+    keys = set(replaced.strokes[-1].steno_keys)
     if '*' in keys:
         keys.remove('*')
     else:
-        keys.append('*')
+        keys.add('*')
     return Stroke(keys)
 
 def _repeat_last_stroke(translations):
-    replaced = translations[len(translations)-1:]
-    if len(replaced) < 1:
-        return
-    last_stroke = replaced[0].strokes[len(replaced[0].strokes)-1]
-    keys = last_stroke.steno_keys[:]
-    return Stroke(keys)
-
+    if not translations:
+        return None
+    return Stroke(translations[-1].strokes[-1].steno_keys)
