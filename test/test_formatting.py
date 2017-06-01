@@ -490,11 +490,18 @@ class FormatterTestCase(unittest.TestCase):
           action(text=' ', attach=True)
          ]),
          
-         (('{-|} equip {^s}', action(), True),
-          [action(capitalize=True),
-           action(text='Equip ', word='Equip'),
-           action(text='s ', word='Equips', replace=' '),
-          ]),
+        (('{-|} equip {^s}', action(), True),
+         [action(capitalize=True),
+          action(text='Equip ', word='Equip'),
+          action(text='s ', word='Equips', replace=' '),
+         ]),
+
+        (('{-|}{-!} equip {^s}', action(), True),
+         [action(capitalize=True),
+          action(capitalize=False),
+          action(text='equip ', word='equip'),
+          action(text='s ', word='equips', replace=' '),
+         ]),
 
         (('{-|} equip {^ed}', action(), True),
          [action(capitalize=True),
@@ -507,6 +514,12 @@ class FormatterTestCase(unittest.TestCase):
           action(text='equip ', word='equip')
          ]),
 
+        (('{>}{-!} Equip', action(), True),
+         [action(lower=True),
+          action(lower=False),
+          action(text='Equip ', word='Equip')
+         ]),
+
         (('{>} equip', action(), True),
          [action(lower=True),
           action(text='equip ', word='equip')
@@ -515,6 +528,12 @@ class FormatterTestCase(unittest.TestCase):
         (('{<} equip', action(), True),
          [action(upper=True),
           action(text='EQUIP ', word='EQUIP', upper_carry=True)
+         ]),
+
+        (('{<}{-!} equip', action(), True),
+         [action(upper=True),
+          action(upper=False),
+          action(text='equip ', word='equip', upper_carry=False)
          ]),
 
         (('{<} EQUIP', action(), True),
@@ -526,6 +545,13 @@ class FormatterTestCase(unittest.TestCase):
          [action(upper=True),
           action(text='EQUIP ', word='EQUIP', upper_carry=True),
           action(text='PED ', word='EQUIPPED', replace=' ', upper_carry=True)
+         ]),
+
+        (('{<}{-!} equip {^ed}', action(), True),
+         [action(upper=True),
+          action(upper=False),
+          action(text='equip ', word='equip', upper_carry=False),
+          action(text='ped ', word='equipped', replace=' ', upper_carry=False)
          ]),
 
         (('equip {*-|}', action(), True),

@@ -384,6 +384,7 @@ META_CAPITALIZE = '-|'
 META_CARRY_CAPITALIZATION = '~|'
 META_LOWER = '>'
 META_UPPER = '<'
+META_RESET_CASE_ACTION = '-!'
 META_RETRO_CAPITALIZE = '*-|'
 META_RETRO_LOWER = '*>'
 META_RETRO_UPPER = '*<'
@@ -501,6 +502,11 @@ def _atom_to_action_spaces_before(atom, last_action):
             action = last_action.copy_state()
             action.lower = False
             action.upper = True
+            action.capitalize = False
+        elif meta == META_RESET_CASE_ACTION:
+            action = last_action.copy_state()
+            action.lower = False
+            action.upper = False
             action.capitalize = False
         elif meta == META_RETRO_CAPITALIZE:
             action = last_action.copy_state()
@@ -678,6 +684,11 @@ def _atom_to_action_spaces_after(atom, last_action):
             action = last_action.copy_state()
             action.lower = False
             action.upper = True
+            action.capitalize = False
+        elif meta == META_RESET_CASE_ACTION:
+            action = last_action.copy_state()
+            action.lower = False
+            action.upper = False
             action.capitalize = False
         elif (meta.startswith(META_CARRY_CAPITALIZATION) or
               meta.startswith(META_ATTACH_FLAG + META_CARRY_CAPITALIZATION)):
