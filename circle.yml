@@ -1,0 +1,22 @@
+machine:
+  pre:
+    # virtualenv is automatically used by CircleCI,
+    # but it's not available in the macOS image.
+    - sudo -H pip install --upgrade virtualenv
+
+dependencies:
+  override:
+    - ./ci/circle.sh setup
+  cache_directories:
+    - .cache
+
+test:
+  override:
+    - ./ci/circle.sh build
+
+deployment:
+  release:
+    tag: /.+/
+    owner: openstenoproject
+    commands:
+      - ./ci/circle.sh deploy

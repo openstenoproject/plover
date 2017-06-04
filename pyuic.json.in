@@ -9,9 +9,9 @@
             "plover/gui_qt"
         ]
     ],
-    "pyrcc": "pyrcc5",
+    "pyrcc": "$PYTHON -m PyQt5.pyrcc_main",
     "pyrcc_options": "",
-    "pyuic": "pyuic5",
+    "pyuic": "$PYTHON -m PyQt5.uic.pyuic",
     "pyuic_options": "--from-import",
     "hooks": ["fix_icons", "gettext"]
 }

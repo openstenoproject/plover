@@ -474,11 +474,8 @@ class Helper(object):
         for name, src, checksum, handler_format, handler_args, path_dir in self.DEPENDENCIES:
             self.install(name, src, checksum, handler_format=handler_format, handler_args=handler_args, path_dir=path_dir)
         info('install requirements')
-        self._env.run(('python.exe', 'setup.py', 'write_requirements'))
-        self._pip_install('wheel')
-        self._env.run(('python.exe', '-m', 'utils.install_wheels',
-                       '-r', 'requirements.txt',
-                       '-c', 'requirements_constraints.txt'))
+        self._env.run(('python.exe', '-m', 'utils.get_pip', '--upgrade'))
+        self._env.run(('python.exe', '-m', 'utils.install_wheels', '-r', 'requirements.txt'))
 
     def cmd_run(self, executable, *args):
         '''run command in environment
@@ -566,11 +563,6 @@ class WineHelper(Helper):
 
 
 class Win32Helper(Helper):
-
-    DEPENDENCIES = (
-        # Install requests first, since we'll be using it for fetching some of the other dependencies.
-        ('requests', 'pip:requests', None, None, (), None),
-    ) + Helper.DEPENDENCIES
 
     def __init__(self):
         super(Win32Helper, self).__init__()
