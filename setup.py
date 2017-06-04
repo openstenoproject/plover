@@ -381,8 +381,16 @@ entrypoints = {
         'Treal     = plover.machine.treal:Treal',
     ],
 
+    'plover.command': [
+        'toggle_dict = plover.command.toggle_dict:toggle_dict',
+    ],
+
     'plover.system': [
         'English Stenotype = plover.system.english_stenotype',
+    ],
+
+    'plover.linux.extension': [
+        'fifo_commands = plover.extension.fifo_commands:FIFOCommands',
     ],
 
     'setuptools.installation': [
@@ -561,6 +569,7 @@ if __name__ == '__main__':
             entrypoint for entrypoint in entrypoint_list)
             for section, entrypoint_list in entrypoints.items()
         ),
+
         packages=[
             'plover',
             'plover.dictionary',
