@@ -12,13 +12,15 @@ import sys
 import traceback
 import argparse
 
+# This need to be imported before pkg_resources.
+from plover.oslayer.config import CONFIG_DIR
+
 import pkg_resources
 
 if sys.platform.startswith('darwin'):
     import appnope
 
 import plover.oslayer.processlock
-from plover.oslayer.config import CONFIG_DIR
 from plover.config import CONFIG_FILE, Config
 from plover.registry import registry
 from plover import log
@@ -59,7 +61,6 @@ def main():
         log.set_level(args.log_level.upper())
     log.setup_platform_handler()
 
-    registry.load_plugins()
     registry.update()
 
     gui = registry.get_plugin('gui', args.gui).obj
