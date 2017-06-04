@@ -2,34 +2,29 @@
 from collections import namedtuple
 
 from PyQt5.QtCore import QEvent
+from PyQt5.QtWidgets import QWidget
 
 from plover.misc import shorten_path
 from plover.steno import normalize_steno
 from plover.engine import StartingStrokeState
 from plover.translation import escape_translation, unescape_translation
 
-from plover.gui_qt.add_translation_ui import Ui_AddTranslation
+from plover.gui_qt.add_translation_widget_ui import Ui_AddTranslationWidget
 from plover.gui_qt.i18n import get_gettext
-from plover.gui_qt.tool import Tool
-
 
 _ = get_gettext()
 
 
-class AddTranslation(Tool, Ui_AddTranslation):
+class AddTranslationWidget(QWidget, Ui_AddTranslationWidget):
 
     ''' Add a new translation to the dictionary. '''
-
-    TITLE = _('Add Translation')
-    ICON = ':/translation_add.svg'
-    ROLE = 'add_translation'
-    SHORTCUT = 'Ctrl+N'
 
     EngineState = namedtuple('EngineState', 'dictionary_filter translator starting_stroke')
 
     def __init__(self, engine, dictionary_path=None):
-        super(AddTranslation, self).__init__(engine)
+        super(AddTranslationWidget, self).__init__()
         self.setupUi(self)
+        self._engine = engine
         self._dictionaries = []
         self._reverse_order = False
         self._selected_dictionary = dictionary_path
@@ -37,7 +32,7 @@ class AddTranslation(Tool, Ui_AddTranslation):
         self.on_config_changed(engine.config)
         engine.signal_connect('dictionaries_loaded', self.on_dictionaries_loaded)
         self.on_dictionaries_loaded(self._engine.dictionaries)
-        self.installEventFilter(self)
+
         self.strokes.installEventFilter(self)
         self.translation.installEventFilter(self)
 
@@ -76,20 +71,14 @@ class AddTranslation(Tool, Ui_AddTranslation):
                                                         StartingStrokeState(True, False))
         self._engine_state = self._original_state
         self._focus = None
-        self.restore_state()
-        self.finished.connect(self.save_state)
 
     def eventFilter(self, watched, event):
-        if watched == self and event.type() == QEvent.ActivationChange:
-            if not self.isActiveWindow():
-                self._unfocus()
-            return False
         if event.type() != QEvent.FocusIn:
             return False
         if watched == self.strokes:
-            self._focus_strokes()
+            self.focus_strokes()
         elif watched == self.translation:
-            self._focus_translation()
+            self.focus_translation()
         return False
 
     def _set_engine_state(self, state):
@@ -111,31 +100,31 @@ class AddTranslation(Tool, Ui_AddTranslation):
         special = '{#'  in escaped or '{PLOVER:' in escaped
         return not special
 
-    def _unfocus(self):
-        self._unfocus_strokes()
-        self._unfocus_translation()
+    def unfocus(self):
+        self.unfocus_strokes()
+        self.unfocus_translation()
 
-    def _focus_strokes(self):
+    def focus_strokes(self):
         if self._focus == 'strokes':
             return
-        self._unfocus_translation()
+        self.unfocus_translation()
         self._set_engine_state(self._strokes_state)
         self._focus = 'strokes'
 
-    def _unfocus_strokes(self):
+    def unfocus_strokes(self):
         if self._focus != 'strokes':
             return
         self._set_engine_state(self._original_state)
         self._focus = None
 
-    def _focus_translation(self):
+    def focus_translation(self):
         if self._focus == 'translation':
             return
-        self._unfocus_strokes()
+        self.unfocus_strokes()
         self._set_engine_state(self._translations_state)
         self._focus = 'translation'
 
-    def _unfocus_translation(self):
+    def unfocus_translation(self):
         if self._focus != 'translation':
             return
         self._set_engine_state(self._original_state)
@@ -193,12 +182,6 @@ class AddTranslation(Tool, Ui_AddTranslation):
             self._update_items(dictionaries=dictionaries)
 
     def on_config_changed(self, config_update):
-        if 'translation_frame_opacity' in config_update:
-            opacity = config_update.get('translation_frame_opacity')
-            if opacity is None:
-                return
-            assert 0 <= opacity <= 100
-            self.setWindowOpacity(opacity / 100.0)
         if 'classic_dictionaries_display_order' in config_update:
             self._update_items(reverse_order=config_update['classic_dictionaries_display_order'])
 
@@ -237,8 +220,8 @@ class AddTranslation(Tool, Ui_AddTranslation):
             info = ''
         self.translation_info.setText(info)
 
-    def accept(self):
-        self._unfocus()
+    def save_entry(self):
+        self.unfocus()
         strokes = self._strokes()
         translation = self._translation()
         if strokes and translation:
@@ -246,11 +229,11 @@ class AddTranslation(Tool, Ui_AddTranslation):
             if self._reverse_order:
                 index = -index - 1
             dictionary = self._dictionaries[index]
+            old_translation = self._engine.dictionaries[dictionary.path].get(strokes)
             self._engine.add_translation(strokes, translation,
                                          dictionary_path=dictionary.path)
-        super(AddTranslation, self).accept()
+            return dictionary, strokes, old_translation, translation
 
     def reject(self):
-        self._unfocus()
+        self.unfocus()
         self._set_engine_state(self._original_state)
-        super(AddTranslation, self).reject()
