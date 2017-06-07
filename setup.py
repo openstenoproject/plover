@@ -97,6 +97,7 @@ class BinaryDistWin(Command):
         pass
 
     def run(self):
+        from utils.install_wheels import WHEELS_CACHE
         # Download helper.
         from utils.download import download
         # Run command helper.
@@ -128,7 +129,7 @@ class BinaryDistWin(Command):
         dist_py = os.path.join(data_dir, 'python.exe')
         # Install pip/wheel.
         run(dist_py, '-m', 'utils.get_pip')
-        # Install Plover and dependencies.
+        # Install Plover + standard plugins and dependencies.
         # Note: do not use the embedded Python executable with `setup.py
         # install` to prevent setuptools from installing extra development
         # dependencies...
@@ -136,6 +137,9 @@ class BinaryDistWin(Command):
             '-r', 'requirements_distribution.txt')
         run(dist_py, '-m', 'utils.install_wheels',
             '--ignore-installed', '--no-deps', plover_wheel)
+        run(dist_py, '-m', 'utils.install_wheels',
+            '-r', 'requirements_plugins.txt')
+        os.unlink(os.path.join(WHEELS_CACHE, os.path.basename(plover_wheel)))
         # List installed packages.
         if self.verbose:
             run(dist_py, '-m', 'pip', 'list', '--format=columns')

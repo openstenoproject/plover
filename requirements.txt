@@ -1,5 +1,6 @@
 Babel==2.4.0
 certifi==2017.4.17; "darwin" in sys_platform
+Cython==0.25.2
 macholib==1.8; "darwin" in sys_platform
 mock==2.0.0
 pip==9.0.1

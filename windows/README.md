@@ -8,6 +8,10 @@ For installing all the required dependencies, you can use:
 
 `python -m pip install -r requirements.txt`
 
+To install the standard plugins, you can use:
+
+`pip3 install --user -e . -r requirements_plugins.txt`
+
 ## Development helpers
 
 * `./launch.bat`: run from source

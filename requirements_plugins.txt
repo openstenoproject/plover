@@ -1,0 +1,5 @@
+# plover-treal
+hidapi==0.7.99.post20
+plover-treal==1.0.1
+
+# vim: ft=cfg commentstring=#\ %s list
