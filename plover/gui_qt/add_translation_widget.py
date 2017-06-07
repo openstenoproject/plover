@@ -73,12 +73,14 @@ class AddTranslationWidget(QWidget, Ui_AddTranslationWidget):
         self._focus = None
 
     def eventFilter(self, watched, event):
-        if event.type() != QEvent.FocusIn:
-            return False
-        if watched == self.strokes:
-            self.focus_strokes()
-        elif watched == self.translation:
-            self.focus_translation()
+        if event.type() == QEvent.FocusIn:
+            if watched == self.strokes:
+                self._focus_strokes()
+            elif watched == self.translation:
+                self._focus_translation()
+        elif event.type() == QEvent.FocusOut:
+            if watched in (self.strokes, self.translation):
+                self._unfocus()
         return False
 
     def _set_engine_state(self, state):
@@ -100,31 +102,31 @@ class AddTranslationWidget(QWidget, Ui_AddTranslationWidget):
         special = '{#'  in escaped or '{PLOVER:' in escaped
         return not special
 
-    def unfocus(self):
-        self.unfocus_strokes()
-        self.unfocus_translation()
+    def _unfocus(self):
+        self._unfocus_strokes()
+        self._unfocus_translation()
 
-    def focus_strokes(self):
+    def _focus_strokes(self):
         if self._focus == 'strokes':
             return
-        self.unfocus_translation()
+        self._unfocus_translation()
         self._set_engine_state(self._strokes_state)
         self._focus = 'strokes'
 
-    def unfocus_strokes(self):
+    def _unfocus_strokes(self):
         if self._focus != 'strokes':
             return
         self._set_engine_state(self._original_state)
         self._focus = None
 
-    def focus_translation(self):
+    def _focus_translation(self):
         if self._focus == 'translation':
             return
-        self.unfocus_strokes()
+        self._unfocus_strokes()
         self._set_engine_state(self._translations_state)
         self._focus = 'translation'
 
-    def unfocus_translation(self):
+    def _unfocus_translation(self):
         if self._focus != 'translation':
             return
         self._set_engine_state(self._original_state)
@@ -221,7 +223,7 @@ class AddTranslationWidget(QWidget, Ui_AddTranslationWidget):
         self.translation_info.setText(info)
 
     def save_entry(self):
-        self.unfocus()
+        self._unfocus()
         strokes = self._strokes()
         translation = self._translation()
         if strokes and translation:
@@ -235,5 +237,5 @@ class AddTranslationWidget(QWidget, Ui_AddTranslationWidget):
             return dictionary, strokes, old_translation, translation
 
     def reject(self):
-        self.unfocus()
+        self._unfocus()
         self._set_engine_state(self._original_state)

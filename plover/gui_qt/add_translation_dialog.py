@@ -37,13 +37,6 @@ class AddTranslationDialog(Tool, Ui_AddTranslationDialog):
         self.restore_state()
         self.finished.connect(self.save_state)
 
-    def eventFilter(self, watched, event):
-        if watched == self and event.type() == QEvent.ActivationChange:
-            if not self.isActiveWindow():
-                self.add_translation.unfocus()
-            return False
-        return False
-
     def on_config_changed(self, config_update):
         if 'translation_frame_opacity' in config_update:
             opacity = config_update.get('translation_frame_opacity')
