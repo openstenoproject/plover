@@ -140,9 +140,6 @@ class BinaryDistWin(Command):
         run(dist_py, '-m', 'utils.install_wheels',
             '-r', 'requirements_plugins.txt')
         os.unlink(os.path.join(WHEELS_CACHE, os.path.basename(plover_wheel)))
-        # List installed packages.
-        if self.verbose:
-            run(dist_py, '-m', 'pip', 'list', '--format=columns')
         # Trim the fat...
         if self.trim:
             from utils.trim import trim
@@ -175,6 +172,8 @@ class BinaryDistWin(Command):
             # or `pip install` will not be usable...
             data_dir, '*/pip/_vendor/distlib/*',
         )
+        # Check requirements.
+        run(dist_py, '-m', 'utils.check_requirements')
         # Zip results.
         if self.zipdir:
             from utils.zipdir import zipdir
