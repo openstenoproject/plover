@@ -6,9 +6,6 @@
 import time
 import unittest
 
-# Python 2/3 compatibility.
-from six import assertCountEqual
-
 from mock import patch
 
 from plover.machine.passport import Passport
@@ -72,4 +69,4 @@ class TestCase(unittest.TestCase):
                 m.stop_capture()
                 self.assertEqual(len(actual), len(expected))
                 for actual_keys, expected_keys in zip(actual, expected):
-                    assertCountEqual(self, actual_keys, expected_keys)
+                    self.assertCountEqual(actual_keys, expected_keys)

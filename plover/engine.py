@@ -1,12 +1,10 @@
 
 from collections import namedtuple, OrderedDict
 from functools import wraps
+from queue import Queue
 import os
 import shutil
 import threading
-
-# Python 2/3 compatibility.
-from six.moves.queue import Queue
 
 from plover import log, system
 from plover.dictionary.loading_manager import DictionaryLoadingManager

@@ -8,9 +8,6 @@ import os
 import tempfile
 import unittest
 
-# Python 2/3 compatibility.
-from six import assertCountEqual
-
 from mock import patch
 
 from plover.exception import DictionaryLoaderException
@@ -79,7 +76,7 @@ class DictionaryLoadingManagerTestCase(unittest.TestCase):
             # Returns the right values in the right order.
             self.assertEqual(results, ['ccccc', 'bbbbb'])
             # Dropped superfluous files.
-            assertCountEqual(self, [df('b'), df('c')], manager.dictionaries.keys())
+            self.assertCountEqual([df('b'), df('c')], manager.dictionaries.keys())
             # Check dict like interface.
             self.assertEqual(len(manager), 2)
             self.assertFalse(df('a') in manager)

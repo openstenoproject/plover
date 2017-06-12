@@ -3,9 +3,6 @@ from operator import attrgetter, itemgetter
 from collections import namedtuple
 from itertools import chain
 
-# Python 2/3 compatibility.
-from six import iteritems
-
 from PyQt5.QtCore import (
     QAbstractTableModel,
     QModelIndex,
@@ -68,7 +65,7 @@ class DictionaryItemModel(QAbstractTableModel):
     def _update_entries(self, strokes_filter=None, translation_filter=None):
         self._entries = []
         for dictionary in self._dictionary_list:
-            for strokes, translation in iteritems(dictionary):
+            for strokes, translation in dictionary.items():
                 if strokes_filter is not None and \
                    not '/'.join(strokes).startswith(strokes_filter):
                     continue

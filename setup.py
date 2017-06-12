@@ -30,12 +30,9 @@ from plover import (
 )
 
 
-PY3 = sys.version_info[0] >= 3
-
-PACKAGE = '%s-%s-%s' % (
+PACKAGE = '%s-%s' % (
     __software_name__,
     __version__,
-    'py3' if PY3 else 'py2',
 )
 
 
@@ -118,7 +115,7 @@ class BinaryDistWin(Command):
         # is used (including indirectly by setuptools `build_py` command).
         py_embedded = download('https://www.python.org/ftp/python/3.5.2/python-3.5.2-embed-win32.zip',
                                'a62675cd88736688bb87999e8b86d13ef2656312')
-        dist_dir = os.path.join(wheel_cmd.dist_dir, 'plover-%s-py3-win32' % __version__)
+        dist_dir = os.path.join(wheel_cmd.dist_dir, PACKAGE + '-win32')
         data_dir = os.path.join(dist_dir, 'data')
         stdlib = os.path.join(data_dir, 'python35.zip')
         if os.path.exists(dist_dir):

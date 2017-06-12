@@ -11,9 +11,6 @@ import collections
 import os
 import shutil
 
-# Python 2/3 compatibility.
-from six import iteritems
-
 from plover.resource import ASSET_SCHEME, resource_filename, resource_timestamp
 
 
@@ -108,10 +105,7 @@ class StenoDictionary(object):
         self._longest_key = 0
 
     def items(self):
-        return iteritems(self._dict)
-
-    def iteritems(self):
-        return iteritems(self._dict)
+        return self._dict.items()
 
     def update(self, *args, **kwargs):
         assert not self.readonly
@@ -121,7 +115,7 @@ class StenoDictionary(object):
         casereverse = self.casereverse
         for iterable in args + (kwargs,):
             if isinstance(iterable, (dict, StenoDictionary)):
-                iterable = iteritems(iterable)
+                iterable = iterable.items()
             for key, value in iterable:
                 longest_key = max(longest_key, len(key))
                 _dict[key] = value

@@ -22,12 +22,6 @@ class MiscTestCase(unittest.TestCase):
         with self.assertRaises(AssertionError):
             misc.popcount_8(-1)
 
-    def test_characters(self):
-        self.assertEqual(list(misc.characters('STKPWHR')),
-                         ['S', 'T', 'K', 'P', 'W', 'H', 'R'])
-        self.assertEqual(list(misc.characters('')), [])
-        self.assertEqual(list(misc.characters(u'✂⌨')), [u'✂', u'⌨'])
-
     def test_dictionary_path(self):
         for short_path, full_path in (
             # Asset, no change.

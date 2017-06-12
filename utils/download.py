@@ -1,17 +1,10 @@
 #!/usr/bin/env python3
 
+from urllib.parse import urlsplit
+from urllib.request import urlretrieve
 import hashlib
 import os
 import sys
-
-if sys.version_info[0] < 3:
-    # Python 2.
-    from urllib import urlretrieve
-    from urlparse import urlsplit
-else:
-    # Python 3.
-    from urllib.request import urlretrieve
-    from urllib.parse import urlsplit
 
 
 DOWNLOADS_DIR = os.path.join('.cache', 'downloads')

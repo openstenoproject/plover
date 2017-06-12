@@ -3,9 +3,6 @@
 
 """Thread-based monitoring of a ProCAT stenotype machine."""
 
-# Python 2/3 compatibility.
-from six import iterbytes
-
 from plover.machine.base import SerialStenotypeBase
 
 """
@@ -55,7 +52,7 @@ class ProCAT(SerialStenotypeBase):
     def process_steno_packet(raw):
         # Raw packet has 4 bytes, we only care about the first 3
         steno_keys = []
-        for i, b in enumerate(iterbytes(raw[:3])):
+        for i, b in enumerate(raw[:3]):
             for j in range(0, 8):
                 if b & 0x80 >> j:
                     key = STENO_KEY_CHART[i * 8 + j]

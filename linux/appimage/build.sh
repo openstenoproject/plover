@@ -61,7 +61,7 @@ run "$python" -m utils.download 'http://ftp.debian.org/debian/pool/main/w/wmctrl
 if [ -z "$wheel" ]
 then
   run "$python" setup.py bdist_wheel
-  wheel="$distdir/plover-$version-py2.py3-none-any.whl"
+  wheel="$distdir/plover-$version-py3-none-any.whl"
 fi
 
 if [ $opt_ccache -ne 0 ]

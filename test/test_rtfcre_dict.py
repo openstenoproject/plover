@@ -7,9 +7,6 @@ import tempfile
 import unittest
 from contextlib import contextmanager
 
-# Python 2/3 compatibility.
-from six import BytesIO
-
 import mock
 
 from plover.dictionary.rtfcre_dict import RtfDictionary, TranslationConverter, format_translation

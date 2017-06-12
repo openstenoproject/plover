@@ -16,9 +16,6 @@ emulate keyboard input.
 
 """
 
-# Python 2/3 compatibility.
-from __future__ import print_function
-
 import sys
 
 KEYBOARDCONTROL_NOT_FOUND_FOR_OS = \

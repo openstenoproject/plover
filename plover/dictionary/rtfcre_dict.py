@@ -17,9 +17,6 @@ import codecs
 import inspect
 import re
 
-# Python 2/3 compatibility.
-from six import get_function_code
-
 from plover.steno import normalize_steno
 from plover.steno_dictionary import StenoDictionary
 # TODO: Move dictionary format somewhere more canonical than formatting.
@@ -39,7 +36,7 @@ class TranslationConverter(object):
         self.styles = styles
         
         def linenumber(f):
-            return get_function_code(f[1].__func__).co_firstlineno
+            return f[1].__code__.co_firstlineno
         
         handler_funcs = inspect.getmembers(self, inspect.ismethod)
         handler_funcs.sort(key=linenumber)
