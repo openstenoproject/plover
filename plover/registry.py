@@ -1,6 +1,8 @@
 
 from collections import namedtuple
+import sys
 
+from six import reraise
 import pkg_resources
 
 from plover.oslayer.config import PLUGINS_PLATFORM
@@ -34,9 +36,10 @@ class Registry(object):
         'system',
     )
 
-    def __init__(self):
+    def __init__(self, suppress_errors=True):
         self._plugins = {}
         self._distributions = {}
+        self._suppress_errors = suppress_errors
         for plugin_type in self.PLUGIN_TYPES:
             self._plugins[plugin_type] = {}
 
@@ -53,6 +56,8 @@ class Registry(object):
         except:
             log.error('error loading %s plugin: %s (from %s)', plugin_type,
                       entrypoint.name, entrypoint.module_name, exc_info=True)
+            if not self._suppress_errors:
+                reraise(*sys.exc_info())
         else:
             plugin = self.register_plugin(plugin_type, entrypoint.name, obj)
             # Keep track of distributions providing plugins.
