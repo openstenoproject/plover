@@ -215,7 +215,7 @@ class KeyboardCapture(threading.Thread):
                                       kCGEventFlagMaskNonCoalesced)
             has_nonsupressible_modifiers = \
                 CGEventGetFlags(event) & ~suppressible_modifiers
-            if has_nonsupressible_modifiers and event_type == kCGEventKeyDown:
+            if has_nonsupressible_modifiers:
                 return PASS_EVENT_THROUGH
 
             keycode = CGEventGetIntegerValueField(
