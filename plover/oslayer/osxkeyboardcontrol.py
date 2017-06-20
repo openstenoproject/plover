@@ -2,9 +2,7 @@
 
 import threading
 from time import sleep
-
-# Python 2/3 compatibility.
-from six.moves.queue import Queue
+from queue import Queue
 
 from Quartz import (
     CFMachPortCreateRunLoopSource,
@@ -45,7 +43,6 @@ from Quartz import (
     NSSystemDefined,
 )
 
-from plover.misc import characters
 from plover.oslayer.osxkeyboardlayout import KeyboardLayout
 from plover.key_combo import add_modifiers_aliases, parse_key_combo, KEYNAME_TO_CHAR
 import plover.log
@@ -354,7 +351,7 @@ class KeyboardEmulation(object):
         apply_raw()
 
         last_modifier = None
-        for c in characters(s):
+        for c in s:
             for keycode, modifier in self._layout.char_to_key_sequence(c):
                 if keycode is not None:
                     if modifier is not last_modifier:

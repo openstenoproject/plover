@@ -1,19 +1,9 @@
 matrix:
   include:
-    # Linux / Python 2
-    - os: linux
-      language: python
-      python: "2.7"
-      env:
-        - CACHE_NAME=linux_py2
-      dist: trusty
-      sudo: required
     # Linux / Python 3
     - os: linux
       language: python
       python: "3.5"
-      env:
-        - CACHE_NAME=linux_py3
       dist: trusty
       sudo: required
 

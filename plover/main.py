@@ -4,9 +4,6 @@
 
 "Launch the plover application."
 
-# Python 2/3 compatibility.
-from __future__ import print_function
-
 import os
 import sys
 import traceback

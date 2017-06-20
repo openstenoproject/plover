@@ -3,9 +3,6 @@ import sys
 import locale
 import gettext
 
-# Python 2/3 compatibility.
-from six import PY2
-
 import pkg_resources
 
 from plover import log
@@ -48,14 +45,9 @@ def install_gettext():
     log.info('setting language to: %s', lang)
     os.environ['LANGUAGE'] = lang
     locale_dir = pkg_resources.resource_filename('plover', 'gui_qt/messages')
-    if PY2:
-        # unicode=True
-        args = [True]
-    else:
-        args = []
-    gettext.install('plover', locale_dir, *args)
+    gettext.install('plover', locale_dir)
 
 def get_gettext(package='plover', resource_dir='gui_qt/messages'):
     locale_dir = pkg_resources.resource_filename(package, resource_dir)
     translation = gettext.translation(package, locale_dir, fallback=True)
-    return translation.ugettext if PY2 else translation.gettext
+    return translation.gettext

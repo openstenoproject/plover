@@ -148,25 +148,17 @@ Unknown.
 
 import struct
 
-# Python 2/3 compatibility.
-from six.moves import zip
-from six import PY2, iterbytes
-
 from plover import log
 import plover.machine.base
 
 
-if PY2:
-    need_ord_types = (str, bytes, buffer)
-else:
-    need_ord_types = (str,)
-
-    def buffer(object, offset=None, size=None):
-        if offset is None:
-            offset = 0
-        if size is None:
-            size = len(object)-offset
-        return memoryview(object)[offset:offset+size]
+# Python 3 replacement for Python 2 buffer.
+def buffer(object, offset=None, size=None):
+    if offset is None:
+        offset = 0
+    if size is None:
+        size = len(object)-offset
+    return memoryview(object)[offset:offset+size]
 
 
 def _allocate_buffer():
@@ -256,12 +248,8 @@ def _crc(data, offset=None, size=None):
     if size is None:
         size = len(data) - offset
     checksum = 0
-    if isinstance(data, need_ord_types):
-        _getbyte = lambda n: ord(data[n])
-    else:
-        _getbyte = lambda n: data[n]
     for n in range(offset, offset + size):
-        b = _getbyte(n)
+        b = data[n]
         checksum = (_CRC_TABLE[(checksum ^ b) & 0xff] ^
                     ((checksum >> 8) & 0xff))
     return checksum
@@ -322,10 +310,10 @@ def _parse_strokes(data):
     if (len(data) % 4) != 0:
         raise _ProtocolViolationException(
             "Data size is not divisible by 4: %d" % (len(data)))
-    for b in iterbytes(data):
+    for b in data:
         if (b & 0b11000000) != 0b11000000:
             raise _ProtocolViolationException("Data is not stroke: 0x%X" % (b))
-    for a, b, c, d in zip(*([iterbytes(data)] * 4)):
+    for a, b, c, d in zip(*([iter(data)] * 4)):
         strokes.append(_parse_stroke(a, b, c, d))
     return strokes
 

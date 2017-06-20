@@ -147,17 +147,23 @@ class OutputHelper(object):
         self.output = output
 
     def commit(self):
-        # Python narrow Unicode is useless for long characters
-        # UTF-32 is a good container to count characters
-        before_32 = self.before.encode('utf-32-be')
-        after_32 = self.after.encode('utf-32-be')
-        # Get the closest multiple of 4 for length
-        offset = len(commonprefix([before_32, after_32]))//4*4
-        if before_32[offset:]:
-            self.output.send_backspaces(len(before_32[offset:])//4)
-        if after_32[offset:]:
-            # Convert back to Unicode for the send_string method
-            self.output.send_string(after_32[offset:].decode('utf-32-be'))
+        # FIXME:
+        # - what about things like emoji zwj sequences?
+        # - normalize strings to better handle combining characters?
+        #
+        # >>> u"C\u0327"
+        # 'Ç'
+        # >>> len(u"C\u0327")
+        # 2
+        # >>> len(unicodedata.normalize('NFC', u"C\u0327"))
+        # 1
+        offset = len(commonprefix([self.before, self.after]))
+        delete = self.before[offset:]
+        if delete:
+            self.output.send_backspaces(len(delete))
+        append = self.after[offset:]
+        if append:
+            self.output.send_string(append)
         self.before = ''
         self.after = ''
 

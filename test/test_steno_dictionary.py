@@ -8,9 +8,6 @@ import stat
 import tempfile
 import unittest
 
-# Python 2/3 compatibility.
-from six import assertCountEqual
-
 from plover.steno_dictionary import StenoDictionary, StenoDictionaryCollection
 
 
@@ -176,29 +173,25 @@ class StenoDictionaryTestCase(unittest.TestCase):
 
         # Simple test.
         dc.set_dicts([d1])
-        assertCountEqual(self,
-                         dc.reverse_lookup('beautiful'),
-                         [('PWAOUFL',), ('WAOUFL',)])
+        self.assertCountEqual(dc.reverse_lookup('beautiful'),
+                              [('PWAOUFL',), ('WAOUFL',)])
 
         # No duplicates.
         d2_copy = StenoDictionary()
         d2_copy.update(d2)
         dc.set_dicts([d2_copy, d2])
-        assertCountEqual(self,
-                         dc.reverse_lookup('beautiful'),
-                         [('PW-FL',)])
+        self.assertCountEqual(dc.reverse_lookup('beautiful'),
+                              [('PW-FL',)])
 
         # Don't stop at the first dictionary with matches.
         dc.set_dicts([d2, d1])
-        assertCountEqual(self,
-                         dc.reverse_lookup('beautiful'),
-                         [('PWAOUFL',), ('WAOUFL',), ('PW-FL',)])
+        self.assertCountEqual(dc.reverse_lookup('beautiful'),
+                              [('PWAOUFL',), ('WAOUFL',), ('PW-FL',)])
 
         # Ignore keys overriden by a higher precedence dictionary.
         dc.set_dicts([d3, d2, d1])
-        assertCountEqual(self,
-                         dc.reverse_lookup('beautiful'),
-                         [('PWAOUFL',), ('PW-FL',)])
+        self.assertCountEqual(dc.reverse_lookup('beautiful'),
+                              [('PWAOUFL',), ('PW-FL',)])
 
     def test_dictionary_enabled(self):
         dc = StenoDictionaryCollection()
@@ -214,17 +207,17 @@ class StenoDictionaryTestCase(unittest.TestCase):
         self.assertEqual(dc.lookup(('TEFT',)), 'test2')
         self.assertEqual(dc.raw_lookup(('TEFT',)), 'test2')
         self.assertEqual(dc.casereverse_lookup('testing'), ['Testing'])
-        assertCountEqual(self, dc.reverse_lookup('Testing'), [('TEFGT',), ('TEFT', '-G')])
+        self.assertCountEqual(dc.reverse_lookup('Testing'), [('TEFGT',), ('TEFT', '-G')])
         d2.enabled = False
         self.assertEqual(dc.lookup(('TEFT',)), 'test1')
         self.assertEqual(dc.raw_lookup(('TEFT',)), 'test1')
         self.assertEqual(dc.casereverse_lookup('testing'), ['Testing'])
-        assertCountEqual(self, dc.reverse_lookup('Testing'), [('TEFGT',)])
+        self.assertCountEqual(dc.reverse_lookup('Testing'), [('TEFGT',)])
         d1.enabled = False
         self.assertEqual(dc.lookup(('TEST',)), None)
         self.assertEqual(dc.raw_lookup(('TEFT',)), None)
         self.assertEqual(dc.casereverse_lookup('testing'), None)
-        assertCountEqual(self, dc.reverse_lookup('Testing'), [])
+        self.assertCountEqual(dc.reverse_lookup('Testing'), [])
 
     def test_dictionary_readonly(self):
         class FakeDictionary(StenoDictionary):

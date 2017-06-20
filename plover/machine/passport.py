@@ -3,9 +3,7 @@
 
 "Thread-based monitoring of a stenotype machine using the passport protocol."
 
-# Python 2/3 compatibility.
-from six import iterbytes
-from six.moves import zip_longest
+from itertools import zip_longest
 
 from plover.machine.base import SerialStenotypeBase
 
@@ -53,7 +51,7 @@ class Passport(SerialStenotypeBase):
             # Grab data from the serial port.
             raw = self.serial_port.read(self.serial_port.inWaiting())
 
-            for b in iterbytes(raw):
+            for b in raw:
                 self._read(b)
 
     @classmethod

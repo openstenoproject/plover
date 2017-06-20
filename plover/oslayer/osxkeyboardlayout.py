@@ -5,26 +5,21 @@
 # <https://github.com/willwade/PyUserInput/blob/master/pykeyboard/mac_keycode.py>
 # <https://stackoverflow.com/questions/1918841/how-to-convert-ascii-character-to-cgkeycode>
 
-# Python 2/3 compatibility.
-from __future__ import print_function
-
+from threading import Thread
 import ctypes
 import ctypes.util
+import re
 import struct
 import unicodedata
-import re
-from threading import Thread
+
+from PyObjCTools import AppHelper
 import AppKit
 import Foundation
-from PyObjCTools import AppHelper
-from plover import log
-from plover.misc import popcount_8
-from plover.key_combo import CHAR_TO_KEYNAME
 
-try:
-    unichr
-except NameError:
-    unichr = chr
+from plover import log
+from plover.key_combo import CHAR_TO_KEYNAME
+from plover.misc import popcount_8
+
 
 carbon_path = ctypes.util.find_library('Carbon')
 carbon = ctypes.cdll.LoadLibrary(carbon_path)
@@ -310,7 +305,7 @@ class KeyboardLayout(object):
                 seq = key & ~0xC000
                 if seq < len(sequences):
                     return sequences[seq]
-            return unichr(key)
+            return chr(key)
 
         # Dead keys
         deadkeys = []

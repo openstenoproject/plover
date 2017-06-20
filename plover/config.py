@@ -3,14 +3,12 @@
 
 """Configuration management."""
 
-import os
-import json
-import codecs
 from collections import namedtuple
-
-# Python 2/3 compatibility.
-from six import BytesIO
-from six.moves import configparser
+from io import BytesIO
+import codecs
+import configparser
+import json
+import os
 
 from plover.exception import InvalidConfigurationError
 from plover.machine.keymap import Keymap

@@ -3,13 +3,11 @@
 
 """Unit tests for config.py."""
 
-import unittest
-import os
-import json
 from collections import namedtuple
-
-# Python 2/3 compatibility.
-from six import BytesIO
+from io import BytesIO
+import json
+import os
+import unittest
 
 from mock import patch
 

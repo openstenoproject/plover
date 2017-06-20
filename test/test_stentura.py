@@ -7,9 +7,6 @@ import struct
 import threading
 import unittest
 
-# Python 2/3 compatibility.
-from six import assertCountEqual
-
 from plover.machine import stentura
 
 
@@ -108,9 +105,8 @@ class TestCase(unittest.TestCase):
         b = 0b11000100
         c = 0b11000000
         d = 0b11001000
-        assertCountEqual(self,
-                         stentura._parse_stroke(a, b, c, d),
-                         ['S-', 'A-', '-T'])
+        self.assertCountEqual(stentura._parse_stroke(a, b, c, d),
+                              ['S-', 'A-', '-T'])
 
 # 11^#STKP 11WHRAO* 11EUFRPB 11LGTSDZ
 # PRAOERBGS
@@ -132,7 +128,7 @@ class TestCase(unittest.TestCase):
         expected = [['S-', 'A-', '-T'],
                     ['P-', 'R-', 'A-', 'O-', '-E', '-R', '-B', '-G', '-S']]
         for i, stroke in enumerate(strokes):
-            assertCountEqual(self, stroke, expected[i])
+            self.assertCountEqual(stroke, expected[i])
 
     def test_make_request(self):
         buf = bytearray(range(256))

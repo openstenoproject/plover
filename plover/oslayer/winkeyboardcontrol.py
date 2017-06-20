@@ -17,16 +17,13 @@ import ctypes
 import multiprocessing
 import os
 import threading
+import winreg
 
 from ctypes import windll, wintypes
-
-# Python 2/3 compatibility.
-from six.moves import winreg
 
 from plover.key_combo import parse_key_combo
 from plover.oslayer.winkeyboardlayout import KeyboardLayout
 from plover import log
-from plover.misc import characters
 
 SendInput = windll.user32.SendInput
 LONG = ctypes.c_long
@@ -435,7 +432,7 @@ class KeyboardEmulation(object):
 
     def send_string(self, s):
         self._refresh_keyboard_layout()
-        for char in characters(s):
+        for char in s:
             if char in self.keyboard_layout.char_to_vk_ss:
                 # We know how to simulate the character.
                 self._key_press(char)

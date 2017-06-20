@@ -3,9 +3,6 @@
 
 "Thread-based monitoring of a stenotype machine using the TX Bolt protocol."
 
-# Python 2/3 compatibility.
-from six import iterbytes
-
 import plover.machine.base
 
 # In the TX Bolt protocol, there are four sets of keys grouped in
@@ -78,7 +75,7 @@ class TxBolt(plover.machine.base.SerialStenotypeBase):
                 self._finish_stroke()
                 continue
 
-            for byte in iterbytes(raw):
+            for byte in raw:
                 key_set = byte >> 6
                 if key_set <= self._last_key_set:
                     # Starting a new stroke, finish previous one.

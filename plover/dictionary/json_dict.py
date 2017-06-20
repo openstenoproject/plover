@@ -12,9 +12,6 @@ try:
 except ImportError:
     import json
 
-# Python 2/3 compatibility.
-from six import iteritems
-
 from plover.steno_dictionary import StenoDictionary
 from plover.steno import normalize_steno
 
@@ -34,11 +31,11 @@ class JsonDictionary(StenoDictionary):
         else:
             raise ValueError('\'%s\' encoding could not be determined' % (filename,))
         d = dict(json.loads(contents))
-        self.update((normalize_steno(x[0]), x[1]) for x in iteritems(d))
+        self.update((normalize_steno(x[0]), x[1]) for x in d.items())
 
     def _save(self, filename):
         with open(filename, 'wb') as fp:
             writer = codecs.getwriter('utf-8')(fp)
-            json.dump(dict(('/'.join(k), v) for k, v in iteritems(self)),
+            json.dump(dict(('/'.join(k), v) for k, v in self.items()),
                       writer, ensure_ascii=False, sort_keys=True,
                       indent=0, separators=(',', ': '))
