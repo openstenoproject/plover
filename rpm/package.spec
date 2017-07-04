@@ -24,7 +24,7 @@ Requires: python3
 Requires: python3-appdirs
 Requires: python3-dbus
 Requires: python3-pyserial >= 2.7
-Requires: python3-qt5
+Requires: python3-qt5 >= 5.8.2
 Requires: python3-setuptools >= 20.7.0
 Requires: python3-xlib >= 0.16
 Requires: wmctrl
@@ -38,17 +38,16 @@ hackers, hobbyists, accessibility mavens, and all-around speed demons.
 %setup -q -n %{name}-%{version}
 
 %build
-mkdir -p .deps
-env PYTHONPATH="$PWD/.deps" %{__python3} -m easy_install -d .deps pyqt-distutils
-env PYTHONPATH="$PWD/.deps" %{__python3} setup.py compile_catalog build_ui build
+sed -i '/^\s*PyQt5\b.*/d' setup.py setup.cfg
+%{__python3} setup.py compile_catalog build_ui build
 
 %install
-env PYTHONPATH="$PWD/.deps" %py3_install
+%py3_install
 install -vDm644 -t "%{buildroot}/usr/share/pixmaps" plover/assets/plover.png
 install -vDm644 -t "%{buildroot}/usr/share/applications" application/plover.desktop
 
 %check
-env PYTHONPATH="$PWD/.deps" %{__python3} setup.py test
+%{__python3} setup.py test
 
 %files
 %doc README.md
