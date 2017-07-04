@@ -4,7 +4,6 @@
 
 __requires__ = '''
 Babel
-pyqt-distutils
 PyQt5>=5.8.2
 setuptools>=30.3.0
 '''
@@ -12,7 +11,6 @@ setuptools>=30.3.0
 from distutils import log
 import contextlib
 import glob
-import json
 import os
 import re
 import shutil
@@ -410,25 +408,62 @@ if sys.platform.startswith('darwin'):
 
 # UI generation. {{{
 
-from pyqt_distutils.build_ui import build_ui
+class BuildUi(Command):
 
-class BuildUi(build_ui):
+    description = 'build UI files'
+    user_options = [
+        ('force', 'f',
+         'force re-generation of all UI files'),
+    ]
+
+    def initialize_options(self):
+        self.force = False
 
     def finalize_options(self):
-        # Patch-in correct Python interpreter before the call
-        # to build_ui.finalize_options load the configuration.
-        with open('pyuic.json.in') as fp:
-            cfg = json.load(fp)
-        for opt in 'pyrcc pyuic'.split():
-            cfg[opt] = cfg[opt].replace('$PYTHON', sys.executable)
-        with open('pyuic.json', 'w') as fp:
-            json.dump(cfg, fp)
-        build_ui.finalize_options(self)
+        pass
+
+    def _build_ui(self, src):
+        from utils.pyqt import fix_icons, gettext
+        dst = os.path.splitext(src)[0] + '_ui.py'
+        if not self.force and os.path.exists(dst) and \
+           os.path.getmtime(dst) >= os.path.getmtime(src):
+            return
+        cmd = (
+            sys.executable, '-m', 'PyQt5.uic.pyuic',
+            '--from-import', src,
+        )
+        if self.verbose:
+            log.info('generating %s', dst)
+        contents = subprocess.check_output(cmd).decode('utf-8')
+        for hook in (
+            fix_icons,
+            gettext,
+        ):
+            contents = hook(contents)
+        with open(dst, 'w') as fp:
+            fp.write(contents)
+
+    def _build_resources(self, src):
+        dst = os.path.join(
+            os.path.dirname(os.path.dirname(src)),
+            os.path.splitext(os.path.basename(src))[0]
+        ) + '_rc.py'
+        cmd = (
+            sys.executable, '-m', 'PyQt5.pyrcc_main',
+            src, '-o', dst,
+        )
+        if self.verbose:
+            log.info('generating %s', dst)
+        subprocess.check_call(cmd)
 
     def run(self):
-        from utils.pyqt import fix_icons
-        self._hooks['fix_icons'] = fix_icons
-        build_ui.run(self)
+        self.run_command('egg_info')
+        ei_cmd = self.get_finalized_command('egg_info')
+        for src in ei_cmd.filelist.files:
+            if src.endswith('.qrc'):
+                self._build_resources(src)
+            if src.endswith('.ui'):
+                self._build_ui(src)
 
 cmdclass['build_ui'] = BuildUi
 build_dependencies.append('build_ui')
