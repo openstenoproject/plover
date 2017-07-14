@@ -14,8 +14,15 @@ is_deployment()
   fi
 }
 
+setenv()
+{
+  # Fix path to to python-config.
+  run_eval "export PATH=\"/opt/python/$TRAVIS_PYTHON_VERSION/bin:\$PATH\""
+}
+
 setup()
 {
+  setenv
   # Install system dependencies.
   builddeps=(
     # dbus-python:
@@ -52,6 +59,7 @@ setup()
 
 build()
 {
+  setenv
   run git fetch --quiet --unshallow
   run "$python" setup.py patch_version
   run "$python" setup.py test
