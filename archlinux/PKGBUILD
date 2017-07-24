@@ -10,7 +10,6 @@ depends=(
   'python'
   'python-appdirs'
   'python-dbus'
-  'python-hidapi'
   'python-pyqt5'
   'python-pyserial'
   'python-setuptools'

@@ -12,7 +12,6 @@ BuildRequires: python3-appdirs
 BuildRequires: python3-babel
 BuildRequires: python3-devel
 BuildRequires: python3-docopt
-BuildRequires: python3-hidapi
 BuildRequires: python3-mock
 BuildRequires: python3-pyserial >= 2.7
 BuildRequires: python3-pytest
@@ -24,7 +23,6 @@ BuildRequires: python3-xlib >= 0.16
 Requires: python3
 Requires: python3-appdirs
 Requires: python3-dbus
-Requires: python3-hidapi
 Requires: python3-pyserial >= 2.7
 Requires: python3-qt5
 Requires: python3-setuptools >= 20.7.0

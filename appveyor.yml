@@ -47,7 +47,7 @@ install:
   # Setup the rest of the environment.
   - "python -m utils.get_pip"
   - "python -m utils.install_wheels -r requirements.txt"
-  - "python -m pip list --format=columns"
+  - "python -m pip list --format=freeze"
 
 build:
   verbosity: minimal

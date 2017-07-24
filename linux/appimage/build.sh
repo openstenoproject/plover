@@ -109,10 +109,12 @@ run make "${make_opts[@]}" install
 )
 info ')'
 
+run_eval "
 appdir_python()
 {
-  env LD_LIBRARY_PATH="$appdir/usr/lib" "$appdir/usr/bin/python3.5" -s "$@"
+  env LD_LIBRARY_PATH=\"$appdir/usr/lib:$appdir/usr/lib/x86_64-linux-gnu\${LD_LIBRARY_PATH+:\$LD_LIBRARY_PATH}\" "$appdir/usr/bin/python3.5" -s \"\$@\"
 }
+"
 python='appdir_python'
 
 # Install Plover and dependencies.
@@ -165,6 +167,9 @@ remove_emptydirs()
   find "$appdir" -type d -empty -print0 | xargs -0 --no-run-if-empty rmdir -vp --ignore-fail-on-non-empty
 }
 run remove_emptydirs
+
+# Check requirements.
+run "$python" -m utils.check_requirements
 
 # Create the AppImage.
 # Note: extract appimagetool so fuse is not needed.

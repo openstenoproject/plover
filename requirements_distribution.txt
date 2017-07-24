@@ -1,7 +1,6 @@
 appdirs==1.4.3
 appnope==0.1.0; "darwin" in sys_platform
 dbus-python==1.2.4; "linux" in sys_platform
-hidapi==0.7.99.post20
 plyer==1.2.4; "win32" in sys_platform
 pyobjc-core==3.1.1+plover2; "darwin" in sys_platform
 pyobjc-framework-Cocoa==3.1.1+plover2; "darwin" in sys_platform
