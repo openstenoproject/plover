@@ -5,7 +5,7 @@
 # $2: package name
 set -e
 
-. ./utils/functions.sh
+. ./plover_build_utils/functions.sh
 
 python='python3'
 osx_dir="$(dirname "$0")"
@@ -101,13 +101,13 @@ rm "$target_dir/Python.framework/Python"
 rm "$target_dir/Python.framework/Resources"
 # Trim superfluous content from app
 sed -e "s/\$python_version/$py_version/" -e "s/\$target_python/$target_python/" osx/app_resources/dist_blacklist.txt > build/dist_blacklist.txt
-"$python" -m utils.trim "$target_dir/Python.framework" build/dist_blacklist.txt
+"$python" -m plover_build_utils.trim "$target_dir/Python.framework" build/dist_blacklist.txt
 # Make distribution source-less
-"$python" -m utils.source_less "$target_libs" "*/pip/_vendor/distlib/*"
+"$python" -m plover_build_utils.source_less "$target_libs" "*/pip/_vendor/distlib/*"
 
 # Strip 32-bit support
 ditto -v --arch x86_64 "$app_dir" "$app_dist_dir"
 
 # Check requirements.
 python="$PWD/$app_dist_dir/Contents/Frameworks/$target_python"
-run "$python" -m utils.check_requirements
+run "$python" -m plover_build_utils.check_requirements

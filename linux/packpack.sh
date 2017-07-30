@@ -2,7 +2,7 @@
 
 set -e
 
-. ./utils/functions.sh
+. ./plover_build_utils/functions.sh
 
 BUILD_DIR="build/packpack"
 DIST_DIR="dist"

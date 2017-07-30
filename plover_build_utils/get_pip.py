@@ -4,8 +4,8 @@ import os
 import subprocess
 import sys
 
-from utils.download import download
-from utils.install_wheels import WHEELS_CACHE, install_wheels
+from .download import download
+from .install_wheels import WHEELS_CACHE, install_wheels
 
 
 def get_pip(args=None):

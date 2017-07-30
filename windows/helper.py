@@ -421,7 +421,7 @@ class Helper(object):
         self._env.run(cmd)
 
     def _download(self, url, checksum):
-        from utils.download import DOWNLOADS_DIR, download
+        from plover_build_utils.download import DOWNLOADS_DIR, download
         if not self.dry_run:
             return download(url, checksum)
         return os.path.join(DOWNLOADS_DIR, os.path.basename(url))
@@ -471,8 +471,8 @@ class Helper(object):
         for name, src, checksum, handler_format, handler_args, path_dir in self.DEPENDENCIES:
             self.install(name, src, checksum, handler_format=handler_format, handler_args=handler_args, path_dir=path_dir)
         info('install requirements')
-        self._env.run(('python.exe', '-m', 'utils.get_pip', '--upgrade'))
-        self._env.run(('python.exe', '-m', 'utils.install_wheels', '-r', 'requirements.txt'))
+        self._env.run(('python.exe', '-m', 'plover_build_utils.get_pip', '--upgrade'))
+        self._env.run(('python.exe', '-m', 'plover_build_utils.install_wheels', '-r', 'requirements.txt'))
 
     def cmd_run(self, executable, *args):
         '''run command in environment

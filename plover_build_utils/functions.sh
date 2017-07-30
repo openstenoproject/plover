@@ -122,7 +122,7 @@ run_eval()
 
 get_pip()
 {
-  run "$python" -m utils.get_pip "$@"
+  run "$python" -m plover_build_utils.get_pip "$@"
 }
 
 # Crude version of wheels_install, that will work
@@ -137,7 +137,7 @@ pip_install()
 
 wheels_install()
 {
-  run "$python" -m utils.install_wheels "$@"
+  run "$python" -m plover_build_utils.install_wheels "$@"
 }
 
 # Crude version of https://github.com/jaraco/rwt

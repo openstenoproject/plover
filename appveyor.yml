@@ -45,8 +45,8 @@ install:
   # Add Nullsoft Scriptable Install System to the PATH.
   - "SET PATH=C:\\Program Files (x86)\\NSIS;%PATH%"
   # Setup the rest of the environment.
-  - "python -m utils.get_pip"
-  - "python -m utils.install_wheels -r requirements.txt"
+  - "python -m plover_build_utils.get_pip"
+  - "python -m plover_build_utils.install_wheels -r requirements.txt"
   - "python -m pip list --format=freeze"
 
 build:
