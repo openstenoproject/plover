@@ -12,7 +12,5 @@ appimage:
 .PHONY: makepkg
 
 makepkg:
-	mkdir -p /build/src
-	tar xf dist/$(PACKAGE).tar.xz -C /build/src
-	sed 's,^pkgver=.*,pkgver=$(VERSION),' archlinux/PKGBUILD >/build/PKGBUILD
-	cd /build && makepkg --force --syncdeps --noconfirm --noextract
+	sed 's,^pkgver=.*,pkgver=$(VERSION),;s,^source=.*,source=($(PACKAGE).tar.xz),' archlinux/PKGBUILD >/build/PKGBUILD
+	cd /build && makepkg --noconfirm --syncdeps --rmdeps --skipchecksums --force
