@@ -140,7 +140,7 @@ class Config(object):
         self._config = configparser.RawConfigParser()
         reader = codecs.getreader('utf8')(fp)
         try:
-            self._config.readfp(reader)
+            self._config.read_file(reader)
         except configparser.Error as e:
             raise InvalidConfigurationError(str(e))
 
