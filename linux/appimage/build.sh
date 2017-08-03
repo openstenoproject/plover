@@ -128,8 +128,12 @@ run cd "$appdir"
 # Add desktop integration.
 run get_desktopintegration 'plover'
 # Fix missing system dependencies.
+# Note: temporarily move PyQt5 out of the way so
+# we don't try to bundle its system dependencies.
+run mv "$appdir/usr/lib/python3.5/site-packages/PyQt5" "$builddir"
 run copy_deps; run copy_deps; run copy_deps
 run move_lib
+run mv "$builddir/PyQt5" "$appdir/usr/lib/python3.5/site-packages"
 # Move usr/include out of the way to preserve usr/include/python3.5m.
 run mv usr/include usr/include.tmp
 run delete_blacklisted
