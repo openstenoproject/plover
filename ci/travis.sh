@@ -40,7 +40,6 @@ setup()
       # Python:
       libbz2-dev
       libgdbm-dev
-      libglib2.0-dev
       liblzma-dev
       libncurses5-dev
       libreadline-dev
@@ -48,7 +47,17 @@ setup()
       libssl-dev
       zlib1g-dev
       # PyQt5:
+      libasound2
+      libegl1-mesa
+      libfontconfig1
       libgl1-mesa-glx
+      libnss3
+      libxcomposite1
+      libxcursor1
+      libxi6
+      libxrandr2
+      libxss1
+      libxtst6
     )
   fi
   run sudo apt-get install -qq "${builddeps[@]}"
