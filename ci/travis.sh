@@ -49,9 +49,6 @@ setup()
       zlib1g-dev
       # PyQt5:
       libgl1-mesa-glx
-      # wmctrl:
-      libx11-dev
-      libxmu-dev
     )
   fi
   run sudo apt-get install -qq "${builddeps[@]}"

@@ -27,7 +27,6 @@ Requires: python3-pyserial >= 2.7
 Requires: python3-qt5 >= 5.8.2
 Requires: python3-setuptools >= 20.7.0
 Requires: python3-xlib >= 0.16
-Requires: wmctrl
 
 %description
 Plover is a free open source program intended to

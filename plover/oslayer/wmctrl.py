@@ -29,18 +29,9 @@ end tell""" % pid).executeAndReturnError_(None)
 
 elif sys.platform.startswith('linux'):
 
-    from subprocess import call, check_output, CalledProcessError
+    from plover.oslayer.xwmctrl import WmCtrl
 
-    def GetForegroundWindow():
-        try:
-            output = check_output(['xprop', '-root', '_NET_ACTIVE_WINDOW'])
-            return int(output.split()[-1], 16)
-        except CalledProcessError:
-            return None
+    wmctrl = WmCtrl()
 
-    def SetForegroundWindow(w):
-        """Returns focus to previous application."""
-        try:
-            call(['wmctrl', '-i', '-a', str(w)])
-        except CalledProcessError:
-            pass
+    GetForegroundWindow = wmctrl.get_foreground_window
+    SetForegroundWindow = wmctrl.set_foreground_window

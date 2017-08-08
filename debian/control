@@ -32,7 +32,6 @@ Depends:
 	python3-pyqt5 (>= 5.5),
 	python3-serial (>= 2.7),
 	python3-xlib (>= 0.16),
-	wmctrl,
 Description: ('Open Source Stenography Software',)
  Plover is a free open source program intended to
  bring realtime stenographic technology not just to stenographers, but also to

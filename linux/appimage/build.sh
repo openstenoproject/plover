@@ -54,8 +54,6 @@ run mkdir -p "$appdir" "$cachedir" "$distdir"
 run "$python" -m plover_build_utils.download 'https://github.com/probonopd/AppImages/raw/6ca06be6d68606a18a90ebec5aebfd74e8a973c5/functions.sh' '3155bde5f40fd4aa08b3a76331936bd5b2e6b781' "$cachedir/functions.sh"
 run "$python" -m plover_build_utils.download 'https://github.com/probonopd/AppImageKit/releases/download/8/appimagetool-x86_64.AppImage' 'e756ecac69f393c72333f8bd9cd3a5f87dc175bf' "$cachedir/appimagetool"
 run "$python" -m plover_build_utils.download 'https://www.python.org/ftp/python/3.5.3/Python-3.5.3.tar.xz' '127121fdca11e735b3686e300d66f73aba663e93'
-run "$python" -m plover_build_utils.download 'http://ftp.debian.org/debian/pool/main/w/wmctrl/wmctrl_1.07.orig.tar.gz' 'a123019a7fd5adc3e393fc1108cb706268a34e4d'
-run "$python" -m plover_build_utils.download 'http://ftp.debian.org/debian/pool/main/w/wmctrl/wmctrl_1.07-7.debian.tar.gz' 'e8ac68f7600907be5489c0fd9ffcf2047daaf8cb'
 
 # Generate Plover wheel.
 if [ -z "$wheel" ]
@@ -91,21 +89,6 @@ fi
 run "${cmd[@]}"
 run make "${make_opts[@]}"
 run make "${make_opts[@]}" install >/dev/null
-)
-info ')'
-
-# Build wmctrl.
-run tar xf "$downloads/wmctrl_1.07.orig.tar.gz" -C "$builddir"
-info '('
-(
-run cd "$builddir/wmctrl-1.07"
-run tar xf "$downloads/wmctrl_1.07-7.debian.tar.gz"
-run patch -p1 -i debian/patches/01_64-bit-data.patch
-run ./configure \
-  --cache-file="$cachedir/wmctrl.config.cache" \
-  --prefix="$appdir/usr" \
-  ;
-run make "${make_opts[@]}" install
 )
 info ')'
 
