@@ -2,7 +2,7 @@
 
 set -e
 
-. ./utils/functions.sh
+. ./plover_build_utils/functions.sh
 
 setup()
 {
@@ -51,7 +51,7 @@ deploy()
   github_release_exe='./bin/darwin/amd64/github-release'
   github_release_opts=(--user openstenoproject --repo plover --tag "$("$python" ./setup.py --version)")
   run [ -r "$artifact" ]
-  run "$python" -m utils.download "$github_release_url" "$github_release_sha1" "$github_release"
+  run "$python" -m plover_build_utils.download "$github_release_url" "$github_release_sha1" "$github_release"
   run tar xvjf "$github_release"
   run "$github_release_exe" release "${github_release_opts[@]}" --draft
   run "$github_release_exe" upload "${github_release_opts[@]}" --file "$artifact" --name "${artifact#*/}"

@@ -2,7 +2,7 @@
 
 set -e
 
-. ./utils/functions.sh
+. ./plover_build_utils/functions.sh
 
 topdir="$PWD"
 distdir="$topdir/dist"
@@ -51,11 +51,11 @@ run rm -rf "$builddir"
 run mkdir -p "$appdir" "$cachedir" "$distdir"
 
 # Download dependencies.
-run "$python" -m utils.download 'https://github.com/probonopd/AppImages/raw/6ca06be6d68606a18a90ebec5aebfd74e8a973c5/functions.sh' '3155bde5f40fd4aa08b3a76331936bd5b2e6b781' "$cachedir/functions.sh"
-run "$python" -m utils.download 'https://github.com/probonopd/AppImageKit/releases/download/8/appimagetool-x86_64.AppImage' 'e756ecac69f393c72333f8bd9cd3a5f87dc175bf' "$cachedir/appimagetool"
-run "$python" -m utils.download 'https://www.python.org/ftp/python/3.5.3/Python-3.5.3.tar.xz' '127121fdca11e735b3686e300d66f73aba663e93'
-run "$python" -m utils.download 'http://ftp.debian.org/debian/pool/main/w/wmctrl/wmctrl_1.07.orig.tar.gz' 'a123019a7fd5adc3e393fc1108cb706268a34e4d'
-run "$python" -m utils.download 'http://ftp.debian.org/debian/pool/main/w/wmctrl/wmctrl_1.07-7.debian.tar.gz' 'e8ac68f7600907be5489c0fd9ffcf2047daaf8cb'
+run "$python" -m plover_build_utils.download 'https://github.com/probonopd/AppImages/raw/6ca06be6d68606a18a90ebec5aebfd74e8a973c5/functions.sh' '3155bde5f40fd4aa08b3a76331936bd5b2e6b781' "$cachedir/functions.sh"
+run "$python" -m plover_build_utils.download 'https://github.com/probonopd/AppImageKit/releases/download/8/appimagetool-x86_64.AppImage' 'e756ecac69f393c72333f8bd9cd3a5f87dc175bf' "$cachedir/appimagetool"
+run "$python" -m plover_build_utils.download 'https://www.python.org/ftp/python/3.5.3/Python-3.5.3.tar.xz' '127121fdca11e735b3686e300d66f73aba663e93'
+run "$python" -m plover_build_utils.download 'http://ftp.debian.org/debian/pool/main/w/wmctrl/wmctrl_1.07.orig.tar.gz' 'a123019a7fd5adc3e393fc1108cb706268a34e4d'
+run "$python" -m plover_build_utils.download 'http://ftp.debian.org/debian/pool/main/w/wmctrl/wmctrl_1.07-7.debian.tar.gz' 'e8ac68f7600907be5489c0fd9ffcf2047daaf8cb'
 
 # Generate Plover wheel.
 if [ -z "$wheel" ]
@@ -125,10 +125,10 @@ run cp 'application/plover.desktop' "$appdir/plover.desktop"
 run cp 'plover/assets/plover.png' "$appdir/plover.png"
 
 # Trim the fat.
-run "$python" -m utils.trim "$appdir" linux/appimage/blacklist.txt
+run "$python" -m plover_build_utils.trim "$appdir" linux/appimage/blacklist.txt
 
 # Make distribution source-less.
-run "$python" -m utils.source_less "$appdir/usr/lib/python3.5" '*/pip/_vendor/distlib/*'
+run "$python" -m plover_build_utils.source_less "$appdir/usr/lib/python3.5" '*/pip/_vendor/distlib/*'
 
 # Add launcher.
 # Note: don't use AppImage's AppRun because
@@ -169,7 +169,7 @@ remove_emptydirs()
 run remove_emptydirs
 
 # Check requirements.
-run "$python" -m utils.check_requirements
+run "$python" -m plover_build_utils.check_requirements
 
 # Create the AppImage.
 # Note: extract appimagetool so fuse is not needed.

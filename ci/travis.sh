@@ -2,7 +2,7 @@
 
 set -e
 
-. ./utils/functions.sh
+. ./plover_build_utils/functions.sh
 
 is_deployment()
 {
@@ -83,7 +83,7 @@ build()
     run "$python" setup.py bdist_wheel
     wheels_install --ignore-installed --no-deps dist/*.whl
     wheels_install -r requirements_plugins.txt
-    run "$python" -m utils.check_requirements
+    run "$python" -m plover_build_utils.check_requirements
   fi
 }
 

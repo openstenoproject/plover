@@ -9,7 +9,6 @@ setuptools>=30.3.0
 '''
 
 from distutils import log
-import contextlib
 import glob
 import os
 import re
@@ -19,9 +18,7 @@ import sys
 import textwrap
 import zipfile
 
-from setuptools.command.build_py import build_py
-import pkg_resources
-import setuptools
+from setuptools import setup
 
 from plover import (
     __name__ as __software_name__,
@@ -34,10 +31,16 @@ from plover import (
     __copyright__,
 )
 
+from plover_build_utils.setup import BuildPy, BuildUi, Command, Test
 
-cmdclass = {}
+
+BuildPy.build_dependencies.append('build_ui')
+cmdclass = {
+    'build_py': BuildPy,
+    'build_ui': BuildUi,
+    'test': Test,
+}
 options = {}
-build_dependencies = []
 
 # Platform specific requirements.
 # Note: `extras_require` cannot be moved to setup.cfg, because `:` is not
@@ -76,31 +79,6 @@ def get_version():
         version += '+' + m.group(2)[1:].replace('-', '.')
     return version
 
-class Command(setuptools.Command):
-
-    def build_in_place(self):
-        self.run_command('build_py')
-        self.reinitialize_command('build_ext', inplace=1)
-        self.run_command('build_ext')
-
-    @contextlib.contextmanager
-    def project_on_sys_path(self):
-        self.build_in_place()
-        ei_cmd = self.get_finalized_command("egg_info")
-        old_path = sys.path[:]
-        old_modules = sys.modules.copy()
-        try:
-            sys.path.insert(0, pkg_resources.normalize_path(ei_cmd.egg_base))
-            pkg_resources.working_set.__init__()
-            pkg_resources.add_activation_listener(lambda dist: dist.activate())
-            pkg_resources.require('%s==%s' % (ei_cmd.egg_name, ei_cmd.egg_version))
-            yield
-        finally:
-            sys.path[:] = old_path
-            sys.modules.clear()
-            sys.modules.update(old_modules)
-            pkg_resources.working_set.__init__()
-
 # }}}
 
 # `bdist_win` command. {{{
@@ -128,9 +106,9 @@ class BinaryDistWin(Command):
         pass
 
     def run(self):
-        from utils.install_wheels import WHEELS_CACHE
+        from plover_build_utils.install_wheels import WHEELS_CACHE
         # Download helper.
-        from utils.download import download
+        from plover_build_utils.download import download
         # Run command helper.
         def run(*args):
             if self.verbose:
@@ -159,21 +137,21 @@ class BinaryDistWin(Command):
         os.unlink(stdlib)
         dist_py = os.path.join(data_dir, 'python.exe')
         # Install pip/wheel.
-        run(dist_py, '-m', 'utils.get_pip')
+        run(dist_py, '-m', 'plover_build_utils.get_pip')
         # Install Plover + standard plugins and dependencies.
         # Note: do not use the embedded Python executable with `setup.py
         # install` to prevent setuptools from installing extra development
         # dependencies...
-        run(dist_py, '-m', 'utils.install_wheels',
+        run(dist_py, '-m', 'plover_build_utils.install_wheels',
             '-r', 'requirements_distribution.txt')
-        run(dist_py, '-m', 'utils.install_wheels',
+        run(dist_py, '-m', 'plover_build_utils.install_wheels',
             '--ignore-installed', '--no-deps', plover_wheel)
-        run(dist_py, '-m', 'utils.install_wheels',
+        run(dist_py, '-m', 'plover_build_utils.install_wheels',
             '-r', 'requirements_plugins.txt')
         os.unlink(os.path.join(WHEELS_CACHE, os.path.basename(plover_wheel)))
         # Trim the fat...
         if self.trim:
-            from utils.trim import trim
+            from plover_build_utils.trim import trim
             trim(data_dir, 'windows/dist_blacklist.txt', verbose=self.verbose)
         # Add miscellaneous files: icon, license, ...
         for src, target_dir in (
@@ -198,16 +176,16 @@ class BinaryDistWin(Command):
                                      entrypoint=entrypoint,
                                      gui=gui))
         # Make distribution source-less.
-        run(dist_py, '-m', 'utils.source_less',
+        run(dist_py, '-m', 'plover_build_utils.source_less',
             # Don't touch pip._vendor.distlib sources,
             # or `pip install` will not be usable...
             data_dir, '*/pip/_vendor/distlib/*',
         )
         # Check requirements.
-        run(dist_py, '-m', 'utils.check_requirements')
+        run(dist_py, '-m', 'plover_build_utils.check_requirements')
         # Zip results.
         if self.zipdir:
-            from utils.zipdir import zipdir
+            from plover_build_utils.zipdir import zipdir
             if self.verbose:
                 log.info('zipping %s', dist_dir)
             zipdir(dist_dir)
@@ -310,53 +288,6 @@ cmdclass['tag_weekly'] = TagWeekly
 
 # }}}
 
-# `test` command. {{{
-
-class Test(Command):
-
-    description = 'run unit tests after in-place build'
-    command_consumes_arguments = True
-    user_options = []
-
-    def initialize_options(self):
-        self.args = []
-
-    def finalize_options(self):
-        pass
-
-    def run(self):
-        with self.project_on_sys_path():
-            self.run_tests()
-
-    def run_tests(self):
-        test_dir = os.path.join(os.path.dirname(__file__), 'test')
-        # Remove __pycache__ directory so pytest does not freak out
-        # when switching between the Linux/Windows versions.
-        pycache = os.path.join(test_dir, '__pycache__')
-        if os.path.exists(pycache):
-            shutil.rmtree(pycache)
-        custom_testsuite = None
-        args = []
-        for a in self.args:
-            if '-' == a[0]:
-                args.append(a)
-            elif os.path.exists(a):
-                custom_testsuite = a
-                args.append(a)
-            else:
-                args.extend(('-k', a))
-        if custom_testsuite is None:
-            args.insert(0, test_dir)
-        sys.argv[1:] = args
-        main = pkg_resources.load_entry_point('pytest',
-                                              'console_scripts',
-                                              'py.test')
-        sys.exit(main())
-
-cmdclass['test'] = Test
-
-# }}}
-
 # `bdist_app` and `bdist_dmg` commands. {{{
 
 class BinaryDistApp(Command):
@@ -392,7 +323,7 @@ class BinaryDistDmg(Command):
     def run(self):
         self.run_command('bdist_app')
         # Get dmgbuild
-        from utils.download import download
+        from plover_build_utils.download import download
         dmgbuild = download(
           'https://github.com/morinted/dmgbuild/releases/download/v1.2.1%2Bplover/dmgbuild-1.2.1.pex',
           '548a5c3336fd30b966060b84d86faa9a697b7f94'
@@ -406,70 +337,6 @@ class BinaryDistDmg(Command):
 if sys.platform.startswith('darwin'):
     cmdclass['bdist_app'] = BinaryDistApp
     cmdclass['bdist_dmg'] = BinaryDistDmg
-
-# }}}
-
-# UI generation. {{{
-
-class BuildUi(Command):
-
-    description = 'build UI files'
-    user_options = [
-        ('force', 'f',
-         'force re-generation of all UI files'),
-    ]
-
-    def initialize_options(self):
-        self.force = False
-
-    def finalize_options(self):
-        pass
-
-    def _build_ui(self, src):
-        from utils.pyqt import fix_icons, gettext
-        dst = os.path.splitext(src)[0] + '_ui.py'
-        if not self.force and os.path.exists(dst) and \
-           os.path.getmtime(dst) >= os.path.getmtime(src):
-            return
-        cmd = (
-            sys.executable, '-m', 'PyQt5.uic.pyuic',
-            '--from-import', src,
-        )
-        if self.verbose:
-            log.info('generating %s', dst)
-        contents = subprocess.check_output(cmd).decode('utf-8')
-        for hook in (
-            fix_icons,
-            gettext,
-        ):
-            contents = hook(contents)
-        with open(dst, 'w') as fp:
-            fp.write(contents)
-
-    def _build_resources(self, src):
-        dst = os.path.join(
-            os.path.dirname(os.path.dirname(src)),
-            os.path.splitext(os.path.basename(src))[0]
-        ) + '_rc.py'
-        cmd = (
-            sys.executable, '-m', 'PyQt5.pyrcc_main',
-            src, '-o', dst,
-        )
-        if self.verbose:
-            log.info('generating %s', dst)
-        subprocess.check_call(cmd)
-
-    def run(self):
-        self.run_command('egg_info')
-        ei_cmd = self.get_finalized_command('egg_info')
-        for src in ei_cmd.filelist.files:
-            if src.endswith('.qrc'):
-                self._build_resources(src)
-            if src.endswith('.ui'):
-                self._build_ui(src)
-
-cmdclass['build_ui'] = BuildUi
-build_dependencies.append('build_ui')
 
 # }}}
 
@@ -501,24 +368,11 @@ options['update_catalog'] = {
     'domain': __software_name__,
     'output_dir': locale_dir,
 }
-build_dependencies.append('compile_catalog')
+BuildPy.build_dependencies.append('compile_catalog')
 
 # }}}
 
-# Patched `build_py` command. {{{
-
-class CustomBuildPy(build_py):
-
-    def run(self):
-        for command in build_dependencies:
-            self.run_command(command)
-        build_py.run(self)
-
-cmdclass['build_py'] = CustomBuildPy
-
-# }}}
-
-setuptools.setup(
+setup(
     name=__software_name__,
     version=__version__,
     description=__description__,

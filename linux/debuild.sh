@@ -5,7 +5,7 @@ set -e
 BUILD_DIR="build/debian"
 DIST_DIR="dist"
 
-. ./utils/functions.sh
+. ./plover_build_utils/functions.sh
 
 NAME='plover'
 VERSION="$(./setup.py --version | sed 's/+/-/g;s/\.g/-g/')"
