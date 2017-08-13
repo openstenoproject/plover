@@ -6,8 +6,7 @@ You need Python 3.5 installed with pip support.
 
 Some of the dependencies cannot be installed with pip:
 
-* wmctrl: for additional window management support
-* system libraries needed to build python-hidapi and dpus-python
+* system libraries needed to build python-hidapi and dbus-python
 
 For the other dependencies, you can use:
 
