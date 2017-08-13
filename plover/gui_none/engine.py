@@ -21,3 +21,7 @@ class Engine(StenoEngine, Thread):
     def start(self):
         Thread.start(self)
         StenoEngine.start(self)
+
+    def join(self):
+        Thread.join(self)
+        return self.code

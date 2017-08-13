@@ -245,8 +245,11 @@ class Launch(Command):
         pass
 
     def run(self):
-        with self.project_on_sys_path():
-            os.execv(sys.executable, 'plover -m plover.main'.split() + self.args)
+        self.run_command('egg_info')
+        python_path = os.environ.get('PYTHONPATH', '').split(os.pathsep)
+        python_path.insert(0, os.getcwd())
+        os.environ['PYTHONPATH'] = os.pathsep.join(python_path)
+        os.execv(sys.executable, [sys.executable, '-m', 'plover.main'] + self.args)
 
 cmdclass['launch'] = Launch
 
