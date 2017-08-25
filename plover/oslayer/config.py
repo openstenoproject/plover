@@ -37,10 +37,12 @@ elif sys.platform.startswith('win'):
 else:
     PLUGINS_PLATFORM = None
 if PLUGINS_PLATFORM is None:
+    PLUGINS_BASE = None
     PLUGINS_DIR = None
 else:
+    PLUGINS_BASE = os.path.join(CONFIG_DIR, 'plugins', PLUGINS_PLATFORM)
     dist = Distribution().get_command_obj('install', create=True)
-    dist.prefix = os.path.join(CONFIG_DIR, 'plugins', PLUGINS_PLATFORM)
+    dist.prefix = PLUGINS_BASE
     dist.finalize_options()
     PLUGINS_DIR = dist.install_lib
     sys.path.insert(0, PLUGINS_DIR)
