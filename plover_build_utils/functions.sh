@@ -176,13 +176,15 @@ bootstrap_dist()
   shift
   # Install pip/wheel...
   get_pip "$@"
-  # Install Plover's dependencies.
-  wheels_install -r requirements_distribution.txt "$@"
-  # Install Plover itself.
-  wheels_install --ignore-installed --no-deps "$wheel" "$@"
-  # Install standard plugins.
-  # Note: temporarily install Cython so building cython-hidapi's wheel is faster.
-  rwt Cython -- wheels_install -r requirements_plugins.txt "$@"
+  # Install Plover and its dependencies, as well as standard plugins.
+  # Note:
+  #  - temporarily install Cython to speedup cython-hidapi's install
+  #  - remove `plover.egg-info` beforehand so pip does not think
+  #    Plover is already installed
+  run rm -rf plover.egg-info
+  rwt Cython -- wheels_install \
+    -r requirements_distribution.txt "$wheel" \
+    -r requirements_plugins.txt "$@"
   # Avoid caching Plover's wheel.
   rm "$wheels/$(basename "$wheel")"
 }
