@@ -20,8 +20,13 @@ def get_pip(args=None):
     if args is not None:
         get_pip_cmd.extend(args)
     subprocess.check_call(get_pip_cmd)
-    # ...and cache them for the next iteration.
-    install_wheels(['--no-install', 'pip', 'wheel'])
+    # ...and cache them for the next iteration (if possible).
+    try:
+        import wheel
+    except ImportError:
+        pass
+    else:
+        install_wheels(['--no-install', 'pip', 'wheel'])
 
 
 if __name__ == '__main__':
