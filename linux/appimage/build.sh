@@ -100,6 +100,9 @@ appdir_python()
 "
 python='appdir_python'
 
+# Disable user site-packages.
+run sed -i 's/^ENABLE_USER_SITE = None$/ENABLE_USER_SITE = False/' "$appdir/usr/lib/python3.5/site.py"
+
 # Install Plover and dependencies.
 bootstrap_dist "$wheel"
 
