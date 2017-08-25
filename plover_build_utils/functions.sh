@@ -6,6 +6,7 @@ opt_timings=0
 python='false'
 wheels="$PWD/.cache/wheels"
 downloads="$PWD/.cache/downloads"
+py2venv="$PWD/.cache/py2venv"
 
 # Usage: parse_opts args "$@"
 #
@@ -154,8 +155,10 @@ rwt()
     rwt_args+=("$1")
     shift
   done
-  wheels_install -t "$PWD/.rwt" "${rwt_args[@]}"
   run export PYTHONPATH="$PWD/.rwt${PYTHONPATH:+:$PYTHONPATH}"
+  get_pip -t "$PWD/.rwt"
+  wheels_install -t "$PWD/.rwt" "${rwt_args[@]}"
+  find "$PWD/.rwt" -name '*-info'
   "$@"
   run rm -rf .rwt
 )}
