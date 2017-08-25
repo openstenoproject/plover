@@ -41,6 +41,7 @@ _PIP_OPTS = _split_opts(
     '''
     -c 1 --constraint 1
     -r 1 --requirement 1
+    --no-deps 0
     '''
     # Package Index.
     '''
@@ -60,7 +61,6 @@ _PIP_INSTALL_OPTS = _split_opts(
     --upgrade-strategy 1
     --force-reinstall 0
     -I 0 --ignore-installed 0
-    --no-deps 0
     --user 0
     --root 1
     --prefix 1
