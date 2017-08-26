@@ -12,6 +12,7 @@ cachedir="$topdir/.cache/appimage"
 wheel=''
 python='python3'
 make_opts=(-s)
+configure_opts=(-q)
 opt_ccache=0
 opt_optimize=0
 
@@ -81,6 +82,7 @@ cmd=(
   --enable-shared
   --with-threads
   --without-ensurepip
+  ${configure_opts[@]}
 )
 if [ $opt_optimize -ne 0 ]
 then
