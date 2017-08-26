@@ -1,4 +1,42 @@
+# Include: pretty much everything normally versioned,
+# and not already automatically included by setuptools.
+include CONTRIBUTING.md
 include LICENSE.txt
-recursive-include plover/assets *
-recursive-include plover/gui_qt/messages *
-recursive-include application *
+include application/*
+include archlinux/*
+include debian/*
+include debian/source/*
+include doc/*
+include launch.bat
+include launch.sh
+include linux/*
+include linux/appimage/*
+include osx/*
+include osx/app_resources/*
+include osx/dmg_resources/*
+include plover/assets/*
+include plover/gui_qt/*.ui
+include plover/gui_qt/messages/*/LC_MESSAGES/*.po
+include plover/gui_qt/messages/plover.pot
+include plover/gui_qt/resources/*.png
+include plover/gui_qt/resources/*.qrc
+include plover/gui_qt/resources/*.svg
+include plover_build_utils/*.sh
+include requirements*.txt
+include rpm/*.spec
+include test.bat
+include test.sh
+include test/__init__.py
+include test/utils.py
+include tox.ini
+include windows/*
+# Exclude: CI/Git/GitHub specific files,
+# as well as generated Python files (UI).
+exclude *.yml
+exclude .gitignore
+exclude archlinux/.gitignore
+exclude plover/gui_qt/*_rc.py
+exclude plover/gui_qt/*_ui.py
+exclude plover/gui_qt/.gitignore
+prune .github
+prune ci
