@@ -49,7 +49,7 @@ install -vDm644 -t "%{buildroot}/usr/share/applications" application/plover.desk
 %{__python3} setup.py test
 
 %files
-%doc README.md
+%doc README.rst
 %license LICENSE.txt
 %{_bindir}/plover
 %{python3_sitelib}/plover*
