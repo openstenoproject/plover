@@ -61,8 +61,11 @@ build()
   setenv
   run git fetch --quiet --unshallow
   run "$python" setup.py patch_version
+  # Run tests.
   run "$python" setup.py test
-
+  # Run some packaging related sanity checks.
+  run "$python" -m check_manifest
+  run "$python" setup.py check -m -r -s
   # Only generate artifacts if we're actually going to deploy them.
   # Note: if we moved this to the `before_deploy` phase, we would
   # not have to check, but we'd also lose caching; since the cache
