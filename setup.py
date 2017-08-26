@@ -182,7 +182,7 @@ class BinaryDistWin(Command):
             data_dir, '*/pip/_vendor/distlib/*',
         )
         # Check requirements.
-        run(dist_py, '-m', 'plover_build_utils.check_requirements')
+        run(dist_py, '-I', '-m', 'plover_build_utils.check_requirements')
         # Zip results.
         if self.zipdir:
             from plover_build_utils.zipdir import zipdir

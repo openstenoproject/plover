@@ -110,4 +110,4 @@ ditto -v --arch x86_64 "$app_dir" "$app_dist_dir"
 
 # Check requirements.
 python="$PWD/$app_dist_dir/Contents/Frameworks/$target_python"
-run "$python" -m plover_build_utils.check_requirements
+run "$python" -I -m plover_build_utils.check_requirements

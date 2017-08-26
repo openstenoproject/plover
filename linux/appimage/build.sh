@@ -155,7 +155,7 @@ remove_emptydirs()
 run remove_emptydirs
 
 # Check requirements.
-run "$python" -m plover_build_utils.check_requirements
+run "$python" -I -m plover_build_utils.check_requirements
 
 # Create the AppImage.
 # Note: extract appimagetool so fuse is not needed.
