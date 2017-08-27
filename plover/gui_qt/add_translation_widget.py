@@ -9,6 +9,7 @@ from plover.misc import shorten_path
 from plover.steno import normalize_steno, sort_steno_strokes
 from plover.engine import StartingStrokeState
 from plover.translation import escape_translation, unescape_translation
+from plover.formatting import RetroFormatter
 
 from plover.gui_qt.add_translation_widget_ui import Ui_AddTranslationWidget
 from plover.gui_qt.i18n import get_gettext
@@ -45,28 +46,30 @@ class AddTranslationWidget(QWidget, Ui_AddTranslationWidget):
         self.strokes.installEventFilter(self)
         self.translation.installEventFilter(self)
 
-        # Pre-populate the strokes or translations with last stroke/word.
-        last_translation = None
-        for t in reversed(engine.translator_state.translations):
-            # Find the last undoable stroke.
-            if t.has_undo():
-                last_translation = t
-                break
-        if last_translation:
-            # Grab the last-formatted word
-            last_word = last_translation.formatting[-1].word
-            if last_word:
-                # If the last translation was created with the dictionary...
-                if last_translation.english:
-                    self.translation.setText(last_word.strip())
-                    self.on_translation_edited()
-                # Otherwise, it's just raw steno
-                else:
-                    self.strokes.setText(last_word.strip())
-                    self.on_strokes_edited()
-                    self.strokes.selectAll()
-
         with engine:
+
+            # Pre-populate the strokes or translations with last stroke/word.
+            last_translations = engine.translator_state.translations
+            translation = None
+            for t in reversed(last_translations):
+                # Find the last undoable stroke.
+                if t.has_undo():
+                    translation = t
+                    break
+            # Is it a raw stroke?
+            if translation is not None and not translation.english:
+                # Yes.
+                self.strokes.setText(translation.formatting[0].text)
+                self.on_strokes_edited()
+                self.strokes.selectAll()
+            else:
+                # No, grab the last-formatted word.
+                retro_formatter = RetroFormatter(last_translations)
+                last_words = retro_formatter.last_words(strip=True)
+                if last_words:
+                    self.translation.setText(last_words[0])
+                    self.on_translation_edited()
+
             self._original_state = self.EngineState(None,
                                                     engine.translator_state,
                                                     engine.starting_stroke_state)

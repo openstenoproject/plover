@@ -23,6 +23,13 @@ def parametrize(argvalues):
     return decorator
 
 def action(**kwargs):
+    # Suport using something like `text_and_word='stuff'`
+    # as a shortcut for `text='stuff', word='stuff'`.
+    for k, v in list(kwargs.items()):
+        if '_and_' in k:
+            del kwargs[k]
+            for k in k.split('_and_'):
+                kwargs[k] = v
     return formatting._Action(**kwargs)
 
 class MockTranslation(object):
@@ -37,26 +44,23 @@ class MockTranslation(object):
 def translation(**kwargs):
     return MockTranslation(**kwargs)
 
-spaces_before = False
-spaces_after = True
-
 
 STARTING_STROKE_TESTS = (
 
     (True, True, [], [translation(rtfcre=('S'), english='hello')], None,
-     ([action(text='Hello', word='Hello')],),
+     ([action(prev_attach=True, text='Hello', trailing_space=' ', word='hello')],),
      [('s', 'Hello')]),
 
     (False, False, [], [translation(rtfcre=('S'), english='hello')], None,
-     ([action(text=' hello', word='hello')],),
+     ([action(text_and_word='hello', trailing_space=' ')],),
      [('s', ' hello')]),
 
     (True, False, [], [translation(rtfcre=('S'), english='hello')], None,
-     ([action(text=' Hello', word='Hello')],),
+     ([action(text='Hello', word='hello', trailing_space=' ')],),
      [('s', ' Hello')]),
 
     (False, True, [], [translation(rtfcre=('S'), english='hello')], None,
-     ([action(text='hello', word='hello')],),
+     ([action(text_and_word='hello', prev_attach=True, trailing_space=' ')],),
      [('s', 'hello')]),
 
 )
@@ -77,96 +81,99 @@ def test_starting_stroke(capitalized, attached, undo, do, prev,
 
 FORMATTER_TESTS = (
 
-    ([translation(formatting=[action(text='hello')])], [], None,
+    ([translation(formatting=[action(text_and_word='hello', trailing_space=' ')])],
+     [],
+     None,
      (),
-     [('b', 5)]),
+     [('b', 6)]),
 
     ([],
      [translation(rtfcre=('S'), english='hello')],
-     [translation(rtfcre=('T'), english='a', formatting=[action(text='f')])]
+     [translation(rtfcre=('T'), english='a', formatting=[action(text_and_word='f', trailing_space=' ')])]
      ,
-     ([action(text=' hello', word='hello')],),
+     ([action(text_and_word='hello', trailing_space=' ')],),
      [('s', ' hello')]),
 
     ([], [translation(rtfcre=('S'), english='hello')], None,
-     ([action(text=' hello', word='hello')],),
+     ([action(text_and_word='hello', trailing_space=' ')],),
      [('s', ' hello')]),
 
     ([], [translation(rtfcre=('ST-T',))], None,
-     ([action(text=' ST-T', word='ST-T')],),
+     ([action(text_and_word='ST-T', trailing_space=' ')],),
      [('s', ' ST-T')]),
 
     ([],
      [translation(rtfcre=('ST-T',))],
-     [translation(formatting=[action(text='hi')])],
-     ([action(text=' ST-T', word='ST-T')],),
+     [translation(formatting=[action(text_and_word='hi', trailing_space=' ')])],
+     ([action(text_and_word='ST-T', trailing_space=' ')],),
      [('s', ' ST-T')]),
 
-    ([translation(formatting=[action(text=' test')])],
+    ([translation(formatting=[action(text_and_word='test', trailing_space=' ')])],
      [translation(english='rest')],
-     [translation(formatting=[action(capitalize=True)])],
-     ([action(text=' Rest', word='Rest')],),
+     [translation(formatting=[action(next_case=formatting.CASE_CAP_FIRST_WORD, trailing_space=' ')])],
+     ([action(text='Rest', word='rest', trailing_space=' ')],),
      [('b', 4), ('s', 'Rest')]),
 
-    ([translation(formatting=[action(text='dare'),
-                              action(text='ing', replace='e')])],
+    ([translation(formatting=[action(text_and_word='dare'),
+                              action(prev_attach=True, text='ing', word='daring', prev_replace='e')])],
      [translation(english='rest')],
-     [translation(formatting=[action(capitalize=True)])],
-     ([action(text=' Rest', word='Rest')],),
-     [('b', 6), ('s', ' Rest')]),
+     [translation(formatting=[action(next_case=formatting.CASE_CAP_FIRST_WORD,
+                                     trailing_space=' ')])],
+     ([action(text='Rest', word='rest', trailing_space=' ')],),
+     [('b', 6), ('s', 'Rest')]),
 
-    ([translation(formatting=[action(text=' drive')])],
+    ([translation(formatting=[action(text_and_word='drive', trailing_space=' ')])],
      [translation(english='driving')],
      None,
-     ([action(text=' driving', word='driving')],),
+     ([action(text_and_word='driving', trailing_space=' ')],),
      [('b', 1), ('s', 'ing')]),
 
-    ([translation(formatting=[action(text=' drive')])],
+    ([translation(formatting=[action(text_and_word='drive', trailing_space=' ')])],
      [translation(english='{#c}driving')],
      None,
-     ([action(combo='c'), action(text=' driving', word='driving')],),
+     ([action(combo='c'), action(text_and_word='driving', trailing_space=' ')],),
      [('b', 6), ('c', 'c'), ('s', ' driving')]),
 
-    ([translation(formatting=[action(text=' drive')])],
+    ([translation(formatting=[action(text_and_word='drive', trailing_space=' ')])],
      [translation(english='{PLOVER:c}driving')],
      None,
-     ([action(command='c'), action(text=' driving', word='driving')],),
+     ([action(command='c'), action(text_and_word='driving', trailing_space=' ')],),
      [('b', 6), ('e', 'c'), ('s', ' driving')]),
 
     ([],
      [translation(rtfcre=('1',))],
      None,
-     ([action(text=' 1', word='1', glue=True)],),
+     ([action(text_and_word='1', trailing_space=' ', glue=True)],),
      [('s', ' 1')]),
 
     ([],
      [translation(rtfcre=('1',))],
-     [translation(formatting=[action(text='hi', word='hi')])],
-     ([action(text=' 1', word='1', glue=True)],),
+     [translation(formatting=[action(text_and_word='hi', trailing_space=' ')])],
+     ([action(text_and_word='1', trailing_space=' ', glue=True)],),
      [('s', ' 1')]),
 
     ([],
      [translation(rtfcre=('1',))],
-     [translation(formatting=[action(text='hi', word='hi', glue=True)])],
-     ([action(text='1', word='hi1', glue=True)],),
+     [translation(formatting=[action(text_and_word='hi', trailing_space=' ', glue=True)])],
+     ([action(prev_attach=True, text='1', trailing_space=' ', word='hi1', glue=True)],),
      [('s', '1')]),
 
     ([],
      [translation(rtfcre=('1-9',))],
-     [translation(formatting=[action(text='hi', word='hi', glue=True)])],
-     ([action(text='19', word='hi19', glue=True)],),
+     [translation(formatting=[action(text_and_word='hi', trailing_space=' ', glue=True)])],
+     ([action(prev_attach=True, text='19', trailing_space=' ', word='hi19', glue=True)],),
      [('s', '19')]),
 
     ([],
      [translation(rtfcre=('ST-PL',))],
-     [translation(formatting=[action(text='hi', word='hi')])],
-     ([action(text=' ST-PL', word='ST-PL')],),
+     [translation(formatting=[action(text_and_word='hi', trailing_space=' ')])],
+     ([action(text_and_word='ST-PL', trailing_space=' ')],),
      [('s', ' ST-PL')]),
 
     ([],
      [translation(rtfcre=('ST-PL',))],
      None,
-     ([action(text=' ST-PL', word='ST-PL')],),
+     ([action(text_and_word='ST-PL', trailing_space=' ')],),
      [('s', ' ST-PL')]),
 
 )
@@ -186,700 +193,427 @@ def test_formatter(undo, do, prev, expected_formats, expected_outputs):
     assert output.instructions == expected_outputs
 
 
-def test_get_last_action():
-    formatter = formatting.Formatter()
-    assert formatter._get_last_action(None) == action()
-    assert formatter._get_last_action([]) == action()
-    actions = [action(text='hello'), action(text='world')]
-    assert formatter._get_last_action(actions) == actions[-1]
-    formatter.start_attached = True
-    formatter.start_capitalized = True
-    assert formatter._get_last_action(None) == action(capitalize=True, attach=True)
-
-
 def test_action():
-    assert action(word='test') != action(word='test', attach=True)
+    assert action(word='test') != action(word='test', next_attach=True)
     assert action(text='test') == action(text='test')
     assert action(text='test', word='test').copy_state() == action(word='test')
 
 
 TRANSLATION_TO_ACTIONS_TESTS = (
 
-    ('test', action(), spaces_before,
-     [action(text=' test', word='test')]),
+    ('test', action(),
+     [action(text_and_word='test', trailing_space=' ')]),
 
-    ('{^^}', action(), spaces_before,
-     [action(attach=True, orthography=False)]),
+    ('{^^}', action(),
+     [action(prev_attach=True, text_and_word='', next_attach=True, orthography=False)]),
 
-    ('1-9', action(), spaces_before,
-     [action(word='1-9', text=' 1-9')]),
+    ('1-9', action(),
+     [action(text_and_word='1-9', trailing_space=' ')]),
 
-    ('32', action(), spaces_before,
-     [action(word='32', text=' 32', glue=True)]),
+    ('32', action(),
+     [action(text_and_word='32', trailing_space=' ', glue=True)]),
 
-    ('', action(text=' test', word='test', attach=True), spaces_before,
-     [action(word='test', attach=True)]),
+    ('', action(text_and_word='test', next_attach=True),
+     [action(prev_attach=True, word='test', next_attach=True)]),
 
-    ('  ', action(text=' test', word='test', attach=True), spaces_before,
-     [action(word='test', attach=True)]),
+    ('  ', action(text_and_word='test', next_attach=True),
+     [action(prev_attach=True, word='test', next_attach=True)]),
 
-    ('{^} {.} hello {.} {#ALT_L(Grave)}{^ ^}', action(), spaces_before,
-     [action(attach=True, orthography=False),
-      action(text='.', capitalize=True),
-      action(text=' Hello', word='Hello'),
-      action(text='.', capitalize=True),
-      action(combo='ALT_L(Grave)', capitalize=True),
-      action(text=' ', attach=True)
+    ('{^} {.} hello {.} {#ALT_L(Grave)}{^ ^}', action(),
+     [action(prev_attach=True, text_and_word='', next_attach=True, orthography=False),
+      action(prev_attach=True, text_and_word='.', trailing_space=' ', next_case=formatting.CASE_CAP_FIRST_WORD),
+      action(text='Hello', word='hello', trailing_space=' '),
+      action(prev_attach=True, text_and_word='.', trailing_space=' ', next_case=formatting.CASE_CAP_FIRST_WORD),
+      action(word='.', trailing_space=' ', combo='ALT_L(Grave)', next_case=formatting.CASE_CAP_FIRST_WORD),
+      action(prev_attach=True, text=' ', word='', next_attach=True)
      ]),
 
-    ('{-|}{>}{&a}{>}{&b}', action(), spaces_before,
-     [action(capitalize=True),
-      action(lower=True),
-      action(text=' a', word='a', glue=True),
-      action(lower=True, word='a', text='', glue=True),
-      action(text='b', word='ab', glue=True),
+    ('{-|}{>}{&a}{>}{&b}', action(),
+     [action(next_case=formatting.CASE_CAP_FIRST_WORD),
+      action(next_case=formatting.CASE_LOWER_FIRST_CHAR),
+      action(text_and_word='a', trailing_space=' ', glue=True),
+      action(next_case=formatting.CASE_LOWER_FIRST_CHAR, word='a', trailing_space=' ', glue=True),
+      action(prev_attach=True, text='b', word='ab', trailing_space=' ', glue=True),
      ]),
 
-    ('{-|}{>}{&a}{>}{&b}', action(), spaces_after,
-     [action(capitalize=True),
-      action(lower=True),
-      action(text='a ', word='a', glue=True),
-      action(lower=True, word='a', text=' ', replace=' ', glue=True),
-      action(text='b ', replace=' ', word='ab', glue=True),
+    ('{-|}{>}{&a}{>}{&b}', action(),
+     [action(next_case=formatting.CASE_CAP_FIRST_WORD),
+      action(next_case=formatting.CASE_LOWER_FIRST_CHAR),
+      action(text_and_word='a', trailing_space=' ', glue=True),
+      action(next_case=formatting.CASE_LOWER_FIRST_CHAR, word='a', trailing_space=' ', glue=True),
+      action(prev_attach=True, text='b', word='ab', trailing_space=' ', glue=True),
      ]),
 
-    ('{-|} equip {^s}', action(), spaces_before,
-     [action(capitalize=True),
-      action(text=' Equip', word='Equip'),
-      action(text='s', word='Equips'),
+    ('{-|} equip {^s}', action(),
+     [action(next_case=formatting.CASE_CAP_FIRST_WORD),
+      action(text='Equip', word='equip', trailing_space=' '),
+      action(prev_attach=True, text='s', trailing_space=' ', word='equips'),
      ]),
 
-    ('{-|} equip {^ed}', action(), spaces_before,
-     [action(capitalize=True),
-      action(text=' Equip', word='Equip'),
-      action(text='ped', word='Equipped'),
+    ('{-|} equip {^ed}', action(),
+     [action(next_case=formatting.CASE_CAP_FIRST_WORD),
+      action(text='Equip', word='equip', trailing_space=' '),
+      action(prev_attach=True, text='ped', trailing_space=' ', word='equipped'),
      ]),
 
-    ('{>} Equip', action(), spaces_before,
-     [action(lower=True),
-      action(text=' equip', word='equip')
+    ('{>} Equip', action(),
+     [action(next_case=formatting.CASE_LOWER_FIRST_CHAR),
+      action(text='equip', word='Equip', trailing_space=' ')
      ]),
 
-    ('{>} equip', action(), spaces_before,
-     [action(lower=True),
-      action(text=' equip', word='equip')
+    ('{>} equip', action(),
+     [action(next_case=formatting.CASE_LOWER_FIRST_CHAR),
+      action(text_and_word='equip', trailing_space=' ')
      ]),
 
-    ('{<} equip', action(), spaces_before,
-     [action(upper=True),
-      action(text=' EQUIP', word='EQUIP', upper_carry=True)
+    ('{<} equip', action(),
+     [action(next_case=formatting.CASE_UPPER_FIRST_WORD),
+      action(text='EQUIP', word='equip', trailing_space=' ', upper_carry=True)
      ]),
 
-    ('{<} EQUIP', action(), spaces_before,
-     [action(upper=True),
-      action(text=' EQUIP', word='EQUIP', upper_carry=True)
+    ('{<} EQUIP', action(),
+     [action(next_case=formatting.CASE_UPPER_FIRST_WORD),
+      action(text_and_word='EQUIP', trailing_space=' ', upper_carry=True)
      ]),
 
-    ('{<} equip {^ed}', action(), spaces_after,
-     [action(upper=True),
-      action(text='EQUIP ', word='EQUIP', upper_carry=True),
-      action(text='PED ', word='EQUIPPED', replace=' ', upper_carry=True)
+    ('{<} equip {^ed}', action(),
+     [action(next_case=formatting.CASE_UPPER_FIRST_WORD),
+      action(text='EQUIP', word='equip', trailing_space=' ', upper_carry=True),
+      action(prev_attach=True, text='PED', trailing_space=' ', word='equipped', upper_carry=True)
      ]),
 
-    ('equip {*-|}', action(), spaces_before,
-     [action(text=' equip', word='equip'),
-      action(text=' Equip', word='Equip', replace=' equip'),
+    ('equip {*-|}', action(),
+     [action(text_and_word='equip', trailing_space=' '),
+      action(prev_attach=True, text='Equip', trailing_space=' ', word_and_prev_replace='equip'),
      ]),
 
-    ('equip {^ed} {*-|}', action(), spaces_before,
-     [action(text=' equip', word='equip'),
-      action(text='ped', word='equipped'),
-      action(text='Equipped', word='Equipped', replace='equipped'),
+    ('equip {^ed} {*-|}', action(),
+     [action(text_and_word='equip', trailing_space=' '),
+      action(prev_attach=True, text='ped', trailing_space=' ', word='equipped'),
+      action(prev_attach=True, text='Equipped', trailing_space=' ', word_and_prev_replace='equipped'),
      ]),
 
-    ('Equip {*>}', action(), spaces_before,
-     [action(text=' Equip', word='Equip'),
-      action(text=' equip', word='equip', replace=' Equip'),
+    ('Equip {*>}', action(),
+     [action(text_and_word='Equip', trailing_space=' '),
+      action(prev_attach=True, text='equip', trailing_space=' ', word_and_prev_replace='Equip'),
      ]),
 
-    ('Equip {^ed} {*>}', action(), spaces_before,
-     [action(text=' Equip', word='Equip'),
-      action(text='ped', word='Equipped'),
-      action(text='equipped', word='equipped', replace='Equipped'),
+    ('Equip {^ed} {*>}', action(),
+     [action(text_and_word='Equip', trailing_space=' '),
+      action(prev_attach=True, text='ped', trailing_space=' ', word='Equipped'),
+      action(prev_attach=True, text='equipped', trailing_space=' ', word_and_prev_replace='Equipped'),
      ]),
 
-    ('equip {*<}', action(), spaces_before,
-     [action(text=' equip', word='equip'),
-      action(text=' EQUIP', word='EQUIP', replace=' equip', upper_carry=True),
+    ('equip {*<}', action(),
+     [action(text_and_word='equip', trailing_space=' '),
+      action(prev_attach=True, text='EQUIP', trailing_space=' ', word_and_prev_replace='equip', upper_carry=True),
      ]),
 
-    ('equip {^ed} {*<}', action(), spaces_before,
-     [action(text=' equip', word='equip'),
-      action(text='ped', word='equipped'),
-      action(text='EQUIPPED', word='EQUIPPED', replace='equipped', upper_carry=True),
+    ('equip {^ed} {*<}', action(),
+     [action(text_and_word='equip', trailing_space=' '),
+      action(prev_attach=True, text='ped', trailing_space=' ', word='equipped'),
+      action(prev_attach=True, text='EQUIPPED', trailing_space=' ', word_and_prev_replace='equipped', upper_carry=True),
      ]),
 
-    ('notanumber {*($c)}', action(), spaces_before,
-     [action(text=' notanumber', word='notanumber'),
-      action(text='', word='notanumber', replace=''),
+    ('notanumber {*($c)}', action(),
+     [action(text_and_word='notanumber', trailing_space=' '),
+      action(word='notanumber', trailing_space=' '),
      ]),
 
-    ('0 {*($c)}', action(), spaces_before,
-     [action(text=' 0', word='0'),
-      action(text='$0', word='$0', replace='0'),
+    ('0 {*($c)}', action(),
+     [action(text_and_word='0', trailing_space=' '),
+      action(prev_attach=True, text_and_word='$0', trailing_space=' ', prev_replace='0'),
      ]),
 
-    ('0.00 {*($c)}', action(), spaces_before,
-     [action(text=' 0.00', word='0.00'),
-      action(text='$0.00', word='$0.00', replace='0.00'),
+    ('0.00 {*($c)}', action(),
+     [action(text_and_word='0.00', trailing_space=' '),
+      action(prev_attach=True, text_and_word='$0.00', trailing_space=' ', prev_replace='0.00'),
      ]),
 
-    ('1234 {*($c)}', action(), spaces_before,
-     [action(text=' 1234', word='1234'),
-      action(text='$1,234', word='$1,234', replace='1234'),
+    ('1234 {*($c)}', action(),
+     [action(text_and_word='1234', trailing_space=' '),
+      action(prev_attach=True, text_and_word='$1,234', trailing_space=' ', prev_replace='1234'),
      ]),
 
-    ('1234567 {*($c)}', action(), spaces_before,
-     [action(text=' 1234567', word='1234567'),
-      action(text='$1,234,567', word='$1,234,567', replace='1234567'),
+    ('1234567 {*($c)}', action(),
+     [action(text_and_word='1234567', trailing_space=' '),
+      action(prev_attach=True, text_and_word='$1,234,567', trailing_space=' ', prev_replace='1234567'),
      ]),
 
-    ('1234.5 {*($c)}', action(), spaces_before,
-     [action(text=' 1234.5', word='1234.5'),
-      action(text='$1,234.50', word='$1,234.50', replace='1234.5'),
+    ('1234.5 {*($c)}', action(),
+     [action(text_and_word='1234.5', trailing_space=' '),
+      action(prev_attach=True, text_and_word='$1,234.50', trailing_space=' ', prev_replace='1234.5'),
      ]),
 
-    ('1234.56 {*($c)}', action(), spaces_before,
-     [action(text=' 1234.56', word='1234.56'),
-      action(text='$1,234.56', word='$1,234.56', replace='1234.56'),
+    ('1234.56 {*($c)}', action(),
+     [action(text_and_word='1234.56', trailing_space=' '),
+      action(prev_attach=True, text_and_word='$1,234.56', trailing_space=' ', prev_replace='1234.56'),
      ]),
 
-    ('1234.567 {*($c)}', action(), spaces_before,
-     [action(text=' 1234.567', word='1234.567'),
-      action(text='$1,234.57', word='$1,234.57', replace='1234.567'),
+    ('1234.567 {*($c)}', action(),
+     [action(text_and_word='1234.567', trailing_space=' '),
+      action(prev_attach=True, text_and_word='$1,234.57', trailing_space=' ', prev_replace='1234.567'),
      ]),
 
-    ('equip {^} {^ed}', action(), spaces_before,
-     [action(text=' equip', word='equip'),
-      action(word='equip', attach=True, orthography=False),
-      action(text='ed', word='equiped'),
+    ('equip {^} {^ed}', action(),
+     [action(text_and_word='equip', trailing_space=' '),
+      action(prev_attach=True, text='', word='equip', next_attach=True, orthography=False),
+      action(prev_attach=True, text='ed', trailing_space=' ', word='equiped'),
      ]),
 
-     ('{prefix^} test {^ing}', action(), spaces_before,
-      [action(text=' prefix', word='prefix', attach=True),
-       action(text='test', word='test'),
-       action(text='ing', word='testing'),
+     ('{prefix^} test {^ing}', action(),
+      [action(text_and_word='prefix', next_attach=True),
+       action(prev_attach=True, text_and_word='test', trailing_space=' '),
+       action(prev_attach=True, text='ing', trailing_space=' ', word='testing'),
       ]),
 
-    ('{two prefix^} test {^ing}', action(), spaces_before,
-     [action(text=' two prefix', word='prefix', attach=True),
-      action(text='test', word='test'),
-      action(text='ing', word='testing'),
+    ('{two prefix^} test {^ing}', action(),
+     [action(text='two prefix', word='prefix', next_attach=True),
+      action(prev_attach=True, text_and_word='test', trailing_space=' '),
+      action(prev_attach=True, text='ing', trailing_space=' ', word='testing'),
      ]),
 
-    ('{-|}{^|~|^}', action(), spaces_before,
-     [action(capitalize=True),
-      action(word='|~|', text='|~|', attach=True),
+    ('{-|}{^|~|^}', action(),
+     [action(next_case=formatting.CASE_CAP_FIRST_WORD),
+      action(prev_attach=True, text_and_word='|~|', next_attach=True),
      ]),
 
-    ('{-|}{~|\'^}cause', action(), spaces_before,
-     [action(capitalize=True),
-      action(text=' \'', word='\'', attach=True, capitalize=True),
-      action(text='Cause', word='Cause'),
+    ('{-|}{~|\'^}cause', action(),
+     [action(next_case=formatting.CASE_CAP_FIRST_WORD),
+      action(text_and_word='\'', next_attach=True, next_case=formatting.CASE_CAP_FIRST_WORD),
+      action(prev_attach=True, text='Cause', trailing_space=' ', word='cause'),
      ]),
 
-    ('{.}{~|\'^}cuz', action(), spaces_before,
-     [action(text='.', word='', capitalize=True),
-      action(text=' \'', word='\'', attach=True, capitalize=True),
-      action(text='Cuz', word='Cuz'),
+    ('{.}{~|\'^}cuz', action(),
+     [action(prev_attach=True, text_and_word='.', trailing_space=' ', next_case=formatting.CASE_CAP_FIRST_WORD),
+      action(text_and_word='\'', next_attach=True, next_case=formatting.CASE_CAP_FIRST_WORD),
+      action(prev_attach=True, text='Cuz', trailing_space=' ', word='cuz'),
      ]),
 
-    ('{.}{~|\'^}cause', action(), spaces_after,
-     [action(text='. ', word='', capitalize=True),
-      action(text='\'', word='\'', attach=True, capitalize=True),
-      action(text='Cause ', word='Cause'),
+    ('{.}{~|\'^}cause', action(),
+     [action(prev_attach=True, text_and_word='.', trailing_space=' ', next_case=formatting.CASE_CAP_FIRST_WORD),
+      action(text_and_word='\'', next_attach=True, next_case=formatting.CASE_CAP_FIRST_WORD),
+      action(prev_attach=True, text='Cause', trailing_space=' ', word='cause'),
      ]),
 
-    ('{.}{^~|\"}heyyo', action(), spaces_before,
-     [action(text='.', word='', capitalize=True),
-      action(text='"', word='"', capitalize=True),
-      action(text=' Heyyo', word='Heyyo'),
+    ('{.}{^~|\"}heyyo', action(),
+     [action(prev_attach=True, text_and_word='.', trailing_space=' ', next_case=formatting.CASE_CAP_FIRST_WORD),
+      action(prev_attach=True, text_and_word='"', trailing_space=' ', next_case=formatting.CASE_CAP_FIRST_WORD),
+      action(text='Heyyo', trailing_space=' ', word='heyyo'),
      ]),
 
-    ('{.}{^~|\"}heyyo', action(), spaces_after,
-     [action(text='. ', word='', capitalize=True),
-      action(text='" ', word='"', capitalize=True, replace=' '),
-      action(text='Heyyo ', word='Heyyo'),
+    ('{.}{^~|^}zshrc', action(),
+     [action(prev_attach=True, text_and_word='.', trailing_space=' ', next_case=formatting.CASE_CAP_FIRST_WORD),
+      action(prev_attach=True, text_and_word='', next_attach=True, next_case=formatting.CASE_CAP_FIRST_WORD),
+      action(prev_attach=True, text='Zshrc', trailing_space=' ', word='zshrc')]),
+
+    ('{.}', action(),
+     [action(prev_attach=True, text_and_word='.', trailing_space=' ', next_case=formatting.CASE_CAP_FIRST_WORD)]
+    ),
+
+    ('{,}', action(),
+     [action(prev_attach=True, text_and_word=',', trailing_space=' ')]
+    ),
+
+    ('test{prefix^}', action(),
+     [action(text_and_word='test', trailing_space=' '),
+      action(text_and_word='prefix', next_attach=True),
      ]),
 
-    ('test', action(), spaces_after,
-     [action(text='test ', word='test')]),
-
-    ('{^^}', action(), spaces_after,
-     [action(attach=True, orthography=False)]),
-
-    ('1-9', action(), spaces_after,
-     [action(word='1-9', text='1-9 ')]),
-
-    ('32', action(), spaces_after,
-     [action(word='32', text='32 ', glue=True)]),
-
-    ('', action(text='test ', word='test', attach=True), spaces_after,
-     [action(word='test', attach=True)]),
-
-    ('  ', action(text='test ', word='test', attach=True), spaces_after,
-     [action(word='test', attach=True)]),
-
-    ('{^} {.} hello {.} {#ALT_L(Grave)}{^ ^}', action(), spaces_after,
-     [action(attach=True, orthography=False),
-      action(text='. ', capitalize=True),
-      action(text='Hello ', word='Hello'),
-      action(text='. ', capitalize=True, replace=' '),
-      action(combo='ALT_L(Grave)', capitalize=True),
-      action(text=' ', attach=True)
+    ('{prefix^}{prefix^}', action(),
+     [action(text_and_word='prefix', next_attach=True),
+      action(prev_attach=True, text='prefix', word='prefixprefix', next_attach=True),
      ]),
 
-     ('{-|} equip {^s}', action(), spaces_after,
-      [action(capitalize=True),
-       action(text='Equip ', word='Equip'),
-       action(text='s ', word='Equips', replace=' '),
-      ]),
-
-    ('{-|} equip {^ed}', action(), spaces_after,
-     [action(capitalize=True),
-      action(text='Equip ', word='Equip'),
-      action(text='ped ', word='Equipped', replace=' '),
+    ('{prefix^}{^ing}', action(),
+     [action(text_and_word='prefix', next_attach=True),
+      action(prev_attach=True, text='ing', trailing_space=' ', word='prefixing'),
      ]),
 
-    ('{>} Equip', action(), spaces_after,
-     [action(lower=True),
-      action(text='equip ', word='equip')
+    ('{prefix^}cancel{^ing}', action(),
+     [action(text_and_word='prefix', next_attach=True),
+      action(prev_attach=True, text='cancel', trailing_space=' ', word='cancel'),
+      action(prev_attach=True, text='ing', trailing_space=' ', word='canceling'),
      ]),
 
-    ('{>} equip', action(), spaces_after,
-     [action(lower=True),
-      action(text='equip ', word='equip')
-     ]),
-
-    ('{<} equip', action(), spaces_after,
-     [action(upper=True),
-      action(text='EQUIP ', word='EQUIP', upper_carry=True)
-     ]),
-
-    ('{<} EQUIP', action(), spaces_after,
-     [action(upper=True),
-      action(text='EQUIP ', word='EQUIP', upper_carry=True)
-     ]),
-
-    ('{<} equip {^ed}', action(), spaces_after,
-     [action(upper=True),
-      action(text='EQUIP ', word='EQUIP', upper_carry=True),
-      action(text='PED ', word='EQUIPPED', replace=' ', upper_carry=True)
-     ]),
-
-    ('equip {*-|}', action(), spaces_after,
-     [action(text='equip ', word='equip'),
-      action(text='Equip ', word='Equip', replace='equip '),
-     ]),
-
-    ('equip {^ed} {*-|}', action(), spaces_after,
-     [action(text='equip ', word='equip'),
-      action(text='ped ', word='equipped', replace=' '),
-      action(text='Equipped ', word='Equipped', replace='equipped '),
-     ]),
-
-    ('Equip {*>}', action(), spaces_after,
-     [action(text='Equip ', word='Equip'),
-      action(text='equip ', word='equip', replace='Equip '),
-     ]),
-
-    ('Equip {^ed} {*>}', action(), spaces_after,
-     [action(text='Equip ', word='Equip'),
-      action(text='ped ', word='Equipped', replace=' '),
-      action(text='equipped ', word='equipped', replace='Equipped '),
-     ]),
-
-    ('equip {*<}', action(), spaces_after,
-     [action(text='equip ', word='equip'),
-      action(text='EQUIP ', word='EQUIP', replace='equip ', upper_carry=True),
-     ]),
-
-    ('equip {^ed} {*<}', action(), spaces_after,
-     [action(text='equip ', word='equip'),
-      action(text='ped ', word='equipped', replace=' '),
-      action(text='EQUIPPED ', word='EQUIPPED', replace='equipped ', upper_carry=True),
-     ]),
-
-    ('{.}{^~|^}zshrc', action(), spaces_after,
-     [action(text='. ', capitalize=True),
-      action(attach=True, capitalize=True, replace=' '),
-      action(text='Zshrc ', word='Zshrc')]),
-
-    ('notanumber {*($c)}', action(), spaces_after,
-     [action(text='notanumber ', word='notanumber'),
-      action(text='', word='notanumber', replace=''),
-     ]),
-
-    ('0 {*($c)}', action(), spaces_after,
-     [action(text='0 ', word='0'),
-      action(text='$0 ', word='$0', replace='0 '),
-     ]),
-
-    ('0.00 {*($c)}', action(), spaces_after,
-     [action(text='0.00 ', word='0.00'),
-      action(text='$0.00 ', word='$0.00', replace='0.00 '),
-     ]),
-
-    ('1234 {*($c)}', action(), spaces_after,
-     [action(text='1234 ', word='1234'),
-      action(text='$1,234 ', word='$1,234', replace='1234 '),
-     ]),
-
-    ('1234567 {*($c)}', action(), spaces_after,
-     [action(text='1234567 ', word='1234567'),
-      action(text='$1,234,567 ', word='$1,234,567', replace='1234567 '),
-     ]),
-
-    ('1234.5 {*($c)}', action(), spaces_after,
-     [action(text='1234.5 ', word='1234.5'),
-      action(text='$1,234.50 ', word='$1,234.50', replace='1234.5 '),
-     ]),
-
-    ('1234.56 {*($c)}', action(), spaces_after,
-     [action(text='1234.56 ', word='1234.56'),
-      action(text='$1,234.56 ', word='$1,234.56', replace='1234.56 '),
-     ]),
-
-    ('1234.567 {*($c)}', action(), spaces_after,
-     [action(text='1234.567 ', word='1234.567'),
-      action(text='$1,234.57 ', word='$1,234.57', replace='1234.567 '),
-     ]),
-
-    ('equip {^} {^ed}', action(), spaces_after,
-     [action(text='equip ', word='equip'),
-      action(word='equip', attach=True, orthography=False, replace=' '),
-      action(text='ed ', word='equiped'),
-     ]),
-
-     ('{prefix^} test {^ing}', action(), spaces_after,
-      [action(text='prefix', word='prefix', attach=True),
-       action(text='test ', word='test'),
-       action(text='ing ', word='testing', replace=' '),
-      ]),
-
-    ('{two prefix^} test {^ing}', action(), spaces_after,
-     [action(text='two prefix', word='prefix', attach=True),
-      action(text='test ', word='test'),
-      action(text='ing ', word='testing', replace=' '),
-     ]),
 )
 
 @parametrize(TRANSLATION_TO_ACTIONS_TESTS)
-def test_translation_to_actions(translation, last_action, spaces_after, expected):
-    assert formatting._translation_to_actions(translation, last_action, spaces_after) == expected
+def test_translation_to_actions(translation, last_action, expected):
+    ctx = formatting._Context([], action())
+    ctx.translated(last_action)
+    assert formatting._translation_to_actions(translation, ctx) == expected
 
 
 RAW_TO_ACTIONS_TESTS = (
 
-    ('2-6', action(), spaces_before,
-     [action(glue=True, text=' 26', word='26')]),
+    ('2-6', action(),
+     [action(glue=True, text_and_word='26', trailing_space=' ')]),
 
-    ('2', action(), spaces_before,
-     [action(glue=True, text=' 2', word='2')]),
+    ('2', action(),
+     [action(glue=True, text_and_word='2', trailing_space=' ')]),
 
-    ('-8', action(), spaces_before,
-     [action(glue=True, text=' 8', word='8')]),
+    ('-8', action(),
+     [action(glue=True, text_and_word='8', trailing_space=' ')]),
 
-    ('-68', action(), spaces_before,
-     [action(glue=True, text=' 68', word='68')]),
+    ('-68', action(),
+     [action(glue=True, text_and_word='68', trailing_space=' ')]),
 
-    ('S-T', action(), spaces_before,
-     [action(text=' S-T', word='S-T')]),
+    ('S-T', action(),
+     [action(text_and_word='S-T', trailing_space=' ')]),
 
 )
 
 @parametrize(RAW_TO_ACTIONS_TESTS)
-def test_raw_to_actions(stroke, last_action, spaces_after, expected):
-    assert formatting._raw_to_actions(stroke, last_action, spaces_after) == expected
+def test_raw_to_actions(stroke, last_action, expected):
+    ctx = formatting._Context([], action())
+    ctx.translated(last_action)
+    assert formatting._raw_to_actions(stroke, ctx) == expected
 
 
 ATOM_TO_ACTION_TESTS = (
 
-    ('{^ed}', action(word='test'), spaces_before,
-     action(text='ed', replace='', word='tested')),
+    ('{^ed}', action(text_and_word='test', trailing_space=' '),
+     action(prev_attach=True, text='ed', trailing_space=' ', word='tested')),
 
-    ('{^ed}', action(word='carry'), spaces_before,
-     action(text='ied', replace='y', word='carried')),
+    ('{^ed}', action(text_and_word='carry', trailing_space=' '),
+     action(prev_attach=True, text='ied', trailing_space=' ', prev_replace='y', word='carried')),
 
-    ('{^er}', action(word='test'), spaces_before,
-     action(text='er', replace='', word='tester')),
+    ('{^er}', action(text_and_word='test', trailing_space=' '),
+     action(prev_attach=True, text='er', trailing_space=' ', word='tester')),
 
-    ('{^er}', action(word='carry'), spaces_before,
-     action(text='ier', replace='y', word='carrier')),
+    ('{^er}', action(text_and_word='carry', trailing_space=' '),
+     action(prev_attach=True, text='ier', trailing_space=' ', prev_replace='y', word='carrier')),
 
-    ('{^ing}', action(word='test'), spaces_before,
-     action(text='ing', replace='', word='testing')),
+    ('{^ing}', action(text_and_word='test', trailing_space=' '),
+     action(prev_attach=True, text='ing', trailing_space=' ', word='testing')),
 
-    ('{^ing}', action(word='begin'), spaces_before,
-     action(text='ning', replace='', word='beginning')),
+    ('{^ing}', action(text_and_word='begin', trailing_space=' '),
+     action(prev_attach=True, text='ning', trailing_space=' ', word='beginning')),
 
-    ('{^ing}', action(word='parade'), spaces_before,
-     action(text='ing', replace='e', word='parading')),
+    ('{^ing}', action(text_and_word='parade', trailing_space=' '),
+     action(prev_attach=True, text='ing', trailing_space=' ', prev_replace='e', word='parading')),
 
-    ('{^s}', action(word='test'), spaces_before,
-     action(text='s', replace='', word='tests')),
+    ('{^s}', action(text_and_word='test', trailing_space=' '),
+     action(prev_attach=True, text='s', trailing_space=' ', word='tests')),
 
-    ('{,}', action(word='test'), spaces_before,
-     action(text=',')),
+    ('{,}', action(text_and_word='test', trailing_space=' '),
+     action(prev_attach=True, text_and_word=',', trailing_space=' ')),
 
-    ('{:}', action(word='test'), spaces_before,
-     action(text=':')),
+    ('{:}', action(text_and_word='test', trailing_space=' '),
+     action(prev_attach=True, text_and_word=':', trailing_space=' ')),
 
-    ('{;}', action(word='test'), spaces_before,
-     action(text=';')),
+    ('{;}', action(text_and_word='test', trailing_space=' '),
+     action(prev_attach=True, text_and_word=';', trailing_space=' ')),
 
-    ('{.}', action(word='test'), spaces_before,
-     action(text='.', capitalize=True)),
+    ('{.}', action(prev_attach=True, word='test', trailing_space=' '),
+     action(prev_attach=True, text_and_word='.', trailing_space=' ', next_case=formatting.CASE_CAP_FIRST_WORD)),
 
-    ('{?}', action(word='test'), spaces_before,
-     action(text='?', capitalize=True)),
+    ('{?}', action(text_and_word='test', trailing_space=' '),
+     action(prev_attach=True, text_and_word='?', trailing_space=' ', next_case=formatting.CASE_CAP_FIRST_WORD)),
 
-    ('{!}', action(word='test'), spaces_before,
-     action(text='!', capitalize=True)),
+    ('{!}', action(text_and_word='test', trailing_space=' '),
+     action(prev_attach=True, text_and_word='!', trailing_space=' ', next_case=formatting.CASE_CAP_FIRST_WORD)),
 
-    ('{-|}', action(word='test'), spaces_before,
-     action(capitalize=True, word='test')),
+    ('{-|}', action(text_and_word='test', trailing_space=' '),
+     action(next_case=formatting.CASE_CAP_FIRST_WORD, word='test', trailing_space=' ')),
 
-    ('{>}', action(word='test'), spaces_before,
-     action(lower=True, word='test')),
+    ('{>}', action(text_and_word='test', trailing_space=' '),
+     action(next_case=formatting.CASE_LOWER_FIRST_CHAR, word='test', trailing_space=' ')),
 
-    ('{<}', action(word='test'), spaces_before,
-     action(upper=True, word='test')),
+    ('{<}', action(text_and_word='test', trailing_space=' '),
+     action(next_case=formatting.CASE_UPPER_FIRST_WORD, word='test', trailing_space=' ')),
 
-    ('{*-|}', action(word='test'), spaces_before,
-     action(word='Test', text='Test', replace='test')),
+    ('{*-|}', action(text_and_word='test', trailing_space=' '),
+     action(prev_attach=True, text='Test', trailing_space=' ', word_and_prev_replace='test')),
 
-    ('{*>}', action(word='test'), spaces_before,
-     action(word='test', text='test', replace='test')),
+    ('{*>}', action(text_and_word='test', trailing_space=' '),
+     action(prev_attach=True, text_and_word_and_prev_replace='test',
+            trailing_space=' ')),
 
-    ('{*<}', action(word='test'), spaces_before,
-     action(word='TEST', text='TEST', replace='test', upper_carry=True)),
+    ('{*<}', action(text_and_word='test', trailing_space=' '),
+     action(prev_attach=True, text='TEST', word_and_prev_replace='test', trailing_space=' ', upper_carry=True)),
 
-    ('{PLOVER:test_command}', action(word='test'), spaces_before,
-     action(word='test', command='test_command')),
+    ('{PLOVER:test_command}', action(text_and_word='test', trailing_space=' '),
+     action(word='test', command='test_command', trailing_space=' ')),
 
-    ('{&glue_text}', action(word='test'), spaces_before,
-     action(text=' glue_text', word='glue_text', glue=True)),
+    ('{&glue_text}', action(text_and_word='test', trailing_space=' '),
+     action(text_and_word='glue_text', trailing_space=' ', glue=True)),
 
-    ('{&glue_text}', action(word='test', glue=True), spaces_before,
-     action(text='glue_text', word='testglue_text', glue=True)),
+    ('{&glue_text}', action(text_and_word='test', trailing_space=' ', glue=True),
+     action(prev_attach=True, text='glue_text', trailing_space=' ', word='testglue_text', glue=True)),
 
-    ('{&glue_text}', action(word='test', attach=True), spaces_before,
-     action(text='glue_text', word='testglue_text', glue=True)),
+    ('{&glue_text}', action(text_and_word='test', next_attach=True),
+     action(prev_attach=True, text='glue_text', trailing_space=' ', word='glue_text', glue=True)),
 
-    ('{^attach_text}', action(word='test'), spaces_before,
-     action(text='attach_text', word='testattach_text')),
+    ('{^attach_text}', action(text_and_word='test', trailing_space=' '),
+     action(prev_attach=True, text='attach_text', trailing_space=' ', word='testattach_text')),
 
-    ('{^attach_text^}', action(word='test'), spaces_before,
-     action(text='attach_text', word='testattach_text', attach=True)),
+    ('{^attach_text^}', action(text_and_word='test', trailing_space=' '),
+     action(prev_attach=True, text='attach_text', word='testattach_text', next_attach=True)),
 
-    ('{attach_text^}', action(word='test'), spaces_before,
-     action(text=' attach_text', word='attach_text', attach=True)),
+    ('{attach_text^}', action(text_and_word='test', trailing_space=' '),
+     action(text_and_word='attach_text', next_attach=True)),
 
-    ('{#ALT_L(A)}', action(word='test'), spaces_before,
-     action(combo='ALT_L(A)', word='test')),
+    ('{#ALT_L(A)}', action(text_and_word='test', trailing_space=' '),
+     action(combo='ALT_L(A)', trailing_space=' ', word='test')),
 
-    ('text', action(word='test'), spaces_before,
-     action(text=' text', word='text')),
+    ('text', action(text_and_word='test', trailing_space=' '),
+     action(text_and_word='text', trailing_space=' ')),
 
-    ('text', action(word='test', glue=True), spaces_before,
-     action(text=' text', word='text')),
+    ('text', action(text_and_word='test', trailing_space=' ', glue=True),
+     action(text_and_word='text', trailing_space=' ')),
 
-    ('text', action(word='test', attach=True), spaces_before,
-     action(text='text', word='text')),
+    ('text', action(text_and_word='test', next_attach=True),
+     action(prev_attach=True, text_and_word='text', trailing_space=' ')),
 
-    ('text', action(word='test', capitalize=True), spaces_before,
-     action(text=' Text', word='Text')),
+    ('text', action(text_and_word='test', trailing_space=' ', next_case=formatting.CASE_CAP_FIRST_WORD),
+     action(text='Text', trailing_space=' ', word='text')),
 
-    ('some text', action(word='test'), spaces_before,
-     action(text=' some text', word='text')),
+    ('some text', action(text_and_word='test', trailing_space=' '),
+     action(text='some text', trailing_space=' ', word='text')),
 
     ('some text',
-     action(word='test',
-            case=action().CASE_TITLE,
+     action(text_and_word='test', trailing_space=' ',
+            case=formatting.CASE_TITLE,
             space_char=''),
-     spaces_before,
      action(text='SomeText', word='text',
-            case=action().CASE_TITLE,
+            case=formatting.CASE_TITLE,
             space_char='')),
 
     ('some text',
-     action(word='test', # This is camel case
-            case=action().CASE_TITLE,
-            space_char='', lower=True),
-     spaces_before,
+     action(text_and_word='test', trailing_space=' ', # This is camel case
+            case=formatting.CASE_TITLE,
+            space_char='', next_case=formatting.CASE_LOWER_FIRST_CHAR),
      action(text='someText', word='text',
-            case=action().CASE_TITLE,
+            case=formatting.CASE_TITLE,
             space_char='')),
 
-    ('some text', action(word='test', space_char='_'), spaces_before,
-     action(text='_some_text', word='text', space_char='_')),
+    ('some text', action(text_and_word='test', trailing_space=' ', space_char='_'),
+     action(text='some_text', trailing_space='_', word='text', space_char='_')),
 
-    ('some text', action(word='test', case=action().CASE_UPPER), spaces_before,
-     action(text=' SOME TEXT', word='text', case=action().CASE_UPPER)),
+    ('some text', action(text_and_word='test', trailing_space=' ', case=formatting.CASE_UPPER),
+     action(text='SOME TEXT', trailing_space=' ', word='text', case=formatting.CASE_UPPER)),
 
-    ('sOme TexT', action(word='test', case=action().CASE_LOWER), spaces_before,
-     action(text=' some text', word='TexT', case=action().CASE_LOWER)),
+    ('sOme TexT', action(text_and_word='test', trailing_space=' ', case=formatting.CASE_LOWER),
+     action(text='some text', trailing_space=' ', word='TexT', case=formatting.CASE_LOWER)),
 
-    ('sOme TexT', action(word='test', case=action().CASE_TITLE), spaces_before,
-     action(text=' Some Text', word='TexT', case=action().CASE_TITLE)),
+    ('sOme TexT', action(text_and_word='test', trailing_space=' ', case=formatting.CASE_TITLE),
+     action(text='Some Text', trailing_space=' ', word='TexT', case=formatting.CASE_TITLE)),
 
-    ('{MODE:CAPS}', action(word='test'), spaces_before,
-     action(word='test', case=action().CASE_UPPER)),
+    ('{MODE:CAPS}', action(text_and_word='test', trailing_space=' '),
+     action(word='test', trailing_space=' ', case=formatting.CASE_UPPER)),
 
-    ('{MODE:LOWER}', action(word='test'), spaces_before,
-     action(word='test', case=action().CASE_LOWER)),
-
-    ('{^ed}', action(word='test', text='test '), spaces_after,
-     action(text='ed ', replace=' ', word='tested')),
-
-    ('{^ed}', action(word='carry', text='carry '), spaces_after,
-     action(text='ied ', replace='y ', word='carried')),
-
-    ('{^er}', action(word='test', text='test '), spaces_after,
-     action(text='er ', replace=' ', word='tester')),
-
-    ('{^er}', action(word='carry', text='carry '), spaces_after,
-     action(text='ier ', replace='y ', word='carrier')),
-
-    ('{^ing}', action(word='test', text='test '), spaces_after,
-     action(text='ing ', replace=' ', word='testing')),
-
-    ('{^ing}', action(word='begin', text='begin '), spaces_after,
-     action(text='ning ', replace=' ', word='beginning')),
-
-    ('{^ing}', action(word='parade', text='parade '), spaces_after,
-     action(text='ing ', replace='e ', word='parading')),
-
-    ('{^s}', action(word='test', text='test '), spaces_after,
-     action(text='s ', replace=' ', word='tests')),
-
-    ('{,}', action(word='test', text='test '), spaces_after,
-     action(text=', ', replace=' ')),
-
-    ('{:}', action(word='test', text='test '), spaces_after,
-     action(text=': ', replace=' ')),
-
-    ('{;}', action(word='test', text='test '), spaces_after,
-     action(text='; ', replace=' ')),
-
-    ('{.}', action(word='test', text='test '), spaces_after,
-     action(text='. ', replace=' ', capitalize=True)),
-
-    ('{?}', action(word='test', text='test '), spaces_after,
-     action(text='? ', replace=' ', capitalize=True)),
-
-    ('{!}', action(word='test', text='test '), spaces_after,
-     action(text='! ', replace=' ', capitalize=True)),
-
-    ('{-|}', action(word='test', text='test '), spaces_after,
-     action(capitalize=True, word='test', text=' ', replace=' ')),
-
-    ('{>}', action(word='test', text='test '), spaces_after,
-     action(lower=True, word='test', replace=' ', text=' ')),
-
-    ('{<}', action(word='test', text='test '), spaces_after,
-     action(upper=True, word='test')),
-
-    ('{*-|}', action(word='test', text='test '), spaces_after,
-     action(word='Test', text='Test ', replace='test ')),
-
-    ('{*>}', action(word='test', text='test '), spaces_after,
-     action(word='test', text='test ', replace='test ')),
-
-    ('{*<}', action(word='test', text='test '), spaces_after,
-     action(word='TEST', text='TEST ', replace='test ', upper_carry=True)),
-
-    ('{PLOVER:test_command}', action(word='test', text='test '), spaces_after,
-     action(word='test', command='test_command')),
-
-    ('{&glue_text}', action(word='test', text='test '), spaces_after,
-     action(text='glue_text ', word='glue_text', glue=True)),
-
-    ('{&glue_text}', action(word='test', text='test ', glue=True), spaces_after,
-     action(text='glue_text ', word='testglue_text', replace=' ', glue=True)),
-
-    ('{&glue_text}', action(word='test', text='test', attach=True), spaces_after,
-     action(text='glue_text ', word='testglue_text', glue=True)),
-
-    ('{^attach_text}', action(word='test', text='test '), spaces_after,
-     action(text='attach_text ', word='testattach_text', replace=' ')),
-
-    ('{^attach_text^}', action(word='test', text='test '), spaces_after,
-     action(text='attach_text', word='testattach_text', replace=' ', attach=True)),
-
-    ('{attach_text^}', action(word='test', text='test '), spaces_after,
-     action(text='attach_text', word='attach_text', attach=True)),
-
-    ('{#ALT_L(A)}', action(word='test', text='test '), spaces_after,
-     action(combo='ALT_L(A)', word='test')),
-
-    ('text', action(word='test', text='test '), spaces_after,
-     action(text='text ', word='text')),
-
-    ('text', action(word='test', text='test ', glue=True), spaces_after,
-     action(text='text ', word='text')),
-
-    ('text2', action(word='test2', text='test2', attach=True), spaces_after,
-     action(text='text2 ', word='text2', replace='')),
-
-    ('text', action(word='test', text='test ', capitalize=True), spaces_after,
-     action(text='Text ', word='Text')),
-
-    ('some text', action(word='test', text='test '), spaces_after,
-     action(text='some text ', word='text')),
-
-    ('some text',
-     action(word='test',
-            case=action().CASE_TITLE,
-            space_char=''),
-     spaces_after,
-     action(text='SomeText', word='text',
-            case=action().CASE_TITLE,
-            space_char='')),
-
-    ('some text',
-     action(word='test', # This is camel case
-            case=action().CASE_TITLE,
-            space_char='', lower=True),
-     spaces_after,
-     action(text='someText', word='text',
-            case=action().CASE_TITLE,
-            space_char='')),
-
-    ('some text', action(word='test', space_char='_'), spaces_after,
-     action(text='some_text_', word='text', space_char='_')),
-
-    ('some text', action(word='test', case=action().CASE_UPPER), spaces_after,
-     action(text='SOME TEXT ', word='text', case=action().CASE_UPPER)),
-
-    ('sOme TexT', action(word='test', case=action().CASE_LOWER), spaces_after,
-     action(text='some text ', word='TexT', case=action().CASE_LOWER)),
-
-    ('sOme TexT', action(word='test', case=action().CASE_TITLE), spaces_after,
-     action(text='Some Text ', word='TexT', case=action().CASE_TITLE)),
-
-    ('{MODE:CAPS}', action(word='test'), spaces_after,
-     action(word='test', case=action().CASE_UPPER)),
-
-    ('{MODE:LOWER}', action(word='test'), spaces_after,
-     action(word='test', case=action().CASE_LOWER)),
+    ('{MODE:LOWER}', action(text_and_word='test', trailing_space=' '),
+     action(word='test', trailing_space=' ', case=formatting.CASE_LOWER)),
 
 )
 
 @parametrize(ATOM_TO_ACTION_TESTS)
-def test_atom_to_action(atom, last_action, spaces_after, expected):
-    assert formatting._atom_to_action(atom, last_action, spaces_after) == expected
+def test_atom_to_action(atom, last_action, expected):
+    ctx = formatting._Context((), last_action)
+    ctx.translated(last_action)
+    assert formatting._atom_to_action(atom, ctx) == expected
 
 
 CHANGE_MODE_TESTS = (
@@ -890,16 +624,17 @@ CHANGE_MODE_TESTS = (
      action()),
     # CAPS: Uppercase
     ('CAPS', action(),
-     action(case=action().CASE_UPPER)),
+     action(case=formatting.CASE_UPPER)),
     # LOWER: Lowercase
     ('LOWER', action(),
-     action(case=action().CASE_LOWER)),
+     action(case=formatting.CASE_LOWER)),
     # TITLE: Titlecase
     ('TITLE', action(),
-     action(case=action().CASE_TITLE)),
+     action(case=formatting.CASE_TITLE)),
     # CAMEL: Titlecase without space
     ('CAMEL', action(),
-     action(case=action().CASE_TITLE, space_char='', lower=True)),
+     action(case=formatting.CASE_TITLE, space_char='',
+            next_case=formatting.CASE_LOWER_FIRST_CHAR)),
     # SNAKE: Underscore space
     ('SNAKE', action(),
      action(space_char='_')),
@@ -907,7 +642,7 @@ CHANGE_MODE_TESTS = (
     ('RESET_SPACE', action(space_char='ABCD'),
      action()),
     # RESET_CASE: No case
-    ('RESET_CASE', action(case=action().CASE_UPPER),
+    ('RESET_CASE', action(case=formatting.CASE_UPPER),
      action()),
     # SET_SPACE:xy: Set space to xy
     ('SET_SPACE:', action(space_char='test'),
@@ -920,98 +655,99 @@ CHANGE_MODE_TESTS = (
 )
 
 @parametrize(CHANGE_MODE_TESTS)
-def test_change_mode(command, action, expected_action):
-    assert formatting._change_mode(command, action) == expected_action
+def test_meta_mode(meta, last_action, expected):
+    ctx = formatting._Context((), action())
+    ctx.translated(last_action)
+    assert formatting._atom_to_action('{MODE:' + meta + '}', ctx) == expected
 
 
 last_action_normal = action()
-last_action_capitalized = action(capitalize=True)
-last_action_attached = action(attach=True)
+last_action_capitalized = action(next_case=formatting.CASE_CAP_FIRST_WORD)
+last_action_attached = action(next_attach=True)
 
 META_CARRY_CAPITALIZE_TESTS = (
 
     # Test word handling and space handling, standard.
-    ('~|*', last_action_normal, spaces_before,
-     (action(word='*', text=' *'))),
-    ('~|*', last_action_normal, spaces_after,
-     (action(word='*', text='* '))),
+    ('~|*', last_action_normal,
+     (action(word='*', text='*', trailing_space=' '))),
 
     # With attach flags:
-    ('~|*^', last_action_normal, spaces_before,
-     (action(word='*', text=' *', attach=True))),
-    ('~|*^', last_action_normal, spaces_after,
-     (action(word='*', text='*', attach=True))),
-    ('^~|*', last_action_normal, spaces_before,
-     (action(word='*', text='*'))),
-    ('^~|*', last_action_normal, spaces_after,
-     (action(word='*', text='* '))),
-    ('^~|*^', last_action_normal, spaces_before,
-     (action(word='*', text='*', attach=True))),
-    ('^~|*^', last_action_normal, spaces_after,
-     (action(word='*', text='*', attach=True))),
+    ('~|*^', last_action_normal,
+     (action(word='*', text='*', next_attach=True))),
+    ('^~|*', last_action_normal,
+     (action(word='*', text='*', trailing_space=' ', prev_attach=True))),
+    ('^~|*^', last_action_normal,
+     (action(word='*', text='*', prev_attach=True, next_attach=True))),
 
     # Should 'do nothing'.
-    ('~|', last_action_capitalized, spaces_before,
+    ('~|', last_action_capitalized,
      (last_action_capitalized)),
 
-    # Should lose 'attach' flag.
-    ('~|', last_action_attached, spaces_before,
-     (action())),
+    # Should lose 'next_attach' flag.
+    ('~|', last_action_attached,
+     (action(prev_attach=True))),
 
     # Verify capitalize carry.
-    ('^~|^', last_action_capitalized, spaces_before,
-     (action(capitalize=True, attach=True))),
-    ('^~|aset^', last_action_capitalized, spaces_before,
-     (action(capitalize=True, attach=True, word="aset", text="aset"))),
-    ('~|aset', last_action_capitalized, spaces_before,
-     (action(capitalize=True, word="aset", text=" aset"))),
-    ('~|aset', last_action_capitalized, spaces_after,
-     (action(capitalize=True, word="aset", text="aset "))),
+    ('^~|^', last_action_capitalized,
+     (action(next_case=formatting.CASE_CAP_FIRST_WORD, text_and_word='', prev_attach=True, next_attach=True))),
+    ('^~|aset^', last_action_capitalized,
+     (action(next_case=formatting.CASE_CAP_FIRST_WORD, prev_attach=True, next_attach=True, text='Aset', word='aset'))),
+    ('~|aset', last_action_capitalized,
+     (action(next_case=formatting.CASE_CAP_FIRST_WORD, text='Aset', trailing_space=' ', word='aset'))),
 
-    # Verify 'attach' flag overriding.
-    ('~|aset', last_action_attached, spaces_after,
-     (action(word="aset", text="aset "))),
-    ('~|aset^', last_action_attached, spaces_after,
-     (action(word="aset", text="aset", attach=True))),
+    # Verify 'next_attach' flag overriding.
+    ('~|aset', last_action_attached,
+     (action(prev_attach=True, text_and_word='aset', trailing_space=' '))),
+    ('~|aset^', last_action_attached,
+     (action(prev_attach=True, text_and_word='aset', next_attach=True))),
 
 )
 
 @parametrize(META_CARRY_CAPITALIZE_TESTS)
-def test_meta_carry_capitalize(meta, last_action, spaces_after, expected):
-    assert formatting._apply_carry_capitalize(meta, last_action, spaces_after) == expected
+def test_meta_carry_capitalize(meta, last_action, expected):
+    ctx = formatting._Context((), action())
+    ctx.translated(last_action)
+    assert formatting._atom_to_action('{' + meta + '}', ctx) == expected
 
 
-class TestApplyCase(object):
+class TestApplyModeCase(object):
 
     test = ' some test '
     test2 = 'test Me'
     test3 = ' SOME TEST '
 
     TESTS = (
-        # UNDEFINED
-        (test, '', False, test),
-        (test, 'TEST', False, test),
+        # INVALID
+        (test, '', False, ValueError),
+        (test, 'TEST', False, ValueError),
+        # NO-OP
+        (test, None, False, test),
+        (test, None, True, test),
         # TITLE
-        (test, action().CASE_TITLE, False, ' Some Test '),
+        (test, formatting.CASE_TITLE, False, ' Some Test '),
         # TITLE will not affect appended output
-        (test, action().CASE_TITLE, True, ' some test '),
-        (test2, action().CASE_TITLE, True, 'test Me'),
+        (test, formatting.CASE_TITLE, True, ' some test '),
+        (test2, formatting.CASE_TITLE, True, 'test Me'),
         # LOWER
-        (test, action().CASE_LOWER, False, ' some test '),
-        (test3, action().CASE_LOWER, False, ' some test '),
-        (test2, action().CASE_LOWER, True, 'test me'),
+        (test, formatting.CASE_LOWER, False, ' some test '),
+        (test3, formatting.CASE_LOWER, False, ' some test '),
+        (test2, formatting.CASE_LOWER, True, 'test me'),
         # UPPER
-        (test.upper(), action().CASE_UPPER, False, ' SOME TEST '),
-        (test3, action().CASE_UPPER, False, ' SOME TEST '),
-        (test2, action().CASE_UPPER, True, 'TEST ME'),
+        (test.upper(), formatting.CASE_UPPER, False, ' SOME TEST '),
+        (test3, formatting.CASE_UPPER, False, ' SOME TEST '),
+        (test2, formatting.CASE_UPPER, True, 'TEST ME'),
     )
 
     @parametrize(TESTS)
     def test_apply_case(self, input_text, case, appended, expected):
-        assert formatting._apply_case(input_text, case, appended) == expected
+        if inspect.isclass(expected):
+            with pytest.raises(expected):
+                formatting._apply_mode_case(input_text, case, appended)
+        else:
+            assert formatting._apply_mode_case(input_text, case, appended) == expected
 
 
-def TestApplySpaceChar(object):
+def TestApplyModeSpaceChar(object):
 
     test = ' some text '
     test2 = "don't"
@@ -1025,7 +761,7 @@ def TestApplySpaceChar(object):
 
     @parametrize(TESTS)
     def test_apply_space_char(text, space_char, expected):
-        assert formatting._apply_space_char(text, space_char) == expected
+        assert formatting._apply_mode_space_char(text, space_char) == expected
 
 
 @parametrize([('', None), ('{abc}', 'abc'), ('abc', None)])
@@ -1034,8 +770,8 @@ def test_get_meta(atom, meta):
 
 
 @parametrize([('abc', '{&abc}'), ('1', '{&1}')])
-def test_apply_glue(s, expected):
-    assert formatting._apply_glue(s) == expected
+def test_glue_translation(s, expected):
+    assert formatting._glue_translation(s) == expected
 
 
 @parametrize([('', ''), ('abc', 'abc'), (r'\{', '{'),
@@ -1044,14 +780,9 @@ def test_unescape_atom(atom, text):
     assert formatting._unescape_atom(atom) == text
 
 
-@parametrize([('', None), ('{PLOVER:command}', 'command')])
-def test_get_engine_command(atom, command):
-    assert formatting._get_engine_command(atom) == command
-
-
 @parametrize([('', ''), ('abc', 'Abc'), ('ABC', 'ABC')])
-def test_capitalize(s, expected):
-    assert formatting._capitalize(s) == expected
+def test_capitalize_first_word(s, expected):
+    assert formatting._capitalize_first_word(s) == expected
 
 
 @parametrize([('', ''), ('abc', 'abc'), ('a word', 'word'), ('word.', 'word.')])
@@ -1061,7 +792,7 @@ def test_rightmost_word(s, expected):
 
 REPLACE_TESTS = (
 
-    # Check that 'replace' does not unconditionally erase
+    # Check that 'prev_replace' does not unconditionally erase
     # the previous character if it does not match.
     ([
         translation(english='{MODE:SET_SPACE:}'),
@@ -1070,7 +801,7 @@ REPLACE_TESTS = (
 
     ], [('s', 'foobar'), ('c', 'Return')]),
 
-    # Check 'replace' correctly takes into account
+    # Check 'prev_replace' correctly takes into account
     # the previous translation.
     ([
         translation(english='test '),
@@ -1151,3 +882,145 @@ def test_output_optimization(undo, do, expected_instructions):
     formatter.format([], undo, None)
     formatter.format(undo, do, None)
     assert output.instructions == expected_instructions
+
+
+class TestRetroFormatter(object):
+
+    def setup_method(self):
+        self.formatter = formatting.Formatter()
+        self.translations = []
+        self.retro_formatter = formatting.RetroFormatter(self.translations)
+
+    def format(self, text):
+        t = translation(english=text)
+        self.formatter.format([], [t], self.translations)
+        self.translations.append(t)
+        return t
+
+    ITER_LAST_ACTIONS_TESTS = (
+
+        (['Luca', 'mela'],
+         [action(text_and_word='mela', trailing_space=' '),
+          action(text_and_word='Luca', trailing_space=' ')]),
+
+        (['{Luca^}', '{^mela}'],
+         [action(prev_attach=True, text='mela', trailing_space=' ', word='Lucamela'),
+          action(text_and_word='Luca', next_attach=True)]),
+
+        (['Luca', '{^ ^}', 'mela'],
+         [action(text_and_word='mela', trailing_space=' ', prev_attach=True),
+          action(text=' ', word='', prev_attach=True, next_attach=True),
+          action(text_and_word='Luca', trailing_space=' ')]),
+
+        (['Luca', '{-|}', 'mela'],
+         [action(text='Mela', trailing_space=' ', word='mela'),
+          action(word='Luca', trailing_space=' ', next_case=formatting.CASE_CAP_FIRST_WORD),
+          action(text_and_word='Luca', trailing_space=' ')]),
+
+    )
+
+    @parametrize(ITER_LAST_ACTIONS_TESTS)
+    def test_iter_last_actions(self, translation_list, action_list):
+        for t in translation_list:
+            self.format(t)
+        assert list(self.retro_formatter.iter_last_actions()) == action_list
+
+    ITER_LAST_FRAGMENTS_TESTS = (
+
+        (False,
+         ['Luca', 'mela'],
+         ['mela', 'Luca ']),
+
+        (False,
+         ['Luca{^ ^}mela'],
+         ['mela', 'Luca ']),
+
+        (False,
+         ['Luca, mela.'],
+         ['mela.', 'Luca, ']),
+
+        (False,
+         ['Luca{-|}mela'],
+         ['Mela', 'Luca ']),
+
+        (True,
+         ['Luca{-|}mela'],
+         ['Mela', 'Luca ']),
+
+    )
+
+    @parametrize(ITER_LAST_FRAGMENTS_TESTS)
+    def test_iter_last_fragments(self, spaces_after, translation_list, fragment_list):
+        if spaces_after:
+            self.formatter.set_space_placement('After Output')
+        for t in translation_list:
+            self.format(t)
+        assert list(self.retro_formatter.iter_last_fragments()) == fragment_list
+
+    ITER_LAST_WORDS_TESTS = (
+
+        (False,
+         ['Luca', 'mela'],
+         ['mela', 'Luca ']),
+
+        (False,
+         ['Luca{^ ^}mela'],
+         ['mela', 'Luca ']),
+
+        (False,
+         ['Luca, mela.'],
+         ['.', 'mela', ', ', 'Luca']),
+
+        (False,
+         ['Luca{-|}mela'],
+         ['Mela', 'Luca ']),
+
+        (True,
+         ['Luca{-|}mela'],
+         ['Mela', 'Luca ']),
+    )
+
+    @parametrize(ITER_LAST_WORDS_TESTS)
+    def test_iter_last_words(self, spaces_after, translation_list, word_list):
+        if spaces_after:
+            self.formatter.set_space_placement('After Output')
+        for t in translation_list:
+            self.format(t)
+        assert list(self.retro_formatter.iter_last_words()) == word_list
+
+    LAST_TEXT_TESTS = (
+
+        (False,
+         ['Luca{-|}mela'],
+         3,
+         'ela'),
+
+        (False,
+         ['Luca{-|}mela'],
+         5,
+         ' Mela'),
+
+        (False,
+         ['Luca{-|}mela'],
+         12,
+         'Luca Mela'),
+
+        (False,
+         ['Luca{-|}mela'],
+         20,
+         'Luca Mela'),
+
+        (True,
+         ['Luca{-|}mela'],
+         6,
+         'a Mela'),
+
+    )
+
+    @parametrize(LAST_TEXT_TESTS)
+    def test_last_text(self, spaces_after, translation_list, count, text):
+        if spaces_after:
+            self.formatter.set_space_placement('After Output')
+        for t in translation_list:
+            self.format(t)
+        assert self.retro_formatter.last_text(count) == text
