@@ -52,8 +52,8 @@ run rm -rf "$builddir"
 run mkdir -p "$appdir" "$cachedir" "$distdir"
 
 # Download dependencies.
-run "$python" -m plover_build_utils.download 'https://github.com/probonopd/AppImages/raw/6ca06be6d68606a18a90ebec5aebfd74e8a973c5/functions.sh' '3155bde5f40fd4aa08b3a76331936bd5b2e6b781' "$cachedir/functions.sh"
-run "$python" -m plover_build_utils.download 'https://github.com/probonopd/AppImageKit/releases/download/8/appimagetool-x86_64.AppImage' 'e756ecac69f393c72333f8bd9cd3a5f87dc175bf' "$cachedir/appimagetool"
+run "$python" -m plover_build_utils.download 'https://github.com/probonopd/AppImages/raw/f748bb63999e655cfbb70e88ec27e74e2b9bf8fd/functions.sh' 'a99457e22d24a61f42931b2aaafd41f2746af820' "$cachedir/functions.sh"
+run "$python" -m plover_build_utils.download 'https://github.com/probonopd/AppImageKit/releases/download/9/appimagetool-x86_64.AppImage' 'ba71c5a03398b81eaa678207da1338c83189db89' "$cachedir/appimagetool"
 run "$python" -m plover_build_utils.download 'https://www.python.org/ftp/python/3.5.3/Python-3.5.3.tar.xz' '127121fdca11e735b3686e300d66f73aba663e93'
 
 # Generate Plover wheel.
