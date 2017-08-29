@@ -8,8 +8,8 @@ setup()
 {
   # Install Python.
   run mkdir -p "$downloads"
-  installer_url='https://www.python.org/ftp/python/3.5.3/python-3.5.3-macosx10.6.pkg'
-  installer_md5='6f9ee2ad1fceb1a7c66c9ec565e57102'
+  installer_url='https://www.python.org/ftp/python/3.5.4/python-3.5.4-macosx10.6.pkg'
+  installer_md5='96bf5d47777e8352209f743c06bed555'
   installer_pkg="$downloads/python35.pkg"
   for retry in $(seq 3)
   do

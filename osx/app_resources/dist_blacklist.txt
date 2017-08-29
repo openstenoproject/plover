@@ -21,21 +21,12 @@
   **/*CLucene*
   **/*DBus*
   **/*Designer*
-  **/*Help*
   **/*Location*
-  **/*Multimedia*
-  **/*Network*
   **/*Nfc*
-  **/*Position*
-  **/*Qml*
-  **/*Quick*
   **/*Sensors*
   **/*Serial*
   **/*Sql*
   **/*Test*
-  **/*Web*
-  **/*Xml*
-  **/*qtwebengine*
   Qt/plugins/audio
   Qt/plugins/bearer
   Qt/plugins/generic
@@ -66,3 +57,5 @@
   gui_qt/messages/**/*.po
   gui_qt/messages/plover.pot
   gui_qt/resources
+
+# vim: ft=config

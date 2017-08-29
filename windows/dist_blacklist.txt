@@ -2,52 +2,16 @@
   Scripts
 # PyQt5.
 :Lib/site-packages/PyQt5
-  **/*AxContainer*
-  **/*Bluetooth*
-  **/*CLucene*
-  **/*DBus*
   **/*Designer*
   **/*Help*
-  **/*Location*
-  **/*Multimedia*
-  **/*Network*
-  **/*Nfc*
-  **/*OpenGL*
-  **/*Position*
-  **/*Print*
-  **/*Qml*
-  **/*Quick*
-  **/*Sensors*
-  **/*Serial*
-  **/*Sql*
   **/*Test*
-  **/*Web*
-  **/*WinExtras*
-  **/*Xml*
-  **/*qtwebengine*
   Qt/bin/libeay32.dll
   Qt/bin/ssleay32.dll
-  Qt/plugins/audio
-  Qt/plugins/bearer
-  Qt/plugins/generic
-  Qt/plugins/geoservices
-  Qt/plugins/mediaservice
-  Qt/plugins/playlistformats
-  Qt/plugins/position
-  Qt/plugins/printsupport
+  Qt/plugins/platforms/qminimal.dll
   Qt/plugins/sceneparsers
-  Qt/plugins/sensor*
-  Qt/plugins/sqldrivers
   Qt/qml
-  Qt/resources
+  Qt/resources/qtwebengine_devtools_resources.pak
   Qt/translations/qt_help_*
-  Qt/translations/qtconnectivity_*
-  Qt/translations/qtdeclarative_*
-  Qt/translations/qtlocation_*
-  Qt/translations/qtmultimedia_*
-  Qt/translations/qtquick*
-  Qt/translations/qtserialport_*
-  Qt/translations/qtwebsockets_*
   pylupdate*
   pyrcc*
   uic
@@ -58,3 +22,5 @@
   gui_qt/messages/**/*.po
   gui_qt/messages/plover.pot
   gui_qt/resources
+
+# vim: ft=config

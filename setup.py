@@ -123,8 +123,8 @@ class BinaryDistWin(Command):
         # Setup embedded Python distribution.
         # Note: python35.zip is decompressed to prevent errors when 2to3
         # is used (including indirectly by setuptools `build_py` command).
-        py_embedded = download('https://www.python.org/ftp/python/3.5.2/python-3.5.2-embed-win32.zip',
-                               'a62675cd88736688bb87999e8b86d13ef2656312')
+        py_embedded = download('https://www.python.org/ftp/python/3.5.4/python-3.5.4-embed-win32.zip',
+                               '0760db3f93f02a2dacb38e80134b49e16266b84f')
         dist_dir = os.path.join(wheel_cmd.dist_dir, PACKAGE + '-win32')
         data_dir = os.path.join(dist_dir, 'data')
         stdlib = os.path.join(data_dir, 'python35.zip')
@@ -182,7 +182,7 @@ class BinaryDistWin(Command):
             data_dir, '*/pip/_vendor/distlib/*',
         )
         # Check requirements.
-        run(dist_py, '-m', 'plover_build_utils.check_requirements')
+        run(dist_py, '-I', '-m', 'plover_build_utils.check_requirements')
         # Zip results.
         if self.zipdir:
             from plover_build_utils.zipdir import zipdir

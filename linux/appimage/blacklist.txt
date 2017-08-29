@@ -52,56 +52,20 @@
   pyrcc5
   pyuic5
 :usr/lib/python3.5/site-packages/PyQt5
-  **/*Bluetooth*
-  **/*CLucene*
   **/*Designer*
   **/*Help*
-  **/*Location*
-  **/*Multimedia*
-  **/*Network*
-  **/*Nfc*
-  **/*OpenGL*
-  **/*Position*
-  **/*Print*
-  **/*Qml*
-  **/*Quick*
-  **/*Sensors*
-  **/*Serial*
-  **/*Sql*
   **/*Test*
-  **/*Web*
-  **/*Xml*
-  **/*qtwebengine*
   Qt/plugins/PyQt5/libpyqt5qmlplugin.so
-  Qt/plugins/audio
-  Qt/plugins/bearer
   Qt/plugins/egldeviceintegrations
-  Qt/plugins/gamepads
-  Qt/plugins/generic
-  Qt/plugins/geoservices
-  Qt/plugins/mediaservice
   Qt/plugins/platforms/libqeglfs.so
   Qt/plugins/platforms/libqlinuxfb.so
   Qt/plugins/platforms/libqminimal.so
   Qt/plugins/platforms/libqminimalegl.so
-  Qt/plugins/platforms/libqoffscreen.so
   Qt/plugins/platforms/libqvnc.so
-  Qt/plugins/playlistformats
-  Qt/plugins/position
-  Qt/plugins/printsupport
   Qt/plugins/sceneparsers
-  Qt/plugins/sensor*
-  Qt/plugins/sqldrivers
   Qt/qml
-  Qt/resources
+  Qt/resources/qtwebengine_devtools_resources.pak
   Qt/translations/qt_help_*
-  Qt/translations/qtconnectivity_*
-  Qt/translations/qtdeclarative_*
-  Qt/translations/qtlocation_*
-  Qt/translations/qtmultimedia_*
-  Qt/translations/qtquick*
-  Qt/translations/qtserialport_*
-  Qt/translations/qtwebsockets_*
   pylupdate*
   pyrcc*
   uic
