@@ -307,11 +307,18 @@ class _Action(object):
         return not self == other
 
     def __str__(self):
-        return 'Action(%s)' % ', '.join('%s=%r' % (k, v) for k, v
-                                        in sorted(self.__dict__.items()))
+        kwargs = [
+            '%s=%r' % (k, v)
+            for k, v in self.__dict__.items()
+            if v != self.DEFAULT.__dict__[k]
+        ]
+        return 'Action(%s)' % ', '.join(sorted(kwargs))
 
     def __repr__(self):
         return str(self)
+
+_Action.DEFAULT = _Action()
+
 
 META_ESCAPE = '\\'
 RE_META_ESCAPE = '\\\\'

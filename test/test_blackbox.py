@@ -1,21 +1,27 @@
+# -*- coding: utf-8 -*-
 
 import ast
 import functools
-import unittest
+import operator
+import re
+import textwrap
+
+from six import text_type
+
+import pytest
 
 from plover import system
-from plover.steno import Stroke
 from plover.formatting import Formatter
-from plover.translation import Translator
-from plover.steno import normalize_steno
+from plover.steno import Stroke, normalize_steno
 from plover.steno_dictionary import StenoDictionary
+from plover.translation import Translator
 
 
 class CaptureOutput(object):
 
     def __init__(self):
         self.instructions = []
-        self.text = u''
+        self.text = ''
 
     def send_backspaces(self, n):
         assert n <= len(self.text)
@@ -69,31 +75,60 @@ def steno_to_stroke(steno):
 steno_to_stroke.system = None
 
 
-def simple_replay(f):
-    @functools.wraps(f)
-    def wrapper(self):
-        f(self)
-        definitions, strokes, output = f.__doc__.strip().split('\n\n')
-        for steno, translation in ast.literal_eval(
-            '{' + definitions + '}'
-        ).items():
-            self.dictionary.set(normalize_steno(steno), translation)
+def replay(blackbox, name, test):
+    # Hide from traceback on assertions (reduce output size for failed tests).
+    __tracebackhide__ = operator.methodcaller('errisinstance', AssertionError)
+    definitions, instructions = test.strip().rsplit('\n\n', 1)
+    for steno, translation in ast.literal_eval(
+        '{' + definitions + '}'
+    ).items():
+        blackbox.dictionary.set(normalize_steno(steno), translation)
+    # Track line number for a more user-friendly assertion message.
+    lines = test.split('\n')
+    lnum = len(lines)-3 - test.rstrip().rsplit('\n\n', 1)[1].count('\n')
+    for step in re.split('(?<=[^\\\\])\n', instructions):
+        # Mark current instruction's line.
+        lnum += 1
+        msg = name + '\n' + '\n'.join(('> ' if n == lnum else '  ') + l
+                                      for n, l in enumerate(lines))
+        step = step.strip()
+        # Support for changing some settings on the fly.
+        if step.startswith(':'):
+            action = step[1:]
+            if action == 'start_attached':
+                blackbox.formatter.start_attached = True
+            elif action == 'spaces_after':
+                blackbox.formatter.set_space_placement('After Output')
+            elif action == 'spaces_before':
+                blackbox.formatter.set_space_placement('Before Output')
+            else:
+                raise ValueError('invalid action:\n%s' % msg)
+            continue
+        # Replay strokes.
+        strokes, output = step.split(None, 1)
         for s in normalize_steno(strokes.strip()):
-            self.translator.translate(steno_to_stroke(s))
-        self.assertEqual(self.output.text, ast.literal_eval(output.strip()), msg=f.__doc__)
-    return wrapper
+            blackbox.translator.translate(steno_to_stroke(s))
+        # Check output.
+        expected_output = ast.literal_eval(output.strip())
+        assert blackbox.output.text == expected_output, msg
 
-def spaces_after(f):
-    @functools.wraps(f)
-    def wrapper(self):
-        self.formatter.set_space_placement('After Output')
-        f(self)
-    return wrapper
+def replay_doc(f):
+    name = f.__name__
+    test = textwrap.dedent(f.__doc__)
+    # Use a lamdbda to reduce output size for failed tests.
+    new_f = lambda bb: (f(bb), replay(bb, name, test))
+    return functools.wraps(f)(new_f)
 
 
-class BlackboxTest(unittest.TestCase):
+class TestBlackboxReplays(object):
 
-    def setUp(self):
+    @classmethod
+    def setup_class(cls):
+        for name in dir(cls):
+            if name.startswith('test_'):
+                setattr(cls, name, replay_doc(getattr(cls, name)))
+
+    def setup_method(self):
         self.output = CaptureOutput()
         self.formatter = Formatter()
         self.formatter.set_output(self.output)
@@ -103,90 +138,75 @@ class BlackboxTest(unittest.TestCase):
         self.dictionary = self.translator.get_dictionary()
         self.dictionary.set_dicts([StenoDictionary()])
 
-    @simple_replay
     def test_translator_state_handling(self):
+        r'''
         # Check if the translator curtailing the list of last translations
         # according to its dictionary longest key does no affect things
         # like the restrospective repeate-last-stroke command.
-        r'''
+
         "TEFT": "test",
         "R*S": "{*+}",
 
-        TEFT/R*S
-
-        " test test"
+        TEFT/R*S  " test test"
         '''
 
-    @simple_replay
     def test_force_lowercase_title(self):
         r'''
         "T-LT": "{MODE:TITLE}",
         "TEFT": "{>}test",
 
-        T-LT/TEFT
-
-        " test"
+        T-LT/TEFT  " test"
         '''
 
-    @simple_replay
     def test_bug471(self):
+        r'''
         # Repeat-last-stroke after typing two numbers outputs the numbers
         # reversed for some combos.
-        r'''
+
         "R*S": "{*+}",
 
-        12/R*S
-
-        " 1212"
+        12/R*S  " 1212"
         '''
 
-    @simple_replay
     def test_bug535(self):
+        r'''
         # Currency formatting a number with a decimal fails by not erasing
         # the previous output.
-        r'''
+
         "P-P": "{^.^}",
         "KR*UR": "{*($c)}",
 
-        1/P-P/2/KR*UR
-
-        " $1.20"
+        1/P-P/2/KR*UR  " $1.20"
         '''
 
-    @simple_replay
-    @spaces_after
     def test_bug606(self):
         r'''
         "KWEGS": "question",
         "-S": "{^s}",
         "TP-PL": "{.}",
 
-        KWEGS/-S/TP-PL
-
-        "questions. "
+        :spaces_after
+        KWEGS/-S/TP-PL  "questions. "
         '''
 
-    @simple_replay
-    @spaces_after
     def test_bug535_spaces_after(self):
+        r'''
         # Currency formatting a number with a decimal fails by not erasing
         # the previous output.
-        r'''
+
         "P-P": "{^.^}",
         "KR*UR": "{*($c)}",
 
-        1/P-P/2/KR*UR
-
-        "$1.20 "
+        :spaces_after
+        1/P-P/2/KR*UR  "$1.20 "
         '''
 
-    @simple_replay
-    @spaces_after
     def test_bug557(self):
+        r'''
         # Using the asterisk key to delete letters in fingerspelled words
         # occasionally causes problems when the space placement is set to
         # "After Output".
-        r'''
+
         "EU": "I",
         "HRAOEUBG": "like",
         "T*": "{>}{&t}",
@@ -195,18 +215,16 @@ class BlackboxTest(unittest.TestCase):
         "O*": "{>}{&o}",
         "S*": "{>}{&s}",
 
-        EU/HRAOEUBG/T*/A*/KR*/O*/S*/*/*/*
-
-        "I like ta "
+        :spaces_after
+        EU/HRAOEUBG/T*/A*/KR*/O*/S*/*/*/*  "I like ta "
         '''
 
-    @simple_replay
-    @spaces_after
     def test_bug557_resumed(self):
+        r'''
         # Using the asterisk key to delete letters in fingerspelled words
         # occasionally causes problems when the space placement is set to
         # "After Output".
-        r'''
+
         "EU": "I",
         "HRAOEUBG": "like",
         "T*": "{>}{&t}",
@@ -215,18 +233,16 @@ class BlackboxTest(unittest.TestCase):
         "O*": "{>}{&o}",
         "S*": "{>}{&s}",
 
-        EU/HRAOEUBG/T*/A*/KR*/O*/S*/*/*/*/*/*/HRAOEUBG
-
-        "I like like "
+        :spaces_after
+        EU/HRAOEUBG/T*/A*/KR*/O*/S*/*/*/*/*/*/HRAOEUBG  "I like like "
         '''
 
-    @simple_replay
-    @spaces_after
     def test_bug557_capitalized(self):
+        r'''
         # Using the asterisk key to delete letters in fingerspelled words
         # occasionally causes problems when the space placement is set to
         # "After Output".
-        r'''
+
         "EU": "I",
         "HRAOEUBG": "like",
         "T*": "{-|}{&t}",
@@ -235,17 +251,11 @@ class BlackboxTest(unittest.TestCase):
         "O*": "{-|}{&o}",
         "S*": "{-|}{&s}",
 
-        EU/HRAOEUBG/T*/A*/KR*/O*/S*/*/*/*
-
-        "I like TA "
+        :spaces_after
+        EU/HRAOEUBG/T*/A*/KR*/O*/S*/*/*/*  "I like TA "
         '''
 
-    @simple_replay
-    @spaces_after
     def test_capitalized_fingerspelling_spaces_after(self):
-        # Using the asterisk key to delete letters in fingerspelled words
-        # occasionally causes problems when the space placement is set to
-        # "After Output".
         r'''
         "HRAOEUBG": "like",
         "T*": "{&T}",
@@ -254,23 +264,18 @@ class BlackboxTest(unittest.TestCase):
         "O*": "{&O}",
         "S*": "{&S}",
 
-        HRAOEUBG/T*/A*/KR*/O*/S*
-
-        "like TACOS "
+        :spaces_after
+        HRAOEUBG/T*/A*/KR*/O*/S*  "like TACOS "
         '''
 
-    @simple_replay
     def test_special_characters(self):
         r'''
         "R-R": "{^}\n{^}",
         "TAB": "\t",
 
-        R-R/TAB
-
-        "\n\t"
+        R-R/TAB  "\n\t"
         '''
 
-    @simple_replay
     def test_automatic_suffix_keys_1(self):
         r'''
         "RAEUS": "race",
@@ -278,33 +283,46 @@ class BlackboxTest(unittest.TestCase):
         "-S": "{^s}",
         "-Z": "{^s}",
 
-        RAEUSZ
-
-        " races"
+        RAEUSZ  " races"
         '''
 
-    @simple_replay
-    @spaces_after
     def test_bug719(self):
-        # Glue (&) does not work with "Spaces After".
         r'''
+        # Glue (&) does not work with "Spaces After".
+
         "P*": "{&P}"
 
-        P*/P*/P*/P*/P*/P*
-
-        'PPPPPP '
+        :spaces_after
+        P*/P*/P*/P*/P*/P*  'PPPPPP '
         '''
 
-    @unittest.expectedFailure
-    @simple_replay
+    @pytest.mark.xfail
     def test_bug741(self):
-        # Uppercase last word also uppercases next word's prefix.
         r'''
+        # Uppercase last word also uppercases next word's prefix.
+
         "KPA*TS": "{*<}",
         "TPAO": "foo",
         "KAUPB": "{con^}",
 
-        TPAO/KPA*TS/KAUPB/TPAO
+        TPAO/KPA*TS/KAUPB/TPAO  " FOO confoo"
+        '''
 
-        " FOO confoo"
+    @pytest.mark.xfail
+    def test_carry_capitalization_spacing1(self):
+        r'''
+        'S-P': '{^ ^}',
+        'R-R': '{^~|\n^}',
+
+        S-P/R-R  ' \n'
+        '''
+
+    @pytest.mark.xfail
+    def test_carry_capitalization_spacing2(self):
+        r'''
+        'S-P': '{^ ^}',
+        'R-R': '{^~|\n^}',
+
+        :spaces_after
+        S-P/R-R  ' \n'
         '''
