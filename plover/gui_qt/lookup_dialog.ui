@@ -44,7 +44,7 @@
     </widget>
    </item>
    <item row="1" column="0">
-    <widget class="QWidget" name="suggestions" native="true">
+    <widget class="SuggestionsWidget" name="suggestions" native="true">
      <property name="sizePolicy">
       <sizepolicy hsizetype="MinimumExpanding" vsizetype="MinimumExpanding">
        <horstretch>0</horstretch>
@@ -55,6 +55,14 @@
    </item>
   </layout>
  </widget>
+ <customwidgets>
+  <customwidget>
+   <class>SuggestionsWidget</class>
+   <extends>QWidget</extends>
+   <header>plover.gui_qt.suggestions_widget</header>
+   <container>1</container>
+  </customwidget>
+ </customwidgets>
  <resources/>
  <connections>
   <connection>

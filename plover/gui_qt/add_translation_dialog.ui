@@ -24,7 +24,7 @@
   </property>
   <layout class="QVBoxLayout" name="verticalLayout">
    <item>
-    <widget class="QWidget" name="add_translation" native="true"/>
+    <widget class="AddTranslationWidget" name="add_translation" native="true"/>
    </item>
    <item>
     <widget class="QDialogButtonBox" name="buttonBox">
@@ -38,6 +38,14 @@
    </item>
   </layout>
  </widget>
+ <customwidgets>
+  <customwidget>
+   <class>AddTranslationWidget</class>
+   <extends>QWidget</extends>
+   <header>plover.gui_qt.add_translation_widget</header>
+   <container>1</container>
+  </customwidget>
+ </customwidgets>
  <resources/>
  <connections>
   <connection>

@@ -15,7 +15,6 @@ from PyQt5.QtWidgets import (
 from plover.suggestions import Suggestion
 
 from plover.gui_qt.suggestions_dialog_ui import Ui_SuggestionsDialog
-from plover.gui_qt.suggestions_widget import SuggestionsWidget
 from plover.gui_qt.i18n import get_gettext
 from plover.gui_qt.utils import ToolBar
 from plover.gui_qt.tool import Tool
@@ -46,9 +45,6 @@ class SuggestionsDialog(Tool, Ui_SuggestionsDialog):
     def __init__(self, engine):
         super(SuggestionsDialog, self).__init__(engine)
         self.setupUi(self)
-        suggestions = SuggestionsWidget()
-        self.layout().replaceWidget(self.suggestions, suggestions)
-        self.suggestions = suggestions
         self._words = u''
         self._last_suggestions = None
         # Toolbar.

@@ -10,6 +10,7 @@ from PyQt5.QtCore import (
 )
 from PyQt5.QtGui import QIcon
 from PyQt5.QtWidgets import (
+    QApplication,
     QFileDialog,
     QTableWidgetItem,
     QWidget,
@@ -32,9 +33,10 @@ class DictionariesWidget(QWidget, Ui_DictionariesWidget):
 
     add_translation = pyqtSignal(QVariant)
 
-    def __init__(self, engine):
-        super(DictionariesWidget, self).__init__()
+    def __init__(self, *args, **kwargs):
+        super(DictionariesWidget, self).__init__(*args, **kwargs)
         self.setupUi(self)
+        engine = QApplication.instance().engine
         self._engine = engine
         self._states = []
         self._updating = False

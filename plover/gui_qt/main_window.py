@@ -17,7 +17,6 @@ from plover.resource import resource_filename
 from plover.gui_qt.log_qt import NotificationHandler
 from plover.gui_qt.main_window_ui import Ui_MainWindow
 from plover.gui_qt.config_window import ConfigWindow
-from plover.gui_qt.dictionaries_widget import DictionariesWidget
 from plover.gui_qt.about_dialog import AboutDialog
 from plover.gui_qt.trayicon import TrayIcon
 from plover.gui_qt.utils import WindowState, find_menu_actions
@@ -40,9 +39,8 @@ class MainWindow(QMainWindow, Ui_MainWindow, WindowState):
         }
         all_actions = find_menu_actions(self.menubar)
         # Dictionaries.
-        self.dictionaries = DictionariesWidget(engine)
+        self.dictionaries = self.scroll_area.widget()
         self.dictionaries.add_translation.connect(self._add_translation)
-        self.scroll_area.setWidget(self.dictionaries)
         self.dictionaries.setFocus()
         edit_menu = all_actions['menu_Edit'].menu()
         edit_menu.addAction(self.dictionaries.action_Undo)
