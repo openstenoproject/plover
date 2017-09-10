@@ -100,7 +100,7 @@
       <property name="widgetResizable">
        <bool>true</bool>
       </property>
-      <widget class="QWidget" name="dictionaries">
+      <widget class="DictionariesWidget" name="dictionaries">
        <property name="geometry">
         <rect>
          <x>0</x>
@@ -282,6 +282,21 @@
    </property>
   </action>
  </widget>
+ <customwidgets>
+  <customwidget>
+   <class>DictionariesWidget</class>
+   <extends>QWidget</extends>
+   <header>plover.gui_qt.dictionaries_widget</header>
+   <container>1</container>
+  </customwidget>
+ </customwidgets>
+ <tabstops>
+  <tabstop>scroll_area</tabstop>
+  <tabstop>machine_type</tabstop>
+  <tabstop>reconnect</tabstop>
+  <tabstop>output_enable</tabstop>
+  <tabstop>output_disable</tabstop>
+ </tabstops>
  <resources>
   <include location="resources/resources.qrc"/>
  </resources>

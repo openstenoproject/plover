@@ -48,7 +48,7 @@ class Application(object):
 
         QApplication.setQuitOnLastWindowClosed(False)
 
-        self._engine = Engine(config, KeyboardEmulation())
+        self._app.engine = self._engine = Engine(config, KeyboardEmulation())
 
         signal.signal(signal.SIGINT, lambda signum, stack: self._engine.quit())
 

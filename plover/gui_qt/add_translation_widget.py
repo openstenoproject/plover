@@ -2,7 +2,7 @@
 from collections import namedtuple
 
 from PyQt5.QtCore import QEvent
-from PyQt5.QtWidgets import QWidget
+from PyQt5.QtWidgets import QApplication, QWidget
 
 from plover.misc import shorten_path
 from plover.steno import normalize_steno
@@ -21,13 +21,14 @@ class AddTranslationWidget(QWidget, Ui_AddTranslationWidget):
 
     EngineState = namedtuple('EngineState', 'dictionary_filter translator starting_stroke')
 
-    def __init__(self, engine, dictionary_path=None):
-        super(AddTranslationWidget, self).__init__()
+    def __init__(self, *args, **kwargs):
+        super(AddTranslationWidget, self).__init__(*args, **kwargs)
         self.setupUi(self)
+        engine = QApplication.instance().engine
         self._engine = engine
         self._dictionaries = []
         self._reverse_order = False
-        self._selected_dictionary = dictionary_path
+        self._selected_dictionary = None
         engine.signal_connect('config_changed', self.on_config_changed)
         self.on_config_changed(engine.config)
         engine.signal_connect('dictionaries_loaded', self.on_dictionaries_loaded)
@@ -71,6 +72,10 @@ class AddTranslationWidget(QWidget, Ui_AddTranslationWidget):
                                                         StartingStrokeState(True, False))
         self._engine_state = self._original_state
         self._focus = None
+
+    def select_dictionary(self, dictionary_path):
+        self._selected_dictionary = dictionary_path
+        self._update_items()
 
     def eventFilter(self, watched, event):
         if event.type() == QEvent.FocusIn:

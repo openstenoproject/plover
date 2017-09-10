@@ -23,7 +23,7 @@
   </property>
   <layout class="QVBoxLayout" name="verticalLayout">
    <item>
-    <widget class="QWidget" name="suggestions" native="true"/>
+    <widget class="SuggestionsWidget" name="suggestions" native="true"/>
    </item>
   </layout>
   <action name="action_Clear">
@@ -72,6 +72,14 @@
    </property>
   </action>
  </widget>
+ <customwidgets>
+  <customwidget>
+   <class>SuggestionsWidget</class>
+   <extends>QWidget</extends>
+   <header>plover.gui_qt.suggestions_widget</header>
+   <container>1</container>
+  </customwidget>
+ </customwidgets>
  <resources>
   <include location="resources/resources.qrc"/>
  </resources>
