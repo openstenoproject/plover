@@ -17,6 +17,7 @@ from PyQt5.QtWidgets import (
     QLabel,
     QScrollArea,
     QSpinBox,
+    QStyledItemDelegate,
     QTableWidget,
     QTableWidgetItem,
     QWidget,
@@ -229,12 +230,26 @@ class KeymapOption(QTableWidget):
 
     valueChanged = pyqtSignal(QVariant)
 
+    class ItemDelegate(QStyledItemDelegate):
+
+        def __init__(self, action_list):
+            super(KeymapOption.ItemDelegate, self).__init__()
+            self._action_list = action_list
+
+        def createEditor(self, parent, option, index):
+            if index.column() == 1:
+                combo = QComboBox(parent)
+                combo.addItem('')
+                combo.addItems(self._action_list)
+                return combo
+            return super(KeymapOption.ItemDelegate, self).createEditor(parent, option, index)
+
     def __init__(self):
         super(KeymapOption, self).__init__()
         self._value = []
         self._updating = False
         self.setColumnCount(2)
-        self.setHorizontalHeaderLabels((_('Action'), _('Keys')))
+        self.setHorizontalHeaderLabels((_('Key'), _('Action')))
         self.horizontalHeader().setStretchLastSection(True)
         self.verticalHeader().hide()
         self.setVerticalScrollBarPolicy(Qt.ScrollBarAlwaysOff)
@@ -246,31 +261,33 @@ class KeymapOption(QTableWidget):
         self.setRowCount(0)
         if value is not None:
             row = -1
-            for action, keys in value.get_mappings().items():
-                if not isinstance(keys, (tuple, list)):
-                    keys = (keys,)
+            for key in value.get_keys():
+                action = value.get_action(key)
+                if action is None:
+                    action = ''
                 row += 1
                 self.insertRow(row)
-                item = QTableWidgetItem(action)
+                item = QTableWidgetItem(key)
                 item.setFlags(item.flags() & ~Qt.ItemIsEditable)
                 self.setItem(row, 0, item)
-                item = QTableWidgetItem(' '.join(sorted(keys)))
+                item = QTableWidgetItem(action)
                 self.setItem(row, 1, item)
         self.resizeColumnsToContents()
         self.setMinimumSize(self.viewportSizeHint())
+        self.setItemDelegate(KeymapOption.ItemDelegate(value.get_actions()))
         self._updating = False
 
     def _on_cell_changed(self, row, column):
         if self._updating:
             return
-        action = self.item(row, 0).data(Qt.DisplayRole)
-        keys = self.item(row, 1).data(Qt.DisplayRole)
-        self._value[action] = keys.split()
-        new_keys = self._value[action]
-        if new_keys != keys:
-            self._updating = True
-            self.item(row, 1).setData(Qt.DisplayRole, ' '.join(sorted(new_keys)))
-            self._updating = False
+        key = self.item(row, 0).data(Qt.DisplayRole)
+        action = self.item(row, 1).data(Qt.DisplayRole)
+        bindings = self._value.get_bindings()
+        if action:
+            bindings[key] = action
+        else:
+            bindings.pop(key, None)
+        self._value.set_bindings(bindings)
         self.valueChanged.emit(self._value)
 
 
