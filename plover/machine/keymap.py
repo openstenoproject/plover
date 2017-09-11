@@ -21,6 +21,12 @@ class Keymap(object):
         # key -> action
         self._bindings = {}
 
+    def get_keys(self):
+        return self._keys.keys()
+
+    def get_actions(self):
+        return self._actions.keys()
+
     def set_bindings(self, bindings):
         # Set from:
         # { key1: action1, key2: action1, ... keyn: actionn }
