@@ -1,7 +1,7 @@
 # plover-plugins-manager
 docutils==0.13.1
 pip==9.0.1
-plover-plugins-manager==0.5.4
+plover-plugins-manager==0.5.7
 Pygments==2.2.0
 wheel==0.29.0
 # plover-treal
