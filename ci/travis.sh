@@ -62,7 +62,7 @@ setup()
   fi
   run sudo apt-get install -qq "${builddeps[@]}"
   # Setup development environment.
-  bootstrap_dev
+  bootstrap_dev --user
 }
 
 build()
@@ -90,8 +90,8 @@ build()
   then
     # Otherwise, install plugins, and check requirements.
     run "$python" setup.py bdist_wheel
-    wheels_install --ignore-installed --no-deps dist/*.whl
-    wheels_install -r requirements_plugins.txt
+    wheels_install --user --ignore-installed --no-deps dist/*.whl
+    wheels_install --user -r requirements_plugins.txt
     run "$python" -m plover_build_utils.check_requirements
   fi
 }
