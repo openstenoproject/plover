@@ -2,7 +2,7 @@
 
 ## Environment setup
 
-You need Python 3.5 (32 bits) installed with pip support.
+You need Python 3.6 (32 bits) installed with pip support.
 
 For installing all the required dependencies, you can use:
 

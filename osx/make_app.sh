@@ -21,7 +21,7 @@ plover_version="$("$python" -c "from plover import __version__; print(__version_
 # Find system Python
 python3_bin_dir="$(python3 -c 'import os, sys; print(os.path.dirname(os.path.realpath(sys.executable)))')"
 python3_dir="$(dirname "$python3_bin_dir")"
-py_version="$(basename "$python3_dir")" # e.g. 3.5
+py_version="$(basename "$python3_dir")" # e.g. 3.6
 echo "System python3 is found at: $python3_dir"
 
 # App to build
@@ -31,7 +31,7 @@ app_dist_dir="$plover_dir/dist/Plover.app"
 rm -rf "$app_dir"
 rm -rf "$app_dist_dir"
 
-# E.g. python3.5 (name of python executable)
+# E.g. python3.6 (name of python executable)
 target_python="python${py_version}"
 # Main library folder in App
 target_dir="$app_dir/Contents/Frameworks"

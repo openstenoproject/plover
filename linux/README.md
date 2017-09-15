@@ -2,7 +2,7 @@
 
 ## Environment setup
 
-You need Python 3.5 installed with pip support.
+You need Python 3.6 installed with pip support.
 
 Some of the dependencies cannot be installed with pip:
 

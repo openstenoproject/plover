@@ -6,7 +6,7 @@ set -e
 
 is_deployment()
 {
-  if [ -n "$TRAVIS_TAG" ] && [ "$TRAVIS_PYTHON_VERSION" == '3.5' ]
+  if [ -n "$TRAVIS_TAG" ]
   then
     return 0
   else
@@ -86,8 +86,7 @@ build()
     # Build AppImage.
     run ./linux/appimage/build.sh -c -j 2 -w dist/*.whl
     run rm -rf .cache/pip
-  elif [ "$TRAVIS_PYTHON_VERSION" == '3.5' ]
-  then
+  else
     # Otherwise, install plugins, and check requirements.
     run "$python" setup.py bdist_wheel
     wheels_install --user --ignore-installed --no-deps dist/*.whl
