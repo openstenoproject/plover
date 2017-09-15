@@ -13,7 +13,6 @@ depends=(
   'python-pyqt5'
   'python-pyserial'
   'python-setuptools'
-  'python-six'
   'python-xlib'
 )
 makedepends=(

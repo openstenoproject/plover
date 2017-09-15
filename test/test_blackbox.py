@@ -6,8 +6,6 @@ import operator
 import re
 import textwrap
 
-from six import text_type
-
 import pytest
 
 from plover import system
