@@ -1,5 +1,4 @@
 Babel==2.4.0
-certifi==2017.4.17; "darwin" in sys_platform
 check-manifest==0.35
 Cython==0.25.2
 docutils==0.14
