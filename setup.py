@@ -42,25 +42,6 @@ cmdclass = {
 }
 options = {}
 
-# Platform specific requirements.
-# Note: `extras_require` cannot be moved to setup.cfg, because `:` is not
-# allowed in key names and environment markers are not properly supported
-# (for the same reason `install_requires` cannot be used).
-extras_require = {
-    ':"win32" in sys_platform': [
-        'plyer==1.2.4', # For notifications.
-    ],
-    ':"linux" in sys_platform': [
-        'python-xlib>=0.16',
-    ],
-    ':"darwin" in sys_platform': [
-        'appnope>=0.1.0',
-        'pyobjc-core==3.1.1+plover2',
-        'pyobjc-framework-Cocoa==3.1.1+plover2',
-        'pyobjc-framework-Quartz==3.1.1',
-    ],
-}
-
 PACKAGE = '%s-%s' % (
     __software_name__,
     __version__,
@@ -377,7 +358,6 @@ setup(
     license=__license__,
     options=options,
     cmdclass=cmdclass,
-    extras_require=extras_require,
 )
 
 # vim: foldmethod=marker
