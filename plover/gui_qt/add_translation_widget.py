@@ -6,7 +6,7 @@ from PyQt5.QtCore import QEvent
 from PyQt5.QtWidgets import QApplication, QWidget
 
 from plover.misc import shorten_path
-from plover.steno import normalize_steno
+from plover.steno import normalize_steno, sort_steno_strokes
 from plover.engine import StartingStrokeState
 from plover.translation import escape_translation, unescape_translation
 
@@ -207,9 +207,8 @@ class AddTranslationWidget(QWidget, Ui_AddTranslationWidget):
 
     def _format_label(self, fmt, strokes, translation):
         if strokes:
-            strokes = ', '.join(self._special_fmt %
-                                html_escape('/'.join(s))
-                                for s in strokes)
+            strokes = ', '.join(self._special_fmt % html_escape('/'.join(s))
+                                for s in sort_steno_strokes(strokes))
         if translation:
             translation = self._special_fmt % html_escape(translation)
         return fmt.format(strokes=strokes, translation=translation)
