@@ -5,7 +5,7 @@
 __requires__ = '''
 Babel
 PyQt5>=5.8.2
-setuptools>=30.3.0
+setuptools>=36.2.7
 '''
 
 from distutils import log
