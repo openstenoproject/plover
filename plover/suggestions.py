@@ -1,5 +1,8 @@
 import collections
 
+from plover.steno import sort_steno_strokes
+
+
 Suggestion = collections.namedtuple('Suggestion', 'text steno_list')
 
 
@@ -42,11 +45,7 @@ class Suggestions(object):
                 strokes_list = self.dictionary.reverse_lookup(modded_translation)
                 if not strokes_list:
                     continue
-                # Return suggestions, sorted by fewest strokes, then fewest keys
-                strokes_list = sorted(
-                    strokes_list,
-                    key=lambda x: (len(x), sum(map(len, x)))
-                )
+                strokes_list = sort_steno_strokes(strokes_list)
                 suggestion = Suggestion(modded_translation, strokes_list)
                 suggestions.append(suggestion)
 
