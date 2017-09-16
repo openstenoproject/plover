@@ -3,23 +3,13 @@ appnope==0.1.0; "darwin" in sys_platform
 certifi==2017.7.27.1
 dbus-python==1.2.4; "linux" in sys_platform
 plyer==1.2.4; "win32" in sys_platform
-pyobjc-core==3.1.1+plover2; "darwin" in sys_platform
-pyobjc-framework-Cocoa==3.1.1+plover2; "darwin" in sys_platform
-pyobjc-framework-Quartz==3.1.1; "darwin" in sys_platform
+pyobjc-core==4.0b1; "darwin" in sys_platform
+pyobjc-framework-Cocoa==4.0b1; "darwin" in sys_platform
+pyobjc-framework-Quartz==4.0b1; "darwin" in sys_platform
 PyQt5==5.9
 pyserial==3.3
 python-xlib==0.19; "linux" in sys_platform
 setuptools==36.2.7
 six==1.10.0
-
-# Special links for macOS dependencies.
-# - source distributions:
--f https://dl.bintray.com/benoit-pierre/generic/pyobjc-core-3.1.1+plover2.tar.gz
--f https://dl.bintray.com/benoit-pierre/generic/pyobjc-framework-Cocoa-3.1.1+plover2.tar.gz
--f https://dl.bintray.com/benoit-pierre/generic/pyobjc-framework-Quartz-3.1.1.tar.gz
-# - pre-built wheels:
--f https://dl.bintray.com/benoit-pierre/generic/pyobjc_core-3.1.1+plover2-cp35-cp35m-macosx_10_6_intel.whl
--f https://dl.bintray.com/benoit-pierre/generic/pyobjc_framework_Cocoa-3.1.1+plover2-cp35-cp35m-macosx_10_6_intel.whl
--f https://dl.bintray.com/benoit-pierre/generic/pyobjc_framework_Quartz-3.1.1-cp35-cp35m-macosx_10_6_intel.whl
 
 # vim: ft=cfg commentstring=#\ %s list
