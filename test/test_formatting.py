@@ -12,20 +12,8 @@ from plover import formatting
 from .test_blackbox import CaptureOutput
 
 
-class xfail(object):
-    def __init__(self, *params):
-        self.params = params
-
-def parametrize(tests):
-    argvalues = []
-    for t in tests:
-        if isinstance(t, xfail):
-            t = t.params
-            marks = pytest.mark.xfail
-        else:
-            marks = ()
-        argvalues.append(pytest.param(*t, marks=marks))
-    ids = list(map(str, range(1, len(tests)+1)))
+def parametrize(argvalues):
+    ids = list(map(str, range(1, len(argvalues)+1)))
     def decorator(fn):
         parameters = list(inspect.signature(fn).parameters.keys())
         if 'self' == parameters[0]:
