@@ -46,6 +46,10 @@ def normalize_steno(strokes_string):
 def sort_steno_keys(steno_keys):
     return sorted(steno_keys, key=lambda x: system.KEY_ORDER.get(x, -1))
 
+def sort_steno_strokes(strokes_list):
+    '''Return suggestions, sorted by fewest strokes, then fewest keys.'''
+    return sorted(strokes_list, key=lambda x: (len(x), sum(map(len, x))))
+
 
 class Stroke(object):
     """A standardized data model for stenotype machine strokes.

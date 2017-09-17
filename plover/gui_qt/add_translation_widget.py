@@ -1,11 +1,12 @@
 
 from collections import namedtuple
+from html import escape as html_escape
 
 from PyQt5.QtCore import QEvent
 from PyQt5.QtWidgets import QApplication, QWidget
 
 from plover.misc import shorten_path
-from plover.steno import normalize_steno
+from plover.steno import normalize_steno, sort_steno_strokes
 from plover.engine import StartingStrokeState
 from plover.translation import escape_translation, unescape_translation
 
@@ -33,6 +34,13 @@ class AddTranslationWidget(QWidget, Ui_AddTranslationWidget):
         self.on_config_changed(engine.config)
         engine.signal_connect('dictionaries_loaded', self.on_dictionaries_loaded)
         self.on_dictionaries_loaded(self._engine.dictionaries)
+
+        self._special_fmt = (
+            '<span style="' +
+            'background-color:' + self.palette().base().color().name() +';' +
+            'font-family:monospace;' +
+            '">%s</span>'
+        )
 
         self.strokes.installEventFilter(self)
         self.translation.installEventFilter(self)
@@ -197,17 +205,23 @@ class AddTranslationWidget(QWidget, Ui_AddTranslationWidget):
             index = len(self._dictionaries) - index - 1
         self._selected_dictionary = self._dictionaries[index].path
 
+    def _format_label(self, fmt, strokes, translation):
+        if strokes:
+            strokes = ', '.join(self._special_fmt % html_escape('/'.join(s))
+                                for s in sort_steno_strokes(strokes))
+        if translation:
+            translation = self._special_fmt % html_escape(translation)
+        return fmt.format(strokes=strokes, translation=translation)
+
     def on_strokes_edited(self):
         strokes = self._strokes()
         if strokes:
             translation = self._engine.raw_lookup(strokes)
-            strokes = '/'.join(strokes)
             if translation is not None:
-                fmt = _('{strokes} maps to "{translation}"')
-                translation = escape_translation(translation)
+                fmt = _('{strokes} maps to {translation}')
             else:
                 fmt = _('{strokes} is not in the dictionary')
-            info = fmt.format(strokes=strokes, translation=translation)
+            info = self._format_label(fmt, (strokes,), translation)
         else:
             info = ''
         self.strokes_info.setText(info)
@@ -216,13 +230,11 @@ class AddTranslationWidget(QWidget, Ui_AddTranslationWidget):
         translation = self._translation()
         if translation:
             strokes = self._engine.reverse_lookup(translation)
-            translation = escape_translation(translation)
             if strokes:
-                fmt = _('"{translation}" is mapped from {strokes}')
-                strokes = ', '.join('/'.join(x) for x in strokes)
+                fmt = _('{translation} is mapped to: {strokes}')
             else:
-                fmt = _('"{translation}" is not in the dictionary')
-            info = fmt.format(strokes=strokes, translation=translation)
+                fmt = _('{translation} is not in the dictionary')
+            info = self._format_label(fmt, strokes, translation)
         else:
             info = ''
         self.translation_info.setText(info)
