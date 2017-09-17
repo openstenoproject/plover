@@ -3,7 +3,7 @@ matrix:
     # Linux / Python 3
     - os: linux
       language: python
-      python: "3.5"
+      python: "3.6"
       dist: trusty
       sudo: required
 

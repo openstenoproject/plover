@@ -5,7 +5,7 @@
 __requires__ = '''
 Babel
 PyQt5>=5.8.2
-setuptools>=30.3.0
+setuptools>=36.2.7
 '''
 
 from distutils import log
@@ -41,25 +41,6 @@ cmdclass = {
     'test': Test,
 }
 options = {}
-
-# Platform specific requirements.
-# Note: `extras_require` cannot be moved to setup.cfg, because `:` is not
-# allowed in key names and environment markers are not properly supported
-# (for the same reason `install_requires` cannot be used).
-extras_require = {
-    ':"win32" in sys_platform': [
-        'plyer==1.2.4', # For notifications.
-    ],
-    ':"linux" in sys_platform': [
-        'python-xlib>=0.16',
-    ],
-    ':"darwin" in sys_platform': [
-        'appnope>=0.1.0',
-        'pyobjc-core==3.1.1+plover2',
-        'pyobjc-framework-Cocoa==3.1.1+plover2',
-        'pyobjc-framework-Quartz==3.1.1',
-    ],
-}
 
 PACKAGE = '%s-%s' % (
     __software_name__,
@@ -109,11 +90,6 @@ class BinaryDistWin(Command):
         from plover_build_utils.install_wheels import WHEELS_CACHE
         # Download helper.
         from plover_build_utils.download import download
-        # Run command helper.
-        def run(*args):
-            if self.verbose:
-                log.info('running %s', ' '.join(a for a in args))
-            subprocess.check_call(args)
         # First things first: create Plover wheel.
         wheel_cmd = self.get_finalized_command('bdist_wheel')
         wheel_cmd.run()
@@ -121,21 +97,29 @@ class BinaryDistWin(Command):
                                               wheel_cmd.wheel_dist_name)
                                  + '*.whl')[0]
         # Setup embedded Python distribution.
-        # Note: python35.zip is decompressed to prevent errors when 2to3
+        # Note: python36.zip is decompressed to prevent errors when 2to3
         # is used (including indirectly by setuptools `build_py` command).
-        py_embedded = download('https://www.python.org/ftp/python/3.5.4/python-3.5.4-embed-win32.zip',
-                               '0760db3f93f02a2dacb38e80134b49e16266b84f')
+        py_embedded = download('https://www.python.org/ftp/python/3.6.2/python-3.6.2-embed-win32.zip',
+                               'b5d9cae17a399d8303cc59d2fd62c5ecc352330d')
         dist_dir = os.path.join(wheel_cmd.dist_dir, PACKAGE + '-win32')
-        data_dir = os.path.join(dist_dir, 'data')
-        stdlib = os.path.join(data_dir, 'python35.zip')
+        dist_data = os.path.join(dist_dir, 'data')
+        dist_py = os.path.join(dist_data, 'python.exe')
+        dist_stdlib = os.path.join(dist_data, 'python36.zip')
         if os.path.exists(dist_dir):
             shutil.rmtree(dist_dir)
-        os.makedirs(data_dir)
-        for path in (py_embedded, stdlib):
+        os.makedirs(dist_data)
+        for path in (py_embedded, dist_stdlib):
             with zipfile.ZipFile(path) as zip:
-                zip.extractall(data_dir)
-        os.unlink(stdlib)
-        dist_py = os.path.join(data_dir, 'python.exe')
+                zip.extractall(dist_data)
+        os.unlink(dist_stdlib)
+        # We don't want an isolated Python when
+        # using python.exe/pythonw.exe directly.
+        os.unlink(os.path.join(dist_data, 'python36._pth'))
+        # Run command helper.
+        def run(*args):
+            if self.verbose:
+                log.info('running %s', ' '.join(a for a in args))
+            subprocess.check_call(args)
         # Install pip/wheel.
         run(dist_py, '-m', 'plover_build_utils.get_pip')
         # Install Plover + standard plugins and dependencies.
@@ -152,7 +136,7 @@ class BinaryDistWin(Command):
         # Trim the fat...
         if self.trim:
             from plover_build_utils.trim import trim
-            trim(data_dir, 'windows/dist_blacklist.txt', verbose=self.verbose)
+            trim(dist_data, 'windows/dist_blacklist.txt', verbose=self.verbose)
         # Add miscellaneous files: icon, license, ...
         for src, target_dir in (
             ('LICENSE.txt'             , '.'   ),
@@ -179,7 +163,7 @@ class BinaryDistWin(Command):
         run(dist_py, '-m', 'plover_build_utils.source_less',
             # Don't touch pip._vendor.distlib sources,
             # or `pip install` will not be usable...
-            data_dir, '*/pip/_vendor/distlib/*',
+            dist_data, '*/pip/_vendor/distlib/*',
         )
         # Check requirements.
         run(dist_py, '-I', '-m', 'plover_build_utils.check_requirements')
@@ -374,7 +358,6 @@ setup(
     license=__license__,
     options=options,
     cmdclass=cmdclass,
-    extras_require=extras_require,
 )
 
 # vim: foldmethod=marker

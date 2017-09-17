@@ -54,7 +54,7 @@ run mkdir -p "$appdir" "$cachedir" "$distdir"
 # Download dependencies.
 run "$python" -m plover_build_utils.download 'https://github.com/probonopd/AppImages/raw/f748bb63999e655cfbb70e88ec27e74e2b9bf8fd/functions.sh' 'a99457e22d24a61f42931b2aaafd41f2746af820' "$cachedir/functions.sh"
 run "$python" -m plover_build_utils.download 'https://github.com/probonopd/AppImageKit/releases/download/9/appimagetool-x86_64.AppImage' 'ba71c5a03398b81eaa678207da1338c83189db89' "$cachedir/appimagetool"
-run "$python" -m plover_build_utils.download 'https://www.python.org/ftp/python/3.5.4/Python-3.5.4.tar.xz' '4aacbd09ca6988255de84a98ab9e4630f584efba'
+run "$python" -m plover_build_utils.download 'https://www.python.org/ftp/python/3.6.2/Python-3.6.2.tar.xz' '4f92a045de9231b93dfbed50c66bb12cf03ac59a'
 
 # Generate Plover wheel.
 if [ -z "$wheel" ]
@@ -69,10 +69,10 @@ then
  fi
 
 # Build Python.
-run tar xf "$downloads/Python-3.5.4.tar.xz" -C "$builddir"
+run tar xf "$downloads/Python-3.6.2.tar.xz" -C "$builddir"
 info '('
 (
-run cd "$builddir/Python-3.5.4"
+run cd "$builddir/Python-3.6.2"
 cmd=(
   ./configure
   --cache-file="$cachedir/python.config.cache"
@@ -97,13 +97,13 @@ info ')'
 run_eval "
 appdir_python()
 {
-  env LD_LIBRARY_PATH=\"$appdir/usr/lib:$appdir/usr/lib/x86_64-linux-gnu\${LD_LIBRARY_PATH+:\$LD_LIBRARY_PATH}\" "$appdir/usr/bin/python3.5" -s \"\$@\"
+  env LD_LIBRARY_PATH=\"$appdir/usr/lib:$appdir/usr/lib/x86_64-linux-gnu\${LD_LIBRARY_PATH+:\$LD_LIBRARY_PATH}\" "$appdir/usr/bin/python3.6" -s \"\$@\"
 }
 "
 python='appdir_python'
 
 # Disable user site-packages.
-run sed -i 's/^ENABLE_USER_SITE = None$/ENABLE_USER_SITE = False/' "$appdir/usr/lib/python3.5/site.py"
+run sed -i 's/^ENABLE_USER_SITE = None$/ENABLE_USER_SITE = False/' "$appdir/usr/lib/python3.6/site.py"
 
 # Install Plover and dependencies.
 bootstrap_dist "$wheel"
@@ -116,7 +116,7 @@ run cp 'plover/assets/plover.png' "$appdir/plover.png"
 run "$python" -m plover_build_utils.trim "$appdir" linux/appimage/blacklist.txt
 
 # Make distribution source-less.
-run "$python" -m plover_build_utils.source_less "$appdir/usr/lib/python3.5" '*/pip/_vendor/distlib/*'
+run "$python" -m plover_build_utils.source_less "$appdir/usr/lib/python3.6" '*/pip/_vendor/distlib/*'
 
 # Add launcher.
 # Note: don't use AppImage's AppRun because
@@ -132,11 +132,11 @@ run get_desktopintegration 'plover'
 # Fix missing system dependencies.
 # Note: temporarily move PyQt5 out of the way so
 # we don't try to bundle its system dependencies.
-run mv "$appdir/usr/lib/python3.5/site-packages/PyQt5" "$builddir"
+run mv "$appdir/usr/lib/python3.6/site-packages/PyQt5" "$builddir"
 run copy_deps; run copy_deps; run copy_deps
 run move_lib
-run mv "$builddir/PyQt5" "$appdir/usr/lib/python3.5/site-packages"
-# Move usr/include out of the way to preserve usr/include/python3.5m.
+run mv "$builddir/PyQt5" "$appdir/usr/lib/python3.6/site-packages"
+# Move usr/include out of the way to preserve usr/include/python3.6m.
 run mv usr/include usr/include.tmp
 run delete_blacklisted
 run mv usr/include.tmp usr/include
@@ -147,7 +147,7 @@ strip_binaries()
 {
   chmod u+w -R "$appdir"
   {
-    printf '%s\0' "$appdir/usr/bin/python3.5"
+    printf '%s\0' "$appdir/usr/bin/python3.6"
     find "$appdir" -type f -regex '.*\.so\(\.[0-9.]+\)?$' -print0
   } | xargs -0 --no-run-if-empty --verbose -n1 strip
 }
