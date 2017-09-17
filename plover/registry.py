@@ -29,6 +29,7 @@ class Registry(object):
         'dictionary',
         'extension',
         'gui',
+        'gui.qt.machine_option',
         'gui.qt.tool',
         'machine',
         'system',
