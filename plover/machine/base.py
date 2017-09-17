@@ -128,7 +128,7 @@ class StenotypeBase(object):
 
     @classmethod
     def get_keys(cls):
-        return tuple(set(cls.KEYS_LAYOUT.split()))
+        return tuple(cls.KEYS_LAYOUT.split())
 
     @classmethod
     def get_option_info(cls):
