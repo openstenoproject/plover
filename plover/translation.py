@@ -124,7 +124,7 @@ class Translation(object):
         if not self.formatting:
             return True
         for a in self.formatting:
-            if a.text or a.replace:
+            if a.text or a.prev_replace:
                 return True
         return False
 

@@ -20,7 +20,7 @@ def _load_wordlist(filename):
     with open(path, encoding='utf-8') as f:
         pairs = [word.strip().rsplit(' ', 1) for word in f]
         pairs.sort(reverse=True, key=lambda x: int(x[1]))
-        words = {p[0].lower(): int(p[1]) for p in pairs}
+        words = {p[0]: int(p[1]) for p in pairs}
     return words
 
 def _key_order(keys, numbers):

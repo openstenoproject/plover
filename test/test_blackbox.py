@@ -294,7 +294,6 @@ class TestBlackboxReplays(object):
         P*/P*/P*/P*/P*/P*  'PPPPPP '
         '''
 
-    @pytest.mark.xfail
     def test_bug741(self):
         r'''
         # Uppercase last word also uppercases next word's prefix.
@@ -306,7 +305,6 @@ class TestBlackboxReplays(object):
         TPAO/KPA*TS/KAUPB/TPAO  " FOO confoo"
         '''
 
-    @pytest.mark.xfail
     def test_carry_capitalization_spacing1(self):
         r'''
         'S-P': '{^ ^}',
@@ -315,7 +313,6 @@ class TestBlackboxReplays(object):
         S-P/R-R  ' \n'
         '''
 
-    @pytest.mark.xfail
     def test_carry_capitalization_spacing2(self):
         r'''
         'S-P': '{^ ^}',
@@ -323,4 +320,875 @@ class TestBlackboxReplays(object):
 
         :spaces_after
         S-P/R-R  ' \n'
+        '''
+
+    def test_orthography1(self):
+        r'''
+        'TEFT': 'test',
+        '-G': '{^ing}',
+
+        TEFT/-G  ' testing'
+        '''
+
+    def test_orthography2(self):
+        r'''
+        'SKEL': 'cancel',
+        '-G': '{^ing}',
+
+        SKEL/-G  " canceling"
+        '''
+
+    def test_orthography3(self):
+        r'''
+        'PREPB': '{(^}',
+        'SKEL': 'cancel',
+        '-G': '{^ing}',
+
+        PREPB/SKEL/-G  " (canceling"
+        '''
+
+    def test_orthography4(self):
+        r'''
+        'SKEL': '{&c}{&a}{&n}{&c}{&e}{&l}',
+        '-G': '{^ing}',
+
+        SKEL/-G  " canceling"
+        '''
+
+    def test_orthography5(self):
+        r'''
+        'TPAOEUPL': 'time',
+        '-G': '{^ing}',
+
+        TPAOEUPL/-G  ' timing'
+        '''
+
+    def test_orthography6(self):
+        r'''
+        'PRE': '{prefix-^}',
+        'SKEL': 'cancel',
+        '-G': '{^ing}',
+
+        PRE/SKEL/-G  " prefix-canceling"
+        '''
+
+    def test_orthography7(self):
+        r'''
+        'PRE': '{prefix^}',
+        'SKEL': 'cancel',
+        '-G': '{^ing}',
+
+        PRE/SKEL/-G  " prefixcanceling"
+        '''
+
+    def test_orthography8(self):
+        r'''
+        'PRE': '{&p}{&r}{&e}{&f}{&i}{&x}',
+        "TK-LS": "{^}",
+        'SKEL': 'cancel',
+        '-G': '{^ing}',
+
+        PRE/TK-LS/SKEL/-G  " prefixcanceling"
+        '''
+
+    def test_orthography9(self):
+        r'''
+        'PRE': '{prefix^}',
+        'SKEL': '{&c}{&a}{&n}{&c}{&e}{&l}',
+        '-G': '{^ing}',
+
+        PRE/SKEL/-G  " prefixcanceling"
+        '''
+
+    def test_orthography10(self):
+        r'''
+        'PHO*D': "{MODE:CAMEL}",
+        'PRE': '{prefix^}',
+        'SKEL': 'cancel',
+        '-G': '{^ing}',
+
+        PHO*D/PRE/SKEL/-G  "prefixcanceling"
+        '''
+
+    def test_orthography11(self):
+        r'''
+        'PHO*D': "{MODE:SNAKE}",
+        'TEFT': 'test',
+        'SKEL': 'cancel',
+        '-G': '{^ing}',
+
+        PHO*D/TEFT  "_test"
+        SKEL/-G     "_test_canceling"
+        '''
+
+    def test_orthography12(self):
+        r'''
+        'PHO*D': "{MODE:CAMEL}",
+        'TEFT': 'test',
+        'SKEL': 'cancel',
+        '-G': '{^ing}',
+
+        PHO*D/TEFT  "test"
+        SKEL/-G     "testCanceling"
+        '''
+
+    def test_orthography13(self):
+        r'''
+        'PHO*D': "{MODE:SNAKE}",
+        'PRE': '{prefix^}',
+        'TEFT': 'test',
+        'SKEL': 'cancel',
+        '-G': '{^ing}',
+
+        PHO*D/TEFT  "_test"
+        PRE/SKEL/-G     "_test_prefixcanceling"
+        '''
+
+    def test_orthography14(self):
+        r'''
+        'PHO*D': "{MODE:CAMEL}",
+        'PRE': '{prefix^}',
+        'TEFT': 'test',
+        'SKEL': 'cancel',
+        '-G': '{^ing}',
+
+        PHO*D/TEFT  "test"
+        PRE/SKEL/-G     "testPrefixcanceling"
+        '''
+
+    def test_orthography15(self):
+        r'''
+        'PHO*D': "{MODE:CAPS}",
+        'SKEL': 'cancel',
+        '-G': '{^ing}',
+
+        PHO*D/SKEL/-G  " CANCELING"
+        '''
+
+    def test_orthography16(self):
+        r'''
+        'SKEL': '{&C}{&A}{&N}{&C}{&E}{&L}',
+        '-G': '{^ing}',
+
+        SKEL/-G  " CANCELLing"
+        '''
+
+    def test_orthography17(self):
+        r'''
+        'SKEL': 'CANCEL',
+        '-G': '{^ing}',
+
+        SKEL/-G  " CANCELLing"
+        '''
+
+    def test_orthography18(self):
+        r'''
+        'TPAOEUPL': 'TIME',
+        '-G': '{^ing}',
+
+        TPAOEUPL/-G  ' TIMing'
+        '''
+
+    def test_orthography19(self):
+        r'''
+        'TPAOEUPL': '{&T}{&I}{&M}{&E}',
+        '-G': '{^ing}',
+
+        TPAOEUPL/-G  ' TIMing'
+        '''
+
+    def test_after_initial_being(self):
+        r'''
+        '-B': 'be',
+        '-B/-G': 'being',
+
+        :spaces_after
+        -B/-G  'being '
+        '''
+
+    def test_after_period(self):
+        r'''
+        'TEFT': 'test',
+        'P-P': '{.}',
+
+        :spaces_after
+        TEFT/P-P/TEFT  'test. Test '
+        '''
+
+    def test_spaces_after1(self):
+        r'''
+        'TEFT': 'test',
+        'TEFTD': 'tested',
+        '-G': '{^ing}',
+        'P-P': '{.}',
+
+        :spaces_after
+        TEFT   'test '
+        -G     'testing '
+        P-P    'testing. '
+        TEFTD  'testing. Tested '
+        '''
+
+    def test_start_attached1(self):
+        r'''
+        'TEFT': 'test',
+
+        :start_attached
+        TEFT  'test'
+        '''
+
+    def test_start_attached2(self):
+        r'''
+        'TEFT': 'test',
+
+        :start_attached
+        :spaces_after
+        TEFT  'test '
+        '''
+
+    def test_space_placement_change1(self):
+        r'''
+        'TEFT': 'test',
+        'TEFTD': 'tested',
+        'TEFTS': 'tests',
+
+        :spaces_before
+        TEFT/TEFTD      ' test tested'
+        :spaces_after
+        TEFTS/TEFT      ' test tested tests test '
+        '''
+
+    def test_space_placement_change2(self):
+        r'''
+        'TEFT': 'test',
+        'TEFTD': 'tested',
+        'TEFTS': 'tests',
+
+        :spaces_after
+        TEFT/TEFTD      'test tested '
+        :spaces_before
+        TEFTS/TEFT      'test tested tests test'
+        '''
+
+    def test_undo_after_space_placement_change1(self):
+        r'''
+        'TEFT': 'test',
+        'TEFTD': 'tested',
+
+        :spaces_before
+        TEFT/TEFTD      ' test tested'
+        :spaces_after
+        *               ' test '
+        *               ''
+        '''
+
+    def test_undo_after_space_placement_change2(self):
+        r'''
+        'TEFT': 'test',
+        'TEFTD': 'tested',
+
+        :spaces_after
+        TEFT/TEFTD      'test tested '
+        :spaces_before
+        *               'test'
+        *               ''
+        '''
+
+    def test_undo_after_space_placement_change3(self):
+        r'''
+        'KPA': '{}{-|}',
+        'TEFT': 'test',
+        'TEFTD': 'tested',
+
+        :spaces_before
+        KPA/TEFT/TEFTD  ' Test tested'
+        :spaces_after
+        *               ' Test '
+        *               ''
+        '''
+
+    def test_undo_after_space_placement_change4(self):
+        r'''
+        'KPA': '{}{-|}',
+        'TEFT': 'test',
+        'TEFTD': 'tested',
+
+        :spaces_after
+        KPA/TEFT/TEFTD  ' Test tested '
+        :spaces_before
+        *               ' Test'
+        *               ''
+        '''
+
+    def test_undo_with_space_placement_changes(self):
+        r'''
+        'TEFT': 'test',
+
+        TEFT/TEFT/TEFT  ' test test test'
+        :spaces_after
+        *               ' test test '
+        :spaces_before
+        *               ' test'
+        :spaces_after
+        *               ''
+        '''
+
+    def test_carry_capitalization1(self):
+        r'''
+        'KA*US': "{~|'^}cause",
+        'TEFT': 'test',
+        'P-P': '{.}',
+
+        P-P/KA*US/TEFT  ". 'Cause test"
+        '''
+
+    def test_carry_capitalization2(self):
+        r'''
+        "KR-GS": "{^~|\"}",
+
+        KR-GS  '"'
+        '''
+
+    def test_carry_capitalization3(self):
+        r'''
+        'TP*U': '{<}',
+        "TK-LS": "{^}",
+        'TEFT': 'test',
+        'S-FBGS': '{^suffix}',
+
+        TP*U/TEFT/S-FBGS/TK-LS/S-FBGS  ' TESTSUFFIXSUFFIX'
+        '''
+
+    def test_carry_capitalization4(self):
+        r'''
+        'TP*U': '{<}',
+        "TK-LS": "{^}",
+        'TEFT': 'test',
+        "S-P": "{^ ^}"
+
+        TP*U/TEFT/S-P/TEFT  ' TEST test'
+        '''
+
+    def test_carry_capitalization5(self):
+        r'''
+        'TP*U': '{<}',
+        "TK-LS": "{^}",
+        'TEFT': 'test',
+        'S-FBGS': '{^suffix}',
+        "S-P": "{^ ^}"
+
+        TP*U/TEFT/S-FBGS/S-P/S-FBGS  ' TESTSUFFIX suffix'
+        '''
+
+    def test_capitalize1(self):
+        r'''
+        'KPA': '{}{-|}',
+        'TEFT': 'test',
+
+        KPA/TEFT  ' Test'
+        '''
+
+    def test_capitalize2(self):
+        r'''
+        'KPA': '{}{-|}',
+        'TEFT': 'test',
+
+        :start_attached
+        KPA/TEFT  ' Test'
+        '''
+
+    def test_capitalize3(self):
+        r'''
+        'KPA': '{}{-|}',
+        'TEFT': 'test',
+
+        :spaces_after
+        KPA/TEFT  ' Test '
+        '''
+
+    def test_capitalize4(self):
+        r'''
+        'KPA': '{}{-|}',
+        'TEFT': 'test',
+
+        :start_attached
+        :spaces_after
+        KPA/TEFT  ' Test '
+        '''
+
+    def test_retro_capitalize1(self):
+        r'''
+        'KWEUP': 'equip',
+        'RUP': '{*-|}',
+
+        KWEUP/RUP  ' Equip'
+        '''
+
+    def test_retro_capitalize2(self):
+        r'''
+        'KWEUP': 'equip',
+        'RUP': '{*-|}',
+
+        :spaces_after
+        KWEUP/RUP  'Equip '
+        '''
+
+    def test_retro_capitalize3(self):
+        r'''
+        'TEFT': 'tèśtîñg',
+        'RUP': '{*-|}',
+
+        TEFT/RUP  ' Tèśtîñg'
+        '''
+
+    def test_retro_capitalize4(self):
+        r'''
+        'PRE': '{pre^}',
+        'TPEUBG': 'fix',
+        'RUP': '{*-|}',
+
+        PRE/TPEUBG/RUP  ' Prefix'
+        '''
+
+    def test_retro_currency1(self):
+        r'''
+        'TPHAPB': 'notanumber',
+        'R-BG': '{*($c)}',
+
+        TPHAPB/R-BG  ' notanumber'
+        '''
+
+    def test_retro_currency2(self):
+        r'''
+        'TPHAPB': 'notanumber',
+        'R-BG': '{*($c)}',
+
+        :spaces_after
+        TPHAPB/R-BG  'notanumber '
+        '''
+
+    def test_retro_currency3(self):
+        r'''
+        'R-BG': '{*($c)}',
+
+        0/R-BG  ' $0'
+        '''
+
+    def test_retro_currency4(self):
+        r'''
+        'R-BG': '{*($c)}',
+
+        :spaces_after
+        0/R-BG  '$0 '
+        '''
+
+    def test_retro_upper1(self):
+        r'''
+        'TEFT': 'test',
+        '-G': '{^ing}',
+        'PRE': '{pre^}',
+        'R*U': '{*<}',
+
+        TEFT/-G/R*U/PRE  " TESTING pre"
+        '''
+
+    def test_retro_upper2(self):
+        r'''
+        'TEFT': 'test',
+        '-G': '{^ing}',
+        'PRE': '{pre^}',
+        'R*U': '{*<}',
+
+        TEFT/R*U/-G/PRE  " TESTING pre"
+        '''
+
+    def test_retro_upper3(self):
+        r'''
+        'PRE': '{prefix^}',
+        'WORD': 'word',
+        'R*U': '{*<}',
+
+        PRE/WORD/R*U  " PREFIXWORD"
+        '''
+
+    def test_retro_upper4(self):
+        r'''
+        'S-G': 'something',
+        'R*U': '{*<}',
+
+        S-G/S-G/R*U/R*U  " something SOMETHING"
+        '''
+
+    def test_retro_upper5(self):
+        r'''
+        'TEFT': 'tèśtîñg',
+        'RUP': '{*<}',
+
+        TEFT/RUP  ' TÈŚTÎÑG'
+        '''
+
+    def test_retro_upper6(self):
+        r'''
+        'ST': 'it is',
+        'RUP': '{*<}',
+
+        ST/RUP  " it IS"
+        '''
+
+    def test_retro_upper7(self):
+        r'''
+        'TEFT': 'test',
+        "W-G": "{^ing with}",
+        'RUP': '{*<}',
+
+        TEFT/RUP/W-G  " TESTING with"
+        '''
+
+    def test_retro_upper8(self):
+        r'''
+        'TEFT': 'test',
+        "W-G": "{^ing with}",
+        'RUP': '{*<}',
+
+        TEFT/W-G/RUP  " testing WITH"
+        '''
+
+    def test_retro_upper9(self):
+        r'''
+        'TEFT': 'test',
+        "W-G": "{^ing with}",
+        'RUP': '{*<}',
+
+        TEFT/RUP/W-G/W-G  " TESTING withing with"
+        '''
+
+    def test_retro_upper10(self):
+        r'''
+        'TEFT': 'test',
+        "W": "with",
+        'RUP': '{*<}',
+
+        TEFT/RUP/W/W  " TEST with with"
+        '''
+
+    def test_upper1(self):
+        r'''
+        'TP*U': '{<}',
+        'TEFT': 'test',
+        '-G': '{^ing}',
+        'PRE': '{pre^}',
+
+        TP*U/TEFT/-G/PRE  " TESTING pre"
+        '''
+
+    def test_upper2(self):
+        r'''
+        'TP*U': '{<}',
+        'TEFT': 'test',
+        '-G': '{^ing}',
+
+        TP*U/TEFT/-G/TEFT  " TESTING test"
+        '''
+
+    def test_upper3(self):
+        r'''
+        'TP*U': '{<}',
+        'ST': 'it is',
+
+        TP*U/ST  " IT is"
+        '''
+
+    def test_upper4(self):
+        r'''
+        'TP*U': '{<}',
+        'ST': 'it{ }is',
+
+        TP*U/ST  " IT is"
+        '''
+
+    def test_upper5(self):
+        r'''
+        'TP*U': '{<}',
+        'TEFT': 'test',
+        "W-G": "{^ing with}",
+
+        TP*U/TEFT/W-G  " TESTING with"
+        '''
+
+    def test_upper6(self):
+        r'''
+        'TP*U': '{<}',
+        'P-': '{foo^}',
+        '-S': '{^bar}',
+
+        TP*U/P-/-S  " FOOBAR"
+        '''
+
+    def test_upper7(self):
+        r'''
+        'TP*U': '{<}',
+        'PRE': '{pre^}',
+        'TEFT': 'test',
+        '-G': '{^ing}',
+
+        TP*U/PRE/TEFT/-G  " PRETESTING"
+        '''
+
+    def test_upper8(self):
+        r'''
+        'TP*U': '{<}',
+        'TEFT': 'test',
+        "W-G": "{^ing with}",
+
+        TP*U/TEFT/W-G/W-G  " TESTING withing with"
+        '''
+
+    def test_upper9(self):
+        r'''
+        'TP*U': '{<}',
+        'TEFT': 'test',
+        "W": "with",
+
+        TP*U/TEFT/W/W  " TEST with with"
+        '''
+
+    def test_attach_glue_and_carry_capitalize(self):
+        r'''
+        'PH*': '{&m}',
+        'KW-GS': '{~|"}',
+
+        PH*/KW-GS  ' m "'
+        '''
+
+    def test_fingerspelling_retro_meta1(self):
+        r'''
+        'K': '{&c}',
+        'A': '{&a}',
+        'T': '{&t}',
+        'UP': '{*<}',
+
+        K/A/T  ' cat'
+        UP     ' CAT'
+        *      ' cat'
+        '''
+
+    def test_fingerspelling_retro_meta2(self):
+        r'''
+        'TPH': '{>}{&n}',
+        'O': '{>}{&o}',
+        'UP': '{*<}',
+
+        TPH/O/UP  ' NO'
+        '''
+
+    def test_fingerspelling_retro_meta3(self):
+        r'''
+        'TEFT': '{>}{&n}{>}{&o}{*<}',
+
+        TEFT  ' NO'
+        '''
+
+    def test_word_1(self):
+        r'''
+        "KA*PS": "{MODE:CAPS}",
+        "TEFT": "test",
+        "-G": "{^ing}",
+        'RUP': '{*-|}',
+
+        KA*PS/TEFT/-G  ' TESTING'
+        RUP            ' TESTING'
+        '''
+
+    def test_word_2(self):
+        r'''
+        "KA*PS": "{MODE:CAPS}",
+        "R*FT": "{MODE:RESET}",
+        "TEFT": "test",
+        "-G": "{^ing}",
+        'RUL': '{*>}',
+
+        KA*PS/TEFT/-G  ' TESTING'
+        R*FT/RUL       ' tESTING'
+        '''
+
+    def test_cat_burger_1(self):
+        r'''
+        "KAT": "cat",
+        "O*PB":  "{^on}",
+        "PWURG": "{*-|}{^burg}",
+        "*ER": "{^er}",
+        "PWURG/*ER": "burger",
+
+        KAT/O*PB/PWURG  ' Cattonburg'
+        *ER             ' catton burger'
+        '''
+
+    def test_cat_burger_2(self):
+        r'''
+        "KAT": "cat",
+        "O*PB":  "{^on}",
+        "PWURG": "{*-|}{^burg}",
+        "*ER": "{^er}",
+
+        KAT/O*PB/PWURG  ' Cattonburg'
+        *ER             ' Cattonburger'
+        '''
+
+    def test_mirrored_capitalize(self):
+        r'''
+        'KPA': '{}{-|}',
+        'TEFT': '{~|na^}{~|no^}{~|wri^}mo'
+
+        KPA/TEFT  ' NaNoWriMo'
+        '''
+
+    def test_mode_1a(self):
+        r'''
+        "PHO*D": "{MODE:CAMEL}",
+        "TEFT": "test",
+
+        :spaces_after
+        TEFT   'test '
+        PHO*D  'test '
+        TEFT   'testtest'
+        TEFT   'testtestTest'
+        '''
+
+    def test_mode_1b(self):
+        r'''
+        "PHO*D": "{MODE:CAMEL}",
+        "TEFT": "test",
+
+        :spaces_before
+        TEFT   ' test'
+        PHO*D  ' test'
+        TEFT   ' testtest'
+        TEFT   ' testtestTest'
+        '''
+
+    def test_mode_2a(self):
+        r'''
+        "PHO*D": "{MODE:CAMEL}",
+        "TEFT": "test",
+        "TKPWHRAOU": "{&g}{&l}{&u}{&e}"
+
+        :spaces_after
+        PHO*D  ''
+        TEFT       'test'
+        TKPWHRAOU  'testGlue'
+        '''
+
+    def test_mode_2b(self):
+        r'''
+        "PHO*D": "{MODE:CAMEL}",
+        "TEFT": "test",
+        "TKPWHRAOU": "{&g}{&l}{&u}{&e}"
+
+        :spaces_before
+        PHO*D  ''
+        TEFT       'test'
+        TKPWHRAOU  'testGlue'
+        '''
+
+    def test_mode_3a(self):
+        r'''
+        "PHO*D": "{MODE:CAMEL}",
+        "TEFT": "test",
+        "TKPWHRAOU": "{&g}{&l}{&u}{&e}"
+
+        :spaces_after
+        PHO*D  ''
+        TKPWHRAOU  'glue'
+        TEFT       'glueTest'
+        '''
+
+    def test_mode_3b(self):
+        r'''
+        "PHO*D": "{MODE:CAMEL}",
+        "TEFT": "test",
+        "TKPWHRAOU": "{&g}{&l}{&u}{&e}"
+
+        :spaces_before
+        PHO*D  ''
+        TKPWHRAOU  'glue'
+        TEFT       'glueTest'
+        '''
+
+    def test_fingerspelling_1a(self):
+        r'''
+        'K': '{&c}',
+        'A': '{&a}',
+        'T': '{&t}',
+
+        :spaces_after
+        K/A/T  'cat '
+        '''
+    def test_fingerspelling_1b(self):
+        r'''
+        'K': '{&c}',
+        'A': '{&a}',
+        'T': '{&t}',
+
+        K/A/T  ' cat'
+        '''
+
+    def test_fingerspelling_2a(self):
+        r'''
+        'K': '{-|}{&c}',
+        'A': '{-|}{&a}',
+        'T': '{-|}{&t}',
+
+        :spaces_after
+        K/A/T  'CAT '
+        '''
+
+    def test_fingerspelling_2b(self):
+        r'''
+        'K': '{-|}{&c}',
+        'A': '{-|}{&a}',
+        'T': '{-|}{&t}',
+
+        K/A/T  ' CAT'
+        '''
+
+    def test_numbers_1a(self):
+        r'''
+        '': ''
+
+        :spaces_after
+        1-9  '19 '
+        -79  '1979 '
+        *    '19 '
+        *    ''
+        '''
+
+    def test_numbers_1b(self):
+        r'''
+        '': ''
+
+        1-9  ' 19'
+        -79  ' 1979'
+        *    ' 19'
+        *    ''
+        '''
+
+    def test_raw_1a(self):
+        r'''
+        '': ''
+
+        :spaces_after
+        RAU   'RAU '
+        TEGT  'RAU TEGT '
+        *     'RAU '
+        *     ''
+        '''
+
+    def test_raw_1b(self):
+        r'''
+        '': ''
+
+        RAU   ' RAU'
+        TEGT  ' RAU TEGT'
+        *     ' RAU'
+        *     ''
         '''
