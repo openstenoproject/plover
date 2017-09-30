@@ -7,7 +7,7 @@ pyobjc-core==4.0; "darwin" in sys_platform
 pyobjc-framework-Cocoa==4.0; "darwin" in sys_platform
 pyobjc-framework-Quartz==4.0; "darwin" in sys_platform
 PyQt5==5.9
-pyserial==3.3
+pyserial==3.4
 python-xlib==0.19; "linux" in sys_platform
 setuptools==36.2.7
 six==1.10.0
