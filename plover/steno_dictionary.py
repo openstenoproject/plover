@@ -25,6 +25,10 @@ class StenoDictionary(object):
     timestamp -- File last modification time, used to detect external changes.
 
     """
+
+    # False if class support creation.
+    readonly = False
+
     def __init__(self):
         self._dict = {}
         self._longest_key_length = 0
@@ -47,9 +51,9 @@ class StenoDictionary(object):
     @classmethod
     def create(cls, resource):
         assert not resource.startswith(ASSET_SCHEME)
-        d = cls()
-        if d.readonly:
+        if cls.readonly:
             raise ValueError('%s does not support creation' % cls.__name__)
+        d = cls()
         d.path = resource
         return d
 
