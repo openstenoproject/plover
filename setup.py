@@ -306,9 +306,19 @@ class BinaryDistDmg(Command):
 
     def run(self):
         self.run_command('bdist_app')
-        subprocess.check_call(('./plover_build_utils/dmgbuild.sh',
-                               'dist/%s.dmg' % PACKAGE, 'Plover',
-                               'osx/dmg_resources/settings.py'))
+        subprocess.check_call((sys.executable, '-c', textwrap.dedent(
+            '''
+            __import__('dmgbuild').build_dmg(
+                {output!r}, {name!r},
+                {settings!r}, **{options!r},
+            )
+            '''
+        ).format(
+            output='dist/%s.dmg' % PACKAGE,
+            name=__software_name__.capitalize(),
+            settings='osx/dmg_resources/settings.py',
+            options=dict(lookForHiDPI=True),
+        )))
 
 if sys.platform.startswith('darwin'):
     cmdclass['bdist_app'] = BinaryDistApp
