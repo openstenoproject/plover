@@ -5,7 +5,7 @@ plover-plugins-manager==0.5.7
 Pygments==2.2.0
 wheel==0.30.0
 # plover-treal
-hidapi==0.7.99.post20
+hidapi==0.7.99.post21
 plover-treal==1.0.1
 
 # vim: ft=cfg commentstring=#\ %s list
