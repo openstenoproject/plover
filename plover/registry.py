@@ -48,8 +48,8 @@ class Registry(object):
         return plugin
 
     def register_plugin_from_entrypoint(self, plugin_type, entrypoint):
-        log.info('%s: %s (from %s)', plugin_type,
-                 entrypoint.name, entrypoint.dist)
+        log.info('%s: %s (from %s in %s)', plugin_type, entrypoint.name,
+                 entrypoint.dist, entrypoint.dist.location)
         try:
             obj = entrypoint.resolve()
         except:
