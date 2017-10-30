@@ -376,7 +376,7 @@ class TextFormatter(object):
         self.appended_text = ''
         self.trailing_space = ''
 
-    def _render_action(self, action, last_action):
+    def _render_action(self, action):
         if self.spaces_after and self.trailing_space:
             assert self.appended_text.endswith(self.trailing_space)
             self.appended_text = self.appended_text[:-len(self.trailing_space)]
@@ -419,8 +419,7 @@ class TextFormatter(object):
             if action.text is None:
                 yield action
             else:
-                self._render_action(action, last_action)
-            last_action = action
+                self._render_action(action)
 
     def reset(self):
         """Reset current state (rendered text)."""
