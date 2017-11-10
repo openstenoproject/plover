@@ -1,5 +1,5 @@
 # plover-plugins-manager
-docutils==0.13.1
+docutils==0.14
 pip==9.0.1
 plover-plugins-manager==0.5.7
 Pygments==2.2.0
