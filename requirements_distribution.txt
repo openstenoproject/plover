@@ -3,12 +3,12 @@ appnope==0.1.0; "darwin" in sys_platform
 certifi==2017.7.27.1
 dbus-python==1.2.4; "linux" in sys_platform
 plyer==1.2.4; "win32" in sys_platform
-pyobjc-core==4.0b1; "darwin" in sys_platform
-pyobjc-framework-Cocoa==4.0b1; "darwin" in sys_platform
-pyobjc-framework-Quartz==4.0b1; "darwin" in sys_platform
+pyobjc-core==4.0; "darwin" in sys_platform
+pyobjc-framework-Cocoa==4.0; "darwin" in sys_platform
+pyobjc-framework-Quartz==4.0; "darwin" in sys_platform
 PyQt5==5.9
-pyserial==3.3
-python-xlib==0.19; "linux" in sys_platform
+pyserial==3.4
+python-xlib==0.20; "linux" in sys_platform
 setuptools==36.2.7
 six==1.10.0
 
