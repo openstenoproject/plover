@@ -99,8 +99,8 @@ class BinaryDistWin(Command):
         # Setup embedded Python distribution.
         # Note: python36.zip is decompressed to prevent errors when 2to3
         # is used (including indirectly by setuptools `build_py` command).
-        py_embedded = download('https://www.python.org/ftp/python/3.6.2/python-3.6.2-embed-win32.zip',
-                               'b5d9cae17a399d8303cc59d2fd62c5ecc352330d')
+        py_embedded = download('https://www.python.org/ftp/python/3.6.3/python-3.6.3-embed-win32.zip',
+                               '3769c2129779b43f2dade3b89c783d957bff1461')
         dist_dir = os.path.join(wheel_cmd.dist_dir, PACKAGE + '-win32')
         dist_data = os.path.join(dist_dir, 'data')
         dist_py = os.path.join(dist_data, 'python.exe')
@@ -114,7 +114,12 @@ class BinaryDistWin(Command):
         os.unlink(dist_stdlib)
         # We don't want an isolated Python when
         # using python.exe/pythonw.exe directly.
-        os.unlink(os.path.join(dist_data, 'python36._pth'))
+        dist_pth = os.path.join(dist_data, 'python36._pth')
+        with open(dist_pth) as fp:
+            pth = fp.read() + 'import site\n'
+        # Temporarily patch python36._pth so build utils can be used.
+        with open(dist_pth, 'w') as fp:
+            fp.write(pth + os.getcwd() + '\n')
         # Run command helper.
         def run(*args):
             if self.verbose:
@@ -167,6 +172,9 @@ class BinaryDistWin(Command):
         )
         # Check requirements.
         run(dist_py, '-I', '-m', 'plover_build_utils.check_requirements')
+        # Restore python36._pth.
+        with open(dist_pth, 'w') as fp:
+            fp.write(pth)
         # Zip results.
         if self.zipdir:
             from plover_build_utils.zipdir import zipdir

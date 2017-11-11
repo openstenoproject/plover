@@ -13,7 +13,7 @@ import subprocess
 import traceback
 
 # This need to be imported before pkg_resources.
-from plover.oslayer.config import CONFIG_DIR
+from plover.oslayer.config import CONFIG_DIR, PLUGINS_DIR
 
 import pkg_resources
 
@@ -60,6 +60,10 @@ def main():
     if args.log_level is not None:
         log.set_level(args.log_level.upper())
     log.setup_platform_handler()
+
+    log.info('Plover %s', __version__)
+    log.info('configuration directory: %s', CONFIG_DIR)
+    log.info('plugins directory: %s', PLUGINS_DIR)
 
     registry.update()
 
@@ -114,7 +118,6 @@ def main():
             # This must be done after calling init_config_dir, so
             # Plover's configuration directory actually exists.
             log.setup_logfile()
-            log.info('Plover %s', __version__)
             config = Config()
             config.target_file = CONFIG_FILE
             code = gui.main(config)

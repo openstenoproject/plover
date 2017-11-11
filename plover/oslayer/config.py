@@ -3,9 +3,9 @@
 
 """Platform dependent configuration."""
 
-from distutils.dist import Distribution
 import os
 import sys
+import sysconfig
 
 import appdirs
 
@@ -41,10 +41,10 @@ if PLUGINS_PLATFORM is None:
     PLUGINS_DIR = None
 else:
     PLUGINS_BASE = os.path.join(CONFIG_DIR, 'plugins', PLUGINS_PLATFORM)
-    dist = Distribution().get_command_obj('install', create=True)
-    dist.prefix = PLUGINS_BASE
-    dist.finalize_options()
-    PLUGINS_DIR = dist.install_lib
+    scheme = '%s_user' % os.name
+    if PLUGINS_PLATFORM == 'mac' and sysconfig.get_config_var('PYTHONFRAMEWORK'):
+        scheme = 'osx_framework_user'
+    PLUGINS_DIR = sysconfig.get_path('purelib', scheme, dict(userbase=PLUGINS_BASE))
     sys.path.insert(0, PLUGINS_DIR)
 
 # This need to be imported after patching sys.path.
