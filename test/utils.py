@@ -2,6 +2,8 @@ from contextlib import contextmanager
 import os
 import tempfile
 
+from plover.misc import normalize_path
+
 
 @contextmanager
 def make_dict(contents, extension=None, name=None):
@@ -14,7 +16,7 @@ def make_dict(contents, extension=None, name=None):
     try:
         tf.write(contents)
         tf.close()
-        yield os.path.realpath(tf.name)
+        yield normalize_path(tf.name)
     finally:
         os.unlink(tf.name)
 

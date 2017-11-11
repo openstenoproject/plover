@@ -7,6 +7,7 @@ from collections import namedtuple
 from io import BytesIO
 import json
 import os
+import sys
 import unittest
 
 from mock import patch
@@ -14,8 +15,15 @@ from mock import patch
 from plover import config, system
 from plover.config import DictionaryConfig
 from plover.machine.keymap import Keymap
+from plover.misc import expand_path, normalize_path
 from plover.registry import Registry
 from plover.oslayer.config import CONFIG_DIR
+
+
+if sys.platform.startswith('win32'):
+    ABS_PATH = os.path.normcase(r'c:\foo\bar')
+else:
+    ABS_PATH = '/foo/bar'
 
 
 def make_config(contents=''):
@@ -48,8 +56,8 @@ class ConfigTestCase(unittest.TestCase):
          config.MACHINE_TYPE_OPTION, config.DEFAULT_MACHINE_TYPE, 'Gemini PR', 'TX Bolt',
          'Passport'),
         ('log_file_name', config.LOGGING_CONFIG_SECTION, config.LOG_FILE_OPTION, 
-         os.path.realpath(os.path.join(CONFIG_DIR, config.DEFAULT_LOG_FILE)),
-         os.path.abspath('/l1'), os.path.abspath('/log'), os.path.abspath('/sawzall')),
+         normalize_path(os.path.join(CONFIG_DIR, config.DEFAULT_LOG_FILE)),
+         os.path.join(ABS_PATH, 'l1'), os.path.join(ABS_PATH, 'log'), os.path.join(ABS_PATH, 'sawzall')),
         ('enable_stroke_logging', config.LOGGING_CONFIG_SECTION, 
          config.ENABLE_STROKE_LOGGING_OPTION, 
          config.DEFAULT_ENABLE_STROKE_LOGGING, False, True, False),
@@ -174,8 +182,8 @@ class ConfigTestCase(unittest.TestCase):
             self.assertEqual(c.get_machine_specific_options(), expected)
 
     def test_config_dict(self):
-        short_path = os.path.normpath('~/foo/bar')
-        full_path = os.path.expanduser(os.path.normpath('~/foo/bar'))
+        short_path = os.path.normcase(os.path.normpath('~/foo/bar'))
+        full_path = os.path.normcase(os.path.expanduser(os.path.normpath('~/foo/bar')))
         # Path should be expanded.
         self.assertEqual(DictionaryConfig(short_path).path, full_path)
         self.assertEqual(DictionaryConfig(full_path).path, full_path)
@@ -198,8 +206,8 @@ class ConfigTestCase(unittest.TestCase):
             {'path': full_path, 'enabled': False}), DictionaryConfig(short_path, False))
 
     def test_dictionary_config(self):
-        short_path = os.path.normpath('~/foo/bar')
-        full_path = os.path.expanduser(os.path.normpath('~/foo/bar'))
+        short_path = os.path.normcase(os.path.normpath('~/foo/bar'))
+        full_path = os.path.normcase(os.path.expanduser(os.path.normpath('~/foo/bar')))
         dc = DictionaryConfig(short_path)
         # Path should be expanded.
         self.assertEqual(dc.path, full_path)
@@ -222,20 +230,19 @@ class ConfigTestCase(unittest.TestCase):
         legacy_section = config.LEGACY_DICTIONARY_CONFIG_SECTION
         legacy_option = config.LEGACY_DICTIONARY_FILE_OPTION
         c = config.Config()
-        config_dir = os.path.realpath(config.CONFIG_DIR)
+        config_dir = os.path.normcase(os.path.realpath(config.CONFIG_DIR))
         # Check the default value.
         self.assertEqual(c.get_dictionaries(),
                          [DictionaryConfig(path)
                           for path in system.DEFAULT_DICTIONARIES])
         # Load from a file encoded the ancient way...
-        filename = os.path.abspath('/some_file')
+        filename = normalize_path('/some_file')
         f = make_config('[%s]\n%s: %s' % (legacy_section, legacy_option, filename))
         c.load(f)
         # ..and make sure the right value is set.
         self.assertEqual(c.get_dictionaries(), [DictionaryConfig(filename)])
         # Load from a file encoded the old way...
-        filenames = [os.path.abspath(path)
-                     for path in ('/b', '/a', '/d', '/c')]
+        filenames = [os.path.join(ABS_PATH, f) for f in ('b', 'a', 'd', 'c')]
         dictionaries = [DictionaryConfig(path) for path in filenames]
         value = '\n'.join('%s%d: %s' % (legacy_option, d, v)
                               for d, v in enumerate(reversed(filenames), start=1))
