@@ -20,6 +20,7 @@ from PyQt5.QtWidgets import (
 from plover.config import DictionaryConfig
 from plover.dictionary.base import create_dictionary
 from plover.engine import ErroredDictionary
+from plover.misc import normalize_path
 from plover.registry import registry
 from plover import log
 
@@ -337,6 +338,7 @@ class DictionariesWidget(QWidget, Ui_DictionariesWidget):
         )[0]
         dictionaries = self._config_dictionaries[:]
         for filename in new_filenames:
+            filename = normalize_path(filename)
             for d in dictionaries:
                 if d.path == filename:
                     break
@@ -351,6 +353,7 @@ class DictionariesWidget(QWidget, Ui_DictionariesWidget):
         )[0]
         if not new_filename:
             return
+        new_filename = normalize_path(new_filename)
         try:
             d = create_dictionary(new_filename, threaded_save=False)
             d.save()
