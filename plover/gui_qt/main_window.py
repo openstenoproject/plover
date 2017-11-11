@@ -45,7 +45,7 @@ class MainWindow(QMainWindow, Ui_MainWindow, WindowState):
         edit_menu = all_actions['menu_Edit'].menu()
         edit_menu.addAction(self.dictionaries.action_Undo)
         edit_menu.addSeparator()
-        edit_menu.addAction(self.dictionaries.action_AddDictionaries)
+        edit_menu.addMenu(self.dictionaries.menu_AddDictionaries)
         edit_menu.addAction(self.dictionaries.action_EditDictionaries)
         edit_menu.addAction(self.dictionaries.action_RemoveDictionaries)
         edit_menu.addSeparator()

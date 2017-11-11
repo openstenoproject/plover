@@ -8,25 +8,44 @@ from PyQt5.QtCore import (
     Qt,
     pyqtSignal,
 )
-from PyQt5.QtGui import QIcon
+from PyQt5.QtGui import QCursor, QIcon
 from PyQt5.QtWidgets import (
     QApplication,
     QFileDialog,
+    QMenu,
     QTableWidgetItem,
     QWidget,
 )
 
 from plover.config import DictionaryConfig
+from plover.dictionary.base import create_dictionary
 from plover.engine import ErroredDictionary
+from plover.misc import normalize_path
 from plover.registry import registry
+from plover import log
 
 from plover.gui_qt.dictionaries_widget_ui import Ui_DictionariesWidget
 from plover.gui_qt.dictionary_editor import DictionaryEditor
 from plover.gui_qt.utils import ToolBar
 
 
-def _dictionary_formats():
-    return set(plugin.name for plugin in registry.list_plugins('dictionary'))
+def _dictionary_formats(include_readonly=True):
+    return set(plugin.name
+               for plugin in registry.list_plugins('dictionary')
+               if include_readonly or not plugin.obj.readonly)
+
+def _dictionary_filters(include_readonly=True):
+    formats = sorted(_dictionary_formats(include_readonly=include_readonly))
+    filters = ['*.' + ext for ext in formats]
+    filters = [_('Dictionaries') + ' (%s)' % ' '.join(filters)]
+    filters.extend(
+        (_('%s dictionaries') + ' (%s)') % (
+            ext.strip('.').upper(),
+            '*.' + ext,
+        )
+        for ext in formats
+    )
+    return ';; '.join(filters)
 
 
 class DictionariesWidget(QWidget, Ui_DictionariesWidget):
@@ -63,6 +82,15 @@ class DictionariesWidget(QWidget, Ui_DictionariesWidget):
             self.action_MoveDictionariesUp,
             self.action_MoveDictionariesDown,
         ))
+        # Add menu.
+        self.menu_AddDictionaries = QMenu(self.action_AddDictionaries.text())
+        self.menu_AddDictionaries.setIcon(self.action_AddDictionaries.icon())
+        self.menu_AddDictionaries.addAction(_(
+            _('Open dictionaries'),
+        )).triggered.connect(self._add_existing_dictionaries)
+        self.menu_AddDictionaries.addAction(_(
+            _('New dictionary'),
+        )).triggered.connect(self._create_new_dictionary)
         self.table.supportedDropActions = self._supported_drop_actions
         self.table.dragEnterEvent = self._drag_enter_event
         self.table.dragMoveEvent = self._drag_move_event
@@ -302,19 +330,46 @@ class DictionariesWidget(QWidget, Ui_DictionariesWidget):
         self._update_dictionaries(dictionaries, keep_selection=False)
 
     def on_add_dictionaries(self):
-        filters = ['*.' + ext for ext in sorted(_dictionary_formats())]
+        self.menu_AddDictionaries.exec_(QCursor.pos())
+
+    def _add_existing_dictionaries(self):
         new_filenames = QFileDialog.getOpenFileNames(
-            self, _('Add dictionaries'), None,
-            _('Dictionary Files') + ' (%s)' % ' '.join(filters),
+            self, _('Add dictionaries'), None, _dictionary_filters(),
         )[0]
         dictionaries = self._config_dictionaries[:]
         for filename in new_filenames:
+            filename = normalize_path(filename)
             for d in dictionaries:
                 if d.path == filename:
                     break
             else:
                 dictionaries.insert(0, DictionaryConfig(filename))
         self._update_dictionaries(dictionaries, keep_selection=False)
+
+    def _create_new_dictionary(self):
+        new_filename = QFileDialog.getSaveFileName(
+            self, _('New dictionary'), None,
+            _dictionary_filters(include_readonly=False),
+        )[0]
+        if not new_filename:
+            return
+        new_filename = normalize_path(new_filename)
+        try:
+            d = create_dictionary(new_filename, threaded_save=False)
+            d.save()
+        except:
+            log.error('creating dictionary %s failed', new_filename, exc_info=True)
+            return
+        dictionaries = self._config_dictionaries[:]
+        for d in dictionaries:
+            if d.path == new_filename:
+                break
+        else:
+            dictionaries.insert(0, DictionaryConfig(new_filename))
+        # Note: pass in `loaded_dictionaries` to force update (use case:
+        # the user decided to overwrite an already loaded dictionary).
+        self._update_dictionaries(dictionaries, keep_selection=False,
+                                  loaded_dictionaries=self._loaded_dictionaries)
 
     def on_add_translation(self):
         selection = self._get_selection()

@@ -40,7 +40,7 @@ def _threaded(fn):
         t.start()
     return wrapper
 
-def create_dictionary(resource):
+def create_dictionary(resource, threaded_save=True):
     '''Create a new dictionary.
 
     The format is inferred from the extension.
@@ -49,15 +49,16 @@ def create_dictionary(resource):
     method must be called to finalize the creation on disk.
     '''
     d = _get_dictionary_class(resource).create(resource)
-    d.save = _threaded(_locked(d.save))
+    if threaded_save:
+        d.save = _threaded(_locked(d.save))
     return d
 
-def load_dictionary(resource):
+def load_dictionary(resource, threaded_save=True):
     '''Load a dictionary from a file.
 
     The format is inferred from the extension.
     '''
     d = _get_dictionary_class(resource).load(resource)
-    if not d.readonly:
+    if not d.readonly and threaded_save:
         d.save = _threaded(_locked(d.save))
     return d

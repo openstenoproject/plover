@@ -23,7 +23,7 @@ def expand_path(path):
     if path.startswith(ASSET_SCHEME):
         return path
     path = os.path.expanduser(path)
-    path = os.path.realpath(os.path.join(CONFIG_DIR, path))
+    path = normalize_path(os.path.join(CONFIG_DIR, path))
     return path
 
 def shorten_path(path):
@@ -36,15 +36,22 @@ def shorten_path(path):
     '''
     if path.startswith(ASSET_SCHEME):
         return path
-    path = os.path.realpath(os.path.join(CONFIG_DIR, path))
-    config_dir = os.path.realpath(CONFIG_DIR)
+    path = normalize_path(os.path.join(CONFIG_DIR, path))
+    config_dir = normalize_path(CONFIG_DIR)
     if not config_dir.endswith(os.sep):
         config_dir += os.sep
     if path.startswith(config_dir):
         return path[len(config_dir):]
-    home_dir = os.path.expanduser('~')
+    home_dir = normalize_path(os.path.expanduser('~'))
     if not home_dir.endswith(os.sep):
         home_dir += os.sep
     if path.startswith(home_dir):
         return os.path.join('~', path[len(home_dir):])
     return path
+
+def normalize_path(path):
+    ''' Normalize path: return canonical path, normalizing case on Windows.
+    '''
+    if path.startswith(ASSET_SCHEME):
+        return path
+    return os.path.normcase(os.path.realpath(path))
