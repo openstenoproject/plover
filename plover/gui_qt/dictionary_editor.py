@@ -366,6 +366,7 @@ class DictionaryEditor(QDialog, Ui_DictionaryEditor, WindowState):
         self.action_Undo.setEnabled(self._model.has_undo)
 
     def on_apply_filter(self):
+        self.table.selectionModel().clear()
         strokes_filter = '/'.join(normalize_steno(self.strokes_filter.text().strip()))
         translation_filter = unescape_translation(self.translation_filter.text().strip())
         self._model.filter(strokes_filter=strokes_filter,
