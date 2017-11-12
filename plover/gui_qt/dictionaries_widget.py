@@ -188,6 +188,7 @@ class DictionariesWidget(QWidget, Ui_DictionariesWidget):
             self.action_Undo.setEnabled(False)
             self._states = []
         self._updating = False
+        self.on_selection_changed()
 
     @staticmethod
     def _supported_drop_actions():
