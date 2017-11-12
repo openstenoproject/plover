@@ -1192,3 +1192,21 @@ class TestBlackboxReplays(object):
         *     ' RAU'
         *     ''
         '''
+
+    def test_bug287(self):
+        r'''
+        "*6": "a",
+        "R*S": "{*+}",
+
+        *6   ' a'
+        R*S  ' a a'
+        '''
+
+    def test_bug470(self):
+        r'''
+        "0EU8": "80",
+        "R*S": "{*+}",
+
+        0EU8  ' 80'
+        R*S   ' 8080'
+        '''
