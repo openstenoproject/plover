@@ -140,7 +140,7 @@ class TestBlackboxReplays(object):
         r'''
         # Check if the translator curtailing the list of last translations
         # according to its dictionary longest key does no affect things
-        # like the restrospective repeate-last-stroke command.
+        # like the restrospective repeat-last-stroke command.
 
         "TEFT": "test",
         "R*S": "{*+}",
