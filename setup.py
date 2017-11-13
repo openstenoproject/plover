@@ -164,6 +164,9 @@ class BinaryDistWin(Command):
                 '''.rstrip()).format(dist_dir=dist_dir,
                                      entrypoint=entrypoint,
                                      gui=gui))
+        # Fix Visual C++ Redistributable DLL location.
+        os.rename(os.path.join(dist_dir, 'data', 'vcruntime140.dll'),
+                  os.path.join(dist_dir, 'vcruntime140.dll'))
         # Make distribution source-less.
         run(dist_py, '-m', 'plover_build_utils.source_less',
             # Don't touch pip._vendor.distlib sources,
