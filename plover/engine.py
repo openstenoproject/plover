@@ -30,6 +30,7 @@ class ErroredDictionary(StenoDictionary):
     def __init__(self, path, exception):
         super(ErroredDictionary, self).__init__()
         self.enabled = False
+        self.readonly = True
         self.path = path
         self.exception = exception
 
