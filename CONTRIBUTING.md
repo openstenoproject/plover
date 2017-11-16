@@ -170,7 +170,7 @@ Issues are classified by priority: low, medium, high, or critical.
 
 #### Issue Category
 Unlike PRs, issues are categorized as one of:
-Bug, feature-request, question, task, enhancement, wishlist.
+Bug, feature-request, question, task, wishlist.
 
 - **Bug** is something wrong in the code.
   This label will be accompanied by another label to give its state:
@@ -179,11 +179,9 @@ Bug, feature-request, question, task, enhancement, wishlist.
     problems that require special hardware)
   - **confirmed** for bugs that have successfully been reproduced
 
-- A **feature-request** represents a request for a significant new feature
+- A **feature-request** represents a request for new functionality
   to be added to Plover.
   These will be prioritized as described in the previous section.
-  - An **enhancement** is a feature-request that's only asking for something to
-    be improved or modified slightly.
   - A [**wishlist** issue](https://github.com/openstenoproject/plover/issues?utf8=%E2%9C%93&q=is%3Aissue+is%3Aopen+label%3Awishlist)
     is an accepted feature request
     that the Plover developers would like to implement.
