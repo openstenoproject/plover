@@ -1,57 +1,40 @@
-Classification: (Pick one of: Bug, Crash/Hang/Data Loss, Performance, UI/Usability, Feature (New), Enhancement)
-
-Reproducibility: (Pick one of: Always, Sometimes, Rarely, Unable, I Didn't Try, Not Applicable - N/A applies for Feature and Enhancement requests)
-
 ## Summary
+<!-- Briefly, what your is your issue, and how often does it happen (always, sometimes, rarely)? -->
+<!-- ↓↓ WRITE SUMMARY BELOW ↓↓ -->
 
-Summary of the problem.
 
-## Steps to Reproduce
+<!-- ↑↑ END SUMMARY ↑↑ -->
 
-1. I do this
-2. I do that
+## Reproducing
+<!-- Usually, in order to help you, the developers need to be able to reproduce issue -->
+<!-- What are the steps you take that cause this issue? -->
+<!-- You can attach a screenshot of the problem, if it is visual -->
+<!-- If Plover is crashing:
+          - you can attach the "plover.log" file -->
+<!-- If it is a steno output issue:
+          - you can turn on stroke logging, reproduce the issue, then attach your "strokes.log" -->
+<!-- If it is a machine issue:
+          - what machine do you have?
+          - how is it connected to your computer? -->
+<!-- ↓↓ WRITE REPRODUCE INSTRUCTIONS BELOW ↓↓ -->
 
-## Expected Results
 
-3. This should happen.
+<!-- ↑↑ END REPRODUCE INSTRUCTIONS ↑↑ -->
 
-## Actual Results
+## Plover Version
+<!-- If you can open Plover, view the "About" window and copy the version number -->
+<!-- If you are running from source, paste the Git SHA. You can get it by running: `git rev-parse --short HEAD` -->
+<!-- ↓↓ WRITE PLOVER VERSION BELOW ↓↓ -->
 
-3. Instead, this happens. :(
 
-If helpful, submit screenshots of the issue to help debug. Your `plover.log` or `strokes.log` may also be useful.
+<!-- ↑↑ END PLOVER VERSION ↑↑ -->
 
-## Version
+## System
+<!-- Please tell us if you are running on Windows, Mac, or Linux. -->
+<!-- WINDOWS: Are you on Windows 7, 8, 10, etc.? -->
+<!-- MAC: Click the Apple in the menu bar, then "About This Mac" to get the version number -->
+<!-- LINUX: Which distribution, DE, and WM, and how you are running Plover (deb, AppImage, installed, etc.) -->
+<!-- ↓↓ WRITE SYSTEM INFO BELOW ↓↓ -->
 
-Plover version ???.
 
-(Click the "About…" button in the main Plover window to see the version
-number.)
-
-If the problem is known to be present in more than one version, please list all of those.
-
-Installed via: (download from openstenoproject.org, Homebrew, apt-get, …).
-
-## Notes
-
-Describe any debugging steps you've taken yourself.
-
-If you've found a workaround, provide it here.
-
-## Configuration
-
-OS:
-
-- If it's OS X,
-  go to Finder, Apple menu, "About This Mac".
-  - Alternatively, if you're comfortable with the Terminal, run
-    `sw_vers` and paste the output.
-
-- If it's Linux,
-  provide information on your distro and any customization
-  relevant to Plover's operation (desktop environment, window manager, ???).
-  - uname -a output might also be useful.
-
-- If it's Windows,
-  press the Windows key + PauseBreak key together in order to bring up
-  the Windows version information.
+<!-- ↑↑ END SYSTEM INFO ↑↑ -->
