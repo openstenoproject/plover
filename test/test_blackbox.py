@@ -1279,3 +1279,27 @@ class TestBlackboxReplays(object):
         KUPBTS "countries "
         R-R "countries"
         '''
+
+    def test_bug849_1(self):
+        r'''
+        "-P": ".",
+        "*P": "{*}",
+        "TKAOU": "due",
+        "TKAO*U": "dew",
+
+        TKAOU  ' due'
+        -P      ' due .'
+        *P     ' dew'
+        '''
+
+    def test_bug849_2(self):
+        r'''
+        "KPA*": "{^}{-|}",
+        "*P": "{*}",
+        "TKAOU": "due",
+        "TKAO*U": "dew",
+
+        KPA*   ''
+        TKAOU  'Due'
+        *P     'Dew'
+        '''
