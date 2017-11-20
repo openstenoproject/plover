@@ -421,10 +421,10 @@ class TextFormatter(object):
             else:
                 self._render_action(action)
 
-    def reset(self):
+    def reset(self, trailing_space):
         """Reset current state (rendered text)."""
         self.replaced_text = ''
-        self.appended_text = self.trailing_space
+        self.appended_text = trailing_space
 
 
 class OutputHelper(object):
@@ -459,8 +459,8 @@ class OutputHelper(object):
         appended = after[common_length:]
         if appended:
             self.output.send_string(appended)
-        self.before.reset()
-        self.after.reset()
+        self.before.reset(self.after.trailing_space)
+        self.after.reset(self.after.trailing_space)
 
     def render(self, last_action, undo, do):
         # Render undone actions, ignoring non-text actions.
