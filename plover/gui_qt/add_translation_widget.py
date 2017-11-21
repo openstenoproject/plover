@@ -213,7 +213,7 @@ class AddTranslationWidget(QWidget, Ui_AddTranslationWidget):
             strokes = ', '.join(self._special_fmt % html_escape('/'.join(s))
                                 for s in sort_steno_strokes(strokes))
         if translation:
-            translation = self._special_fmt % html_escape(translation)
+            translation = self._special_fmt % html_escape(escape_translation(translation))
         return fmt.format(strokes=strokes, translation=translation)
 
     def on_strokes_edited(self):
