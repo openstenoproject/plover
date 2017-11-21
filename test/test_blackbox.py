@@ -199,6 +199,32 @@ class TestBlackboxReplays(object):
         1/P-P/2/KR*UR  "$1.20 "
         '''
 
+    def test_undo_not_defined(self):
+        r'''
+        'TEFT': 'test',
+
+        TEFT  ' test'
+        *     ''
+        '''
+
+    def test_undo_overriden(self):
+        r'''
+        'TEFT': 'test',
+        '*': 'not undo',
+
+        TEFT  ' test'
+        *     ' test not undo'
+        '''
+
+    def test_undo_macro(self):
+        r'''
+        'TEFT': 'test',
+        'TPH-D': '=undo',
+
+        TEFT   ' test'
+        TPH-D  ''
+        '''
+
     def test_undo_fingerspelling_1(self):
         r'''
         'T*': '{>}{&t}',

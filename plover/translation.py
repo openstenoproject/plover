@@ -17,11 +17,11 @@ emits one or more Translation objects based on a greedy conversion algorithm.
 """
 
 from collections import namedtuple
-import sys
 import re
 
 from plover.steno import Stroke
 from plover.steno_dictionary import StenoDictionaryCollection
+from plover.registry import registry
 from plover import system
 
 
@@ -52,14 +52,30 @@ def unescape_translation(translation):
     return _UNESCAPE_RX.sub(lambda m: _UNESCAPE_REPLACEMENTS[m.group(0)], translation)
 
 
-_MACROS = {
-    '{*}',  # retrospective toggle asterisk
-    '{*!}', # retrospective delete space
-    '{*?}', # retrospective insert space
-    '{*+}', # repeat last stroke
+_LEGACY_MACROS_ALIASES = {
+    '{*}': 'retrospective_toggle_asterisk',
+    '{*!}': 'retrospective_delete_space',
+    '{*?}': 'retrospective_insert_space',
+    '{*+}': 'repeat_last_stroke',
 }
 
-Macro = namedtuple('Macro', 'name stroke args')
+Macro = namedtuple('Macro', 'name stroke cmdline')
+
+def _mapping_to_macro(mapping, stroke):
+    '''Return a macro/stroke if mapping is one, or None otherwise.'''
+    macro, cmdline = None, ''
+    if mapping is None:
+        if stroke.is_correction:
+            macro = 'undo'
+    else:
+        if mapping in _LEGACY_MACROS_ALIASES:
+            macro = _LEGACY_MACROS_ALIASES[mapping]
+        elif mapping.startswith('=') and len(mapping) > 1:
+            args = mapping[1:].split(':', 1)
+            macro = args[0]
+            if len(args) == 2:
+                cmdline = args[1]
+    return Macro(macro, stroke, cmdline) if macro else None
 
 
 class Translation(object):
@@ -281,19 +297,10 @@ class Translator(object):
         stroke -- The Stroke object to process.
 
         """
-        if stroke.is_correction:
-            for t in reversed(self._state.translations):
-                self.untranslate_translation(t)
-                if t.has_undo():
-                    return
-            # There is no more buffer to delete from -- remove undo and add a
-            # stroke that removes last word on the user's OS, but don't add it
-            # to the state history.
-            self.flush([Translation([stroke], _back_string())])
-            return
         mapping = self.lookup([stroke])
-        if mapping in _MACROS:
-            self.translate_macro(Macro(mapping, stroke, ''))
+        macro = _mapping_to_macro(mapping, stroke)
+        if macro is not None:
+            self.translate_macro(macro)
             return
         t = (
             self._find_translation_helper(stroke) or
@@ -303,59 +310,8 @@ class Translator(object):
         self.translate_translation(t)
 
     def translate_macro(self, macro):
-        translations = self._state.translations
-        if macro.name == '{*}':
-            # Toggle asterisk of previous stroke
-            if not translations:
-                return
-            t = translations[-1]
-            self.untranslate_translation(t)
-            keys = set(t.strokes[-1].steno_keys)
-            if '*' in keys:
-                keys.remove('*')
-            else:
-                keys.add('*')
-            self.translate_stroke(Stroke(keys))
-        elif macro.name == '{*+}':
-            # Repeat last stroke
-            if not translations:
-                return
-            stroke = Stroke(translations[-1].strokes[-1].steno_keys)
-            self.translate_stroke(stroke)
-        elif macro.name == '{*?}':
-            # Retrospective insert space
-            if not translations:
-                return
-            replaced = translations[-1]
-            if replaced.is_retrospective_command:
-                return
-            lookup_stroke = replaced.strokes[-1]
-            english = [t.english or '/'.join(t.rtfcre)
-                       for t in replaced.replaced]
-            if english:
-                english.append(self.lookup([lookup_stroke]) or lookup_stroke.rtfcre)
-                t = Translation([macro.stroke], ' '.join(english))
-                t.replaced = [replaced]
-                t.is_retrospective_command = True
-                self.translate_translation(t)
-        elif macro.name == '{*!}':
-            # Retrospective delete space
-            if len(translations) < 2:
-                return
-            replaced = translations[-2:]
-            if replaced[1].is_retrospective_command:
-                return
-            english = []
-            for t in replaced:
-                if t.english is not None:
-                    english.append(t.english)
-                elif len(t.rtfcre) == 1 and t.rtfcre[0].isdigit():
-                    english.append('{&%s}' % t.rtfcre[0])
-            if len(english) > 1:
-                t = Translation([macro.stroke], '{^~|^}'.join(english))
-                t.replaced = replaced
-                t.is_retrospective_command = True
-                self.translate_translation(t)
+        macro_fn = registry.get_plugin('macro', macro.name).obj
+        macro_fn(self, macro.stroke, macro.cmdline)
 
     def translate_translation(self, t):
         self._undo(*t.replaced)
@@ -465,14 +421,3 @@ class _State(object):
         if translation_index:
             self.tail = self.translations[translation_index - 1]
         del self.translations[:translation_index]
-
-
-def _back_string():
-    # Provides the correct translation to undo a word
-    # depending on the operating system and stores it
-    if 'mapping' not in _back_string.__dict__:
-        if sys.platform.startswith('darwin'):
-            _back_string.mapping = '{#Alt_L(BackSpace)}{^}'
-        else:
-            _back_string.mapping = '{#Control_L(BackSpace)}{^}'
-    return _back_string.mapping

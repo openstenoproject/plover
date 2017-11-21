@@ -32,6 +32,7 @@ class Registry(object):
         'gui.qt.machine_option',
         'gui.qt.tool',
         'machine',
+        'macro',
         'system',
     )
 
