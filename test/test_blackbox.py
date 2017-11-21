@@ -1210,3 +1210,13 @@ class TestBlackboxReplays(object):
         0EU8  ' 80'
         R*S   ' 8080'
         '''
+
+    def test_bug851(self):
+        r'''
+        "KUPBTS": "countries",
+        "R-R": "{^}{#Return}{^}{-|}",
+
+        :spaces_after
+        KUPBTS "countries "
+        R-R "countries"
+        '''
