@@ -39,13 +39,37 @@ class GeminiPr(SerialStenotypeBase):
     def run(self):
         """Overrides base class run method. Do not call directly."""
         self._ready()
+        # We might sometimes get a partial packet. To resync, we
+        # need to restart from the first byte with 0x80 in it.
+        # So..
+        saved = None
         while not self.finished.isSet():
-
             # Grab data from the serial port.
-            raw = self.serial_port.read(BYTES_PER_STROKE)
+            if saved:
+                raw = saved + self.serial_port.read(BYTES_PER_STROKE - len(saved))
+                saved = None
+            else:
+                raw = self.serial_port.read(BYTES_PER_STROKE)
             if not raw:
                 continue
 
+            resync = False
+            if len(raw) < BYTES_PER_STROKE:
+                log.error("short read [%d bytes out of %d expected].", len(raw), BYTES_PER_STROKE)
+                resync = True
+            if (not (raw[0] & 0x80)) or sum(b & 0x80 for b in raw[1:]):
+                log.error("invalid packet start: %s", binascii.hexify(raw))
+                resync = True
+
+            # Try to find an 0x80 byte, and resume processing with that
+            # byte.
+            if resync:
+                # If there's more than one byte with 0x80, we end
+                # up starting from the most recent.
+                for i, b in enumerate(raw):
+                    if b & 0x80:
+                        saved = raw[i:]
+                continue
             # Convert the raw to a list of steno keys.
             steno_keys = []
             for i, b in enumerate(raw):
