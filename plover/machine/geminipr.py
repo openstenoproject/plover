@@ -3,7 +3,10 @@
 
 """Thread-based monitoring of a Gemini PR stenotype machine."""
 
+import binascii
+
 from plover.machine.base import SerialStenotypeBase
+from plover import log
 
 # In the Gemini PR protocol, each packet consists of exactly six bytes
 # and the most significant bit (MSB) of every byte is used exclusively
@@ -44,6 +47,17 @@ class GeminiPr(SerialStenotypeBase):
             # Grab data from the serial port.
             raw = self.serial_port.read(BYTES_PER_STROKE)
             if not raw:
+                continue
+
+            # Make sure this is a valid steno stroke.
+            if (
+                len(raw) != BYTES_PER_STROKE
+                or not raw[0] & 0x80
+                or sum(1 for byte in raw if byte & 0x80) != 1
+            ):
+                log.error('invalid packet: %s (in waiting: %s)',
+                          binascii.hexlify(raw),
+                          binascii.hexlify(self.serial_port.read(self.serial_port.in_waiting)))
                 continue
 
             # Convert the raw to a list of steno keys.
