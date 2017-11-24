@@ -306,13 +306,13 @@ TRANSLATION_TO_ACTIONS_TESTS = (
 
     ('equip {*<}', action(),
      [action(text_and_word='equip', trailing_space=' '),
-      action(prev_attach=True, text='EQUIP', trailing_space=' ', word_and_prev_replace='equip', upper_carry=True),
+      action(prev_attach=True, text='EQUIP', trailing_space=' ', word_and_prev_replace='equip'),
      ]),
 
     ('equip {^ed} {*<}', action(),
      [action(text_and_word='equip', trailing_space=' '),
       action(prev_attach=True, text='ped', trailing_space=' ', word='equipped'),
-      action(prev_attach=True, text='EQUIPPED', trailing_space=' ', word_and_prev_replace='equipped', upper_carry=True),
+      action(prev_attach=True, text='EQUIPPED', trailing_space=' ', word_and_prev_replace='equipped'),
      ]),
 
     ('notanumber {*($c)}', action(),
@@ -532,7 +532,7 @@ ATOM_TO_ACTION_TESTS = (
             trailing_space=' ')),
 
     ('{*<}', action(text_and_word='test', trailing_space=' '),
-     action(prev_attach=True, text='TEST', word_and_prev_replace='test', trailing_space=' ', upper_carry=True)),
+     action(prev_attach=True, text='TEST', word_and_prev_replace='test', trailing_space=' ')),
 
     ('{PLOVER:test_command}', action(text_and_word='test', trailing_space=' '),
      action(word='test', command='test_command', trailing_space=' ')),

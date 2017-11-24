@@ -884,7 +884,7 @@ class TestBlackboxReplays(object):
         'PRE': '{pre^}',
         'R*U': '{*<}',
 
-        TEFT/R*U/-G/PRE  " TESTING pre"
+        TEFT/R*U/-G/PRE  " TESTing pre"
         '''
 
     def test_retro_upper3(self):
@@ -926,7 +926,7 @@ class TestBlackboxReplays(object):
         "W-G": "{^ing with}",
         'RUP': '{*<}',
 
-        TEFT/RUP/W-G  " TESTING with"
+        TEFT/RUP/W-G  " TESTing with"
         '''
 
     def test_retro_upper8(self):
@@ -944,7 +944,7 @@ class TestBlackboxReplays(object):
         "W-G": "{^ing with}",
         'RUP': '{*<}',
 
-        TEFT/RUP/W-G/W-G  " TESTING withing with"
+        TEFT/RUP/W-G/W-G  " TESTing withing with"
         '''
 
     def test_retro_upper10(self):

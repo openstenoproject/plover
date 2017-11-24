@@ -801,8 +801,6 @@ def _apply_meta_retro_case(meta, ctx):
     if last_words:
         action.prev_replace = last_words[0]
         action.text = _apply_case(last_words[0], meta)
-        if meta == CASE_UPPER_FIRST_WORD:
-            action.upper_carry = True
     else:
         action.text = ''
     return action
