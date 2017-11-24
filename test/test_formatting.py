@@ -785,7 +785,22 @@ def test_capitalize_first_word(s, expected):
     assert formatting._capitalize_first_word(s) == expected
 
 
-@parametrize([('', ''), ('abc', 'abc'), ('a word', 'word'), ('word.', 'word.')])
+RIGHTMOST_WORD_TESTS = (
+    ('', ''),
+    ('\n', ''),
+    ('\t', ''),
+    ('abc', 'abc'),
+    ('a word', 'word'),
+    ('word.', 'word.'),
+    ('word ', ''),
+    ('word\n', ''),
+    ('word\t', ''),
+    (' word', 'word'),
+    ('\nword', 'word'),
+    ('\tword', 'word'),
+)
+
+@parametrize(RIGHTMOST_WORD_TESTS)
 def test_rightmost_word(s, expected):
     assert formatting._rightmost_word(s) == expected
 

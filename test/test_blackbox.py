@@ -1307,3 +1307,67 @@ class TestBlackboxReplays(object):
         KUPBTS "countries "
         R-R "countries"
         '''
+
+    def test_carry_upper_spacing1(self):
+        r'''
+        "TEFT": "{<}test",
+        "-G": "{^ing}",
+        "S-P": "{^ ^}",
+        "S-G": "something",
+
+        TEFT/-G  ' TESTING'
+        S-P      ' TESTING '
+        S-G      ' TESTING something'
+        '''
+
+    def test_carry_upper_spacing2(self):
+        r'''
+        "TEFT": "{<}test",
+        "W-G": "{^ing with}",
+        "S-G": "something",
+
+        TEFT/W-G  ' TESTING with'
+        S-G      ' TESTING with something'
+        '''
+
+    def test_carry_upper_spacing3(self):
+        r'''
+        "TEFT": "{<}test",
+        "-G": "{^ing}",
+        "R-R": "{^\n^}",
+        "S-G": "something",
+
+        TEFT/-G  ' TESTING'
+        R-R      ' TESTING\n'
+        S-G      ' TESTING\nsomething'
+        '''
+
+    def test_carry_upper_spacing4(self):
+        r'''
+        "TEFT": "{<}test",
+        "W-G": "{^ing\twith}",
+
+        TEFT/W-G  ' TESTING\twith'
+        W-G      ' TESTING\twithing\twith'
+        '''
+
+    def test_carry_upper_spacing5(self):
+        r'''
+        "TEFT": "{<}test",
+        "-G": "{^ing}",
+        "TA*B": "{^\t^}",
+        "S-G": "something",
+
+        TEFT/-G  ' TESTING'
+        TA*B     ' TESTING\t'
+        S-G      ' TESTING\tsomething'
+        '''
+
+    def test_carry_upper_spacing6(self):
+        r'''
+        "TEFT": "{<}test",
+        "W-G": "{^ing\nwith}",
+
+        TEFT/W-G  ' TESTING\nwith'
+        W-G       ' TESTING\nwithing\nwith'
+        '''
