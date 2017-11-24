@@ -969,7 +969,7 @@ class TestRetroFormatter(object):
 
         (False,
          ['Luca, mela.'],
-         ['.', 'mela', ', ', 'Luca']),
+         ['mela.', 'Luca, ']),
 
         (False,
          ['Luca{-|}mela'],

@@ -871,6 +871,93 @@ class TestBlackboxReplays(object):
         TEFT/RUP/W/W  " TEST with with"
         '''
 
+    def test_retro_upper11(self):
+        r'''
+        "PREPB": "{~|(^}",
+        'TEFT': 'test',
+        'RUP': '{*<}',
+
+        PREPB/TEFT/RUP  " (TEST"
+        '''
+
+    def test_retro_upper12(self):
+        r'''
+        'PRE': '{pre^}',
+        "PREPB": "{~|(^}",
+        'TEFT': 'test',
+        'RUP': '{*<}',
+
+        PRE/PREPB/TEFT/RUP  " PRE(TEST"
+        '''
+
+    def test_retro_upper13(self):
+        r'''
+        "PEUD": "pid",
+        "TPAOEUL": "file",
+        "H*PB": "{^-^}",
+        'RUP': '{*<}',
+
+        PEUD/RUP/H*PB/TPAOEUL  ' PID-file'
+        '''
+
+    def test_retro_upper14(self):
+        r'''
+        "PEUD": "pid",
+        "TPAOEUL": "file",
+        "H*PB": "{^-^}",
+        'RUP': '{*<}',
+
+        PEUD/H*PB/TPAOEUL/RUP  ' PID-FILE'
+        '''
+
+    def test_retro_upper15(self):
+        r'''
+        "OEU": "{^/^}",
+        "T*": "{>}{&t}",
+        "A*": "{>}{&a}",
+        "KR*": "{>}{&c}",
+        "O*": "{>}{&o}",
+        "S*": "{>}{&s}",
+        'RUP': '{*<}',
+
+        T*/A*/OEU/KR*/O*/S*/RUP  ' TA/COS'
+        '''
+
+    def test_retro_upper16(self):
+        r'''
+        "S*": "{>}{&s}",
+        "T*": "{>}{&t}",
+        "O*": "{>}{&o}",
+        "STA*R": "{^*^}",
+        "*E": "{>}{&e}",
+        "*U": "{>}{&u}",
+        "P*": "{>}{&p}",
+        "PW*": "{>}{&b}",
+        'RUP': '{*<}',
+
+        S*/T*/O*/STA*R/*E/*U/P*/PW*/RUP  ' STO*EUPB'
+        '''
+
+    def test_retro_upper17(self):
+        r'''
+        "*U": "{>}{&u}",
+        "S*": "{>}{&s}",
+        "A*": "{>}{&a}",
+        "P-P": "{^.^}",
+        'RUP': '{*<}',
+
+        *U/P-P/S*/P-P/A*/P-P/RUP  ' U.S.A.'
+        '''
+
+    def test_retro_upper18(self):
+        r'''
+        "TPAO": "foo",
+        "KPATS": "{*-|}",
+        "AES": "{^'s}",
+
+        TPAO/AES/KPATS " Foo's"
+        '''
+
     def test_upper1(self):
         r'''
         'TP*U': '{<}',

@@ -83,7 +83,7 @@ META_RE = re.compile(r"""(?:%s%s|%s%s|[^%s%s])+ # One or more of anything
 #             """, re.VERBOSE)
 
 
-WORD_RX = re.compile(r'(?:\d+(?:[.,]\d+)+|\w+[-\w]*|[^\w\s]+)\s*', re.UNICODE)
+WORD_RX = re.compile(r'[^\s]+\s*', re.UNICODE)
 
 
 class RetroFormatter(object):
