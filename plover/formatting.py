@@ -83,7 +83,7 @@ META_RE = re.compile(r"""(?:%s%s|%s%s|[^%s%s])+ # One or more of anything
 #             """, re.VERBOSE)
 
 
-WORD_RX = re.compile(r'((\d+([.,]\d+)+|\w+[-\w]*|[^\w\s]+)\s*)', re.UNICODE)
+WORD_RX = re.compile(r'(?:\d+(?:[.,]\d+)+|\w+[-\w]*|[^\w\s]+)\s*', re.UNICODE)
 
 
 class RetroFormatter(object):
@@ -164,8 +164,8 @@ class RetroFormatter(object):
         """
         for fragment in self.iter_last_fragments():
             # Split each fragment into words.
-            for match in reversed(rx.findall(fragment)):
-                yield match[0].rstrip() if strip else match[0]
+            for word in reversed(rx.findall(fragment)):
+                yield word.rstrip() if strip else word
 
     def last_words(self, count=1, strip=False, rx=WORD_RX):
         """Return the last <count> words."""
