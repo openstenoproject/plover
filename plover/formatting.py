@@ -731,7 +731,7 @@ def _atom_to_action(atom, ctx):
             case = CASE_UPPER_FIRST_WORD
         text = _apply_case(text, case)
         if case == CASE_UPPER_FIRST_WORD:
-            action.upper_carry = not ' ' in text
+            action.upper_carry = not _has_word_boundary(text)
         # Apply mode.
         action.text = _apply_mode(text, action.case, action.space_char,
                                   action.prev_attach, ctx.last_action)
@@ -760,7 +760,7 @@ def _apply_meta_attach(meta, ctx):
         last_word and
         not meta.isspace() and
         ctx.last_action.orthography and
-        begin and (not end or ' ' in meta)
+        begin and (not end or _has_word_boundary(meta))
     ):
         new_word = add_suffix(last_word, meta)
         common_len = len(commonprefix([last_word, new_word]))
@@ -1023,4 +1023,21 @@ def _upper_first_word(s):
 
 def _rightmost_word(s):
     """Get the rightmost word in s."""
-    return s.rpartition(SPACE)[2]
+    words = WORD_RX.findall(s)
+    if not words:
+        return ''
+    last_word = words[-1]
+    if last_word[-1].isspace():
+        return ''
+    return last_word
+
+
+def _has_word_boundary(s):
+    """Return True if s contains a word boundary
+    (e.g.: more than 1 word, or white space).
+    """
+    if not s:
+        return False
+    if s[0].isspace() or s[-1].isspace():
+        return True
+    return len(WORD_RX.findall(s)) > 1
