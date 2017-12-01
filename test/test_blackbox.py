@@ -799,7 +799,7 @@ class TestBlackboxReplays(object):
         'PRE': '{pre^}',
         'R*U': '{*<}',
 
-        TEFT/R*U/-G/PRE  " TESTING pre"
+        TEFT/R*U/-G/PRE  " TESTing pre"
         '''
 
     def test_retro_upper3(self):
@@ -841,7 +841,7 @@ class TestBlackboxReplays(object):
         "W-G": "{^ing with}",
         'RUP': '{*<}',
 
-        TEFT/RUP/W-G  " TESTING with"
+        TEFT/RUP/W-G  " TESTing with"
         '''
 
     def test_retro_upper8(self):
@@ -859,7 +859,7 @@ class TestBlackboxReplays(object):
         "W-G": "{^ing with}",
         'RUP': '{*<}',
 
-        TEFT/RUP/W-G/W-G  " TESTING withing with"
+        TEFT/RUP/W-G/W-G  " TESTing withing with"
         '''
 
     def test_retro_upper10(self):
@@ -869,6 +869,93 @@ class TestBlackboxReplays(object):
         'RUP': '{*<}',
 
         TEFT/RUP/W/W  " TEST with with"
+        '''
+
+    def test_retro_upper11(self):
+        r'''
+        "PREPB": "{~|(^}",
+        'TEFT': 'test',
+        'RUP': '{*<}',
+
+        PREPB/TEFT/RUP  " (TEST"
+        '''
+
+    def test_retro_upper12(self):
+        r'''
+        'PRE': '{pre^}',
+        "PREPB": "{~|(^}",
+        'TEFT': 'test',
+        'RUP': '{*<}',
+
+        PRE/PREPB/TEFT/RUP  " PRE(TEST"
+        '''
+
+    def test_retro_upper13(self):
+        r'''
+        "PEUD": "pid",
+        "TPAOEUL": "file",
+        "H*PB": "{^-^}",
+        'RUP': '{*<}',
+
+        PEUD/RUP/H*PB/TPAOEUL  ' PID-file'
+        '''
+
+    def test_retro_upper14(self):
+        r'''
+        "PEUD": "pid",
+        "TPAOEUL": "file",
+        "H*PB": "{^-^}",
+        'RUP': '{*<}',
+
+        PEUD/H*PB/TPAOEUL/RUP  ' PID-FILE'
+        '''
+
+    def test_retro_upper15(self):
+        r'''
+        "OEU": "{^/^}",
+        "T*": "{>}{&t}",
+        "A*": "{>}{&a}",
+        "KR*": "{>}{&c}",
+        "O*": "{>}{&o}",
+        "S*": "{>}{&s}",
+        'RUP': '{*<}',
+
+        T*/A*/OEU/KR*/O*/S*/RUP  ' TA/COS'
+        '''
+
+    def test_retro_upper16(self):
+        r'''
+        "S*": "{>}{&s}",
+        "T*": "{>}{&t}",
+        "O*": "{>}{&o}",
+        "STA*R": "{^*^}",
+        "*E": "{>}{&e}",
+        "*U": "{>}{&u}",
+        "P*": "{>}{&p}",
+        "PW*": "{>}{&b}",
+        'RUP': '{*<}',
+
+        S*/T*/O*/STA*R/*E/*U/P*/PW*/RUP  ' STO*EUPB'
+        '''
+
+    def test_retro_upper17(self):
+        r'''
+        "*U": "{>}{&u}",
+        "S*": "{>}{&s}",
+        "A*": "{>}{&a}",
+        "P-P": "{^.^}",
+        'RUP': '{*<}',
+
+        *U/P-P/S*/P-P/A*/P-P/RUP  ' U.S.A.'
+        '''
+
+    def test_retro_upper18(self):
+        r'''
+        "TPAO": "foo",
+        "KPATS": "{*-|}",
+        "AES": "{^'s}",
+
+        TPAO/AES/KPATS " Foo's"
         '''
 
     def test_upper1(self):
@@ -1219,4 +1306,68 @@ class TestBlackboxReplays(object):
         :spaces_after
         KUPBTS "countries "
         R-R "countries"
+        '''
+
+    def test_carry_upper_spacing1(self):
+        r'''
+        "TEFT": "{<}test",
+        "-G": "{^ing}",
+        "S-P": "{^ ^}",
+        "S-G": "something",
+
+        TEFT/-G  ' TESTING'
+        S-P      ' TESTING '
+        S-G      ' TESTING something'
+        '''
+
+    def test_carry_upper_spacing2(self):
+        r'''
+        "TEFT": "{<}test",
+        "W-G": "{^ing with}",
+        "S-G": "something",
+
+        TEFT/W-G  ' TESTING with'
+        S-G      ' TESTING with something'
+        '''
+
+    def test_carry_upper_spacing3(self):
+        r'''
+        "TEFT": "{<}test",
+        "-G": "{^ing}",
+        "R-R": "{^\n^}",
+        "S-G": "something",
+
+        TEFT/-G  ' TESTING'
+        R-R      ' TESTING\n'
+        S-G      ' TESTING\nsomething'
+        '''
+
+    def test_carry_upper_spacing4(self):
+        r'''
+        "TEFT": "{<}test",
+        "W-G": "{^ing\twith}",
+
+        TEFT/W-G  ' TESTING\twith'
+        W-G      ' TESTING\twithing\twith'
+        '''
+
+    def test_carry_upper_spacing5(self):
+        r'''
+        "TEFT": "{<}test",
+        "-G": "{^ing}",
+        "TA*B": "{^\t^}",
+        "S-G": "something",
+
+        TEFT/-G  ' TESTING'
+        TA*B     ' TESTING\t'
+        S-G      ' TESTING\tsomething'
+        '''
+
+    def test_carry_upper_spacing6(self):
+        r'''
+        "TEFT": "{<}test",
+        "W-G": "{^ing\nwith}",
+
+        TEFT/W-G  ' TESTING\nwith'
+        W-G       ' TESTING\nwithing\nwith'
         '''
