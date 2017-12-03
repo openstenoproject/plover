@@ -6,6 +6,7 @@
 
 """Base classes for machine types. Do not use directly."""
 
+import binascii
 import threading
 
 import serial
@@ -229,3 +230,33 @@ class SerialStenotypeBase(ThreadedStenotypeBase):
             'xonxoff': (False, bool_converter),
             'rtscts': (False, bool_converter)
         }
+
+    def _iter_packets(self, packet_size):
+        """Yield packets of <packets_size> bytes until the machine is stopped.
+
+        N.B.: to workaround the fact that the Toshiba Bluetooth stack
+        on Windows does not correctly handle the read timeout setting
+        (returning immediately if some data is already available):
+        - the effective timeout is re-configured to <timeout/packet_size>
+        - multiple reads are  done (until a packet is complete)
+        - an incomplete packet will only be discarded if one of
+          those reads return no data (but not on short read)
+        """
+        self.serial_port.timeout = max(
+            self.serial_params.get('timeout', 1.0) / packet_size,
+            0.01,
+        )
+        packet = b''
+        while not self.finished.isSet():
+            raw = self.serial_port.read(packet_size - len(packet))
+            if not raw:
+                if packet:
+                    log.error('discarding incomplete packet: %s',
+                              binascii.hexlify(packet))
+                packet = b''
+                continue
+            packet += raw
+            if len(packet) != packet_size:
+                continue
+            yield packet
+            packet = b''
