@@ -112,7 +112,10 @@ class AddTranslationWidget(QWidget, Ui_AddTranslationWidget):
 
     @staticmethod
     def _dictionary_filter(key, value):
-        # Only allow translations with special entries. Do this by looking for
+        # Allow undo...
+        if value == '=undo':
+            return False
+        # ...and translations with special entries. Do this by looking for
         # braces but take into account escaped braces and slashes.
         escaped = value.replace('\\\\', '').replace('\\{', '')
         special = '{#'  in escaped or '{PLOVER:' in escaped
