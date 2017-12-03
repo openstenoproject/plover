@@ -49,7 +49,7 @@ class Passport(SerialStenotypeBase):
 
         while not self.finished.isSet():
             # Grab data from the serial port.
-            raw = self.serial_port.read(self.serial_port.inWaiting())
+            raw = self.serial_port.read(max(1, self.serial_port.inWaiting()))
 
             for b in raw:
                 self._read(b)
