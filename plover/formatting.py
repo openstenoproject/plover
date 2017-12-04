@@ -164,6 +164,7 @@ class RetroFormatter(object):
         passed as <rx>, then it must include trailing whitespace as
         part of each word.
         """
+        assert not rx.groups
         for fragment in self.iter_last_fragments():
             # Split each fragment into words.
             for word in reversed(rx.findall(fragment)):
