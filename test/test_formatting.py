@@ -8,8 +8,7 @@ import inspect
 import pytest
 
 from plover import formatting
-
-from .test_blackbox import CaptureOutput
+from plover_build_utils.testing import CaptureOutput
 
 
 def parametrize(argvalues):
