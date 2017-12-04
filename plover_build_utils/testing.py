@@ -83,8 +83,6 @@ def replay(blackbox, name, test):
     for step in re.split('(?<=[^\\\\])\n', instructions):
         # Mark current instruction's line.
         lnum += 1
-        msg = name + '\n' + '\n'.join(('> ' if n == lnum else '  ') + l
-                                      for n, l in enumerate(lines))
         step = step.strip()
         # Support for changing some settings on the fly.
         if step.startswith(':'):
@@ -104,6 +102,13 @@ def replay(blackbox, name, test):
             blackbox.translator.translate(steno_to_stroke(s))
         # Check output.
         expected_output = ast.literal_eval(output.strip())
+        msg = (
+            name + '\n' +
+            '\n'.join(('> ' if n == lnum else '  ') + l
+                      for n, l in enumerate(lines)) + '\n' +
+            '   ' + repr(blackbox.output.text) + '\n'
+            '!= ' + repr(expected_output)
+        )
         assert blackbox.output.text == expected_output, msg
 
 def replay_doc(f):
