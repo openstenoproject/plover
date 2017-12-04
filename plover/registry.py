@@ -33,6 +33,7 @@ class Registry(object):
         'gui.qt.tool',
         'machine',
         'macro',
+        'meta',
         'system',
     )
 

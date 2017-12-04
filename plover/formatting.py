@@ -13,6 +13,7 @@ import re
 import string
 
 from plover.orthography import add_suffix
+from plover.registry import registry
 
 
 CASE_CAP_FIRST_WORD = 'cap_first_word'
@@ -28,6 +29,7 @@ META_CAPITALIZE = '-|'
 META_CARRY_CAPITALIZATION = '~|'
 META_COMMAND = 'PLOVER:'
 META_COMMAS = (',', ':', ';')
+META_CUSTOM = ':'
 META_GLUE_FLAG = '&'
 META_KEY_COMBINATION = '#'
 META_LOWER = '>'
@@ -711,6 +713,10 @@ def _atom_to_action(atom, ctx):
             action = _apply_meta_attach(meta, ctx)
         elif meta.startswith(META_KEY_COMBINATION):
             action = _apply_meta_combo(meta, ctx)
+        elif meta.startswith(META_CUSTOM):
+            meta_args = meta[1:].split(':', 1)
+            meta_fn = registry.get_plugin('meta', meta_args[0]).obj
+            action = meta_fn(ctx, meta_args[1] if len(meta_args) == 2 else '')
         else:
             action = ctx.new_action()
     else:
