@@ -33,7 +33,7 @@ class SuggestionsDialog(Tool, Ui_SuggestionsDialog):
     ROLE = 'suggestions'
     SHORTCUT = 'Ctrl+J'
 
-    WORD_RX = re.compile(r'((\w+|[^\w\s]+)\s*)')
+    WORD_RX = re.compile(r'(?:\w+|[^\w\s]+)\s*')
 
     STYLE_TRANSLATION, STYLE_STROKES = range(2)
 
