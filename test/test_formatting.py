@@ -306,13 +306,13 @@ TRANSLATION_TO_ACTIONS_TESTS = (
 
     ('equip {*<}', action(),
      [action(text_and_word='equip', trailing_space=' '),
-      action(prev_attach=True, text='EQUIP', trailing_space=' ', word_and_prev_replace='equip', upper_carry=True),
+      action(prev_attach=True, text='EQUIP', trailing_space=' ', word_and_prev_replace='equip'),
      ]),
 
     ('equip {^ed} {*<}', action(),
      [action(text_and_word='equip', trailing_space=' '),
       action(prev_attach=True, text='ped', trailing_space=' ', word='equipped'),
-      action(prev_attach=True, text='EQUIPPED', trailing_space=' ', word_and_prev_replace='equipped', upper_carry=True),
+      action(prev_attach=True, text='EQUIPPED', trailing_space=' ', word_and_prev_replace='equipped'),
      ]),
 
     ('notanumber {*($c)}', action(),
@@ -322,37 +322,37 @@ TRANSLATION_TO_ACTIONS_TESTS = (
 
     ('0 {*($c)}', action(),
      [action(text_and_word='0', trailing_space=' '),
-      action(prev_attach=True, text_and_word='$0', trailing_space=' ', prev_replace='0'),
+      action(prev_attach=True, text='$0', word='0', trailing_space=' ', prev_replace='0'),
      ]),
 
     ('0.00 {*($c)}', action(),
      [action(text_and_word='0.00', trailing_space=' '),
-      action(prev_attach=True, text_and_word='$0.00', trailing_space=' ', prev_replace='0.00'),
+      action(prev_attach=True, text='$0.00', word='0.00', trailing_space=' ', prev_replace='0.00'),
      ]),
 
     ('1234 {*($c)}', action(),
      [action(text_and_word='1234', trailing_space=' '),
-      action(prev_attach=True, text_and_word='$1,234', trailing_space=' ', prev_replace='1234'),
+      action(prev_attach=True, text='$1,234', word='1,234', trailing_space=' ', prev_replace='1234'),
      ]),
 
     ('1234567 {*($c)}', action(),
      [action(text_and_word='1234567', trailing_space=' '),
-      action(prev_attach=True, text_and_word='$1,234,567', trailing_space=' ', prev_replace='1234567'),
+      action(prev_attach=True, text='$1,234,567', word='1,234,567', trailing_space=' ', prev_replace='1234567'),
      ]),
 
     ('1234.5 {*($c)}', action(),
      [action(text_and_word='1234.5', trailing_space=' '),
-      action(prev_attach=True, text_and_word='$1,234.50', trailing_space=' ', prev_replace='1234.5'),
+      action(prev_attach=True, text='$1,234.50', word='1,234.50', trailing_space=' ', prev_replace='1234.5'),
      ]),
 
     ('1234.56 {*($c)}', action(),
      [action(text_and_word='1234.56', trailing_space=' '),
-      action(prev_attach=True, text_and_word='$1,234.56', trailing_space=' ', prev_replace='1234.56'),
+      action(prev_attach=True, text='$1,234.56', word='1,234.56', trailing_space=' ', prev_replace='1234.56'),
      ]),
 
     ('1234.567 {*($c)}', action(),
      [action(text_and_word='1234.567', trailing_space=' '),
-      action(prev_attach=True, text_and_word='$1,234.57', trailing_space=' ', prev_replace='1234.567'),
+      action(prev_attach=True, text='$1,234.57', word='1,234.57', trailing_space=' ', prev_replace='1234.567'),
      ]),
 
     ('equip {^} {^ed}', action(),
@@ -532,7 +532,7 @@ ATOM_TO_ACTION_TESTS = (
             trailing_space=' ')),
 
     ('{*<}', action(text_and_word='test', trailing_space=' '),
-     action(prev_attach=True, text='TEST', word_and_prev_replace='test', trailing_space=' ', upper_carry=True)),
+     action(prev_attach=True, text='TEST', word_and_prev_replace='test', trailing_space=' ')),
 
     ('{PLOVER:test_command}', action(text_and_word='test', trailing_space=' '),
      action(word='test', command='test_command', trailing_space=' ')),
@@ -785,7 +785,22 @@ def test_capitalize_first_word(s, expected):
     assert formatting._capitalize_first_word(s) == expected
 
 
-@parametrize([('', ''), ('abc', 'abc'), ('a word', 'word'), ('word.', 'word.')])
+RIGHTMOST_WORD_TESTS = (
+    ('', ''),
+    ('\n', ''),
+    ('\t', ''),
+    ('abc', 'abc'),
+    ('a word', 'word'),
+    ('word.', '.'),
+    ('word ', ''),
+    ('word\n', ''),
+    ('word\t', ''),
+    (' word', 'word'),
+    ('\nword', 'word'),
+    ('\tword', 'word'),
+)
+
+@parametrize(RIGHTMOST_WORD_TESTS)
 def test_rightmost_word(s, expected):
     assert formatting._rightmost_word(s) == expected
 
