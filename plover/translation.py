@@ -322,13 +322,12 @@ class Translator(object):
         self._do(*t.replaced)
 
     def _undo(self, *translations):
-        count = len(translations)
-        for n, t in enumerate(translations):
-            assert t == self._state.translations.pop(n - count)
+        for t in reversed(translations):
+            assert t == self._state.translations.pop()
             if self._to_do:
                 self._to_do -= 1
             else:
-                self._to_undo.append(t)
+                self._to_undo.insert(0, t)
 
     def _do(self, *translations):
         self._state.translations.extend(translations)

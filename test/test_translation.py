@@ -769,6 +769,17 @@ class TranslateStrokeTestCase(unittest.TestCase):
         self.assertTranslations(state)
         self.assertOutput(undo, do, do)
 
+    def test_untranslate_translation(self):
+        self.tlor.set_min_undo_length(2)
+        self.define('TH', 'this')
+        self.define('THA', 'that')
+        self.translate(stroke('TH'))
+        self.translate(stroke('THA'))
+        self.tlor.untranslate_translation(self.t('THA'))
+        self.tlor.untranslate_translation(self.t('TH'))
+        self.tlor.flush()
+        self.assertOutput(self.lt('TH THA'), [], None)
+
 
 class TranslationEscapeTest(unittest.TestCase):
 
