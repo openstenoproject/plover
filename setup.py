@@ -112,14 +112,25 @@ class BinaryDistWin(Command):
             with zipfile.ZipFile(path) as zip:
                 zip.extractall(dist_data)
         os.unlink(dist_stdlib)
-        # We don't want an isolated Python when
-        # using python.exe/pythonw.exe directly.
+        # We don't want a completely isolated Python when using
+        # python.exe/pythonw.exe directly, we need a working site
+        # directory and for the current directory to be prepended
+        # to `sys.path` so `plover_build_utils` can be used and
+        # plugins can be installed from source.
         dist_pth = os.path.join(dist_data, 'python36._pth')
-        with open(dist_pth) as fp:
+        with open(dist_pth, 'r+') as fp:
             pth = fp.read() + 'import site\n'
-        # Temporarily patch python36._pth so build utils can be used.
-        with open(dist_pth, 'w') as fp:
-            fp.write(pth + os.getcwd() + '\n')
+            fp.seek(0)
+            fp.write(pth)
+        dist_site_packages = os.path.join(dist_data, 'Lib', 'site-packages')
+        os.makedirs(dist_site_packages)
+        with open(os.path.join(dist_site_packages, 'sitecustomize.py'), 'w') as fp:
+            fp.write(textwrap.dedent(
+                '''
+                import os, sys
+                sys.path.insert(0, os.getcwd())
+                '''
+            ).lstrip())
         # Run command helper.
         def run(*args):
             if self.verbose:
@@ -175,9 +186,6 @@ class BinaryDistWin(Command):
         )
         # Check requirements.
         run(dist_py, '-I', '-m', 'plover_build_utils.check_requirements')
-        # Restore python36._pth.
-        with open(dist_pth, 'w') as fp:
-            fp.write(pth)
         # Zip results.
         if self.zipdir:
             from plover_build_utils.zipdir import zipdir
