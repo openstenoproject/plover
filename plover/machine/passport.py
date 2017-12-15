@@ -21,6 +21,9 @@ class Passport(SerialStenotypeBase):
         ! ^ +
     '''
 
+    SERIAL_PARAMS = dict(SerialStenotypeBase.SERIAL_PARAMS)
+    SERIAL_PARAMS.update(baudrate=38400)
+
     def __init__(self, params):
         super(Passport, self).__init__(params)
         self.packet = []
@@ -54,26 +57,9 @@ class Passport(SerialStenotypeBase):
             for b in raw:
                 self._read(b)
 
-    @classmethod
-    def get_option_info(cls):
-        """Get the default options for this machine."""
-        bool_converter = lambda s: s == 'True'
-        sb = lambda s: int(float(s)) if float(s).is_integer() else float(s)
-        return {
-            'port': (None, str), # TODO: make first port default
-            'baudrate': (38400, int),
-            'bytesize': (8, int),
-            'parity': ('N', str),
-            'stopbits': (1, sb),
-            'timeout': (2.0, float),
-            'xonxoff': (False, bool_converter),
-            'rtscts': (False, bool_converter)
-        }
-
 
 def grouper(iterable, n, fillvalue=None):
     "Collect data into fixed-length chunks or blocks"
     # grouper('ABCDEFG', 3, 'x') --> ABC DEF Gxx
     args = [iter(iterable)] * n
     return zip_longest(fillvalue=fillvalue, *args)
-
