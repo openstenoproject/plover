@@ -55,7 +55,7 @@ def main():
                         'print list of available scripts when no argument is given')
     parser.add_argument('-l', '--log-level', choices=['debug', 'info', 'warning', 'error'],
                         default=None, help='set log level')
-    parser.add_argument('-g', '--gui', default='qt', help='set gui')
+    parser.add_argument('-g', '--gui', default=None, help='set gui')
     args = parser.parse_args(args=sys.argv[1:])
     if args.log_level is not None:
         log.set_level(args.log_level.upper())
@@ -67,7 +67,16 @@ def main():
 
     registry.update()
 
-    gui = registry.get_plugin('gui', args.gui).obj
+    if args.gui is None:
+        gui_priority = {
+            'qt': 1,
+            'none': -1,
+        }
+        gui_list = sorted(registry.list_plugins('gui'), reverse=True,
+                          key=lambda gui: gui_priority.get(gui.name, 0))
+        gui = gui_list[0].obj
+    else:
+        gui = registry.get_plugin('gui', args.gui).obj
 
     try:
         if args.script is not None:
