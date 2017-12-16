@@ -37,7 +37,7 @@ hackers, hobbyists, accessibility mavens, and all-around speed demons.
 %setup -q -n %{name}-%{version}
 
 %build
-sed -i '/^\s*PyQt5\b.*/d' setup.py setup.cfg
+sed -i '/^\s*PyQt5\b.*/d' setup.cfg
 %{__python3} setup.py compile_catalog build_ui build
 
 %install

@@ -29,7 +29,7 @@ sha1sums=(803bb68068feef3772e34e1b1ab34e7fa25375ae)
 
 prepare() {
   cd "$pkgname-$pkgver"
-  sed -i '/^\s*PyQt5\b.*/d' setup.py setup.cfg
+  sed -i '/^\s*PyQt5\b.*/d' setup.cfg
 }
 
 check() {
