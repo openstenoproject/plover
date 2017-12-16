@@ -158,3 +158,34 @@ class BuildPy(build_py):
         build_py.run(self)
 
 # }}}
+
+
+def ensure_setup_requires(setuptools_spec, dependency_links=None, setup_requires=None):
+    if 'PYTHONPATH' in os.environ:
+        py_path = os.environ['PYTHONPATH'].split(os.pathsep)
+    else:
+        py_path = []
+    # First, ensure the correct version of setuptools is active.
+    setuptools_req = next(pkg_resources.parse_requirements('setuptools' + setuptools_spec))
+    setuptools_dist = pkg_resources.get_distribution('setuptools')
+    if setuptools_dist not in setuptools_req:
+        setuptools_dist = setuptools.Distribution().fetch_build_eggs(str(setuptools_req))[0]
+        py_path.insert(0, setuptools_dist.location)
+        os.environ['PYTHONPATH'] = os.pathsep.join(py_path)
+        args = [sys.executable] + sys.argv
+        os.execv(args[0], args)
+    # Second, install other setup requirements.
+    setup_attrs = {}
+    if dependency_links is not None:
+        setup_attrs['dependency_links'] = dependency_links
+    if setup_requires is not None:
+        setup_attrs['setup_requires'] = setup_requires
+    setup_dist = setuptools.Distribution(setup_attrs)
+    setup_dist.parse_config_files(ignore_option_errors=True)
+    if not setup_dist.setup_requires:
+        return
+    eggs_dir = setup_dist.get_egg_cache_dir()
+    for dist in setup_dist.fetch_build_eggs(setup_dist.setup_requires):
+        if dist.location.startswith(os.path.abspath(eggs_dir) + os.sep):
+            py_path.insert(0, dist.location)
+    os.environ['PYTHONPATH'] = os.pathsep.join(py_path)
