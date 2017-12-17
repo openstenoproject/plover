@@ -11,5 +11,6 @@ pyserial==3.4
 python-xlib==0.20; "linux" in sys_platform
 setuptools==36.2.7
 six==1.10.0
+wcwidth==0.1.7
 
 # vim: ft=cfg commentstring=#\ %s list
