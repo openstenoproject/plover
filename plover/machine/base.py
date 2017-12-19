@@ -176,6 +176,16 @@ class SerialStenotypeBase(ThreadedStenotypeBase):
 
     """
 
+    # Default serial parameters.
+    SERIAL_PARAMS = {
+        'port': None,
+        'baudrate': 9600,
+        'bytesize': 8,
+        'parity': 'N',
+        'stopbits': 1,
+        'timeout': 2.0,
+    }
+
     def __init__(self, serial_params):
         """Monitor the stenotype over a serial port.
 
@@ -220,15 +230,19 @@ class SerialStenotypeBase(ThreadedStenotypeBase):
         """Get the default options for this machine."""
         bool_converter = lambda s: s == 'True'
         sb = lambda s: int(float(s)) if float(s).is_integer() else float(s)
+        converters = {
+            'port': str,
+            'baudrate': int,
+            'bytesize': int,
+            'parity': str,
+            'stopbits': sb,
+            'timeout': float,
+            'xonxoff': bool_converter,
+            'rtscts': bool_converter,
+        }
         return {
-            'port': (None, str), # TODO: make first port default
-            'baudrate': (9600, int),
-            'bytesize': (8, int),
-            'parity': ('N', str),
-            'stopbits': (1, sb),
-            'timeout': (2.0, float),
-            'xonxoff': (False, bool_converter),
-            'rtscts': (False, bool_converter)
+            setting: (default, converters[setting])
+            for setting, default in cls.SERIAL_PARAMS.items()
         }
 
     def _iter_packets(self, packet_size):

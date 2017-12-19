@@ -45,8 +45,12 @@ class SerialOption(QWidget, Ui_SerialWidget):
             self.use_timeout.setChecked(True)
             self.timeout.setValue(timeout)
             self.timeout.setEnabled(True)
-        self.xonxoff.setChecked(value['xonxoff'])
-        self.rtscts.setChecked(value['rtscts'])
+        for setting in ('xonxoff', 'rtscts'):
+            widget = getattr(self, setting)
+            if setting in value:
+                widget.setChecked(value[setting])
+            else:
+                widget.setEnabled(False)
 
     def _update(self, field, value):
         self._value[field] = value
