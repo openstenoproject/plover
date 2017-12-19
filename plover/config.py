@@ -151,14 +151,6 @@ class Config(object):
         writer = codecs.getwriter('utf8')(fp)
         self._config.write(writer)
 
-    def clone(self):
-        f = BytesIO()
-        self.save(f)
-        c = Config()
-        f.seek(0, 0)
-        c.load(f)
-        return c
-
     def set_machine_type(self, machine_type):
         self._set(MACHINE_CONFIG_SECTION, MACHINE_TYPE_OPTION,
                          machine_type)

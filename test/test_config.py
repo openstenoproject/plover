@@ -102,18 +102,6 @@ class ConfigTestCase(unittest.TestCase):
                              '[%s]\n%s = %s\n\n' % (case.section, case.option,
                                                     case.value3))
 
-    def test_clone(self):
-        s = '[%s]%s = %s\n\n' % (config.MACHINE_CONFIG_SECTION, 
-                                 config.MACHINE_TYPE_OPTION, 'foo')
-        c = config.Config()
-        c.load(make_config(s))
-        f1 = make_config()
-        c.save(f1)
-        c2 = c.clone()
-        f2 = make_config()
-        c2.save(f2)
-        self.assertEqual(f1.getvalue(), f2.getvalue())
-
     def test_machine_specific_options(self):
         defaults = {k: v[0] for k, v in FakeMachine.get_option_info().items()}
 
