@@ -1,4 +1,5 @@
 
+from copy import copy
 from functools import partial
 
 from PyQt5.QtCore import (
@@ -23,7 +24,7 @@ from PyQt5.QtWidgets import (
     QWidget,
 )
 
-from plover.config import MINIMUM_OUTPUT_CONFIG_UNDO_LEVELS
+from plover.config import MINIMUM_UNDO_LEVELS
 from plover.misc import expand_path, shorten_path
 from plover.registry import registry
 
@@ -149,7 +150,7 @@ class KeymapOption(QTableWidget):
 
     def setValue(self, value):
         self._updating = True
-        self._value = value
+        self._value = copy(value)
         self.setRowCount(0)
         if value is not None:
             row = -1
@@ -306,7 +307,7 @@ class ConfigWindow(QDialog, Ui_ConfigWindow, WindowState):
             (_('Machine'), (
                 ConfigOption(_('Machine:'), 'machine_type', partial(ChoiceOption, choices=machines),
                              dependents=(
-                                 ('machine_specific_options', engine.machine_specific_options),
+                                 ('machine_specific_options', self._update_machine_options),
                                  ('system_keymap', lambda v: self._update_keymap(machine_type=v)),
                              )),
                 ConfigOption(_('Options:'), 'machine_specific_options', self._machine_option),
@@ -330,7 +331,7 @@ class ConfigWindow(QDialog, Ui_ConfigWindow, WindowState):
                 ConfigOption(_('Undo levels:'), 'undo_levels',
                              partial(IntOption,
                                      maximum=10000,
-                                     minimum=MINIMUM_OUTPUT_CONFIG_UNDO_LEVELS),
+                                     minimum=MINIMUM_UNDO_LEVELS),
                              _('Set how many preceding strokes can be undone.\n'
                                '\n'
                                'Note: the effective value will take into account the\n'
@@ -415,14 +416,14 @@ class ConfigWindow(QDialog, Ui_ConfigWindow, WindowState):
                     return opt_class(*args)
         return NopeOption(*args)
 
-    def _update_keymap(self, machine_type=None, system_name=None):
-        if machine_type is None:
-            machine_type = self._config['machine_type']
-        if system_name is None:
-            system_name = self._config['system_name']
-        keymap = self._engine.system_keymap(machine_type=machine_type,
-                                            system_name=system_name)
-        return keymap
+    def _update_machine_options(self, machine_type=None):
+        return self._engine[('machine_specific_options',
+                             machine_type or self._config['machine_type'])]
+
+    def _update_keymap(self, system_name=None, machine_type=None):
+        return self._engine[('system_keymap',
+                             system_name or self._config['system_name'],
+                             machine_type or self._config['machine_type'])]
 
     def _create_option_widget(self, option):
         widget = option.widget_class()

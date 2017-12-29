@@ -145,7 +145,7 @@ class StenoEngine(object):
             self._machine = None
 
     def _start(self):
-        self._set_output(self._config.get_auto_start())
+        self._set_output(self._config['auto_start'])
         self._update(full=True)
 
     def _set_dictionaries(self, dictionaries):
@@ -180,12 +180,6 @@ class StenoEngine(object):
                 for option, value in config.items()
                 if value != original_config[option]
             }
-            if 'machine_type' in config_update:
-                for opt in (
-                    'machine_specific_options',
-                    'system_keymap',
-                ):
-                    config_update[opt] = config[opt]
         # Update logging.
         log.set_stroke_filename(config['log_file_name'])
         log.enable_stroke_logging(config['enable_stroke_logging'])
@@ -217,10 +211,7 @@ class StenoEngine(object):
                 self._machine = None
             machine_type = config['machine_type']
             machine_options = config['machine_specific_options']
-            try:
-                machine_class = registry.get_plugin('machine', machine_type).obj
-            except Exception as e:
-                raise InvalidConfigurationError(str(e))
+            machine_class = registry.get_plugin('machine', machine_type).obj
             log.info('setting machine: %s', machine_type)
             self._machine = machine_class(machine_options)
             self._machine.set_suppression(self._is_running)
@@ -322,7 +313,7 @@ class StenoEngine(object):
     def _on_machine_state_changed(self, machine_state):
         assert machine_state is not None
         self._machine_state = machine_state
-        machine_type = self._config.get_machine_type()
+        machine_type = self._config['machine_type']
         self._trigger_hook('machine_state_changed', machine_type, machine_state)
 
     def _consume_engine_command(self, command):
@@ -419,6 +410,13 @@ class StenoEngine(object):
     def config(self, update):
         self._same_thread_hook(self._update, config_update=update)
 
+    @with_lock
+    def __getitem__(self, setting):
+        return self._config[setting]
+
+    def __setitem__(self, setting, value):
+        self.config = {setting: value}
+
     def reset_machine(self):
         self._same_thread_hook(self._update, reset_machine=True)
 
@@ -446,14 +444,6 @@ class StenoEngine(object):
 
     def join(self):
         return self.code
-
-    @with_lock
-    def machine_specific_options(self, machine_type):
-        return self._config.get_machine_specific_options(machine_type)
-
-    @with_lock
-    def system_keymap(self, machine_type, system_name):
-        return self._config.get_system_keymap(machine_type, system_name)
 
     @with_lock
     def lookup(self, translation):

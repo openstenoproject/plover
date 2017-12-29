@@ -13,6 +13,7 @@ import serial
 
 from plover import log
 from plover.machine.keymap import Keymap
+from plover.misc import boolean
 
 
 STATE_STOPPED = 'stopped'
@@ -228,7 +229,6 @@ class SerialStenotypeBase(ThreadedStenotypeBase):
     @classmethod
     def get_option_info(cls):
         """Get the default options for this machine."""
-        bool_converter = lambda s: s == 'True'
         sb = lambda s: int(float(s)) if float(s).is_integer() else float(s)
         converters = {
             'port': str,
@@ -237,8 +237,8 @@ class SerialStenotypeBase(ThreadedStenotypeBase):
             'parity': str,
             'stopbits': sb,
             'timeout': float,
-            'xonxoff': bool_converter,
-            'rtscts': bool_converter,
+            'xonxoff': boolean,
+            'rtscts': boolean,
         }
         return {
             setting: (default, converters[setting])

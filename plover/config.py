@@ -3,17 +3,18 @@
 
 """Configuration management."""
 
-from collections import namedtuple
+from collections import ChainMap, namedtuple, OrderedDict
 import codecs
 import configparser
 import json
 import os
+import re
 
 from plover.exception import InvalidConfigurationError
 from plover.machine.keymap import Keymap
 from plover.registry import registry
 from plover.oslayer.config import CONFIG_DIR
-from plover.misc import expand_path, shorten_path
+from plover.misc import boolean, expand_path, shorten_path
 from plover import log
 
 
@@ -22,77 +23,19 @@ CONFIG_FILE = os.path.join(CONFIG_DIR, 'plover.cfg')
 
 # General configuration sections, options and defaults.
 MACHINE_CONFIG_SECTION = 'Machine Configuration'
-MACHINE_TYPE_OPTION = 'machine_type'
-DEFAULT_MACHINE_TYPE = 'Keyboard'
-MACHINE_AUTO_START_OPTION = 'auto_start'
-DEFAULT_MACHINE_AUTO_START = False
 
 LEGACY_DICTIONARY_CONFIG_SECTION = 'Dictionary Configuration'
-LEGACY_DICTIONARY_FILE_OPTION = 'dictionary_file'
 
 LOGGING_CONFIG_SECTION = 'Logging Configuration'
-LOG_FILE_OPTION = 'log_file'
-DEFAULT_LOG_FILE = 'strokes.log'
-ENABLE_STROKE_LOGGING_OPTION = 'enable_stroke_logging'
-DEFAULT_ENABLE_STROKE_LOGGING = False
-ENABLE_TRANSLATION_LOGGING_OPTION = 'enable_translation_logging'
-DEFAULT_ENABLE_TRANSLATION_LOGGING = False
-
-STARTUP_SECTION = 'Startup'
-START_MINIMIZED_OPTION = 'Start Minimized'
-DEFAULT_START_MINIMIZED = False
-
-STROKE_DISPLAY_SECTION = 'Stroke Display'
-STROKE_DISPLAY_SHOW_OPTION = 'show'
-DEFAULT_STROKE_DISPLAY_SHOW = False
-
-SUGGESTIONS_DISPLAY_SECTION = 'Suggestions Display'
-SUGGESTIONS_DISPLAY_SHOW_OPTION = 'show'
-DEFAULT_SUGGESTIONS_DISPLAY_SHOW = False
-
-GUI_SECTION = 'GUI'
-CLASSIC_DICTIONARIES_DISPLAY_ORDER_OPTION = 'classic_dictionaries_display_order'
-DEFAULT_CLASSIC_DICTIONARIES_DISPLAY_ORDER = False
 
 OUTPUT_CONFIG_SECTION = 'Output Configuration'
-OUTPUT_CONFIG_SPACE_PLACEMENT_OPTION = 'space_placement'
-DEFAULT_OUTPUT_CONFIG_SPACE_PLACEMENT = 'Before Output'
-OUTPUT_CONFIG_UNDO_LEVELS = 'undo_levels'
-DEFAULT_OUTPUT_CONFIG_UNDO_LEVELS = 100
-MINIMUM_OUTPUT_CONFIG_UNDO_LEVELS = 1
-OUTPUT_CONFIG_START_CAPITALIZED = 'start_capitalized'
-DEFAULT_OUTPUT_CONFIG_START_CAPITALIZED = False
-OUTPUT_CONFIG_START_ATTACHED = 'start_attached'
-DEFAULT_OUTPUT_CONFIG_START_ATTACHED = False
+DEFAULT_UNDO_LEVELS = 100
+MINIMUM_UNDO_LEVELS = 1
 
-TRANSLATION_FRAME_SECTION = 'Translation Frame'
-TRANSLATION_FRAME_OPACITY_OPTION = 'opacity'
-DEFAULT_TRANSLATION_FRAME_OPACITY = 100
-
-BASE_SYSTEM_SECTION = 'System'
-SYSTEM_NAME_OPTION = 'name'
 DEFAULT_SYSTEM_NAME = 'English Stenotype'
 
 SYSTEM_CONFIG_SECTION = 'System: %s'
 SYSTEM_KEYMAP_OPTION = 'keymap[%s]'
-SYSTEM_DICTIONARIES_OPTION = 'dictionaries'
-
-PLUGINS_CONFIG_SECTION = 'Plugins'
-ENABLED_EXTENSIONS_OPTION = 'enabled_extensions'
-
-MIN_FRAME_OPACITY = 0
-MAX_FRAME_OPACITY = 100
-
-
-def raise_if_invalid_opacity(opacity):
-    """
-    Raises ValueError if opacity is out of range defined by
-    [MIN_FRAME_OPACITY, MAX_FRAME_OPACITY].
-    """
-    if not (MIN_FRAME_OPACITY <= opacity <= MAX_FRAME_OPACITY):
-        message = "opacity %u out of range [%u, %u]" \
-            % (opacity, MIN_FRAME_OPACITY, MAX_FRAME_OPACITY)
-        raise ValueError(message)
 
 
 class DictionaryConfig(namedtuple('DictionaryConfig', 'path enabled')):
@@ -120,17 +63,249 @@ class DictionaryConfig(namedtuple('DictionaryConfig', 'path enabled')):
         return DictionaryConfig(**d)
 
 
-# TODO: Unit test this class
+ConfigOption = namedtuple('ConfigOption', '''
+                          name default
+                          getter setter
+                          validate full_key
+                          ''')
+
+class InvalidConfigOption(ValueError):
+
+    def __init__(self, raw_value, fixed_value, message=None):
+        super(InvalidConfigOption, self).__init__(raw_value)
+        self.raw_value = raw_value
+        self.fixed_value = fixed_value
+        self.message = message
+
+    def __str__(self):
+        return self.message or repr(self.raw_value)
+
+
+def raw_option(name, default, section, option, validate):
+    option = option or name
+    def getter(config, key):
+        return config._config[section][option]
+    def setter(config, key, value):
+        config._set(section, option, value)
+    return ConfigOption(name, lambda c, k: default, getter, setter, validate, None)
+
+def json_option(name, default, section, option, validate):
+    option = option or name
+    def getter(config, key):
+        value = config._config[section][option]
+        try:
+            return json.loads(value)
+        except json.JSONDecodeError as e:
+            raise InvalidConfigOption(value, default) from e
+    def setter(config, key, value):
+        if isinstance(value, set):
+            # JSON does not support sets.
+            value = list(sorted(value))
+        config._set(section, option, json.dumps(value, sort_keys=True, ensure_ascii=False))
+    return ConfigOption(name, default, getter, setter, validate, None)
+
+def int_option(name, default, minimum, maximum, section, option=None):
+    option = option or name
+    def getter(config, key):
+        return config._config[section].getint(option)
+    def setter(config, key, value):
+        config._set(section, option, str(value))
+    def validate(config, key, value):
+        if not isinstance(value, int):
+            raise InvalidConfigOption(value, default)
+        if (minimum is not None and value < minimum) or \
+           (maximum is not None and value > maximum):
+            message = '%s not in [%s, %s]' % (value, minimum or '-∞', maximum or '∞')
+            raise InvalidConfigOption(value, default, message)
+        return value
+    return ConfigOption(name, lambda c, k: default, getter, setter, validate, None)
+
+def boolean_option(name, default, section, option=None):
+    option = option or name
+    def getter(config, key):
+        return config._config[section][option]
+    def setter(config, key, value):
+        config._set(section, option, str(value))
+    def validate(config, key, value):
+        try:
+            return boolean(value)
+        except ValueError as e:
+            raise InvalidConfigOption(value, default) from e
+    return ConfigOption(name, lambda c, k: default, getter, setter, validate, None)
+
+def choice_option(name, choices, section, option=None):
+    default = choices[0]
+    def validate(config, key, value):
+        if value not in choices:
+            raise InvalidConfigOption(value, default)
+        return value
+    return raw_option(name, default, section, option, validate)
+
+def plugin_option(name, plugin_type, default, section, option=None):
+    def validate(config, key, value):
+        try:
+            return registry.get_plugin(plugin_type, value).name
+        except KeyError as e:
+            raise InvalidConfigOption(value, default) from e
+    return raw_option(name, default, section, option, validate)
+
+def opacity_option(name, section, option=None):
+    return int_option(name, 100, 0, 100, section, option)
+
+def path_option(name, default, section, option=None):
+    option = option or name
+    def getter(config, key):
+        return expand_path(config._config[section][option])
+    def setter(config, key, value):
+        config._set(section, option, shorten_path(value))
+    def validate(config, key, value):
+        if not isinstance(value, str):
+            raise InvalidConfigOption(value, default)
+        return value
+    return ConfigOption(name, lambda c, k: default, getter, setter, validate, None)
+
+def enabled_extensions_option():
+    def validate(config, key, value):
+        if not isinstance(value, (list, set, tuple)):
+            raise InvalidConfigOption(value, ())
+        return set(value)
+    return json_option('enabled_extensions', lambda c, k: set(), 'Plugins', 'enabled_extensions', validate)
+
+def machine_specific_options():
+    def full_key(config, key):
+        if isinstance(key, tuple):
+            assert len(key) == 2
+            return key
+        return (key, config['machine_type'])
+    def default(config, key):
+        machine_class = registry.get_plugin('machine', key[1]).obj
+        return {
+            name: params[0]
+            for name, params in machine_class.get_option_info().items()
+        }
+    def getter(config, key):
+        return config._config[key[1]]
+    def setter(config, key, value):
+        config._config[key[1]] = value
+    def validate(config, key, raw_options):
+        if not isinstance(raw_options, (dict, configparser.SectionProxy)):
+            raise InvalidConfigOption(raw_options, default(config, key))
+        machine_options = OrderedDict()
+        invalid_options = OrderedDict()
+        machine_class = registry.get_plugin('machine', key[1]).obj
+        for name, params in sorted(machine_class.get_option_info().items()):
+            fallback, convert = params
+            try:
+                raw_value = raw_options[name]
+            except KeyError:
+                value = fallback
+            else:
+                try:
+                    value = convert(raw_value)
+                except ValueError:
+                    invalid_options[name] = raw_value
+                    value = fallback
+            machine_options[name] = value
+        if invalid_options:
+            raise InvalidConfigOption(invalid_options, machine_options)
+        return machine_options
+    return ConfigOption('machine_specific_options', default, getter, setter, validate, full_key)
+
+def system_keymap_option():
+    def full_key(config, key):
+        if isinstance(key, tuple):
+            assert len(key) == 3
+            return key
+        return (key, config['system_name'], config['machine_type'])
+    def location(config, key):
+        return SYSTEM_CONFIG_SECTION % key[1], SYSTEM_KEYMAP_OPTION % key[2]
+    def build_keymap(config, key, mappings=None):
+        system = registry.get_plugin('system', key[1]).obj
+        machine_class = registry.get_plugin('machine', key[2]).obj
+        keymap = Keymap(machine_class.get_keys(), system.KEYS + machine_class.get_actions())
+        if mappings is None:
+            mappings = system.KEYMAPS.get(key[2])
+        if mappings is None:
+            if machine_class.KEYMAP_MACHINE_TYPE is not None:
+                # Try fallback.
+                return build_keymap(config, (key[0], key[1], machine_class.KEYMAP_MACHINE_TYPE))
+            # No fallback...
+            mappings = {}
+        keymap.set_mappings(mappings)
+        return keymap
+    def default(config, key):
+        return build_keymap(config, key)
+    def getter(config, key):
+        section, option = location(config, key)
+        return config._config[section][option]
+    def setter(config, key, keymap):
+        section, option = location(config, key)
+        config._set(section, option, str(keymap))
+    def validate(config, key, value):
+        try:
+            return build_keymap(config, key, value)
+        except ValueError as e:
+            raise InvalidConfigOption(value, default(config, machine_type, system_name)) from e
+    return ConfigOption('system_keymap', default, getter, setter, validate, full_key)
+
+def dictionaries_option():
+    def full_key(config, key):
+        if isinstance(key, tuple):
+            assert len(key) == 2
+            return key
+        return (key, config['system_name'])
+    def location(config, key):
+        return (
+            SYSTEM_CONFIG_SECTION % key[1],
+            'dictionaries',
+        )
+    def default(config, key):
+        system = registry.get_plugin('system', key[1]).obj
+        return [DictionaryConfig(path) for path in system.DEFAULT_DICTIONARIES]
+    def legacy_getter(config):
+        options = config._config[LEGACY_DICTIONARY_CONFIG_SECTION].items()
+        return [
+            {'path': value}
+            for name, value in reversed(sorted(options))
+            if re.match('dictionary_file\d*$', name) is not None
+        ]
+    def getter(config, key):
+        section, option = location(config, key)
+        value = config._config.get(section, option, fallback=None)
+        if value is None:
+            return legacy_getter(config)
+        return json.loads(value)
+    def setter(config, key, dictionaries):
+        section, option = location(config, key)
+        config._set(section, option, json.dumps([
+            d.to_dict() for d in dictionaries
+        ], sort_keys=True))
+        config._config.remove_section(LEGACY_DICTIONARY_CONFIG_SECTION)
+    def validate(config, key, value):
+        dictionaries = []
+        for d in value:
+            if isinstance(d, DictionaryConfig):
+                pass
+            elif isinstance(d, str):
+                d = DictionaryConfig(d)
+            else:
+                d = DictionaryConfig.from_dict(d)
+            dictionaries.append(d)
+        return dictionaries
+    return ConfigOption('dictionaries', default, getter, setter, validate, full_key)
+
 
 class Config(object):
 
     def __init__(self):
-        self._config = configparser.RawConfigParser()
+        self._config = None
+        self._cache = {}
         # A convenient place for other code to store a file name.
         self.target_file = None
+        self.clear()
 
     def load(self, fp):
-        self._config = configparser.RawConfigParser()
+        self.clear()
         reader = codecs.getreader('utf8')(fp)
         try:
             self._config.read_file(reader)
@@ -139,402 +314,89 @@ class Config(object):
 
     def clear(self):
         self._config = configparser.RawConfigParser()
+        self._cache.clear()
 
     def save(self, fp):
         writer = codecs.getwriter('utf8')(fp)
         self._config.write(writer)
 
-    def set_machine_type(self, machine_type):
-        self._set(MACHINE_CONFIG_SECTION, MACHINE_TYPE_OPTION,
-                         machine_type)
-
-    def get_machine_type(self):
-        machine_type = self._get(MACHINE_CONFIG_SECTION,
-                                 MACHINE_TYPE_OPTION,
-                                 None)
-        if machine_type is not None:
-            try:
-                machine_type = registry.get_plugin('machine', machine_type).name
-            except:
-                log.error("invalid machine type: %s",
-                          machine_type, exc_info=True)
-                self.set_machine_type(DEFAULT_MACHINE_TYPE)
-                machine_type = None
-        if machine_type is None:
-            machine_type = DEFAULT_MACHINE_TYPE
-        return machine_type
-
-    def set_machine_specific_options(self, options, machine_type=None):
-        if machine_type is None:
-            machine_type = self.get_machine_type()
-        self._update(machine_type, sorted(options.items()))
-
-    def get_machine_specific_options(self, machine_type=None):
-        if machine_type is None:
-            machine_type = self.get_machine_type()
-        def convert(p, v):
-            try:
-                return p[1](v)
-            except ValueError:
-                return p[0]
-        machine_class = registry.get_plugin('machine', machine_type).obj
-        info = machine_class.get_option_info()
-        defaults = {k: v[0] for k, v in info.items()}
-        if self._config.has_section(machine_type):
-            options = {o: self._config.get(machine_type, o)
-                       for o in self._config.options(machine_type)
-                       if o in info}
-            options = {k: convert(info[k], v) for k, v in options.items()}
-            defaults.update(options)
-        return defaults
-
-    def set_dictionaries(self, dictionaries):
-        system_name = self.get_system_name()
-        section = SYSTEM_CONFIG_SECTION % system_name
-        option = SYSTEM_DICTIONARIES_OPTION
-        if dictionaries is None:
-            self._config.remove_option(section, option)
-        else:
-            self._set(section, option, json.dumps([
-                d.to_dict() for d in dictionaries
-            ], sort_keys=True))
-
-    def get_dictionaries(self):
-        system_name = self.get_system_name()
-        try:
-            system = registry.get_plugin('system', system_name).obj
-        except:
-            log.error("invalid system name: %s", system_name, exc_info=True)
-            return []
-        section = SYSTEM_CONFIG_SECTION % system_name
-        option = SYSTEM_DICTIONARIES_OPTION
-        dictionaries = self._get(section, option, None)
-        if dictionaries is None:
-            dictionaries = self._legacy_get_dictionary_file_names()
-            if dictionaries is None:
-                dictionaries = [DictionaryConfig(path)
-                                for path in system.DEFAULT_DICTIONARIES]
-            return dictionaries
-        try:
-            return [DictionaryConfig.from_dict(d)
-                    for d in json.loads(dictionaries)]
-        except:
-            log.error("invalid system dictionaries, resetting to default", exc_info=True)
-            self.set_dictionaries(None)
-            return self.get_dictionaries()
-
-    def _legacy_get_dictionary_file_names(self):
-        if not self._config.has_section(LEGACY_DICTIONARY_CONFIG_SECTION):
-            return None
-        def _dict_entry_key(s):
-            try:
-                return int(s[len(LEGACY_DICTIONARY_FILE_OPTION):])
-            except ValueError:
-                return -1
-        options = [x for x in self._config.options(LEGACY_DICTIONARY_CONFIG_SECTION)
-                   if x.startswith(LEGACY_DICTIONARY_FILE_OPTION)]
-        options.sort(key=_dict_entry_key)
-        filenames = [self._config.get(LEGACY_DICTIONARY_CONFIG_SECTION, o)
-                     for o in options]
-        # Update to new format.
-        self._config.remove_section(LEGACY_DICTIONARY_CONFIG_SECTION)
-        if not filenames:
-            return None
-        dictionaries = [DictionaryConfig(path) for path in reversed(filenames)]
-        self.set_dictionaries(dictionaries)
-        return dictionaries
-
-    def set_log_file_name(self, filename):
-        filename = shorten_path(filename)
-        self._set(LOGGING_CONFIG_SECTION, LOG_FILE_OPTION, filename)
-
-    def get_log_file_name(self):
-        filename = self._get(LOGGING_CONFIG_SECTION, LOG_FILE_OPTION,
-                             DEFAULT_LOG_FILE)
-        return expand_path(filename)
-
-    def set_enable_stroke_logging(self, log):
-        self._set(LOGGING_CONFIG_SECTION, ENABLE_STROKE_LOGGING_OPTION, log)
-
-    def get_enable_stroke_logging(self):
-        return self._get_bool(LOGGING_CONFIG_SECTION,
-                              ENABLE_STROKE_LOGGING_OPTION,
-                              DEFAULT_ENABLE_STROKE_LOGGING)
-
-    def set_enable_translation_logging(self, log):
-        self._set(LOGGING_CONFIG_SECTION, ENABLE_TRANSLATION_LOGGING_OPTION, log)
-
-    def get_enable_translation_logging(self):
-        return self._get_bool(LOGGING_CONFIG_SECTION,
-                              ENABLE_TRANSLATION_LOGGING_OPTION,
-                              DEFAULT_ENABLE_TRANSLATION_LOGGING)
-
-    def set_auto_start(self, b):
-        self._set(MACHINE_CONFIG_SECTION, MACHINE_AUTO_START_OPTION, b)
-
-    def get_auto_start(self):
-        return self._get_bool(MACHINE_CONFIG_SECTION, MACHINE_AUTO_START_OPTION,
-                              DEFAULT_MACHINE_AUTO_START)
-
-    def set_start_minimized(self, b):
-        self._set(STARTUP_SECTION, START_MINIMIZED_OPTION, b)
-
-    def get_start_minimized(self):
-        return self._get_bool(STARTUP_SECTION, START_MINIMIZED_OPTION,
-                              DEFAULT_START_MINIMIZED)
-
-    def set_show_stroke_display(self, b):
-        self._set(STROKE_DISPLAY_SECTION, STROKE_DISPLAY_SHOW_OPTION, b)
-
-    def get_show_stroke_display(self):
-        return self._get_bool(STROKE_DISPLAY_SECTION,
-            STROKE_DISPLAY_SHOW_OPTION, DEFAULT_STROKE_DISPLAY_SHOW)
-
-    def set_show_suggestions_display(self, b):
-        self._set(SUGGESTIONS_DISPLAY_SECTION, SUGGESTIONS_DISPLAY_SHOW_OPTION, b)
-
-    def get_show_suggestions_display(self):
-        return self._get_bool(SUGGESTIONS_DISPLAY_SECTION,
-            SUGGESTIONS_DISPLAY_SHOW_OPTION, DEFAULT_SUGGESTIONS_DISPLAY_SHOW)
-
-    def get_space_placement(self):
-        return self._get(OUTPUT_CONFIG_SECTION, OUTPUT_CONFIG_SPACE_PLACEMENT_OPTION,
-                         DEFAULT_OUTPUT_CONFIG_SPACE_PLACEMENT)
-
-    def set_space_placement(self, s):
-        self._set(OUTPUT_CONFIG_SECTION, OUTPUT_CONFIG_SPACE_PLACEMENT_OPTION, s)
-
-    def get_undo_levels(self):
-        undo_levels = self._get_int(OUTPUT_CONFIG_SECTION, OUTPUT_CONFIG_UNDO_LEVELS,
-                                    DEFAULT_OUTPUT_CONFIG_UNDO_LEVELS)
-        if undo_levels < MINIMUM_OUTPUT_CONFIG_UNDO_LEVELS:
-            log.error(
-                "Undo limit %d is below minimum %d, using %d",
-                undo_levels,
-                MINIMUM_OUTPUT_CONFIG_UNDO_LEVELS,
-                DEFAULT_OUTPUT_CONFIG_UNDO_LEVELS
-            )
-            undo_levels = DEFAULT_OUTPUT_CONFIG_UNDO_LEVELS
-        return undo_levels
-
-    def set_undo_levels(self, levels):
-        assert levels >= MINIMUM_OUTPUT_CONFIG_UNDO_LEVELS
-        self._set(OUTPUT_CONFIG_SECTION, OUTPUT_CONFIG_UNDO_LEVELS, levels)
-
-    def get_start_capitalized(self):
-        return self._get_bool(OUTPUT_CONFIG_SECTION, OUTPUT_CONFIG_START_CAPITALIZED,
-                              DEFAULT_OUTPUT_CONFIG_START_CAPITALIZED)
-
-    def set_start_capitalized(self, b):
-        self._set(OUTPUT_CONFIG_SECTION, OUTPUT_CONFIG_START_CAPITALIZED, b)
-
-    def get_start_attached(self):
-        return self._get_bool(OUTPUT_CONFIG_SECTION, OUTPUT_CONFIG_START_ATTACHED,
-                              DEFAULT_OUTPUT_CONFIG_START_ATTACHED)
-
-    def set_start_attached(self, b):
-        self._set(OUTPUT_CONFIG_SECTION, OUTPUT_CONFIG_START_ATTACHED, b)
-
-    def set_translation_frame_opacity(self, opacity):
-        raise_if_invalid_opacity(opacity)
-        self._set(TRANSLATION_FRAME_SECTION,
-                  TRANSLATION_FRAME_OPACITY_OPTION,
-                  opacity)
-
-    def get_translation_frame_opacity(self):
-        opacity = self._get_int(TRANSLATION_FRAME_SECTION,
-                                TRANSLATION_FRAME_OPACITY_OPTION,
-                                DEFAULT_TRANSLATION_FRAME_OPACITY)
-        try:
-            raise_if_invalid_opacity(opacity)
-        except ValueError as e:
-            log.error("translation %s, reset to %u",
-                      e, DEFAULT_TRANSLATION_FRAME_OPACITY)
-            opacity = DEFAULT_TRANSLATION_FRAME_OPACITY
-        return opacity
-
-    def set_classic_dictionaries_display_order(self, b):
-        self._set(GUI_SECTION, CLASSIC_DICTIONARIES_DISPLAY_ORDER_OPTION, bool(b))
-
-    def get_classic_dictionaries_display_order(self):
-        return self._get_bool(GUI_SECTION,
-                              CLASSIC_DICTIONARIES_DISPLAY_ORDER_OPTION,
-                              DEFAULT_CLASSIC_DICTIONARIES_DISPLAY_ORDER)
-
-    def set_system_name(self, system_name):
-        self._set(BASE_SYSTEM_SECTION, SYSTEM_NAME_OPTION, system_name)
-
-    def get_system_name(self):
-        system_name = self._get(BASE_SYSTEM_SECTION,
-                                SYSTEM_NAME_OPTION,
-                                None)
-        if system_name is not None:
-            try:
-                system_name = registry.get_plugin('system', system_name).name
-            except:
-                log.error("invalid system name: %s",
-                          system_name, exc_info=True)
-                self.set_system_name(DEFAULT_SYSTEM_NAME)
-                system_name = None
-        if system_name is None:
-            system_name = DEFAULT_SYSTEM_NAME
-        return system_name
-
-    def set_system_keymap(self, keymap, machine_type=None, system_name=None):
-        if machine_type is None:
-            machine_type = self.get_machine_type()
-        if system_name is None:
-            system_name = self.get_system_name()
-        section = SYSTEM_CONFIG_SECTION % system_name
-        option = SYSTEM_KEYMAP_OPTION % machine_type
-        if keymap is None:
-            self._config.remove_option(section, option)
-        else:
-            self._set(section, option, json.dumps(sorted(dict(keymap).items())))
-
-    def get_system_keymap(self, machine_type=None, system_name=None):
-        if machine_type is None:
-            machine_type = self.get_machine_type()
-        try:
-            machine_class = registry.get_plugin('machine', machine_type).obj
-        except:
-            log.error("invalid machine type: %s", machine_type, exc_info=True)
-            return None
-        if system_name is None:
-            system_name = self.get_system_name()
-        try:
-            system = registry.get_plugin('system', system_name).obj
-        except:
-            log.error("invalid system name: %s", system_name, exc_info=True)
-            return None
-        section = SYSTEM_CONFIG_SECTION % system_name
-        option = SYSTEM_KEYMAP_OPTION % machine_type
-        mappings = self._get(section, option, None)
-        if mappings is None:
-            # No user mappings, use system default.
-            mappings = system.KEYMAPS.get(machine_type)
-        else:
-            try:
-                mappings = dict(json.loads(mappings))
-            except ValueError:
-                log.error("invalid machine keymap, resetting to default",
-                          exc_info=True)
-                self.set_system_keymap(None, machine_type)
-                mappings = system.KEYMAPS.get(machine_type)
-        if mappings is None:
-            if machine_class.KEYMAP_MACHINE_TYPE is not None:
-                # Try fallback.
-                return self.get_system_keymap(
-                    machine_type=machine_class.KEYMAP_MACHINE_TYPE,
-                    system_name=system_name
-                )
-            # No fallback...
-            mappings = {}
-        keymap = Keymap(machine_class.get_keys(), system.KEYS + machine_class.get_actions())
-        keymap.set_mappings(mappings)
-        return keymap
-
-    def set_enabled_extensions(self, extensions):
-        if extensions is None:
-            self._config.remove_option(PLUGINS_CONFIG_SECTION,
-                                       ENABLED_EXTENSIONS_OPTION)
-        else:
-            self._set(PLUGINS_CONFIG_SECTION,
-                      ENABLED_EXTENSIONS_OPTION,
-                      json.dumps(sorted(list(set(extensions)))))
-
-    def get_enabled_extensions(self):
-        extensions = ()
-        value = self._get(PLUGINS_CONFIG_SECTION,
-                          ENABLED_EXTENSIONS_OPTION,
-                          None)
-        if value is not None:
-            try:
-                extensions = set(json.loads(value))
-            except ValueError:
-                log.error("invalid enabled extensions set, resetting to default",
-                          exc_info=True)
-                self.set_enabled_extensions(None)
-        return set(extensions)
-
     def _set(self, section, option, value):
         if not self._config.has_section(section):
             self._config.add_section(section)
-        self._config.set(section, option, str(value))
-
-    def _get(self, section, option, default):
-        if self._config.has_option(section, option):
-            return self._config.get(section, option)
-        return default
-
-    def _get_bool(self, section, option, default):
-        try:
-            if self._config.has_option(section, option):
-                return self._config.getboolean(section, option)
-        except ValueError:
-            pass
-        return default
-
-    def _get_int(self, section, option, default):
-        try:
-            if self._config.has_option(section, option):
-                return self._config.getint(section, option)
-        except ValueError:
-            pass
-        return default
-
-    def _update(self, section, options):
-        old_options = set()
-        if self._config.has_section(section):
-            old_options.update(self._config.options(section))
-        for opt, val in options:
-            old_options.discard(opt)
-            self._set(section, opt, val)
-        for opt in old_options:
-            self._config.remove_option(section, opt)
-
+        self._config.set(section, option, value)
 
     # Note: order matters, e.g. machine_type comes before
     # machine_specific_options and system_keymap because
-    # the laters depend on the former.
-    _OPTIONS = '''
-    auto_start
-    space_placement
-    start_attached
-    start_capitalized
-    start_minimized
-    undo_levels
+    # the latter depend on the former.
+    _OPTIONS = OrderedDict((opt.name, opt) for opt in [
+        # Output.
+        choice_option('space_placement', ('Before Output', 'After Output'), OUTPUT_CONFIG_SECTION),
+        boolean_option('start_attached', False, OUTPUT_CONFIG_SECTION),
+        boolean_option('start_capitalized', False, OUTPUT_CONFIG_SECTION),
+        int_option('undo_levels', DEFAULT_UNDO_LEVELS, MINIMUM_UNDO_LEVELS, None, OUTPUT_CONFIG_SECTION),
+        # Logging.
+        path_option('log_file_name', expand_path('strokes.log'), LOGGING_CONFIG_SECTION, 'log_file'),
+        boolean_option('enable_stroke_logging', False, LOGGING_CONFIG_SECTION),
+        boolean_option('enable_translation_logging', False, LOGGING_CONFIG_SECTION),
+        # GUI.
+        boolean_option('start_minimized', False, 'Startup', 'Start Minimized'),
+        boolean_option('show_stroke_display', False, 'Stroke Display', 'show'),
+        boolean_option('show_suggestions_display', False, 'Suggestions Display', 'show'),
+        opacity_option('translation_frame_opacity', 'Translation Frame', 'opacity'),
+        boolean_option('classic_dictionaries_display_order', False, 'GUI'),
+        # Plugins.
+        enabled_extensions_option(),
+        # Machine.
+        boolean_option('auto_start', False, MACHINE_CONFIG_SECTION),
+        plugin_option('machine_type', 'machine', 'Keyboard', MACHINE_CONFIG_SECTION),
+        machine_specific_options(),
+        # System.
+        plugin_option('system_name', 'system', DEFAULT_SYSTEM_NAME, 'System', 'name'),
+        system_keymap_option(),
+        dictionaries_option(),
+    ])
 
-    dictionaries
+    def _lookup(self, key):
+        name = key[0] if isinstance(key, tuple) else key
+        opt = self._OPTIONS[name]
+        if opt.full_key is not None:
+            key = opt.full_key(self, key)
+        return key, opt
 
-    enabled_extensions
+    def __getitem__(self, key):
+        key, opt = self._lookup(key)
+        if key in self._cache:
+            return self._cache[key]
+        try:
+            value = opt.validate(self, key, opt.getter(self, key))
+        except (configparser.NoOptionError, KeyError):
+            value = opt.default(self, key)
+        except InvalidConfigOption as e:
+            log.error('invalid value for %r option', opt.name, exc_info=True)
+            value = e.fixed_value
+        self._cache[key] = value
+        return value
 
-    enable_stroke_logging
-    enable_translation_logging
-    log_file_name
-
-    show_stroke_display
-    show_suggestions_display
-    translation_frame_opacity
-    classic_dictionaries_display_order
-
-    system_name
-    machine_type
-    machine_specific_options
-    system_keymap
-    '''.split()
+    def __setitem__(self, key, value):
+        key, opt = self._lookup(key)
+        value = opt.validate(self._config, key, value)
+        opt.setter(self, value, key)
+        self._cache[key] = value
 
     def as_dict(self):
-        d = {}
-        for option in self._OPTIONS:
-            assert hasattr(self, 'set_%s' % option)
-            getter = getattr(self, 'get_%s' % option)
-            d[option] = getter()
-        return d
+        return {opt.name: self[opt.name] for opt in self._OPTIONS.values()}
 
     def update(self, **kwargs):
-        for option in self._OPTIONS:
-            if option not in kwargs:
-                continue
-            setter = getattr(self, 'set_%s' % option)
-            setter(kwargs[option])
+        new_settings = []
+        new_config = ChainMap({}, self)
+        for opt in self._OPTIONS.values():
+            if opt.name in kwargs:
+                key = opt.name
+                if opt.full_key is not None:
+                    key = opt.full_key(new_config, key)
+                value = opt.validate(new_config, key, kwargs[opt.name])
+                new_settings.append((opt, key, value))
+                new_config[opt.name] = value
+        for opt, key, value in new_settings:
+            opt.setter(self, key, value)
+            self._cache[key] = value
