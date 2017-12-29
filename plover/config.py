@@ -4,7 +4,6 @@
 """Configuration management."""
 
 from collections import namedtuple
-from io import BytesIO
 import codecs
 import configparser
 import json
@@ -13,12 +12,10 @@ import os
 from plover.exception import InvalidConfigurationError
 from plover.machine.keymap import Keymap
 from plover.registry import registry
-from plover.oslayer.config import ASSETS_DIR, CONFIG_DIR
+from plover.oslayer.config import CONFIG_DIR
 from plover.misc import expand_path, shorten_path
 from plover import log
 
-
-SPINNER_FILE = os.path.join(ASSETS_DIR, 'spinner.gif')
 
 # Config path.
 CONFIG_FILE = os.path.join(CONFIG_DIR, 'plover.cfg')
@@ -82,10 +79,6 @@ SYSTEM_DICTIONARIES_OPTION = 'dictionaries'
 
 PLUGINS_CONFIG_SECTION = 'Plugins'
 ENABLED_EXTENSIONS_OPTION = 'enabled_extensions'
-
-# Logging constants.
-LOG_EXTENSION = '.log'
-
 
 MIN_FRAME_OPACITY = 0
 MAX_FRAME_OPACITY = 100
