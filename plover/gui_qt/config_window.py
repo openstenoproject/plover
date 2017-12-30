@@ -24,8 +24,6 @@ from PyQt5.QtWidgets import (
 )
 
 from plover.config import MINIMUM_OUTPUT_CONFIG_UNDO_LEVELS
-from plover.machine.base import SerialStenotypeBase
-from plover.machine.keyboard import Keyboard
 from plover.misc import expand_path, shorten_path
 from plover.registry import registry
 
