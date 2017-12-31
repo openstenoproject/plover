@@ -213,11 +213,9 @@ class StenoEngine:
             if self._machine is not None:
                 self._machine.stop_capture()
                 self._machine = None
-            machine_type = config['machine_type']
-            machine_options = config['machine_specific_options']
-            machine_class = registry.get_plugin('machine', machine_type).obj
-            log.info('setting machine: %s', machine_type)
-            self._machine = machine_class(machine_options)
+            machine_class = registry.get_plugin('machine', machine_params.type).obj
+            log.info('setting machine: %s', machine_params.type)
+            self._machine = machine_class(machine_params.options)
             self._machine.set_suppression(self._is_running)
             self._machine.add_state_callback(self._machine_state_callback)
             self._machine.add_stroke_callback(self._machine_stroke_callback)
@@ -317,8 +315,7 @@ class StenoEngine:
     def _on_machine_state_changed(self, machine_state):
         assert machine_state is not None
         self._machine_state = machine_state
-        machine_type = self._config['machine_type']
-        self._trigger_hook('machine_state_changed', machine_type, machine_state)
+        self._trigger_hook('machine_state_changed', self._machine_params.type, machine_state)
 
     def _consume_engine_command(self, command):
         # The first commands can be used whether plover has output enabled or not.
