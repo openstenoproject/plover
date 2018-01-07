@@ -55,3 +55,13 @@ def normalize_path(path):
     if path.startswith(ASSET_SCHEME):
         return path
     return os.path.normcase(os.path.realpath(path))
+
+def boolean(value):
+    if isinstance(value, str):
+        v = value.lower()
+        if v in ('1', 'yes', 'true', 'on'):
+            return True
+        if v in ('0', 'no', 'false', 'off'):
+            return False
+        raise ValueError(value)
+    return bool(value)
