@@ -1,4 +1,5 @@
 
+from collections import ChainMap
 from copy import copy
 from functools import partial
 
@@ -359,14 +360,10 @@ class ConfigWindow(QDialog, Ui_ConfigWindow, WindowState):
         # Only keep supported options, to avoid messing with things like
         # dictionaries, that are handled by another (possibly concurrent)
         # dialog.
-        supported_options = set()
+        self._supported_options = set()
         for section, option_list in mappings:
-            supported_options.update(option.option_name for option in option_list)
-        self._config = {
-            name: value
-            for name, value in engine.config.items()
-            if name in supported_options
-        }
+            self._supported_options.update(option.option_name for option in option_list)
+        self._update_config()
         # Create and fill tabs.
         options = {}
         for section, option_list in mappings:
@@ -397,6 +394,16 @@ class ConfigWindow(QDialog, Ui_ConfigWindow, WindowState):
         buttons.button(QDialogButtonBox.Apply).clicked.connect(self.on_apply)
         self.restore_state()
         self.finished.connect(self.save_state)
+
+    def _update_config(self, save=False):
+        with self._engine:
+            if save:
+                self._engine.config = self._config.maps[0]
+            self._config = ChainMap({}, {
+                name: value
+                for name, value in self._engine.config.items()
+                if name in self._supported_options
+            })
 
     def _machine_option(self, *args):
         machine_options = {
@@ -441,11 +448,11 @@ class ConfigWindow(QDialog, Ui_ConfigWindow, WindowState):
     def on_option_changed(self, option, value):
         self._config[option.option_name] = value
         for dependent, update_fn in option.dependents:
-            self._config[dependent.option_name] = update_fn(value)
+            self._config.maps[1][dependent.option_name] = update_fn(value)
             widget = self._create_option_widget(dependent)
             dependent.layout.replaceWidget(dependent.widget, widget)
             dependent.widget.deleteLater()
             dependent.widget = widget
 
     def on_apply(self):
-        self._engine.config = self._config
+        self._update_config(save=True)
