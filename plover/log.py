@@ -46,7 +46,8 @@ class FileHandler(RotatingFileHandler):
     def __init__(self, filename=LOG_FILENAME, format=LOG_FORMAT):
         super(FileHandler, self).__init__(filename,
                                           maxBytes=LOG_MAX_BYTES,
-                                          backupCount=LOG_COUNT)
+                                          backupCount=LOG_COUNT,
+                                          encoding='utf-8')
         self.setFormatter(logging.Formatter(format))
 
 
