@@ -18,111 +18,111 @@ KEYNAME_TO_CHAR = {
     #     if us == kn or not us:
     #         continue
     # print '    %-20r: %8r, # %s' % (kn, us, us)
-    'aacute'            :  u'\xe1', # á
-    'acircumflex'       :  u'\xe2', # â
-    'acute'             :  u'\xb4', # ´
-    'adiaeresis'        :  u'\xe4', # ä
-    'ae'                :  u'\xe6', # æ
-    'agrave'            :  u'\xe0', # à
-    'ampersand'         :     u'&', # &
-    'apostrophe'        :     u"'", # '
-    'aring'             :  u'\xe5', # å
-    'asciicircum'       :     u'^', # ^
-    'asciitilde'        :     u'~', # ~
-    'asterisk'          :     u'*', # *
-    'at'                :     u'@', # @
-    'atilde'            :  u'\xe3', # ã
-    'backslash'         :    u'\\', # \
-    'bar'               :     u'|', # |
-    'braceleft'         :     u'{', # {
-    'braceright'        :     u'}', # }
-    'bracketleft'       :     u'[', # [
-    'bracketright'      :     u']', # ]
-    'brokenbar'         :  u'\xa6', # ¦
-    'ccedilla'          :  u'\xe7', # ç
-    'cedilla'           :  u'\xb8', # ¸
-    'cent'              :  u'\xa2', # ¢
-    'clear'             :   '\x0b', # 
-    'colon'             :     u':', # :
-    'comma'             :     u',', # ,
-    'copyright'         :  u'\xa9', # ©
-    'currency'          :  u'\xa4', # ¤
-    'degree'            :  u'\xb0', # °
-    'diaeresis'         :  u'\xa8', # ¨
-    'division'          :  u'\xf7', # ÷
-    'dollar'            :     u'$', # $
-    'eacute'            :  u'\xe9', # é
-    'ecircumflex'       :  u'\xea', # ê
-    'ediaeresis'        :  u'\xeb', # ë
-    'egrave'            :  u'\xe8', # è
-    'equal'             :     u'=', # =
-    'eth'               :  u'\xf0', # ð
-    'exclam'            :     u'!', # !
-    'exclamdown'        :  u'\xa1', # ¡
-    'grave'             :     u'`', # `
-    'greater'           :     u'>', # >
-    'guillemotleft'     :  u'\xab', # «
-    'guillemotright'    :  u'\xbb', # »
-    'hyphen'            :  u'\xad', # ­
-    'iacute'            :  u'\xed', # í
-    'icircumflex'       :  u'\xee', # î
-    'idiaeresis'        :  u'\xef', # ï
-    'igrave'            :  u'\xec', # ì
-    'less'              :     u'<', # <
-    'macron'            :  u'\xaf', # ¯
-    'masculine'         :  u'\xba', # º
-    'minus'             :     u'-', # -
-    'mu'                :  u'\xb5', # µ
-    'multiply'          :  u'\xd7', # ×
-    'nobreakspace'      :  u'\xa0', #  
-    'notsign'           :  u'\xac', # ¬
-    'ntilde'            :  u'\xf1', # ñ
-    'numbersign'        :     u'#', # #
-    'oacute'            :  u'\xf3', # ó
-    'ocircumflex'       :  u'\xf4', # ô
-    'odiaeresis'        :  u'\xf6', # ö
-    'ograve'            :  u'\xf2', # ò
-    'onehalf'           :  u'\xbd', # ½
-    'onequarter'        :  u'\xbc', # ¼
-    'onesuperior'       :  u'\xb9', # ¹
-    'ooblique'          :  u'\xd8', # Ø
-    'ordfeminine'       :  u'\xaa', # ª
-    'oslash'            :  u'\xf8', # ø
-    'otilde'            :  u'\xf5', # õ
-    'paragraph'         :  u'\xb6', # ¶
-    'parenleft'         :     u'(', # (
-    'parenright'        :     u')', # )
-    'percent'           :     u'%', # %
-    'period'            :     u'.', # .
-    'periodcentered'    :  u'\xb7', # ·
-    'plus'              :     u'+', # +
-    'plusminus'         :  u'\xb1', # ±
-    'question'          :     u'?', # ?
-    'questiondown'      :  u'\xbf', # ¿
-    'quotedbl'          :     u'"', # "
-    'quoteleft'         :     u'`', # `
-    'quoteright'        :     u"'", # '
-    'registered'        :  u'\xae', # ®
-    'return'            :     '\r', # 
-    'section'           :  u'\xa7', # §
-    'semicolon'         :     u';', # ;
-    'slash'             :     u'/', # /
-    'space'             :     u' ', #  
-    'ssharp'            :  u'\xdf', # ß
-    'sterling'          :  u'\xa3', # £
-    'tab'               :     '\t', # 	
-    'thorn'             :  u'\xfe', # þ
-    'threequarters'     :  u'\xbe', # ¾
-    'threesuperior'     :  u'\xb3', # ³
-    'twosuperior'       :  u'\xb2', # ²
-    'uacute'            :  u'\xfa', # ú
-    'ucircumflex'       :  u'\xfb', # û
-    'udiaeresis'        :  u'\xfc', # ü
-    'ugrave'            :  u'\xf9', # ù
-    'underscore'        :     u'_', # _
-    'yacute'            :  u'\xfd', # ý
-    'ydiaeresis'        :  u'\xff', # ÿ
-    'yen'               :  u'\xa5', # ¥
+    'aacute'            :  '\xe1', # á
+    'acircumflex'       :  '\xe2', # â
+    'acute'             :  '\xb4', # ´
+    'adiaeresis'        :  '\xe4', # ä
+    'ae'                :  '\xe6', # æ
+    'agrave'            :  '\xe0', # à
+    'ampersand'         :     '&', # &
+    'apostrophe'        :     "'", # '
+    'aring'             :  '\xe5', # å
+    'asciicircum'       :     '^', # ^
+    'asciitilde'        :     '~', # ~
+    'asterisk'          :     '*', # *
+    'at'                :     '@', # @
+    'atilde'            :  '\xe3', # ã
+    'backslash'         :    '\\', # \
+    'bar'               :     '|', # |
+    'braceleft'         :     '{', # {
+    'braceright'        :     '}', # }
+    'bracketleft'       :     '[', # [
+    'bracketright'      :     ']', # ]
+    'brokenbar'         :  '\xa6', # ¦
+    'ccedilla'          :  '\xe7', # ç
+    'cedilla'           :  '\xb8', # ¸
+    'cent'              :  '\xa2', # ¢
+    'clear'             :  '\x0b', # 
+    'colon'             :     ':', # :
+    'comma'             :     ',', # ,
+    'copyright'         :  '\xa9', # ©
+    'currency'          :  '\xa4', # ¤
+    'degree'            :  '\xb0', # °
+    'diaeresis'         :  '\xa8', # ¨
+    'division'          :  '\xf7', # ÷
+    'dollar'            :     '$', # $
+    'eacute'            :  '\xe9', # é
+    'ecircumflex'       :  '\xea', # ê
+    'ediaeresis'        :  '\xeb', # ë
+    'egrave'            :  '\xe8', # è
+    'equal'             :     '=', # =
+    'eth'               :  '\xf0', # ð
+    'exclam'            :     '!', # !
+    'exclamdown'        :  '\xa1', # ¡
+    'grave'             :     '`', # `
+    'greater'           :     '>', # >
+    'guillemotleft'     :  '\xab', # «
+    'guillemotright'    :  '\xbb', # »
+    'hyphen'            :  '\xad', # ­
+    'iacute'            :  '\xed', # í
+    'icircumflex'       :  '\xee', # î
+    'idiaeresis'        :  '\xef', # ï
+    'igrave'            :  '\xec', # ì
+    'less'              :     '<', # <
+    'macron'            :  '\xaf', # ¯
+    'masculine'         :  '\xba', # º
+    'minus'             :     '-', # -
+    'mu'                :  '\xb5', # µ
+    'multiply'          :  '\xd7', # ×
+    'nobreakspace'      :  '\xa0', #  
+    'notsign'           :  '\xac', # ¬
+    'ntilde'            :  '\xf1', # ñ
+    'numbersign'        :     '#', # #
+    'oacute'            :  '\xf3', # ó
+    'ocircumflex'       :  '\xf4', # ô
+    'odiaeresis'        :  '\xf6', # ö
+    'ograve'            :  '\xf2', # ò
+    'onehalf'           :  '\xbd', # ½
+    'onequarter'        :  '\xbc', # ¼
+    'onesuperior'       :  '\xb9', # ¹
+    'ooblique'          :  '\xd8', # Ø
+    'ordfeminine'       :  '\xaa', # ª
+    'oslash'            :  '\xf8', # ø
+    'otilde'            :  '\xf5', # õ
+    'paragraph'         :  '\xb6', # ¶
+    'parenleft'         :     '(', # (
+    'parenright'        :     ')', # )
+    'percent'           :     '%', # %
+    'period'            :     '.', # .
+    'periodcentered'    :  '\xb7', # ·
+    'plus'              :     '+', # +
+    'plusminus'         :  '\xb1', # ±
+    'question'          :     '?', # ?
+    'questiondown'      :  '\xbf', # ¿
+    'quotedbl'          :     '"', # "
+    'quoteleft'         :     '`', # `
+    'quoteright'        :     "'", # '
+    'registered'        :  '\xae', # ®
+    'return'            :    '\r', # 
+    'section'           :  '\xa7', # §
+    'semicolon'         :     ';', # ;
+    'slash'             :     '/', # /
+    'space'             :     ' ', #  
+    'ssharp'            :  '\xdf', # ß
+    'sterling'          :  '\xa3', # £
+    'tab'               :    '\t', # 	
+    'thorn'             :  '\xfe', # þ
+    'threequarters'     :  '\xbe', # ¾
+    'threesuperior'     :  '\xb3', # ³
+    'twosuperior'       :  '\xb2', # ²
+    'uacute'            :  '\xfa', # ú
+    'ucircumflex'       :  '\xfb', # û
+    'udiaeresis'        :  '\xfc', # ü
+    'ugrave'            :  '\xf9', # ù
+    'underscore'        :     '_', # _
+    'yacute'            :  '\xfd', # ý
+    'ydiaeresis'        :  '\xff', # ÿ
+    'yen'               :  '\xa5', # ¥
 }
 for char in (
     '0123456789'
@@ -148,10 +148,10 @@ def parse_key_combo(combo_string, key_name_to_key_code=None):
     count = 0
 
     def _raise_error(exception, details):
-        msg = u'%s in "%s"' % (
+        msg = '%s in "%s"' % (
             details,
             combo_string[:count] +
-            u'[' + token + u']' +
+            '[' + token + ']' +
             combo_string[count+len(token):],
         )
         raise exception(msg)
@@ -165,7 +165,7 @@ def parse_key_combo(combo_string, key_name_to_key_code=None):
 
         elif re.match(r'\w', token):
 
-            if token.endswith(u'('):
+            if token.endswith('('):
                 key_name = token[:-1].rstrip().lower()
                 release = False
             else:
@@ -176,7 +176,7 @@ def parse_key_combo(combo_string, key_name_to_key_code=None):
             if key_code is None:
                 _raise_error(ValueError, 'unknown key')
             elif key_code in down_keys:
-                _raise_error(ValueError, u'key "%s" already pressed' % key_name)
+                _raise_error(ValueError, 'key "%s" already pressed' % key_name)
 
             key_events.append((key_code, True))
 
@@ -185,19 +185,19 @@ def parse_key_combo(combo_string, key_name_to_key_code=None):
             else:
                 down_keys.append(key_code)
 
-        elif token == u')':
+        elif token == ')':
             if not down_keys:
-                _raise_error(SyntaxError, u'unbalanced ")"')
+                _raise_error(SyntaxError, 'unbalanced ")"')
             key_code = down_keys.pop()
             key_events.append((key_code, False))
 
         else:
-            _raise_error(SyntaxError, u'invalid character "%s"' % token)
+            _raise_error(SyntaxError, 'invalid character "%s"' % token)
 
         count += len(token)
 
     if down_keys:
-        _raise_error(SyntaxError, u'unbalanced "("')
+        _raise_error(SyntaxError, 'unbalanced "("')
 
     return key_events
 

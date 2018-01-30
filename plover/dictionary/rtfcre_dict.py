@@ -281,7 +281,7 @@ STYLESHEET_RE = re.compile(r'(?s){\\s([0-9]+).*?((?:\b\w+\b\s*)+);}')
 
 def load_stylesheet(s):
     """Returns a dictionary mapping a number to a style name."""
-    return dict((int(k), v) for k, v in STYLESHEET_RE.findall(s))
+    return {int(k): v for k, v in STYLESHEET_RE.findall(s)}
 
 HEADER = ("{\\rtf1\\ansi{\\*\\cxrev100}\\cxdict{\\*\\cxsystem Plover}" +
           "{\\stylesheet{\\s0 Normal;}}\r\n")

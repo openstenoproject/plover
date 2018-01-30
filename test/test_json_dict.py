@@ -16,12 +16,12 @@ class JsonDictionaryTestCase(unittest.TestCase):
     def test_load_dictionary(self):
 
         for contents, expected in (
-            (u'{"S": "a"}'.encode('utf-8'), {('S', ): u'a'}),
+            ('{"S": "a"}'.encode('utf-8'), {('S', ): 'a'}),
             # Default encoding is utf-8.
-            (u'{"S": "café"}'.encode('utf-8'), {('S', ): u'café'}),
+            ('{"S": "café"}'.encode('utf-8'), {('S', ): 'café'}),
             # But if that fails, the implementation
             # must automatically retry with latin-1.
-            (u'{"S": "café"}'.encode('latin-1'), {('S', ): u'café'}),
+            ('{"S": "café"}'.encode('latin-1'), {('S', ): 'café'}),
         ):
             with make_dict(contents) as filename:
                 d = JsonDictionary.load(filename)
@@ -29,13 +29,13 @@ class JsonDictionaryTestCase(unittest.TestCase):
 
         for contents, exception in (
             # Invalid JSON.
-            (u'{"foo", "bar",}', ValueError),
+            ('{"foo", "bar",}', ValueError),
             # Invalid JSON.
-            (u'foo', ValueError),
+            ('foo', ValueError),
             # Cannot convert to dict.
-            (u'"foo"', ValueError),
+            ('"foo"', ValueError),
             # Ditto.
-            (u'4.2', TypeError),
+            ('4.2', TypeError),
         ):
             with make_dict(contents.encode('utf-8')) as filename:
                 self.assertRaises(exception, JsonDictionary.load, filename)
@@ -44,19 +44,19 @@ class JsonDictionaryTestCase(unittest.TestCase):
         for contents, expected in (
             # Simple test.
             ({('S', ): 'a'},
-             u'{\n"S": "a"\n}'),
+             '{\n"S": "a"\n}'),
             # Check strokes format: '/' separated.
-            ({('SAPL', '-PL'): u'sample'},
-             u'{\n"SAPL/-PL": "sample"\n}'),
+            ({('SAPL', '-PL'): 'sample'},
+             '{\n"SAPL/-PL": "sample"\n}'),
             # Contents should be saved as UTF-8, no escaping.
-            ({('S', ): u'café'},
-             u'{\n"S": "café"\n}'),
+            ({('S', ): 'café'},
+             '{\n"S": "café"\n}'),
             # Check escaping of special characters.
-            ({('S', ): u'{^"\n\t"^}'},
-             u'{\n"S": "' + r'{^\"\n\t\"^}' + u'"\n}'),
+            ({('S', ): '{^"\n\t"^}'},
+             '{\n"S": "' + r'{^\"\n\t\"^}' + '"\n}'),
             # Keys are sorted on save.
-            ({('B', ): u'bravo', ('A', ): u'alpha', ('C', ): u'charlie'},
-             u'{\n"A": "alpha",\n"B": "bravo",\n"C": "charlie"\n}'),
+            ({('B', ): 'bravo', ('A', ): 'alpha', ('C', ): 'charlie'},
+             '{\n"A": "alpha",\n"B": "bravo",\n"C": "charlie"\n}'),
         ):
             with make_dict(b'foo') as filename:
                 d = JsonDictionary.create(filename)

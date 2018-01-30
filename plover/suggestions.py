@@ -14,18 +14,18 @@ class Suggestions(object):
         suggestions = []
 
         mods = [
-            u'%s',  # Same
-            u'{^%s}',  # Prefix
-            u'{^}%s',
-            u'{^%s^}',  # Infix
-            u'{^}%s{^}',
-            u'{%s^}',  # Suffix
-            u'%s{^}',
-            u'{&%s}',  # Fingerspell
-            u'{#%s}',  # Command
+            '%s',  # Same
+            '{^%s}',  # Prefix
+            '{^}%s',
+            '{^%s^}',  # Infix
+            '{^}%s{^}',
+            '{%s^}',  # Suffix
+            '%s{^}',
+            '{&%s}',  # Fingerspell
+            '{#%s}',  # Command
         ]
 
-        possible_translations = set([translation])
+        possible_translations = {translation}
 
         # Only strip spaces, so patterns with \n or \t are correctly handled.
         stripped_translation = translation.strip(' ')

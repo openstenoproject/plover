@@ -159,10 +159,10 @@ class HeartBeat(threading.Thread):
 
 class KeyboardCaptureProcess(multiprocessing.Process):
 
-    CONTROL_KEYS = set((0xA2, 0xA3))
-    SHIFT_KEYS = set((0xA0, 0xA1))
-    ALT_KEYS = set((0xA4, 0xA5))
-    WIN_KEYS = set((0x5B, 0x5C))
+    CONTROL_KEYS = {0xA2, 0xA3}
+    SHIFT_KEYS = {0xA0, 0xA1}
+    ALT_KEYS = {0xA4, 0xA5}
+    WIN_KEYS = {0x5B, 0x5C}
     PASSTHROUGH_KEYS = CONTROL_KEYS | SHIFT_KEYS | ALT_KEYS | WIN_KEYS
 
     def __init__(self):

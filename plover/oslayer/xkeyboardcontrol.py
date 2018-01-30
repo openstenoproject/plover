@@ -1073,9 +1073,9 @@ KEYSYM_TO_UCS = {
   0x20ab: 0x20ab, #                    DongSign ₫ DONG SIGN
   0x20ac: 0x20ac, #                    EuroSign € EURO SIGN
 }
-UCS_TO_KEYSYM = dict((ucs, keysym)
-                     for keysym, ucs
-                     in KEYSYM_TO_UCS.items())
+UCS_TO_KEYSYM = {ucs: keysym
+                 for keysym, ucs
+                 in KEYSYM_TO_UCS.items()}
 
 def is_latin1(code):
     return 0x20 <= code <= 0x7e or 0xa0 <= code <= 0xff
@@ -1102,10 +1102,10 @@ def keysym_to_string(keysym):
         if code is None:
             keysym_str = XK.keysym_to_string(keysym)
             if keysym_str is None:
-                keysym_str = u''
+                keysym_str = ''
             for c in keysym_str:
                 if c not in string.printable:
-                    keysym_str = u''
+                    keysym_str = ''
                     break
             return keysym_str
     return chr(code)
@@ -1123,7 +1123,7 @@ class KeyboardEmulation(object):
             self.custom_mapping = custom_mapping
 
         def __str__(self):
-            return u'%u:%x=%x[%s]%s' % (
+            return '%u:%x=%x[%s]%s' % (
                 self.keycode, self.modifiers,
                 self.keysym, keysym_to_string(self.keysym),
                 '' if self.custom_mapping is None else '*',
@@ -1339,7 +1339,7 @@ class KeyboardEmulation(object):
                 del self._keymap[previous_keysym]
             mapping.keysym = keysym
             self._keymap[keysym] = mapping
-            log.debug(u'new mapping: %s', mapping)
+            log.debug('new mapping: %s', mapping)
             # Move custom mapping back at the end of
             # the queue so we don't use it too soon.
             self._custom_mappings_queue.append(mapping)

@@ -166,7 +166,7 @@ def keycode_needs_fn_mask(keycode):
 class KeyboardCapture(threading.Thread):
     """Implementation of KeyboardCapture for OSX."""
 
-    _KEYBOARD_EVENTS = set([kCGEventKeyDown, kCGEventKeyUp])
+    _KEYBOARD_EVENTS = {kCGEventKeyDown, kCGEventKeyUp}
 
     def __init__(self):
         threading.Thread.__init__(self, name="KeyboardEventTapThread")

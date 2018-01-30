@@ -112,7 +112,7 @@ class Keyboard(StenotypeBase):
         ):
             return
         self._last_stroke_key_down_count = self._stroke_key_down_count
-        steno_keys = set(self._bindings.get(k) for k in self._stroke_keys)
+        steno_keys = {self._bindings.get(k) for k in self._stroke_keys}
         steno_keys -= {None}
         if steno_keys:
             self._notify(steno_keys)

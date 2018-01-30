@@ -64,7 +64,7 @@ class AddTranslation(object):
                 return
             self._strokes = tuple(s.rtfcre for s in strokes)
             self._clear_state(undo=True)
-            self._translation = u''
+            self._translation = ''
             self._status = 'translations'
             self._engine.hook_connect('send_string', self.send_string)
             self._engine.hook_connect('send_backspaces', self.send_backspaces)

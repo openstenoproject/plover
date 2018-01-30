@@ -54,13 +54,13 @@ kTISPropertyInputSourceID = ctypes.c_void_p.in_dll(
     carbon, 'kTISPropertyInputSourceID')
 kTISPropertyInputSourceIsASCIICapable = ctypes.c_void_p.in_dll(
     carbon, 'kTISPropertyInputSourceIsASCIICapable')
-COMMAND = u'⌘'
-SHIFT = u'⇧'
-OPTION = u'⌥'
-CONTROL = u'⌃'
-CAPS = u'⇪'
-UNKNOWN = u'?'
-UNKNOWN_L = u'?_L'
+COMMAND = '⌘'
+SHIFT = '⇧'
+OPTION = '⌥'
+CONTROL = '⌃'
+CAPS = '⇪'
+UNKNOWN = '?'
+UNKNOWN_L = '?_L'
 
 KEY_CODE_VISUALIZATION = """
 ┌───────────────────Layout of Apple Extended Keyboard II───────────────────────┐
@@ -78,15 +78,15 @@ Valid keycodes not visible on layout:
 """
 
 SPECIAL_KEY_NAMES = {
-    u'\x1b': u'Esc',   # Will map both Esc and Clear (key codes 53 and 71)
-    u'\xa0': u'nbsp',
-    u'\x08': u'Bksp',
-    u'\x05': u'Help',
-    u'\x01': u'Home',
-    u'\x7f': u'Del',
-    u'\x04': u'End',
-    u'\x0c': u'PgDn',
-    u'\x0b': u'PgUp',  # \x0b is also the clear character signal
+    '\x1b': 'Esc',   # Will map both Esc and Clear (key codes 53 and 71)
+    '\xa0': 'nbsp',
+    '\x08': 'Bksp',
+    '\x05': 'Help',
+    '\x01': 'Home',
+    '\x7f': 'Del',
+    '\x04': 'End',
+    '\x0c': 'PgDn',
+    '\x0b': 'PgUp',  # \x0b is also the clear character signal
 }
 
 DEFAULT_SEQUENCE = (None, 0),
@@ -97,7 +97,7 @@ def is_printable(string):
         category = unicodedata.category(character)
         if category[0] in 'C':
             # Exception: the "Apple" character that most Mac layouts have
-            return False if string != u"" else True
+            return False if string != "" else True
         elif category == 'Zs' and character != ' ':
             return False
         elif category in 'Zl, Zp':
@@ -174,35 +174,35 @@ class KeyboardLayout(object):
     def _deadkeys_by_symbols(self):
         # We store deadkeys as "characters"; dkX, where X is the symbol.
         symbols = {
-            '`': u'`',
-            '´': u'´',
-            '^': (u'^', u'ˆ'),
-            '~': (u'~', u'˜'),
-            '¨': u'¨',
+            '`': '`',
+            '´': '´',
+            '^': ('^', 'ˆ'),
+            '~': ('~', '˜'),
+            '¨': '¨',
         }
         deadkeys_by_symbol = {}
         for symbol, equivalent_symbols in symbols.items():
             for equivalent_symbol in equivalent_symbols:
-                sequence = self.char_to_key_sequence(u'dk%s' % equivalent_symbol)
+                sequence = self.char_to_key_sequence('dk%s' % equivalent_symbol)
                 if sequence[0][0] is not None:
                     deadkeys_by_symbol[symbol] = sequence
         return deadkeys_by_symbol
 
     def format_modifier_header(self):
         modifiers = (
-            u'| {}\t'.format(KeyboardLayout._modifier_string(mod)).expandtabs(8)
+            '| {}\t'.format(KeyboardLayout._modifier_string(mod)).expandtabs(8)
             for mod in sorted(self._modifier_masks.values())
         )
-        header = u'Keycode\t{}'.format(''.join(modifiers))
+        header = 'Keycode\t{}'.format(''.join(modifiers))
         return '%s\n%s' % (header, re.sub(r'[^|]', '-', header))
 
     def format_keycode_keys(self, keycode):
         """Returns all the variations of the keycode with modifiers"""
-        keys = (u'| {}\t'.format(get_printable_string(
+        keys = ('| {}\t'.format(get_printable_string(
             self._key_sequence_to_char[keycode, mod])).expandtabs(8)
                 for mod in sorted(self._modifier_masks.values()))
 
-        return u'{}\t{}'.format(keycode, ''.join(keys)).expandtabs(8)
+        return '{}\t{}'.format(keycode, ''.join(keys)).expandtabs(8)
 
     @staticmethod
     def _modifier_dictionary(modifier_mask):
@@ -412,9 +412,9 @@ class KeyboardLayout(object):
             for j, key in enumerate(
                     struct.unpack_from('H' * csize, buf, table_offset)):
                 if key == 65535:
-                    key_sequence_to_char[j, mod] = u'mod'
+                    key_sequence_to_char[j, mod] = 'mod'
                 elif key >= 0xFFFE:
-                    key_sequence_to_char[j, mod] = u'<{}>'.format(key)
+                    key_sequence_to_char[j, mod] = '<{}>'.format(key)
                 elif key & 0x0C000 == 0x4000:
                     dead = key & ~0xC000
                     if dead < len(deadkeys):
@@ -431,9 +431,9 @@ class KeyboardLayout(object):
                                     deadkey_state_to_key_sequence[nextstate] = new_deadkey
                             if nextstate - 1 < len(dkterms):
                                 base_key = lookupseq(dkterms[nextstate - 1])
-                                dead_key_name = u'dk{}'.format(base_key)
+                                dead_key_name = 'dk{}'.format(base_key)
                             else:
-                                dead_key_name = u'dk#{}'.format(nextstate)
+                                dead_key_name = 'dk#{}'.format(nextstate)
                             key_sequence_to_char[j, mod] = dead_key_name
                             save_shortest_key_sequence(dead_key_name, (j, mod))
                         elif eformat == 1 or (eformat == 0 and not nextstate):
@@ -460,9 +460,9 @@ class KeyboardLayout(object):
                     save_shortest_key_sequence(ch, ((dj, dmod), (j, mod)))
                     key_sequence_to_char[(dj, dmod), (j, mod)] = ch
 
-        char_to_key_sequence[u'\n'] = (36, 0)
-        char_to_key_sequence[u'\r'] = (36, 0)
-        char_to_key_sequence[u'\t'] = (48, 0)
+        char_to_key_sequence['\n'] = (36, 0)
+        char_to_key_sequence['\r'] = (36, 0)
+        char_to_key_sequence['\t'] = (48, 0)
 
         return char_to_key_sequence, key_sequence_to_char, modifier_masks
 
@@ -481,19 +481,18 @@ if __name__ == '__main__':
         for code, mod in layout.char_to_key_sequence(char):
             if code is not None:
                 sequence.append(
-                    (code, u'{}{}'.format(
-                         layout._modifier_string(mod),
-                         layout.key_code_to_char(code, 0)
-                     )
-                    )
+                    (code, '{}{}'.format(
+                        layout._modifier_string(mod),
+                        layout.key_code_to_char(code, 0)
+                    ))
                 )
             else:
                 unmapped_characters.append(char)
         if sequence:
-            print(u'Name:\t\t{}\nCharacter:\t{}\nSequence:\t‘{}’\nBase codes:\t‘{}’\n'.format(
-                keyname, char, u'’, ‘'.join(combo[1] for combo in sequence),
-                u'’, ‘'.join(str(combo[0]) for combo in sequence)
+            print('Name:\t\t{}\nCharacter:\t{}\nSequence:\t‘{}’\nBase codes:\t‘{}’\n'.format(
+                keyname, char, '’, ‘'.join(combo[1] for combo in sequence),
+                '’, ‘'.join(str(combo[0]) for combo in sequence)
             ))
-    print(u'No mapping on this layout for characters: ‘{}’'.format(
-        u'’, ‘'.join(unmapped_characters)
+    print('No mapping on this layout for characters: ‘{}’'.format(
+        '’, ‘'.join(unmapped_characters)
     ))

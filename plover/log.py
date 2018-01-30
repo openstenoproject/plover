@@ -38,7 +38,7 @@ class NoExceptionTracebackFormatter(logging.Formatter):
     def formatException(self, exc_info):
         etype, evalue, tb = exc_info
         lines = traceback.format_exception_only(etype, evalue)
-        return u''.join(lines)
+        return ''.join(lines)
 
 
 class FileHandler(RotatingFileHandler):

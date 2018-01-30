@@ -30,9 +30,9 @@ from plover.gui_qt.utils import ToolBar
 
 
 def _dictionary_formats(include_readonly=True):
-    return set(plugin.name
-               for plugin in registry.list_plugins('dictionary')
-               if include_readonly or not plugin.obj.readonly)
+    return {plugin.name
+            for plugin in registry.list_plugins('dictionary')
+            if include_readonly or not plugin.obj.readonly}
 
 def _dictionary_filters(include_readonly=True):
     formats = sorted(_dictionary_formats(include_readonly=include_readonly))
