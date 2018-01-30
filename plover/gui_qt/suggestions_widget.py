@@ -21,7 +21,7 @@ class SuggestionsWidget(QWidget, Ui_SuggestionsWidget):
     #    - 1-10 "strokes" blocks
 
     def __init__(self, *args, **kwargs):
-        super(SuggestionsWidget, self).__init__(*args, **kwargs)
+        super().__init__(*args, **kwargs)
         self.setupUi(self)
         self._translation_char_format = QTextCharFormat()
         self._strokes_char_format = QTextCharFormat()

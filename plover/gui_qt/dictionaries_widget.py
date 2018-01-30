@@ -53,7 +53,7 @@ class DictionariesWidget(QWidget, Ui_DictionariesWidget):
     add_translation = pyqtSignal(QVariant)
 
     def __init__(self, *args, **kwargs):
-        super(DictionariesWidget, self).__init__(*args, **kwargs)
+        super().__init__(*args, **kwargs)
         self.setupUi(self)
         engine = QApplication.instance().engine
         self._engine = engine

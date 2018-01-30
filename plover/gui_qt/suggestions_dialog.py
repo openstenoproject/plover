@@ -44,7 +44,7 @@ class SuggestionsDialog(Tool, Ui_SuggestionsDialog):
     #    - 1-10 "strokes" frames
 
     def __init__(self, engine):
-        super(SuggestionsDialog, self).__init__(engine)
+        super().__init__(engine)
         self.setupUi(self)
         self._last_suggestions = None
         # Toolbar.

@@ -200,7 +200,7 @@ class _Context(RetroFormatter):
     """
 
     def __init__(self, previous_translations, last_action):
-        super(_Context, self).__init__(previous_translations)
+        super().__init__(previous_translations)
         assert last_action is not None
         self.last_action = last_action
         self.translated_actions = []
@@ -223,7 +223,7 @@ class _Context(RetroFormatter):
         """Custom iterator with support for newly translated actions."""
         for action in reversed(self.translated_actions):
             yield action
-        for action in super(_Context, self).iter_last_actions():
+        for action in super().iter_last_actions():
             yield action
 
 

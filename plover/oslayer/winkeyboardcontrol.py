@@ -141,7 +141,7 @@ def pid_exists(pid):
 class HeartBeat(threading.Thread):
 
     def __init__(self, ppid, atexit):
-        super(HeartBeat, self).__init__()
+        super().__init__()
         self._ppid = ppid
         self._atexit = atexit
         self._finished = threading.Event()
@@ -166,7 +166,7 @@ class KeyboardCaptureProcess(multiprocessing.Process):
     PASSTHROUGH_KEYS = CONTROL_KEYS | SHIFT_KEYS | ALT_KEYS | WIN_KEYS
 
     def __init__(self):
-        super(KeyboardCaptureProcess, self).__init__()
+        super().__init__()
         self.daemon = True
         self._ppid = os.getpid()
         self._update_registry()
@@ -301,7 +301,7 @@ class KeyboardCaptureProcess(multiprocessing.Process):
 
     def start(self):
         self.daemon = True
-        super(KeyboardCaptureProcess, self).start()
+        super().start()
         self._tid = self._queue.get()
 
     def stop(self):
@@ -326,7 +326,7 @@ class KeyboardCapture(threading.Thread):
     """Listen to all keyboard events."""
 
     def __init__(self):
-        super(KeyboardCapture, self).__init__()
+        super().__init__()
         self._suppressed_keys = set()
         self.key_down = lambda key: None
         self.key_up = lambda key: None
@@ -336,7 +336,7 @@ class KeyboardCapture(threading.Thread):
     def start(self):
         self._proc.start()
         self._proc.suppress_keyboard(self._suppressed_keys)
-        super(KeyboardCapture, self).start()
+        super().start()
 
     def run(self):
         while True:

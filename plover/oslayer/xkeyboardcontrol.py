@@ -144,7 +144,7 @@ KEY_TO_KEYCODE = dict(zip(KEYCODE_TO_KEY.values(), KEYCODE_TO_KEY.keys()))
 class XEventLoop(threading.Thread):
 
     def __init__(self, name='xev'):
-        super(XEventLoop, self).__init__()
+        super().__init__()
         self.name += '-' + name
         self._display = display.Display()
         self._pipe = os.pipe()
@@ -191,7 +191,7 @@ class KeyboardCapture(XEventLoop):
 
     def __init__(self):
         """Prepare to listen for keyboard events."""
-        super(KeyboardCapture, self).__init__(name='capture')
+        super().__init__(name='capture')
         self._window = self._display.screen().root
         if not self._display.has_extension('XInputExtension'):
             raise Exception('Xlib\'s XInput extension is required, but could not be found.')
@@ -256,11 +256,11 @@ class KeyboardCapture(XEventLoop):
         suppressed_keys = self._suppressed_keys
         self._suppressed_keys = set()
         self.suppress_keyboard(suppressed_keys)
-        super(KeyboardCapture, self).start()
+        super().start()
 
     def cancel(self):
         self.suppress_keyboard()
-        super(KeyboardCapture, self).cancel()
+        super().cancel()
 
     def _grab_key(self, keycode):
         for deviceid in self._devices:

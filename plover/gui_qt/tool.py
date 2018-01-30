@@ -15,7 +15,7 @@ class Tool(QDialog, WindowState):
     # Note: the class documentation is automatically used as tooltip.
 
     def __init__(self, engine):
-        super(Tool, self).__init__()
+        super().__init__()
         self._update_title()
         self._engine = engine
 
@@ -23,5 +23,5 @@ class Tool(QDialog, WindowState):
         self.setWindowTitle('Plover: ' + self.TITLE)
 
     def setupUi(self, widget):
-        super(Tool, self).setupUi(widget)
+        super().setupUi(widget)
         self._update_title()

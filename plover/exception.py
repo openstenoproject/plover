@@ -16,7 +16,7 @@ class DictionaryLoaderException(Exception):
     """Dictionary file could not be loaded."""
 
     def __init__(self, path, exception):
-        super(DictionaryLoaderException, self).__init__(path, exception)
+        super().__init__(path, exception)
         self.path = path
         self.exception = exception
 

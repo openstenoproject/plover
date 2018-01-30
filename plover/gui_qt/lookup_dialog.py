@@ -21,7 +21,7 @@ class LookupDialog(Tool, Ui_LookupDialog):
     SHORTCUT = 'Ctrl+L'
 
     def __init__(self, engine):
-        super(LookupDialog, self).__init__(engine)
+        super().__init__(engine)
         self.setupUi(self)
         self.pattern.installEventFilter(self)
         self.suggestions.installEventFilter(self)

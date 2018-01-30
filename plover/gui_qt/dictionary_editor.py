@@ -35,7 +35,7 @@ class DictionaryItem(namedtuple('DictionaryItem', 'strokes translation dictionar
 class DictionaryItemDelegate(QStyledItemDelegate):
 
     def __init__(self, dictionary_list):
-        super(DictionaryItemDelegate, self).__init__()
+        super().__init__()
         self._dictionary_list = dictionary_list
 
     def createEditor(self, parent, option, index):
@@ -48,13 +48,13 @@ class DictionaryItemDelegate(QStyledItemDelegate):
             combo = QComboBox(parent)
             combo.addItems(dictionary_paths)
             return combo
-        return super(DictionaryItemDelegate, self).createEditor(parent, option, index)
+        return super().createEditor(parent, option, index)
 
 
 class DictionaryItemModel(QAbstractTableModel):
 
     def __init__(self, dictionary_list, sort_column, sort_order):
-        super(DictionaryItemModel, self).__init__()
+        super().__init__()
         self._dictionary_list = dictionary_list
         self._operations = []
         self._entries = []
@@ -276,7 +276,7 @@ class DictionaryEditor(QDialog, Ui_DictionaryEditor, WindowState):
     ROLE = 'dictionary_editor'
 
     def __init__(self, engine, dictionary_paths):
-        super(DictionaryEditor, self).__init__()
+        super().__init__()
         self.setupUi(self)
         self._engine = engine
         with engine:

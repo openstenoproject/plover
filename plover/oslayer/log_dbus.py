@@ -18,7 +18,7 @@ class DbusNotificationHandler(logging.Handler):
     """ Handler using DBus notifications to show messages. """
 
     def __init__(self):
-        super(DbusNotificationHandler, self).__init__()
+        super().__init__()
         self._bus = dbus.SessionBus()
         self._proxy = self._bus.get_object(SERVICE, INTERFACE)
         self._notify = dbus.Interface(self._proxy, SERVICE)

@@ -61,7 +61,7 @@ class FakeMachine(StenotypeBase):
     instance = None
 
     def __init__(self, options):
-        super(FakeMachine, self).__init__()
+        super().__init__()
         self.options = options
         self.is_suppressed = False
 

@@ -11,7 +11,7 @@ from plover import log
 class TrayIcon(QObject):
 
     def __init__(self):
-        super(TrayIcon, self).__init__()
+        super().__init__()
         self._supported = QSystemTrayIcon.isSystemTrayAvailable()
         self._context_menu = None
         self._enabled = False

@@ -28,7 +28,7 @@ class ErroredDictionary(StenoDictionary):
     """ Placeholder for dictionaries that failed to load. """
 
     def __init__(self, path, exception):
-        super(ErroredDictionary, self).__init__()
+        super().__init__()
         self.enabled = False
         self.readonly = True
         self.path = path

@@ -53,7 +53,7 @@ class Engine(StenoEngine, QThread):
         if sys.platform.startswith('darwin'):
             import appnope
             appnope.nope()
-        super(Engine, self).run()
+        super().run()
 
     def signal_connect(self, name, callback):
         self._signals[name].connect(callback)

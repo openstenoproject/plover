@@ -25,7 +25,7 @@ class Passport(SerialStenotypeBase):
     SERIAL_PARAMS.update(baudrate=38400)
 
     def __init__(self, params):
-        super(Passport, self).__init__(params)
+        super().__init__(params)
         self.packet = []
 
     def _read(self, b):

@@ -20,7 +20,7 @@ class PlyerNotificationHandler(logging.Handler):
     """ Handler using Plyer's notifications to show messages. """
 
     def __init__(self):
-        super(PlyerNotificationHandler, self).__init__()
+        super().__init__()
         self.setLevel(log.WARNING)
         self.setFormatter(log.NoExceptionTracebackFormatter('%(levelname)s: %(message)s'))
 
