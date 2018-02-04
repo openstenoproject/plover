@@ -113,7 +113,7 @@ def get_printable_string(s):
     )
 
 
-class KeyboardLayout(object):
+class KeyboardLayout:
     def __init__(self, watch_layout=True):
         self._char_to_key_sequence = None
         self._key_sequence_to_char = None

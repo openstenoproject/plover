@@ -88,7 +88,7 @@ META_RE = re.compile(r"""(?:%s%s|%s%s|[^%s%s])+ # One or more of anything
 WORD_RX = re.compile(r'(?:\d+(?:[.,]\d+)+|[\'\w]+[-\w\']*|[^\w\s]+)\s*', re.UNICODE)
 
 
-class RetroFormatter(object):
+class RetroFormatter:
     """Helper for iterating over the result of previous translations.
 
     Support iterating over previous actions, text, fragments of text, or words:
@@ -227,7 +227,7 @@ class _Context(RetroFormatter):
             yield action
 
 
-class Formatter(object):
+class Formatter:
     """Convert translations into output.
 
     The main entry point for this class is format, which takes in translations
@@ -368,7 +368,7 @@ class Formatter(object):
         self.last_output_spaces_after = self.spaces_after
 
 
-class TextFormatter(object):
+class TextFormatter:
     """Format a series of action into text."""
 
     def __init__(self, spaces_after):
@@ -430,7 +430,7 @@ class TextFormatter(object):
         self.appended_text = trailing_space
 
 
-class OutputHelper(object):
+class OutputHelper:
     """A helper class for minimizing the amount of change on output.
 
     This class figures out the current state, compares it to the new output and
@@ -481,7 +481,7 @@ class OutputHelper(object):
         self.flush()
 
 
-class _Action(object):
+class _Action:
     """A hybrid class that stores instructions and resulting state.
 
     A single translation may be formatted into one or more actions. The

@@ -1111,10 +1111,10 @@ def keysym_to_string(keysym):
     return chr(code)
 
 
-class KeyboardEmulation(object):
+class KeyboardEmulation:
     """Emulate keyboard events."""
 
-    class Mapping(object):
+    class Mapping:
 
         def __init__(self, keycode, modifiers, keysym, custom_mapping=None):
             self.keycode = keycode

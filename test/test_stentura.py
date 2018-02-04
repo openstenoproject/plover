@@ -65,7 +65,7 @@ def parse_request(request):
                      'p3', 'p4', 'p5', 'crc', 'data', 'data_crc'], header))
 
 
-class MockPacketPort(object):
+class MockPacketPort:
     def __init__(self, responses, requests=None):
         self._responses = responses
         self.writes = 0
@@ -209,7 +209,7 @@ class TestCase(unittest.TestCase):
                 test[0]), test[1], test[2])
 
     def test_read_data_simple(self):
-        class MockPort(object):
+        class MockPort:
             def read(self, count):
                 if count != 5:
                     raise Exception("Incorrect number read.")
@@ -226,7 +226,7 @@ class TestCase(unittest.TestCase):
         self.assertEqual(buf, b'123412345' + (b'\x00' * 11))
 
     def test_read_data_stop_set(self):
-        class MockPort(object):
+        class MockPort:
             def read(self, count):
                 return b"0000"
         buf = bytearray()
@@ -236,7 +236,7 @@ class TestCase(unittest.TestCase):
             stentura._read_data(MockPort(), event, buf, 0, 4)
 
     def test_read_data_timeout(self):
-        class MockPort(object):
+        class MockPort:
             def read(self, count):
                 # When serial time out occurs read() returns
                 # less characters as requested
@@ -248,7 +248,7 @@ class TestCase(unittest.TestCase):
             stentura._read_data(port, threading.Event(), buf, 0, 4)
 
     def test_read_packet_simple(self):
-        class MockPort(object):
+        class MockPort:
             def __init__(self, packet):
                 self._packet = packet
 
@@ -265,7 +265,7 @@ class TestCase(unittest.TestCase):
             self.assertSequenceEqual(response, packet)
 
     def test_read_packet_fail(self):
-        class MockPort(object):
+        class MockPort:
             def __init__(self, data_section_length=0, set1=False, set2=False,
                          give_too_much_data=False, give_timeout=False):
                 self._set1 = set1
@@ -322,7 +322,7 @@ class TestCase(unittest.TestCase):
             stentura._read_packet(port, port.event, buf)
 
     def test_write_to_port(self):
-        class MockPort(object):
+        class MockPort:
             def __init__(self, chunk):
                 self._chunk = chunk
                 self.data = b''
@@ -431,7 +431,7 @@ class TestCase(unittest.TestCase):
             self.assertEqual(byte, len(data) % 512)
 
     def test_loop(self):
-        class Event(object):
+        class Event:
             def __init__(self, count, data, stop=False):
                 self.count = count
                 self.data = data
@@ -440,7 +440,7 @@ class TestCase(unittest.TestCase):
             def __repr__(self):
                 return '<{}, {}, {}>'.format(self.count, self.data, self.stop)
 
-        class MockPort(object):
+        class MockPort:
             def __init__(self, events=[]):
                 self._file = b''
                 self._out = b''

@@ -295,7 +295,7 @@ def dictionaries_option():
     return ConfigOption('dictionaries', default, getter, setter, validate, full_key)
 
 
-class Config(object):
+class Config:
 
     def __init__(self):
         self._config = None

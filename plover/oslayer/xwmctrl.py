@@ -3,7 +3,7 @@ from Xlib.error import BadWindow
 from Xlib.protocol.event import ClientMessage
 
 
-class WmCtrl(object):
+class WmCtrl:
 
     def __init__(self):
         self._display = display.Display()

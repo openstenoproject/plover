@@ -19,7 +19,7 @@ from plover.gui_qt.engine import Engine
 from plover.gui_qt.i18n import get_language, install_gettext
 
 
-class Application(object):
+class Application:
 
     def __init__(self, config, use_qt_notifications):
 

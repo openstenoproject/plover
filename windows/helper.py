@@ -55,7 +55,7 @@ class CommandExecutionException(Exception):
         self.stderr = stderr
 
 
-class Environment(object):
+class Environment:
 
     def __init__(self):
         self.dry_run = False
@@ -240,7 +240,7 @@ class Win32Environment(Environment):
             os.unlink(batch)
 
 
-class Helper(object):
+class Helper:
 
     DEPENDENCIES = (
         ('nsis', 'http://prdownloads.sourceforge.net/nsis/nsis-3.01-setup.exe',

@@ -6,7 +6,7 @@ from plover.steno import sort_steno_strokes
 Suggestion = collections.namedtuple('Suggestion', 'text steno_list')
 
 
-class Suggestions(object):
+class Suggestions:
     def __init__(self, dictionary):
         self.dictionary = dictionary
 

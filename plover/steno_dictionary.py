@@ -14,7 +14,7 @@ import shutil
 from plover.resource import ASSET_SCHEME, resource_filename, resource_timestamp
 
 
-class StenoDictionary(object):
+class StenoDictionary:
     """A steno dictionary.
 
     This dictionary maps immutable sequences to translations and tracks the
@@ -179,7 +179,7 @@ class StenoDictionary(object):
         self._longest_listener_callbacks.remove(callback)
 
 
-class StenoDictionaryCollection(object):
+class StenoDictionaryCollection:
 
     def __init__(self, dicts=[]):
         self.dicts = []

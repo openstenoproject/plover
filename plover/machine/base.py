@@ -22,7 +22,7 @@ STATE_RUNNING = 'connected'
 STATE_ERROR = 'disconnected'
 
 
-class StenotypeBase(object):
+class StenotypeBase:
     """The base class for all Stenotype classes."""
 
     # Layout of physical keys.

@@ -126,7 +126,7 @@ class TestCase(unittest.TestCase):
 
         this = self
 
-        class Converter(object):
+        class Converter:
             def __init__(self, styles):
                 this.assertEqual(styles, expected_styles)
 

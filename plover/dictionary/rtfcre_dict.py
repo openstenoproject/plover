@@ -29,7 +29,7 @@ DICT_ENTRY_PATTERN = re.compile(r'(?s)(?<!\\){\\\*\\cxs (?P<steno>[^}]+)}' +
                                 r'(?=(?:(?<!\\){\\\*\\cxs [^}]+})|' +
                                 r'(?:(?:(?<!\\)(?:\r\n|\n)\s*)*}\s*\Z))')
 
-class TranslationConverter(object):
+class TranslationConverter:
     """Convert an RTF/CRE translation into plover's internal format."""
     
     def __init__(self, styles={}):

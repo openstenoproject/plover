@@ -51,7 +51,7 @@ def sort_steno_strokes(strokes_list):
     return sorted(strokes_list, key=lambda x: (len(x), sum(map(len, x))))
 
 
-class Stroke(object):
+class Stroke:
     """A standardized data model for stenotype machine strokes.
 
     This class standardizes the representation of a stenotype chord. A stenotype

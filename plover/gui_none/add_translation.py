@@ -2,7 +2,7 @@
 from plover.engine import StartingStrokeState
 
 
-class AddTranslation(object):
+class AddTranslation:
 
     def __init__(self, engine):
         self._status = None

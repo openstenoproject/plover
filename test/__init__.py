@@ -14,7 +14,7 @@ class TestCase(unittest.TestCase):
 
     def assertRaisesWithMessage(self, exception, msg):
         outer_self = self
-        class ContextManager(object):
+        class ContextManager:
             def __enter__(self):
                 pass
             def __exit__(self, exc_type, exc_value, traceback):

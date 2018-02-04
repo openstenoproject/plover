@@ -11,7 +11,7 @@ from plover.steno_dictionary import StenoDictionary
 from plover.translation import Translator
 
 
-class CaptureOutput(object):
+class CaptureOutput:
 
     def __init__(self):
         self.instructions = []
@@ -119,7 +119,7 @@ def replay_doc(f):
     return functools.wraps(f)(new_f)
 
 
-class BlackboxTester(object):
+class BlackboxTester:
 
     @classmethod
     def setup_class(cls):

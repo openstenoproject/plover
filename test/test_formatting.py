@@ -31,7 +31,7 @@ def action(**kwargs):
                 kwargs[k] = v
     return formatting._Action(**kwargs)
 
-class MockTranslation(object):
+class MockTranslation:
     def __init__(self, rtfcre=tuple(), english=None, formatting=None):
         self.rtfcre = rtfcre
         self.english = english
@@ -709,7 +709,7 @@ def test_meta_carry_capitalize(meta, last_action, expected):
     assert formatting._atom_to_action('{' + meta + '}', ctx) == expected
 
 
-class TestApplyModeCase(object):
+class TestApplyModeCase:
 
     test = ' some test '
     test2 = 'test Me'
@@ -746,7 +746,7 @@ class TestApplyModeCase(object):
             assert formatting._apply_mode_case(input_text, case, appended) == expected
 
 
-class TestApplyModeSpaceChar(object):
+class TestApplyModeSpaceChar:
 
     test = ' some text '
     test2 = "don't"
@@ -898,7 +898,7 @@ def test_output_optimization(undo, do, expected_instructions):
     assert output.instructions == expected_instructions
 
 
-class TestRetroFormatter(object):
+class TestRetroFormatter:
 
     def setup_method(self):
         self.formatter = formatting.Formatter()

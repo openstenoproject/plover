@@ -300,7 +300,7 @@ class KeyboardCapture(threading.Thread):
             handler(key)
 
 
-class KeyboardEmulation(object):
+class KeyboardEmulation:
 
     RAW_PRESS, STRING_PRESS = range(2)
 

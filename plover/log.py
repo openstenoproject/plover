@@ -59,7 +59,7 @@ class PrintHandler(logging.StreamHandler):
         self.setFormatter(logging.Formatter(format))
 
 
-class Logger(object):
+class Logger:
 
     def __init__(self):
         self._print_handler = PrintHandler()

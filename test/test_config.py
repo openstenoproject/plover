@@ -30,7 +30,7 @@ def dict_replace(d, update):
     return d
 
 
-class FakeMachine(object):
+class FakeMachine:
 
     KEYMAP_MACHINE_TYPE = 'Keyboard'
 
@@ -55,7 +55,7 @@ class FakeMachine(object):
 FakeMachine.DEFAULT_OPTIONS = {k: v[0] for k, v in FakeMachine.get_option_info().items()}
 
 
-class FakeSystem(object):
+class FakeSystem:
     KEYS = english_stenotype.KEYS
     IMPLICIT_HYPHEN_KEYS = ()
     SUFFIX_KEYS = ()

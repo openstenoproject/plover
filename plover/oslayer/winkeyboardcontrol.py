@@ -356,7 +356,7 @@ class KeyboardCapture(threading.Thread):
         self._proc.suppress_keyboard(self._suppressed_keys)
 
 
-class KeyboardEmulation(object):
+class KeyboardEmulation:
 
     def __init__(self):
         self.keyboard_layout = KeyboardLayout()

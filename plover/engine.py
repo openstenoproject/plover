@@ -72,7 +72,7 @@ def with_lock(func):
     return _with_lock
 
 
-class StenoEngine(object):
+class StenoEngine:
 
     HOOKS = '''
     stroked

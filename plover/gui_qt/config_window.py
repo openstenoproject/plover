@@ -249,7 +249,7 @@ class BooleanAsDualChoiceOption(ChoiceOption):
         super().__init__(choices)
 
 
-class ConfigOption(object):
+class ConfigOption:
 
     def __init__(self, display_name, option_name, widget_class,
                  help_text='', dependents=()):
