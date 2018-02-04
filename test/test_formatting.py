@@ -746,7 +746,7 @@ class TestApplyModeCase(object):
             assert formatting._apply_mode_case(input_text, case, appended) == expected
 
 
-def TestApplyModeSpaceChar(object):
+class TestApplyModeSpaceChar(object):
 
     test = ' some text '
     test2 = "don't"
@@ -759,7 +759,7 @@ def TestApplyModeSpaceChar(object):
     )
 
     @parametrize(TESTS)
-    def test_apply_space_char(text, space_char, expected):
+    def test_apply_space_char(self, text, space_char, expected):
         assert formatting._apply_mode_space_char(text, space_char) == expected
 
 
