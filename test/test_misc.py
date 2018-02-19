@@ -4,6 +4,7 @@
 
 """Tests for misc.py."""
 
+import inspect
 import os
 import sys
 
@@ -56,3 +57,35 @@ def test_dictionary_path(short_path, full_path):
         function = '%s_path' % function
         result = getattr(misc, function)(input)
         assert result == expected, function
+
+@pytest.mark.parametrize(('input', 'output'), (
+    # Boolean.
+    (False, False),
+    (True, True),
+    # True string values.
+    ('1', True),
+    ('yes', True),
+    ('true', True),
+    ('on', True),
+    # False string values.
+    ('0', False),
+    ('no', False),
+    ('false', False),
+    ('off', False),
+    # Invalid string values.
+    ('yep', ValueError),
+    ('nope', ValueError),
+    # Other types.
+    (0, False),
+    (1, True),
+    (42, True),
+    (4.2, True),
+    (0.0, False),
+    (None, False),
+))
+def test_boolean(input, output):
+    if inspect.isclass(output):
+        with pytest.raises(output):
+            misc.boolean(input)
+    else:
+        assert misc.boolean(input) == output

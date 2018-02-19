@@ -1,3 +1,5 @@
+from copy import copy
+
 from PyQt5.QtCore import QVariant, pyqtSignal
 from PyQt5.QtWidgets import QWidget
 
@@ -22,7 +24,7 @@ class SerialOption(QWidget, Ui_SerialWidget):
         self._value = {}
 
     def setValue(self, value):
-        self._value = value
+        self._value = copy(value)
         port = value['port']
         if port is None or port == 'None':
             self.on_scan()
@@ -109,7 +111,7 @@ class KeyboardOption(QWidget, Ui_KeyboardWidget):
         self._value = {}
 
     def setValue(self, value):
-        self._value = value
+        self._value = copy(value)
         self.arpeggiate.setChecked(value['arpeggiate'])
 
     def on_arpeggiate_changed(self, value):

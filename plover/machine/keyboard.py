@@ -5,6 +5,7 @@
 "For use with a computer keyboard (preferably NKRO) as a steno machine."
 
 from plover.machine.base import StenotypeBase
+from plover.misc import boolean
 from plover.oslayer.keyboardcontrol import KeyboardCapture
 
 
@@ -120,7 +121,6 @@ class Keyboard(StenotypeBase):
 
     @classmethod
     def get_option_info(cls):
-        bool_converter = lambda s: s == 'True'
         return {
-            'arpeggiate': (False, bool_converter),
+            'arpeggiate': (False, boolean),
         }

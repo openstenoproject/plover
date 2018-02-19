@@ -1,4 +1,6 @@
 
+from collections import ChainMap
+from copy import copy
 from functools import partial
 
 from PyQt5.QtCore import (
@@ -23,9 +25,7 @@ from PyQt5.QtWidgets import (
     QWidget,
 )
 
-from plover.config import MINIMUM_OUTPUT_CONFIG_UNDO_LEVELS
-from plover.machine.base import SerialStenotypeBase
-from plover.machine.keyboard import Keyboard
+from plover.config import MINIMUM_UNDO_LEVELS
 from plover.misc import expand_path, shorten_path
 from plover.registry import registry
 
@@ -151,7 +151,7 @@ class KeymapOption(QTableWidget):
 
     def setValue(self, value):
         self._updating = True
-        self._value = value
+        self._value = copy(value)
         self.setRowCount(0)
         if value is not None:
             row = -1
@@ -308,7 +308,7 @@ class ConfigWindow(QDialog, Ui_ConfigWindow, WindowState):
             (_('Machine'), (
                 ConfigOption(_('Machine:'), 'machine_type', partial(ChoiceOption, choices=machines),
                              dependents=(
-                                 ('machine_specific_options', engine.machine_specific_options),
+                                 ('machine_specific_options', self._update_machine_options),
                                  ('system_keymap', lambda v: self._update_keymap(machine_type=v)),
                              )),
                 ConfigOption(_('Options:'), 'machine_specific_options', self._machine_option),
@@ -332,7 +332,7 @@ class ConfigWindow(QDialog, Ui_ConfigWindow, WindowState):
                 ConfigOption(_('Undo levels:'), 'undo_levels',
                              partial(IntOption,
                                      maximum=10000,
-                                     minimum=MINIMUM_OUTPUT_CONFIG_UNDO_LEVELS),
+                                     minimum=MINIMUM_UNDO_LEVELS),
                              _('Set how many preceding strokes can be undone.\n'
                                '\n'
                                'Note: the effective value will take into account the\n'
@@ -360,14 +360,10 @@ class ConfigWindow(QDialog, Ui_ConfigWindow, WindowState):
         # Only keep supported options, to avoid messing with things like
         # dictionaries, that are handled by another (possibly concurrent)
         # dialog.
-        supported_options = set()
+        self._supported_options = set()
         for section, option_list in mappings:
-            supported_options.update(option.option_name for option in option_list)
-        self._config = {
-            name: value
-            for name, value in engine.config.items()
-            if name in supported_options
-        }
+            self._supported_options.update(option.option_name for option in option_list)
+        self._update_config()
         # Create and fill tabs.
         options = {}
         for section, option_list in mappings:
@@ -399,6 +395,16 @@ class ConfigWindow(QDialog, Ui_ConfigWindow, WindowState):
         self.restore_state()
         self.finished.connect(self.save_state)
 
+    def _update_config(self, save=False):
+        with self._engine:
+            if save:
+                self._engine.config = self._config.maps[0]
+            self._config = ChainMap({}, {
+                name: value
+                for name, value in self._engine.config.items()
+                if name in self._supported_options
+            })
+
     def _machine_option(self, *args):
         machine_options = {
             plugin.name: plugin.obj
@@ -417,14 +423,14 @@ class ConfigWindow(QDialog, Ui_ConfigWindow, WindowState):
                     return opt_class(*args)
         return NopeOption(*args)
 
-    def _update_keymap(self, machine_type=None, system_name=None):
-        if machine_type is None:
-            machine_type = self._config['machine_type']
-        if system_name is None:
-            system_name = self._config['system_name']
-        keymap = self._engine.system_keymap(machine_type=machine_type,
-                                            system_name=system_name)
-        return keymap
+    def _update_machine_options(self, machine_type=None):
+        return self._engine[('machine_specific_options',
+                             machine_type or self._config['machine_type'])]
+
+    def _update_keymap(self, system_name=None, machine_type=None):
+        return self._engine[('system_keymap',
+                             system_name or self._config['system_name'],
+                             machine_type or self._config['machine_type'])]
 
     def _create_option_widget(self, option):
         widget = option.widget_class()
@@ -442,11 +448,11 @@ class ConfigWindow(QDialog, Ui_ConfigWindow, WindowState):
     def on_option_changed(self, option, value):
         self._config[option.option_name] = value
         for dependent, update_fn in option.dependents:
-            self._config[dependent.option_name] = update_fn(value)
+            self._config.maps[1][dependent.option_name] = update_fn(value)
             widget = self._create_option_widget(dependent)
             dependent.layout.replaceWidget(dependent.widget, widget)
             dependent.widget.deleteLater()
             dependent.widget = widget
 
     def on_apply(self):
-        self._engine.config = self._config
+        self._update_config(save=True)
