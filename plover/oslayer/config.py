@@ -50,4 +50,13 @@ else:
 # This need to be imported after patching sys.path.
 import pkg_resources
 
-ASSETS_DIR = pkg_resources.resource_filename('plover', 'assets')
+plover_dist = pkg_resources.get_distribution('plover')
+
+ASSETS_DIR = plover_dist.get_resource_filename(__name__, 'plover/assets')
+
+# Is support for the QT GUI available?
+HAS_GUI_QT = True
+for req in plover_dist.requires(('gui_qt',)):
+    if pkg_resources.working_set.find(req) is None:
+        HAS_GUI_QT = False
+        break

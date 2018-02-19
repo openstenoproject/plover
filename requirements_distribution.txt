@@ -9,7 +9,7 @@ pyobjc-framework-Quartz==4.0; "darwin" in sys_platform
 PyQt5==5.9.2
 pyserial==3.4
 python-xlib==0.20; "linux" in sys_platform
-setuptools==36.2.7
+setuptools==38.2.4
 six==1.10.0
 wcwidth==0.1.7
 
