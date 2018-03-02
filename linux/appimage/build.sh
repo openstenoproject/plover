@@ -90,6 +90,8 @@ then
 fi
 run "${cmd[@]}"
 run make "${make_opts[@]}"
+# Drop the need for ccache when installing some Python packages from source.
+run sed -i 's/ccache //g' "$(find build -name '_sysconfigdata_m_*.py')"
 run make "${make_opts[@]}" install >/dev/null
 )
 info ')'
