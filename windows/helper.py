@@ -48,14 +48,14 @@ else:
 class CommandExecutionException(Exception):
 
     def __init__(self, args, exitcode, stdout='', stderr=''):
-        super(CommandExecutionException, self).__init__()
+        super().__init__()
         self.args = args
         self.exitcode = exitcode
         self.stdout = stdout
         self.stderr = stderr
 
 
-class Environment(object):
+class Environment:
 
     def __init__(self):
         self.dry_run = False
@@ -117,7 +117,7 @@ class Environment(object):
 class WineEnvironment(Environment):
 
     def __init__(self, prefix):
-        super(WineEnvironment, self).__init__()
+        super().__init__()
         self._prefix = os.path.abspath(prefix)
         self._env['WINEPREFIX'] = self._prefix
         self._env['WINEARCH'] = 'win32'
@@ -179,10 +179,10 @@ class WineEnvironment(Environment):
             cmd = ('wine',) + tuple(args)
         else:
             cmd = args
-        return super(WineEnvironment, self).run(cmd, cwd, redirection)
+        return super().run(cmd, cwd, redirection)
 
     def _get_env(self):
-        env = super(WineEnvironment, self)._get_env()
+        env = super()._get_env()
         for var in (
             'PYTHONPATH',
             # Make sure GTK environment variables don't spill over to the Wine environment.
@@ -208,7 +208,7 @@ class WineEnvironment(Environment):
 class Win32Environment(Environment):
 
     def __init__(self):
-        super(Win32Environment, self).__init__()
+        super().__init__()
         self._path = None
 
     def setup(self):
@@ -240,7 +240,7 @@ class Win32Environment(Environment):
             os.unlink(batch)
 
 
-class Helper(object):
+class Helper:
 
     DEPENDENCIES = (
         ('nsis', 'http://prdownloads.sourceforge.net/nsis/nsis-3.01-setup.exe',
@@ -547,7 +547,7 @@ class WineHelper(Helper):
     ) + Helper.DEPENDENCIES
 
     def __init__(self):
-        super(WineHelper, self).__init__()
+        super().__init__()
         self._env = WineEnvironment(os.path.join(WIN_DIR, '.wine'))
 
     def cmd_run(self, executable, *args):
@@ -556,13 +556,13 @@ class WineHelper(Helper):
         executable: executable to run (the executable will be automatically run with Wine when it ends with ".exe")
         args: additional arguments to pass to the executable
         '''
-        super(WineHelper, self).cmd_run(executable, *args)
+        super().cmd_run(executable, *args)
 
 
 class Win32Helper(Helper):
 
     def __init__(self):
-        super(Win32Helper, self).__init__()
+        super().__init__()
         self._env = Win32Environment()
 
 

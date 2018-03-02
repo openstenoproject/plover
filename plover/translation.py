@@ -78,7 +78,7 @@ def _mapping_to_macro(mapping, stroke):
     return Macro(macro, stroke, cmdline) if macro else None
 
 
-class Translation(object):
+class Translation:
     """A data model for the mapping between a sequence of Strokes and a string.
 
     This class represents the mapping between a sequence of Stroke objects and
@@ -158,7 +158,7 @@ class Translation(object):
         return False
 
 
-class Translator(object):
+class Translator:
     """Converts a stenotype key stream to a translation stream.
 
     An instance of this class serves as a state machine for processing key
@@ -381,7 +381,7 @@ class Translator(object):
         return None
 
 
-class _State(object):
+class _State:
     """An object representing the current state of the translator state machine.
 
     Attributes:

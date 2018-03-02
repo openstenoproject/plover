@@ -11,7 +11,7 @@ class NotificationHandler(QObject, logging.Handler):
     emitSignal = pyqtSignal(int, str)
 
     def __init__(self):
-        super(NotificationHandler, self).__init__()
+        super().__init__()
         self.setLevel(log.WARNING)
         self.setFormatter(log.NoExceptionTracebackFormatter('%(levelname)s: %(message)s'))
 

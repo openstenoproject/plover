@@ -126,7 +126,7 @@ class TestCase(unittest.TestCase):
 
         this = self
 
-        class Converter(object):
+        class Converter:
             def __init__(self, styles):
                 this.assertEqual(styles, expected_styles)
 
@@ -173,8 +173,8 @@ class TestCase(unittest.TestCase):
         with mock.patch.multiple(patch_path, normalize_steno=normalize,
                                  TranslationConverter=Converter):
             for contents, expected in cases:
-                expected = dict((normalize(k), convert(v))
-                                for k, v in expected.items())
+                expected = {normalize(k): convert(v)
+                            for k, v in expected.items()}
                 with make_dict((header + contents + footer).encode('cp1252')) as filename:
                     d = RtfDictionary.load(filename)
                     self.assertEqual(dict(d.items()), expected)

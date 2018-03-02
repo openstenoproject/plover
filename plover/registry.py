@@ -7,7 +7,7 @@ from plover.oslayer.config import HAS_GUI_QT, PLUGINS_PLATFORM
 from plover import log
 
 
-class Plugin(object):
+class Plugin:
 
     def __init__(self, plugin_type, name, obj):
         self.plugin_type = plugin_type
@@ -22,7 +22,7 @@ class Plugin(object):
 PluginDistribution = namedtuple('PluginDistribution', 'dist plugins')
 
 
-class Registry(object):
+class Registry:
 
     PLUGIN_TYPES = (
         'command',

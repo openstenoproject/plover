@@ -144,7 +144,7 @@ KEY_TO_KEYCODE = dict(zip(KEYCODE_TO_KEY.values(), KEYCODE_TO_KEY.keys()))
 class XEventLoop(threading.Thread):
 
     def __init__(self, name='xev'):
-        super(XEventLoop, self).__init__()
+        super().__init__()
         self.name += '-' + name
         self._display = display.Display()
         self._pipe = os.pipe()
@@ -191,7 +191,7 @@ class KeyboardCapture(XEventLoop):
 
     def __init__(self):
         """Prepare to listen for keyboard events."""
-        super(KeyboardCapture, self).__init__(name='capture')
+        super().__init__(name='capture')
         self._window = self._display.screen().root
         if not self._display.has_extension('XInputExtension'):
             raise Exception('Xlib\'s XInput extension is required, but could not be found.')
@@ -256,11 +256,11 @@ class KeyboardCapture(XEventLoop):
         suppressed_keys = self._suppressed_keys
         self._suppressed_keys = set()
         self.suppress_keyboard(suppressed_keys)
-        super(KeyboardCapture, self).start()
+        super().start()
 
     def cancel(self):
         self.suppress_keyboard()
-        super(KeyboardCapture, self).cancel()
+        super().cancel()
 
     def _grab_key(self, keycode):
         for deviceid in self._devices:
@@ -1073,9 +1073,9 @@ KEYSYM_TO_UCS = {
   0x20ab: 0x20ab, #                    DongSign ₫ DONG SIGN
   0x20ac: 0x20ac, #                    EuroSign € EURO SIGN
 }
-UCS_TO_KEYSYM = dict((ucs, keysym)
-                     for keysym, ucs
-                     in KEYSYM_TO_UCS.items())
+UCS_TO_KEYSYM = {ucs: keysym
+                 for keysym, ucs
+                 in KEYSYM_TO_UCS.items()}
 
 def is_latin1(code):
     return 0x20 <= code <= 0x7e or 0xa0 <= code <= 0xff
@@ -1102,19 +1102,19 @@ def keysym_to_string(keysym):
         if code is None:
             keysym_str = XK.keysym_to_string(keysym)
             if keysym_str is None:
-                keysym_str = u''
+                keysym_str = ''
             for c in keysym_str:
                 if c not in string.printable:
-                    keysym_str = u''
+                    keysym_str = ''
                     break
             return keysym_str
     return chr(code)
 
 
-class KeyboardEmulation(object):
+class KeyboardEmulation:
     """Emulate keyboard events."""
 
-    class Mapping(object):
+    class Mapping:
 
         def __init__(self, keycode, modifiers, keysym, custom_mapping=None):
             self.keycode = keycode
@@ -1123,7 +1123,7 @@ class KeyboardEmulation(object):
             self.custom_mapping = custom_mapping
 
         def __str__(self):
-            return u'%u:%x=%x[%s]%s' % (
+            return '%u:%x=%x[%s]%s' % (
                 self.keycode, self.modifiers,
                 self.keysym, keysym_to_string(self.keysym),
                 '' if self.custom_mapping is None else '*',
@@ -1339,7 +1339,7 @@ class KeyboardEmulation(object):
                 del self._keymap[previous_keysym]
             mapping.keysym = keysym
             self._keymap[keysym] = mapping
-            log.debug(u'new mapping: %s', mapping)
+            log.debug('new mapping: %s', mapping)
             # Move custom mapping back at the end of
             # the queue so we don't use it too soon.
             self._custom_mappings_queue.append(mapping)

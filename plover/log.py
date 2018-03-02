@@ -31,23 +31,23 @@ class NoExceptionTracebackFormatter(logging.Formatter):
         orig_exc_text = record.exc_text
         record.exc_text = None
         try:
-            return super(NoExceptionTracebackFormatter, self).format(record)
+            return super().format(record)
         finally:
             record.exc_text = orig_exc_text
 
     def formatException(self, exc_info):
         etype, evalue, tb = exc_info
         lines = traceback.format_exception_only(etype, evalue)
-        return u''.join(lines)
+        return ''.join(lines)
 
 
 class FileHandler(RotatingFileHandler):
 
     def __init__(self, filename=LOG_FILENAME, format=LOG_FORMAT):
-        super(FileHandler, self).__init__(filename,
-                                          maxBytes=LOG_MAX_BYTES,
-                                          backupCount=LOG_COUNT,
-                                          encoding='utf-8')
+        super().__init__(filename,
+                         maxBytes=LOG_MAX_BYTES,
+                         backupCount=LOG_COUNT,
+                         encoding='utf-8')
         self.setFormatter(logging.Formatter(format))
 
 
@@ -55,11 +55,11 @@ class PrintHandler(logging.StreamHandler):
     """ Handler using L{print_} to output messages. """
 
     def __init__(self, format=LOG_FORMAT):
-        super(PrintHandler, self).__init__(sys.stderr)
+        super().__init__(sys.stderr)
         self.setFormatter(logging.Formatter(format))
 
 
-class Logger(object):
+class Logger:
 
     def __init__(self):
         self._print_handler = PrintHandler()

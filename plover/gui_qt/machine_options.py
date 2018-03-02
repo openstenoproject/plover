@@ -19,7 +19,7 @@ class SerialOption(QWidget, Ui_SerialWidget):
     valueChanged = pyqtSignal(QVariant)
 
     def __init__(self):
-        super(SerialOption, self).__init__()
+        super().__init__()
         self.setupUi(self)
         self._value = {}
 
@@ -100,7 +100,7 @@ class KeyboardOption(QWidget, Ui_KeyboardWidget):
     valueChanged = pyqtSignal(QVariant)
 
     def __init__(self):
-        super(KeyboardOption, self).__init__()
+        super().__init__()
         self.setupUi(self)
         self.arpeggiate.setToolTip(_(
             'Arpeggiate allows using non-NKRO keyboards.\n'

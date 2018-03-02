@@ -47,7 +47,7 @@ class TxBolt(plover.machine.base.SerialStenotypeBase):
     '''
 
     def __init__(self, params):
-        super(TxBolt, self).__init__(params)
+        super().__init__(params)
         self._reset_stroke_state()
 
     def _reset_stroke_state(self):

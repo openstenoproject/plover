@@ -11,7 +11,7 @@ class OSXNotificationHandler(logging.Handler):
     """ Handler using OS X Notification Center to show messages. """
 
     def __init__(self):
-        super(OSXNotificationHandler, self).__init__()
+        super().__init__()
         self.setLevel(log.WARNING)
         self.setFormatter(log.NoExceptionTracebackFormatter('%(message)s'))
 

@@ -44,8 +44,8 @@ _EXPORTS = {
     'SUFFIX_KEYS'              : lambda mod: _suffix_keys(mod.SUFFIX_KEYS),
     'UNDO_STROKE_STENO'        : lambda mod: mod.UNDO_STROKE_STENO,
     'IMPLICIT_HYPHEN_KEYS'     : lambda mod: set(mod.IMPLICIT_HYPHEN_KEYS),
-    'IMPLICIT_HYPHENS'         : lambda mod: set(l.replace('-', '')
-                                                 for l in mod.IMPLICIT_HYPHEN_KEYS),
+    'IMPLICIT_HYPHENS'         : lambda mod: {l.replace('-', '')
+                                              for l in mod.IMPLICIT_HYPHEN_KEYS},
     'ORTHOGRAPHY_WORDS'        : lambda mod: _load_wordlist(mod.ORTHOGRAPHY_WORDLIST),
     'ORTHOGRAPHY_RULES'        : lambda mod: [(re.compile(pattern, re.I), replacement)
                                               for pattern, replacement in mod.ORTHOGRAPHY_RULES],

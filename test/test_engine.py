@@ -16,7 +16,7 @@ from plover.steno_dictionary import StenoDictionaryCollection
 from .utils import make_dict
 
 
-class FakeConfig(object):
+class FakeConfig:
 
     DEFAULTS = {
         'auto_start'                : False,
@@ -61,7 +61,7 @@ class FakeMachine(StenotypeBase):
     instance = None
 
     def __init__(self, options):
-        super(FakeMachine, self).__init__()
+        super().__init__()
         self.options = options
         self.is_suppressed = False
 
@@ -82,7 +82,7 @@ class FakeMachine(StenotypeBase):
     def set_suppression(self, enabled):
         self.is_suppressed = enabled
 
-class FakeKeyboardEmulation(object):
+class FakeKeyboardEmulation:
 
     def send_backspaces(self, b):
         pass

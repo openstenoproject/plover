@@ -39,7 +39,7 @@ class NopeOption(QLabel):
     valueChanged = pyqtSignal(bool)
 
     def __init__(self):
-        super(NopeOption, self).__init__()
+        super().__init__()
         self.setText(_('Nothing to see here!'))
 
     def setValue(self, value):
@@ -51,7 +51,7 @@ class BooleanOption(QCheckBox):
     valueChanged = pyqtSignal(bool)
 
     def __init__(self):
-        super(BooleanOption, self).__init__()
+        super().__init__()
         self.stateChanged.connect(lambda: self.valueChanged.emit(self.isChecked()))
 
     def setValue(self, value):
@@ -61,7 +61,7 @@ class BooleanOption(QCheckBox):
 class IntOption(QSpinBox):
 
     def __init__(self, maximum=None, minimum=None):
-        super(IntOption, self).__init__()
+        super().__init__()
         if maximum is not None:
             self.setMaximum(maximum)
         if minimum is not None:
@@ -73,7 +73,7 @@ class ChoiceOption(QComboBox):
     valueChanged = pyqtSignal(str)
 
     def __init__(self, choices=None):
-        super(ChoiceOption, self).__init__()
+        super().__init__()
         self._choices = {} if choices is None else choices
         self._reversed_choices = {
             translation: choice
@@ -96,7 +96,7 @@ class FileOption(QWidget, Ui_FileWidget):
     valueChanged = pyqtSignal(str)
 
     def __init__(self, dialog_title, dialog_filter):
-        super(FileOption, self).__init__()
+        super().__init__()
         self._dialog_title = dialog_title
         self._dialog_filter = dialog_filter
         self.setupUi(self)
@@ -127,7 +127,7 @@ class KeymapOption(QTableWidget):
     class ItemDelegate(QStyledItemDelegate):
 
         def __init__(self, action_list):
-            super(KeymapOption.ItemDelegate, self).__init__()
+            super().__init__()
             self._action_list = action_list
 
         def createEditor(self, parent, option, index):
@@ -136,10 +136,10 @@ class KeymapOption(QTableWidget):
                 combo.addItem('')
                 combo.addItems(self._action_list)
                 return combo
-            return super(KeymapOption.ItemDelegate, self).createEditor(parent, option, index)
+            return super().createEditor(parent, option, index)
 
     def __init__(self):
-        super(KeymapOption, self).__init__()
+        super().__init__()
         self._value = []
         self._updating = False
         self.setColumnCount(2)
@@ -190,7 +190,7 @@ class MultipleChoicesOption(QTableWidget):
     valueChanged = pyqtSignal(QVariant)
 
     def __init__(self, choices=None, labels=(_('Choice'), _('Selected'))):
-        super(MultipleChoicesOption, self).__init__()
+        super().__init__()
         self._value = {}
         self._updating = False
         self._choices = {} if choices is None else choices
@@ -246,10 +246,10 @@ class BooleanAsDualChoiceOption(ChoiceOption):
 
     def __init__(self, choice_false, choice_true):
         choices = { False: choice_false, True: choice_true }
-        super(BooleanAsDualChoiceOption, self).__init__(choices)
+        super().__init__(choices)
 
 
-class ConfigOption(object):
+class ConfigOption:
 
     def __init__(self, display_name, option_name, widget_class,
                  help_text='', dependents=()):
@@ -267,7 +267,7 @@ class ConfigWindow(QDialog, Ui_ConfigWindow, WindowState):
     ROLE = 'configuration'
 
     def __init__(self, engine):
-        super(ConfigWindow, self).__init__()
+        super().__init__()
         self.setupUi(self)
         self._engine = engine
         machines = {
@@ -443,7 +443,7 @@ class ConfigWindow(QDialog, Ui_ConfigWindow, WindowState):
         # Disable Enter/Return key to trigger "OK".
         if event.key() in (Qt.Key_Enter, Qt.Key_Return):
             return
-        super(ConfigWindow, self).keyPressEvent(event)
+        super().keyPressEvent(event)
 
     def on_option_changed(self, option, value):
         self._config[option.option_name] = value

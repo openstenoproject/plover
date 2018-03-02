@@ -24,7 +24,7 @@ class AddTranslationWidget(QWidget, Ui_AddTranslationWidget):
     EngineState = namedtuple('EngineState', 'dictionary_filter translator starting_stroke')
 
     def __init__(self, *args, **kwargs):
-        super(AddTranslationWidget, self).__init__(*args, **kwargs)
+        super().__init__(*args, **kwargs)
         self.setupUi(self)
         engine = QApplication.instance().engine
         self._engine = engine

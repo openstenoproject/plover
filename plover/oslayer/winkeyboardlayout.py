@@ -326,7 +326,7 @@ DEAD_KEYNAME = {
 }
 
 
-class KeyboardLayout(object): # {{{
+class KeyboardLayout: # {{{
 
     def __init__(self, layout_id=None, debug=False):
         if layout_id is None:

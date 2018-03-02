@@ -11,7 +11,7 @@ from mock import patch
 from plover.machine.passport import Passport
 
 
-class MockSerial(object):
+class MockSerial:
 
     inputs = []
     index = 0

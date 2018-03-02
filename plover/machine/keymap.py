@@ -4,7 +4,7 @@ from collections import defaultdict, OrderedDict
 from plover import log
 
 
-class Keymap(object):
+class Keymap:
 
     def __init__(self, keys, actions):
         # List of supported actions.

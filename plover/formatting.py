@@ -88,7 +88,7 @@ META_RE = re.compile(r"""(?:%s%s|%s%s|[^%s%s])+ # One or more of anything
 WORD_RX = re.compile(r'(?:\d+(?:[.,]\d+)+|[\'\w]+[-\w\']*|[^\w\s]+)\s*', re.UNICODE)
 
 
-class RetroFormatter(object):
+class RetroFormatter:
     """Helper for iterating over the result of previous translations.
 
     Support iterating over previous actions, text, fragments of text, or words:
@@ -200,7 +200,7 @@ class _Context(RetroFormatter):
     """
 
     def __init__(self, previous_translations, last_action):
-        super(_Context, self).__init__(previous_translations)
+        super().__init__(previous_translations)
         assert last_action is not None
         self.last_action = last_action
         self.translated_actions = []
@@ -223,11 +223,11 @@ class _Context(RetroFormatter):
         """Custom iterator with support for newly translated actions."""
         for action in reversed(self.translated_actions):
             yield action
-        for action in super(_Context, self).iter_last_actions():
+        for action in super().iter_last_actions():
             yield action
 
 
-class Formatter(object):
+class Formatter:
     """Convert translations into output.
 
     The main entry point for this class is format, which takes in translations
@@ -368,7 +368,7 @@ class Formatter(object):
         self.last_output_spaces_after = self.spaces_after
 
 
-class TextFormatter(object):
+class TextFormatter:
     """Format a series of action into text."""
 
     def __init__(self, spaces_after):
@@ -430,7 +430,7 @@ class TextFormatter(object):
         self.appended_text = trailing_space
 
 
-class OutputHelper(object):
+class OutputHelper:
     """A helper class for minimizing the amount of change on output.
 
     This class figures out the current state, compares it to the new output and
@@ -481,7 +481,7 @@ class OutputHelper(object):
         self.flush()
 
 
-class _Action(object):
+class _Action:
     """A hybrid class that stores instructions and resulting state.
 
     A single translation may be formatted into one or more actions. The

@@ -13,7 +13,7 @@ class AboutDialog(QDialog, Ui_AboutDialog):
     ROLE = 'about'
 
     def __init__(self, engine):
-        super(AboutDialog, self).__init__()
+        super().__init__()
         self.setupUi(self)
         credits = []
         for c in plover.__credits__:

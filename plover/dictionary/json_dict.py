@@ -36,6 +36,6 @@ class JsonDictionary(StenoDictionary):
     def _save(self, filename):
         with open(filename, 'wb') as fp:
             writer = codecs.getwriter('utf-8')(fp)
-            json.dump(dict(('/'.join(k), v) for k, v in self.items()),
+            json.dump({'/'.join(k): v for k, v in self.items()},
                       writer, ensure_ascii=False, sort_keys=True,
                       indent=0, separators=(',', ': '))

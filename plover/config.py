@@ -41,7 +41,7 @@ SYSTEM_KEYMAP_OPTION = 'keymap[%s]'
 class DictionaryConfig(namedtuple('DictionaryConfig', 'path enabled')):
 
     def __new__(cls, path, enabled=True):
-        return super(DictionaryConfig, cls).__new__(cls, expand_path(path), enabled)
+        return super().__new__(cls, expand_path(path), enabled)
 
     @property
     def short_path(self):
@@ -295,7 +295,7 @@ def dictionaries_option():
     return ConfigOption('dictionaries', default, getter, setter, validate, full_key)
 
 
-class Config(object):
+class Config:
 
     def __init__(self):
         self._config = None

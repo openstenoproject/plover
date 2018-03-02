@@ -21,7 +21,7 @@ class AddTranslationDialog(Tool, Ui_AddTranslationDialog):
     SHORTCUT = 'Ctrl+N'
 
     def __init__(self, engine, dictionary_path=None):
-        super(AddTranslationDialog, self).__init__(engine)
+        super().__init__(engine)
         self.setupUi(self)
         self.add_translation.select_dictionary(dictionary_path)
         engine.signal_connect('config_changed', self.on_config_changed)
@@ -40,8 +40,8 @@ class AddTranslationDialog(Tool, Ui_AddTranslationDialog):
 
     def accept(self):
         self.add_translation.save_entry()
-        super(AddTranslationDialog, self).accept()
+        super().accept()
 
     def reject(self):
         self.add_translation.reject()
-        super(AddTranslationDialog, self).reject()
+        super().reject()

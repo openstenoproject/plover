@@ -209,7 +209,7 @@ class TranslatorTestCase(unittest.TestCase):
         # makes sure that translate calls it properly. But since I already wrote
         # this test I'm going to keep it.
 
-        class Output(object):
+        class Output:
             def __init__(self):
                 self._output = []
                 
@@ -418,7 +418,7 @@ class StateTestCase(unittest.TestCase):
 
 class TranslateStrokeTestCase(unittest.TestCase):
 
-    class CaptureOutput(object):
+    class CaptureOutput:
         output = namedtuple('output', 'undo do prev')
         
         def __init__(self):

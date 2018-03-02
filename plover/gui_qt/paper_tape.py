@@ -35,7 +35,7 @@ class PaperTape(Tool, Ui_PaperTape):
     STYLES = (STYLE_PAPER, STYLE_RAW)
 
     def __init__(self, engine):
-        super(PaperTape, self).__init__(engine)
+        super().__init__(engine)
         self.setupUi(self)
         self._strokes = []
         self._all_keys = None

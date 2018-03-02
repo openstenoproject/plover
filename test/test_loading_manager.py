@@ -18,7 +18,7 @@ class DictionaryLoadingManagerTestCase(unittest.TestCase):
 
     def test_loading(self):
 
-        class FakeDictionaryContents(object):
+        class FakeDictionaryContents:
 
             def __init__(self, contents, timestamp):
                 self.contents = contents
@@ -29,7 +29,7 @@ class DictionaryLoadingManagerTestCase(unittest.TestCase):
                     return self.contents == other.contents
                 return self.contents == other
 
-        class FakeDictionaryInfo(object):
+        class FakeDictionaryInfo:
 
             def __init__(self, name, contents):
                 self.name = name
@@ -39,7 +39,7 @@ class DictionaryLoadingManagerTestCase(unittest.TestCase):
             def __repr__(self):
                 return 'FakeDictionaryInfo(%r, %r)' % (self.name, self.contents)
 
-        class MockLoader(object):
+        class MockLoader:
             def __init__(self, files):
                 self.files = files
                 self.load_counts = defaultdict(int)

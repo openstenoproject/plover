@@ -546,7 +546,7 @@ def _send_receive(port, stop, packet, buf, max_tries=3):
     raise _ConnectionLostException()
 
 
-class _SequenceCounter(object):
+class _SequenceCounter:
     """A mod 256 counter."""
     def __init__(self, seq=0):
         """Init a new counter starting at seq."""

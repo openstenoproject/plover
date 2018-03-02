@@ -12,7 +12,7 @@ from plover.resource import resource_timestamp
 from plover import log
 
 
-class DictionaryLoadingManager(object):
+class DictionaryLoadingManager:
 
     def __init__(self):
         self.dictionaries = {}
@@ -52,7 +52,7 @@ class DictionaryLoadingManager(object):
         return results
 
 
-class DictionaryLoadingOperation(object):
+class DictionaryLoadingOperation:
 
     def __init__(self, filename):
         self.loading_thread = threading.Thread(target=self.load)

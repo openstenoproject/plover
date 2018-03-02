@@ -12,9 +12,9 @@ WHEELS_CACHE = os.path.join('.cache', 'wheels')
 def _split_opts(text):
     args = text.split()
     assert (len(args) % 2) == 0
-    return dict((name, int(nb_args))
-                for name, nb_args
-                in zip(*([iter(args)] * 2)))
+    return {name: int(nb_args)
+            for name, nb_args
+            in zip(*([iter(args)] * 2))}
 
 
 # Allowed `pip install/wheel` options.
@@ -74,7 +74,7 @@ import sys
 from pkg_resources import load_entry_point
 
 # Work around isatty attribute being read-only with Python 2.
-class NoTTY(object):
+class NoTTY:
     def __init__(self, fp):
         self._fp = fp
     def isatty(self):
