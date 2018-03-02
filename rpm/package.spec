@@ -17,15 +17,17 @@ BuildRequires: python3-pyserial >= 2.7
 BuildRequires: python3-pytest
 BuildRequires: python3-pytz
 BuildRequires: python3-qt5
-BuildRequires: python3-setuptools >= 20.7.0
+BuildRequires: python3-setuptools >= 38.2.4
 BuildRequires: python3-setuptools_scm
+BuildRequires: python3-wcwidth >= 0.1.7
 BuildRequires: python3-xlib >= 0.16
 Requires: python3
 Requires: python3-appdirs
 Requires: python3-dbus
 Requires: python3-pyserial >= 2.7
 Requires: python3-qt5 >= 5.8.2
-Requires: python3-setuptools >= 20.7.0
+Requires: python3-setuptools >= 38.2.4
+Requires: python3-wcwidth >= 0.1.7
 Requires: python3-xlib >= 0.16
 
 %description
