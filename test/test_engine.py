@@ -1,59 +1,18 @@
-
-import os
-import unittest
-from contextlib import contextmanager
 from functools import partial
+import os
+import tempfile
 
-import mock
+import pytest
 
 from plover import system
-from plover.config import DEFAULT_SYSTEM_NAME, DictionaryConfig
+from plover.config import Config, DictionaryConfig
 from plover.engine import ErroredDictionary, StenoEngine
-from plover.registry import Registry
 from plover.machine.base import StenotypeBase
+from plover.machine.keymap import Keymap
+from plover.registry import Registry
 from plover.steno_dictionary import StenoDictionaryCollection
 
 from .utils import make_dict
-
-
-class FakeConfig:
-
-    DEFAULTS = {
-        'auto_start'                : False,
-        'machine_type'              : 'Fake',
-        'machine_specific_options'  : {},
-        'system_name'               : DEFAULT_SYSTEM_NAME,
-        'system_keymap'             : [(k, k) for k in system.KEYS],
-        'dictionaries'              : {},
-        'log_file_name'             : os.devnull,
-        'enable_stroke_logging'     : False,
-        'enable_translation_logging': False,
-        'space_placement'           : 'Before Output',
-        'undo_levels'               : 10,
-        'start_capitalized'         : True,
-        'start_attached'            : False,
-        'enabled_extensions'        : set(),
-    }
-
-    def __init__(self, **kwargs):
-        self._options = {}
-        for name, default in self.DEFAULTS.items():
-            value = kwargs.get(name, default)
-            self._options[name] = value
-            self.__dict__['get_%s' % name] = partial(lambda v, *a: v, value)
-        self.target_file = os.devnull
-
-    def load(self, fp):
-        pass
-
-    def __getitem__(self, key):
-        return self._options[key]
-
-    def as_dict(self):
-        return dict(self._options)
-
-    def update(self, **kwargs):
-        self._options.update(kwargs)
 
 
 class FakeMachine(StenotypeBase):
@@ -95,6 +54,14 @@ class FakeKeyboardEmulation:
 
 class FakeEngine(StenoEngine):
 
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        self.events = []
+        def hook_callback(hook, *args, **kwargs):
+            self.events.append((hook, args, kwargs))
+        for hook in self.HOOKS:
+            self.hook_connect(hook, partial(hook_callback, hook))
+
     def _in_engine_thread(self):
         return True
 
@@ -105,161 +72,160 @@ class FakeEngine(StenoEngine):
         StenoEngine.start(self)
 
 
-class EngineTestCase(unittest.TestCase):
+@pytest.fixture
+def engine(monkeypatch):
+    FakeMachine.instance = None
+    registry = Registry()
+    registry.update()
+    registry.register_plugin('machine', 'Fake', FakeMachine)
+    monkeypatch.setattr('plover.config.registry', registry)
+    monkeypatch.setattr('plover.engine.registry', registry)
+    cfg = Config()
+    kbd = FakeKeyboardEmulation()
+    cfg_file = tempfile.NamedTemporaryFile(prefix='plover',
+                                           suffix='config',
+                                           delete=False)
+    try:
+        cfg.target_file = cfg_file.name
+        cfg['dictionaries'] = []
+        cfg['machine_type'] = 'Fake'
+        cfg['system_keymap'] = [(k, k) for k in system.KEYS]
+        cfg.save(cfg_file)
+        cfg_file.close()
+        yield FakeEngine(cfg, kbd)
+    finally:
+        os.unlink(cfg_file.name)
 
-    @contextmanager
-    def _setup(self, **kwargs):
-        FakeMachine.instance = None
-        self.reg = Registry()
-        self.reg.register_plugin('machine', 'Fake', FakeMachine)
-        self.kbd = FakeKeyboardEmulation()
-        self.cfg = FakeConfig(**kwargs)
-        self.events = []
-        self.engine = FakeEngine(self.cfg, self.kbd)
-        def hook_callback(hook, *args, **kwargs):
-            self.events.append((hook, args, kwargs))
-        for hook in self.engine.HOOKS:
-            self.engine.hook_connect(hook, partial(hook_callback, hook))
-        try:
-            with mock.patch('plover.engine.registry', self.reg):
-                yield
-        finally:
-            del self.reg
-            del self.cfg
-            del self.engine
-            del self.events
 
-    def test_engine(self):
-        with self._setup():
-            # Config load.
-            self.assertEqual(self.engine.load_config(), True)
-            self.assertEqual(self.events, [])
-            # Startup.
-            self.engine.start()
-            self.assertEqual(self.events, [
-                ('machine_state_changed', ('Fake', 'initializing'), {}),
-                ('machine_state_changed', ('Fake', 'connected'), {}),
-                ('config_changed', (self.cfg.as_dict(),), {}),
-            ])
-            self.assertIsNotNone(FakeMachine.instance)
-            self.assertFalse(FakeMachine.instance.is_suppressed)
-            # Output enabled.
-            self.events = []
-            self.engine.output = True
-            self.assertEqual(self.events, [
-                ('output_changed', (True,), {}),
-            ])
-            self.assertTrue(FakeMachine.instance.is_suppressed)
-            # Machine reconnection.
-            self.events = []
-            self.engine.reset_machine()
-            self.assertEqual(self.events, [
-                ('machine_state_changed', ('Fake', 'stopped'), {}),
-                ('machine_state_changed', ('Fake', 'initializing'), {}),
-                ('machine_state_changed', ('Fake', 'connected'), {}),
-            ])
-            self.assertIsNotNone(FakeMachine.instance)
-            self.assertTrue(FakeMachine.instance.is_suppressed)
-            # No machine reset on keymap change.
-            self.events = []
-            new_keymap = list(zip(system.KEYS, reversed(system.KEYS)))
-            config_update = { 'system_keymap': new_keymap }
-            self.assertNotEqual(FakeMachine.instance.keymap, new_keymap)
-            self.engine.config = config_update
-            self.assertEqual(self.events, [
-                ('config_changed', (config_update,), {}),
-            ])
-            self.assertEqual(FakeMachine.instance.keymap, new_keymap)
-            # Output disabled
-            self.events = []
-            self.engine.output = False
-            self.assertEqual(self.events, [
-                ('output_changed', (False,), {}),
-            ])
-            self.assertFalse(FakeMachine.instance.is_suppressed)
-            # Stopped.
-            self.events = []
-            self.engine.quit(42)
-            self.assertEqual(self.engine.join(), 42)
-            self.assertEqual(self.events, [
-                ('machine_state_changed', ('Fake', 'stopped'), {}),
-                ('quit', (), {}),
-            ])
-            self.assertIsNone(FakeMachine.instance)
+def test_engine(engine):
+    # Config load.
+    assert engine.load_config()
+    assert engine.events == []
+    # Startup.
+    engine.start()
+    assert engine.events == [
+        ('machine_state_changed', ('Fake', 'initializing'), {}),
+        ('machine_state_changed', ('Fake', 'connected'), {}),
+        ('config_changed', (engine.config,), {}),
+    ]
+    assert FakeMachine.instance is not None
+    assert not FakeMachine.instance.is_suppressed
+    # Output enabled.
+    engine.events.clear()
+    engine.output = True
+    assert engine.events == [
+        ('output_changed', (True,), {}),
+    ]
+    assert FakeMachine.instance.is_suppressed
+    # Machine reconnection.
+    engine.events.clear()
+    engine.reset_machine()
+    assert engine.events == [
+        ('machine_state_changed', ('Fake', 'stopped'), {}),
+        ('machine_state_changed', ('Fake', 'initializing'), {}),
+        ('machine_state_changed', ('Fake', 'connected'), {}),
+    ]
+    assert FakeMachine.instance is not None
+    assert FakeMachine.instance.is_suppressed
+    # No machine reset on keymap change.
+    engine.events.clear()
+    new_keymap = Keymap(system.KEYS, system.KEYS)
+    new_keymap.set_mappings(zip(system.KEYS, reversed(system.KEYS)))
+    config_update = { 'system_keymap': new_keymap }
+    assert FakeMachine.instance.keymap != new_keymap
+    engine.config = config_update
+    assert engine.events == [
+        ('config_changed', (config_update,), {}),
+    ]
+    assert FakeMachine.instance.keymap == new_keymap
+    # Output disabled
+    engine.events.clear()
+    engine.output = False
+    assert engine.events == [
+        ('output_changed', (False,), {}),
+    ]
+    assert not FakeMachine.instance.is_suppressed
+    # Stopped.
+    engine.events.clear()
+    engine.quit(42)
+    assert engine.join() == 42
+    assert engine.events == [
+        ('machine_state_changed', ('Fake', 'stopped'), {}),
+        ('quit', (), {}),
+    ]
+    assert FakeMachine.instance is None
 
-    def test_loading_dictionaries(self):
-        def check_loaded_events(actual_events, expected_events):
-            self.assertEqual(len(actual_events), len(expected_events), msg='events: %r' % self.events)
-            for n, event in enumerate(actual_events):
-                event_type, event_args, event_kwargs = event
-                msg = 'event %u: %r' % (n, event)
-                self.assertEqual(event_type, 'dictionaries_loaded', msg=msg)
-                self.assertEqual(event_kwargs, {}, msg=msg)
-                self.assertEqual(len(event_args), 1, msg=msg)
-                self.assertIsInstance(event_args[0], StenoDictionaryCollection, msg=msg)
-                self.assertEqual([
-                    (d.path, d.enabled, isinstance(d, ErroredDictionary))
-                    for d in event_args[0].dicts
-                ], expected_events[n], msg=msg)
-        with \
-                make_dict(b'{}', 'json', 'valid1') as valid_dict_1, \
-                make_dict(b'{}', 'json', 'valid2') as valid_dict_2, \
-                make_dict(b'', 'json', 'invalid1') as invalid_dict_1, \
-                make_dict(b'', 'json', 'invalid2') as invalid_dict_2, \
-                self._setup():
-            self.engine.start()
-            for test in (
-                # Load one valid dictionary.
-                [[
-                    # path, enabled
-                    (valid_dict_1, True),
-                ], [
-                    # path, enabled, errored
-                    (valid_dict_1, True, False),
-                ]],
-                # Load another invalid dictionary.
-                [[
-                    (valid_dict_1, True),
-                    (invalid_dict_1, True),
-                ], [
-                    (valid_dict_1, True, False),
-                    (invalid_dict_1, True, True),
-                ]],
-                # Disable first dictionary.
-                [[
-                    (valid_dict_1, False),
-                    (invalid_dict_1, True),
-                ], [
-                    (valid_dict_1, False, False),
-                    (invalid_dict_1, True, True),
-                ]],
-                # Replace invalid dictonary with another invalid one.
-                [[
-                    (valid_dict_1, False),
-                    (invalid_dict_2, True),
-                ], [
-                    (valid_dict_1, False, False),
-                ], [
-                    (valid_dict_1, False, False),
-                    (invalid_dict_2, True, True),
-                ]]
-            ):
-                config_dictionaries = [
-                    DictionaryConfig(path, enabled)
-                    for path, enabled in test[0]
-                ]
-                self.events = []
-                config_update = { 'dictionaries': list(config_dictionaries), }
-                self.engine.config = dict(config_update)
-                self.assertEqual(self.events[0], ('config_changed', (config_update,), {}))
-                check_loaded_events(self.events[1:], test[1:])
-            # Simulate an outdated dictionary.
-            self.events = []
-            self.engine.dictionaries[valid_dict_1].timestamp -= 1
-            self.engine.config = {}
-            check_loaded_events(self.events, [[
-                (invalid_dict_2, True, True),
+def test_loading_dictionaries(engine):
+    def check_loaded_events(actual_events, expected_events):
+        assert len(actual_events) == len(expected_events)
+        for n, event in enumerate(actual_events):
+            event_type, event_args, event_kwargs = event
+            msg = 'event %u: %r' % (n, event)
+            assert event_type == 'dictionaries_loaded', msg
+            assert event_kwargs == {}, msg
+            assert len(event_args) == 1, msg
+            assert isinstance(event_args[0], StenoDictionaryCollection), msg
+            assert [
+                (d.path, d.enabled, isinstance(d, ErroredDictionary))
+                for d in event_args[0].dicts
+            ] == expected_events[n], msg
+    with \
+            make_dict(b'{}', 'json', 'valid1') as valid_dict_1, \
+            make_dict(b'{}', 'json', 'valid2') as valid_dict_2, \
+            make_dict(b'', 'json', 'invalid1') as invalid_dict_1, \
+            make_dict(b'', 'json', 'invalid2') as invalid_dict_2:
+        engine.start()
+        for new_dictionaries, *expected_events in (
+            # Load one valid dictionary.
+            [[
+                # path, enabled
+                (valid_dict_1, True),
+            ], [
+                # path, enabled, errored
+                (valid_dict_1, True, False),
+            ]],
+            # Load another invalid dictionary.
+            [[
+                (valid_dict_1, True),
+                (invalid_dict_1, True),
+            ], [
+                (valid_dict_1, True, False),
+                (invalid_dict_1, True, True),
+            ]],
+            # Disable first dictionary.
+            [[
+                (valid_dict_1, False),
+                (invalid_dict_1, True),
+            ], [
+                (valid_dict_1, False, False),
+                (invalid_dict_1, True, True),
+            ]],
+            # Replace invalid dictonary with another invalid one.
+            [[
+                (valid_dict_1, False),
+                (invalid_dict_2, True),
+            ], [
+                (valid_dict_1, False, False),
             ], [
                 (valid_dict_1, False, False),
                 (invalid_dict_2, True, True),
-            ]])
+            ]]
+        ):
+            engine.events.clear()
+            config_update = {
+                'dictionaries': [DictionaryConfig(*d)
+                                 for d in new_dictionaries]
+            }
+            engine.config = dict(config_update)
+            assert engine.events[0] == ('config_changed', (config_update,), {})
+            check_loaded_events(engine.events[1:], expected_events)
+        # Simulate an outdated dictionary.
+        engine.events.clear()
+        engine.dictionaries[valid_dict_1].timestamp -= 1
+        engine.config = {}
+        check_loaded_events(engine.events, [[
+            (invalid_dict_2, True, True),
+        ], [
+            (valid_dict_1, False, False),
+            (invalid_dict_2, True, True),
+        ]])
