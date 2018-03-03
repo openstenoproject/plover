@@ -3,59 +3,66 @@
 
 """Unit tests for steno.py."""
 
-import unittest
-
 from plover.steno import normalize_steno, Stroke
 
+from . import parametrize
 
-class StenoTestCase(unittest.TestCase):
-    def test_normalize_steno(self):
-        cases = (
-            # TODO: More cases
-            ('S', 'S'),
-            ('S-', 'S'),
-            ('-S', '-S'),
-            ('ES', 'ES'),
-            ('-ES', 'ES'),
-            ('TW-EPBL', 'TWEPBL'),
-            ('TWEPBL', 'TWEPBL'),
-            ('19', '1-9'),
-            ('14', '14'),
-            ('146', '14-6'),
-            ('67', '-67'),
-            ('6', '-6'),
-            ('9', '-9'),
-            ('5', '5'),
-            ('0', '0'),
-            ('456', '456'),
-            ('46', '4-6'),
-            ('4*6', '4*6'),
-            ('456', '456'),
-            ('S46', 'S4-6'),
-            # Number key.
-            ('#S', '#S'),
-            ('#A', '#A'),
-            ('#0', '0'),
-            ('#6', '-6'),
-            # Implicit hyphens.
-            ('SA-', 'SA'),
-            ('SA-R', 'SAR'),
-            ('-O', 'O'),
-            ('S*-R', 'S*R'),
-            ('S-*R', 'S*R'),
-        )
 
-        for arg, expected in cases:
-            result = '/'.join(normalize_steno(arg))
-            msg = 'normalize_steno(%r)=%r != %r' % (
-                arg, result, expected,
-            )
-            self.assertEqual(result, expected, msg=msg)
+NORMALIZE_TESTS = (
+    # TODO: More cases
+    lambda: ('S', 'S'),
+    lambda: ('S-', 'S'),
+    lambda: ('-S', '-S'),
+    lambda: ('ES', 'ES'),
+    lambda: ('-ES', 'ES'),
+    lambda: ('TW-EPBL', 'TWEPBL'),
+    lambda: ('TWEPBL', 'TWEPBL'),
+    lambda: ('19', '1-9'),
+    lambda: ('14', '14'),
+    lambda: ('146', '14-6'),
+    lambda: ('67', '-67'),
+    lambda: ('6', '-6'),
+    lambda: ('9', '-9'),
+    lambda: ('5', '5'),
+    lambda: ('0', '0'),
+    lambda: ('456', '456'),
+    lambda: ('46', '4-6'),
+    lambda: ('4*6', '4*6'),
+    lambda: ('456', '456'),
+    lambda: ('S46', 'S4-6'),
+    # Number key.
+    lambda: ('#S', '#S'),
+    lambda: ('#A', '#A'),
+    lambda: ('#0', '0'),
+    lambda: ('#6', '-6'),
+    # Implicit hyphens.
+    lambda: ('SA-', 'SA'),
+    lambda: ('SA-R', 'SAR'),
+    lambda: ('-O', 'O'),
+    lambda: ('S*-R', 'S*R'),
+    lambda: ('S-*R', 'S*R'),
+)
 
-    def test_steno(self):
-        self.assertEqual(Stroke(['S-']).rtfcre, 'S')
-        self.assertEqual(Stroke(['S-', 'T-']).rtfcre, 'ST')
-        self.assertEqual(Stroke(['T-', 'S-']).rtfcre, 'ST')
-        self.assertEqual(Stroke(['-P', '-P']).rtfcre, '-P')
-        self.assertEqual(Stroke(['-P', 'X-']).rtfcre, 'X-P')
-        self.assertEqual(Stroke(['#', 'S-', '-T']).rtfcre, '1-9')
+@parametrize(NORMALIZE_TESTS)
+def test_normalize_steno(steno, strokes):
+    result = '/'.join(normalize_steno(steno))
+    msg = 'normalize_steno(%r)=%r != %r' % (
+        steno, result, strokes,
+    )
+    assert result == strokes, msg
+
+
+STROKE_TESTS = (
+    lambda: (['S-'], ['S-'], 'S'),
+    lambda: (['S-', 'T-'], ['S-', 'T-'], 'ST'),
+    lambda: (['T-', 'S-'], ['S-', 'T-'], 'ST'),
+    lambda: (['-P', '-P'], ['-P'], '-P'),
+    lambda: (['-P', 'X-'], ['X-', '-P'], 'X-P'),
+    lambda: (['#', 'S-', '-T'], ['1-', '-9'], '1-9'),
+)
+
+@parametrize(STROKE_TESTS)
+def test_stroke(keys, steno_keys, rtfcre):
+    stroke = Stroke(keys)
+    assert stroke.steno_keys == steno_keys
+    assert stroke.rtfcre == rtfcre
