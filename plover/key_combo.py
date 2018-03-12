@@ -57,6 +57,7 @@ KEYNAME_TO_CHAR = {
     'egrave'            :  '\xe8', # è
     'equal'             :     '=', # =
     'eth'               :  '\xf0', # ð
+    'euro'              :     '€', # €
     'exclam'            :     '!', # !
     'exclamdown'        :  '\xa1', # ¡
     'grave'             :     '`', # `
