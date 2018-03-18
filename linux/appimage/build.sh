@@ -99,13 +99,13 @@ info ')'
 run_eval "
 appdir_python()
 {
-  env LD_LIBRARY_PATH=\"$appdir/usr/lib:$appdir/usr/lib/x86_64-linux-gnu\${LD_LIBRARY_PATH+:\$LD_LIBRARY_PATH}\" "$appdir/usr/bin/python3.6" -s \"\$@\"
+  env \
+    PYTHONNOUSERSITE=1 \
+    LD_LIBRARY_PATH=\"$appdir/usr/lib:$appdir/usr/lib/x86_64-linux-gnu\${LD_LIBRARY_PATH+:\$LD_LIBRARY_PATH}\" \
+    "$appdir/usr/bin/python3.6" \"\$@\"
 }
 "
 python='appdir_python'
-
-# Disable user site-packages.
-run sed -i 's/^ENABLE_USER_SITE = None$/ENABLE_USER_SITE = False/' "$appdir/usr/lib/python3.6/site.py"
 
 # Install Plover and dependencies.
 bootstrap_dist "$wheel"
