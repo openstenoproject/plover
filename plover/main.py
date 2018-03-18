@@ -12,16 +12,13 @@ import sys
 import subprocess
 import traceback
 
-# This need to be imported before pkg_resources.
-from plover.oslayer.config import CONFIG_DIR, PLUGINS_DIR
-
 import pkg_resources
 
 if sys.platform.startswith('darwin'):
     import appnope
 
 import plover.oslayer.processlock
-from plover.config import CONFIG_FILE, Config
+from plover.config import CONFIG_DIR, CONFIG_FILE, Config
 from plover.registry import registry
 from plover import log
 from plover import __name__ as __software_name__
@@ -63,7 +60,6 @@ def main():
 
     log.info('Plover %s', __version__)
     log.info('configuration directory: %s', CONFIG_DIR)
-    log.info('plugins directory: %s', PLUGINS_DIR)
 
     registry.update()
 

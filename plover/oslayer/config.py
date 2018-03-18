@@ -5,9 +5,9 @@
 
 import os
 import sys
-import sysconfig
 
 import appdirs
+import pkg_resources
 
 
 # If the program's working directory has a plover.cfg file then run in
@@ -27,21 +27,8 @@ elif sys.platform.startswith('win'):
     PLUGINS_PLATFORM = 'win'
 else:
     PLUGINS_PLATFORM = None
-if PLUGINS_PLATFORM is None:
-    PLUGINS_BASE = None
-    PLUGINS_DIR = None
-else:
-    PLUGINS_BASE = os.path.join(CONFIG_DIR, 'plugins', PLUGINS_PLATFORM)
-    scheme = '%s_user' % os.name
-    if PLUGINS_PLATFORM == 'mac' and sysconfig.get_config_var('PYTHONFRAMEWORK'):
-        scheme = 'osx_framework_user'
-    PLUGINS_DIR = sysconfig.get_path('purelib', scheme, dict(userbase=PLUGINS_BASE))
-    sys.path.insert(0, PLUGINS_DIR)
 
-# This need to be imported after patching sys.path.
-import pkg_resources
-
-plover_dist = pkg_resources.get_distribution('plover')
+plover_dist = pkg_resources.working_set.by_key['plover']
 
 ASSETS_DIR = plover_dist.get_resource_filename(__name__, 'plover/assets')
 
