@@ -130,6 +130,10 @@ class BinaryDistWin(Command):
                 sys.path.insert(0, os.getcwd())
                 '''
             ).lstrip())
+        # Use standard site.py so user site packages are enabled.
+        site_py = download('https://github.com/python/cpython/raw/v3.6.3/Lib/site.py',
+                           '5b5a92032c666e0e30c0b2665b8acffe2a624641')
+        shutil.copyfile(site_py, os.path.join(dist_site_packages, 'site.py'))
         # Run command helper.
         def run(*args):
             if self.verbose:
@@ -161,8 +165,8 @@ class BinaryDistWin(Command):
             shutil.copyfile(src, dst)
         # Create launchers.
         for entrypoint, gui in (
-            ('plover         = plover.main:main', True ),
-            ('plover_console = plover.main:main', False),
+            ('plover         = plover.dist_main:main', True ),
+            ('plover_console = plover.dist_main:main', False),
         ):
             run(dist_py, '-c', textwrap.dedent(
                 '''
