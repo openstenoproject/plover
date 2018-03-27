@@ -22,7 +22,7 @@ def parametrize(argvalues):
     return decorator
 
 def action(**kwargs):
-    # Suport using something like `text_and_word='stuff'`
+    # Support using something like `text_and_word='stuff'`
     # as a shortcut for `text='stuff', word='stuff'`.
     for k, v in list(kwargs.items()):
         if '_and_' in k:
