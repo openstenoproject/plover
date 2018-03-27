@@ -12,11 +12,11 @@ import textwrap
 
 import pytest
 
-from plover import config, system
+from plover import config
 from plover.config import DictionaryConfig
 from plover.machine.keyboard import Keyboard
 from plover.machine.keymap import Keymap
-from plover.misc import expand_path, normalize_path
+from plover.misc import expand_path
 from plover.registry import Registry
 from plover.system import english_stenotype
 

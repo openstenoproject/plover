@@ -8,7 +8,7 @@ import threading
 
 from plover import log, system
 from plover.dictionary.loading_manager import DictionaryLoadingManager
-from plover.exception import DictionaryLoaderException, InvalidConfigurationError
+from plover.exception import DictionaryLoaderException
 from plover.formatting import Formatter
 from plover.misc import shorten_path
 from plover.registry import registry

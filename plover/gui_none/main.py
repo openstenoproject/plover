@@ -1,7 +1,5 @@
-import sys
 from threading import Event
 
-from plover import log
 from plover.oslayer.keyboardcontrol import KeyboardEmulation
 
 from plover.gui_none.engine import Engine

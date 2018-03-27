@@ -1,11 +1,7 @@
 # Copyright (c) 2013 Hesky Fisher
 # See LICENSE.txt for details.
 
-import os
-import codecs
-import tempfile
 import unittest
-from contextlib import contextmanager
 
 import mock
 

@@ -2,7 +2,6 @@
 import sys
 
 from PyQt5.QtCore import (
-    QCoreApplication,
     QThread,
     QVariant,
     pyqtSignal,
