@@ -21,7 +21,7 @@ import sys
 KEYBOARDCONTROL_NOT_FOUND_FOR_OS = \
         "No keyboard control module was found for os %s" % sys.platform
 
-if sys.platform.startswith('linux'):
+if sys.platform.startswith(('linux', 'openbsd')):
     from plover.oslayer import xkeyboardcontrol as keyboardcontrol
 elif sys.platform.startswith('win32'):
     from plover.oslayer import winkeyboardcontrol as keyboardcontrol
