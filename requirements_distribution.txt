@@ -1,6 +1,6 @@
 appdirs==1.4.3
 appnope==0.1.0; "darwin" in sys_platform
-certifi==2017.7.27.1
+certifi==2018.1.18
 dbus-python==1.2.4; "linux" in sys_platform
 plyer==1.2.4; "win32" in sys_platform
 pyobjc-core==4.0; "darwin" in sys_platform
@@ -8,7 +8,7 @@ pyobjc-framework-Cocoa==4.0; "darwin" in sys_platform
 pyobjc-framework-Quartz==4.0; "darwin" in sys_platform
 PyQt5==5.9.2
 pyserial==3.4
-python-xlib==0.20; "linux" in sys_platform
+python-xlib==0.23; "linux" in sys_platform
 setuptools==38.2.4
 six==1.10.0
 wcwidth==0.1.7
