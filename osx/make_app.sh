@@ -28,8 +28,7 @@ echo "System python3 is found at: $python3_dir"
 app_dir="$plover_dir/build/$PACKAGE.app"
 app_dist_dir="$plover_dir/dist/Plover.app"
 
-rm -rf "$app_dir"
-rm -rf "$app_dist_dir"
+rm -rf "$app_dir"{,.fat} "$app_dist_dir"
 
 # E.g. python3.6 (name of python executable)
 target_python="python${py_version}"
@@ -56,12 +55,20 @@ rm -rf "$target_libs/site-packages"
 mkdir "$target_libs/site-packages"
 # Add sitecustomize.py -- adds the above site-packages to our Python's sys.path
 cp "$plover_dir/osx/app_resources/sitecustomize.py" "$target_libs/sitecustomize.py"
-# Disable user site-packages by changing a constant in site.py
-sed -ie 's/ENABLE_USER_SITE = None/ENABLE_USER_SITE = False/g' "$target_libs/site.py"
 
 # Switch to target Python.
 python="$PWD/$target_dir/$target_python"
 unset __PYVENV_LAUNCHER__
+
+run_eval "
+appdir_python()
+{
+  env \
+    PYTHONNOUSERSITE=1 \
+    "$PWD/$target_dir/$target_python" \"\$@\"
+}
+"
+python='appdir_python'
 
 # Install Plover and dependencies.
 bootstrap_dist "$plover_wheel"
@@ -106,8 +113,10 @@ sed -e "s/\$python_version/$py_version/" -e "s/\$target_python/$target_python/" 
 "$python" -m plover_build_utils.source_less "$target_libs" "*/pip/_vendor/distlib/*"
 
 # Strip 32-bit support
-ditto -v --arch x86_64 "$app_dir" "$app_dist_dir"
+mv "$app_dir"{,.fat}
+ditto -v --arch x86_64 "$app_dir"{.fat,}
 
 # Check requirements.
-python="$PWD/$app_dist_dir/Contents/Frameworks/$target_python"
 run "$python" -I -m plover_build_utils.check_requirements
+
+mv "$app_dir" "$app_dist_dir"
