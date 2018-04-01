@@ -169,7 +169,7 @@ class MainWindow(QMainWindow, Ui_MainWindow, WindowState):
             def on_finished():
                 del self._active_dialogs[name]
                 dialog.deleteLater()
-                if manage_windows:
+                if manage_windows and previous_window is not None:
                     wmctrl.SetForegroundWindow(previous_window)
             dialog.finished.connect(on_finished)
         dialog.show()
