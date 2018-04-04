@@ -13,8 +13,16 @@ import pkg_resources
 # If the program's working directory has a plover.cfg file then run in
 # "portable mode", i.e. store all data in the same directory. This allows
 # keeping all Plover files in a portable drive.
-if os.path.isfile('plover.cfg'):
-    CONFIG_DIR = os.getcwd()
+#
+# Note: the special case when run from an app bundle on macOS.
+if sys.platform.startswith('darwin') and '.app/' in os.path.realpath(__file__):
+    PROGRAM_DIR = os.path.abspath(os.path.join(os.path.dirname(sys.executable),
+                                               *[os.path.pardir] * 3))
+else:
+    PROGRAM_DIR = os.getcwd()
+
+if os.path.isfile(os.path.join(PROGRAM_DIR, 'plover.cfg')):
+    CONFIG_DIR = PROGRAM_DIR
 else:
     CONFIG_DIR = appdirs.user_data_dir('plover', 'plover')
 
