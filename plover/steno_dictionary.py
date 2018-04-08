@@ -232,7 +232,7 @@ class StenoDictionaryCollection:
             if not d.enabled:
                 continue
             for k in d.reverse_lookup(value):
-                # Ignore key if it's overriden by a higher priority dictionary.
+                # Ignore key if it's overridden by a higher priority dictionary.
                 if self._lookup(k, dicts=self.dicts[:n]) is None:
                     keys.append(k)
         return keys

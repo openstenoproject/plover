@@ -1,8 +1,3 @@
-
-from collections import namedtuple
-
-from PyQt5.QtCore import QEvent
-
 from plover.gui_qt.add_translation_dialog_ui import Ui_AddTranslationDialog
 from plover.gui_qt.i18n import get_gettext
 from plover.gui_qt.tool import Tool

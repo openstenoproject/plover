@@ -341,7 +341,7 @@ def _make_request(buf, action, seq, p1=0, p2=0, p3=0, p4=0, p5=0, data=None):
     enough, as it will not be extended as needed.
     - action: The action for the packet.
     - seq: The sequence numbe for the packet.
-    - p1 - p5: Paremeter N for the packet (default: 0).
+    - p1 - p5: Parameter N for the packet (default: 0).
     - data: The data to add to the packet as a sequence of bytes, if any
     (default: None).
 

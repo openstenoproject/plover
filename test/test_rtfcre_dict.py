@@ -1,11 +1,7 @@
 # Copyright (c) 2013 Hesky Fisher
 # See LICENSE.txt for details.
 
-import os
-import codecs
-import tempfile
 import unittest
-from contextlib import contextmanager
 
 import mock
 
@@ -75,11 +71,11 @@ class TestCase(unittest.TestCase):
         ('{\\cxp /}', '{^/^}'),
         ('{\\cxp...  }', '{^...  ^}'),
         ('{\\cxp ") }', '{^") ^}'),
-        ('{\\nonexistant }', ''),
-        ('{\\nonexistant contents}', 'contents'),
-        ('{\\nonexistant cont\\_ents}', 'cont-ents'),
-        ('{\\*\\nonexistant }', ''),
-        ('{\\*\\nonexistant contents}', ''),
+        ('{\\nonexistent }', ''),
+        ('{\\nonexistent contents}', 'contents'),
+        ('{\\nonexistent cont\\_ents}', 'cont-ents'),
+        ('{\\*\\nonexistent }', ''),
+        ('{\\*\\nonexistent contents}', ''),
         ('{eclipse command}', '{eclipse command}'),
         ('test text', 'test text'),
         ('test  text', 'test{^  ^}text'),
@@ -88,8 +84,8 @@ class TestCase(unittest.TestCase):
         (r'{\cxconf [{\cxc abc}|{\cxc def}|{\cxc ghi}]}', 'ghi'),
         (r'{\cxconf [{\cxc abc}|{\cxc {\cxp... }}]}', '{^... ^}'),
         (r'be\cxds{\*\cxsvatdictentrydate\yr2006\mo5\dy10}', '{be^}'),
-        (r'{\nonexistant {\cxp .}}', '{.}'),
-        (r'{\*\nonexistant {\cxp .}}', ''),
+        (r'{\nonexistent {\cxp .}}', '{.}'),
+        (r'{\*\nonexistent {\cxp .}}', ''),
         )
         for before, after in cases:
             result = convert(before)

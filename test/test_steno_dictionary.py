@@ -188,7 +188,7 @@ class StenoDictionaryTestCase(unittest.TestCase):
         self.assertCountEqual(dc.reverse_lookup('beautiful'),
                               [('PWAOUFL',), ('WAOUFL',), ('PW-FL',)])
 
-        # Ignore keys overriden by a higher precedence dictionary.
+        # Ignore keys overridden by a higher precedence dictionary.
         dc.set_dicts([d3, d2, d1])
         self.assertCountEqual(dc.reverse_lookup('beautiful'),
                               [('PWAOUFL',), ('PW-FL',)])

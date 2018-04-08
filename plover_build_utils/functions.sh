@@ -69,33 +69,6 @@ err()
   info -c31 "$@"
 }
 
-find_dist()
-{
-  if ! [ -r /etc/lsb-release ]
-  then
-    if [ -r /etc/arch-release ]
-    then
-      echo arch
-      return
-    fi
-    err "unsuported distribution: $dist"
-    return 1
-  fi
-  dist="$(lsb_release -i -s | tr A-Z a-z)"
-  case "$dist" in
-    arch)
-      echo 'arch'
-      ;;
-    linuxmint|ubuntu)
-      echo 'ubuntu'
-      ;;
-    *)
-      err "unsuported distribution: $dist"
-      return 1
-      ;;
-  esac
-}
-
 run()
 {
   info "$@"
