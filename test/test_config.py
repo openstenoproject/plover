@@ -81,8 +81,8 @@ def test_config_dict():
     assert DictionaryConfig(full_path).short_path == short_path
     assert DictionaryConfig(short_path).short_path == short_path
     # Enabled default to True.
-    assert DictionaryConfig('foo').enabled == True
-    assert DictionaryConfig('foo', False).enabled == False
+    assert DictionaryConfig('foo').enabled
+    assert not DictionaryConfig('foo', False).enabled
     # When converting to a dict (for dumping to JSON),
     # a dictionary with the shortened path is used.
     assert DictionaryConfig(full_path).to_dict() == \
