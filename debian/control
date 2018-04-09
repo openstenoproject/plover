@@ -9,7 +9,6 @@ Build-Depends:
 	python3-appdirs,
 	python3-babel,
 	python3-hid,
-	python3-mock,
 	python3-pkg-resources,
 	python3-pytest,
 	python3-serial (>= 2.7),
