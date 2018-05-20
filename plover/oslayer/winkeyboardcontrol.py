@@ -24,6 +24,7 @@ from ctypes import windll, wintypes
 from plover.key_combo import parse_key_combo
 from plover.oslayer.winkeyboardlayout import KeyboardLayout
 from plover import log
+from plover.misc import to_surrogate_pair
 
 SendInput = windll.user32.SendInput
 LONG = ctypes.c_long
@@ -422,8 +423,9 @@ class KeyboardEmulation:
             self.keyboard_layout = KeyboardLayout(layout_id)
 
     def _key_unicode(self, char):
-        inputs = [self._keyboard(ord(code), KEYEVENTF_UNICODE)
-                  for code in char]
+        pairs = to_surrogate_pair(char)
+        inputs = [self._keyboard(code, KEYEVENTF_UNICODE)
+                  for code in pairs]
         self._send_input(*inputs)
 
     def send_backspaces(self, number_of_backspaces):

@@ -89,3 +89,11 @@ def test_boolean(input, output):
             misc.boolean(input)
     else:
         assert misc.boolean(input) == output
+
+def test_to_surrogate_pairs():
+    # Split unicode characters above 0xFFFF
+    assert misc.to_surrogate_pair(chr(0x1F4A6)) == [0xD83D, 0xDCA6]
+    # Do not slit characters below 0xFFFF
+    assert misc.to_surrogate_pair(chr(0x20)) == [0x20]
+    # Do not split already split characters.
+    assert misc.to_surrogate_pair(chr(0xD83D) + chr(0xDCA6)) == [0xD83D, 0xDCA6]
