@@ -71,6 +71,7 @@ Section "Plover ${version}" BfWSection
   File "${srcdir}\LICENSE.txt"
   File "${srcdir}\plover.exe"
   File "${srcdir}\plover_console.exe"
+  File "${srcdir}\vcruntime140.dll"
   File /r "${srcdir}\data"
   
   ;Store installation folder
