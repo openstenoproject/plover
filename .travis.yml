@@ -11,6 +11,10 @@ cache:
   directories:
     - .cache
 
+addons:
+  apt:
+    update: true
+
 install:
   - ./ci/travis.sh setup
 

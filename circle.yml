@@ -2,6 +2,7 @@ machine:
   pre:
     # virtualenv is automatically used by CircleCI,
     # but it's not available in the macOS image.
+    - curl https://bootstrap.pypa.io/get-pip.py | sudo python -
     - sudo -H pip install --upgrade virtualenv
 
 dependencies:
