@@ -65,3 +65,15 @@ def boolean(value):
             return False
         raise ValueError(value)
     return bool(value)
+
+def to_surrogate_pair(char):
+    pairs = []
+    for code in char:
+        code_point = ord(code)
+        if code_point >= 0x10000:
+            high_part = (code_point - 0x10000) // 0x400 + 0xD800
+            low_part = (code_point - 0x10000) % 0x400 + 0xDC00
+            pairs += (high_part, low_part)
+        else:
+            pairs.append(code_point)
+    return pairs
