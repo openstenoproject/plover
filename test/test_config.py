@@ -3,6 +3,7 @@
 
 """Unit tests for config.py."""
 
+from contextlib import ExitStack
 from io import BytesIO
 import inspect
 import json
@@ -396,6 +397,27 @@ CONFIG_TESTS = (
      None,
     ),
 
+    ('setitem_valid',
+     '''
+     ''',
+     DEFAULTS,
+     ('auto_start', True),
+     None,
+     '''
+     [Machine Configuration]
+     auto_start = True
+     '''
+    ),
+
+    ('setitem_invalid',
+     '''
+     ''',
+     DEFAULTS,
+     ('undo_levels', -42),
+     config.InvalidConfigOption,
+     '''
+     '''
+    ),
 )
 
 
@@ -435,15 +457,23 @@ def test_config(original_contents, original_config,
         assert cfg[name] == value
         assert cfg_dict[name] == value
     # Check updated contents.
-    if inspect.isclass(validated_config_update):
-        with pytest.raises(validated_config_update):
-            cfg.update(**config_update)
-        assert cfg.as_dict() == cfg_dict
-    else:
-        if validated_config_update is None:
+    with ExitStack() as stack:
+        if inspect.isclass(validated_config_update):
+            stack.enter_context(pytest.raises(validated_config_update))
+            validated_config_update = None
+        elif validated_config_update is None:
             validated_config_update = config_update
-        cfg.update(**config_update)
-        cfg_dict.update(validated_config_update)
+        if isinstance(config_update, dict):
+            cfg.update(**config_update)
+        else:
+            key, value = config_update
+            cfg[key] = value
+        if validated_config_update is not None:
+            if isinstance(validated_config_update, dict):
+                cfg_dict.update(validated_config_update)
+            else:
+                key, value = validated_config_update
+                cfg_dict[key] = value
         assert cfg.as_dict() == cfg_dict
     f = make_config()
     cfg.save(f)

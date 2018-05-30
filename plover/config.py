@@ -380,7 +380,7 @@ class Config:
     def __setitem__(self, key, value):
         key, opt = self._lookup(key)
         value = opt.validate(self._config, key, value)
-        opt.setter(self, value, key)
+        opt.setter(self, key, value)
         self._cache[key] = value
 
     def as_dict(self):
