@@ -137,7 +137,7 @@ class Keymap:
         return iter(self._mappings)
 
     def __eq__(self, other):
-        return self._mappings == other.get_mappings()
+        return self.get_mappings() == other.get_mappings()
 
     def __str__(self):
         # Use the more compact list of mappings format:
