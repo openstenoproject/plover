@@ -318,7 +318,8 @@ CONFIG_TESTS = (
      [System: English Stenotype]
      dictionaries = %s
      ''' % json.dumps([{"enabled": True, "path": os.path.join(ABS_PATH, 'user.json')},
-                       {"enabled": True, "path": os.path.join('english', 'main.json')}])
+                       {"enabled": True, "path": os.path.join('english', 'main.json')}],
+                      sort_keys=True)
     ),
 
     ('invalid_config',
