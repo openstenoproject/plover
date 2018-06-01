@@ -17,10 +17,10 @@ class FakeHandler(Handler):
 
     def __init__(self, filename, format=log.STROKE_LOG_FORMAT):
         super().__init__()
-        self.filename = filename
+        self.baseFilename = filename
 
     def emit(self, record):
-        FakeHandler.outputs[self.filename].append(record.getMessage())
+        FakeHandler.outputs[self.baseFilename].append(record.getMessage())
 
 
 @pytest.fixture(autouse=True)

@@ -117,30 +117,51 @@ class Logger:
         self._file_handler.setLevel(self.level)
         self._logger.addHandler(self._file_handler)
 
+    def _setup_stroke_logging(self):
+        is_logging = self._stroke_handler is not None
+        must_log = ((self._log_strokes or self._log_translations)
+                    and self._stroke_filename is not None)
+        if must_log:
+            if is_logging:
+                start_logging = stop_logging = self._stroke_filename != self._stroke_handler.baseFilename
+            else:
+                stop_logging = False
+                start_logging = True
+        else:
+            stop_logging = is_logging
+            start_logging = False
+        if stop_logging:
+            self._stroke_logger.removeHandler(self._stroke_handler)
+            self._stroke_handler.close()
+            self._stroke_handler = None
+        if start_logging:
+            self._stroke_handler = FileHandler(filename=self._stroke_filename,
+                                               format=STROKE_LOG_FORMAT)
+            self._stroke_logger.addHandler(self._stroke_handler)
+
     def set_stroke_filename(self, filename=None):
         if filename is not None:
             filename = os.path.realpath(filename)
         if self._stroke_filename == filename:
             return
+        assert filename != LOG_FILENAME
         self.info('set_stroke_filename(%s)', filename)
-        if self._stroke_handler is not None:
-            self._stroke_logger.removeHandler(self._stroke_handler)
-            self._stroke_handler.close()
-            self._stroke_handler = None
-        if filename is not None:
-            assert filename != LOG_FILENAME
-            self._stroke_handler = FileHandler(filename=filename,
-                                               format=STROKE_LOG_FORMAT)
-            self._stroke_logger.addHandler(self._stroke_handler)
         self._stroke_filename = filename
+        self._setup_stroke_logging()
 
-    def enable_stroke_logging(self, b):
-        self.info('enable_stroke_logging(%s)', b)
-        self._log_strokes = b
+    def enable_stroke_logging(self, enable):
+        if self._log_strokes == enable:
+            return
+        self.info('enable_stroke_logging(%s)', enable)
+        self._log_strokes = enable
+        self._setup_stroke_logging()
 
-    def enable_translation_logging(self, b):
-        self.info('enable_translation_logging(%s)', b)
-        self._log_translations = b
+    def enable_translation_logging(self, enable):
+        if self._log_translations == enable:
+            return
+        self.info('enable_translation_logging(%s)', enable)
+        self._log_translations = enable
+        self._setup_stroke_logging()
 
     def log_stroke(self, stroke):
         if not self._log_strokes or self._stroke_handler is None:
