@@ -72,7 +72,7 @@ ConfigOption = namedtuple('ConfigOption', '''
 class InvalidConfigOption(ValueError):
 
     def __init__(self, raw_value, fixed_value, message=None):
-        super(InvalidConfigOption, self).__init__(raw_value)
+        super().__init__(raw_value)
         self.raw_value = raw_value
         self.fixed_value = fixed_value
         self.message = message
