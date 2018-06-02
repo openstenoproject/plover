@@ -72,7 +72,7 @@ ConfigOption = namedtuple('ConfigOption', '''
 class InvalidConfigOption(ValueError):
 
     def __init__(self, raw_value, fixed_value, message=None):
-        super(InvalidConfigOption, self).__init__(raw_value)
+        super().__init__(raw_value)
         self.raw_value = raw_value
         self.fixed_value = fixed_value
         self.message = message
@@ -380,7 +380,7 @@ class Config:
     def __setitem__(self, key, value):
         key, opt = self._lookup(key)
         value = opt.validate(self._config, key, value)
-        opt.setter(self, value, key)
+        opt.setter(self, key, value)
         self._cache[key] = value
 
     def as_dict(self):

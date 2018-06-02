@@ -1,5 +1,5 @@
 
-from mock import MagicMock, call, patch
+from unittest.mock import MagicMock, call, patch
 
 import pytest
 

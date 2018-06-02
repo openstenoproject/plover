@@ -14,6 +14,8 @@ import plover.misc as misc
 import plover.oslayer.config as conf
 from plover.resource import ASSET_SCHEME
 
+from . import parametrize
+
 
 def test_popcount_8():
     for n in range(256):
@@ -29,18 +31,22 @@ if sys.platform.startswith('win32'):
 else:
     ABS_PATH = '/foo/bar'
 
-@pytest.mark.parametrize(('short_path', 'full_path'), (
+@parametrize((
     # Asset, no change.
+    lambda:
     (ASSET_SCHEME + 'foo:bar',
      ASSET_SCHEME + 'foo:bar'),
     # Absolute path, no change.
+    lambda:
     (ABS_PATH,
      ABS_PATH),
     # Relative path, resolve relative to configuration directory.
+    lambda:
     (os.path.normcase(os.path.normpath('foo/bar')),
      os.path.normcase(os.path.join(os.path.realpath(conf.CONFIG_DIR),
                                    'foo', 'bar'))),
     # Path below the user home directory.
+    lambda:
     (os.path.normcase(os.path.normpath('~/foo/bar')),
      os.path.normcase(os.path.expanduser(os.path.normpath('~/foo/bar')))),
 ))
@@ -58,30 +64,30 @@ def test_dictionary_path(short_path, full_path):
         result = getattr(misc, function)(input)
         assert result == expected, function
 
-@pytest.mark.parametrize(('input', 'output'), (
+@parametrize((
     # Boolean.
-    (False, False),
-    (True, True),
+    lambda: (False, False),
+    lambda: (True, True),
     # True string values.
-    ('1', True),
-    ('yes', True),
-    ('true', True),
-    ('on', True),
+    lambda: ('1', True),
+    lambda: ('yes', True),
+    lambda: ('true', True),
+    lambda: ('on', True),
     # False string values.
-    ('0', False),
-    ('no', False),
-    ('false', False),
-    ('off', False),
+    lambda: ('0', False),
+    lambda: ('no', False),
+    lambda: ('false', False),
+    lambda: ('off', False),
     # Invalid string values.
-    ('yep', ValueError),
-    ('nope', ValueError),
+    lambda: ('yep', ValueError),
+    lambda: ('nope', ValueError),
     # Other types.
-    (0, False),
-    (1, True),
-    (42, True),
-    (4.2, True),
-    (0.0, False),
-    (None, False),
+    lambda: (0, False),
+    lambda: (1, True),
+    lambda: (42, True),
+    lambda: (4.2, True),
+    lambda: (0.0, False),
+    lambda: (None, False),
 ))
 def test_boolean(input, output):
     if inspect.isclass(output):

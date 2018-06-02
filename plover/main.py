@@ -17,8 +17,8 @@ import pkg_resources
 if sys.platform.startswith('darwin'):
     import appnope
 
-import plover.oslayer.processlock
 from plover.config import CONFIG_DIR, CONFIG_FILE, Config
+from plover.oslayer import processlock
 from plover.registry import registry
 from plover import log
 from plover import __name__ as __software_name__
@@ -116,7 +116,7 @@ def main():
             os._exit(code)
 
         # Ensure only one instance of Plover is running at a time.
-        with plover.oslayer.processlock.PloverLock():
+        with processlock.PloverLock():
             if sys.platform.startswith('darwin'):
                 appnope.nope()
             init_config_dir()
@@ -128,7 +128,7 @@ def main():
             code = gui.main(config)
             with open(config.target_file, 'wb') as f:
                 config.save(f)
-    except plover.oslayer.processlock.LockNotAcquiredException:
+    except processlock.LockNotAcquiredException:
         gui.show_error('Error', 'Another instance of Plover is already running.')
         code = 1
     except:

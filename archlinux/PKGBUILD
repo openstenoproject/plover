@@ -18,7 +18,6 @@ depends=(
 )
 makedepends=(
   'python-babel'
-  'python-mock'
   'python-pytest'
   'python-setuptools-scm'
 )

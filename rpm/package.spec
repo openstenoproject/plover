@@ -12,7 +12,6 @@ BuildRequires: python3-appdirs
 BuildRequires: python3-babel
 BuildRequires: python3-devel
 BuildRequires: python3-docopt
-BuildRequires: python3-mock
 BuildRequires: python3-pyserial >= 2.7
 BuildRequires: python3-pytest
 BuildRequires: python3-pytz
