@@ -17,12 +17,40 @@ class TestsBlackbox(BlackboxTester):
         TEFT/R*S  " test test"
         '''
 
+    def test_mode_title(self):
+        r'''
+        "T-LT": "{MODE:TITLE}",
+        "TEFT": "test",
+        "R-FT": "{MODE:RESET_CASE}",
+
+        T-LT/TEFT/TEFT/R-FT/TEFT  " Test Test test"
+        '''
+
+    def test_mode_title_attached(self):
+        r'''
+        "T-LT": "{MODE:TITLE}",
+        "TEFT": "test",
+        "TK-LS": "{^^}",
+        "PEUG": "pig",
+
+        T-LT/TEFT/TK-LS/PEUG/PEUG  " Testpig Pig"
+        '''
+
     def test_force_lowercase_title(self):
         r'''
         "T-LT": "{MODE:TITLE}",
         "TEFT": "{>}test",
 
         T-LT/TEFT  " test"
+        '''
+
+    def test_mode_lower(self):
+        r'''
+        "T-LT": "{MODE:LOWER}",
+        "TEFT": "TeST",
+        "R-FT": "{MODE:RESET_CASE}",
+
+        T-LT/TEFT/TEFT/R-FT/TEFT  " test test TeST"
         '''
 
     def test_bug471(self):
@@ -1176,6 +1204,24 @@ class TestsBlackbox(BlackboxTester):
         TEFT       'glueTest'
         '''
 
+    def test_mode_set_space_none(self):
+        r'''
+        "PHO*D": "{MODE:SET_SPACE:}",
+        "R-FT": "{MODE:RESET}",
+        "TEFT": "test",
+
+        PHO*D/TEFT/TEFT/R-FT/TEFT 'testtest test'
+        '''
+
+    def test_mode_set_space_multiple_characters(self):
+        r'''
+        "PHO*D": "{MODE:SET_SPACE:...}",
+        "R-FT": "{MODE:RESET}",
+        "TEFT": "test",
+
+        PHO*D/TEFT/TEFT/R-FT/TEFT '...test...test test'
+        '''
+
     def test_fingerspelling_1a(self):
         r'''
         'K': '{&c}',
@@ -1397,4 +1443,13 @@ class TestsBlackbox(BlackboxTester):
         "TKPWAEUPL": "game",
 
         KPA*L/TKPWAEUPL/-G/*  ' GAME'
+        '''
+
+    def test_bug966_3(self):
+        r'''
+        "-G": "{>}{^ing}",
+        "KPA*L": "{<}",
+        "TKPWAEUPL": "game",
+
+        KPA*L/TKPWAEUPLG  ' GAMing'
         '''

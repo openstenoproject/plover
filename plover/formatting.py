@@ -728,24 +728,16 @@ def _atom_to_action(atom, ctx):
         action = ctx.new_action()
         action.text = _unescape_atom(atom)
     # Finalize action's text.
-    text = action.text
-    if text is not None:
+    if action.text is not None:
         # Update word.
         if action.word is None:
             last_word = None
             if action.glue and ctx.last_action.glue:
                 last_word = ctx.last_action.word
-            action.word = _rightmost_word((last_word or '') + text)
-        # Apply case.
-        case = ctx.last_action.next_case
-        if case is None and action.prev_attach and ctx.last_action.upper_carry:
-            case = CASE_UPPER_FIRST_WORD
-        text = _apply_case(text, case)
-        if case == CASE_UPPER_FIRST_WORD:
-            action.upper_carry = not _has_word_boundary(text)
-        # Apply mode.
-        action.text = _apply_mode(text, action.case, action.space_char,
-                                  action.prev_attach, ctx.last_action)
+            action.word = _rightmost_word((last_word or '') + action.text)
+        # Apply case and modes.
+        _action_apply_case(action, ctx)
+        _action_apply_mode(action, ctx)
         # Update trailing space.
         action.trailing_space = '' if action.next_attach else action.space_char
     return action
@@ -813,7 +805,8 @@ def _apply_meta_retro_case(meta, ctx):
     last_words = ctx.last_words(count=1)
     if last_words:
         action.prev_replace = last_words[0]
-        action.text = _apply_case(last_words[0], meta)
+        action.text = last_words[0]
+        _apply_case(action, meta)
     else:
         action.text = ''
     return action
@@ -926,54 +919,63 @@ def _apply_meta_mode(meta, ctx):
     return action
 
 
-def _apply_case(text, case):
+def _apply_case(action, case_mode):
+    try:
+        case_fn = {
+            CASE_CAP_FIRST_WORD: _capitalize_first_word,
+            CASE_LOWER_FIRST_CHAR: _lower_first_character,
+            CASE_UPPER_FIRST_WORD: _upper_first_word,
+        }[case_mode]
+    except KeyError:
+        raise ValueError('invalid case mode: %s' % case_mode)
+    action.text = case_fn(action.text)
+
+
+def _action_apply_case(action, ctx):
+    case = ctx.last_action.next_case
+    if case is None and action.prev_attach and ctx.last_action.upper_carry:
+        case = CASE_UPPER_FIRST_WORD
+    if case is not None:
+        _apply_case(action, case)
+        if case == CASE_UPPER_FIRST_WORD:
+            action.upper_carry = not _has_word_boundary(action.text)
+
+
+def _action_apply_mode(action, ctx):
+    _action_apply_mode_case(action, ctx)
+    _action_apply_mode_space_char(action, ctx)
+
+
+def _action_apply_mode_case(action, ctx):
+    case = action.case
     if case is None:
-        return text
-    if case == CASE_CAP_FIRST_WORD:
-        return _capitalize_first_word(text)
-    if case == CASE_LOWER_FIRST_CHAR:
-        return _lower_first_character(text)
-    if case == CASE_UPPER_FIRST_WORD:
-        return _upper_first_word(text)
-    raise ValueError('invalid case mode: %s' % case)
-
-
-def _apply_mode(text, case, space_char, begin, last_action):
-    # Should title case be applied to the beginning of the next string?
-    lower_title_case = (begin and not
-                        last_action.case in (
-                            CASE_CAP_FIRST_WORD,
-                            CASE_UPPER_FIRST_WORD,
-                        ))
-    # Apply case, then replace space character
-    text = _apply_mode_case(text, case, lower_title_case)
-    text = _apply_mode_space_char(text, space_char)
-    # Title case is sensitive to lower flag
-    if (last_action.next_case == CASE_LOWER_FIRST_CHAR
-        and text and case == CASE_TITLE):
-        text = _lower_first_character(text)
-    return text
-
-
-def _apply_mode_case(text, case, appended):
-    if case is None:
-        return text
+        return
+    text = action.text
     if case == CASE_LOWER:
-        return text.lower()
-    if case == CASE_UPPER:
-        return text.upper()
-    if case == CASE_TITLE:
-        # Do nothing to appended output
-        if appended:
-            return text
-        return _capitalize_all_words(text)
-    raise ValueError('invalid case mode: %s' % case)
+        text = text.lower()
+    elif case == CASE_UPPER:
+        text = text.upper()
+    elif case == CASE_TITLE:
+        # Should title case be applied to the beginning of the next string?
+        if (action.prev_attach and not
+            ctx.last_action.case in (
+                CASE_CAP_FIRST_WORD,
+                CASE_UPPER_FIRST_WORD,
+            )):
+            return
+        text = _capitalize_all_words(text)
+        # Title case is sensitive to lower flag
+        if ctx.last_action.next_case == CASE_LOWER_FIRST_CHAR:
+            text = _lower_first_character(text)
+    else:
+        raise ValueError('invalid case mode: %s' % case)
+    action.text = text
 
 
-def _apply_mode_space_char(text, space_char):
-    if space_char == SPACE:
-        return text
-    return text.replace(SPACE, space_char)
+def _action_apply_mode_space_char(action, ctx):
+    if action.space_char == SPACE:
+        return
+    action.text = action.text.replace(SPACE, action.space_char)
 
 
 def _get_meta(atom):
