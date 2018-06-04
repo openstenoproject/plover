@@ -912,6 +912,27 @@ class TestsBlackbox(BlackboxTester):
         TPAO/AES/KPATS " Foo's"
         '''
 
+    def test_retro_upper19(self):
+        r'''
+        "TPAO": "foo",
+        "KPATS": "{*<}",
+
+        TPAO " foo"
+        KPATS " FOO"
+        * " foo"
+        '''
+
+    def test_retro_upper20(self):
+        r'''
+        "TPAO": "foo",
+        "KPATS": "{*<}",
+
+        :spaces_after
+        TPAO "foo "
+        KPATS "FOO "
+        * "foo "
+        '''
+
     def test_upper1(self):
         r'''
         'TP*U': '{<}',
@@ -1348,4 +1369,14 @@ class TestsBlackbox(BlackboxTester):
 
         TEFT/W-G  ' TESTING\nwith'
         W-G       ' TESTING\nwithing\nwith'
+        '''
+
+    def test_bug961(self):
+        r'''
+        "PHAED": "made",
+        "KWREUS": "{^ies}",
+
+        :spaces_after
+        PHAED/KWREUS  'madies '
+        *             'made '
         '''
