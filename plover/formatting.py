@@ -46,8 +46,10 @@ MODE_LOWER = 'LOWER'
 MODE_RESET = 'RESET'
 MODE_RESET_CASE = 'RESET_CASE'
 MODE_RESET_SPACE = 'RESET_SPACE'
+MODE_RESET_STITCH = 'RESET_STITCH'
 MODE_SET_SPACE = 'SET_SPACE:'
 MODE_SNAKE = 'SNAKE'
+MODE_STITCH = 'STITCH'
 MODE_TITLE = 'TITLE'
 
 META_ESCAPE = '\\'
@@ -498,9 +500,9 @@ class _Action:
                  # Previous.
                  prev_attach=False, prev_replace='',
                  # Current.
-                 glue=False, word=None, orthography=True, space_char=' ',
+                 glue=False, word=None, space_char=' ', stitch_char=None,
                  upper_carry=False, case=None, text=None, trailing_space='',
-                 combo=None, command=None,
+                 combo=None, command=None, orthography=True,
                  # Next.
                  next_attach=False, next_case=None
                 ):
@@ -522,11 +524,11 @@ class _Action:
 
         upper_carry -- True if we are uppercasing the current word.
 
-        othography -- True if orthography rules should be applies when adding
-                      a suffix to this action.
-
         space_char -- this character will replace spaces after all other
         formatting has been applied
+
+        stitch_char -- when set, this character is inserted between outputted
+        letters
 
         case -- an integer to determine which case to output after formatting
 
@@ -540,6 +542,9 @@ class _Action:
                  executed for this action.
 
         command -- The command that should be executed for this action.
+
+        othography -- True if orthography rules should apply when adding
+                      a suffix to this action.
 
         next_attach -- True if there should be no space between this and the next
                        action.
@@ -557,6 +562,7 @@ class _Action:
         self.next_case = next_case
         # Persistent state variables
         self.space_char = space_char
+        self.stitch_char = stitch_char
         self.case = case
         self.trailing_space = trailing_space
         # Instruction variables
@@ -571,9 +577,10 @@ class _Action:
             # Previous.
             prev_attach=self.next_attach,
             # Current.
-            case=self.case, glue=self.glue, orthography=self.orthography,
-            space_char=self.space_char, upper_carry=self.upper_carry,
-            word=self.word, trailing_space=self.trailing_space,
+            case=self.case, glue=self.glue,
+            space_char=self.space_char, stitch_char=self.stitch_char,
+            upper_carry=self.upper_carry, word=self.word,
+            trailing_space=self.trailing_space, orthography=self.orthography,
             # Next.
             next_attach=self.next_attach, next_case=self.next_case,
         )
@@ -583,8 +590,8 @@ class _Action:
             # Previous.
             prev_attach=self.next_attach,
             # Current.
-            space_char=self.space_char, case=self.case,
-            trailing_space=self.trailing_space,
+            space_char=self.space_char, stitch_char=self.stitch_char,
+            case=self.case, trailing_space=self.trailing_space,
             # Next.
         )
 
@@ -664,6 +671,7 @@ def _raw_to_actions(stroke, ctx):
                      case=ctx.last_action.case,
                      prev_attach=ctx.last_action.next_attach,
                      space_char=ctx.last_action.space_char,
+                     stitch_char=ctx.last_action.stitch_char,
                      trailing_space=ctx.last_action.space_char)
     ctx.translated(action)
     return [action]
@@ -768,6 +776,19 @@ def _apply_meta_attach(meta, ctx):
         new_word = add_suffix(last_word, meta)
         common_len = len(commonprefix([last_word, new_word]))
         replaced = last_word[common_len:]
+
+        if replaced.lower() != ctx.last_text(len(replaced)).lower():
+            # Replacing case-insensitive by length isn't correct.
+            # Output must have been stitched.
+            last_stitch_char = None
+            for old_action in ctx.iter_last_actions():
+                if old_action.stitch_char and old_action.text:
+                    last_stitch_char = old_action.stitch_char
+                    break
+            assert last_stitch_char
+            # Apply the same stitch transformation to our replace
+            replaced = _apply_stitching(replaced, last_stitch_char)
+
         action.prev_replace = ctx.last_text(len(replaced))
         assert replaced.lower() == action.prev_replace.lower()
         last_word = last_word[:common_len]
@@ -881,7 +902,7 @@ def _apply_meta_mode(meta, ctx):
     """
     command should be:
         CAPS, LOWER, TITLE, CAMEL, SNAKE, RESET_SPACE,
-            RESET_CASE, SET_SPACE or RESET
+            RESET_CASE, SET_SPACE, STITCH, or RESET
 
         CAPS: UPPERCASE
         LOWER: lowercase
@@ -910,12 +931,17 @@ def _apply_meta_mode(meta, ctx):
     elif command == MODE_RESET:
         action.space_char = SPACE
         action.case = None
+        action.stitch_char = None
     elif command == MODE_RESET_SPACE:
         action.space_char = SPACE
+    elif command == MODE_RESET_STITCH:
+        action.stitch_char = None
     elif command == MODE_RESET_CASE:
         action.case = None
     elif command.startswith(MODE_SET_SPACE):
         action.space_char = command[len(MODE_SET_SPACE):]
+    elif command.startswith(MODE_STITCH):
+        action.stitch_char = command[len(MODE_STITCH) + 1:] or '-'
     return action
 
 
@@ -944,6 +970,7 @@ def _action_apply_case(action, ctx):
 def _action_apply_mode(action, ctx):
     _action_apply_mode_case(action, ctx)
     _action_apply_mode_space_char(action, ctx)
+    _action_apply_mode_stitch(action, ctx)
 
 
 def _action_apply_mode_case(action, ctx):
@@ -971,6 +998,31 @@ def _action_apply_mode_case(action, ctx):
         raise ValueError('invalid case mode: %s' % case)
     action.text = text
 
+
+def _action_apply_mode_stitch(action, ctx):
+    if not action.stitch_char:
+        return
+    text = action.text
+
+    # If stitched and attaching, we need to add a leading stitch.
+    if (action.prev_attach and not action.prev_replace and ctx.last_action.word and
+        WORD_RX.match(ctx.last_action.word[-1:]) and WORD_RX.match(text[:1]) and
+        len(WORD_RX.findall(ctx.last_action.word[-1:] + text[:1])) == 1):
+        text = action.stitch_char
+    else:
+        # Note: keep initial whitespace.
+        text = text[:len(text) - len(text.lstrip())]
+
+    text += _apply_stitching(action.text, action.stitch_char)
+    action.text = text
+
+def _apply_stitching(text, stitch_char):
+    words = WORD_RX.findall(text)
+    text = ''
+    for w in words:
+        sw = w.rstrip()
+        text += stitch_char.join(w.rstrip()) + w[len(sw):]
+    return text
 
 def _action_apply_mode_space_char(action, ctx):
     if action.space_char == SPACE:

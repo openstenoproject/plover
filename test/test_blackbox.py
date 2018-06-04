@@ -1222,6 +1222,209 @@ class TestsBlackbox(BlackboxTester):
         PHO*D/TEFT/TEFT/R-FT/TEFT '...test...test test'
         '''
 
+    def test_mode_stitch(self):
+        r'''
+        "PHO*D": "{MODE:STITCH}",
+        "TEFT": "test",
+
+        PHO*D/TEFT ' t-e-s-t'
+        TEFT       ' t-e-s-t t-e-s-t'
+        '''
+
+    def test_mode_stitch_set_delimiter(self):
+        r'''
+        "PHO*D": "{MODE:STITCH:~}",
+        "S": "magic",
+
+        PHO*D/S ' m~a~g~i~c'
+        '''
+
+    def test_mode_stitch_orthography(self):
+        r'''
+        "PHO*D": "{MODE:STITCH}",
+        "S": "forget",
+        "T": "{^ing}",
+
+        PHO*D/S/T ' f-o-r-g-e-t-t-i-n-g'
+        '''
+
+    def test_mode_stitch_fingerspell(self):
+        r'''
+        "PHO*D": "{MODE:STITCH}",
+        "TEFT": "test",
+        "S": "{&s}",
+        "T": "{&t}",
+        "K": "{&k}",
+
+        PHO*D  ''
+        TEFT  ' t-e-s-t'
+        S     ' t-e-s-t s'
+        T     ' t-e-s-t s-t'
+        K     ' t-e-s-t s-t-k'
+        TEFT  ' t-e-s-t s-t-k t-e-s-t'
+        */*   ' t-e-s-t s-t'
+        *     ' t-e-s-t s'
+        '''
+
+    def test_mode_stitch_fingerspell_spaces_after(self):
+        r'''
+        "PHO*D": "{MODE:STITCH}",
+        "TEFT": "test",
+        "S": "{&s}",
+        "T": "{&t}",
+        "K": "{&k}",
+
+        :spaces_after
+        PHO*D  ''
+        TEFT  't-e-s-t '
+        S     't-e-s-t s '
+        T     't-e-s-t s-t '
+        K     't-e-s-t s-t-k '
+        TEFT  't-e-s-t s-t-k t-e-s-t '
+        */*   't-e-s-t s-t '
+        *     't-e-s-t s '
+        '''
+
+    def test_mode_stitch_join(self):
+        r'''
+        "PHO*D": "{MODE:STITCH}",
+        "TEFT": "test",
+        "TK-LS": "{^^}"
+
+        PHO*D      ''
+        TEFT       ' t-e-s-t'
+        TK-LS/TEFT ' t-e-s-t-t-e-s-t'
+        '''
+
+    def test_mode_aesthetic(self):
+        r'''
+        # Edge case: stitch is set to default space_char
+        "PHO*D": "{MODE:STITCH}{MODE:SET_SPACE:  }{MODE:STITCH: }{MODE:CAPS}",
+        "TEFT": "test",
+        "PHE": "me",
+
+        PHO*D ''
+        TEFT  '  T E S T'
+        PHE   '  T E S T  M E'
+        '''
+
+    def test_mode_stitch_with_nonspace_space_char(self):
+        r'''
+        # Verify that stitch doesn't try to stitch letters and the space char together.
+        "PHO*D": "{MODE:STITCH}{MODE:SET_SPACE:_}{MODE:STITCH}",
+        "TEFT": "test",
+        "PHE": "me",
+
+        PHO*D ''
+        TEFT  '_t-e-s-t'
+        PHE   '_t-e-s-t_m-e'
+        '''
+
+    def test_mode_stitch_join_to_whitespace(self):
+        r'''
+        "PHO*D": "{MODE:STITCH}",
+        "TEFT": "test",
+        "S-P": "{^ ^}"
+
+        PHO*D     ''
+        TEFT      ' t-e-s-t'
+        S-P       ' t-e-s-t '
+        TEFT      ' t-e-s-t t-e-s-t'
+        '''
+
+    def test_mode_stitch_join_to_whitespace_plus_word(self):
+        r'''
+        "PHO*D": "{MODE:STITCH}",
+        "TEFT": "test",
+        "S-P/WORD": "{^ word}"
+
+        PHO*D     ''
+        TEFT      ' t-e-s-t'
+        S-P/WORD  ' t-e-s-t w-o-r-d'
+        '''
+
+    def test_mode_stitch_multiple_words_translation1(self):
+        r'''
+        "PHO*D": "{MODE:STITCH}",
+        "TEFT": "test",
+        "HR*U": "you will"
+
+        PHO*D  ''
+        TEFT   ' t-e-s-t'
+        HR*U   ' t-e-s-t y-o-u w-i-l-l'
+        '''
+
+    def test_mode_stitch_multiple_words_translation2(self):
+        r'''
+        "PHO*D": "{MODE:STITCH}",
+        "TEFT": "test",
+        "HR*U": "you, will"
+
+        PHO*D  ''
+        TEFT   ' t-e-s-t'
+        HR*U   ' t-e-s-t y-o-u, w-i-l-l'
+        '''
+
+    def test_mode_stitch_orthography_replace1(self):
+        r'''
+        "PHO*D": "{MODE:STITCH}",
+        "PHAED": "made",
+        "KWREU": "{^y}"
+
+        PHO*D/PHAED/KWREU ' m-a-d-y'
+        '''
+
+    def test_mode_stitch_orthography_replace2(self):
+        r'''
+        "PHO*D": "{MODE:STITCH}",
+        "TPHAD/KWAT": "inadequate",
+        "SEU": "{^cy}",
+
+        PHO*D/TPHAD/KWAT/SEU ' i-n-a-d-e-q-u-a-c-y'
+        '''
+
+    def test_mode_stitch_orthography_replace3(self):
+        r'''
+        "PHO*D": "{MODE:STITCH}",
+        "TPHAD/KWAT": "inadequate",
+        "R-FT": "{MODE:RESET}",
+        "SEU": "{^cy}",
+
+        PHO*D/TPHAD/KWAT/R-FT/SEU ' i-n-a-d-e-q-u-a-cy'
+        '''
+
+    def test_mode_stitch_orthography_replace4(self):
+        r'''
+        # Torture test where the last stitch character isn't the last one used
+        "PHO*D": "{MODE:STITCH}",
+        "TPHO": "{MODE:STITCH:#}",
+        "TPHAD/KWAT": "inadequate",
+        "R-FT": "{MODE:RESET}",
+        "SEU": "{^cy}",
+
+        PHO*D/TPHAD/KWAT/TPHO/R-FT/SEU ' i-n-a-d-e-q-u-a-cy'
+        '''
+
+    def test_mode_stitch_punctuation(self):
+        r'''
+        "PHO*D": "{MODE:STITCH}",
+        "TEFT": "test",
+        "KW-BG": "{,}",
+
+        PHO*D/TEFT/KW-BG/TEFT ' t-e-s-t, t-e-s-t'
+        '''
+
+    def test_mode_stitch_multiple_lines_translation(self):
+        r'''
+        "PHO*D": "{MODE:STITCH}",
+        "TEFT": "test",
+        "HR*U": "you\nwill"
+
+        PHO*D  ''
+        TEFT   ' t-e-s-t'
+        HR*U   ' t-e-s-t y-o-u\nw-i-l-l'
+        '''
+
     def test_fingerspelling_1a(self):
         r'''
         'K': '{&c}',

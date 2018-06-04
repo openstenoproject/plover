@@ -747,6 +747,22 @@ CHANGE_MODE_TESTS = (
     lambda:
     ('SNAKE', action(),
      action(space_char='_')),
+    # STITCH: Default hyphen
+    lambda:
+    ('STITCH', action(),
+     action(stitch_char='-')),
+    # STITCH: Custom delimiter
+    lambda:
+    ('STITCH:bob', action(),
+     action(stitch_char='bob')),
+    # STITCH: Ambiguous case
+    lambda:
+    ('STITCH:', action(),
+     action(stitch_char='-')),
+    # RESET_STITCH: No stitch
+    lambda:
+    ('RESET_STITCH', action(stitch_char='-'),
+     action()),
     # RESET_SPACE: Default space
     lambda:
     ('RESET_SPACE', action(space_char='ABCD'),
@@ -765,7 +781,13 @@ CHANGE_MODE_TESTS = (
     lambda:
     ('SET_SPACE:123 45', action(space_char='test'),
      action(space_char='123 45')),
-    # RESET: No case, default space
+    # RESET: No case or stitch, default space.
+    lambda:
+    ('RESET', action(
+        case=formatting.CASE_UPPER,
+        stitch_char='-',
+        space_char=''),
+     action()),
 )
 
 @parametrize(CHANGE_MODE_TESTS)
