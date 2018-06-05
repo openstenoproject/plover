@@ -162,19 +162,24 @@ class DictionariesWidget(QWidget, Ui_DictionariesWidget):
             item = QTableWidgetItem(str(n + 1))
             if dictionary.path not in loaded_dictionaries:
                 icon = 'loading'
+                tooltip = _('This dictionary is being loaded.')
             else:
                 d = loaded_dictionaries.get(dictionary.path)
                 if isinstance(d, ErroredDictionary):
                     icon = 'error'
-                    item.setToolTip(str(d.exception))
+                    tooltip = str(d.exception)
                 elif d.readonly:
                     icon = 'readonly'
+                    tooltip = _('This dictionary is read-only.')
                 elif not favorite_set and dictionary.enabled:
                     icon = 'favorite'
+                    tooltip = _('This dictionary is marked as a favorite.')
                     favorite_set = True
                 else:
                     icon = 'normal'
+                    tooltip = ''
             item.setIcon(QIcon(':/dictionary_%s.svg' % icon))
+            item.setToolTip(tooltip)
             self.table.setVerticalHeaderItem(row, item)
         if keep_selection:
             row_list = []
