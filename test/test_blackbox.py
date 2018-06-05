@@ -1380,3 +1380,21 @@ class TestsBlackbox(BlackboxTester):
         PHAED/KWREUS  'madies '
         *             'made '
         '''
+
+    def test_bug966_1(self):
+        r'''
+        "-G": "{^ing}",
+        "KPA*L": "{<}",
+        "TKPWAEUPL": "game",
+
+        KPA*L/TKPWAEUPLG  ' GAMING'
+        '''
+
+    def test_bug966_2(self):
+        r'''
+        "-G": "{^ing}",
+        "KPA*L": "{<}",
+        "TKPWAEUPL": "game",
+
+        KPA*L/TKPWAEUPL/-G/*  ' GAME'
+        '''

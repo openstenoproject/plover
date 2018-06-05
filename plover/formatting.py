@@ -775,7 +775,9 @@ def _apply_meta_attach(meta, ctx):
     ):
         new_word = add_suffix(last_word, meta)
         common_len = len(commonprefix([last_word, new_word]))
-        action.prev_replace = last_word[common_len:]
+        replaced = last_word[common_len:]
+        action.prev_replace = ctx.last_text(len(replaced))
+        assert replaced.lower() == action.prev_replace.lower()
         last_word = last_word[:common_len]
         meta = new_word[common_len:]
     action.text = meta
