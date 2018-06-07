@@ -288,7 +288,8 @@ class TagWeekly(Command):
             sys.exit(1)
         weekly_version = 'weekly-v%s' % version
         log.info('tagging as %s', weekly_version)
-        subprocess.check_call('git tag -f'.split() + [weekly_version])
+        subprocess.check_call('git tag -f -m'.split()
+                              + [weekly_version, weekly_version])
 
 cmdclass['tag_weekly'] = TagWeekly
 
