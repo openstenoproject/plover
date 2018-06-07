@@ -10,8 +10,6 @@ deploy:
 
 - provider: GitHub
   release: $(APPVEYOR_REPO_TAG_NAME)
-  description: Weekly Pre-release
-  prerelease: true
   draft: true
   auth_token:
     secure: m8kBg3jFX2k516nlmWkvxNCrBwlQZMaa6hNn7A+rktl781BRTyKssCXQqKAwPJLs
