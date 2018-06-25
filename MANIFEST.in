@@ -38,5 +38,6 @@ exclude archlinux/.gitignore
 exclude plover/gui_qt/*_rc.py
 exclude plover/gui_qt/*_ui.py
 exclude plover/gui_qt/.gitignore
+prune .circleci
 prune .github
 prune ci

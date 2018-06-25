@@ -1,0 +1,87 @@
+version: 2
+
+
+variables:
+
+  macos: &macos
+    macos:
+      xcode: "9.0"
+    environment:
+      CIRCLE_ARTIFACTS: /tmp/circleci/artifacts
+
+  restore_cache: &restore_cache
+    restore_cache:
+      keys:
+      # This branch if available
+      - v1-dep-{{ .Branch }}-
+        # Default branch if not
+      - v1-dep-master-
+
+  save_cache: &save_cache
+    save_cache:
+      key: v1-dep-{{ .Branch }}-{{ epoch }}
+      paths:
+      - .cache
+
+  setup: &setup
+    run:
+      name: Setting-up build environment
+      command: ./ci/circle.sh setup
+
+  build: &build
+    run:
+      name: Running tests and building distribution
+      command: ./ci/circle.sh build
+
+  store_artifacts: &store_artifacts
+    store_artifacts:
+      path: /tmp/circleci/artifacts
+
+  deploy: &deploy
+    run:
+      name: Deploying to GitHub
+      command: ./ci/circle.sh deploy
+
+jobs:
+
+  build_and_test:
+    <<: *macos
+    steps:
+    - checkout
+    - *restore_cache
+    - *setup
+    - *build
+    - *store_artifacts
+    - *save_cache
+
+  build_test_and_release:
+    <<: *macos
+    steps:
+    - checkout
+    - *restore_cache
+    - *setup
+    - *build
+    - *store_artifacts
+    - *deploy
+    - *save_cache
+
+
+workflows:
+
+  version: 2
+
+  branch:
+    jobs:
+      - build_and_test:
+          filters:
+            tags:
+              ignore: /.*/
+
+  tag:
+    jobs:
+      - build_test_and_release:
+          filters:
+            branches:
+              ignore: /.*/
+            tags:
+              only: /.*/
