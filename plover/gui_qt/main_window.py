@@ -1,6 +1,7 @@
 
 from functools import partial
 import json
+import webbrowser
 
 from PyQt5.QtCore import QCoreApplication, Qt
 from PyQt5.QtGui import QCursor, QIcon, QKeySequence
@@ -11,6 +12,7 @@ from PyQt5.QtWidgets import (
 
 from plover import log
 from plover.oslayer import wmctrl
+from plover.oslayer.config import CONFIG_DIR
 from plover.registry import registry
 from plover.resource import resource_filename
 
@@ -67,6 +69,7 @@ class MainWindow(QMainWindow, Ui_MainWindow, WindowState):
             'menu_Tools',
             '',
             'action_Configure',
+            'action_OpenConfigFolder',
             '',
             'menu_Help',
             '',
@@ -237,6 +240,9 @@ class MainWindow(QMainWindow, Ui_MainWindow, WindowState):
 
     def on_configure(self):
         self._configure()
+
+    def on_open_config_folder(self):
+        webbrowser.open(CONFIG_DIR)
 
     def on_reconnect(self):
         self._engine.reset_machine()

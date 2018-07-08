@@ -163,6 +163,7 @@
     <addaction name="action_Reconnect"/>
     <addaction name="separator"/>
     <addaction name="action_Configure"/>
+    <addaction name="action_OpenConfigFolder"/>
     <addaction name="separator"/>
     <addaction name="action_Show"/>
     <addaction name="action_Quit"/>
@@ -234,6 +235,18 @@
    </property>
    <property name="shortcut">
     <string>Ctrl+,</string>
+   </property>
+  </action>
+  <action name="action_OpenConfigFolder">
+   <property name="icon">
+    <iconset resource="resources/resources.qrc">
+     <normaloff>:/folder.svg</normaloff>:/folder.svg</iconset>
+   </property>
+   <property name="text">
+    <string>Open config &amp;folder</string>
+   </property>
+   <property name="toolTip">
+    <string>Open the configuration folder.</string>
    </property>
   </action>
   <action name="action_About">
@@ -322,6 +335,22 @@
    <signal>triggered()</signal>
    <receiver>MainWindow</receiver>
    <slot>on_configure()</slot>
+   <hints>
+    <hint type="sourcelabel">
+     <x>-1</x>
+     <y>-1</y>
+    </hint>
+    <hint type="destinationlabel">
+     <x>140</x>
+     <y>57</y>
+    </hint>
+   </hints>
+  </connection>
+  <connection>
+   <sender>action_OpenConfigFolder</sender>
+   <signal>triggered()</signal>
+   <receiver>MainWindow</receiver>
+   <slot>on_open_config_folder()</slot>
    <hints>
     <hint type="sourcelabel">
      <x>-1</x>
@@ -449,6 +478,7 @@
  <slots>
   <slot>on_reconnect()</slot>
   <slot>on_configure()</slot>
+  <slot>on_open_config_folder()</slot>
   <slot>on_manage_dictionaries()</slot>
   <slot>on_quit()</slot>
   <slot>on_toggle_output(bool)</slot>
