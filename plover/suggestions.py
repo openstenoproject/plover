@@ -50,3 +50,16 @@ class Suggestions:
                 suggestions.append(suggestion)
 
         return suggestions
+    
+    def findRegex(self, translation):
+        matches = self.dictionary.regex_reverse_lookup(translation)
+        suggestions = [Suggestion(m, sort_steno_strokes(k)) for (m,k) in matches]
+        suggestions.sort(key=lambda s: s.text)
+        return suggestions
+    
+    def findTranslation(self, translation):
+        formatted_tr = tuple(translation.split("/"))
+        strokes = self.dictionary.lookup(formatted_tr)
+        if strokes is not None:
+            return Suggestion(translation+" maps to",[(strokes,)])
+        return None

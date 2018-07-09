@@ -40,8 +40,12 @@ nosetests.xml
 # mac files
 .DS_store
 
-# emacs backups
+# Vim/emacs backups
 *~
+
+# Vim swap/undo files
+*.swp
+*.un
 
 # deleted files
 \#*#

@@ -7,9 +7,11 @@ from plover.gui_qt.lookup_dialog_ui import Ui_LookupDialog
 from plover.gui_qt.i18n import get_gettext
 from plover.gui_qt.tool import Tool
 
+import re
 
 _ = get_gettext()
 
+matchStenoString = re.compile(r'[STKPWHRAO\*EUFBLGDZ\/-]')
 
 class LookupDialog(Tool, Ui_LookupDialog):
 
@@ -36,10 +38,21 @@ class LookupDialog(Tool, Ui_LookupDialog):
         return False
 
     def _update_suggestions(self, suggestion_list):
-        self.suggestions.clear()
-        self.suggestions.append(suggestion_list)
+        self.suggestions.replace(suggestion_list)
 
     def on_lookup(self, pattern):
         translation = unescape_translation(pattern.strip())
-        suggestion_list = self._engine.get_suggestions(translation)
-        self._update_suggestions(suggestion_list)
+        # only bother if the search box has non-whitespace characters
+        if translation:
+            if self.regexCheck.isChecked():
+                suggestion_list = self._engine.get_regex_suggestions(translation)
+            else:
+                suggestion_list = self._engine.get_suggestions(translation)
+            if matchStenoString.match(translation):
+                stroke_suggestion = self._engine.get_stroke_suggestion(translation)
+                if stroke_suggestion is not None:
+                    suggestion_list.append(stroke_suggestion) 
+            self._update_suggestions(suggestion_list)
+            
+    def on_modeChange(self, state):
+        self.on_lookup(self.pattern.text())
