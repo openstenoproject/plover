@@ -22,6 +22,7 @@ include plover/gui_qt/resources/*.png
 include plover/gui_qt/resources/*.qrc
 include plover/gui_qt/resources/*.svg
 include plover_build_utils/*.sh
+include pyproject.toml
 include requirements*.txt
 include rpm/*.spec
 include test.bat
