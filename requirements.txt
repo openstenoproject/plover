@@ -1,6 +1,6 @@
 Babel==2.4.0
 check-manifest==0.35
-Cython==0.25.2
+Cython==0.28.5
 https://github.com/benoit-pierre/dmgbuild/archive/plover.zip; "darwin" in sys_platform
 docutils==0.14
 macholib==1.8; "darwin" in sys_platform
