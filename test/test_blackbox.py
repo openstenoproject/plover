@@ -1398,3 +1398,15 @@ class TestsBlackbox(BlackboxTester):
 
         KPA*L/TKPWAEUPL/-G/*  ' GAME'
         '''
+
+    def test_bug980(self):
+        r'''
+        "PUFRPB": "punch",
+        "HRAOEUPB": "line",
+        "PUFRPB/HRAOEUPB": "punchline",
+        "-S": "{^s}",
+        "AFPS": "{*?}",
+
+        PUFRPB/HRAOEUPBS  ' punchlines'
+        AFPS              ' punch lines'
+        '''
