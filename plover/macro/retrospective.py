@@ -1,6 +1,7 @@
 
 from plover.translation import Translation
 from plover.steno import Stroke
+from plover import system
 
 
 def toggle_asterisk(translator, stroke, cmdline):
@@ -49,7 +50,10 @@ def insert_space(translator, stroke, cmdline):
     english = [t.english or '/'.join(t.rtfcre)
                for t in replaced.replaced]
     if english:
-        english.append(translator.lookup([lookup_stroke]) or lookup_stroke.rtfcre)
+        english.append(
+            translator.lookup([lookup_stroke], system.SUFFIX_KEYS)
+            or lookup_stroke.rtfcre
+        )
         t = Translation([stroke], ' '.join(english))
         t.replaced = [replaced]
         t.is_retrospective_command = True
