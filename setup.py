@@ -27,11 +27,8 @@ from plover import (
 
 from plover_build_utils.setup import (
     BuildPy, BuildUi, Command, Test,
-    ensure_setup_requires,
 )
 
-
-ensure_setup_requires('>=38.2.4')
 
 BuildPy.build_dependencies.append('build_ui')
 cmdclass = {
