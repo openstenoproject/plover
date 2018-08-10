@@ -136,18 +136,20 @@ class BinaryDistWin(Command):
             if self.verbose:
                 log.info('running %s', ' '.join(a for a in args))
             subprocess.check_call(args)
+        def pyrun(*args):
+            run(dist_py, '-E', '-s', *args)
         # Install pip/wheel.
-        run(dist_py, '-m', 'plover_build_utils.get_pip')
+        pyrun('-m', 'plover_build_utils.get_pip')
         # Install Plover + standard plugins and dependencies.
         # Note: do not use the embedded Python executable with `setup.py
         # install` to prevent setuptools from installing extra development
         # dependencies...
-        run(dist_py, '-m', 'plover_build_utils.install_wheels',
-            '-r', 'requirements_distribution.txt')
-        run(dist_py, '-m', 'plover_build_utils.install_wheels',
-            '--ignore-installed', '--no-deps', plover_wheel)
-        run(dist_py, '-m', 'plover_build_utils.install_wheels',
-            '-r', 'requirements_plugins.txt')
+        pyrun('-m', 'plover_build_utils.install_wheels',
+              '-r', 'requirements_distribution.txt')
+        pyrun('-m', 'plover_build_utils.install_wheels',
+              '--ignore-installed', '--no-deps', plover_wheel)
+        pyrun('-m', 'plover_build_utils.install_wheels',
+              '-r', 'requirements_plugins.txt')
         os.unlink(os.path.join(WHEELS_CACHE, os.path.basename(plover_wheel)))
         # Trim the fat...
         if self.trim:
@@ -165,7 +167,7 @@ class BinaryDistWin(Command):
             ('plover         = plover.dist_main:main', True ),
             ('plover_console = plover.dist_main:main', False),
         ):
-            run(dist_py, '-c', textwrap.dedent(
+            pyrun('-c', textwrap.dedent(
                 '''
                 from pip._vendor.distlib.scripts import ScriptMaker
                 sm = ScriptMaker(source_dir='{dist_dir}', target_dir='{dist_dir}')
@@ -179,13 +181,13 @@ class BinaryDistWin(Command):
         os.rename(os.path.join(dist_dir, 'data', 'vcruntime140.dll'),
                   os.path.join(dist_dir, 'vcruntime140.dll'))
         # Make distribution source-less.
-        run(dist_py, '-m', 'plover_build_utils.source_less',
-            # Don't touch pip._vendor.distlib sources,
-            # or `pip install` will not be usable...
-            dist_data, '*/pip/_vendor/distlib/*',
-        )
+        pyrun('-m', 'plover_build_utils.source_less',
+              # Don't touch pip._vendor.distlib sources,
+              # or `pip install` will not be usable...
+              dist_data, '*/pip/_vendor/distlib/*',
+             )
         # Check requirements.
-        run(dist_py, '-I', '-m', 'plover_build_utils.check_requirements')
+        pyrun('-I', '-m', 'plover_build_utils.check_requirements')
         # Zip results.
         if self.zipdir:
             from plover_build_utils.zipdir import zipdir

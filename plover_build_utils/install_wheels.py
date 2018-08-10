@@ -92,7 +92,14 @@ def _pip(args, verbose=True, no_progress=True):
     if verbose:
         print('running pip %s' % ' '.join(a for a in args))
         sys.stdout.flush()
-    cmd = [sys.executable, '-c', _PIP_SCRIPT]
+    cmd = [sys.executable]
+    if sys.flags.no_site:
+        cmd.append('-S')
+    if sys.flags.no_user_site:
+        cmd.append('-s')
+    if sys.flags.ignore_environment:
+        cmd.append('-E')
+    cmd.extend(('-c', _PIP_SCRIPT))
     if no_progress:
         cmd.append('--no-tty')
     cmd.extend(args)
