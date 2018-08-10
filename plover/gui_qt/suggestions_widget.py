@@ -52,6 +52,12 @@ class SuggestionsWidget(QWidget, Ui_SuggestionsWidget):
 
     def clear(self):
         self.suggestions.clear()
+        
+    def replace(self, suggestion_list):
+        self.clear()
+        self.append(suggestion_list)
+        scrollbar = self.suggestions.verticalScrollBar()
+        scrollbar.setValue(scrollbar.minimum())
 
     def _reformat(self):
         document = self.suggestions.document()

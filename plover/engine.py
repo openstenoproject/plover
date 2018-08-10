@@ -475,6 +475,14 @@ class StenoEngine:
     def get_suggestions(self, translation):
         return Suggestions(self._dictionaries).find(translation)
 
+    @with_lock
+    def get_regex_suggestions(self, translation):
+        return Suggestions(self._dictionaries).findRegex(translation)
+    
+    @with_lock
+    def get_stroke_suggestion(self, translation):
+        return Suggestions(self._dictionaries).findTranslation(translation)
+
     @property
     @with_lock
     def translator_state(self):

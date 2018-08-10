@@ -8,6 +8,8 @@ A steno dictionary maps sequences of steno strokes to translations.
 """
 
 import collections
+import itertools
+import re
 import os
 import shutil
 
@@ -159,7 +161,11 @@ class StenoDictionary:
 
     def casereverse_lookup(self, value):
         return list(self.casereverse[value].keys())
-
+    
+    def regex_value_match(self, rpattern, match_limit=100):
+        # rpattern must be a valid compiled regular expression object
+        return [m for m in filter(rpattern.match, self.reverse.keys())][:match_limit]
+    
     @property
     def _longest_key(self):
         return self._longest_key_length
@@ -245,6 +251,15 @@ class StenoDictionaryCollection:
             if key:
                 return key
 
+    def regex_reverse_lookup(self, pattern, match_limit=10):
+        try:
+            r = re.compile(pattern)
+            matches = set(itertools.chain.from_iterable((d.regex_value_match(r) for d in self.dicts if d.enabled)))
+            mkpairs = ((m,self.reverse_lookup(m)) for m in sorted(matches))
+            return [(m,k) for (m,k) in mkpairs if k][:match_limit]
+        except re.error as e:
+            return [("Invalid regular expression", [(e.msg,)])]
+
     def first_writable(self):
         '''Return the first writable dictionary.'''
         for d in self.dicts:
@@ -264,7 +279,7 @@ class StenoDictionaryCollection:
 
         If <path_list> is None, all writable dictionaries are saved'''
         if path_list is None:
-            dict_list = [d for d in self if dictionary.save is not None]
+            dict_list = [d for d in self if not d.readonly]
         else:
             dict_list = [self[path] for path in path_list]
         for d in dict_list:

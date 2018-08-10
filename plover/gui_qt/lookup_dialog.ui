@@ -23,6 +23,16 @@
    <bool>true</bool>
   </property>
   <layout class="QGridLayout" name="gridLayout">
+   <item row="1" column="0">
+    <widget class="SuggestionsWidget" name="suggestions" native="true">
+     <property name="sizePolicy">
+      <sizepolicy hsizetype="MinimumExpanding" vsizetype="MinimumExpanding">
+       <horstretch>0</horstretch>
+       <verstretch>0</verstretch>
+      </sizepolicy>
+     </property>
+    </widget>
+   </item>
    <item row="2" column="0">
     <widget class="QDialogButtonBox" name="buttonBox">
      <property name="orientation">
@@ -43,13 +53,13 @@
      </property>
     </widget>
    </item>
-   <item row="1" column="0">
-    <widget class="SuggestionsWidget" name="suggestions" native="true">
-     <property name="sizePolicy">
-      <sizepolicy hsizetype="MinimumExpanding" vsizetype="MinimumExpanding">
-       <horstretch>0</horstretch>
-       <verstretch>0</verstretch>
-      </sizepolicy>
+   <item row="3" column="0">
+    <widget class="QCheckBox" name="regexCheck">
+     <property name="focusPolicy">
+      <enum>Qt::StrongFocus</enum>
+     </property>
+     <property name="text">
+      <string>Regex Search</string>
      </property>
     </widget>
    </item>
@@ -72,8 +82,8 @@
    <slot>accept()</slot>
    <hints>
     <hint type="sourcelabel">
-     <x>248</x>
-     <y>254</y>
+     <x>257</x>
+     <y>239</y>
     </hint>
     <hint type="destinationlabel">
      <x>157</x>
@@ -88,8 +98,8 @@
    <slot>reject()</slot>
    <hints>
     <hint type="sourcelabel">
-     <x>316</x>
-     <y>260</y>
+     <x>264</x>
+     <y>239</y>
     </hint>
     <hint type="destinationlabel">
      <x>286</x>
@@ -113,8 +123,25 @@
     </hint>
    </hints>
   </connection>
+  <connection>
+   <sender>regexCheck</sender>
+   <signal>stateChanged(int)</signal>
+   <receiver>LookupDialog</receiver>
+   <slot>on_modeChange(int)</slot>
+   <hints>
+    <hint type="sourcelabel">
+     <x>136</x>
+     <y>254</y>
+    </hint>
+    <hint type="destinationlabel">
+     <x>136</x>
+     <y>135</y>
+    </hint>
+   </hints>
+  </connection>
  </connections>
  <slots>
   <slot>on_lookup(QString)</slot>
+  <slot>on_modeChange(int)</slot>
  </slots>
 </ui>
