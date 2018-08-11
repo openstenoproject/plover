@@ -11,42 +11,39 @@ class Suggestions:
         self.dictionary = dictionary
 
     def find(self, translation):
-        suggestions = []
+        # List of base translations to try looking up, including stripped and case variations.
+        # Make it start out as a set so that duplicates are removed.
+        base = list({
+            translation,               # Self
+            translation.strip(' '),    # Strip spaces (patterns with \n or \t are correctly handled)
+            translation.lower(),       # All lowercase
+            translation.capitalize(),  # First letter capitalized
+            translation.upper(),       # All uppercase
+        })
 
+        # List of modifications to apply to each base to find prefixes, suffixes, commands etc.
         mods = [
-            '%s',  # Same
-            '{^%s}',  # Prefix
-            '{^}%s',
-            '{^%s^}',  # Infix
-            '{^}%s{^}',
-            '{%s^}',  # Suffix
-            '%s{^}',
-            '{&%s}',  # Fingerspell
-            '{#%s}',  # Command
+            lambda s: s,               # No modification
+            lambda s: '{^%s}' % s,     # Prefix
+            lambda s: '{^}%s' % s,
+            lambda s: '{^%s^}' % s,    # Infix
+            lambda s: '{^}%s{^}' % s,
+            lambda s: '{%s^}' % s,     # Suffix
+            lambda s: '%s{^}' % s,
+            lambda s: '{&%s}' % s,     # Fingerspell
+            lambda s: '{#%s}' % s,     # Raw keystrokes
         ]
 
-        possible_translations = {translation}
+        # Make an iterator to run each non-empty base translation through each mod in turn.
+        possible_translations = (mod(t) for t in base if t for mod in mods)
 
-        # Only strip spaces, so patterns with \n or \t are correctly handled.
-        stripped_translation = translation.strip(' ')
-        if stripped_translation and stripped_translation != translation:
-            possible_translations.add(stripped_translation)
-
-        lowercase_translation = translation.lower()
-        if lowercase_translation != translation:
-            possible_translations.add(lowercase_translation)
-
-        similar_words = self.dictionary.casereverse_lookup(translation.lower())
-        if similar_words:
-            possible_translations |= set(similar_words)
-
+        # Look up every possibility and return a suggestion for each one with a non-empty result.
+        suggestions = []
         for t in possible_translations:
-            for modded_translation in [mod % t for mod in mods]:
-                strokes_list = self.dictionary.reverse_lookup(modded_translation)
-                if not strokes_list:
-                    continue
-                strokes_list = sort_steno_strokes(strokes_list)
-                suggestion = Suggestion(modded_translation, strokes_list)
-                suggestions.append(suggestion)
-
+            strokes_list = self.dictionary.reverse_lookup(t)
+            if not strokes_list:
+                continue
+            strokes_list = sort_steno_strokes(strokes_list)
+            suggestion = Suggestion(t, strokes_list)
+            suggestions.append(suggestion)
         return suggestions

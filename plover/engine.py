@@ -459,11 +459,6 @@ class StenoEngine:
         return [] if matches is None else matches
 
     @with_lock
-    def casereverse_lookup(self, translation):
-        matches = self._dictionaries.casereverse_lookup(translation)
-        return set() if matches is None else matches
-
-    @with_lock
     def add_dictionary_filter(self, dictionary_filter):
         self._dictionaries.add_filter(dictionary_filter)
 
