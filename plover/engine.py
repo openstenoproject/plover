@@ -15,7 +15,7 @@ from plover.registry import registry
 from plover.resource import ASSET_SCHEME, resource_filename
 from plover.steno import Stroke
 from plover.steno_dictionary import StenoDictionary, StenoDictionaryCollection
-from plover.suggestions import Suggestions
+from plover.suggestions import find_suggestions
 from plover.translation import Translator
 
 
@@ -468,7 +468,7 @@ class StenoEngine:
 
     @with_lock
     def get_suggestions(self, translation):
-        return Suggestions(self._dictionaries).find(translation)
+        return find_suggestions(self._dictionaries,translation)
 
     @property
     @with_lock
