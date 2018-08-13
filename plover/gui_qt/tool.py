@@ -8,12 +8,13 @@ class Tool(QDialog, WindowState):
 
     # Used for dialog window title, menu entry text.
     TITLE = None
+    # Used in the main window
+    TOOLTIP = None
     # Optional path to icon image.
     ICON = None
     # Optional shortcut (as a string).
     SHORTCUT = None
-    # Note: the class documentation is automatically used as tooltip.
-
+    
     def __init__(self, engine):
         super().__init__()
         self._update_title()

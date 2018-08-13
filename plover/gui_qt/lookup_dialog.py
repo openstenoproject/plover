@@ -13,9 +13,9 @@ _ = get_gettext()
 
 class LookupDialog(Tool, Ui_LookupDialog):
 
-    ''' Search the dictionary for translations. '''
 
     TITLE = _('Lookup')
+    TOOLTIP = _('Search the dictionary for translations.')
     ICON = ':/lookup.svg'
     ROLE = 'lookup'
     SHORTCUT = 'Ctrl+L'

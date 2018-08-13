@@ -8,9 +8,9 @@ _ = get_gettext()
 
 class AddTranslationDialog(Tool, Ui_AddTranslationDialog):
 
-    ''' Add a new translation to the dictionary. '''
 
     TITLE = _('Add Translation')
+    TOOLTIP = _('Add a new translation to the dictionary.')
     ICON = ':/translation_add.svg'
     ROLE = 'add_translation'
     SHORTCUT = 'Ctrl+N'

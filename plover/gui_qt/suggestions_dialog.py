@@ -26,9 +26,9 @@ _ = get_gettext()
 
 class SuggestionsDialog(Tool, Ui_SuggestionsDialog):
 
-    ''' Suggest possible strokes for the last written words. '''
 
     TITLE = _('Suggestions')
+    TOOLTIP = _('Suggest possible strokes for the last written words.')
     ICON = ':/lightbulb.svg'
     ROLE = 'suggestions'
     SHORTCUT = 'Ctrl+J'

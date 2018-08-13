@@ -285,14 +285,14 @@ class ConfigWindow(QDialog, Ui_ConfigWindow, WindowState):
                 ConfigOption(_('Add translation dialog opacity:'), 'translation_frame_opacity',
                              partial(IntOption, maximum=100, minimum=0),
                              _('Set the translation dialog opacity:\n'
-                               '- 0 makes the dialog invisible\n'
-                               '- 100 is fully opaque')),
+                               '- 0 makes the dialog invisible.\n'
+                               '- 100 is fully opaque.')),
                 ConfigOption(_('Dictionaries display order:'), 'classic_dictionaries_display_order',
                              partial(BooleanAsDualChoiceOption,
                                      _('top-down'), _('bottom-up')),
                              _('Set the display order for dictionaries:\n'
-                               '- top-down: match the search order; highest priority first\n'
-                               '- bottom-up: reverse search order; lowest priority first\n')),
+                               '- top-down: Match the search order; highest priority first.\n'
+                               '- bottom-up: Reverse search order; lowest priority first.\n')),
             )),
             (_('Logging'), (
                 ConfigOption(_('Log file:'), 'log_file_name',

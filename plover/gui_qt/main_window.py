@@ -103,8 +103,8 @@ class MainWindow(QMainWindow, Ui_MainWindow, WindowState):
             for parent in (tools_menu, self.toolbar, self.toolbar_menu):
                 action = parent.addAction(*action_parameters)
                 action.setObjectName(tool_plugin.name)
-                if tool.__doc__ is not None:
-                    action.setToolTip(tool.__doc__)
+                if tool.TOOLTIP is not None:
+                    action.setToolTip(tool.TOOLTIP)
                 if tool.SHORTCUT is not None:
                     action.setShortcut(QKeySequence.fromString(tool.SHORTCUT))
                 if parent == self.toolbar_menu:

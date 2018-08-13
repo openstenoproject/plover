@@ -24,9 +24,9 @@ _ = get_gettext()
 
 class PaperTape(Tool, Ui_PaperTape):
 
-    ''' Paper tape display of strokes. '''
 
     TITLE = _('Paper Tape')
+    TOOLTIP = _('Display paper tape of strokes.')
     ICON = ':/tape.svg'
     ROLE = 'paper_tape'
     SHORTCUT = 'Ctrl+T'

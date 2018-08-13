@@ -117,7 +117,7 @@ class TrayIcon(QObject):
             output_state = _('output is disabled')
         self._trayicon.setIcon(icon)
         self._trayicon.setToolTip(
-            'Plover:\n- %s\n- %s' % (output_state, machine_state)
+            'Plover:\n- %s\n- %s.' % (output_state, machine_state)
         )
 
     def _on_activated(self, reason):
