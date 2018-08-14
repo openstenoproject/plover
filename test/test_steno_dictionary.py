@@ -38,12 +38,10 @@ def test_dictionary():
     assert d.longest_key == 2
     assert notifications == [1, 4, 2]
     assert d.reverse_lookup('c') == [('S', 'S')]
-    assert d.casereverse_lookup('c') == ['c']
     d.clear()
     assert d.longest_key == 0
     assert notifications == [1, 4, 2, 0]
     assert d.reverse_lookup('c') == []
-    assert d.casereverse_lookup('c') == []
 
     d.remove_longest_key_listener(listener)
     d[('S', 'S')] = 'c'
@@ -151,17 +149,6 @@ def test_dictionary_collection_longest_key():
     assert dc.longest_key == 0
 
 
-def test_casereverse_del():
-    d = StenoDictionary()
-    d[('S-G',)] = 'something'
-    d[('SPH-G',)] = 'something'
-    assert d.casereverse_lookup('something') == ['something']
-    del d[('S-G',)]
-    assert d.casereverse_lookup('something') == ['something']
-    del d[('SPH-G',)]
-    assert d.casereverse_lookup('something') == []
-
-
 def test_reverse_lookup():
     dc = StenoDictionaryCollection()
 
@@ -207,17 +194,14 @@ def test_dictionary_enabled():
     dc.set_dicts([d2, d1])
     assert dc.lookup(('TEFT',)) == 'test2'
     assert dc.raw_lookup(('TEFT',)) == 'test2'
-    assert dc.casereverse_lookup('testing') == ['Testing']
     assert dc.reverse_lookup('Testing') == [('TEFT', '-G'), ('TEFGT',)]
     d2.enabled = False
     assert dc.lookup(('TEFT',)) == 'test1'
     assert dc.raw_lookup(('TEFT',)) == 'test1'
-    assert dc.casereverse_lookup('testing') == ['Testing']
     assert dc.reverse_lookup('Testing') == [('TEFGT',)]
     d1.enabled = False
     assert dc.lookup(('TEST',)) is None
     assert dc.raw_lookup(('TEFT',)) is None
-    assert dc.casereverse_lookup('testing') is None
     assert dc.reverse_lookup('Testing') == []
 
 

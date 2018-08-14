@@ -34,8 +34,6 @@ class StenoDictionary:
         self._longest_key_length = 0
         self._longest_listener_callbacks = set()
         self.reverse = collections.defaultdict(list)
-        # Case-insensitive reverse dict
-        self.casereverse = collections.defaultdict(collections.Counter)
         self.filters = []
         self.timestamp = 0
         self.readonly = False
@@ -105,7 +103,6 @@ class StenoDictionary:
     def clear(self):
         self._dict.clear()
         self.reverse.clear()
-        self.casereverse.clear()
         self._longest_key = 0
 
     def items(self):
@@ -116,7 +113,6 @@ class StenoDictionary:
         longest_key = 0
         _dict = self._dict
         reverse = self.reverse
-        casereverse = self.casereverse
         for iterable in args + (kwargs,):
             if isinstance(iterable, (dict, StenoDictionary)):
                 iterable = iterable.items()
@@ -124,7 +120,6 @@ class StenoDictionary:
                 longest_key = max(longest_key, len(key))
                 _dict[key] = value
                 reverse[value].append(key)
-                casereverse[value.lower()][value] += 1
         self._longest_key = max(self._longest_key, longest_key)
 
     def __setitem__(self, key, value):
@@ -132,7 +127,6 @@ class StenoDictionary:
         self._longest_key = max(self._longest_key, len(key))
         self._dict[key] = value
         self.reverse[value].append(key)
-        self.casereverse[value.lower()][value] += 1
 
     def get(self, key, fallback=None):
         return self._dict.get(key, fallback)
@@ -141,10 +135,6 @@ class StenoDictionary:
         assert not self.readonly
         value = self._dict.pop(key)
         self.reverse[value].remove(key)
-        counter = self.casereverse[value.lower()]
-        count = counter.pop(value) - 1
-        if count:
-            counter[value] = count
         if len(key) == self.longest_key:
             if self._dict:
                 self._longest_key = max(len(x) for x in self._dict)
@@ -156,9 +146,6 @@ class StenoDictionary:
 
     def reverse_lookup(self, value):
         return self.reverse[value]
-
-    def casereverse_lookup(self, value):
-        return list(self.casereverse[value].keys())
 
     @property
     def _longest_key(self):
@@ -236,14 +223,6 @@ class StenoDictionaryCollection:
                 if self._lookup(k, dicts=self.dicts[:n]) is None:
                     keys.append(k)
         return keys
-
-    def casereverse_lookup(self, value):
-        for d in self.dicts:
-            if not d.enabled:
-                continue
-            key = d.casereverse_lookup(value)
-            if key:
-                return key
 
     def first_writable(self):
         '''Return the first writable dictionary.'''

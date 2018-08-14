@@ -15,7 +15,7 @@ from plover.registry import registry
 from plover.resource import ASSET_SCHEME, resource_filename
 from plover.steno import Stroke
 from plover.steno_dictionary import StenoDictionary, StenoDictionaryCollection
-from plover.suggestions import Suggestions
+from plover.suggestions import find_suggestions
 from plover.translation import Translator
 
 
@@ -459,11 +459,6 @@ class StenoEngine:
         return [] if matches is None else matches
 
     @with_lock
-    def casereverse_lookup(self, translation):
-        matches = self._dictionaries.casereverse_lookup(translation)
-        return set() if matches is None else matches
-
-    @with_lock
     def add_dictionary_filter(self, dictionary_filter):
         self._dictionaries.add_filter(dictionary_filter)
 
@@ -473,7 +468,7 @@ class StenoEngine:
 
     @with_lock
     def get_suggestions(self, translation):
-        return Suggestions(self._dictionaries).find(translation)
+        return find_suggestions(self._dictionaries,translation)
 
     @property
     @with_lock
