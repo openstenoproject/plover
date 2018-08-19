@@ -47,19 +47,19 @@ def test_load_dictionary(contents, expected):
 SAVE_TESTS = (
     # Simple test.
     lambda: ({('S', ): 'a'},
-             '{\n"S": "a"\n}'),
+             '{\n"S": "a"\n}\n'),
     # Check strokes format: '/' separated.
     lambda: ({('SAPL', '-PL'): 'sample'},
-             '{\n"SAPL/-PL": "sample"\n}'),
+             '{\n"SAPL/-PL": "sample"\n}\n'),
     # Contents should be saved as UTF-8, no escaping.
     lambda: ({('S', ): 'café'},
-             '{\n"S": "café"\n}'),
+             '{\n"S": "café"\n}\n'),
     # Check escaping of special characters.
     lambda: ({('S', ): '{^"\n\t"^}'},
-             '{\n"S": "' + r'{^\"\n\t\"^}' + '"\n}'),
+             '{\n"S": "' + r'{^\"\n\t\"^}' + '"\n}\n'),
     # Keys are sorted on save.
     lambda: ({('B', ): 'bravo', ('A', ): 'alpha', ('C', ): 'charlie'},
-             '{\n"A": "alpha",\n"B": "bravo",\n"C": "charlie"\n}'),
+             '{\n"A": "alpha",\n"B": "bravo",\n"C": "charlie"\n}\n'),
 )
 
 @parametrize(SAVE_TESTS)
