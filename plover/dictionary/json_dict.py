@@ -39,3 +39,4 @@ class JsonDictionary(StenoDictionary):
             json.dump({'/'.join(k): v for k, v in self.items()},
                       writer, ensure_ascii=False, sort_keys=True,
                       indent=0, separators=(',', ': '))
+            writer.write('\n')
