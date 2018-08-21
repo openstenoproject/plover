@@ -120,9 +120,9 @@ class StenoDictionary:
         for iterable in args + (kwargs,):
             if isinstance(iterable, (dict, StenoDictionary)):
                 iterable = iterable.items()
+            _dict.update(iterable)
             for key, value in iterable:
                 longest_key = max(longest_key, len(key))
-                _dict[key] = value
                 reverse[value].append(key)
                 casereverse[value.lower()][value] += 1
         self._longest_key = max(self._longest_key, longest_key)
