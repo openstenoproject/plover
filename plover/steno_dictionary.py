@@ -228,14 +228,18 @@ class StenoDictionaryCollection:
         return self._lookup(key)
 
     def reverse_lookup(self, value):
-        keys = []
-        for n, d in enumerate(self.dicts):
-            if not d.enabled:
-                continue
-            for k in d.reverse_lookup(value):
-                # Ignore key if it's overridden by a higher priority dictionary.
-                if self._lookup(k, dicts=self.dicts[:n]) is None:
-                    keys.append(k)
+        """ Return a set of keys that can exactly produce the given value under the current dictionary precedence. """
+        keys = set()
+        keys_update = keys.update
+        # Loop over enabled dictionaries from low to high priority.
+        for d in reversed(self.dicts):
+            if d.enabled:
+                # Remove overridden keys that came from previous (lower-priority) dictionaries.
+                if keys:
+                    overrides = {k for k in keys if k in d}
+                    keys -= overrides
+                # Add the keys from this dictionary.
+                keys_update(d.reverse_lookup(value))
         return keys
 
     def casereverse_lookup(self, value):
@@ -245,6 +249,7 @@ class StenoDictionaryCollection:
             key = d.casereverse_lookup(value)
             if key:
                 return key
+        return []
 
     def first_writable(self):
         '''Return the first writable dictionary.'''

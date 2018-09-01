@@ -101,14 +101,14 @@ def test_dictionary_collection():
     assert dc.raw_lookup(('S',)) == 'c'
     assert dc.lookup(('W',)) == 'd'
     assert dc.lookup(('T',)) == 'b'
-    assert dc.reverse_lookup('c') == [('S',)]
+    assert dc.reverse_lookup('c') == {('S',)}
 
     dc.remove_filter(f)
     assert dc.lookup(('S',)) == 'c'
     assert dc.lookup(('W',)) == 'd'
     assert dc.lookup(('T',)) == 'b'
 
-    assert dc.reverse_lookup('c') == [('S',)]
+    assert dc.reverse_lookup('c') == {('S',)}
 
     dc.set(('S',), 'e')
     assert dc.lookup(('S',)) == 'e'
@@ -208,21 +208,21 @@ def test_reverse_lookup():
 
     # Simple test.
     dc.set_dicts([d1])
-    assert dc.reverse_lookup('beautiful') == [('PWAOUFL',), ('WAOUFL',)]
+    assert dc.reverse_lookup('beautiful') == {('PWAOUFL',), ('WAOUFL',)}
 
     # No duplicates.
     d2_copy = StenoDictionary()
     d2_copy.update(d2)
     dc.set_dicts([d2_copy, d2])
-    assert dc.reverse_lookup('beautiful') == [('PW-FL',)]
+    assert dc.reverse_lookup('beautiful') == {('PW-FL',)}
 
     # Don't stop at the first dictionary with matches.
     dc.set_dicts([d2, d1])
-    assert dc.reverse_lookup('beautiful') == [('PW-FL',), ('PWAOUFL',), ('WAOUFL',)]
+    assert dc.reverse_lookup('beautiful') == {('PW-FL',), ('PWAOUFL',), ('WAOUFL',)}
 
     # Ignore keys overridden by a higher precedence dictionary.
     dc.set_dicts([d3, d2, d1])
-    assert dc.reverse_lookup('beautiful') == [('PW-FL',), ('PWAOUFL',)]
+    assert dc.reverse_lookup('beautiful') == {('PW-FL',), ('PWAOUFL',)}
 
 
 def test_dictionary_enabled():
@@ -239,17 +239,17 @@ def test_dictionary_enabled():
     assert dc.lookup(('TEFT',)) == 'test2'
     assert dc.raw_lookup(('TEFT',)) == 'test2'
     assert dc.casereverse_lookup('testing') == ['Testing']
-    assert dc.reverse_lookup('Testing') == [('TEFT', '-G'), ('TEFGT',)]
+    assert dc.reverse_lookup('Testing') == {('TEFT', '-G'), ('TEFGT',)}
     d2.enabled = False
     assert dc.lookup(('TEFT',)) == 'test1'
     assert dc.raw_lookup(('TEFT',)) == 'test1'
     assert dc.casereverse_lookup('testing') == ['Testing']
-    assert dc.reverse_lookup('Testing') == [('TEFGT',)]
+    assert dc.reverse_lookup('Testing') == {('TEFGT',)}
     d1.enabled = False
     assert dc.lookup(('TEST',)) is None
     assert dc.raw_lookup(('TEFT',)) is None
-    assert dc.casereverse_lookup('testing') is None
-    assert dc.reverse_lookup('Testing') == []
+    assert dc.casereverse_lookup('testing') == []
+    assert dc.reverse_lookup('Testing') == set()
 
 
 def test_dictionary_readonly():
