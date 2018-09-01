@@ -4,6 +4,7 @@
 """Unit tests for steno_dictionary.py."""
 
 import os
+import re
 import stat
 import tempfile
 
@@ -223,6 +224,76 @@ def test_reverse_lookup():
     # Ignore keys overridden by a higher precedence dictionary.
     dc.set_dicts([d3, d2, d1])
     assert dc.reverse_lookup('beautiful') == {('PW-FL',), ('PWAOUFL',)}
+
+
+def test_search():
+    dc = StenoDictionaryCollection()
+
+    # Similarity is based on string equality after removing case and stripping special characters from the ends.
+    d1 = StenoDictionary()
+    d1[('WAOUFL',)] = 'beautiful'
+    d1[('PWAOUFL',)] = 'Beautiful'
+    d1[('PWAOUT', '-FL')] = '{^BEAUTIFUL}  '
+    d1[('ULG',)] = 'ugly'
+    dc.set_dicts([d1])
+    assert dc.find_similar('beautiful') == [('Beautiful',      {('PWAOUFL',)}),
+                                            ('beautiful',      {('WAOUFL',)}),
+                                            ('{^BEAUTIFUL}  ', {('PWAOUT', '-FL')})]
+
+    assert dc.find_similar('{#BEAUtiful}{^}') == [('Beautiful',      {('PWAOUFL',)}),
+                                                  ('beautiful',      {('WAOUFL',)}),
+                                                  ('{^BEAUTIFUL}  ', {('PWAOUT', '-FL')})]
+
+    # Translations found in multiple dicts should combine non-overlapping keys in the results.
+    d2 = StenoDictionary()
+    del d1[('PWAOUT', '-FL')]
+    d2[('PW-FL',)] = 'beautiful'
+    dc.set_dicts([d1, d2])
+    assert dc.find_similar('beautiful') == [('Beautiful', {('PWAOUFL',)}),
+                                            ('beautiful', {('WAOUFL',), ('PW-FL',)})]
+
+    # If all possible keys for a translation are overridden, that translation should not be returned.
+    d3 = StenoDictionary()
+    d3[('PW-FL',)] = 'not beautiful'
+    d3[('WAOUFL',)] = 'not beautiful'
+    dc.set_dicts([d3, d1, d2])
+    assert dc.find_similar('beautiful') == [('Beautiful', {('PWAOUFL',)})]
+
+    # For partial word search, similar words will be returned first, but if the count is greater than that,
+    # the next words in sorted order which are supersets are returned. Also stops at the end of the dictionary.
+    dc.set_dicts([d1])
+    d1[('PWAOU',)] = 'beau'
+    d1[('PWAOUFL', 'HREU')] = 'beautifully'
+    d1[('UG', 'HREU', '-PBS')] = 'ugliness'
+    assert dc.find_partial('beau', count=4) == [('beau',        {('PWAOU',)}),
+                                                ('Beautiful',   {('PWAOUFL',)}),
+                                                ('beautiful',   {('WAOUFL',)}),
+                                                ('beautifully', {('PWAOUFL', 'HREU')})]
+    assert dc.find_partial('UGLY', count=2) == [('ugly', {('ULG',)})]
+
+    # Even if a word isn't present, the search will return words going forward
+    # from the index where it would be found if it was there.
+    assert dc.find_partial('beaut', count=3) == [('Beautiful',   {('PWAOUFL',)}),
+                                                 ('beautiful',   {('WAOUFL',)}),
+                                                 ('beautifully', {('PWAOUFL', 'HREU')})]
+
+    # Regex search is straightforward; return up to count entries in order that match the given regular expression.
+    # If no regex metacharacters are present, should just be a case-sensitive starts-with search.
+    assert dc.find_regex('beau', count=4) == [('beau',        {('PWAOU',)}),
+                                              ('beautiful',   {('WAOUFL',)}),
+                                              ('beautifully', {('PWAOUFL', 'HREU')})]
+    assert dc.find_regex('beautiful.?.?', count=2) == [('beautiful',   {('WAOUFL',)}),
+                                                       ('beautifully', {('PWAOUFL', 'HREU')})]
+    assert dc.find_regex(' beautiful', count=3) == []
+    assert dc.find_regex('(b|u).{3}$', count=2) == [('beau', {('PWAOU',)}),
+                                                    ('ugly', {('ULG',)})]
+    assert dc.find_regex('.*ly', count=5) == [('beautifully', {('PWAOUFL', 'HREU')}),
+                                              ('ugly', {('ULG',)})]
+
+    # Regex errors won't raise if the algorithm short circuits a pattern with no possible matches.
+    assert dc.find_regex('an open group that doesn\'t raise(', count=5) == []
+    with pytest.raises(re.error):
+        print(dc.find_regex('beautiful...an open group(', count=1))
 
 
 def test_dictionary_enabled():
