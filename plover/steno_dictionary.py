@@ -237,14 +237,58 @@ class StenoDictionaryCollection:
                 keys_update(d.reverse_lookup(value))
         return keys
 
+    def _multi_reverse_lookup(self, values, max_count=None):
+        """
+        Perform a reverse lookup across all enabled dictionaries with the given translations.
+        Filter out the ones that are either duplicates or impossible to produce due to key overrides.
+        Return the rest in a sorted list, each one paired in a tuple with a set of keys that can produce it.
+        If max_count is given, only return up to that many valid results.
+        """
+        results = []
+        old_v = None
+        reverse_lookup = self.reverse_lookup
+        results_append = results.append
+        for v in sorted(values, key=str.lower):
+            if v is not old_v:
+                old_v = v
+                keys = reverse_lookup(v)
+                if keys:
+                    results_append((v, keys))
+                    if max_count is not None and len(results) >= max_count:
+                        break
+        return results
+
+    def find_similar(self, value):
+        """
+        Return a list of similar (or equal) translations to the given value across all enabled dictionaries,
+        each paired in a tuple with a set of keys that will produce it given the current dictionary precedence.
+        """
+        translations = [t for d in self.dicts if d.enabled for t in d.similar_reverse_lookup(value)]
+        return self._multi_reverse_lookup(translations)
+
+    def find_partial(self, pattern, count=None):
+        """
+        Return a list of translations that are similar, equal to, or supersets of the given value across all
+        enabled dictionaries, each paired in a tuple with a set of keys that will produce it given the current
+        dictionary precedence. After translations that compare similar, the next ones in the sort order
+        will usually be supersets. ("test" could return entries for "test", "tested", "testing")
+        """
+        translations = [t for d in self.dicts if d.enabled for t in d.partial_reverse_lookup(pattern, count)]
+        return self._multi_reverse_lookup(translations, count)
+
+    def find_regex(self, pattern, count=None):
+        """
+        Return a list of translations that match the given regular expression across all enabled dictionaries,
+        each paired in a tuple with a set of keys that will produce it given the current dictionary precedence.
+        If count is given, only return up to that many total matches.
+        """
+        translations = [t for d in self.dicts if d.enabled for t in d.regex_reverse_lookup(pattern, count)]
+        return self._multi_reverse_lookup(translations, count)
+
     def casereverse_lookup(self, value):
-        for d in self.dicts:
-            if not d.enabled:
-                continue
-            key = d.casereverse_lookup(value)
-            if key:
-                return key
-        return []
+        """ Find translations that are case-insensitive equal to the given value across all enabled dictionaries.
+            Only returns a list of translations, not the keys that produce them. For backwards-compatibility. """
+        return [v for (v, _) in self.find_similar(value) if value.lower() == v.lower()]
 
     def first_writable(self):
         '''Return the first writable dictionary.'''
