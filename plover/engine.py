@@ -472,8 +472,8 @@ class StenoEngine:
         self._dictionaries.remove_filter(dictionary_filter)
 
     @with_lock
-    def get_suggestions(self, translation):
-        return Suggestions(self._dictionaries).find(translation)
+    def get_suggestions(self, translation, **kwargs):
+        return Suggestions(self._dictionaries).find(translation, **kwargs)
 
     @property
     @with_lock
