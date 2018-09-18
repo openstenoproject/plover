@@ -105,7 +105,7 @@ class MainWindow(QMainWindow, Ui_MainWindow, WindowState):
                 action.setObjectName(tool_plugin.name)
                 if tool.__doc__ is not None:
                     action.setToolTip(tool.__doc__)
-                if tool.SHORTCUT is not None:
+                if tool.SHORTCUT is not None and parent == tools_menu:
                     action.setShortcut(QKeySequence.fromString(tool.SHORTCUT))
                 if parent == self.toolbar_menu:
                     action.setCheckable(True)
