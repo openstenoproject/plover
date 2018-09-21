@@ -12,6 +12,7 @@ from PyQt5.QtWidgets import (
     QMenu,
 )
 
+from plover.config import DEFAULT_SEARCH_WORD_LIMIT
 from plover.suggestions import Suggestion
 from plover.formatting import RetroFormatter
 
@@ -47,6 +48,7 @@ class SuggestionsDialog(Tool, Ui_SuggestionsDialog):
         super().__init__(engine)
         self.setupUi(self)
         self._last_suggestions = None
+        self._word_limit = DEFAULT_SEARCH_WORD_LIMIT
         # Toolbar.
         self.layout().addWidget(ToolBar(
             self.action_ToggleOnTop,
@@ -60,6 +62,8 @@ class SuggestionsDialog(Tool, Ui_SuggestionsDialog):
         self._font_menu_strokes = QAction(_('&Strokes'), self._font_menu)
         self._font_menu.addActions([self._font_menu_text, self._font_menu_strokes])
         engine.signal_connect('translated', self.on_translation)
+        engine.signal_connect('config_changed', self.on_config_changed)
+        self.on_config_changed(engine.config)
         self.suggestions.setFocus()
         self.restore_state()
         self.finished.connect(self.save_state)
@@ -124,11 +128,11 @@ class SuggestionsDialog(Tool, Ui_SuggestionsDialog):
         else:
             return
 
-        # Get the last 10 words.
+        # Get previous words equal to the maximum possible search result count.
         with self._engine:
             last_translations = self._engine.translator_state.translations
             retro_formatter = RetroFormatter(last_translations)
-            split_words = retro_formatter.last_words(10, rx=self.WORD_RX)
+            split_words = retro_formatter.last_words(self._search_limit, rx=self.WORD_RX)
 
         suggestion_list = []
         for phrase in self.tails(split_words):
@@ -141,6 +145,12 @@ class SuggestionsDialog(Tool, Ui_SuggestionsDialog):
         if suggestion_list and suggestion_list != self._last_suggestions:
             self._last_suggestions = suggestion_list
             self._show_suggestions(suggestion_list)
+
+    def on_config_changed(self, config_update):
+        if 'search_word_limit' in config_update:
+            self._word_limit = config_update.get('search_word_limit')
+        if 'search_stroke_limit' in config_update:
+            self.suggestions.set_stroke_limit(config_update.get('search_stroke_limit'))
 
     def on_select_font(self):
         action = self._font_menu.exec_(QCursor.pos())
