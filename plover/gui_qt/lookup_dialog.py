@@ -50,6 +50,14 @@ class LookupDialog(Tool, Ui_LookupDialog):
         self.suggestions.append(suggestion_list, keep_position=True)
 
     def on_lookup(self, pattern):
+        # Wherever a character is typed or a checkbox is changed, refresh the lookup results.
+        # TODO: preserve the state of search mode checkboxes?
         translation = unescape_translation(pattern.strip())
-        suggestion_list = self._engine.get_suggestions(translation)
+        suggestion_list = self._engine.get_suggestions(translation,
+                                                       count=self._word_limit,
+                                                       partial=self.partialCheck.isChecked(),
+                                                       regex=self.regexCheck.isChecked())
         self._update_suggestions(suggestion_list)
+
+    def on_mode_change(self, state):
+        self.on_lookup(self.pattern.text())
