@@ -197,35 +197,30 @@ class StenoDictionaryCollection:
             d.add_longest_key_listener(self._longest_key_listener)
         self._longest_key_listener()
 
-    def _lookup(self, key, dicts=None, filters=()):
-        if dicts is None:
-            dicts = self.dicts
-        key_len = len(key)
-        if key_len > self.longest_key:
-            return None
-        for d in dicts:
-            if not d.enabled:
-                continue
-            if key_len > d.longest_key:
-                continue
-            value = d.get(key)
-            if value:
-                for f in filters:
+    def lookup(self, key):
+        """ Perform a lookup on each enabled dictionary in priority order.
+            Return the value of the first entry that matches the key, or None if the key isn't found anywhere.
+            Immediately return None if a matching key-value pair is caught by one of the filters. """
+        for d in self.dicts:
+            if d.enabled and key in d:
+                value = d[key]
+                for f in self.filters:
                     if f(key, value):
                         return None
                 return value
+
+    def raw_lookup(self, key):
+        """ Perform a simple lookup on each enabled dictionary in priority order with no filters.
+            Return the value of the first entry that matches the key, or None if the key isn't found anywhere. """
+        for d in self.dicts:
+            if d.enabled and key in d:
+                return d[key]
 
     def __str__(self):
         return 'StenoDictionaryCollection' + repr(tuple(self.dicts))
 
     def __repr__(self):
         return str(self)
-
-    def lookup(self, key):
-        return self._lookup(key, filters=self.filters)
-
-    def raw_lookup(self, key):
-        return self._lookup(key)
 
     def reverse_lookup(self, value):
         """ Return a set of keys that can exactly produce the given value under the current dictionary precedence. """
