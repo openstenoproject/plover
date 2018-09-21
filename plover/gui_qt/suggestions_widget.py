@@ -5,6 +5,7 @@ from PyQt5.QtGui import (
 )
 from PyQt5.QtWidgets import QWidget
 
+from plover.config import DEFAULT_SEARCH_STROKE_LIMIT
 from plover.translation import escape_translation
 
 from plover.gui_qt.suggestions_widget_ui import Ui_SuggestionsWidget
@@ -18,16 +19,20 @@ class SuggestionsWidget(QWidget, Ui_SuggestionsWidget):
     # - "root":
     #  - 0+ "suggestions" blocks
     #   - 1+ "translation" blocks
-    #    - 1-10 "strokes" blocks
+    #    - 1-10 (or custom limit) "strokes" blocks
 
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
         self.setupUi(self)
+        self._stroke_limit = DEFAULT_SEARCH_STROKE_LIMIT
         self._translation_char_format = QTextCharFormat()
         self._strokes_char_format = QTextCharFormat()
         self._strokes_char_format.font().setStyleHint(QFont.Monospace)
 
-    def append(self, suggestion_list):
+    def set_stroke_limit(self, limit):
+        self._stroke_limit = limit
+
+    def append(self, suggestion_list, keep_position=False):
         scrollbar = self.suggestions.verticalScrollBar()
         scroll_at_end = scrollbar.value() == scrollbar.maximum()
         cursor = self.suggestions.textCursor()
@@ -40,14 +45,15 @@ class SuggestionsWidget(QWidget, Ui_SuggestionsWidget):
             if not suggestion.steno_list:
                 cursor.insertText(' ' + _('no suggestions'))
                 continue
-            for strokes_list in suggestion.steno_list[:10]:
+            for strokes_list in suggestion.steno_list[:self._stroke_limit]:
                 cursor.insertBlock()
                 cursor.setCharFormat(self._strokes_char_format)
                 cursor.block().setUserState(self.STYLE_STROKES)
                 cursor.insertText('   ' + '/'.join(strokes_list))
         cursor.insertText('\n')
-        # Keep current position when not at the end of the document.
-        if scroll_at_end:
+        # Keep current position when not at the end of the document, or if the argument says so.
+        # Otherwise, scroll the window down to keep the new suggestions in view.
+        if scroll_at_end and not keep_position:
             scrollbar.setValue(scrollbar.maximum())
 
     def clear(self):
