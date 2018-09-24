@@ -300,18 +300,21 @@ class Translator:
         mapping = self.lookup([stroke])
         macro = _mapping_to_macro(mapping, stroke)
         if macro is not None:
-            self.translate_macro(macro)
-            return
+            # Look up the macro in the plugin registry and execute it.
+            # If it wasn't found, just translate the stroke as normal.
+            try:
+                macro_fn = registry.get_plugin('macro', macro.name).obj
+            except KeyError:
+                pass
+            else:
+                macro_fn(self, macro.stroke, macro.cmdline)
+                return
         t = (
             self._find_translation_helper(stroke) or
             self._find_translation_helper(stroke, system.SUFFIX_KEYS) or
             Translation([stroke], mapping)
         )
         self.translate_translation(t)
-
-    def translate_macro(self, macro):
-        macro_fn = registry.get_plugin('macro', macro.name).obj
-        macro_fn(self, macro.stroke, macro.cmdline)
 
     def translate_translation(self, t):
         self._undo(*t.replaced)
