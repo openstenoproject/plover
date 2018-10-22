@@ -19,29 +19,41 @@ def test_dictionary():
 
     d = StenoDictionary()
     assert d.longest_key == 0
+    assert len(d) == 0
+    assert not d
 
     d.add_longest_key_listener(listener)
     d[('S',)] = 'a'
     assert d.longest_key == 1
+    assert ('S',) in d
     assert notifications == [1]
+    assert len(d) == 1
+    assert d
     d[('S', 'S', 'S', 'S')] = 'b'
     assert d.longest_key == 4
     assert notifications == [1, 4]
+    assert len(d) == 2
     d[('S', 'S')] = 'c'
     assert d.longest_key == 4
     assert d[('S', 'S')] == 'c'
     assert notifications == [1, 4]
+    assert len(d) == 3
     del d[('S', 'S', 'S', 'S')]
     assert d.longest_key == 2
     assert notifications == [1, 4, 2]
+    assert len(d) == 2
     del d[('S',)]
     assert d.longest_key == 2
+    assert ('S',) not in d
     assert notifications == [1, 4, 2]
+    assert len(d) == 1
     assert d.reverse_lookup('c') == [('S', 'S')]
     assert d.casereverse_lookup('c') == ['c']
     d.clear()
     assert d.longest_key == 0
     assert notifications == [1, 4, 2, 0]
+    assert len(d) == 0
+    assert not d
     assert d.reverse_lookup('c') == []
     assert d.casereverse_lookup('c') == []
 
@@ -49,6 +61,25 @@ def test_dictionary():
     d[('S', 'S')] = 'c'
     assert d.longest_key == 2
     assert notifications == [1, 4, 2, 0]
+
+
+def test_dictionary_update():
+    d = StenoDictionary()
+    d.update([(('S-G',),'something'), (('SPH-G',), 'something'), (('TPHOG',), 'nothing')])
+    assert d[('S-G',)] == 'something'
+    assert d[('SPH-G',)] == 'something'
+    assert d[('TPHOG',)] == 'nothing'
+    assert d.reverse_lookup('something') == [('S-G',), ('SPH-G',)]
+    assert d.reverse_lookup('nothing') == [('TPHOG',)]
+    d.update([(('S-G',), 'string')])
+    assert d[('S-G',)] == 'string'
+    assert d.reverse_lookup('something') == [('SPH-G',)]
+    assert d.reverse_lookup('string') == [('S-G',)]
+    d.clear()
+    d.update([(('EFG',), 'everything'), (('EFG',), 'everything???')])
+    assert d[('EFG',)] == 'everything???'
+    assert d.reverse_lookup('everything') == []
+    assert d.reverse_lookup('everything???') == [('EFG',)]
 
 
 def test_dictionary_collection():
