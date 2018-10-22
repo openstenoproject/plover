@@ -112,12 +112,14 @@ def json_option(name, default, section, option, validate):
 def int_option(name, default, minimum, maximum, section, option=None):
     option = option or name
     def getter(config, key):
-        return config._config[section].getint(option)
+        return config._config[section][option]
     def setter(config, key, value):
         config._set(section, option, str(value))
     def validate(config, key, value):
-        if not isinstance(value, int):
-            raise InvalidConfigOption(value, default)
+        try:
+            value = int(value)
+        except ValueError as e:
+            raise InvalidConfigOption(value, default) from e
         if (minimum is not None and value < minimum) or \
            (maximum is not None and value > maximum):
             message = '%s not in [%s, %s]' % (value, minimum or '-∞', maximum or '∞')
