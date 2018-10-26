@@ -1,46 +1,51 @@
 # Copyright (c) 2013 Hesky Fisher.
 # See LICENSE.txt for details.
 
-"""StenoDictionary class and related functions.
+""" StenoDictionary class and related functions.
+    A steno dictionary maps sequences of steno strokes to translations. """
 
-A steno dictionary maps sequences of steno strokes to translations.
-
-"""
-
-import collections
 import os
 import shutil
 
+from plover.dictionary.base import ReverseStenoDict
 from plover.resource import ASSET_SCHEME, resource_filename, resource_timestamp
 
 
-class StenoDictionary:
-    """A steno dictionary.
+class StenoDictionary(dict):
+    """ A steno dictionary.
 
     This dictionary maps immutable sequences to translations and tracks the
-    length of the longest key.
+    length of the longest key. It also keeps a reverse mapping of translations
+    back to sequences and allows searching from it.
 
     Attributes:
     longest_key -- A read only property holding the length of the longest key.
     timestamp -- File last modification time, used to detect external changes.
+    readonly -- Is an attribute of the class and of instances.
+        class: If True, new instances of the class may not be created through the create() method.
+        instances: If True, the dictionary may not be modified, nor may it be written to the path on disk.
+    enabled -- If True, dictionary is included in lookups by a StenoDictionaryCollection
+    path -- File path where dictionary contents are stored on disk
 
     """
 
-    # False if class support creation.
+    # False if class supports creation.
     readonly = False
 
     def __init__(self):
-        self._dict = {}
+        super().__init__()
         self._longest_key_length = 0
         self._longest_listener_callbacks = set()
-        self.reverse = collections.defaultdict(list)
-        # Case-insensitive reverse dict
-        self.casereverse = collections.defaultdict(collections.Counter)
-        self.filters = []
+        # Reverse dictionary matches translations to keys by exact match or by "similarity" if required.
+        self.reverse = ReverseStenoDict()
         self.timestamp = 0
         self.readonly = False
         self.enabled = True
         self.path = None
+        # The special search methods are simple pass-throughs to the reverse dictionary
+        self.similar_reverse_lookup = self.reverse.get_similar_keys
+        self.partial_reverse_lookup = self.reverse.partial_match_values
+        self.regex_reverse_lookup = self.reverse.regex_match_values
 
     def __str__(self):
         return '%s(%r)' % (self.__class__.__name__, self.path)
@@ -82,101 +87,97 @@ class StenoDictionary:
         # And update our timestamp.
         self.timestamp = timestamp
 
+    # Actual methods to load and save dictionary contents to files must be implemented by format-specific subclasses.
     def _load(self, filename):
         raise NotImplementedError()
 
     def _save(self, filename):
         raise NotImplementedError()
 
-    @property
-    def longest_key(self):
-        """The length of the longest key in the dict."""
-        return self._longest_key
-
-    def __len__(self):
-        return self._dict.__len__()
-
-    def __iter__(self):
-        return self._dict.__iter__()
-
-    def __getitem__(self, key):
-        return self._dict.__getitem__(key)
-
     def clear(self):
-        self._dict.clear()
+        """ Empty the dictionary without altering its file-based attributes. """
+        super().clear()
         self.reverse.clear()
-        self.casereverse.clear()
         self._longest_key = 0
-
-    def items(self):
-        return self._dict.items()
-
-    def update(self, *args, **kwargs):
-        assert not self.readonly
-        longest_key = 0
-        _dict = self._dict
-        reverse = self.reverse
-        casereverse = self.casereverse
-        for iterable in args + (kwargs,):
-            if isinstance(iterable, (dict, StenoDictionary)):
-                iterable = iterable.items()
-            for key, value in iterable:
-                longest_key = max(longest_key, len(key))
-                _dict[key] = value
-                reverse[value].append(key)
-                casereverse[value.lower()][value] += 1
-        self._longest_key = max(self._longest_key, longest_key)
 
     def __setitem__(self, key, value):
         assert not self.readonly
-        self._longest_key = max(self._longest_key, len(key))
-        self._dict[key] = value
-        self.reverse[value].append(key)
-        self.casereverse[value.lower()][value] += 1
-
-    def get(self, key, fallback=None):
-        return self._dict.get(key, fallback)
+        # Be careful here. If the key already exists, we have to remove its old mapping from the reverse dictionary
+        # while we can still find it. And if it's a new key, it could possibly be the new longest one.
+        if key in self:
+            self.reverse.remove_key(self[key], key)
+        else:
+            self._longest_key = max(self._longest_key, len(key))
+        super().__setitem__(key, value)
+        self.reverse.append_key(value, key)
 
     def __delitem__(self, key):
         assert not self.readonly
-        value = self._dict.pop(key)
-        self.reverse[value].remove(key)
-        counter = self.casereverse[value.lower()]
-        count = counter.pop(value) - 1
-        if count:
-            counter[value] = count
+        value = super().pop(key)
+        self.reverse.remove_key(value, key)
+        # If the key deleted was the longest, we have no idea what the new longest is, so we must recalculate it.
         if len(key) == self.longest_key:
-            if self._dict:
-                self._longest_key = max(len(x) for x in self._dict)
-            else:
-                self._longest_key = 0
+            self._calculate_longest_key()
 
-    def __contains__(self, key):
-        return self.get(key) is not None
+    def update(self, *args, **kwargs):
+        """ Update the dictionary using a single iterable sequence of (key, value) tuples or a single mapping
+            located in args. kwargs is irrelevant since only strings can be keywords, but is included for
+            method signature compatibility with dict. """
+        assert not self.readonly
+        if not self:
+            # Fast path for when the dicts start out empty.
+            super().update(*args, **kwargs)
+            self.reverse.match_forward(self)
+            self._calculate_longest_key()
+        else:
+            # If items already exist, update dicts one item at a time to be safe.
+            for (k, v) in dict(*args, **kwargs).items():
+                self[k] = v
 
     def reverse_lookup(self, value):
-        return self.reverse[value]
+        """
+        Return a list of keys that can exactly produce the given value.
+        If there aren't any keys that produce this value, just return an empty list.
+        """
+        return self.reverse[value] if value in self.reverse else []
 
     def casereverse_lookup(self, value):
-        return list(self.casereverse[value].keys())
+        """ Return a list of translations case-insensitive equal to the given value. For backwards compatibility. """
+        return [v for v in self.similar_reverse_lookup(value) if value.lower() == v.lower()]
+
+    @property
+    def longest_key(self):
+        """ Public read-only property returning the length of the longest key in the dict.
+            It simply accesses the private version of the property and returns it. """
+        return self._longest_key
 
     @property
     def _longest_key(self):
+        """ Private property returning the internal value of the longest key length. It is readable and writable. """
         return self._longest_key_length
 
     @_longest_key.setter
     def _longest_key(self, longest_key):
+        """ Set the private longest key length property, possibly triggering callbacks if it changed. """
         if longest_key == self._longest_key_length:
             return
         self._longest_key_length = longest_key
         for callback in self._longest_listener_callbacks:
             callback(longest_key)
 
+    def _calculate_longest_key(self):
+        """ Calculate and record the longest key in the dictionary by manually comparing all the keys. """
+        self._longest_key = max(map(len, self), default=0)
+
     def add_longest_key_listener(self, callback):
         self._longest_listener_callbacks.add(callback)
 
     def remove_longest_key_listener(self, callback):
         self._longest_listener_callbacks.remove(callback)
+
+    # Unimplemented methods from the base class that can mutate the object are unsafe. Make them return errors.
+    def _UNSAFE_METHOD(self, *args, **kwargs): return NotImplementedError
+    setdefault = pop = popitem = _UNSAFE_METHOD
 
 
 class StenoDictionaryCollection:
