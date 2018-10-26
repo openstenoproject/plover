@@ -9,12 +9,26 @@
 
 from os.path import splitext
 from bisect import bisect_left
+import collections
 import functools
 import itertools
 import operator
+import re
 import threading
 
+from plover import formatting
 from plover.registry import registry
+
+# Characters to strip from ends of translation when performing inexact bisection search
+SEARCH_STRIP_CHARS = "".join(set(
+    formatting.SPACE + formatting.META_ATTACH_FLAG +
+    formatting.META_START + formatting.META_END +
+    formatting.META_LOWER + formatting.META_UPPER +
+    formatting.META_CAPITALIZE + formatting.META_CARRY_CAPITALIZATION +
+    formatting.META_GLUE_FLAG + formatting.META_KEY_COMBINATION))
+
+# Regex to match ASCII characters matched as literals counting from the start of a regex pattern
+REGEX_MATCH_PREFIX = re.compile(r'[\w \"#%\',\-:;<=>@`~]+').match
 
 
 def _get_dictionary_class(filename):
@@ -197,3 +211,76 @@ class SimilarSearchDict(dict):
     def _UNSAFE_METHOD(self, *args, **kwargs): return NotImplementedError
     setdefault = pop = popitem = _UNSAFE_METHOD
 
+
+class ReverseStenoDict(SimilarSearchDict):
+    """
+    A reverse dictionary with search capabilities for steno translations.
+    It has special searches and the similarity function defined.
+
+    Since normal dictionaries can have multiple keys that map to the same value (many-to-one),
+    reverse dictionaries must be able to store multiple values under the same key (one-to-many).
+    This means that the lookup results must be lists. These methods manage those lists.
+
+    Naming conventions are reversed - in a reverse dictionary, we look up a value to get a list
+    of keys that would map to it in the forward dictionary.
+    """
+
+    def __init__(self, *args, **kwargs):
+        """ Initialize the base dict with the search function and any given arguments. """
+        def simfn(s, strip=str.strip, lower=str.lower, strip_chars=SEARCH_STRIP_CHARS):
+            """ Translations are similar if they compare equal when stripped of case and certain exterior symbols. """
+            return lower(strip(s, strip_chars))
+        super().__init__(simfn=simfn, *args, **kwargs)
+
+    def append_key(self, v, k):
+        """ Append the key <k> to the list located under the value <v>.
+            Create a new list with that key if the value doesn't exist yet. """
+        if v in self:
+            self[v].append(k)
+        else:
+            self[v] = [k]
+
+    def remove_key(self, v, k):
+        """ Remove the key <k> from the list located under the value <v>. The key must exist.
+            If it was the last key in the list, remove the dictionary entry entirely. """
+        if v in self:
+            self[v].remove(k)
+            if not self[v]:
+                del self[v]
+
+    def match_forward(self, fdict):
+        """ Make this dict into the reverse of the given forward dict by rebuilding all of the lists.
+            It is a fast way to populate a reverse dict from scratch after creation. """
+        self.clear()
+        rdict = collections.defaultdict(list)
+        list_append = list.append
+        for (k, v) in fdict.items():
+            list_append(rdict[v], k)
+        self.update(rdict)
+
+    def partial_match_values(self, v, count=None):
+        """ Return a list of at most <count> values that are equal to
+            or begin with the value <v> under the similarity function. """
+        return self.filter_keys(v, count=count, filterfn=str.startswith)
+
+    def regex_match_values(self, pattern, count=None):
+        """ Return a list of at most <count> translations that match the regex <pattern> from the start. """
+        # First, figure out how much of the pattern string from the start is literal (no regex special characters).
+        prefix_match = REGEX_MATCH_PREFIX(pattern)
+        prefix = prefix_match.group() if prefix_match else ""
+        # If we know that all matches start with a certain prefix, we can narrow the range of our search.
+        value_gen = self.prefix_search(prefix)
+        if not value_gen:
+            return []
+        # If the prefix and pattern are equal, we have a complete literal string. Regex is not necessary.
+        # Just do a partial case-sensitive match in that case. Otherwise, compile the regular expression.
+        if prefix == pattern:
+            match_op = operator.methodcaller("startswith", pattern)
+        else:
+            match_op = re.compile(pattern).match
+        # Set up the match filter and limit the output to <count> if requested.
+        results = filter(match_op, value_gen)
+        if count is not None:
+            results = itertools.islice(results, count)
+        # Execute the entire chain of iterators at the end to return a list.
+        return list(results)
