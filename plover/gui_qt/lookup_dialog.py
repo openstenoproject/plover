@@ -43,3 +43,9 @@ class LookupDialog(Tool, Ui_LookupDialog):
         translation = unescape_translation(pattern.strip())
         suggestion_list = self._engine.get_suggestions(translation)
         self._update_suggestions(suggestion_list)
+
+    def changeEvent(self, event):
+        super().changeEvent(event)
+        if event.type() == QEvent.ActivationChange and self.isActiveWindow():
+            self.pattern.setFocus()
+            self.pattern.selectAll()
