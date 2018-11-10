@@ -389,7 +389,7 @@ class KeyboardEmulation:
     # Keyboard input type to send key input
     @staticmethod
     def _keyboard_input(code, flags):
-        if flags == KEYEVENTF_UNICODE:
+        if flags & KEYEVENTF_UNICODE:
             # special handling of Unicode characters
             return KEYBDINPUT(0, code, flags, 0, None)
         return KEYBDINPUT(code, 0, flags, 0, None)
@@ -424,7 +424,9 @@ class KeyboardEmulation:
 
     def _key_unicode(self, char):
         pairs = to_surrogate_pair(char)
-        inputs = [self._keyboard(code, KEYEVENTF_UNICODE)
+        # Send press events for all codes, then release events for all codes.
+        inputs = [self._keyboard(code, KEYEVENTF_UNICODE | direction)
+                  for direction in (0, KEYEVENTF_KEYUP)
                   for code in pairs]
         self._send_input(*inputs)
 
