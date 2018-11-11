@@ -74,15 +74,15 @@ build()
   run "$python" setup.py test
   # Run some packaging related sanity checks.
   run "$python" -m check_manifest
-  run "$python" setup.py check -m -r -s
+  run "$python" setup.py check -m -s
+  run "$python" setup.py bdist_wheel sdist
+  run "$python" -m twine check dist/*
   # Only generate artifacts if we're actually going to deploy them.
   # Note: if we moved this to the `before_deploy` phase, we would
   # not have to check, but we'd also lose caching; since the cache
   # is stored before the `before_install` phase...
   if is_deployment
   then
-    # Create wheel and source distribution.
-    run "$python" setup.py bdist_wheel sdist
     # Build AppImage.
     run ./linux/appimage/build.sh -c -j 2 -w dist/*.whl
     run rm -rf .cache/pip
