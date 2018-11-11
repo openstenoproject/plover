@@ -119,9 +119,23 @@ class StenoDictionary:
         ]
         if kwargs:
             iterable_list.append(kwargs.items())
-        for iterable in iterable_list:
-            for key, value in iterable:
-                self[key] = value
+        if not self._dict:
+            reverse = self.reverse
+            casereverse = self.casereverse
+            longest_key = self._longest_key
+            assert not (reverse or casereverse or longest_key)
+            self._dict = dict(*iterable_list)
+            for key, value in self._dict.items():
+                reverse[value].append(key)
+                casereverse[value.lower()][value] += 1
+                key_len = len(key)
+                if key_len > longest_key:
+                    longest_key = key_len
+            self._longest_key = longest_key
+        else:
+            for iterable in iterable_list:
+                for key, value in iterable:
+                    self[key] = value
 
     def __setitem__(self, key, value):
         assert not self.readonly
