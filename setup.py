@@ -95,9 +95,9 @@ class BinaryDistWin(Command):
         # Setup embedded Python distribution.
         # Note: python36.zip is decompressed to prevent errors when 2to3
         # is used (including indirectly by setuptools `build_py` command).
-        py_embedded = download('https://www.python.org/ftp/python/3.6.3/python-3.6.3-embed-win32.zip',
-                               '3769c2129779b43f2dade3b89c783d957bff1461')
-        dist_dir = os.path.join(wheel_cmd.dist_dir, PACKAGE + '-win32')
+        py_embedded = download('https://www.python.org/ftp/python/3.6.7/python-3.6.7-embed-amd64.zip',
+                               '7a81435a25d9557581393ea6805dafb662eaf9e2')
+        dist_dir = os.path.join(wheel_cmd.dist_dir, PACKAGE + '-win64')
         dist_data = os.path.join(dist_dir, 'data')
         dist_py = os.path.join(dist_data, 'python.exe')
         dist_stdlib = os.path.join(dist_data, 'python36.zip')
