@@ -54,7 +54,7 @@ run mkdir -p "$appdir" "$cachedir" "$distdir"
 # Download dependencies.
 run "$python" -m plover_build_utils.download 'https://github.com/probonopd/AppImages/raw/f748bb63999e655cfbb70e88ec27e74e2b9bf8fd/functions.sh' 'a99457e22d24a61f42931b2aaafd41f2746af820' "$cachedir/functions.sh"
 run "$python" -m plover_build_utils.download 'https://github.com/probonopd/AppImageKit/releases/download/9/appimagetool-x86_64.AppImage' 'ba71c5a03398b81eaa678207da1338c83189db89' "$cachedir/appimagetool"
-run "$python" -m plover_build_utils.download 'https://www.python.org/ftp/python/3.6.2/Python-3.6.2.tar.xz' '4f92a045de9231b93dfbed50c66bb12cf03ac59a'
+run "$python" -m plover_build_utils.download 'https://www.python.org/ftp/python/3.6.7/Python-3.6.7.tar.xz' 'dd2b0a8bf9b9617c57a0070b53065286c2142994'
 
 # Generate Plover wheel.
 if [ -z "$wheel" ]
@@ -69,10 +69,10 @@ then
  fi
 
 # Build Python.
-run tar xf "$downloads/Python-3.6.2.tar.xz" -C "$builddir"
+run tar xf "$downloads/Python-3.6.7.tar.xz" -C "$builddir"
 info '('
 (
-run cd "$builddir/Python-3.6.2"
+run cd "$builddir/Python-3.6.7"
 cmd=(
   ./configure
   --cache-file="$cachedir/python.config.cache"
