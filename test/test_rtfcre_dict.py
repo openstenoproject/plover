@@ -29,11 +29,11 @@ RTF_LOAD_TESTS = (
     ''',
 
     # One translation on multiple lines.
-    lambda: pytest.mark.xfail('''
+    lambda: pytest.param('''
     {\\*\\cxs SP}\r\ntranslation
 
     'SP': 'translation'
-    '''),
+    ''', marks=pytest.mark.xfail),
 
     # Multiple translations no newlines.
     lambda: r'''
@@ -133,7 +133,7 @@ RTF_LOAD_TESTS = (
     lambda: ('', ''),
     lambda: (r'\-', '-'),
     lambda: (r'\\ ', '\\ '),
-    lambda: pytest.mark.xfail((r'\\', '\\')),
+    lambda: pytest.param((r'\\', '\\'), marks=pytest.mark.xfail),
     lambda: (r'\{', '{'),
     lambda: (r'\}', '}'),
     lambda: (r'\~', '{^ ^}'),
