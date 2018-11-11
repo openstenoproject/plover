@@ -1,16 +1,17 @@
 appdirs==1.4.3
 appnope==0.1.0; "darwin" in sys_platform
-certifi==2018.1.18
+certifi==2018.10.15
 dbus-python==1.2.4; "linux" in sys_platform
 plyer==1.2.4; "win32" in sys_platform
-pyobjc-core==4.0; "darwin" in sys_platform
-pyobjc-framework-Cocoa==4.0; "darwin" in sys_platform
-pyobjc-framework-Quartz==4.0; "darwin" in sys_platform
-PyQt5==5.9.2
+pyobjc-core==5.1.1; "darwin" in sys_platform
+pyobjc-framework-Cocoa==5.1.1; "darwin" in sys_platform
+pyobjc-framework-Quartz==5.1.1; "darwin" in sys_platform
+PyQt5-sip==4.19.13
+PyQt5==5.11.3
 pyserial==3.4
 python-xlib==0.23; "linux" in sys_platform
-setuptools==38.2.4
-six==1.10.0
+setuptools==40.5.0
+six==1.11.0
 wcwidth==0.1.7
 
 # vim: ft=cfg commentstring=#\ %s list
