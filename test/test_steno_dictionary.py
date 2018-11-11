@@ -11,6 +11,8 @@ import pytest
 
 from plover.steno_dictionary import StenoDictionary, StenoDictionaryCollection
 
+from . import parametrize
+
 
 def test_dictionary():
     notifications = []
@@ -245,3 +247,52 @@ def test_dictionary_readonly():
     # Assets are always readonly.
     d = FakeDictionary.load('asset:plover:assets/main.json')
     assert d.readonly
+
+
+TEST_DICTIONARY_UPDATE_DICT = {
+    ('S-G',): 'something',
+    ('SPH-G',): 'something',
+    ('SPH*G',): 'Something',
+    ('SPH', 'THEUPBG'): 'something',
+}
+TEST_DICTIONARY_UPDATE_STENODICT = StenoDictionary()
+TEST_DICTIONARY_UPDATE_STENODICT.update(TEST_DICTIONARY_UPDATE_DICT)
+
+@pytest.mark.parametrize('update_from, start_empty', (
+    (dict(TEST_DICTIONARY_UPDATE_DICT), True),
+    (dict(TEST_DICTIONARY_UPDATE_DICT), False),
+    (list(TEST_DICTIONARY_UPDATE_DICT.items()), True),
+    (list(TEST_DICTIONARY_UPDATE_DICT.items()), False),
+    (iter(TEST_DICTIONARY_UPDATE_DICT.items()), True),
+    (iter(TEST_DICTIONARY_UPDATE_DICT.items()), False),
+    (TEST_DICTIONARY_UPDATE_STENODICT, True),
+    (TEST_DICTIONARY_UPDATE_STENODICT, False),
+))
+def test_dictionary_update(update_from, start_empty):
+    d = StenoDictionary()
+    if not start_empty:
+        d.update({
+            ('SPH*G',): 'not something',
+            ('STHEUPBG',): 'something',
+            ('EF', 'REU', 'TH*EUPBG'): 'everything',
+        })
+        assert d[('STHEUPBG',)] == 'something'
+        assert d[('EF', 'REU', 'TH*EUPBG')] == 'everything'
+        assert d.reverse_lookup('not something') == [('SPH*G',)]
+        assert d.longest_key == 3
+    d.update(update_from)
+    assert d[('S-G',)] == 'something'
+    assert d[('SPH-G',)] == 'something'
+    assert d[('SPH*G',)] == 'Something'
+    assert d[('SPH', 'THEUPBG')] == 'something'
+    if not start_empty:
+        assert d[('STHEUPBG',)] == 'something'
+        assert d[('EF', 'REU', 'TH*EUPBG')] == 'everything'
+        assert d.reverse_lookup('not something') == []
+        assert d.reverse_lookup('something') == [('STHEUPBG',), ('S-G',), ('SPH-G',), ('SPH', 'THEUPBG')]
+        assert d.casereverse_lookup('something') == ['something', 'Something']
+        assert d.longest_key == 3
+    else:
+        assert d.reverse_lookup('something') == [('S-G',), ('SPH-G',), ('SPH', 'THEUPBG')]
+        assert d.casereverse_lookup('something') == ['something', 'Something']
+        assert d.longest_key == 2

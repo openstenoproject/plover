@@ -113,22 +113,20 @@ class StenoDictionary:
 
     def update(self, *args, **kwargs):
         assert not self.readonly
-        longest_key = 0
-        _dict = self._dict
-        reverse = self.reverse
-        casereverse = self.casereverse
-        for iterable in args + (kwargs,):
-            if isinstance(iterable, (dict, StenoDictionary)):
-                iterable = iterable.items()
+        iterable_list = [
+            a.items() if isinstance(a, (dict, StenoDictionary))
+            else a for a in args
+        ]
+        if kwargs:
+            iterable_list.append(kwargs.items())
+        for iterable in iterable_list:
             for key, value in iterable:
-                longest_key = max(longest_key, len(key))
-                _dict[key] = value
-                reverse[value].append(key)
-                casereverse[value.lower()][value] += 1
-        self._longest_key = max(self._longest_key, longest_key)
+                self[key] = value
 
     def __setitem__(self, key, value):
         assert not self.readonly
+        if key in self:
+            del self[key]
         self._longest_key = max(self._longest_key, len(key))
         self._dict[key] = value
         self.reverse[value].append(key)
