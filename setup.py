@@ -310,7 +310,12 @@ class BinaryDistApp(Command):
     def run(self):
         whl_cmd = self.get_finalized_command('bdist_wheel')
         whl_cmd.run()
-        wheel_path = whl_cmd.get_archive_basename()
+        for cmd, py_version, dist_path in whl_cmd.distribution.dist_files:
+            if cmd == 'bdist_wheel':
+                wheel_path = dist_path
+                break
+        else:
+            raise Exception('could not find wheel path')
         cmd = 'bash osx/make_app.sh %s %s' % (wheel_path, PACKAGE)
         log.info('running %s', cmd)
         subprocess.check_call(cmd.split())

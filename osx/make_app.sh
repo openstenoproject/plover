@@ -10,7 +10,7 @@ set -e
 python='python3'
 osx_dir="$(dirname "$0")"
 plover_dir="$(dirname "$osx_dir")"
-plover_wheel="$plover_dir/dist/$1.whl"
+plover_wheel="$1"
 PACKAGE="$2"
 
 echo "Making Plover.app with Plover wheel $plover_wheel"
