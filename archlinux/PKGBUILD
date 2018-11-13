@@ -27,11 +27,6 @@ url="http://www.openstenoproject.org/plover/"
 source=(https://github.com/openstenoproject/plover/archive/v$pkgver.tar.gz)
 sha1sums=(803bb68068feef3772e34e1b1ab34e7fa25375ae)
 
-prepare() {
-  cd "$pkgname-$pkgver"
-  sed -i '/^\s*PyQt5\b.*/d' setup.cfg
-}
-
 build() {
   cd "$pkgname-$pkgver"
   python setup.py build
