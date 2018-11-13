@@ -32,6 +32,11 @@ prepare() {
   sed -i '/^\s*PyQt5\b.*/d' setup.cfg
 }
 
+build() {
+  cd "$pkgname-$pkgver"
+  python setup.py build
+}
+
 check() {
   cd "$pkgname-$pkgver"
   python setup.py test
