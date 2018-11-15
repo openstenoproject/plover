@@ -1,5 +1,7 @@
 # -*- coding: utf-8 -*-
 
+from plover.registry import Registry
+
 from plover_build_utils.testing import BlackboxTester
 
 
@@ -1410,3 +1412,89 @@ class TestsBlackbox(BlackboxTester):
         PUFRPB/HRAOEUPBS  ' punchlines'
         AFPS              ' punch lines'
         '''
+
+    def test_not_a_macro_1(self):
+        r'''
+        "TEFT": "=",
+
+        TEFT  ' ='
+        '''
+
+    def test_not_a_macro_2(self):
+        r'''
+        "TEFT": "==",
+
+        TEFT  ' =='
+        '''
+
+    def test_not_a_macro_3(self):
+        r'''
+        "TEFT": "=>",
+
+        TEFT  ' =>'
+        '''
+
+    def test_not_a_macro_4(self):
+        r'''
+        "TEFT": "== 0",
+
+        TEFT  ' == 0'
+        '''
+
+    def test_not_a_macro_5(self):
+        r'''
+        "TEFT": "=not a macro",
+
+        TEFT  ' =not a macro'
+        '''
+
+    def test_not_a_macro_6(self):
+        r'''
+        "TEFT": "=not a macro:",
+
+        TEFT  ' =not a macro:'
+        '''
+
+    def test_bad_macro_1(self):
+        r'''
+        "TEFT": "=not_a_known_macro",
+
+        TEFT  raise KeyError
+        '''
+
+    def test_bad_macro_2(self):
+        # Builtin macros not taking parameters.
+        r'''
+        "1": "=undo:param",
+        "2": "=repeat_last_stroke:param",
+        "3": "=retrospective_toggle_asterisk:param",
+        "4": "=retrospective_delete_space:param",
+        "5": "=retrospective_insert_space:param",
+
+        1  raise AssertionError
+        2  raise AssertionError
+        3  raise AssertionError
+        4  raise AssertionError
+        5  raise AssertionError
+        '''
+
+    def test_valid_macro_1(self):
+        r'''
+        "1": "=undo",
+        "2": "=undo:",
+
+        1   ""
+        2   ""
+        '''
+
+    def test_valid_macro_2(self, monkeypatch):
+        r'''
+        "TEFT": "=macro: params with spaces   ",
+
+        TEFT   ""
+        '''
+        def macro(translator, stroke, cmdline):
+            assert cmdline == ' params with spaces   '
+        registry = Registry()
+        registry.register_plugin('macro', 'macro', macro)
+        monkeypatch.setattr('plover.translation.registry', registry)

@@ -59,6 +59,8 @@ _LEGACY_MACROS_ALIASES = {
     '{*+}': 'repeat_last_stroke',
 }
 
+_MACRO_RX = re.compile(r'=\w+(:|$)')
+
 Macro = namedtuple('Macro', 'name stroke cmdline')
 
 def _mapping_to_macro(mapping, stroke):
@@ -70,7 +72,7 @@ def _mapping_to_macro(mapping, stroke):
     else:
         if mapping in _LEGACY_MACROS_ALIASES:
             macro = _LEGACY_MACROS_ALIASES[mapping]
-        elif mapping.startswith('=') and len(mapping) > 1:
+        elif _MACRO_RX.match(mapping):
             args = mapping[1:].split(':', 1)
             macro = args[0]
             if len(args) == 2:
