@@ -1,6 +1,9 @@
 
 from functools import partial
 import json
+import os
+import sys
+import subprocess
 
 from PyQt5.QtCore import QCoreApplication, Qt
 from PyQt5.QtGui import QCursor, QIcon, QKeySequence
@@ -11,6 +14,7 @@ from PyQt5.QtWidgets import (
 
 from plover import log
 from plover.oslayer import wmctrl
+from plover.oslayer.config import CONFIG_DIR
 from plover.registry import registry
 from plover.resource import resource_filename
 
@@ -67,6 +71,7 @@ class MainWindow(QMainWindow, Ui_MainWindow, WindowState):
             'menu_Tools',
             '',
             'action_Configure',
+            'action_OpenConfigFolder',
             '',
             'menu_Help',
             '',
@@ -237,6 +242,14 @@ class MainWindow(QMainWindow, Ui_MainWindow, WindowState):
 
     def on_configure(self):
         self._configure()
+
+    def on_open_config_folder(self):
+        if sys.platform.startswith('win'):
+            os.startfile(CONFIG_DIR)
+        elif sys.platform.startswith('linux'):
+            subprocess.call(['xdg-open', CONFIG_DIR])
+        elif sys.platform.startswith('darwin'):
+            subprocess.call(['open', CONFIG_DIR])
 
     def on_reconnect(self):
         self._engine.reset_machine()
