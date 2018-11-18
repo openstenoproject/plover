@@ -244,13 +244,12 @@ class MainWindow(QMainWindow, Ui_MainWindow, WindowState):
         self._configure()
 
     def on_open_config_folder(self):
-        # webbrowser.open does not work on Mac so we need OS-specific logic
         if sys.platform.startswith('win'):
             os.startfile(CONFIG_DIR)
         elif sys.platform.startswith('linux'):
-            subprocess.run(['xdg-open', CONFIG_DIR])
+            subprocess.call(['xdg-open', CONFIG_DIR])
         elif sys.platform.startswith('darwin'):
-            subprocess.run(['open', CONFIG_DIR])
+            subprocess.call(['open', CONFIG_DIR])
 
     def on_reconnect(self):
         self._engine.reset_machine()
