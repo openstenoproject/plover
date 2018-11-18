@@ -19,7 +19,6 @@
   **/*AxContainer*
   **/*Bluetooth*
   **/*CLucene*
-  **/*DBus*
   **/*Designer*
   **/*Location*
   **/*Nfc*
