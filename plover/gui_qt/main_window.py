@@ -1,7 +1,9 @@
 
 from functools import partial
 import json
-import webbrowser
+import os
+import sys
+import subprocess
 
 from PyQt5.QtCore import QCoreApplication, Qt
 from PyQt5.QtGui import QCursor, QIcon, QKeySequence
@@ -242,7 +244,13 @@ class MainWindow(QMainWindow, Ui_MainWindow, WindowState):
         self._configure()
 
     def on_open_config_folder(self):
-        webbrowser.open(CONFIG_DIR)
+        # webbrowser.open does not work on Mac so we need OS-specific logic
+        if sys.platform.startswith('win'):
+            os.startfile(CONFIG_DIR)
+        elif sys.platform.startswith('linux'):
+            subprocess.run(['xdg-open', CONFIG_DIR])
+        elif sys.platform.startswith('darwin'):
+            subprocess.run(['open', CONFIG_DIR])
 
     def on_reconnect(self):
         self._engine.reset_machine()
