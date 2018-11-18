@@ -120,9 +120,10 @@ class WineEnvironment(Environment):
         super().__init__()
         self._prefix = os.path.abspath(prefix)
         self._env['WINEPREFIX'] = self._prefix
-        self._env['WINEARCH'] = 'win32'
+        self._env['WINEARCH'] = 'win64'
         self._env['WINEDEBUG'] = '-all'
         self._env['WINETRICKS_OPT_SHAREDPREFIX'] = '1'
+        self._env['WINEDLLOVERRIDES'] = 'api-ms-win-core-path-l1-1-0=d'
 
     def setup(self):
         if not os.path.exists(self._prefix):
@@ -131,7 +132,7 @@ class WineEnvironment(Environment):
                 'env DISPLAY= wineboot --init',
                 # Wait for previous command to finish.
                 'wineserver -w',
-                'winetricks --no-isolate --unattended corefonts vcrun2008',
+                'winetricks --no-isolate --unattended corefonts',
                 'winetricks win7',
             ):
                 self.run(cmd.split())
@@ -542,8 +543,8 @@ class Helper:
 class WineHelper(Helper):
 
     DEPENDENCIES = (
-        ('Python', 'https://www.python.org/ftp/python/3.6.2/python-3.6.2.exe',
-         'cd9744b142eca832f9534390676e6cfb84bf655d', None, ('PrependPath=1', '/S'), None),
+        ('Python', 'https://www.python.org/ftp/python/3.6.7/python-3.6.7-amd64.exe',
+         '4f3bd61c16ef2fbec38bd7ed53f8f4b4f2896c90', None, ('PrependPath=1', '/S'), None),
     ) + Helper.DEPENDENCIES
 
     def __init__(self):

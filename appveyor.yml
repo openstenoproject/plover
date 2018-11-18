@@ -23,9 +23,9 @@ environment:
 
   matrix:
 
-    - PYTHON: "C:\\Python36"
+    - PYTHON: "C:\\Python36-x64"
       PYTHON_VERSION: "3.6"
-      PYTHON_ARCH: "32"
+      PYTHON_ARCH: "64"
 
 cache:
   - .cache
