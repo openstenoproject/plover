@@ -1,8 +1,8 @@
 
+from collections.abc import Sequence
 from io import open
 import os
 import re
-import collections
 
 from plover.oslayer.config import CONFIG_DIR, ASSETS_DIR
 from plover.registry import registry
@@ -33,7 +33,7 @@ def _key_order(keys, numbers):
     return key_order
 
 def _suffix_keys(keys):
-    assert isinstance(keys, collections.Sequence)
+    assert isinstance(keys, Sequence)
     return keys
 
 _EXPORTS = {
