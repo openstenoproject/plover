@@ -201,12 +201,12 @@ class BinaryDistWin(Command):
             install_size = sum(os.path.getsize(os.path.join(dirpath, f))
                                for dirpath, dirnames, filenames
                                in os.walk(dist_dir) for f in filenames)
-            run('makensis.exe', '-NOCD',
-                '-Dsrcdir=' + dist_dir,
-                '-Dversion=' + __version__,
-                '-Dinstall_size=' + str(install_size // 1024),
+            run('makensis.exe', '/NOCD',
+                '/Dsrcdir=' + dist_dir,
+                '/Dversion=' + __version__,
+                '/Dinstall_size=' + str(install_size // 1024),
                 'windows/installer.nsi',
-                '-XOutFile ' + installer_exe)
+                '/XOutFile ' + installer_exe)
 
 if sys.platform.startswith('win32'):
     cmdclass['bdist_win'] = BinaryDistWin
