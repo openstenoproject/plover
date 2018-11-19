@@ -89,17 +89,13 @@ class BinaryDistWin(Command):
         # Download helper.
         from plover_build_utils.download import download
         # First things first: create Plover wheel.
-        wheel_cmd = self.get_finalized_command('bdist_wheel')
-        wheel_cmd.run()
-        plover_wheel = glob.glob(os.path.join(wheel_cmd.dist_dir,
-                                              wheel_cmd.wheel_dist_name)
-                                 + '*.whl')[0]
+        plover_wheel = self.bdist_wheel()
         # Setup embedded Python distribution.
         # Note: python36.zip is decompressed to prevent errors when 2to3
         # is used (including indirectly by setuptools `build_py` command).
         py_embedded = download('https://www.python.org/ftp/python/3.6.7/python-3.6.7-embed-amd64.zip',
                                '7a81435a25d9557581393ea6805dafb662eaf9e2')
-        dist_dir = os.path.join(wheel_cmd.dist_dir, PACKAGE + '-win64')
+        dist_dir = os.path.join(os.path.dirname(plover_wheel), PACKAGE + '-win64')
         dist_data = os.path.join(dist_dir, 'data')
         dist_py = os.path.join(dist_data, 'python.exe')
         dist_stdlib = os.path.join(dist_data, 'python36.zip')
@@ -136,7 +132,7 @@ class BinaryDistWin(Command):
         # Run command helper.
         def run(*args):
             if self.verbose:
-                log.info('running %s', ' '.join(a for a in args))
+                log.info('running %s', ' '.join(args))
             subprocess.check_call(args)
         def pyrun(*args):
             run(dist_py, '-E', '-s', *args)
@@ -310,16 +306,8 @@ class BinaryDistApp(Command):
         pass
 
     def run(self):
-        whl_cmd = self.get_finalized_command('bdist_wheel')
-        whl_cmd.run()
-        for cmd, py_version, dist_path in whl_cmd.distribution.dist_files:
-            if cmd == 'bdist_wheel':
-                wheel_path = dist_path
-                break
-        else:
-            raise Exception('could not find wheel path')
-        cmd = 'bash osx/make_app.sh %s %s' % (wheel_path, PACKAGE)
-        log.info('running %s', cmd)
+        cmd = 'bash osx/make_app.sh %s %s' % (self.bdist_wheel(), PACKAGE)
+        log.info('running %s', ' '.join(cmd))
         subprocess.check_call(cmd.split())
 
 class BinaryDistDmg(Command):
