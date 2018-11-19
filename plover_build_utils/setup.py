@@ -36,6 +36,15 @@ class Command(setuptools.Command):
             sys.modules.update(old_modules)
             pkg_resources.working_set.__init__()
 
+    def bdist_wheel(self):
+        '''Run bdist_wheel and return resulting wheel file path.'''
+        whl_cmd = self.get_finalized_command('bdist_wheel')
+        whl_cmd.run()
+        for cmd, py_version, dist_path in whl_cmd.distribution.dist_files:
+            if cmd == 'bdist_wheel':
+                return dist_path
+        raise Exception('could not find wheel path')
+
 # `test` command. {{{
 
 class Test(Command):
