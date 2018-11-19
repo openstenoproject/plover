@@ -267,7 +267,7 @@ def dictionaries_option():
         return [
             {'path': value}
             for name, value in reversed(sorted(options))
-            if re.match('dictionary_file\d*$', name) is not None
+            if re.match(r'dictionary_file\d*$', name) is not None
         ]
     def getter(config, key):
         section, option = location(config, key)
