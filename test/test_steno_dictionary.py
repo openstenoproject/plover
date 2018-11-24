@@ -289,10 +289,10 @@ def test_dictionary_update(update_from, start_empty):
         assert d[('STHEUPBG',)] == 'something'
         assert d[('EF', 'REU', 'TH*EUPBG')] == 'everything'
         assert d.reverse_lookup('not something') == []
-        assert d.reverse_lookup('something') == [('STHEUPBG',), ('S-G',), ('SPH-G',), ('SPH', 'THEUPBG')]
-        assert d.casereverse_lookup('something') == ['something', 'Something']
+        assert sorted(d.reverse_lookup('something')) == sorted([('STHEUPBG',), ('S-G',), ('SPH-G',), ('SPH', 'THEUPBG')])
+        assert sorted(d.casereverse_lookup('something')) == sorted(['something', 'Something'])
         assert d.longest_key == 3
     else:
-        assert d.reverse_lookup('something') == [('S-G',), ('SPH-G',), ('SPH', 'THEUPBG')]
-        assert d.casereverse_lookup('something') == ['something', 'Something']
+        assert sorted(d.reverse_lookup('something')) == sorted([('S-G',), ('SPH-G',), ('SPH', 'THEUPBG')])
+        assert sorted(d.casereverse_lookup('something')) == sorted(['something', 'Something'])
         assert d.longest_key == 2
