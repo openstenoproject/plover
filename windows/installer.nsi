@@ -2,6 +2,7 @@
 ;Include Modern UI
 
 !define MULTIUSER_MUI
+!define MULTIUSER_USE_PROGRAMFILES64
 !define MULTIUSER_EXECUTIONLEVEL Highest
 !define MULTIUSER_INSTALLMODE_COMMANDLINE
 !define MULTIUSER_INSTALLMODE_DEFAULT_REGISTRY_KEY "Software\Plover\${version}"
@@ -29,7 +30,7 @@
   !define MUI_ABORTWARNING
   !define MUI_WELCOMEFINISHPAGE_BITMAP "windows\installer.bmp"
   !define MUI_WELCOMEFINISHPAGE_BITMAP_NOSTRETCH
-  !define MUI_ICON "${srcdir}\data\plover.ico"
+  !define MUI_ICON "plover\assets\plover.ico"
 
   !define UNINST_KEY "Software\Microsoft\Windows\CurrentVersion\Uninstall\Plover ${version}"
 

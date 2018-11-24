@@ -244,8 +244,8 @@ class Win32Environment(Environment):
 class Helper:
 
     DEPENDENCIES = (
-        ('nsis', 'http://prdownloads.sourceforge.net/nsis/nsis-3.01-setup.exe',
-         'f47f59956cdf1de42a5476649a4973bc11956987', None,
+        ('nsis', 'http://prdownloads.sourceforge.net/nsis/nsis-3.03-setup.exe',
+         '14c8f24fa16058885da83a63d958e74cd62dfb6e', None,
          # Note: the NSIS installer itself does support `/D` to set the
          # installation directory, and is installed in `C:\Program Files
          # (x86)\NSIS` on AppVeyor, but `C:\Program Files\NSIS` in Wine...
