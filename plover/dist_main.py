@@ -16,7 +16,7 @@ def main():
     if sys.platform.startswith('win32'):
         # Workaround https://bugs.python.org/issue19066
         subprocess.Popen(args, cwd=os.getcwd())
-        os.exit(0)
+        sys.exit(0)
     os.execv(args[0], args)
 
 
