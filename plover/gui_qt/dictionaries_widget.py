@@ -316,8 +316,14 @@ class DictionariesWidget(QWidget, Ui_DictionariesWidget):
         self._update_dictionaries(dictionaries, record=False)
 
     def _edit(self, dictionaries):
-        editor = DictionaryEditor(self._engine, [d.path for d in dictionaries])
-        editor.exec_()
+        paths_to_edit = []
+        for d in dictionaries:
+            loaded_dictionary = self._loaded_dictionaries.get(d.path)
+            if loaded_dictionary and not loaded_dictionary.readonly:
+                paths_to_edit.append(d.path)
+        if paths_to_edit:
+            editor = DictionaryEditor(self._engine, paths_to_edit)
+            editor.exec_()
 
     def on_activate_cell(self, row, col):
         self._edit([self._config_dictionaries[row]])
