@@ -25,11 +25,14 @@ class SerialOption(QWidget, Ui_SerialWidget):
 
     def setValue(self, value):
         self._value = copy(value)
+        self.on_scan()
         port = value['port']
-        if port is None or port == 'None':
-            self.on_scan()
-        else:
-            self.port.setCurrentText(port)
+        if port is not None and port != 'None':
+            port_index = self.port.findText(port)
+            if port_index != -1:
+                self.port.setCurrentIndex(port_index)
+            else:
+                self.port.setCurrentText(port)
         self.baudrate.addItems(map(str, Serial.BAUDRATES))
         self.baudrate.setCurrentText(str(value['baudrate']))
         self.bytesize.addItems(map(str, Serial.BYTESIZES))

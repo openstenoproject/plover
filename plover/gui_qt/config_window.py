@@ -435,8 +435,8 @@ class ConfigWindow(QDialog, Ui_ConfigWindow, WindowState):
     def _create_option_widget(self, option):
         widget = option.widget_class()
         widget.setToolTip(option.help_text)
-        widget.setValue(self._config[option.option_name])
         widget.valueChanged.connect(partial(self.on_option_changed, option))
+        widget.setValue(self._config[option.option_name])
         return widget
 
     def keyPressEvent(self, event):
