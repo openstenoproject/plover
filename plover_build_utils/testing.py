@@ -54,13 +54,14 @@ def steno_to_stroke(steno):
         }
     n = -1
     keys = set()
-    for l in steno:
+    for li, l in enumerate(steno):
         rl = steno_to_stroke.numbers.get(l)
         if rl is not None:
             keys.add('#')
             l = rl
         n = steno_to_stroke.letters.find(l, n + 1)
-        assert n >= 0, (steno_to_stroke.letters, l, n)
+        if n < 0:
+            raise ValueError('invalid steno letter at index %u:\n%s\n%s^' % (li, steno, ' ' * li))
         k = steno_to_stroke.keys[n]
         if k is not None:
             keys.add(k)
