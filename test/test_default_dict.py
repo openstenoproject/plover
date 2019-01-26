@@ -5,6 +5,10 @@ import io
 import json
 from collections import defaultdict
 
+import pytest
+
+from plover_build_utils.testing import steno_to_stroke
+
 
 DICT_NAMES = ['main.json',
               'commands.json',
@@ -32,3 +36,10 @@ def test_no_duplicates_categorized_files():
                 msg_list.append('%r in %s\n' % value)
     msg = '\n' + ''.join(msg_list)
     assert not has_duplicate, msg
+
+
+@pytest.mark.parametrize('dictionary', DICT_NAMES)
+def test_entries_are_valid(dictionary):
+    with io.open(DICT_PATH + dictionary, encoding='utf-8') as fp:
+        for k, v in json.load(fp).items():
+            [steno_to_stroke(s) for s in k.split('/')]
