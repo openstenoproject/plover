@@ -14,6 +14,8 @@ import zipfile
 
 from setuptools import setup
 
+sys.path.insert(0, os.path.dirname(__file__))
+
 from plover import (
     __name__ as __software_name__,
     __version__,
