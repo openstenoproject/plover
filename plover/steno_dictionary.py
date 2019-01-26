@@ -276,10 +276,11 @@ class StenoDictionaryCollection:
 
         If <path_list> is None, all writable dictionaries are saved'''
         if path_list is None:
-            dict_list = [d for d in self if dictionary.save is not None]
+            dict_list = [d for d in self if not d.readonly]
         else:
             dict_list = [self[path] for path in path_list]
         for d in dict_list:
+            assert not d.readonly
             d.save()
 
     def get(self, path):
