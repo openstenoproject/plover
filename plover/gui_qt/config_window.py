@@ -448,6 +448,9 @@ class ConfigWindow(QDialog, Ui_ConfigWindow, WindowState):
     def on_option_changed(self, option, value):
         self._config[option.option_name] = value
         for dependent, update_fn in option.dependents:
+            # Ensure unsaved changes are discarded.
+            if dependent.option_name in self._config.maps[0]:
+                del self._config.maps[0][dependent.option_name]
             self._config.maps[1][dependent.option_name] = update_fn(value)
             widget = self._create_option_widget(dependent)
             dependent.layout.replaceWidget(dependent.widget, widget)
