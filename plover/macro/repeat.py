@@ -3,6 +3,7 @@ from plover.steno import Stroke
 
 
 def last_stroke(translator, stroke, cmdline):
+    assert not cmdline
     # Repeat last stroke
     translations = translator.get_state().translations
     if not translations:

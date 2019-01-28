@@ -5,6 +5,7 @@ from plover import system
 
 
 def toggle_asterisk(translator, stroke, cmdline):
+    assert not cmdline
     # Toggle asterisk of previous stroke
     translations = translator.get_state().translations
     if not translations:
@@ -19,6 +20,7 @@ def toggle_asterisk(translator, stroke, cmdline):
     translator.translate_stroke(Stroke(keys))
 
 def delete_space(translator, stroke, cmdline):
+    assert not cmdline
     # Retrospective delete space
     translations = translator.get_state().translations
     if len(translations) < 2:
@@ -39,6 +41,7 @@ def delete_space(translator, stroke, cmdline):
         translator.translate_translation(t)
 
 def insert_space(translator, stroke, cmdline):
+    assert not cmdline
     # Retrospective insert space
     translations = translator.get_state().translations
     if not translations:

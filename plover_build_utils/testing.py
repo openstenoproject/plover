@@ -97,26 +97,46 @@ def replay(blackbox, name, test):
             else:
                 raise ValueError('invalid action:\n%s' % msg)
             continue
-        # Replay strokes.
-        strokes, output = step.split(None, 1)
-        for s in normalize_steno(strokes.strip()):
-            blackbox.translator.translate(steno_to_stroke(s))
-        # Check output.
-        expected_output = ast.literal_eval(output.strip())
-        msg = (
+        steno, output = step.split(None, 1)
+        steno = list(map(steno_to_stroke, normalize_steno(steno.strip())))
+        output = output.strip()
+        assert_msg = (
             name + '\n' +
             '\n'.join(('> ' if n == lnum else '  ') + l
-                      for n, l in enumerate(lines)) + '\n' +
-            '   ' + repr(blackbox.output.text) + '\n'
-            '!= ' + repr(expected_output)
+                      for n, l in enumerate(lines)) + '\n'
         )
-        assert blackbox.output.text == expected_output, msg
+        if output.startswith("'") or output.startswith('"'):
+            # Replay strokes.
+            list(map(blackbox.translator.translate, steno))
+            # Check output.
+            expected_output = ast.literal_eval(output)
+            assert_msg += (
+                '   ' + repr(blackbox.output.text) + '\n'
+                '!= ' + repr(expected_output)
+            )
+            assert blackbox.output.text == expected_output, assert_msg
+        elif output.startswith('raise '):
+            expected_exception = output[6:].strip()
+            try:
+                list(map(blackbox.translator.translate, steno))
+            except Exception as e:
+                exception_class = e.__class__.__name__
+            else:
+                exception_class = 'None'
+            assert_msg += (
+                '   ' + exception_class + '\n'
+                '!= ' + expected_exception
+            )
+            assert exception_class == expected_exception, assert_msg
+        else:
+            raise ValueError('invalid output:\n%s' % output)
+
 
 def replay_doc(f):
     name = f.__name__
     test = textwrap.dedent(f.__doc__)
     # Use a lamdbda to reduce output size for failed tests.
-    new_f = lambda bb: (f(bb), replay(bb, name, test))
+    new_f = lambda bb, *args, **kwargs: (f(bb, *args, **kwargs), replay(bb, name, test))
     return functools.wraps(f)(new_f)
 
 

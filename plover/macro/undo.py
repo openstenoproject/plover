@@ -10,6 +10,7 @@ else:
     BACK_STRING = '{#Control_L(BackSpace)}{^}'
 
 def undo(translator, stroke, cmdline):
+    assert not cmdline
     for t in reversed(translator.get_state().translations):
         translator.untranslate_translation(t)
         if t.has_undo():
