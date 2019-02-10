@@ -10,8 +10,8 @@ from .install_wheels import WHEELS_CACHE, install_wheels
 
 def get_pip(args=None):
     # Download `get-pip.py`.
-    script = download('https://bootstrap.pypa.io/get-pip.py',
-                      '579d4e7d1d55ebf464ec03932a49249e547c0a6e')
+    script = download('https://github.com/pypa/get-pip/raw/c394417beced07131645c83cd0a01d1adc8c149b/get-pip.py',
+                      '19365b3d19b145dd9f94f8b55200aa2a0a3ec1cd')
     # Make sure wheels cache directory exists to avoid warning.
     if not os.path.exists(WHEELS_CACHE):
         os.makedirs(WHEELS_CACHE)
