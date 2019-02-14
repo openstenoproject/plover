@@ -15,6 +15,7 @@ depends=(
   'python-setuptools'
   'python-wcwidth'
   'python-xlib'
+  'qt5-svg'
 )
 makedepends=(
   'python-babel'
