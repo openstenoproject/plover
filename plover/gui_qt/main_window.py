@@ -104,25 +104,24 @@ class MainWindow(QMainWindow, Ui_MainWindow, WindowState):
                     icon = resource_filename(icon)
                 action_parameters.append(QIcon(icon))
             action_parameters.append(tool.TITLE)
-            toolbar_action = None
-            for parent in (tools_menu, self.toolbar, self.toolbar_menu):
-                action = parent.addAction(*action_parameters)
+
+            tools_menu_action = tools_menu.addAction(*action_parameters)
+            if tool.SHORTCUT is not None:
+                tools_menu_action.setShortcut(QKeySequence.fromString(tool.SHORTCUT))
+            toolbar_action = self.toolbar.addAction(*action_parameters)
+            for action in (tools_menu_action, toolbar_action):
+                action.triggered.connect(partial(self._activate_dialog,
+                                                 tool_plugin.name,
+                                                 args=()))
+            toolbar_menu_action = self.toolbar_menu.addAction(*action_parameters)
+            toolbar_menu_action.setCheckable(True)
+            toolbar_menu_action.setChecked(True)
+            toolbar_menu_action.toggled.connect(toolbar_action.setVisible)
+            for action in (tools_menu_action, toolbar_action, toolbar_menu_action):
                 action.setObjectName(tool_plugin.name)
                 if tool.__doc__ is not None:
                     action.setToolTip(tool.__doc__)
-                if tool.SHORTCUT is not None:
-                    action.setShortcut(QKeySequence.fromString(tool.SHORTCUT))
-                if parent == self.toolbar_menu:
-                    action.setCheckable(True)
-                    action.setChecked(True)
-                    assert toolbar_action is not None
-                    action.toggled.connect(toolbar_action.setVisible)
-                else:
-                    if parent == self.toolbar:
-                        toolbar_action = action
-                    action.triggered.connect(partial(self._activate_dialog,
-                                                     tool_plugin.name,
-                                                     args=()))
+
             self._dialog_class[tool_plugin.name] = tool
         engine.signal_connect('output_changed', self.on_output_changed)
         # Machine.
