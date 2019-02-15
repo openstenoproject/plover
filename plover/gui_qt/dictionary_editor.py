@@ -361,6 +361,7 @@ class DictionaryEditor(QDialog, Ui_DictionaryEditor, WindowState):
             row = self._selection[0]
         else:
             row = 0
+        self.table.reset()
         self._model.new_row(row)
         self._select(row, edit=True)
         self.action_Undo.setEnabled(self._model.has_undo)
