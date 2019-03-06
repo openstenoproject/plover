@@ -77,7 +77,7 @@ class StenotypeBase:
 
     def add_state_callback(self, callback):
         self.state_subscribers.append(callback)
-        
+
     def remove_state_callback(self, callback):
         self.state_subscribers.remove(callback)
 
@@ -119,7 +119,7 @@ class StenotypeBase:
 
     def _ready(self):
         self._set_state(STATE_RUNNING)
-            
+
     def _error(self):
         self._set_state(STATE_ERROR)
 
@@ -137,17 +137,29 @@ class StenotypeBase:
         """Get the default options for this machine."""
         return {}
 
+class _ThreadedStenotypeThread(threading.Thread):
+    def __init__(self, machine):
+        threading.Thread.__init__(self)
+        self.machine = machine
 
-class ThreadedStenotypeBase(StenotypeBase, threading.Thread):
+    def run(self):
+        try:
+            self.machine.run()
+        except Exception:
+            if not self.machine.finished.isSet():
+                log.error(self.machine.name + ' got disconnected.')
+                self.machine._error()
+
+class ThreadedStenotypeBase(StenotypeBase):
     """Base class for thread based machines.
-    
+
     Subclasses should override run.
     """
     def __init__(self):
-        threading.Thread.__init__(self)
-        self.name += '-machine'
+        self.name = self.__class__.__name__ + '-machine'
         StenotypeBase.__init__(self)
         self.finished = threading.Event()
+        self._machine_thread = _ThreadedStenotypeThread(self)
 
     def run(self):
         """This method should be overridden by a subclass."""
@@ -157,16 +169,17 @@ class ThreadedStenotypeBase(StenotypeBase, threading.Thread):
         """Begin listening for output from the stenotype machine."""
         self.finished.clear()
         self._initializing()
-        self.start()
+        self._machine_thread.start()
 
     def stop_capture(self):
         """Stop listening for output from the stenotype machine."""
         self.finished.set()
         try:
-            self.join()
+            self._machine_thread.join()
         except RuntimeError:
             pass
         self._stopped()
+
 
 class SerialStenotypeBase(ThreadedStenotypeBase):
     """For use with stenotype machines that connect via serial port.
@@ -197,6 +210,10 @@ class SerialStenotypeBase(ThreadedStenotypeBase):
         ThreadedStenotypeBase.__init__(self)
         self.serial_port = None
         self.serial_params = serial_params
+
+    def _error(self):
+        self._close_port()
+        StenotypeBase._error(self)
 
     def _close_port(self):
         if self.serial_port is None:
