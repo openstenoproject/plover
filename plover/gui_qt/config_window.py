@@ -74,21 +74,16 @@ class ChoiceOption(QComboBox):
 
     def __init__(self, choices=None):
         super().__init__()
-        self._choices = {} if choices is None else choices
-        self._reversed_choices = {
-            translation: choice
-            for choice, translation in choices.items()
-        }
-        self.addItems(sorted(choices.values()))
+        choices = {} if choices is None else choices
+        for value, label in sorted(choices.items()):
+            self.addItem(label, value)
         self.activated.connect(self.on_activated)
 
     def setValue(self, value):
-        translation = self._choices[value]
-        self.setCurrentText(translation)
+        self.setCurrentIndex(self.findData(value))
 
-    def on_activated(self):
-        choice = self._reversed_choices[self.currentText()]
-        self.valueChanged.emit(choice)
+    def on_activated(self, index):
+        self.valueChanged.emit(self.itemData(index))
 
 
 class FileOption(QWidget, Ui_FileWidget):
