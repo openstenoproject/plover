@@ -202,14 +202,14 @@ class MainWindow(QMainWindow, Ui_MainWindow, WindowState):
         if settings.contains('hidden_toolbar_tools'):
             hidden_toolbar_tools = json.loads(settings.value('hidden_toolbar_tools'))
             for action in self.toolbar_menu.actions():
-                if action.objectName() in hidden_toolbar_tools:
-                    action.setChecked(False)
+                action.setChecked(action.objectName() not in hidden_toolbar_tools)
 
     def _save_state(self, settings):
-        hidden_toolbar_tools = set()
-        for action in self.toolbar_menu.actions():
-            if not action.isChecked():
-                hidden_toolbar_tools.add(action.objectName())
+        hidden_toolbar_tools = {
+            action.objectName()
+            for action in self.toolbar_menu.actions()
+            if not action.isChecked()
+        }
         settings.setValue('hidden_toolbar_tools', json.dumps(list(sorted(hidden_toolbar_tools))))
 
     def on_config_changed(self, config_update):
