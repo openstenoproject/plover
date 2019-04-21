@@ -267,7 +267,7 @@ class Helper:
             if not name.startswith('cmd_'):
                 continue
             cmd = getattr(self, name)
-            argspec = inspect.getargspec(cmd)
+            argspec = inspect.getfullargspec(cmd)
             name = name[4:]
             doc = cmd.__doc__.strip().split('\n')
             help = doc[0]
@@ -516,7 +516,7 @@ class Helper:
             if not name.startswith('_')
         }
         cmd = getattr(self, 'cmd_%s' % opts._command)
-        argspec = inspect.getargspec(cmd)
+        argspec = inspect.getfullargspec(cmd)
         args = []
         assert 'self' == argspec.args[0]
         for a in argspec.args[1:]:
