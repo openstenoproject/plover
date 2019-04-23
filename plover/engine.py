@@ -180,6 +180,9 @@ class StenoEngine:
                 for option, value in config.items()
                 if value != original_config[option]
             }
+            # Save config if anything changed.
+            if config_update:
+                self._config.save()
         # Update logging.
         log.set_stroke_filename(config['log_file_name'])
         log.enable_stroke_logging(config['enable_stroke_logging'])

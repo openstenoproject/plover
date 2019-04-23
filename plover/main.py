@@ -125,7 +125,6 @@ def main():
             log.setup_logfile()
             config = Config(CONFIG_FILE)
             code = gui.main(config)
-            config.save()
     except processlock.LockNotAcquiredException:
         gui.show_error('Error', 'Another instance of Plover is already running.')
         code = 1
