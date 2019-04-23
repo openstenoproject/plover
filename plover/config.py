@@ -12,6 +12,7 @@ import re
 from plover.exception import InvalidConfigurationError
 from plover.machine.keymap import Keymap
 from plover.registry import registry
+from plover.resource import resource_update
 from plover.oslayer.config import CONFIG_DIR
 from plover.misc import boolean, expand_path, shorten_path
 from plover import log
@@ -316,8 +317,9 @@ class Config:
         self._cache.clear()
 
     def save(self):
-        with open(self.path, mode='w', encoding='utf-8') as fp:
-            self._config.write(fp)
+        with resource_update(self.path) as temp_path:
+            with open(temp_path, mode='w', encoding='utf-8') as fp:
+                self._config.write(fp)
 
     def _set(self, section, option, value):
         if not self._config.has_section(section):
