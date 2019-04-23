@@ -4,7 +4,6 @@
 """Unit tests for config.py."""
 
 from contextlib import ExitStack
-from io import BytesIO
 import inspect
 import json
 import os
@@ -444,13 +443,6 @@ CONFIG_TESTS = (
 )
 
 
-def make_config(contents=''):
-    return BytesIO(b'\n'.join(line.strip().encode('utf-8')
-                              for line in contents.split('\n')))
-def config_contents(f):
-    return f.getvalue().decode('utf-8').strip()
-
-
 @pytest.mark.parametrize(('original_contents', 'original_config',
                           'config_update', 'validated_config_update',
                           'resulting_contents'),
@@ -458,23 +450,24 @@ def config_contents(f):
                          ids=[t[0] for t in CONFIG_TESTS])
 def test_config(original_contents, original_config,
                 config_update, validated_config_update,
-                resulting_contents, monkeypatch):
+                resulting_contents, monkeypatch, tmpdir):
     registry = Registry()
     registry.register_plugin('machine', 'Keyboard', Keyboard)
     registry.register_plugin('machine', 'Faky faky', FakeMachine)
     registry.register_plugin('system', 'English Stenotype', english_stenotype)
     registry.register_plugin('system', 'Faux système', FakeSystem)
     monkeypatch.setattr('plover.config.registry', registry)
+    config_file = tmpdir / 'config.cfg'
     # Check initial contents.
-    f = make_config(original_contents)
-    cfg = config.Config()
+    config_file.write_text(original_contents, encoding='utf-8')
+    cfg = config.Config(config_file.strpath)
     if inspect.isclass(original_config):
         with pytest.raises(original_config):
-            cfg.load(f)
+            cfg.load()
         original_config = dict(DEFAULTS)
         cfg.clear()
     else:
-        cfg.load(f)
+        cfg.load()
     cfg_dict = cfg.as_dict()
     for name, value in original_config.items():
         assert cfg[name] == value
@@ -498,8 +491,8 @@ def test_config(original_contents, original_config,
                 key, value = validated_config_update
                 cfg_dict[key] = value
         assert cfg.as_dict() == cfg_dict
-    f = make_config()
-    cfg.save(f)
+    config_file.write_text('', encoding='utf-8')
+    cfg.save()
     if resulting_contents is None:
         resulting_contents = original_contents
-    assert config_contents(f) == dedent_strip(resulting_contents)
+    assert config_file.read_text(encoding='utf-8').strip() == dedent_strip(resulting_contents)

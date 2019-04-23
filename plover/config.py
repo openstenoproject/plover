@@ -4,7 +4,6 @@
 """Configuration management."""
 
 from collections import ChainMap, namedtuple, OrderedDict
-import codecs
 import configparser
 import json
 import os
@@ -297,28 +296,28 @@ def dictionaries_option():
 
 class Config:
 
-    def __init__(self):
+    def __init__(self, path=None):
         self._config = None
         self._cache = {}
         # A convenient place for other code to store a file name.
-        self.target_file = None
+        self.path = path
         self.clear()
 
-    def load(self, fp):
+    def load(self):
         self.clear()
-        reader = codecs.getreader('utf8')(fp)
-        try:
-            self._config.read_file(reader)
-        except configparser.Error as e:
-            raise InvalidConfigurationError(str(e))
+        with open(self.path, encoding='utf-8') as fp:
+            try:
+                self._config.read_file(fp)
+            except configparser.Error as e:
+                raise InvalidConfigurationError(str(e))
 
     def clear(self):
         self._config = configparser.RawConfigParser()
         self._cache.clear()
 
-    def save(self, fp):
-        writer = codecs.getwriter('utf8')(fp)
-        self._config.write(writer)
+    def save(self):
+        with open(self.path, mode='w', encoding='utf-8') as fp:
+            self._config.write(fp)
 
     def _set(self, section, option, value):
         if not self._config.has_section(section):

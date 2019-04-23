@@ -423,8 +423,7 @@ class StenoEngine:
 
     def load_config(self):
         try:
-            with open(self._config.target_file, 'rb') as f:
-                self._config.load(f)
+            self._config.load()
         except Exception:
             log.error('loading configuration failed, resetting to default', exc_info=True)
             self._config.clear()
