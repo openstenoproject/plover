@@ -52,8 +52,8 @@ run rm -rf "$builddir"
 run mkdir -p "$appdir" "$cachedir" "$distdir"
 
 # Download dependencies.
-run "$python" -m plover_build_utils.download 'https://github.com/probonopd/AppImages/raw/f748bb63999e655cfbb70e88ec27e74e2b9bf8fd/functions.sh' 'a99457e22d24a61f42931b2aaafd41f2746af820' "$cachedir/functions.sh"
-run "$python" -m plover_build_utils.download 'https://github.com/probonopd/AppImageKit/releases/download/9/appimagetool-x86_64.AppImage' 'ba71c5a03398b81eaa678207da1338c83189db89' "$cachedir/appimagetool"
+run "$python" -m plover_build_utils.download 'https://github.com/AppImage/pkg2appimage/raw/ed1d385282a6aa6c9a93b52296f20555adf9bae7/functions.sh' 'e04404e00dfdf2cd869f892417befa46bbd4e24e' "$cachedir/functions.sh"
+run "$python" -m plover_build_utils.download 'https://github.com/probonopd/AppImageKit/releases/download/11/appimagetool-x86_64.AppImage' 'f3bc2b45d3a9f3c62915ace123a7f8063cfc1822' "$cachedir/appimagetool"
 run "$python" -m plover_build_utils.download 'https://www.python.org/ftp/python/3.6.7/Python-3.6.7.tar.xz' 'dd2b0a8bf9b9617c57a0070b53065286c2142994'
 
 # Generate Plover wheel.
@@ -129,8 +129,6 @@ run cp linux/appimage/apprun.sh "$appdir/AppRun"
 (
 run . "$cachedir/functions.sh"
 run cd "$appdir"
-# Add desktop integration.
-run get_desktopintegration 'plover'
 # Fix missing system dependencies.
 # Note: temporarily move PyQt5 out of the way so
 # we don't try to bundle its system dependencies.
