@@ -1,5 +1,6 @@
 import ast
 import functools
+import inspect
 import operator
 import re
 import textwrap
@@ -70,7 +71,18 @@ def steno_to_stroke(steno):
 steno_to_stroke.system = None
 
 
-def replay(blackbox, name, test):
+def blackbox_setup(blackbox):
+    blackbox.output = CaptureOutput()
+    blackbox.formatter = Formatter()
+    blackbox.formatter.set_output(blackbox.output)
+    blackbox.translator = Translator()
+    blackbox.translator.set_min_undo_length(100)
+    blackbox.translator.add_listener(blackbox.formatter.format)
+    blackbox.dictionary = blackbox.translator.get_dictionary()
+    blackbox.dictionary.set_dicts([StenoDictionary()])
+
+
+def blackbox_replay(blackbox, name, test):
     # Hide from traceback on assertions (reduce output size for failed tests).
     __tracebackhide__ = operator.methodcaller('errisinstance', AssertionError)
     definitions, instructions = test.strip().rsplit('\n\n', 1)
@@ -132,28 +144,25 @@ def replay(blackbox, name, test):
             raise ValueError('invalid output:\n%s' % output)
 
 
-def replay_doc(f):
-    name = f.__name__
-    test = textwrap.dedent(f.__doc__)
-    # Use a lamdbda to reduce output size for failed tests.
-    new_f = lambda bb, *args, **kwargs: (f(bb, *args, **kwargs), replay(bb, name, test))
-    return functools.wraps(f)(new_f)
+def blackbox_test(cls_or_fn):
 
+    if inspect.isclass(cls_or_fn):
 
-class BlackboxTester:
+        class wrapper(cls_or_fn):
+            pass
 
-    @classmethod
-    def setup_class(cls):
-        for name in dir(cls):
-            if name.startswith('test_'):
-                setattr(cls, name, replay_doc(getattr(cls, name)))
+        for name in dir(wrapper):
+            if name.startswith('test_upper'):
+                fn = getattr(wrapper, name)
+                new_fn = blackbox_test(fn)
+                setattr(wrapper, name, new_fn)
 
-    def setup_method(self):
-        self.output = CaptureOutput()
-        self.formatter = Formatter()
-        self.formatter.set_output(self.output)
-        self.translator = Translator()
-        self.translator.set_min_undo_length(100)
-        self.translator.add_listener(self.formatter.format)
-        self.dictionary = self.translator.get_dictionary()
-        self.dictionary.set_dicts([StenoDictionary()])
+    else:
+
+        name = cls_or_fn.__name__
+        test = textwrap.dedent(cls_or_fn.__doc__)
+        # Use a lamdbda to reduce output size for failed tests.
+        wrapper = lambda bb, *args, **kwargs: (blackbox_setup(bb), cls_or_fn(bb, *args, **kwargs), blackbox_replay(bb, name, test))
+        wrapper = functools.wraps(cls_or_fn)(wrapper)
+
+    return wrapper
