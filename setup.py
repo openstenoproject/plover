@@ -93,8 +93,8 @@ class BinaryDistWin(Command):
         # Setup embedded Python distribution.
         # Note: python36.zip is decompressed to prevent errors when 2to3
         # is used (including indirectly by setuptools `build_py` command).
-        py_embedded = download('https://www.python.org/ftp/python/3.6.7/python-3.6.7-embed-amd64.zip',
-                               '7a81435a25d9557581393ea6805dafb662eaf9e2')
+        py_embedded = download('https://www.python.org/ftp/python/3.6.8/python-3.6.8-embed-amd64.zip',
+                               'f9d16a818e06ce2552076a9839039dbabb8baf1c')
         dist_dir = os.path.join(os.path.dirname(plover_wheel), PACKAGE + '-win64')
         dist_data = os.path.join(dist_dir, 'data')
         dist_py = os.path.join(dist_data, 'python.exe')
@@ -126,8 +126,8 @@ class BinaryDistWin(Command):
                 '''
             ).lstrip())
         # Use standard site.py so user site packages are enabled.
-        site_py = download('https://github.com/python/cpython/raw/v3.6.3/Lib/site.py',
-                           '5b5a92032c666e0e30c0b2665b8acffe2a624641')
+        site_py = download('https://github.com/python/cpython/raw/v3.6.8/Lib/site.py',
+                           '46d88612c34b1ed0098f1fbf655454b46afde049')
         shutil.copyfile(site_py, os.path.join(dist_site_packages, 'site.py'))
         # Run command helper.
         def run(*args):
