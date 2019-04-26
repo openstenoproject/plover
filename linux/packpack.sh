@@ -68,13 +68,7 @@ SDIST="$DIST_DIR/$NAME-$VERSION.tar.xz"
 run rm -rf "$BUILD_DIR"
 run mkdir -p "$BUILD_DIR" "$DIST_DIR" .cache
 
-setup_cmd=(./setup.py -q sdist --format=xztar)
-if [ "$TARGET" = 'appimage' ]
-then
-  setup_cmd+=(bdist_wheel)
-fi
-run "${setup_cmd[@]}"
-run cp "$SDIST" "$BUILD_DIR/"
+run python setup.py -q sdist --format=xztar --dist-dir "$BUILD_DIR/"
 cmd=(env)
 if [ $opt_no_pull -ne 0 ]
 then

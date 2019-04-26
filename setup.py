@@ -343,6 +343,31 @@ if sys.platform.startswith('darwin'):
 
 # }}}
 
+# `bdist_appimage` command. {{{
+
+class BinaryDistAppImage(Command):
+
+    description = 'create AppImage distribution for Linux'
+    user_options = []
+
+    def initialize_options(self):
+        pass
+
+    def finalize_options(self):
+        pass
+
+    def run(self):
+        cmd = ['./linux/appimage/build.sh',
+               '--python', sys.executable,
+               '--wheel', self.bdist_wheel()]
+        log.info('running %s', ' '.join(cmd))
+        subprocess.check_call(cmd)
+
+if sys.platform.startswith('linux'):
+    cmdclass['bdist_appimage'] = BinaryDistAppImage
+
+# }}}
+
 # Translations support. {{{
 
 from babel.messages import frontend as babel
