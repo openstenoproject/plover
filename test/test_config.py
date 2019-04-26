@@ -337,6 +337,28 @@ CONFIG_TESTS = (
      '''
     ),
 
+    ('invalid_keymap_1',
+     '''
+     [System: English Stenotype]
+     keymap[keyboard] = [["_-"]]
+     ''',
+     DEFAULTS,
+     {},
+     {},
+     None,
+    ),
+
+    ('invalid_keymap_2',
+     '''
+     [System: English Stenotype]
+     keymap[keyboard] = 42
+     ''',
+     DEFAULTS,
+     {},
+     {},
+     None,
+    ),
+
     ('invalid_options_1',
      '''
      [System]
