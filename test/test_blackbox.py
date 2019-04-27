@@ -22,7 +22,7 @@ class TestsBlackbox:
 
     def test_force_lowercase_title(self):
         r'''
-        "T-LT": "{MODE:TITLE}",
+        "T-LT": "{MODE:title}",
         "TEFT": "{>}test",
 
         T-LT/TEFT  " test"
@@ -954,14 +954,14 @@ class TestsBlackbox:
     def test_retro_upper21(self):
         r'''
         'TEFT': 'test',
-        'RUP': '{:retro_case:upper_first_word}',
+        'RUP': '{:retro_case:upper_FIRST_word}',
 
         TEFT/RUP  " TEST"
         '''
 
     def test_lower_first_char_1(self):
         r'''
-        'TEFT': '{:case:lower_first_char}TEST',
+        'TEFT': '{:CASE:Lower_First_Char}TEST',
 
         TEFT  ' tEST'
         '''
@@ -1219,7 +1219,7 @@ class TestsBlackbox:
 
     def test_mode_4(self):
         r'''
-        "PHO*D": "{:mode:CAMEL}",
+        "PHO*D": "{:mode:Camel}",
         "TEFT": "test",
         "TKPWHRAOU": "{&g}{&l}{&u}{&e}"
 

@@ -318,27 +318,28 @@ class StenoEngine:
 
     def _consume_engine_command(self, command):
         # The first commands can be used whether plover has output enabled or not.
-        if command == 'RESUME':
+        command = command.lower()
+        if command == 'resume':
             self._set_output(True)
             return True
-        elif command == 'TOGGLE':
+        elif command == 'toggle':
             self._toggle_output()
             return True
-        elif command == 'QUIT':
+        elif command == 'quit':
             self.quit()
             return True
         if not self._is_running:
             return False
         # These commands can only be run when plover has output enabled.
-        if command == 'SUSPEND':
+        if command == 'suspend':
             self._set_output(False)
-        elif command == 'CONFIGURE':
+        elif command == 'configure':
             self._trigger_hook('configure')
-        elif command == 'FOCUS':
+        elif command == 'focus':
             self._trigger_hook('focus')
-        elif command == 'ADD_TRANSLATION':
+        elif command == 'add_translation':
             self._trigger_hook('add_translation')
-        elif command == 'LOOKUP':
+        elif command == 'lookup':
             self._trigger_hook('lookup')
         else:
             command_args = command.split(':', 1)

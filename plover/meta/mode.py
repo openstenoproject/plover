@@ -1,55 +1,48 @@
 from plover.formatting import Case, SPACE
 
 
-MODE_CAMEL = 'CAMEL'
-MODE_CAPS = 'CAPS'
-MODE_LOWER = 'LOWER'
-MODE_RESET = 'RESET'
-MODE_RESET_CASE = 'RESET_CASE'
-MODE_RESET_SPACE = 'RESET_SPACE'
-MODE_SET_SPACE = 'SET_SPACE:'
-MODE_SNAKE = 'SNAKE'
-MODE_TITLE = 'TITLE'
-
-
-def meta_mode(ctx, mode):
+def meta_mode(ctx, cmdline):
     """
-    mode should be:
-        CAPS, LOWER, TITLE, CAMEL, SNAKE, RESET_SPACE,
-            RESET_CASE, SET_SPACE or RESET
+    cmdline should be:
 
-        CAPS: UPPERCASE
-        LOWER: lowercase
-        TITLE: Title Case
-        CAMEL: titleCase, no space, initial lowercase
-        SNAKE: Underscore_space
-        RESET_SPACE: Space resets to ' '
-        RESET_CASE: Reset to normal case
-        SET_SPACE:xy: Set space to xy
-        RESET: Reset to normal case, space resets to ' '
+        caps: UPPERCASE
+        lower: lowercase
+        title: Title Case
+        camel: titlecase, no space, initial lowercase
+        snake: underscore_space
+        reset_space: Space resets to ' '
+        reset_case: Reset to normal case
+        set_space:xy: Set space to xy
+        reset: Reset to normal case, space resets to ' '
     """
+    args = cmdline.split(':', 1)
+    mode = args.pop(0).lower()
     action = ctx.copy_last_action()
-    if mode == MODE_CAPS:
+    if mode == 'set_space':
+        action.space_char = args[0] if args else ''
+        return action
+    # No argument allowed for other mode directives.
+    if args:
+        raise ValueError('%r is not a valid mode' % cmdline)
+    if mode == 'caps':
         action.case = Case.UPPER
-    elif mode == MODE_TITLE:
+    elif mode == 'title':
         action.case = Case.TITLE
-    elif mode == MODE_LOWER:
+    elif mode == 'lower':
         action.case = Case.LOWER
-    elif mode == MODE_SNAKE:
+    elif mode == 'snake':
         action.space_char = '_'
-    elif mode == MODE_CAMEL:
+    elif mode == 'camel':
         action.case = Case.TITLE
         action.space_char = ''
         action.next_case = Case.LOWER_FIRST_CHAR
-    elif mode == MODE_RESET:
+    elif mode == 'reset':
         action.space_char = SPACE
         action.case = None
-    elif mode == MODE_RESET_SPACE:
+    elif mode == 'reset_space':
         action.space_char = SPACE
-    elif mode == MODE_RESET_CASE:
+    elif mode == 'reset_case':
         action.case = None
-    elif mode.startswith(MODE_SET_SPACE):
-        action.space_char = mode[len(MODE_SET_SPACE):]
     else:
-        raise ValueError('%r is not a valid mode' % mode)
+        raise ValueError('%r is not a valid mode' % cmdline)
     return action

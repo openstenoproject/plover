@@ -148,6 +148,13 @@ FORMATTER_TESTS = (
 
     lambda:
     ([],
+     [translation(english='{PloveR:CMD}')],
+     None,
+     ([action(command='CMD')],),
+     [('e', 'CMD')]),
+
+    lambda:
+    ([],
      [translation(english='{:coMManD:Cmd}')],
      None,
      ([action(command='Cmd')],),

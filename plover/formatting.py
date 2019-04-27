@@ -68,7 +68,7 @@ def _build_metas_parser(supported_metas):
         match_result_from_lastindex.extend(((name, param),) * len(groups))
         regex_parts.append('(' + pattern + ')$')
 
-    regex = re.compile('|'.join(regex_parts), re.DOTALL)
+    regex = re.compile('|'.join(regex_parts), re.DOTALL | re.IGNORECASE)
 
     def parse(meta):
         m = regex.match(meta)
