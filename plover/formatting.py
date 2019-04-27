@@ -57,7 +57,7 @@ META_END = '}'
 META_ESC_START = META_ESCAPE + META_START
 META_ESC_END = META_ESCAPE + META_END
 
-META_RE = re.compile(r"""(?:%s%s|%s%s|[^%s%s])+ # One or more of anything
+ATOM_RE = re.compile(r"""(?:%s%s|%s%s|[^%s%s])+ # One or more of anything
                                                 # other than unescaped { or }
                                                 #
                                               | # or
@@ -107,8 +107,7 @@ class RetroFormatter:
     def iter_last_actions(self):
         """Iterate over past actions (last first)."""
         for translation in reversed(self.previous_translations):
-            for action in reversed(translation.formatting):
-                yield action
+            yield from reversed(translation.formatting)
 
     def iter_last_fragments(self):
         """Iterate over last text fragments (last first).
@@ -136,8 +135,7 @@ class RetroFormatter:
             if part:
                 # Find out new complete fragments.
                 fragments = self.FRAGMENT_RX.findall(part + current_fragment)
-                for f in reversed(fragments[1:]):
-                    yield f
+                yield from reversed(fragments[1:])
                 current_fragment = fragments[0]
             replace += len(action.prev_replace)
             next_action = action
@@ -221,10 +219,8 @@ class _Context(RetroFormatter):
 
     def iter_last_actions(self):
         """Custom iterator with support for newly translated actions."""
-        for action in reversed(self.translated_actions):
-            yield action
-        for action in super().iter_last_actions():
-            yield action
+        yield from reversed(self.translated_actions)
+        yield from super().iter_last_actions()
 
 
 class Formatter:
@@ -628,7 +624,7 @@ def _translation_to_actions(translation, ctx):
         atoms = [_glue_translation(translation)]
     else:
         atoms = filter(None, (
-            x.strip(' ') for x in META_RE.findall(translation))
+            x.strip(' ') for x in ATOM_RE.findall(translation))
         )
     action_list = []
     for atom in atoms:
