@@ -707,6 +707,14 @@ class TestsBlackbox:
         PRE/TPEUBG/RUP  ' Prefix'
         '''
 
+    def test_retro_capitalize5(self):
+        r'''
+        'KWEUP': 'equip',
+        'RUP': '{:retro_case:cap_first_word}',
+
+        KWEUP/RUP  ' Equip'
+        '''
+
     def test_retro_currency1(self):
         r'''
         'TPHAPB': 'notanumber',
@@ -737,6 +745,13 @@ class TestsBlackbox:
 
         :spaces_after
         0/R-BG  '$0 '
+        '''
+
+    def test_retro_currency5(self):
+        r'''
+        'R-BG': '{:retro_currency:$c}',
+
+        0/R-BG  ' $0'
         '''
 
     def test_retro_upper1(self):
@@ -936,6 +951,21 @@ class TestsBlackbox:
         * "foo "
         '''
 
+    def test_retro_upper21(self):
+        r'''
+        'TEFT': 'test',
+        'RUP': '{:retro_case:upper_first_word}',
+
+        TEFT/RUP  " TEST"
+        '''
+
+    def test_lower_first_char_1(self):
+        r'''
+        'TEFT': '{:case:lower_first_char}TEST',
+
+        TEFT  ' tEST'
+        '''
+
     def test_upper1(self):
         r'''
         'TP*U': '{<}',
@@ -1015,6 +1045,14 @@ class TestsBlackbox:
         "W": "with",
 
         TP*U/TEFT/W/W  " TEST with with"
+        '''
+
+    def test_upper10(self):
+        r'''
+        'TEFT': '{:case:upper_first_word}test',
+        '-G': '{^ing}',
+
+        TEFT/-G  ' TESTING'
         '''
 
     def test_attach_glue_and_carry_capitalize(self):
@@ -1174,6 +1212,17 @@ class TestsBlackbox:
         "TKPWHRAOU": "{&g}{&l}{&u}{&e}"
 
         :spaces_before
+        PHO*D  ''
+        TKPWHRAOU  'glue'
+        TEFT       'glueTest'
+        '''
+
+    def test_mode_4(self):
+        r'''
+        "PHO*D": "{:mode:CAMEL}",
+        "TEFT": "test",
+        "TKPWHRAOU": "{&g}{&l}{&u}{&e}"
+
         PHO*D  ''
         TKPWHRAOU  'glue'
         TEFT       'glueTest'
@@ -1496,6 +1545,18 @@ class TestsBlackbox:
         '''
         def macro(translator, stroke, cmdline):
             assert cmdline == ' params with spaces   '
+        registry = Registry()
+        registry.register_plugin('macro', 'macro', macro)
+        monkeypatch.setattr('plover.translation.registry', registry)
+
+    def test_valid_macro_3(self, monkeypatch):
+        r'''
+        "TEFT": "=macro",
+
+        TEFT   ""
+        '''
+        def macro(translator, stroke, cmdline):
+            assert cmdline == ''
         registry = Registry()
         registry.register_plugin('macro', 'macro', macro)
         monkeypatch.setattr('plover.translation.registry', registry)

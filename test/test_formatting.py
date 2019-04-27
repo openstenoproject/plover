@@ -148,6 +148,13 @@ FORMATTER_TESTS = (
 
     lambda:
     ([],
+     [translation(english='{:coMManD:Cmd}')],
+     None,
+     ([action(command='Cmd')],),
+     [('e', 'Cmd')]),
+
+    lambda:
+    ([],
      [translation(rtfcre=('1',))],
      None,
      ([action(text_and_word='1', trailing_space=' ', glue=True)],),
@@ -720,13 +727,13 @@ def test_atom_to_action(atom, last_action, expected):
 
 
 CHANGE_MODE_TESTS = (
-    # Undefined
+    # Invalid modes.
     lambda:
     ('', action(),
-     action()),
+     ValueError),
     lambda:
     ('ABCD', action(),
-     action()),
+     ValueError),
     # CAPS: Uppercase
     lambda:
     ('CAPS', action(),
@@ -771,9 +778,14 @@ CHANGE_MODE_TESTS = (
 
 @parametrize(CHANGE_MODE_TESTS)
 def test_meta_mode(meta, last_action, expected):
+    atom = '{MODE:' + meta + '}'
     ctx = formatting._Context((), action())
     ctx.translated(last_action)
-    assert formatting._atom_to_action('{MODE:' + meta + '}', ctx) == expected
+    if inspect.isclass(expected):
+        with pytest.raises(expected):
+            formatting._atom_to_action(atom, ctx)
+    else:
+        assert formatting._atom_to_action(atom, ctx) == expected
 
 
 last_action_normal = action()
@@ -866,9 +878,9 @@ def _apply_case_tests():
 def test_apply_case(input_text, case, appended, expected):
     if inspect.isclass(expected):
         with pytest.raises(expected):
-            formatting._apply_mode_case(input_text, case, appended)
+            formatting.apply_mode_case(input_text, case, appended)
     else:
-        assert formatting._apply_mode_case(input_text, case, appended) == expected
+        assert formatting.apply_mode_case(input_text, case, appended) == expected
 
 
 def _apply_space_char_tests():
@@ -883,7 +895,7 @@ def _apply_space_char_tests():
 
 @parametrize(_apply_space_char_tests())
 def test_apply_space_char(text, space_char, expected):
-    assert formatting._apply_mode_space_char(text, space_char) == expected
+    assert formatting.apply_mode_space_char(text, space_char) == expected
 
 
 @parametrize((
@@ -920,7 +932,7 @@ def test_unescape_atom(atom, text):
     lambda: ('ABC', 'ABC'),
 ))
 def test_capitalize_first_word(s, expected):
-    assert formatting._capitalize_first_word(s) == expected
+    assert formatting.capitalize_first_word(s) == expected
 
 
 RIGHTMOST_WORD_TESTS = (
@@ -940,7 +952,7 @@ RIGHTMOST_WORD_TESTS = (
 
 @parametrize(RIGHTMOST_WORD_TESTS)
 def test_rightmost_word(s, expected):
-    assert formatting._rightmost_word(s) == expected
+    assert formatting.rightmost_word(s) == expected
 
 
 REPLACE_TESTS = (
