@@ -7,6 +7,7 @@ This module defines and implements plover's custom dictionary language.
 
 """
 
+from enum import Enum
 from os.path import commonprefix
 from collections import namedtuple
 import re
@@ -16,12 +17,14 @@ from plover.orthography import add_suffix
 from plover.registry import registry
 
 
-CASE_CAP_FIRST_WORD = 'cap_first_word'
-CASE_LOWER = 'lower'
-CASE_LOWER_FIRST_CHAR = 'lower_first_char'
-CASE_TITLE = 'title'
-CASE_UPPER = 'upper'
-CASE_UPPER_FIRST_WORD = 'upper_first_word'
+Case = Enum('case', ((c, c.lower()) for c in '''
+                     CAP_FIRST_WORD
+                     LOWER
+                     LOWER_FIRST_CHAR
+                     TITLE
+                     UPPER
+                     UPPER_FIRST_WORD
+                     '''.split()))
 
 SPACE = ' '
 META_ATTACH_FLAG = '^'
@@ -315,7 +318,7 @@ class Formatter:
             if last_action is None:
                 # Initial output.
                 next_attach = self.start_attached or self.spaces_after
-                next_case = CASE_CAP_FIRST_WORD if self.start_capitalized else None
+                next_case = Case.CAP_FIRST_WORD if self.start_capitalized else None
                 last_action = _Action(next_attach=next_attach, next_case=next_case)
             ctx = _Context(previous_translations, last_action)
             for t in do:
@@ -687,17 +690,17 @@ def _atom_to_action(atom, ctx):
         elif meta in META_STOPS:
             action = _apply_meta_stop(meta, ctx)
         elif meta == META_CAPITALIZE:
-            action = _apply_meta_case(CASE_CAP_FIRST_WORD, ctx)
+            action = _apply_meta_case(Case.CAP_FIRST_WORD, ctx)
         elif meta == META_LOWER:
-            action = _apply_meta_case(CASE_LOWER_FIRST_CHAR, ctx)
+            action = _apply_meta_case(Case.LOWER_FIRST_CHAR, ctx)
         elif meta == META_UPPER:
-            action = _apply_meta_case(CASE_UPPER_FIRST_WORD, ctx)
+            action = _apply_meta_case(Case.UPPER_FIRST_WORD, ctx)
         elif meta == META_RETRO_CAPITALIZE:
-            action = _apply_meta_retro_case(CASE_CAP_FIRST_WORD, ctx)
+            action = _apply_meta_retro_case(Case.CAP_FIRST_WORD, ctx)
         elif meta == META_RETRO_LOWER:
-            action = _apply_meta_retro_case(CASE_LOWER_FIRST_CHAR, ctx)
+            action = _apply_meta_retro_case(Case.LOWER_FIRST_CHAR, ctx)
         elif meta == META_RETRO_UPPER:
-            action = _apply_meta_retro_case(CASE_UPPER_FIRST_WORD, ctx)
+            action = _apply_meta_retro_case(Case.UPPER_FIRST_WORD, ctx)
         elif (meta.startswith(META_CARRY_CAPITALIZATION) or
               meta.startswith(META_ATTACH_FLAG + META_CARRY_CAPITALIZATION)):
             action = _apply_meta_carry_capitalize(meta, ctx)
@@ -735,9 +738,9 @@ def _atom_to_action(atom, ctx):
         # Apply case.
         case = ctx.last_action.next_case
         if case is None and action.prev_attach and ctx.last_action.upper_carry:
-            case = CASE_UPPER_FIRST_WORD
+            case = Case.UPPER_FIRST_WORD
         text = _apply_case(text, case)
-        if case == CASE_UPPER_FIRST_WORD:
+        if case == Case.UPPER_FIRST_WORD:
             action.upper_carry = not _has_word_boundary(text)
         # Apply mode.
         action.text = _apply_mode(text, action.case, action.space_char,
@@ -793,7 +796,7 @@ def _apply_meta_stop(meta, ctx):
     action = ctx.new_action()
     action.prev_attach = True
     action.text = meta
-    action.next_case = CASE_CAP_FIRST_WORD
+    action.next_case = Case.CAP_FIRST_WORD
     return action
 
 
@@ -864,8 +867,8 @@ def _apply_meta_currency(meta, ctx):
 def _apply_meta_carry_capitalize(meta, ctx):
     # Meta format: ^~|content^ (attach flags are optional)
     action = ctx.new_action()
-    if ctx.last_action.next_case == CASE_CAP_FIRST_WORD:
-        action.next_case = CASE_CAP_FIRST_WORD
+    if ctx.last_action.next_case == Case.CAP_FIRST_WORD:
+        action.next_case = Case.CAP_FIRST_WORD
     begin = meta.startswith(META_ATTACH_FLAG)
     if begin:
         meta = meta[len(META_ATTACH_FLAG):]
@@ -899,17 +902,17 @@ def _apply_meta_mode(meta, ctx):
     action = ctx.copy_last_action()
     command = meta[len(META_MODE):]
     if command == MODE_CAPS:
-        action.case = CASE_UPPER
+        action.case = Case.UPPER
     elif command == MODE_TITLE:
-        action.case = CASE_TITLE
+        action.case = Case.TITLE
     elif command == MODE_LOWER:
-        action.case = CASE_LOWER
+        action.case = Case.LOWER
     elif command == MODE_SNAKE:
         action.space_char = '_'
     elif command == MODE_CAMEL:
-        action.case = CASE_TITLE
+        action.case = Case.TITLE
         action.space_char = ''
-        action.next_case = CASE_LOWER_FIRST_CHAR
+        action.next_case = Case.LOWER_FIRST_CHAR
     elif command == MODE_RESET:
         action.space_char = SPACE
         action.case = None
@@ -925,28 +928,28 @@ def _apply_meta_mode(meta, ctx):
 def _apply_case(text, case):
     if case is None:
         return text
-    if case == CASE_CAP_FIRST_WORD:
+    if case == Case.CAP_FIRST_WORD:
         return _capitalize_first_word(text)
-    if case == CASE_LOWER_FIRST_CHAR:
+    if case == Case.LOWER_FIRST_CHAR:
         return _lower_first_character(text)
-    if case == CASE_UPPER_FIRST_WORD:
+    if case == Case.UPPER_FIRST_WORD:
         return _upper_first_word(text)
-    raise ValueError('invalid case mode: %s' % case)
+    raise ValueError('%r is not a valid case' % case)
 
 
 def _apply_mode(text, case, space_char, begin, last_action):
     # Should title case be applied to the beginning of the next string?
     lower_title_case = (begin and not
                         last_action.case in (
-                            CASE_CAP_FIRST_WORD,
-                            CASE_UPPER_FIRST_WORD,
+                            Case.CAP_FIRST_WORD,
+                            Case.UPPER_FIRST_WORD,
                         ))
     # Apply case, then replace space character
     text = _apply_mode_case(text, case, lower_title_case)
     text = _apply_mode_space_char(text, space_char)
     # Title case is sensitive to lower flag
-    if (last_action.next_case == CASE_LOWER_FIRST_CHAR
-        and text and case == CASE_TITLE):
+    if (last_action.next_case == Case.LOWER_FIRST_CHAR
+        and text and case == Case.TITLE):
         text = _lower_first_character(text)
     return text
 
@@ -954,16 +957,16 @@ def _apply_mode(text, case, space_char, begin, last_action):
 def _apply_mode_case(text, case, appended):
     if case is None:
         return text
-    if case == CASE_LOWER:
+    if case == Case.LOWER:
         return text.lower()
-    if case == CASE_UPPER:
+    if case == Case.UPPER:
         return text.upper()
-    if case == CASE_TITLE:
+    if case == Case.TITLE:
         # Do nothing to appended output
         if appended:
             return text
         return _capitalize_all_words(text)
-    raise ValueError('invalid case mode: %s' % case)
+    raise ValueError('%r is not a valid case' % case)
 
 
 def _apply_mode_space_char(text, space_char):
