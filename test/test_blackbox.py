@@ -2,10 +2,11 @@
 
 from plover.registry import Registry
 
-from plover_build_utils.testing import BlackboxTester
+from plover_build_utils.testing import blackbox_test
 
 
-class TestsBlackbox(BlackboxTester):
+@blackbox_test
+class TestsBlackbox:
 
     def test_translator_state_handling(self):
         r'''
