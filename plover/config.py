@@ -13,13 +13,9 @@ from plover.exception import InvalidConfigurationError
 from plover.machine.keymap import Keymap
 from plover.registry import registry
 from plover.resource import resource_update
-from plover.oslayer.config import CONFIG_DIR
 from plover.misc import boolean, expand_path, shorten_path
 from plover import log
 
-
-# Config path.
-CONFIG_FILE = os.path.join(CONFIG_DIR, 'plover.cfg')
 
 # General configuration sections, options and defaults.
 MACHINE_CONFIG_SECTION = 'Machine Configuration'

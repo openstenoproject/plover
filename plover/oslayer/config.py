@@ -21,10 +21,21 @@ if sys.platform.startswith('darwin') and '.app/' in os.path.realpath(__file__):
 else:
     PROGRAM_DIR = os.getcwd()
 
-if os.path.isfile(os.path.join(PROGRAM_DIR, 'plover.cfg')):
+# Setup configuration directory.
+CONFIG_BASENAME = 'plover.cfg'
+if os.path.isfile(os.path.join(PROGRAM_DIR, CONFIG_BASENAME)):
     CONFIG_DIR = PROGRAM_DIR
 else:
-    CONFIG_DIR = appdirs.user_data_dir('plover', 'plover')
+    config_directories = [
+        getattr(appdirs, directory_type)('plover')
+        for directory_type in ('user_config_dir', 'user_data_dir')
+    ]
+    for CONFIG_DIR in config_directories:
+        if os.path.isfile(os.path.join(CONFIG_DIR, CONFIG_BASENAME)):
+            break
+    else:
+        CONFIG_DIR = config_directories[0]
+CONFIG_FILE = os.path.join(CONFIG_DIR, CONFIG_BASENAME)
 
 # Setup plugins directory.
 if sys.platform.startswith('darwin'):
