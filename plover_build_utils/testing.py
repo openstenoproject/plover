@@ -152,7 +152,7 @@ def blackbox_test(cls_or_fn):
             pass
 
         for name in dir(wrapper):
-            if name.startswith('test_upper'):
+            if name.startswith('test_'):
                 fn = getattr(wrapper, name)
                 new_fn = blackbox_test(fn)
                 setattr(wrapper, name, new_fn)
