@@ -84,7 +84,7 @@ run cp 'plover/assets/plover.png' "$appdir/plover.png"
 
 # Trim the fat.
 run cp linux/appimage/blacklist.txt "$builddir/blacklist.txt"
-run sed -e "s/\${pyversion}/$pyversion/" -i "$builddir/blacklist.txt"
+run sed -e "s/\${pyversion}/$pyversion/g" -i "$builddir/blacklist.txt"
 run "$python" -m plover_build_utils.trim "$appdir" "$builddir/blacklist.txt"
 
 # Make distribution source-less.
