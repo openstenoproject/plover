@@ -1,0 +1,1 @@
+Fix possible crash when changing machine parameters in the configuration dialog.

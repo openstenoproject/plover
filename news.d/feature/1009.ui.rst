@@ -1,0 +1,1 @@
+Automatically focus the input field and pre-select the previous input when the lookup window is activated.
