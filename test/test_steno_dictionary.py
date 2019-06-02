@@ -39,13 +39,13 @@ def test_dictionary():
     del d[('S',)]
     assert d.longest_key == 2
     assert notifications == [1, 4, 2]
-    assert d.reverse_lookup('c') == [('S', 'S')]
-    assert d.casereverse_lookup('c') == ['c']
+    assert d.reverse_lookup('c') == {('S', 'S')}
+    assert d.casereverse_lookup('c') == {'c'}
     d.clear()
     assert d.longest_key == 0
     assert notifications == [1, 4, 2, 0]
-    assert d.reverse_lookup('c') == []
-    assert d.casereverse_lookup('c') == []
+    assert d.reverse_lookup('c') == set()
+    assert d.casereverse_lookup('c') == set()
 
     d.remove_longest_key_listener(listener)
     d[('S', 'S')] = 'c'
@@ -72,14 +72,14 @@ def test_dictionary_collection():
     assert dc.raw_lookup(('S',)) == 'c'
     assert dc.lookup(('W',)) == 'd'
     assert dc.lookup(('T',)) == 'b'
-    assert dc.reverse_lookup('c') == [('S',)]
+    assert dc.reverse_lookup('c') == {('S',)}
 
     dc.remove_filter(f)
     assert dc.lookup(('S',)) == 'c'
     assert dc.lookup(('W',)) == 'd'
     assert dc.lookup(('T',)) == 'b'
 
-    assert dc.reverse_lookup('c') == [('S',)]
+    assert dc.reverse_lookup('c') == {('S',)}
 
     dc.set(('S',), 'e')
     assert dc.lookup(('S',)) == 'e'
@@ -157,11 +157,29 @@ def test_casereverse_del():
     d = StenoDictionary()
     d[('S-G',)] = 'something'
     d[('SPH-G',)] = 'something'
-    assert d.casereverse_lookup('something') == ['something']
+    assert d.casereverse_lookup('something') == {'something'}
     del d[('S-G',)]
-    assert d.casereverse_lookup('something') == ['something']
+    assert d.casereverse_lookup('something') == {'something'}
     del d[('SPH-G',)]
-    assert d.casereverse_lookup('something') == []
+    assert d.casereverse_lookup('something') == set()
+
+
+def test_casereverse_lookup():
+    dc = StenoDictionaryCollection()
+
+    d1 = StenoDictionary()
+    d1[('PWAOUFL',)] = 'beautiful'
+    d1[('WAOUFL',)] = 'beAuTIFul'
+
+    d2 = StenoDictionary()
+    d2[('PW-FL',)] = 'BEAUTIFUL'
+
+    d3 = StenoDictionary()
+    d3[('WAOUFL',)] = 'not beautiful'
+
+    dc.set_dicts([d1, d2, d3])
+
+    assert dc.casereverse_lookup('beautiful') == {'beautiful', 'BEAUTIFUL', 'beAuTIFul'}
 
 
 def test_reverse_lookup():
@@ -179,21 +197,21 @@ def test_reverse_lookup():
 
     # Simple test.
     dc.set_dicts([d1])
-    assert dc.reverse_lookup('beautiful') == [('PWAOUFL',), ('WAOUFL',)]
+    assert dc.reverse_lookup('beautiful') == {('PWAOUFL',), ('WAOUFL',)}
 
     # No duplicates.
     d2_copy = StenoDictionary()
     d2_copy.update(d2)
     dc.set_dicts([d2_copy, d2])
-    assert dc.reverse_lookup('beautiful') == [('PW-FL',)]
+    assert dc.reverse_lookup('beautiful') == {('PW-FL',)}
 
     # Don't stop at the first dictionary with matches.
     dc.set_dicts([d2, d1])
-    assert dc.reverse_lookup('beautiful') == [('PW-FL',), ('PWAOUFL',), ('WAOUFL',)]
+    assert dc.reverse_lookup('beautiful') == {('PW-FL',), ('PWAOUFL',), ('WAOUFL',)}
 
     # Ignore keys overridden by a higher precedence dictionary.
     dc.set_dicts([d3, d2, d1])
-    assert dc.reverse_lookup('beautiful') == [('PW-FL',), ('PWAOUFL',)]
+    assert dc.reverse_lookup('beautiful') == {('PW-FL',), ('PWAOUFL',)}
 
 
 def test_dictionary_enabled():
@@ -209,18 +227,18 @@ def test_dictionary_enabled():
     dc.set_dicts([d2, d1])
     assert dc.lookup(('TEFT',)) == 'test2'
     assert dc.raw_lookup(('TEFT',)) == 'test2'
-    assert dc.casereverse_lookup('testing') == ['Testing']
-    assert dc.reverse_lookup('Testing') == [('TEFT', '-G'), ('TEFGT',)]
+    assert dc.casereverse_lookup('testing') == {'Testing'}
+    assert dc.reverse_lookup('Testing') == {('TEFT', '-G'), ('TEFGT',)}
     d2.enabled = False
     assert dc.lookup(('TEFT',)) == 'test1'
     assert dc.raw_lookup(('TEFT',)) == 'test1'
-    assert dc.casereverse_lookup('testing') == ['Testing']
-    assert dc.reverse_lookup('Testing') == [('TEFGT',)]
+    assert dc.casereverse_lookup('testing') == {'Testing'}
+    assert dc.reverse_lookup('Testing') == {('TEFGT',)}
     d1.enabled = False
     assert dc.lookup(('TEST',)) is None
     assert dc.raw_lookup(('TEFT',)) is None
-    assert dc.casereverse_lookup('testing') is None
-    assert dc.reverse_lookup('Testing') == []
+    assert dc.casereverse_lookup('testing') == set()
+    assert dc.reverse_lookup('Testing') == set()
 
 
 def test_dictionary_readonly():
@@ -278,7 +296,7 @@ def test_dictionary_update(update_from, start_empty):
         })
         assert d[('STHEUPBG',)] == 'something'
         assert d[('EF', 'REU', 'TH*EUPBG')] == 'everything'
-        assert d.reverse_lookup('not something') == [('SPH*G',)]
+        assert d.reverse_lookup('not something') == {('SPH*G',)}
         assert d.longest_key == 3
     d.update(update_from)
     assert d[('S-G',)] == 'something'
@@ -288,11 +306,11 @@ def test_dictionary_update(update_from, start_empty):
     if not start_empty:
         assert d[('STHEUPBG',)] == 'something'
         assert d[('EF', 'REU', 'TH*EUPBG')] == 'everything'
-        assert d.reverse_lookup('not something') == []
-        assert sorted(d.reverse_lookup('something')) == sorted([('STHEUPBG',), ('S-G',), ('SPH-G',), ('SPH', 'THEUPBG')])
-        assert sorted(d.casereverse_lookup('something')) == sorted(['something', 'Something'])
+        assert d.reverse_lookup('not something') == set()
+        assert d.reverse_lookup('something') == {('STHEUPBG',), ('S-G',), ('SPH-G',), ('SPH', 'THEUPBG')}
+        assert d.casereverse_lookup('something') == {'something', 'Something'}
         assert d.longest_key == 3
     else:
-        assert sorted(d.reverse_lookup('something')) == sorted([('S-G',), ('SPH-G',), ('SPH', 'THEUPBG')])
-        assert sorted(d.casereverse_lookup('something')) == sorted(['something', 'Something'])
+        assert d.reverse_lookup('something') == {('S-G',), ('SPH-G',), ('SPH', 'THEUPBG')}
+        assert d.casereverse_lookup('something') == {'something', 'Something'}
         assert d.longest_key == 2
