@@ -16,13 +16,13 @@
   pydoc*
   python3
   python3-config
-  python3.6-config
-  python3.6m
-  python3.6m-config
+  python${pyversion}-config
+  python${pyversion}m
+  python${pyversion}m-config
   pyvenv*
   wheel
-:usr/lib/python3.6
-  config-3.6m/libpython3.6m.a
+:usr/lib/python${pyversion}
+  config-${pyversion}m/libpython${pyversion}m.a
   ctypes/test
   distutils/command/*.exe
   distutils/tests
@@ -35,12 +35,12 @@
   tkinter
   turtle*
   unittest/test
-:usr/lib/python3.6/site-packages
+:usr/lib/python${pyversion}/site-packages
   pip/_vendor/distlib/*.exe
   setuptools/*.exe
 
 # Plover.
-:usr/lib/python3.6/site-packages/plover
+:usr/lib/python${pyversion}/site-packages/plover
   gui_qt/*.ui
   gui_qt/messages/**/*.po
   gui_qt/messages/plover.pot
@@ -51,7 +51,7 @@
   pylupdate5
   pyrcc5
   pyuic5
-:usr/lib/python3.6/site-packages/PyQt5
+:usr/lib/python${pyversion}/site-packages/PyQt5
   **/*Designer*
   **/*Help*
   **/*Test*

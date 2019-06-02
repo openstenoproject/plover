@@ -11,24 +11,10 @@ appdir="$builddir/plover.AppDir"
 cachedir="$topdir/.cache/appimage"
 wheel=''
 python='python3'
-make_opts=(-s)
-configure_opts=(-q)
-opt_ccache=0
-opt_optimize=0
 
 while [ $# -ne 0 ]
 do
   case "$1" in
-    -O)
-      opt_optimize=1
-      ;;
-    -c|--ccache)
-      opt_ccache=1
-      ;;
-    -j|--jobs)
-      make_opts+=("-j$2")
-      shift
-      ;;
     -p|--python)
       python="$2"
       shift
@@ -54,7 +40,6 @@ run mkdir -p "$appdir" "$cachedir" "$distdir"
 # Download dependencies.
 run "$python" -m plover_build_utils.download 'https://github.com/AppImage/pkg2appimage/raw/ed1d385282a6aa6c9a93b52296f20555adf9bae7/functions.sh' 'e04404e00dfdf2cd869f892417befa46bbd4e24e' "$cachedir/functions.sh"
 run "$python" -m plover_build_utils.download 'https://github.com/probonopd/AppImageKit/releases/download/11/appimagetool-x86_64.AppImage' 'f3bc2b45d3a9f3c62915ace123a7f8063cfc1822' "$cachedir/appimagetool"
-run "$python" -m plover_build_utils.download 'https://www.python.org/ftp/python/3.6.7/Python-3.6.7.tar.xz' 'dd2b0a8bf9b9617c57a0070b53065286c2142994'
 
 # Generate Plover wheel.
 if [ -z "$wheel" ]
@@ -63,38 +48,21 @@ then
   wheel="$distdir/plover-$version-py3-none-any.whl"
 fi
 
-if [ $opt_ccache -ne 0 ]
-then
-   run export CCACHE_DIR="$topdir/.cache/ccache" CCACHE_BASEDIR="$buildir" CC='ccache gcc'
- fi
-
-# Build Python.
-run tar xf "$downloads/Python-3.6.7.tar.xz" -C "$builddir"
+# Setup Python distribution.
+run_eval "$("$python" linux/appimage/pyinfo.py)"
+pydist="$appdir/usr"
+run mkdir -p "$pydist/"{bin,lib,"$pystdlib"/..,"$pyinclude"/..}
+run cp "$pyexe" "$pydist/bin/python"
 info '('
 (
-run cd "$builddir/Python-3.6.7"
-cmd=(
-  ./configure
-  --cache-file="$cachedir/python.config.cache"
-  --prefix="$appdir/usr"
-  --enable-ipv6
-  --enable-loadable-sqlite-extensions
-  --enable-shared
-  --with-threads
-  --without-ensurepip
-  ${configure_opts[@]}
-)
-if [ $opt_optimize -ne 0 ]
-then
-  cmd+=(--enable-optimizations)
-fi
-run "${cmd[@]}"
-run make "${make_opts[@]}"
-# Drop the need for ccache when installing some Python packages from source.
-run sed -i 's/ccache //g' "$(find build -name '_sysconfigdata_m_*.py')"
-run make "${make_opts[@]}" install >/dev/null
+run cd "$pyprefix"
+run cp -a "$pyprefix/$pyinclude" "$pydist/$pyinclude/../"
+run cp -a lib/"$pyldlib"* lib/"$pypy3lib" "$pydist/lib/"
+run_eval "find '$pystdlib' \\( -name __pycache__ -o -path '$pypurelib' -o -path '$pyplatlib' \\) -prune -o -type f -not -name '*.py[co]' -print0 | xargs -0 cp --parents -t '$pydist'"
 )
 info ')'
+run rm -f "$pydist/$pystdlib/sytecustomize.py"
+run mkdir -p "$pydist/"{"$pypurelib","$pyplatlib"}
 
 run_eval "
 appdir_python()
@@ -102,7 +70,7 @@ appdir_python()
   env \
     PYTHONNOUSERSITE=1 \
     LD_LIBRARY_PATH=\"$appdir/usr/lib:$appdir/usr/lib/x86_64-linux-gnu\${LD_LIBRARY_PATH+:\$LD_LIBRARY_PATH}\" \
-    "$appdir/usr/bin/python3.6" \"\$@\"
+    "$appdir/usr/bin/python" \"\$@\"
 }
 "
 python='appdir_python'
@@ -115,10 +83,12 @@ run cp 'application/plover.desktop' "$appdir/plover.desktop"
 run cp 'plover/assets/plover.png' "$appdir/plover.png"
 
 # Trim the fat.
-run "$python" -m plover_build_utils.trim "$appdir" linux/appimage/blacklist.txt
+run cp linux/appimage/blacklist.txt "$builddir/blacklist.txt"
+run sed -e "s/\${pyversion}/$pyversion/" -i "$builddir/blacklist.txt"
+run "$python" -m plover_build_utils.trim "$appdir" "$builddir/blacklist.txt"
 
 # Make distribution source-less.
-run "$python" -m plover_build_utils.source_less "$appdir/usr/lib/python3.6" '*/pip/_vendor/distlib/*'
+run "$python" -m plover_build_utils.source_less "$pydist/$purelib" "$pydist/$platlib" '*/pip/_vendor/distlib/*'
 
 # Add launcher.
 # Note: don't use AppImage's AppRun because
@@ -132,11 +102,11 @@ run cd "$appdir"
 # Fix missing system dependencies.
 # Note: temporarily move PyQt5 out of the way so
 # we don't try to bundle its system dependencies.
-run mv "$appdir/usr/lib/python3.6/site-packages/PyQt5" "$builddir"
+run mv "$pydist/$pypurelib/PyQt5" "$builddir"
 run copy_deps; run copy_deps; run copy_deps
 run move_lib
-run mv "$builddir/PyQt5" "$appdir/usr/lib/python3.6/site-packages"
-# Move usr/include out of the way to preserve usr/include/python3.6m.
+run mv "$builddir/PyQt5" "$pydist/$pypurelib/PyQt5"
+# Move usr/include out of the way to preserve usr/include/python3.7m.
 run mv usr/include usr/include.tmp
 run delete_blacklisted
 run mv usr/include.tmp usr/include
@@ -147,7 +117,7 @@ strip_binaries()
 {
   chmod u+w -R "$appdir"
   {
-    printf '%s\0' "$appdir/usr/bin/python3.6"
+    printf '%s\0' "$appdir/usr/bin/python"
     find "$appdir" -type f -regex '.*\.so\(\.[0-9.]+\)?$' -print0
   } | xargs -0 --no-run-if-empty --verbose -n1 strip
 }

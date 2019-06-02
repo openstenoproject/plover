@@ -89,17 +89,13 @@ class BinaryDistWin(Command):
         # Download helper.
         from plover_build_utils.download import download
         # First things first: create Plover wheel.
-        wheel_cmd = self.get_finalized_command('bdist_wheel')
-        wheel_cmd.run()
-        plover_wheel = glob.glob(os.path.join(wheel_cmd.dist_dir,
-                                              wheel_cmd.wheel_dist_name)
-                                 + '*.whl')[0]
+        plover_wheel = self.bdist_wheel()
         # Setup embedded Python distribution.
         # Note: python36.zip is decompressed to prevent errors when 2to3
         # is used (including indirectly by setuptools `build_py` command).
-        py_embedded = download('https://www.python.org/ftp/python/3.6.7/python-3.6.7-embed-amd64.zip',
-                               '7a81435a25d9557581393ea6805dafb662eaf9e2')
-        dist_dir = os.path.join(wheel_cmd.dist_dir, PACKAGE + '-win64')
+        py_embedded = download('https://www.python.org/ftp/python/3.6.8/python-3.6.8-embed-amd64.zip',
+                               'f9d16a818e06ce2552076a9839039dbabb8baf1c')
+        dist_dir = os.path.join(os.path.dirname(plover_wheel), PACKAGE + '-win64')
         dist_data = os.path.join(dist_dir, 'data')
         dist_py = os.path.join(dist_data, 'python.exe')
         dist_stdlib = os.path.join(dist_data, 'python36.zip')
@@ -130,13 +126,13 @@ class BinaryDistWin(Command):
                 '''
             ).lstrip())
         # Use standard site.py so user site packages are enabled.
-        site_py = download('https://github.com/python/cpython/raw/v3.6.3/Lib/site.py',
-                           '5b5a92032c666e0e30c0b2665b8acffe2a624641')
+        site_py = download('https://github.com/python/cpython/raw/v3.6.8/Lib/site.py',
+                           '46d88612c34b1ed0098f1fbf655454b46afde049')
         shutil.copyfile(site_py, os.path.join(dist_site_packages, 'site.py'))
         # Run command helper.
         def run(*args):
             if self.verbose:
-                log.info('running %s', ' '.join(a for a in args))
+                log.info('running %s', ' '.join(args))
             subprocess.check_call(args)
         def pyrun(*args):
             run(dist_py, '-E', '-s', *args)
@@ -310,16 +306,8 @@ class BinaryDistApp(Command):
         pass
 
     def run(self):
-        whl_cmd = self.get_finalized_command('bdist_wheel')
-        whl_cmd.run()
-        for cmd, py_version, dist_path in whl_cmd.distribution.dist_files:
-            if cmd == 'bdist_wheel':
-                wheel_path = dist_path
-                break
-        else:
-            raise Exception('could not find wheel path')
-        cmd = 'bash osx/make_app.sh %s %s' % (wheel_path, PACKAGE)
-        log.info('running %s', cmd)
+        cmd = 'bash osx/make_app.sh %s %s' % (self.bdist_wheel(), PACKAGE)
+        log.info('running %s', ' '.join(cmd))
         subprocess.check_call(cmd.split())
 
 class BinaryDistDmg(Command):
@@ -352,6 +340,31 @@ class BinaryDistDmg(Command):
 if sys.platform.startswith('darwin'):
     cmdclass['bdist_app'] = BinaryDistApp
     cmdclass['bdist_dmg'] = BinaryDistDmg
+
+# }}}
+
+# `bdist_appimage` command. {{{
+
+class BinaryDistAppImage(Command):
+
+    description = 'create AppImage distribution for Linux'
+    user_options = []
+
+    def initialize_options(self):
+        pass
+
+    def finalize_options(self):
+        pass
+
+    def run(self):
+        cmd = ['./linux/appimage/build.sh',
+               '--python', sys.executable,
+               '--wheel', self.bdist_wheel()]
+        log.info('running %s', ' '.join(cmd))
+        subprocess.check_call(cmd)
+
+if sys.platform.startswith('linux'):
+    cmdclass['bdist_appimage'] = BinaryDistAppImage
 
 # }}}
 

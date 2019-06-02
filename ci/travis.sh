@@ -32,34 +32,6 @@ setup()
     libudev-dev
     libusb-1.0-0-dev
   )
-  if is_deployment
-  then
-    builddeps+=(
-      # AppImage:
-      libfuse2
-      # Python:
-      libbz2-dev
-      libgdbm-dev
-      liblzma-dev
-      libncurses5-dev
-      libreadline-dev
-      libsqlite3-dev
-      libssl-dev
-      zlib1g-dev
-      # PyQt5:
-      libasound2
-      libegl1-mesa
-      libfontconfig1
-      libgl1-mesa-glx
-      libnss3
-      libxcomposite1
-      libxcursor1
-      libxi6
-      libxrandr2
-      libxss1
-      libxtst6
-    )
-  fi
   run sudo apt-get install -qq "${builddeps[@]}"
   # Setup development environment.
   bootstrap_dev --user
@@ -84,7 +56,9 @@ build()
   if is_deployment
   then
     # Build AppImage.
-    run ./linux/appimage/build.sh -c -j 2 -w dist/*.whl
+    run git clone --depth=1 https://github.com/packpack/packpack.git
+    run_eval "export PATH=\"$PWD/packpack:\$PATH\""
+    run ./linux/packpack.sh appimage
     run rm -rf .cache/pip
   else
     # Otherwise, install plugins, and check requirements.

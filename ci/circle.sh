@@ -38,7 +38,7 @@ setup()
 {
   mkdir -p "$CIRCLE_ARTIFACTS"
   # Install Python.
-  download 'python36.pkg' 'https://www.python.org/ftp/python/3.6.7/python-3.6.7-macosx10.6.pkg' '68885dffc1d13c5d24699daa0b83315f'
+  download 'python36.pkg' 'https://www.python.org/ftp/python/3.6.8/python-3.6.8-macosx10.6.pkg' 'eb1a23d762946329c2aa3448d256d421'
   run sudo installer -pkg "$downloads/python36.pkg" -target /
   # Update certifiates.
   run '/Applications/Python 3.6/Install Certificates.command'

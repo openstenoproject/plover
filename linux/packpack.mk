@@ -3,10 +3,10 @@ PACKAGE := $(PRODUCT)-$(VERSION)
 .PHONY: appimage
 
 appimage:
-	tar xf dist/$(PACKAGE).tar.xz -C /build
+	tar xf /build/$(PACKAGE).tar.xz -C /build
 	cd /build/$(PACKAGE) && \
 		ln -s /cache .cache && \
-		env MAKEFLAGS='' ./linux/appimage/build.sh -w /source/dist/$(PACKAGE)-py3-none-any.whl -c -j 2 && \
+		python3 setup.py bdist_appimage && \
 		mv dist/*.AppImage ..
 
 .PHONY: makepkg

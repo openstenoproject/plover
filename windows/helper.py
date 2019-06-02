@@ -543,8 +543,8 @@ class Helper:
 class WineHelper(Helper):
 
     DEPENDENCIES = (
-        ('Python', 'https://www.python.org/ftp/python/3.6.7/python-3.6.7-amd64.exe',
-         '4f3bd61c16ef2fbec38bd7ed53f8f4b4f2896c90', None, ('PrependPath=1', '/S'), None),
+        ('Python', 'https://www.python.org/ftp/python/3.6.8/python-3.6.8-amd64.exe',
+         '0c80bc4e3ea98e1415264b29f3290fb7195a8bc3', None, ('PrependPath=1', '/S'), None),
     ) + Helper.DEPENDENCIES
 
     def __init__(self):
