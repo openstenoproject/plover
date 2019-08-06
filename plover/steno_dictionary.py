@@ -223,6 +223,30 @@ class StenoDictionaryCollection:
                         return None
                 return value
 
+    def _lookup_from_all(self, key, dicts=None, filters=()):
+        ''' Key lookup from all dictionaries
+        
+        Returns list of (value, dictionary) tuples
+        '''
+        if dicts is None:
+            dicts = self.dicts
+        key_len = len(key)
+        if key_len > self.longest_key:
+            return None
+        values = []
+        for d in dicts:
+            if not d.enabled:
+                continue
+            if key_len > d.longest_key:
+                continue
+            value = d.get(key)
+            if value:
+                for f in filters:
+                    if f(key, value):
+                        continue
+                values.append((value, d))
+        return values
+
     def __str__(self):
         return 'StenoDictionaryCollection' + repr(tuple(self.dicts))
 
@@ -235,7 +259,14 @@ class StenoDictionaryCollection:
     def raw_lookup(self, key):
         return self._lookup(key)
 
+    def lookup_from_all(self, key):
+        return self._lookup_from_all(key, filters=self.filters)
+
+    def raw_lookup_from_all(self, key):
+        return self._lookup_from_all(key)
+
     def reverse_lookup(self, value):
+        
         keys = set()
         for n, d in enumerate(self.dicts):
             if not d.enabled:
