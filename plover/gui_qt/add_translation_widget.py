@@ -1,7 +1,7 @@
 
 from collections import namedtuple
 from html import escape as html_escape
-from os.path import split as splitpath
+from os.path import split as os_path_split
 
 from PyQt5.QtCore import QEvent
 from PyQt5.QtWidgets import QApplication, QWidget
@@ -237,17 +237,17 @@ class AddTranslationWidget(QWidget, Ui_AddTranslationWidget):
         strokes = self._strokes()
         if strokes:
             translations = self._engine.raw_lookup_from_all(strokes)
-            if translations is not None:
+            if translations:
                 info = self._format_label(_('{strokes} maps to '), (strokes,))
                 for idx, t in enumerate(translations):
                     if idx == 1:
                         info += '<br>It is also mapped to :<br>'
                     (v, d) = t
-                    d_filename = splitpath(resource_filename(d.path))[1]
+                    d_filename = os_path_split(resource_filename(d.path))[1]
                     info += self._format_label(_('<bf>{translation}<bf/> in {filename}<br>'),
                                                None, v, d_filename)
             else:
-                info = self._format_label(_('{strokes} is not in the dictionaries'), strokes)
+                info = self._format_label(_('{strokes} is not in the dictionaries'), (strokes, ))
         else:
             info = ''
         self.strokes_info.setText(info)
