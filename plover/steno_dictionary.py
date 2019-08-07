@@ -223,7 +223,7 @@ class StenoDictionaryCollection:
 
     def _lookup_from_all(self, key, dicts=None, filters=()):
         ''' Key lookup from all dictionaries
-        
+
         Returns list of (value, dictionary) tuples
         '''
         if dicts is None:
@@ -262,7 +262,6 @@ class StenoDictionaryCollection:
         return self._lookup_from_all(key)
 
     def reverse_lookup(self, value):
-        
         keys = set()
         for n, d in enumerate(self.dicts):
             if not d.enabled:

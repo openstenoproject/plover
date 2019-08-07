@@ -460,7 +460,7 @@ class StenoEngine:
     @with_lock
     def raw_lookup_from_all(self, translation):
         return self._dictionaries.raw_lookup_from_all(translation)
-    
+
     @with_lock
     def reverse_lookup(self, translation):
         matches = self._dictionaries.reverse_lookup(translation)
