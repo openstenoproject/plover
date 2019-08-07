@@ -241,7 +241,7 @@ class AddTranslationWidget(QWidget, Ui_AddTranslationWidget):
                 info = self._format_label(_('{strokes} maps to '), (strokes,))
                 for idx, t in enumerate(translations):
                     if idx == 1:
-                        info += '<br>The stroke is also mapped to :<br>'
+                        info += '<br>It is also mapped to :<br>'
                     (v, d) = t
                     d_filename = splitpath(resource_filename(d.path))[1]
                     info += self._format_label(_('<bf>{translation}<bf/> in {filename}<br>'),

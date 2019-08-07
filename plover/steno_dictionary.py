@@ -218,10 +218,8 @@ class StenoDictionaryCollection:
                 continue
             value = d.get(key)
             if value:
-                for f in filters:
-                    if f(key, value):
-                        return None
-                return value
+                if not any(f(key, value) for f in filters):
+                    return value
 
     def _lookup_from_all(self, key, dicts=None, filters=()):
         ''' Key lookup from all dictionaries
@@ -241,10 +239,8 @@ class StenoDictionaryCollection:
                 continue
             value = d.get(key)
             if value:
-                for f in filters:
-                    if f(key, value):
-                        continue
-                values.append((value, d))
+                if not any(f(key, value) for f in filters):
+                    values.append((value, d))
         return values
 
     def __str__(self):
