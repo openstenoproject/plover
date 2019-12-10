@@ -33,16 +33,24 @@ ORTHOGRAPHY_RULES = [
     # == +ly ==
     # artistic + ly = artistically
     (r'^(.*[aeiou]c) \^ ly$', r'\1ally'),
-        
-    # == +ry ==      
+    # humble + ly = humbly (*humblely)
+    # questionable +ly = questionably
+    # triple +ly = triply
+    (r'^(.+[aeioubmnp])le \^ ly$', r'\1ly'),
+
+    # == +ry ==
     # statute + ry = statutory
-    (r'^(.*t)e \^ ry$', r'\1ory'),
-        
-    # == t +cy ==      
+    (r'^(.*t)e \^ (ry|ary)$', r'\1ory'),
+    # confirm +tory = confirmatory (*confirmtory)
+    (r'^(.+)m \^ tor(y|ily)$', r'\1mator\2'),
+    # supervise +ary = supervisory (*supervisary)
+    (r'^(.+)se \^ ar(y|ies)$', r'\1sor\2'),
+
+    # == t +cy ==
     # frequent + cy = frequency (tcy/tecy removal)
     (r'^(.*[naeiou])te? \^ cy$', r'\1cy'),
 
-    # == +s ==
+    # == +s == 
     # establish + s = establishes (sibilant pluralization)
     (r'^(.*(?:s|sh|x|z|zh)) \^ s$', r'\1es'),
     # speech + s = speeches (soft ch pluralization)
@@ -58,11 +66,80 @@ ORTHOGRAPHY_RULES = [
     # beauty + ful = beautiful (y -> i)
     (r'^(.+[bcdfghjklmnpqrstvwxz])y \^ ([a-hj-xz].*)$', r'\1i\2'),
 
-    # == e ==
+    # == +en ==
     # write + en = written
     (r'^(.+)te \^ en$', r'\1tten'),
-    # free + ed = freed 
+    # Minessota +en = Minessotan (*Minessotaen)
+    (r'^(.+[ae]) \^ e(n|ns)$', r'\1\2'),
+
+    # == +ial ==
+    # ceremony +ial = ceremonial (*ceremonyial)
+    (r'^(.+)y \^ (ial|ially)$', r'\1\2'),
+    # edit +torial = editorial (*edittorial)
+    (r'^(.+)tor \^ (ial|ials|ially|iality|ialities)$', r'\1tor\2'),
+
+    # == +if ==
+    # spaghetti +ify = spaghettification (*spaghettiification)
+    (r'^(.+)i \^ if(y|ying|ied|ies|ication|ications)$', r'\1if\2'),
+
+    # == +ical ==
+    # artistic +ly = artistically
+    (r'^(.*[aeiou]c) \^ ly$', r'\1ally'),
+    # fantastic +ical = fantastical (*fantasticcal)
+    (r'^(.+)ic \^ (ical|ically)$', r'\1\2'),
+    # epistomology +ical = epistomological
+    (r'^(.+)ology \^ ic(al|ally)$', r'\1ologic\2'),
+    # oratory +ical = oratorical (*oratoryical)
+    (r'^(.*)ry \^ ica(l|lly|lity)$', r'\1rica\2'),
+
+    # == +ist ==
+    # radical +ist = radicalist (*radicallist)
+    (r'^(.*[l]) \^ is(t|ts)$', r'\1is\2'),
+
+    # == +ity ==
+    # complementary +ity = complementarity (*complementaryity)
+    (r'^(.*)ry \^ ity$', r'\1rity'),
+    # disproportional +ity = disproportionality (*disproportionallity)
+    (r'^(.*)l \^ ity$', r'\1rity'),
+    
+    # == +ive, +tive ==
+    # perform +tive = performative (*performtive)
+    (r'^(.+)rm \^ tiv(e|ity|ities)$', r'\1rmativ\2'),
+    # restore +tive = restorative
+    (r'^(.+)e \^ tiv(e|ity|ities)$', r'\1ativ\2'),
+    
+    # == +ize ==
+    # token +ize = tokenize (*tokennize)
+    # token +ise = tokenise (*tokennise)
+    (r'^(.+)y \^ iz(e|es|ing|ed|er|ers|ation|ations|able|ability)$', r'\1iz\2'),
+    (r'^(.+)y \^ is(e|es|ing|ed|er|ers|ation|ations|able|ability)$', r'\1is\2'),
+    # conditional +ize = conditionalize (*conditionallize)
+    (r'^(.+)al \^ iz(e|ed|es|ing|er|ers|ation|ations|m|ms|able|ability|abilities)$', r'\1aliz\2'),
+    (r'^(.+)al \^ is(e|ed|es|ing|er|ers|ation|ations|m|ms|able|ability|abilities)$', r'\1alis\2'),
+    # spectacular +ization = spectacularization (*spectacularrization)
+    (r'^(.+)ar \^ iz(e|ed|es|ing|er|ers|ation|ations|m|ms)$', r'\1ariz\2'),
+    (r'^(.+)ar \^ is(e|ed|es|ing|er|ers|ation|ations|m|ms)$', r'\1aris\2'),
+
+    # category +ize/+ise = categorize/categorise (*categoryize/*categoryise)
+    # custom +izable/+isable = customizable/customisable (*custommizable/*custommisable)
+    # fantasy +ize
+    (r'^(.*[lmnty]) \^ iz(e|es|ing|ed|er|ers|ation|ations|m|ms|able|ability|abilities)$', r'\1iz\2'),
+    (r'^(.*[lmnty]) \^ is(e|es|ing|ed|er|ers|ation|ations|m|ms|able|ability|abilities)$', r'\1is\2'),
+    
+    # == +olog ==
+    # criminal + ology = criminology
+    # criminol + ologist = criminalologist (*criminallologist)
+    (r'^(.+)al \^ olog(y|ist|ists|ical|ically)$', r'\1olog\2'),
+    # dermatology +ist, +ists = dermatologist, dermatologists
+    (r'^(.+)ology \^ (ist|ists)$', r'\1olog\2'),
+
+    # == +ish ==
+    # similar +ish = similarish (*similarrish)
+    (r'^(.+)(ar|er|or) \^ ish$', r'\1\2ish'),
+
+    # free + ed = freed
     (r'^(.+e)e \^ (e.+)$', r'\1\2'),
+
     # narrate + ing = narrating (silent e)
     (r'^(.+[bcdfghjklmnpqrstuvwxz])e \^ ([aeiouy].*)$', r'\1\2'),
 
@@ -73,166 +150,168 @@ ORTHOGRAPHY_RULES = [
 
 ORTHOGRAPHY_RULES_ALIASES = {
     'able': 'ible',
+    'ably': 'ibly',
+    'ability': 'ibility',
 }
 
 ORTHOGRAPHY_WORDLIST = 'american_english_words.txt'
 
 KEYMAPS = {
     'Gemini PR': {
-        '#'         : ('#1', '#2', '#3', '#4', '#5', '#6', '#7', '#8', '#9', '#A', '#B', '#C'),
-        'S-'        : ('S1-', 'S2-'),
-        'T-'        : 'T-',
-        'K-'        : 'K-',
-        'P-'        : 'P-',
-        'W-'        : 'W-',
-        'H-'        : 'H-',
-        'R-'        : 'R-',
-        'A-'        : 'A-',
-        'O-'        : 'O-',
-        '*'         : ('*1', '*2', '*3', '*4'),
-        '-E'        : '-E',
-        '-U'        : '-U',
-        '-F'        : '-F',
-        '-R'        : '-R',
-        '-P'        : '-P',
-        '-B'        : '-B',
-        '-L'        : '-L',
-        '-G'        : '-G',
-        '-T'        : '-T',
-        '-S'        : '-S',
-        '-D'        : '-D',
-        '-Z'        : '-Z',
-        'no-op'     : ('Fn', 'pwr', 'res1', 'res2'),
+        '#': ('#1', '#2', '#3', '#4', '#5', '#6', '#7', '#8', '#9', '#A', '#B', '#C'),
+        'S-': ('S1-', 'S2-'),
+        'T-': 'T-',
+        'K-': 'K-',
+        'P-': 'P-',
+        'W-': 'W-',
+        'H-': 'H-',
+        'R-': 'R-',
+        'A-': 'A-',
+        'O-': 'O-',
+        '*': ('*1', '*2', '*3', '*4'),
+        '-E': '-E',
+        '-U': '-U',
+        '-F': '-F',
+        '-R': '-R',
+        '-P': '-P',
+        '-B': '-B',
+        '-L': '-L',
+        '-G': '-G',
+        '-T': '-T',
+        '-S': '-S',
+        '-D': '-D',
+        '-Z': '-Z',
+        'no-op': ('Fn', 'pwr', 'res1', 'res2'),
     },
     'Keyboard': {
-        '#'         : ('1', '2', '3', '4', '5', '6', '7', '8', '9', '0', '-', '='),
-        'S-'        : ('a', 'q'),
-        'T-'        : 'w',
-        'K-'        : 's',
-        'P-'        : 'e',
-        'W-'        : 'd',
-        'H-'        : 'r',
-        'R-'        : 'f',
-        'A-'        : 'c',
-        'O-'        : 'v',
-        '*'         : ('t', 'g', 'y', 'h'),
-        '-E'        : 'n',
-        '-U'        : 'm',
-        '-F'        : 'u',
-        '-R'        : 'j',
-        '-P'        : 'i',
-        '-B'        : 'k',
-        '-L'        : 'o',
-        '-G'        : 'l',
-        '-T'        : 'p',
-        '-S'        : ';',
-        '-D'        : '[',
-        '-Z'        : '\'',
+        '#': ('1', '2', '3', '4', '5', '6', '7', '8', '9', '0', '-', '='),
+        'S-': ('a', 'q'),
+        'T-': 'w',
+        'K-': 's',
+        'P-': 'e',
+        'W-': 'd',
+        'H-': 'r',
+        'R-': 'f',
+        'A-': 'c',
+        'O-': 'v',
+        '*': ('t', 'g', 'y', 'h'),
+        '-E': 'n',
+        '-U': 'm',
+        '-F': 'u',
+        '-R': 'j',
+        '-P': 'i',
+        '-B': 'k',
+        '-L': 'o',
+        '-G': 'l',
+        '-T': 'p',
+        '-S': ';',
+        '-D': '[',
+        '-Z': '\'',
         'arpeggiate': 'space',
         # Suppress adjacent keys to prevent miss-strokes.
-        'no-op'     : ('z', 'x', 'b', ',', '.', '/', ']', '\\'),
+        'no-op': ('z', 'x', 'b', ',', '.', '/', ']', '\\'),
     },
     'Passport': {
-        '#'    : '#',
-        'S-'   : ('S', 'C'),
-        'T-'   : 'T',
-        'K-'   : 'K',
-        'P-'   : 'P',
-        'W-'   : 'W',
-        'H-'   : 'H',
-        'R-'   : 'R',
-        'A-'   : 'A',
-        'O-'   : 'O',
-        '*'    : ('~', '*'),
-        '-E'   : 'E',
-        '-U'   : 'U',
-        '-F'   : 'F',
-        '-R'   : 'Q',
-        '-P'   : 'N',
-        '-B'   : 'B',
-        '-L'   : 'L',
-        '-G'   : 'G',
-        '-T'   : 'Y',
-        '-S'   : 'X',
-        '-D'   : 'D',
-        '-Z'   : 'Z',
+        '#': '#',
+        'S-': ('S', 'C'),
+        'T-': 'T',
+        'K-': 'K',
+        'P-': 'P',
+        'W-': 'W',
+        'H-': 'H',
+        'R-': 'R',
+        'A-': 'A',
+        'O-': 'O',
+        '*': ('~', '*'),
+        '-E': 'E',
+        '-U': 'U',
+        '-F': 'F',
+        '-R': 'Q',
+        '-P': 'N',
+        '-B': 'B',
+        '-L': 'L',
+        '-G': 'G',
+        '-T': 'Y',
+        '-S': 'X',
+        '-D': 'D',
+        '-Z': 'Z',
         'no-op': ('!', '^', '+'),
     },
     'Stentura': {
-        '#'    : '#',
-        'S-'   : 'S-',
-        'T-'   : 'T-',
-        'K-'   : 'K-',
-        'P-'   : 'P-',
-        'W-'   : 'W-',
-        'H-'   : 'H-',
-        'R-'   : 'R-',
-        'A-'   : 'A-',
-        'O-'   : 'O-',
-        '*'    : '*',
-        '-E'   : '-E',
-        '-U'   : '-U',
-        '-F'   : '-F',
-        '-R'   : '-R',
-        '-P'   : '-P',
-        '-B'   : '-B',
-        '-L'   : '-L',
-        '-G'   : '-G',
-        '-T'   : '-T',
-        '-S'   : '-S',
-        '-D'   : '-D',
-        '-Z'   : '-Z',
+        '#': '#',
+        'S-': 'S-',
+        'T-': 'T-',
+        'K-': 'K-',
+        'P-': 'P-',
+        'W-': 'W-',
+        'H-': 'H-',
+        'R-': 'R-',
+        'A-': 'A-',
+        'O-': 'O-',
+        '*': '*',
+        '-E': '-E',
+        '-U': '-U',
+        '-F': '-F',
+        '-R': '-R',
+        '-P': '-P',
+        '-B': '-B',
+        '-L': '-L',
+        '-G': '-G',
+        '-T': '-T',
+        '-S': '-S',
+        '-D': '-D',
+        '-Z': '-Z',
         'no-op': '^',
     },
     'TX Bolt': {
-        '#'    : '#',
-        'S-'   : 'S-',
-        'T-'   : 'T-',
-        'K-'   : 'K-',
-        'P-'   : 'P-',
-        'W-'   : 'W-',
-        'H-'   : 'H-',
-        'R-'   : 'R-',
-        'A-'   : 'A-',
-        'O-'   : 'O-',
-        '*'    : '*',
-        '-E'   : '-E',
-        '-U'   : '-U',
-        '-F'   : '-F',
-        '-R'   : '-R',
-        '-P'   : '-P',
-        '-B'   : '-B',
-        '-L'   : '-L',
-        '-G'   : '-G',
-        '-T'   : '-T',
-        '-S'   : '-S',
-        '-D'   : '-D',
-        '-Z'   : '-Z',
+        '#': '#',
+        'S-': 'S-',
+        'T-': 'T-',
+        'K-': 'K-',
+        'P-': 'P-',
+        'W-': 'W-',
+        'H-': 'H-',
+        'R-': 'R-',
+        'A-': 'A-',
+        'O-': 'O-',
+        '*': '*',
+        '-E': '-E',
+        '-U': '-U',
+        '-F': '-F',
+        '-R': '-R',
+        '-P': '-P',
+        '-B': '-B',
+        '-L': '-L',
+        '-G': '-G',
+        '-T': '-T',
+        '-S': '-S',
+        '-D': '-D',
+        '-Z': '-Z',
     },
     'Treal': {
-        '#'    : ('#1', '#2', '#3', '#4', '#5', '#6', '#7', '#8', '#9', '#A', '#B'),
-        'S-'   : ('S1-', 'S2-'),
-        'T-'   : 'T-',
-        'K-'   : 'K-',
-        'P-'   : 'P-',
-        'W-'   : 'W-',
-        'H-'   : 'H-',
-        'R-'   : 'R-',
-        'A-'   : 'A-',
-        'O-'   : 'O-',
-        '*'    : ('*1', '*2'),
-        '-E'   : '-E',
-        '-U'   : '-U',
-        '-F'   : '-F',
-        '-R'   : '-R',
-        '-P'   : '-P',
-        '-B'   : '-B',
-        '-L'   : '-L',
-        '-G'   : '-G',
-        '-T'   : '-T',
-        '-S'   : '-S',
-        '-D'   : '-D',
-        '-Z'   : '-Z',
+        '#': ('#1', '#2', '#3', '#4', '#5', '#6', '#7', '#8', '#9', '#A', '#B'),
+        'S-': ('S1-', 'S2-'),
+        'T-': 'T-',
+        'K-': 'K-',
+        'P-': 'P-',
+        'W-': 'W-',
+        'H-': 'H-',
+        'R-': 'R-',
+        'A-': 'A-',
+        'O-': 'O-',
+        '*': ('*1', '*2'),
+        '-E': '-E',
+        '-U': '-U',
+        '-F': '-F',
+        '-R': '-R',
+        '-P': '-P',
+        '-B': '-B',
+        '-L': '-L',
+        '-G': '-G',
+        '-T': '-T',
+        '-S': '-S',
+        '-D': '-D',
+        '-Z': '-Z',
         'no-op': ('X1-', 'X2-', 'X3'),
     },
 }

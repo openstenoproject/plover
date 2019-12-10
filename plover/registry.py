@@ -5,7 +5,7 @@ import pkg_resources
 
 from plover.oslayer.config import HAS_GUI_QT, PLUGINS_PLATFORM
 from plover import log
-
+from PyQt5.QtWebEngineWidgets import QWebEngineView
 
 class Plugin:
 
