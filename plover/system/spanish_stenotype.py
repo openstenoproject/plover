@@ -32,6 +32,7 @@ UNDO_STROKE_STENO = '*'
 ORTHOGRAPHY_RULES = [
     # == -ando, -iendo +te, +le, +la, etc.
     # == formando +se = formándose
+    # == distinguiéndoselo
     (r'^(.+)ando \^ (le|me|te|la|lo|se)$', r'\1ándo\2'),
     (r'^(.+)iendo \^ (le|me|te|la|lo|se)$', r'\1iéndo\2'),
     
