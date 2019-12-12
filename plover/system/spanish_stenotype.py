@@ -30,28 +30,11 @@ NUMBERS = {
 UNDO_STROKE_STENO = '*'
 
 ORTHOGRAPHY_RULES = [
-    # == +ly ==
-    # artistic + ly = artistically
-    (r'^(.*[aeiou]c) \^ ly$', r'\1ally'),
-    # humble + ly = humbly (*humblely)
-    # questionable +ly = questionably
-    # triple +ly = triply
-    (r'^(.+[aeioubmnp])le \^ ly$', r'\1ly'),
+    # == -ando, -iendo +te, +le, +la, etc.
+    # == formando +se = formándose
+    (r'^(.+)ando \^ (le|me|te|la|lo|se)$', r'\1ándo\2'),
+    (r'^(.+)iendo \^ (le|me|te|la|lo|se)$', r'\1iéndo\2'),
     
-    (r'^(.+)ando \^ (te|le|me)$', r'\1ándo\2'),
-
-    # == +ry ==
-    # statute + ry = statutory
-    (r'^(.*t)e \^ (ry|ary)$', r'\1ory'),
-    # confirm +tory = confirmatory (*confirmtory)
-    (r'^(.+)m \^ tor(y|ily)$', r'\1mator\2'),
-    # supervise +ary = supervisory (*supervisary)
-    (r'^(.+)se \^ ar(y|ies)$', r'\1sor\2'),
-
-    # == t +cy ==
-    # frequent + cy = frequency (tcy/tecy removal)
-    (r'^(.*[naeiou])te? \^ cy$', r'\1cy'),
-
     # == +s == 
     # establish + s = establishes (sibilant pluralization)
     (r'^(.*(?:s|sh|x|z|zh)) \^ s$', r'\1es'),
@@ -83,16 +66,6 @@ ORTHOGRAPHY_RULES = [
     # == +if ==
     # spaghetti +ify = spaghettification (*spaghettiification)
     (r'^(.+)i \^ if(y|ying|ied|ies|ication|ications)$', r'\1if\2'),
-
-    # == +ical ==
-    # artistic +ly = artistically
-    (r'^(.*[aeiou]c) \^ ly$', r'\1ally'),
-    # fantastic +ical = fantastical (*fantasticcal)
-    (r'^(.+)ic \^ (ical|ically)$', r'\1\2'),
-    # epistomology +ical = epistomological
-    (r'^(.+)ology \^ ic(al|ally)$', r'\1ologic\2'),
-    # oratory +ical = oratorical (*oratoryical)
-    (r'^(.*)ry \^ ica(l|lly|lity)$', r'\1rica\2'),
 
     # == +ist ==
     # radical +ist = radicalist (*radicallist)
