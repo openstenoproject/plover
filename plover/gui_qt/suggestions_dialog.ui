@@ -136,7 +136,6 @@
  <slots>
   <slot>on_save()</slot>
   <slot>on_clear()</slot>
-  <slot>on_style_changed()</slot>
   <slot>on_toggle_ontop(bool)</slot>
   <slot>on_select_font()</slot>
  </slots>

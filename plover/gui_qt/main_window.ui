@@ -483,7 +483,6 @@
   <slot>on_quit()</slot>
   <slot>on_toggle_output(bool)</slot>
   <slot>on_about()</slot>
-  <slot>on_show_hide()</slot>
   <slot>on_machine_changed(int)</slot>
   <slot>on_enable_output()</slot>
   <slot>on_disable_output()</slot>
