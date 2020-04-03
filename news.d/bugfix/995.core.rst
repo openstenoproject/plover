@@ -1,0 +1,1 @@
+Fix retrospective insert space macro when the previous translation involved suffix keys.

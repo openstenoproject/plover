@@ -2,6 +2,7 @@
 # and not already automatically included by setuptools.
 include CONTRIBUTING.md
 include LICENSE.txt
+include NEWS.rst
 include application/*
 include archlinux/*
 include debian/*
@@ -11,6 +12,10 @@ include launch.bat
 include launch.sh
 include linux/*
 include linux/appimage/*
+include news.d/api/*
+include news.d/bugfix/*
+include news.d/feature/*
+include news.d/template.rst
 include osx/*
 include osx/app_resources/*
 include osx/dmg_resources/*

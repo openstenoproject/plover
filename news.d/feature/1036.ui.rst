@@ -1,0 +1,1 @@
+Improve the configuration dialog for serial machines: automatically scan available ports and default to the first one.

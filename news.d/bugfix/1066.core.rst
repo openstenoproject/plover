@@ -1,0 +1,1 @@
+Fix lookups by translation: do not ignore lower priority dictionaries when a match is found in a higher priority one.
