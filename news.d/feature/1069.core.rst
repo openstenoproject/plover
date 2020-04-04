@@ -1,0 +1,1 @@
+Ignore case when processing builtin commands / metas.
