@@ -1560,3 +1560,35 @@ class TestsBlackbox:
         registry = Registry()
         registry.register_plugin('macro', 'macro', macro)
         monkeypatch.setattr('plover.translation.registry', registry)
+
+    def test_meta_attach_default(self):
+        r'''
+        'TEFT': 'test',
+        'AT': '{:attach:attach}',
+
+        TEFT/AT/TEFT  ' testattachtest'
+        '''
+
+    def test_meta_attach_infix(self):
+        r'''
+        'TEFT': 'test',
+        'AT': '{:attach:^attach^}',
+
+        TEFT/AT/TEFT  ' testattachtest'
+        '''
+
+    def test_meta_attach_prefix(self):
+        r'''
+        'TEFT': 'test',
+        'AT': '{:attach:attach^}',
+
+        TEFT/AT/TEFT  ' test attachtest'
+        '''
+
+    def test_meta_attach_suffix(self):
+        r'''
+        'TEFT': 'test',
+        'AT': '{:attach:^attach}',
+
+        TEFT/AT/TEFT  ' testattach test'
+        '''

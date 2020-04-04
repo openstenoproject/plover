@@ -14,6 +14,10 @@ def meta_attach(ctx, meta):
     action = ctx.new_action()
     begin = meta.startswith(META_ATTACH_FLAG)
     end = meta.endswith(META_ATTACH_FLAG)
+    if not (begin or end):
+        # If not specified, attach at both ends.
+        meta = META_ATTACH_FLAG + meta + META_ATTACH_FLAG
+        begin = end = True
     if begin:
         meta = meta[len(META_ATTACH_FLAG):]
         action.prev_attach = True
