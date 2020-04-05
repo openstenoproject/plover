@@ -1,0 +1,1 @@
+Fix font selection and monospaced fonts on macOS 10.13+ (Mojave, Catalina)
