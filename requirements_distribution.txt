@@ -6,8 +6,8 @@ plyer==1.2.4; "win32" in sys_platform
 pyobjc-core==5.1.1; "darwin" in sys_platform
 pyobjc-framework-Cocoa==5.1.1; "darwin" in sys_platform
 pyobjc-framework-Quartz==5.1.1; "darwin" in sys_platform
-PyQt5-sip==4.19.13
-PyQt5==5.11.3
+PyQt5-sip==4.19.14
+PyQt5==5.12.3
 pyserial==3.4
 python-xlib==0.23; "linux" in sys_platform
 setuptools==46.1.3
