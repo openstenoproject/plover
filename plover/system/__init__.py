@@ -4,18 +4,23 @@ from io import open
 import os
 import re
 
-from plover.oslayer.config import CONFIG_DIR, ASSETS_DIR
+from plover.oslayer.config import CONFIG_DIR
+from plover.resource import resource_filename
 from plover.registry import registry
 
 
-def _load_wordlist(filename):
+def _load_wordlist(filename, assets_dir):
     if filename is None:
         return {}
     path = None
-    for dir in (CONFIG_DIR, ASSETS_DIR):
-        path = os.path.realpath(os.path.join(dir, filename))
+    for directory in (CONFIG_DIR, assets_dir):
+        if directory is None:
+            continue
+        path = os.path.join(resource_filename(directory), filename)
         if os.path.exists(path):
             break
+    else:
+        return {}
     words = {}
     with open(path, encoding='utf-8') as f:
         pairs = [word.strip().rsplit(' ', 1) for word in f]
@@ -46,7 +51,7 @@ _EXPORTS = {
     'IMPLICIT_HYPHEN_KEYS'     : lambda mod: set(mod.IMPLICIT_HYPHEN_KEYS),
     'IMPLICIT_HYPHENS'         : lambda mod: {l.replace('-', '')
                                               for l in mod.IMPLICIT_HYPHEN_KEYS},
-    'ORTHOGRAPHY_WORDS'        : lambda mod: _load_wordlist(mod.ORTHOGRAPHY_WORDLIST),
+    'ORTHOGRAPHY_WORDS'        : lambda mod: _load_wordlist(mod.ORTHOGRAPHY_WORDLIST, mod.DICTIONARIES_ROOT),
     'ORTHOGRAPHY_RULES'        : lambda mod: [(re.compile(pattern, re.I), replacement)
                                               for pattern, replacement in mod.ORTHOGRAPHY_RULES],
     'ORTHOGRAPHY_RULES_ALIASES': lambda mod: dict(mod.ORTHOGRAPHY_RULES_ALIASES),
