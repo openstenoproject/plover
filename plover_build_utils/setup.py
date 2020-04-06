@@ -103,6 +103,7 @@ class BuildUi(Command):
     hooks = '''
     plover_build_utils.pyqt:fix_icons
     plover_build_utils.pyqt:gettext
+    plover_build_utils.pyqt:no_autoconnection
     '''.split()
 
     def initialize_options(self):
