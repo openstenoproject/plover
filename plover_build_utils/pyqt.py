@@ -20,3 +20,12 @@ def gettext(contents):
         contents
     )
     return contents
+
+def no_autoconnection(contents):
+    # remove calls to ``QtCore.QMetaObject.connectSlotsByName``
+    contents = re.sub(
+        r'\n\s+QtCore\.QMetaObject\.connectSlotsByName\(\w+\)\n',
+        '\n',
+        contents
+    )
+    return contents
