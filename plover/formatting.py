@@ -7,48 +7,29 @@ This module defines and implements plover's custom dictionary language.
 
 """
 
+from enum import Enum
 from os.path import commonprefix
 from collections import namedtuple
 import re
 import string
 
-from plover.orthography import add_suffix
 from plover.registry import registry
 
 
-CASE_CAP_FIRST_WORD = 'cap_first_word'
-CASE_LOWER = 'lower'
-CASE_LOWER_FIRST_CHAR = 'lower_first_char'
-CASE_TITLE = 'title'
-CASE_UPPER = 'upper'
-CASE_UPPER_FIRST_WORD = 'upper_first_word'
+Case = Enum('case', ((c, c.lower()) for c in '''
+                     CAP_FIRST_WORD
+                     LOWER
+                     LOWER_FIRST_CHAR
+                     TITLE
+                     UPPER
+                     UPPER_FIRST_WORD
+                     '''.split()))
 
 SPACE = ' '
+
 META_ATTACH_FLAG = '^'
-META_CAPITALIZE = '-|'
 META_CARRY_CAPITALIZATION = '~|'
-META_COMMAND = 'PLOVER:'
-META_COMMAS = (',', ':', ';')
-META_CUSTOM = ':'
 META_GLUE_FLAG = '&'
-META_KEY_COMBINATION = '#'
-META_LOWER = '>'
-META_MODE = 'MODE:'
-META_RETRO_CAPITALIZE = '*-|'
-META_RETRO_FORMAT = '*('
-META_RETRO_LOWER = '*>'
-META_RETRO_UPPER = '*<'
-META_STOPS = ('.', '!', '?')
-META_UPPER = '<'
-MODE_CAMEL = 'CAMEL'
-MODE_CAPS = 'CAPS'
-MODE_LOWER = 'LOWER'
-MODE_RESET = 'RESET'
-MODE_RESET_CASE = 'RESET_CASE'
-MODE_RESET_SPACE = 'RESET_SPACE'
-MODE_SET_SPACE = 'SET_SPACE:'
-MODE_SNAKE = 'SNAKE'
-MODE_TITLE = 'TITLE'
 
 META_ESCAPE = '\\'
 RE_META_ESCAPE = '\\\\'
@@ -57,7 +38,84 @@ META_END = '}'
 META_ESC_START = META_ESCAPE + META_START
 META_ESC_END = META_ESCAPE + META_END
 
-META_RE = re.compile(r"""(?:%s%s|%s%s|[^%s%s])+ # One or more of anything
+
+def _build_metas_parser(supported_metas):
+
+    match_result_from_lastindex = [None]
+    regex_parts = []
+
+    for pattern, name, param in supported_metas:
+        num_prev_groups = len(match_result_from_lastindex)
+        if isinstance(pattern, tuple):
+            pattern = pattern[0].format(*[
+                '(?:' + re.escape(s) + ')'
+                for s in pattern[1:]
+            ])
+        num_groups = re.compile(pattern).groups
+        if isinstance(name, int):
+            assert num_groups > 0
+            assert 0 <= name < num_groups
+            name += num_prev_groups
+        if isinstance(param, int):
+            assert num_groups > 0
+            assert 0 <= param < num_groups
+            param += num_prev_groups
+        if num_groups == 0:
+            num_groups = 1
+        else:
+            pattern = '?:' + pattern
+        groups = [n + num_prev_groups for n in range(num_groups)]
+        match_result_from_lastindex.extend(((name, param),) * len(groups))
+        regex_parts.append('(' + pattern + ')$')
+
+    regex = re.compile('|'.join(regex_parts), re.DOTALL | re.IGNORECASE)
+
+    def parse(meta):
+        m = regex.match(meta)
+        if m is None:
+            return None, None
+        meta_name, meta_param = match_result_from_lastindex[m.lastindex]
+        if isinstance(meta_name, int):
+            meta_name = m.group(meta_name)
+        if isinstance(meta_param, int):
+            meta_param = m.group(meta_param)
+        return [meta_name, meta_param]
+
+    return parse
+
+# Note: declaration order matters!
+_parse_meta = _build_metas_parser((
+    # Generic {:macro:cmdline} syntax.
+    (r':([^:]+):?(.*)', 0, 1),
+    # Command.
+    (r'PLOVER:(.*)', 'command', 0),
+    # Key combination.
+    (r'#(.*)', 'key_combo', 0),
+    # Punctuation.
+    (r'([,:;])', 'comma', 0),
+    (r'([.!?])', 'stop' , 0),
+    # Case.
+    (r'-\|'  , 'case'      , Case.CAP_FIRST_WORD.value  ),
+    (r'>'    , 'case'      , Case.LOWER_FIRST_CHAR.value),
+    (r'<'    , 'case'      , Case.UPPER_FIRST_WORD.value),
+    (r'\*-\|', 'retro_case', Case.CAP_FIRST_WORD.value  ),
+    (r'\*>'  , 'retro_case', Case.LOWER_FIRST_CHAR.value),
+    (r'\*<'  , 'retro_case', Case.UPPER_FIRST_WORD.value),
+    # Mode.
+    (r'MODE:(.*)', 'mode', 0),
+    # Currency.
+    (r'\*\((.*)\)', 'retro_currency', 0),
+    # Glue.
+    ((r'{0}(.*)', META_GLUE_FLAG), 'glue' , 0),
+    # Carry capitalization.
+    ((r'({0}?{1}.*{0}?)', META_ATTACH_FLAG, META_CARRY_CAPITALIZATION), 'carry_capitalize', 0),
+    # Attach.
+    ((r'({0}.*{0}?)', META_ATTACH_FLAG), 'attach', 0),
+    ((r'(.*{0})', META_ATTACH_FLAG), 'attach', 0),
+))
+
+
+ATOM_RE = re.compile(r"""(?:%s%s|%s%s|[^%s%s])+ # One or more of anything
                                                 # other than unescaped { or }
                                                 #
                                               | # or
@@ -107,8 +165,7 @@ class RetroFormatter:
     def iter_last_actions(self):
         """Iterate over past actions (last first)."""
         for translation in reversed(self.previous_translations):
-            for action in reversed(translation.formatting):
-                yield action
+            yield from reversed(translation.formatting)
 
     def iter_last_fragments(self):
         """Iterate over last text fragments (last first).
@@ -136,8 +193,7 @@ class RetroFormatter:
             if part:
                 # Find out new complete fragments.
                 fragments = self.FRAGMENT_RX.findall(part + current_fragment)
-                for f in reversed(fragments[1:]):
-                    yield f
+                yield from reversed(fragments[1:])
                 current_fragment = fragments[0]
             replace += len(action.prev_replace)
             next_action = action
@@ -221,10 +277,8 @@ class _Context(RetroFormatter):
 
     def iter_last_actions(self):
         """Custom iterator with support for newly translated actions."""
-        for action in reversed(self.translated_actions):
-            yield action
-        for action in super().iter_last_actions():
-            yield action
+        yield from reversed(self.translated_actions)
+        yield from super().iter_last_actions()
 
 
 class Formatter:
@@ -319,7 +373,7 @@ class Formatter:
             if last_action is None:
                 # Initial output.
                 next_attach = self.start_attached or self.spaces_after
-                next_case = CASE_CAP_FIRST_WORD if self.start_capitalized else None
+                next_case = Case.CAP_FIRST_WORD if self.start_capitalized else None
                 last_action = _Action(next_attach=next_attach, next_case=next_case)
             ctx = _Context(previous_translations, last_action)
             for t in do:
@@ -628,7 +682,7 @@ def _translation_to_actions(translation, ctx):
         atoms = [_glue_translation(translation)]
     else:
         atoms = filter(None, (
-            x.strip(' ') for x in META_RE.findall(translation))
+            x.strip(' ') for x in ATOM_RE.findall(translation))
         )
     action_list = []
     for atom in atoms:
@@ -669,6 +723,16 @@ def _raw_to_actions(stroke, ctx):
     return [action]
 
 
+def _meta_to_action(meta, ctx):
+    meta_name, meta_arg = _parse_meta(meta)
+    if meta_name is not None:
+        meta_fn = registry.get_plugin('meta', meta_name).obj
+        action = meta_fn(ctx, meta_arg)
+    else:
+        action = ctx.new_action()
+    return action
+
+
 def _atom_to_action(atom, ctx):
     """Convert an atom into an action.
 
@@ -686,47 +750,11 @@ def _atom_to_action(atom, ctx):
     meta = _get_meta(atom)
     if meta is not None:
         meta = _unescape_atom(meta)
-        if meta in META_COMMAS:
-            action = _apply_meta_comma(meta, ctx)
-        elif meta in META_STOPS:
-            action = _apply_meta_stop(meta, ctx)
-        elif meta == META_CAPITALIZE:
-            action = _apply_meta_case(CASE_CAP_FIRST_WORD, ctx)
-        elif meta == META_LOWER:
-            action = _apply_meta_case(CASE_LOWER_FIRST_CHAR, ctx)
-        elif meta == META_UPPER:
-            action = _apply_meta_case(CASE_UPPER_FIRST_WORD, ctx)
-        elif meta == META_RETRO_CAPITALIZE:
-            action = _apply_meta_retro_case(CASE_CAP_FIRST_WORD, ctx)
-        elif meta == META_RETRO_LOWER:
-            action = _apply_meta_retro_case(CASE_LOWER_FIRST_CHAR, ctx)
-        elif meta == META_RETRO_UPPER:
-            action = _apply_meta_retro_case(CASE_UPPER_FIRST_WORD, ctx)
-        elif (meta.startswith(META_CARRY_CAPITALIZATION) or
-              meta.startswith(META_ATTACH_FLAG + META_CARRY_CAPITALIZATION)):
-            action = _apply_meta_carry_capitalize(meta, ctx)
-        elif meta.startswith(META_RETRO_FORMAT):
-            action = _apply_meta_currency(meta, ctx)
-        elif meta.startswith(META_COMMAND):
-            action = _apply_meta_command(meta, ctx)
-        elif meta.startswith(META_MODE):
-            action = _apply_meta_mode(meta, ctx)
-        elif meta.startswith(META_GLUE_FLAG):
-            action = _apply_meta_glue(meta, ctx)
-        elif (meta.startswith(META_ATTACH_FLAG) or
-              meta.endswith(META_ATTACH_FLAG)):
-            action = _apply_meta_attach(meta, ctx)
-        elif meta.startswith(META_KEY_COMBINATION):
-            action = _apply_meta_combo(meta, ctx)
-        elif meta.startswith(META_CUSTOM):
-            meta_args = meta[1:].split(':', 1)
-            meta_fn = registry.get_plugin('meta', meta_args[0]).obj
-            action = meta_fn(ctx, meta_args[1] if len(meta_args) == 2 else '')
-        else:
-            action = ctx.new_action()
+        action = _meta_to_action(meta, ctx)
     else:
         action = ctx.new_action()
         action.text = _unescape_atom(atom)
+
     # Finalize action's text.
     text = action.text
     if text is not None:
@@ -735,242 +763,67 @@ def _atom_to_action(atom, ctx):
             last_word = None
             if action.glue and ctx.last_action.glue:
                 last_word = ctx.last_action.word
-            action.word = _rightmost_word((last_word or '') + text)
+            action.word = rightmost_word((last_word or '') + text)
         # Apply case.
         case = ctx.last_action.next_case
         if case is None and action.prev_attach and ctx.last_action.upper_carry:
-            case = CASE_UPPER_FIRST_WORD
-        text = _apply_case(text, case)
-        if case == CASE_UPPER_FIRST_WORD:
-            action.upper_carry = not _has_word_boundary(text)
+            case = Case.UPPER_FIRST_WORD
+        text = apply_case(text, case)
+        if case == Case.UPPER_FIRST_WORD:
+            action.upper_carry = not has_word_boundary(text)
         # Apply mode.
-        action.text = _apply_mode(text, action.case, action.space_char,
-                                  action.prev_attach, ctx.last_action)
+        action.text = apply_mode(text, action.case, action.space_char,
+                                 action.prev_attach, ctx.last_action)
         # Update trailing space.
         action.trailing_space = '' if action.next_attach else action.space_char
     return action
 
 
-def _apply_meta_attach(meta, ctx):
-    action = ctx.new_action()
-    begin = meta.startswith(META_ATTACH_FLAG)
-    end = meta.endswith(META_ATTACH_FLAG)
-    if begin:
-        meta = meta[len(META_ATTACH_FLAG):]
-        action.prev_attach = True
-    if end:
-        meta = meta[:-len(META_ATTACH_FLAG)]
-        action.next_attach = True
-    last_word = ctx.last_action.word or ''
-    if not meta:
-        # We use an empty connection to indicate a "break" in the
-        # application of orthography rules. This allows the
-        # stenographer to tell Plover not to auto-correct a word.
-        action.orthography = False
-    elif (
-        last_word and
-        not meta.isspace() and
-        ctx.last_action.orthography and
-        begin and (not end or _has_word_boundary(meta))
-    ):
-        new_word = add_suffix(last_word, meta)
-        common_len = len(commonprefix([last_word, new_word]))
-        replaced = last_word[common_len:]
-        action.prev_replace = ctx.last_text(len(replaced))
-        assert replaced.lower() == action.prev_replace.lower()
-        last_word = last_word[:common_len]
-        meta = new_word[common_len:]
-    action.text = meta
-    if action.prev_attach:
-        action.word = _rightmost_word(last_word + meta)
-    return action
-
-
-def _apply_meta_comma(meta, ctx):
-    action = ctx.new_action()
-    action.text = meta
-    action.prev_attach = True
-    return action
-
-
-def _apply_meta_stop(meta, ctx):
-    action = ctx.new_action()
-    action.prev_attach = True
-    action.text = meta
-    action.next_case = CASE_CAP_FIRST_WORD
-    return action
-
-
-def _apply_meta_case(meta, ctx):
-    action = ctx.copy_last_action()
-    action.next_case = meta
-    return action
-
-
-def _apply_meta_retro_case(meta, ctx):
-    action = ctx.copy_last_action()
-    action.prev_attach = True
-    last_words = ctx.last_words(count=1)
-    if last_words:
-        action.prev_replace = last_words[0]
-        action.text = _apply_case(last_words[0], meta)
-    else:
-        action.text = ''
-    return action
-
-
-def _apply_meta_combo(meta, ctx):
-    action = ctx.copy_last_action()
-    action.combo = meta[len(META_KEY_COMBINATION):]
-    return action
-
-
-def _apply_meta_command(meta, ctx):
-    action = ctx.copy_last_action()
-    action.command = meta[len(META_COMMAND):]
-    return action
-
-
-def _apply_meta_glue(meta, ctx):
-    action = ctx.new_action()
-    action.glue = True
-    action.text = meta[len(META_GLUE_FLAG):]
-    if ctx.last_action.glue:
-        action.prev_attach = True
-    return action
-
-
-def _apply_meta_currency(meta, ctx):
-    action = ctx.copy_last_action()
-    if not meta.endswith(')'):
-        return action
-    dict_format = meta[len(META_RETRO_FORMAT):-len(')')]
-    last_words = ctx.last_words(count=1)
-    if not last_words:
-        return action
-    for cast, fmt in (
-        (float, '{:,.2f}'),
-        (int,   '{:,}'   ),
-    ):
-        try:
-            cast_input = cast(last_words[0])
-        except ValueError:
-            pass
-        else:
-            currency_format = dict_format.replace('c', fmt)
-            action.prev_attach = True
-            action.prev_replace = last_words[0]
-            action.text = currency_format.format(cast_input)
-            action.word = None
-    return action
-
-
-def _apply_meta_carry_capitalize(meta, ctx):
-    # Meta format: ^~|content^ (attach flags are optional)
-    action = ctx.new_action()
-    if ctx.last_action.next_case == CASE_CAP_FIRST_WORD:
-        action.next_case = CASE_CAP_FIRST_WORD
-    begin = meta.startswith(META_ATTACH_FLAG)
-    if begin:
-        meta = meta[len(META_ATTACH_FLAG):]
-        action.prev_attach = True
-    meta = meta[len(META_CARRY_CAPITALIZATION):]
-    end = meta.endswith(META_ATTACH_FLAG)
-    if end:
-        meta = meta[:-len(META_ATTACH_FLAG)]
-        action.next_attach = True
-    if meta or begin or end:
-        action.text = meta
-    return action
-
-
-def _apply_meta_mode(meta, ctx):
-    """
-    command should be:
-        CAPS, LOWER, TITLE, CAMEL, SNAKE, RESET_SPACE,
-            RESET_CASE, SET_SPACE or RESET
-
-        CAPS: UPPERCASE
-        LOWER: lowercase
-        TITLE: Title Case
-        CAMEL: titleCase, no space, initial lowercase
-        SNAKE: Underscore_space
-        RESET_SPACE: Space resets to ' '
-        RESET_CASE: Reset to normal case
-        SET_SPACE:xy: Set space to xy
-        RESET: Reset to normal case, space resets to ' '
-    """
-    action = ctx.copy_last_action()
-    command = meta[len(META_MODE):]
-    if command == MODE_CAPS:
-        action.case = CASE_UPPER
-    elif command == MODE_TITLE:
-        action.case = CASE_TITLE
-    elif command == MODE_LOWER:
-        action.case = CASE_LOWER
-    elif command == MODE_SNAKE:
-        action.space_char = '_'
-    elif command == MODE_CAMEL:
-        action.case = CASE_TITLE
-        action.space_char = ''
-        action.next_case = CASE_LOWER_FIRST_CHAR
-    elif command == MODE_RESET:
-        action.space_char = SPACE
-        action.case = None
-    elif command == MODE_RESET_SPACE:
-        action.space_char = SPACE
-    elif command == MODE_RESET_CASE:
-        action.case = None
-    elif command.startswith(MODE_SET_SPACE):
-        action.space_char = command[len(MODE_SET_SPACE):]
-    return action
-
-
-def _apply_case(text, case):
+def apply_case(text, case):
     if case is None:
         return text
-    if case == CASE_CAP_FIRST_WORD:
-        return _capitalize_first_word(text)
-    if case == CASE_LOWER_FIRST_CHAR:
-        return _lower_first_character(text)
-    if case == CASE_UPPER_FIRST_WORD:
-        return _upper_first_word(text)
-    raise ValueError('invalid case mode: %s' % case)
+    if case == Case.CAP_FIRST_WORD:
+        return capitalize_first_word(text)
+    if case == Case.LOWER_FIRST_CHAR:
+        return lower_first_character(text)
+    if case == Case.UPPER_FIRST_WORD:
+        return upper_first_word(text)
+    raise ValueError('%r is not a valid case' % case)
 
 
-def _apply_mode(text, case, space_char, begin, last_action):
+def apply_mode(text, case, space_char, begin, last_action):
     # Should title case be applied to the beginning of the next string?
     lower_title_case = (begin and not
                         last_action.case in (
-                            CASE_CAP_FIRST_WORD,
-                            CASE_UPPER_FIRST_WORD,
+                            Case.CAP_FIRST_WORD,
+                            Case.UPPER_FIRST_WORD,
                         ))
-    # Apply case, then replace space character
-    text = _apply_mode_case(text, case, lower_title_case)
-    text = _apply_mode_space_char(text, space_char)
-    # Title case is sensitive to lower flag
-    if (last_action.next_case == CASE_LOWER_FIRST_CHAR
-        and text and case == CASE_TITLE):
-        text = _lower_first_character(text)
+    # Apply case, then replace space character.
+    text = apply_mode_case(text, case, lower_title_case)
+    text = apply_mode_space_char(text, space_char)
+    # Title case is sensitive to lower flag.
+    if (last_action.next_case == Case.LOWER_FIRST_CHAR
+        and text and case == Case.TITLE):
+        text = lower_first_character(text)
     return text
 
 
-def _apply_mode_case(text, case, appended):
+def apply_mode_case(text, case, appended):
     if case is None:
         return text
-    if case == CASE_LOWER:
+    if case == Case.LOWER:
         return text.lower()
-    if case == CASE_UPPER:
+    if case == Case.UPPER:
         return text.upper()
-    if case == CASE_TITLE:
+    if case == Case.TITLE:
         # Do nothing to appended output
         if appended:
             return text
-        return _capitalize_all_words(text)
-    raise ValueError('invalid case mode: %s' % case)
+        return capitalize_all_words(text)
+    raise ValueError('%r is not a valid case' % case)
 
 
-def _apply_mode_space_char(text, space_char):
+def apply_mode_space_char(text, space_char):
     if space_char == SPACE:
         return text
     return text.replace(SPACE, space_char)
@@ -997,7 +850,7 @@ def _unescape_atom(atom):
     return atom
 
 
-def _capitalize_first_word(s):
+def capitalize_first_word(s):
     """Capitalize the first letter of s.
 
     - 'foo bar' -> 'Foo bar'
@@ -1006,7 +859,7 @@ def _capitalize_first_word(s):
     return s[0:1].upper() + s[1:]
 
 
-def _capitalize_all_words(s):
+def capitalize_all_words(s):
     """Capitalize each word of s.
 
     - 'foo bar' -> 'Foo Bar'
@@ -1015,17 +868,17 @@ def _capitalize_all_words(s):
     return string.capwords(s, SPACE)
 
 
-def _lower_first_character(s):
+def lower_first_character(s):
     """Lowercase the first letter of s."""
     return s[0:1].lower() + s[1:]
 
 
-def _upper_all_words(s):
+def upper_all_words(s):
     """Uppercase the entire s."""
     return s.upper()
 
 
-def _upper_first_word(s):
+def upper_first_word(s):
     """Uppercase first word of s."""
     m = WORD_RX.match(s)
     if m is None:
@@ -1034,7 +887,7 @@ def _upper_first_word(s):
     return first_word.upper() + s[len(first_word):]
 
 
-def _rightmost_word(s):
+def rightmost_word(s):
     """Get the rightmost word in s."""
     words = WORD_RX.findall(s)
     if not words:
@@ -1045,7 +898,7 @@ def _rightmost_word(s):
     return last_word
 
 
-def _has_word_boundary(s):
+def has_word_boundary(s):
     """Return True if s contains a word boundary
     (e.g.: more than 1 word, or white space).
     """
