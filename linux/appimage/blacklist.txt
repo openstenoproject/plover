@@ -8,21 +8,10 @@
 
 # Python.
 :usr/bin
-  2to3*
-  easy_install*
-  idle*
-  miniterm.py
-  pip*
-  pydoc*
-  python3
-  python3-config
-  python${pyversion}-config
-  python${pyversion}m
-  python${pyversion}m-config
-  pyvenv*
-  wheel
+  !python
+  *
 :usr/lib/python${pyversion}
-  config-${pyversion}m/libpython${pyversion}m.a
+  config-${pyversion}m*/libpython${pyversion}m.a
   ctypes/test
   distutils/command/*.exe
   distutils/tests
@@ -53,19 +42,24 @@
   pyuic5
 :usr/lib/python${pyversion}/site-packages/PyQt5
   **/*Designer*
-  **/*Help*
+  **/*[Hh]elp*
+  **/*[Qq]ml*
+  **/*[Qq]uick*
   **/*Test*
-  Qt/plugins/PyQt5/libpyqt5qmlplugin.so
+  **/*[Ww]ayland*
+  **/*[Ww]eb[Ee]ngine*
+  bindings
   Qt/plugins/egldeviceintegrations
   Qt/plugins/platforms/libqeglfs.so
   Qt/plugins/platforms/libqlinuxfb.so
   Qt/plugins/platforms/libqminimal.so
   Qt/plugins/platforms/libqminimalegl.so
+  Qt/plugins/platforms/libqoffscreen.so
   Qt/plugins/platforms/libqvnc.so
+  Qt/plugins/platforms/libqwebgl.so
+  Qt/plugins/geoservices
   Qt/plugins/sceneparsers
-  Qt/qml
-  Qt/resources/qtwebengine_devtools_resources.pak
-  Qt/translations/qt_help_*
+  Qt/plugins/webview
   pylupdate*
   pyrcc*
   uic

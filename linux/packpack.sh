@@ -32,7 +32,7 @@ REPO='plover/packpack'
 case "$1" in
   appimage)
     OS='appimage'
-    DIST='2'
+    DIST='xenial'
     EXT='AppImage'
     TARGET="appimage"
     ;;
@@ -66,7 +66,7 @@ VERSION="$(./setup.py --version)"
 SDIST="$DIST_DIR/$NAME-$VERSION.tar.xz"
 
 run rm -rf "$BUILD_DIR"
-run mkdir -p "$BUILD_DIR" "$DIST_DIR" .cache
+run mkdir -p "$BUILD_DIR" "$DIST_DIR"
 
 run python setup.py -q sdist --format=xztar --dist-dir "$BUILD_DIR/"
 cmd=(env)
@@ -75,7 +75,7 @@ then
   cmd+=(NO_PULL=1)
 fi
 cmd+=(
-  BUILDDIR="$PWD/$BUILD_DIR" CACHE_DIR="$PWD/.cache"
+  BUILDDIR="$PWD/$BUILD_DIR"
   DOCKER_REPO="$REPO"
   OS="$OS" DIST="$DIST"
   PRODUCT="$NAME" VERSION="$VERSION"
