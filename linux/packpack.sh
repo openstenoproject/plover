@@ -32,7 +32,7 @@ REPO='plover/packpack'
 case "$1" in
   appimage)
     OS='appimage'
-    DIST='2'
+    DIST='xenial'
     EXT='AppImage'
     TARGET="appimage"
     ;;
