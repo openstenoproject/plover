@@ -4,7 +4,7 @@ matrix:
     - os: linux
       language: python
       python: "3.6"
-      dist: trusty
+      dist: xenial
       sudo: required
 
 cache:
