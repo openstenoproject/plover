@@ -6,7 +6,6 @@
 from collections import ChainMap, namedtuple, OrderedDict
 import configparser
 import json
-import os
 import re
 
 from plover.exception import InvalidConfigurationError
