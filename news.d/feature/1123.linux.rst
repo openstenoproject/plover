@@ -1,0 +1,1 @@
+The default configuration directory on Linux is now ``~/.config/plover`` (``~/.local/share/plover`` is still supported for backward compatibility).

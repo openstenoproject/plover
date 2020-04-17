@@ -3,7 +3,6 @@
 # See LICENSE.txt for details.
 
 from distutils import log
-import glob
 import os
 import re
 import shutil

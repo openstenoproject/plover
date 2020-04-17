@@ -180,6 +180,9 @@ class StenoEngine:
                 for option, value in config.items()
                 if value != original_config[option]
             }
+            # Save config if anything changed.
+            if config_update:
+                self._config.save()
         # Update logging.
         log.set_stroke_filename(config['log_file_name'])
         log.enable_stroke_logging(config['enable_stroke_logging'])
@@ -423,8 +426,7 @@ class StenoEngine:
 
     def load_config(self):
         try:
-            with open(self._config.target_file, 'rb') as f:
-                self._config.load(f)
+            self._config.load()
         except Exception:
             log.error('loading configuration failed, resetting to default', exc_info=True)
             self._config.clear()
