@@ -5,3 +5,69 @@ requires = [
 	"setuptools>=38.2.4",
 	"wheel",
 ]
+
+[tool.towncrier]
+package = "plover"
+filename = "NEWS.rst"
+directory = "news.d"
+template = "news.d/template.rst"
+title_format = "v{version} ({project_date})"
+
+[[tool.towncrier.section]]
+path = "feature"
+name = "Features"
+
+[[tool.towncrier.section]]
+path = "bugfix"
+name = "Bugfixes"
+
+[[tool.towncrier.type]]
+directory = "core"
+name = "Core"
+showcontent = true
+
+[[tool.towncrier.type]]
+directory = "dict"
+name = "Dictionaries"
+showcontent = true
+
+[[tool.towncrier.type]]
+directory = "ui"
+name = "User Interface"
+showcontent = true
+
+[[tool.towncrier.type]]
+directory = "linux"
+name = "Linux"
+showcontent = true
+
+[[tool.towncrier.type]]
+directory = "osx"
+name = "macOS"
+showcontent = true
+
+[[tool.towncrier.type]]
+directory = "windows"
+name = "Windows"
+showcontent = true
+
+[[tool.towncrier.section]]
+path = "api"
+name = "API"
+
+[[tool.towncrier.type]]
+directory = "break"
+name = "Breaking Changes"
+showcontent = true
+
+[[tool.towncrier.type]]
+directory = "dnr"
+name = "Deprecations"
+showcontent = true
+
+[[tool.towncrier.type]]
+directory = "new"
+name = "New"
+showcontent = true
+
+# vim: ft=cfg

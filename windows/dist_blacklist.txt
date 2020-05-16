@@ -3,15 +3,18 @@
 # PyQt5.
 :Lib/site-packages/PyQt5
   **/*Designer*
-  **/*Help*
+  **/*[Hh]elp*
   **/*Test*
+  **/*Qml*
+  **/*[Qq]uick*
+  **/*[Ww]eb[Ee]ngine*
+  bindings
   Qt/bin/libeay32.dll
   Qt/bin/ssleay32.dll
   Qt/plugins/platforms/qminimal.dll
+  Qt/plugins/platforms/qoffscreen.dll
+  Qt/plugins/platforms/qwebgl.dll
   Qt/plugins/sceneparsers
-  Qt/qml
-  Qt/resources/qtwebengine_devtools_resources.pak
-  Qt/translations/qt_help_*
   pylupdate*
   pyrcc*
   uic

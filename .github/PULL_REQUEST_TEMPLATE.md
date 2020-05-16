@@ -1,3 +1,12 @@
-<!-- 1. the issues (e.g. Fixes #123) or a description of the problem this PR fixes -->
+<!-- First time contributors: Take a moment to review https://github.com/openstenoproject/plover/blob/master/doc/developer_guide.rst! -->
+<!-- Remove sections if not applicable -->
 
-<!-- 2. Describe what you did, and if this PR has any open questions or requires more testing. -->
+## Summary of changes
+
+<!-- Summary goes here -->
+
+Closes <!-- issue number here -->
+
+### Pull Request Checklist
+- [ ] Changes have tests
+- [ ] News fragment added in news.d. See [documentation](https://github.com/openstenoproject/plover/blob/master/doc/developer_guide.rst#making-a-pull-request) for details

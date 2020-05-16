@@ -85,3 +85,7 @@ workflows:
               ignore: /.*/
             tags:
               only: /.*/
+
+experimental:
+  pipelines: true
+

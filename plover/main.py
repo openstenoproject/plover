@@ -17,8 +17,9 @@ import pkg_resources
 if sys.platform.startswith('darwin'):
     import appnope
 
-from plover.config import CONFIG_DIR, CONFIG_FILE, Config
+from plover.config import Config
 from plover.oslayer import processlock
+from plover.oslayer.config import CONFIG_DIR, CONFIG_FILE
 from plover.registry import registry
 from plover import log
 from plover import __name__ as __software_name__
@@ -36,8 +37,7 @@ def init_config_dir():
 
     # Create a default configuration file if one doesn't already exist.
     if not os.path.exists(CONFIG_FILE):
-        with open(CONFIG_FILE, 'wb') as f:
-            f.close()
+        open(CONFIG_FILE, 'wb').close()
 
 
 def main():
@@ -123,11 +123,8 @@ def main():
             # This must be done after calling init_config_dir, so
             # Plover's configuration directory actually exists.
             log.setup_logfile()
-            config = Config()
-            config.target_file = CONFIG_FILE
+            config = Config(CONFIG_FILE)
             code = gui.main(config)
-            with open(config.target_file, 'wb') as f:
-                config.save(f)
     except processlock.LockNotAcquiredException:
         gui.show_error('Error', 'Another instance of Plover is already running.')
         code = 1

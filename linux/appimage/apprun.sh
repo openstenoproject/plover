@@ -2,10 +2,10 @@
 
 appimage_setenv()
 {
-  export LD_LIBRARY_PATH="${APPDIR}/usr/local/lib:${APPDIR}/usr/lib:${APPDIR}/usr/lib/x86_64-linux-gnu${LD_LIBRARY_PATH+:$LD_LIBRARY_PATH}"
+  export LD_LIBRARY_PATH="${APPDIR}/usr/lib:${LD_LIBRARY_PATH+:$LD_LIBRARY_PATH}"
   export PATH="${APPDIR}/usr/bin:${PATH}"
   # Patch LDFLAGS so installing some Python packages from source can work.
-  export LDFLAGS="-L${APPDIR}/usr/lib/x86_64-linux-gnu -L${APPDIR}/usr/lib"
+  export LDFLAGS="-L${APPDIR}/usr/lib"
 }
 
 appimage_install()
@@ -57,9 +57,14 @@ appimage_uninstall()
   gtk-update-icon-cache -q -f -t "$prefix/share/icons/hicolor"
 }
 
+appimage_python()
+{
+  exec "${APPDIR}/usr/bin/python" "$@"
+}
+
 appimage_launch()
 {
-  exec "${APPDIR}/usr/bin/python" -s -m plover.dist_main "$@"
+  appimage_python -s -m plover.dist_main "$@"
 }
 
 set -e
@@ -77,4 +82,13 @@ appimage_setenv
     ;;
 esac
 
-appimage_launch "$@"
+# Handle custom launcher options.
+case "$1" in
+  --python)
+    shift 1
+    appimage_python "$@"
+    ;;
+  *)
+    appimage_launch "$@"
+    ;;
+esac

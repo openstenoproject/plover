@@ -1,0 +1,6 @@
+A new ``SET_CONFIG`` command can be used to change the configuration with a stroke, e.g.::
+
+        "O*EP": "{PLOVER:SET_CONFIG:'translation_frame_opacity':100}",
+        "TR*PB": "{PLOVER:SET_CONFIG:'translation_frame_opacity':0}",
+
+to change the opacity of the "Add Translation" dialog on the fly.

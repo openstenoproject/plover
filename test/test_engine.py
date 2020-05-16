@@ -80,18 +80,17 @@ def engine(monkeypatch):
     registry.register_plugin('machine', 'Fake', FakeMachine)
     monkeypatch.setattr('plover.config.registry', registry)
     monkeypatch.setattr('plover.engine.registry', registry)
-    cfg = Config()
     kbd = FakeKeyboardEmulation()
     cfg_file = tempfile.NamedTemporaryFile(prefix='plover',
                                            suffix='config',
                                            delete=False)
     try:
-        cfg.target_file = cfg_file.name
+        cfg_file.close()
+        cfg = Config(cfg_file.name)
         cfg['dictionaries'] = []
         cfg['machine_type'] = 'Fake'
         cfg['system_keymap'] = [(k, k) for k in system.KEYS]
-        cfg.save(cfg_file)
-        cfg_file.close()
+        cfg.save()
         yield FakeEngine(cfg, kbd)
     finally:
         os.unlink(cfg_file.name)

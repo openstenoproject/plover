@@ -3,14 +3,19 @@
 
 """Unit tests for config.py."""
 
+from ast import literal_eval
 from contextlib import ExitStack
-from io import BytesIO
+from pathlib import Path
+from site import USER_BASE
+from string import Template
 import inspect
 import json
 import os
+import subprocess
 import sys
 import textwrap
 
+import appdirs
 import pytest
 
 from plover import config
@@ -444,13 +449,6 @@ CONFIG_TESTS = (
 )
 
 
-def make_config(contents=''):
-    return BytesIO(b'\n'.join(line.strip().encode('utf-8')
-                              for line in contents.split('\n')))
-def config_contents(f):
-    return f.getvalue().decode('utf-8').strip()
-
-
 @pytest.mark.parametrize(('original_contents', 'original_config',
                           'config_update', 'validated_config_update',
                           'resulting_contents'),
@@ -458,23 +456,24 @@ def config_contents(f):
                          ids=[t[0] for t in CONFIG_TESTS])
 def test_config(original_contents, original_config,
                 config_update, validated_config_update,
-                resulting_contents, monkeypatch):
+                resulting_contents, monkeypatch, tmpdir):
     registry = Registry()
     registry.register_plugin('machine', 'Keyboard', Keyboard)
     registry.register_plugin('machine', 'Faky faky', FakeMachine)
     registry.register_plugin('system', 'English Stenotype', english_stenotype)
     registry.register_plugin('system', 'Faux système', FakeSystem)
     monkeypatch.setattr('plover.config.registry', registry)
+    config_file = tmpdir / 'config.cfg'
     # Check initial contents.
-    f = make_config(original_contents)
-    cfg = config.Config()
+    config_file.write_text(original_contents, encoding='utf-8')
+    cfg = config.Config(config_file.strpath)
     if inspect.isclass(original_config):
         with pytest.raises(original_config):
-            cfg.load(f)
+            cfg.load()
         original_config = dict(DEFAULTS)
         cfg.clear()
     else:
-        cfg.load(f)
+        cfg.load()
     cfg_dict = cfg.as_dict()
     for name, value in original_config.items():
         assert cfg[name] == value
@@ -498,8 +497,92 @@ def test_config(original_contents, original_config,
                 key, value = validated_config_update
                 cfg_dict[key] = value
         assert cfg.as_dict() == cfg_dict
-    f = make_config()
-    cfg.save(f)
+    config_file.write_text('', encoding='utf-8')
+    cfg.save()
     if resulting_contents is None:
         resulting_contents = original_contents
-    assert config_contents(f) == dedent_strip(resulting_contents)
+    assert config_file.read_text(encoding='utf-8').strip() == dedent_strip(resulting_contents)
+
+
+CONFIG_DIR_TESTS = (
+    # Default to `user_config_dir`.
+    ('''
+     $user_config_dir/foo.cfg
+     $user_data_dir/bar.cfg
+     $cwd/config.cfg
+     ''', '$user_config_dir'),
+    # Use cwd if config file is present, override other directories.
+    ('''
+     $user_config_dir/plover.cfg
+     $user_data_dir/plover.cfg
+     $cwd/plover.cfg
+     ''', '$cwd'),
+    # plover.cfg must be a file.
+    ('''
+     $user_data_dir/plover.cfg
+     $cwd/plover.cfg/config
+     ''', '$user_data_dir'),
+)
+
+if appdirs.user_data_dir() != appdirs.user_config_dir():
+    CONFIG_DIR_TESTS += (
+        # `user_config_dir` take precedence over `user_data_dir`.
+        ('''
+         $user_config_dir/plover.cfg
+         $user_data_dir/plover.cfg
+         $cwd/config.cfg
+         ''', '$user_config_dir'),
+        # But `user_data_dir` is still used when applicable.
+        ('''
+         $user_config_dir/plover.cfg/conf
+         $user_data_dir/plover.cfg
+         $cwd/config.cfg
+         ''', '$user_data_dir'),
+    )
+
+@pytest.mark.parametrize(('tree', 'expected_config_dir'), CONFIG_DIR_TESTS)
+def test_config_dir(tree, expected_config_dir, tmpdir):
+    # Create fake home/cwd directories.
+    home = tmpdir / 'home'
+    home.mkdir()
+    cwd = tmpdir / 'cwd'
+    cwd.mkdir()
+    directories = {
+        'tmpdir': str(tmpdir),
+        'home': str(home),
+        'cwd': str(cwd),
+    }
+    # Setup environment.
+    env = dict(os.environ)
+    env['HOME'] = str(home)
+    env['PYTHONUSERBASE'] = USER_BASE
+    # Helpers.
+    def pyeval(script):
+        return literal_eval(subprocess.check_output(
+            (sys.executable, '-c', script),
+            cwd=str(cwd), env=env).decode())
+    def path_expand(path):
+        return Template(path.replace('/', os.sep)).substitute(**directories)
+    # Find out user_config_dir/user_data_dir locations.
+    directories.update(pyeval(dedent_strip(
+        '''
+        import appdirs, os
+        print(repr({
+            'user_config_dir': appdirs.user_config_dir('plover'),
+            'user_data_dir': appdirs.user_data_dir('plover'),
+        }))
+        ''')))
+    # Create initial tree.
+    for filename_template in dedent_strip(tree).replace('/', os.sep).split('\n'):
+        filename = Path(path_expand(filename_template))
+        filename.parent.mkdir(parents=True, exist_ok=True)
+        filename.write_text('pouet')
+    # Check plover.oslayer.config.CONFIG_DIR is correctly set.
+    config_dir = pyeval(dedent_strip(
+        '''
+        __import__('sys').path.insert(0, %r)
+        from plover.oslayer.config import CONFIG_DIR
+        print(repr(CONFIG_DIR))
+        ''' % str(Path(config.__file__).parent.parent)))
+    expected_config_dir = path_expand(expected_config_dir)
+    assert config_dir == expected_config_dir

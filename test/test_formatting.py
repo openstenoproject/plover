@@ -8,6 +8,7 @@ import inspect
 import pytest
 
 from plover import formatting
+from plover.formatting import Case
 from plover_build_utils.testing import CaptureOutput
 
 from . import parametrize
@@ -111,7 +112,7 @@ FORMATTER_TESTS = (
     lambda:
     ([translation(formatting=[action(text_and_word='test', trailing_space=' ')])],
      [translation(english='rest')],
-     [translation(formatting=[action(next_case=formatting.CASE_CAP_FIRST_WORD, trailing_space=' ')])],
+     [translation(formatting=[action(next_case=Case.CAP_FIRST_WORD, trailing_space=' ')])],
      ([action(text='Rest', word='rest', trailing_space=' ')],),
      [('b', 4), ('s', 'Rest')]),
 
@@ -119,7 +120,7 @@ FORMATTER_TESTS = (
     ([translation(formatting=[action(text_and_word='dare'),
                               action(prev_attach=True, text='ing', word='daring', prev_replace='e')])],
      [translation(english='rest')],
-     [translation(formatting=[action(next_case=formatting.CASE_CAP_FIRST_WORD,
+     [translation(formatting=[action(next_case=Case.CAP_FIRST_WORD,
                                      trailing_space=' ')])],
      ([action(text='Rest', word='rest', trailing_space=' ')],),
      [('b', 6), ('s', 'Rest')]),
@@ -144,6 +145,20 @@ FORMATTER_TESTS = (
      None,
      ([action(command='c'), action(text_and_word='driving', trailing_space=' ')],),
      [('b', 6), ('e', 'c'), ('s', ' driving')]),
+
+    lambda:
+    ([],
+     [translation(english='{PloveR:CMD}')],
+     None,
+     ([action(command='CMD')],),
+     [('e', 'CMD')]),
+
+    lambda:
+    ([],
+     [translation(english='{:coMManD:Cmd}')],
+     None,
+     ([action(command='Cmd')],),
+     [('e', 'Cmd')]),
 
     lambda:
     ([],
@@ -239,72 +254,72 @@ TRANSLATION_TO_ACTIONS_TESTS = (
     lambda:
     ('{^} {.} hello {.} {#ALT_L(Grave)}{^ ^}', action(),
      [action(prev_attach=True, text_and_word='', next_attach=True, orthography=False),
-      action(prev_attach=True, text_and_word='.', trailing_space=' ', next_case=formatting.CASE_CAP_FIRST_WORD),
+      action(prev_attach=True, text_and_word='.', trailing_space=' ', next_case=Case.CAP_FIRST_WORD),
       action(text='Hello', word='hello', trailing_space=' '),
-      action(prev_attach=True, text_and_word='.', trailing_space=' ', next_case=formatting.CASE_CAP_FIRST_WORD),
-      action(word='.', trailing_space=' ', combo='ALT_L(Grave)', next_case=formatting.CASE_CAP_FIRST_WORD),
+      action(prev_attach=True, text_and_word='.', trailing_space=' ', next_case=Case.CAP_FIRST_WORD),
+      action(word='.', trailing_space=' ', combo='ALT_L(Grave)', next_case=Case.CAP_FIRST_WORD),
       action(prev_attach=True, text=' ', word='', next_attach=True)
      ]),
 
     lambda:
     ('{-|}{>}{&a}{>}{&b}', action(),
-     [action(next_case=formatting.CASE_CAP_FIRST_WORD),
-      action(next_case=formatting.CASE_LOWER_FIRST_CHAR),
+     [action(next_case=Case.CAP_FIRST_WORD),
+      action(next_case=Case.LOWER_FIRST_CHAR),
       action(text_and_word='a', trailing_space=' ', glue=True),
-      action(next_case=formatting.CASE_LOWER_FIRST_CHAR, word='a', trailing_space=' ', glue=True),
+      action(next_case=Case.LOWER_FIRST_CHAR, word='a', trailing_space=' ', glue=True),
       action(prev_attach=True, text='b', word='ab', trailing_space=' ', glue=True),
      ]),
 
     lambda:
     ('{-|}{>}{&a}{>}{&b}', action(),
-     [action(next_case=formatting.CASE_CAP_FIRST_WORD),
-      action(next_case=formatting.CASE_LOWER_FIRST_CHAR),
+     [action(next_case=Case.CAP_FIRST_WORD),
+      action(next_case=Case.LOWER_FIRST_CHAR),
       action(text_and_word='a', trailing_space=' ', glue=True),
-      action(next_case=formatting.CASE_LOWER_FIRST_CHAR, word='a', trailing_space=' ', glue=True),
+      action(next_case=Case.LOWER_FIRST_CHAR, word='a', trailing_space=' ', glue=True),
       action(prev_attach=True, text='b', word='ab', trailing_space=' ', glue=True),
      ]),
 
     lambda:
     ('{-|} equip {^s}', action(),
-     [action(next_case=formatting.CASE_CAP_FIRST_WORD),
+     [action(next_case=Case.CAP_FIRST_WORD),
       action(text='Equip', word='equip', trailing_space=' '),
       action(prev_attach=True, text='s', trailing_space=' ', word='equips'),
      ]),
 
     lambda:
     ('{-|} equip {^ed}', action(),
-     [action(next_case=formatting.CASE_CAP_FIRST_WORD),
+     [action(next_case=Case.CAP_FIRST_WORD),
       action(text='Equip', word='equip', trailing_space=' '),
       action(prev_attach=True, text='ped', trailing_space=' ', word='equipped'),
      ]),
 
     lambda:
     ('{>} Equip', action(),
-     [action(next_case=formatting.CASE_LOWER_FIRST_CHAR),
+     [action(next_case=Case.LOWER_FIRST_CHAR),
       action(text='equip', word='Equip', trailing_space=' ')
      ]),
 
     lambda:
     ('{>} equip', action(),
-     [action(next_case=formatting.CASE_LOWER_FIRST_CHAR),
+     [action(next_case=Case.LOWER_FIRST_CHAR),
       action(text_and_word='equip', trailing_space=' ')
      ]),
 
     lambda:
     ('{<} equip', action(),
-     [action(next_case=formatting.CASE_UPPER_FIRST_WORD),
+     [action(next_case=Case.UPPER_FIRST_WORD),
       action(text='EQUIP', word='equip', trailing_space=' ', upper_carry=True)
      ]),
 
     lambda:
     ('{<} EQUIP', action(),
-     [action(next_case=formatting.CASE_UPPER_FIRST_WORD),
+     [action(next_case=Case.UPPER_FIRST_WORD),
       action(text_and_word='EQUIP', trailing_space=' ', upper_carry=True)
      ]),
 
     lambda:
     ('{<} equip {^ed}', action(),
-     [action(next_case=formatting.CASE_UPPER_FIRST_WORD),
+     [action(next_case=Case.UPPER_FIRST_WORD),
       action(text='EQUIP', word='equip', trailing_space=' ', upper_carry=True),
       action(prev_attach=True, text='PED', trailing_space=' ', word='equipped', upper_carry=True)
      ]),
@@ -419,47 +434,47 @@ TRANSLATION_TO_ACTIONS_TESTS = (
 
     lambda:
     ('{-|}{^|~|^}', action(),
-     [action(next_case=formatting.CASE_CAP_FIRST_WORD),
+     [action(next_case=Case.CAP_FIRST_WORD),
       action(prev_attach=True, text_and_word='|~|', next_attach=True),
      ]),
 
     lambda:
     ('{-|}{~|\'^}cause', action(),
-     [action(next_case=formatting.CASE_CAP_FIRST_WORD),
-      action(text_and_word='\'', next_attach=True, next_case=formatting.CASE_CAP_FIRST_WORD),
+     [action(next_case=Case.CAP_FIRST_WORD),
+      action(text_and_word='\'', next_attach=True, next_case=Case.CAP_FIRST_WORD),
       action(prev_attach=True, text='Cause', trailing_space=' ', word='cause'),
      ]),
 
     lambda:
     ('{.}{~|\'^}cuz', action(),
-     [action(prev_attach=True, text_and_word='.', trailing_space=' ', next_case=formatting.CASE_CAP_FIRST_WORD),
-      action(text_and_word='\'', next_attach=True, next_case=formatting.CASE_CAP_FIRST_WORD),
+     [action(prev_attach=True, text_and_word='.', trailing_space=' ', next_case=Case.CAP_FIRST_WORD),
+      action(text_and_word='\'', next_attach=True, next_case=Case.CAP_FIRST_WORD),
       action(prev_attach=True, text='Cuz', trailing_space=' ', word='cuz'),
      ]),
 
     lambda:
     ('{.}{~|\'^}cause', action(),
-     [action(prev_attach=True, text_and_word='.', trailing_space=' ', next_case=formatting.CASE_CAP_FIRST_WORD),
-      action(text_and_word='\'', next_attach=True, next_case=formatting.CASE_CAP_FIRST_WORD),
+     [action(prev_attach=True, text_and_word='.', trailing_space=' ', next_case=Case.CAP_FIRST_WORD),
+      action(text_and_word='\'', next_attach=True, next_case=Case.CAP_FIRST_WORD),
       action(prev_attach=True, text='Cause', trailing_space=' ', word='cause'),
      ]),
 
     lambda:
     ('{.}{^~|\"}heyyo', action(),
-     [action(prev_attach=True, text_and_word='.', trailing_space=' ', next_case=formatting.CASE_CAP_FIRST_WORD),
-      action(prev_attach=True, text_and_word='"', trailing_space=' ', next_case=formatting.CASE_CAP_FIRST_WORD),
+     [action(prev_attach=True, text_and_word='.', trailing_space=' ', next_case=Case.CAP_FIRST_WORD),
+      action(prev_attach=True, text_and_word='"', trailing_space=' ', next_case=Case.CAP_FIRST_WORD),
       action(text='Heyyo', trailing_space=' ', word='heyyo'),
      ]),
 
     lambda:
     ('{.}{^~|^}zshrc', action(),
-     [action(prev_attach=True, text_and_word='.', trailing_space=' ', next_case=formatting.CASE_CAP_FIRST_WORD),
-      action(prev_attach=True, text_and_word='', next_attach=True, next_case=formatting.CASE_CAP_FIRST_WORD),
+     [action(prev_attach=True, text_and_word='.', trailing_space=' ', next_case=Case.CAP_FIRST_WORD),
+      action(prev_attach=True, text_and_word='', next_attach=True, next_case=Case.CAP_FIRST_WORD),
       action(prev_attach=True, text='Zshrc', trailing_space=' ', word='zshrc')]),
 
     lambda:
     ('{.}', action(),
-     [action(prev_attach=True, text_and_word='.', trailing_space=' ', next_case=formatting.CASE_CAP_FIRST_WORD)]
+     [action(prev_attach=True, text_and_word='.', trailing_space=' ', next_case=Case.CAP_FIRST_WORD)]
     ),
 
     lambda:
@@ -580,27 +595,27 @@ ATOM_TO_ACTION_TESTS = (
 
     lambda:
     ('{.}', action(prev_attach=True, word='test', trailing_space=' '),
-     action(prev_attach=True, text_and_word='.', trailing_space=' ', next_case=formatting.CASE_CAP_FIRST_WORD)),
+     action(prev_attach=True, text_and_word='.', trailing_space=' ', next_case=Case.CAP_FIRST_WORD)),
 
     lambda:
     ('{?}', action(text_and_word='test', trailing_space=' '),
-     action(prev_attach=True, text_and_word='?', trailing_space=' ', next_case=formatting.CASE_CAP_FIRST_WORD)),
+     action(prev_attach=True, text_and_word='?', trailing_space=' ', next_case=Case.CAP_FIRST_WORD)),
 
     lambda:
     ('{!}', action(text_and_word='test', trailing_space=' '),
-     action(prev_attach=True, text_and_word='!', trailing_space=' ', next_case=formatting.CASE_CAP_FIRST_WORD)),
+     action(prev_attach=True, text_and_word='!', trailing_space=' ', next_case=Case.CAP_FIRST_WORD)),
 
     lambda:
     ('{-|}', action(text_and_word='test', trailing_space=' '),
-     action(next_case=formatting.CASE_CAP_FIRST_WORD, word='test', trailing_space=' ')),
+     action(next_case=Case.CAP_FIRST_WORD, word='test', trailing_space=' ')),
 
     lambda:
     ('{>}', action(text_and_word='test', trailing_space=' '),
-     action(next_case=formatting.CASE_LOWER_FIRST_CHAR, word='test', trailing_space=' ')),
+     action(next_case=Case.LOWER_FIRST_CHAR, word='test', trailing_space=' ')),
 
     lambda:
     ('{<}', action(text_and_word='test', trailing_space=' '),
-     action(next_case=formatting.CASE_UPPER_FIRST_WORD, word='test', trailing_space=' ')),
+     action(next_case=Case.UPPER_FIRST_WORD, word='test', trailing_space=' ')),
 
     lambda:
     ('{*-|}', action(text_and_word='test', trailing_space=' '),
@@ -660,7 +675,7 @@ ATOM_TO_ACTION_TESTS = (
      action(prev_attach=True, text_and_word='text', trailing_space=' ')),
 
     lambda:
-    ('text', action(text_and_word='test', trailing_space=' ', next_case=formatting.CASE_CAP_FIRST_WORD),
+    ('text', action(text_and_word='test', trailing_space=' ', next_case=Case.CAP_FIRST_WORD),
      action(text='Text', trailing_space=' ', word='text')),
 
     lambda:
@@ -670,19 +685,19 @@ ATOM_TO_ACTION_TESTS = (
     lambda:
     ('some text',
      action(text_and_word='test', trailing_space=' ',
-            case=formatting.CASE_TITLE,
+            case=Case.TITLE,
             space_char=''),
      action(text='SomeText', word='text',
-            case=formatting.CASE_TITLE,
+            case=Case.TITLE,
             space_char='')),
 
     lambda:
     ('some text',
      action(text_and_word='test', trailing_space=' ', # This is camel case
-            case=formatting.CASE_TITLE,
-            space_char='', next_case=formatting.CASE_LOWER_FIRST_CHAR),
+            case=Case.TITLE,
+            space_char='', next_case=Case.LOWER_FIRST_CHAR),
      action(text='someText', word='text',
-            case=formatting.CASE_TITLE,
+            case=Case.TITLE,
             space_char='')),
 
     lambda:
@@ -690,24 +705,24 @@ ATOM_TO_ACTION_TESTS = (
      action(text='some_text', trailing_space='_', word='text', space_char='_')),
 
     lambda:
-    ('some text', action(text_and_word='test', trailing_space=' ', case=formatting.CASE_UPPER),
-     action(text='SOME TEXT', trailing_space=' ', word='text', case=formatting.CASE_UPPER)),
+    ('some text', action(text_and_word='test', trailing_space=' ', case=Case.UPPER),
+     action(text='SOME TEXT', trailing_space=' ', word='text', case=Case.UPPER)),
 
     lambda:
-    ('sOme TexT', action(text_and_word='test', trailing_space=' ', case=formatting.CASE_LOWER),
-     action(text='some text', trailing_space=' ', word='TexT', case=formatting.CASE_LOWER)),
+    ('sOme TexT', action(text_and_word='test', trailing_space=' ', case=Case.LOWER),
+     action(text='some text', trailing_space=' ', word='TexT', case=Case.LOWER)),
 
     lambda:
-    ('sOme TexT', action(text_and_word='test', trailing_space=' ', case=formatting.CASE_TITLE),
-     action(text='Some Text', trailing_space=' ', word='TexT', case=formatting.CASE_TITLE)),
+    ('sOme TexT', action(text_and_word='test', trailing_space=' ', case=Case.TITLE),
+     action(text='Some Text', trailing_space=' ', word='TexT', case=Case.TITLE)),
 
     lambda:
     ('{MODE:CAPS}', action(text_and_word='test', trailing_space=' '),
-     action(word='test', trailing_space=' ', case=formatting.CASE_UPPER)),
+     action(word='test', trailing_space=' ', case=Case.UPPER)),
 
     lambda:
     ('{MODE:LOWER}', action(text_and_word='test', trailing_space=' '),
-     action(word='test', trailing_space=' ', case=formatting.CASE_LOWER)),
+     action(word='test', trailing_space=' ', case=Case.LOWER)),
 
 )
 
@@ -719,30 +734,30 @@ def test_atom_to_action(atom, last_action, expected):
 
 
 CHANGE_MODE_TESTS = (
-    # Undefined
+    # Invalid modes.
     lambda:
     ('', action(),
-     action()),
+     ValueError),
     lambda:
     ('ABCD', action(),
-     action()),
+     ValueError),
     # CAPS: Uppercase
     lambda:
     ('CAPS', action(),
-     action(case=formatting.CASE_UPPER)),
+     action(case=Case.UPPER)),
     # LOWER: Lowercase
     lambda:
     ('LOWER', action(),
-     action(case=formatting.CASE_LOWER)),
+     action(case=Case.LOWER)),
     # TITLE: Titlecase
     lambda:
     ('TITLE', action(),
-     action(case=formatting.CASE_TITLE)),
+     action(case=Case.TITLE)),
     # CAMEL: Titlecase without space
     lambda:
     ('CAMEL', action(),
-     action(case=formatting.CASE_TITLE, space_char='',
-            next_case=formatting.CASE_LOWER_FIRST_CHAR)),
+     action(case=Case.TITLE, space_char='',
+            next_case=Case.LOWER_FIRST_CHAR)),
     # SNAKE: Underscore space
     lambda:
     ('SNAKE', action(),
@@ -753,7 +768,7 @@ CHANGE_MODE_TESTS = (
      action()),
     # RESET_CASE: No case
     lambda:
-    ('RESET_CASE', action(case=formatting.CASE_UPPER),
+    ('RESET_CASE', action(case=Case.UPPER),
      action()),
     # SET_SPACE:xy: Set space to xy
     lambda:
@@ -770,13 +785,18 @@ CHANGE_MODE_TESTS = (
 
 @parametrize(CHANGE_MODE_TESTS)
 def test_meta_mode(meta, last_action, expected):
+    atom = '{MODE:' + meta + '}'
     ctx = formatting._Context((), action())
     ctx.translated(last_action)
-    assert formatting._atom_to_action('{MODE:' + meta + '}', ctx) == expected
+    if inspect.isclass(expected):
+        with pytest.raises(expected):
+            formatting._atom_to_action(atom, ctx)
+    else:
+        assert formatting._atom_to_action(atom, ctx) == expected
 
 
 last_action_normal = action()
-last_action_capitalized = action(next_case=formatting.CASE_CAP_FIRST_WORD)
+last_action_capitalized = action(next_case=Case.CAP_FIRST_WORD)
 last_action_attached = action(next_attach=True)
 
 META_CARRY_CAPITALIZE_TESTS = (
@@ -810,13 +830,13 @@ META_CARRY_CAPITALIZE_TESTS = (
     # Verify capitalize carry.
     lambda:
     ('^~|^', last_action_capitalized,
-     (action(next_case=formatting.CASE_CAP_FIRST_WORD, text_and_word='', prev_attach=True, next_attach=True))),
+     (action(next_case=Case.CAP_FIRST_WORD, text_and_word='', prev_attach=True, next_attach=True))),
     lambda:
     ('^~|aset^', last_action_capitalized,
-     (action(next_case=formatting.CASE_CAP_FIRST_WORD, prev_attach=True, next_attach=True, text='Aset', word='aset'))),
+     (action(next_case=Case.CAP_FIRST_WORD, prev_attach=True, next_attach=True, text='Aset', word='aset'))),
     lambda:
     ('~|aset', last_action_capitalized,
-     (action(next_case=formatting.CASE_CAP_FIRST_WORD, text='Aset', trailing_space=' ', word='aset'))),
+     (action(next_case=Case.CAP_FIRST_WORD, text='Aset', trailing_space=' ', word='aset'))),
 
     # Verify 'next_attach' flag overriding.
     lambda:
@@ -847,27 +867,27 @@ def _apply_case_tests():
         lambda: (test, None, False, test),
         lambda: (test, None, True, test),
         # TITLE
-        lambda: (test, formatting.CASE_TITLE, False, ' Some Test '),
+        lambda: (test, Case.TITLE, False, ' Some Test '),
         # TITLE will not affect appended output
-        lambda: (test, formatting.CASE_TITLE, True, ' some test '),
-        lambda: (test2, formatting.CASE_TITLE, True, 'test Me'),
+        lambda: (test, Case.TITLE, True, ' some test '),
+        lambda: (test2, Case.TITLE, True, 'test Me'),
         # LOWER
-        lambda: (test, formatting.CASE_LOWER, False, ' some test '),
-        lambda: (test3, formatting.CASE_LOWER, False, ' some test '),
-        lambda: (test2, formatting.CASE_LOWER, True, 'test me'),
+        lambda: (test, Case.LOWER, False, ' some test '),
+        lambda: (test3, Case.LOWER, False, ' some test '),
+        lambda: (test2, Case.LOWER, True, 'test me'),
         # UPPER
-        lambda: (test.upper(), formatting.CASE_UPPER, False, ' SOME TEST '),
-        lambda: (test3, formatting.CASE_UPPER, False, ' SOME TEST '),
-        lambda: (test2, formatting.CASE_UPPER, True, 'TEST ME'),
+        lambda: (test.upper(), Case.UPPER, False, ' SOME TEST '),
+        lambda: (test3, Case.UPPER, False, ' SOME TEST '),
+        lambda: (test2, Case.UPPER, True, 'TEST ME'),
     )
 
 @parametrize(_apply_case_tests())
 def test_apply_case(input_text, case, appended, expected):
     if inspect.isclass(expected):
         with pytest.raises(expected):
-            formatting._apply_mode_case(input_text, case, appended)
+            formatting.apply_mode_case(input_text, case, appended)
     else:
-        assert formatting._apply_mode_case(input_text, case, appended) == expected
+        assert formatting.apply_mode_case(input_text, case, appended) == expected
 
 
 def _apply_space_char_tests():
@@ -882,7 +902,7 @@ def _apply_space_char_tests():
 
 @parametrize(_apply_space_char_tests())
 def test_apply_space_char(text, space_char, expected):
-    assert formatting._apply_mode_space_char(text, space_char) == expected
+    assert formatting.apply_mode_space_char(text, space_char) == expected
 
 
 @parametrize((
@@ -919,7 +939,7 @@ def test_unescape_atom(atom, text):
     lambda: ('ABC', 'ABC'),
 ))
 def test_capitalize_first_word(s, expected):
-    assert formatting._capitalize_first_word(s) == expected
+    assert formatting.capitalize_first_word(s) == expected
 
 
 RIGHTMOST_WORD_TESTS = (
@@ -939,7 +959,7 @@ RIGHTMOST_WORD_TESTS = (
 
 @parametrize(RIGHTMOST_WORD_TESTS)
 def test_rightmost_word(s, expected):
-    assert formatting._rightmost_word(s) == expected
+    assert formatting.rightmost_word(s) == expected
 
 
 REPLACE_TESTS = (
@@ -1076,7 +1096,7 @@ class TestRetroFormatter:
         lambda:
         (['Luca', '{-|}', 'mela'],
          [action(text='Mela', trailing_space=' ', word='mela'),
-          action(word='Luca', trailing_space=' ', next_case=formatting.CASE_CAP_FIRST_WORD),
+          action(word='Luca', trailing_space=' ', next_case=Case.CAP_FIRST_WORD),
           action(text_and_word='Luca', trailing_space=' ')]),
 
     )

@@ -20,7 +20,7 @@ import re
 from plover.steno import normalize_steno
 from plover.steno_dictionary import StenoDictionary
 # TODO: Move dictionary format somewhere more canonical than formatting.
-from plover.formatting import META_RE
+from plover.formatting import ATOM_RE
 
 
 # A regular expression to capture an individual entry in the dictionary.
@@ -287,7 +287,7 @@ HEADER = ("{\\rtf1\\ansi{\\*\\cxrev100}\\cxdict{\\*\\cxsystem Plover}" +
           "{\\stylesheet{\\s0 Normal;}}\r\n")
 
 def format_translation(t):
-    t = ' '.join([x.strip() for x in META_RE.findall(t) if x.strip()])
+    t = ' '.join([x.strip() for x in ATOM_RE.findall(t) if x.strip()])
     
     t = re.sub(r'{\.}', r'{\\cxp. }', t)
     t = re.sub(r'{!}', r'{\\cxp! }', t)

@@ -1,0 +1,1 @@
+Fix internationalization of machine types in the configuration dialog.

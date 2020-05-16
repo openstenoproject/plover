@@ -1,0 +1,18 @@
+*      text=auto
+*.bat  text eol=crlf
+*.bmp  binary
+*.cfg  text
+*.icns binary
+*.json text
+*.md   text
+*.png  binary
+*.po   text
+*.psd  binary
+*.py   text
+*.rst  text
+*.sh   text eol=lf
+*.svg  text
+*.toml text
+*.txt  text
+*.ui   text
+*.yml  text
