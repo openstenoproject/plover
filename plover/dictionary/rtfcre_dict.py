@@ -2,7 +2,6 @@
 # See LICENSE.txt for details.
 #
 # TODO: Convert non-ascii characters to UTF8
-# TODO: What does ^ mean in Eclipse?
 # TODO: What does #N mean in Eclipse?
 # TODO: convert supported commands from Eclipse
 
@@ -78,7 +77,17 @@ class TranslationConverter:
     def _re_handle_hardspace(self, m):
         r'\\~'
         return '{^ ^}'
-        
+    
+    # digitalCAT uses ^ as a non-breaking-space
+    def _re_handle_caret_hardspace(self, m):
+        r'\^'
+        return '{^ ^}'
+
+    # to allow literal ^ in translations
+    def _re_handle_literal_caret(self, m):
+        r'\\\^'
+        return '^'
+
     def _re_handle_dash(self, m):
         r'\\_'
         return '-'
@@ -88,15 +97,15 @@ class TranslationConverter:
         return '{#Return}{#Return}'
         
     def _re_handle_infix(self, m):
-        r'\\cxds ([^{}\\]+)\\cxds ?'
+        r'\\cxds ([^{}\\\^]+)\\cxds ?'
         return '{^%s^}' % m.group(1)
         
     def _re_handle_suffix(self, m):
-        r'\\cxds ([^{}\\ ]+)'
+        r'\\cxds ([^{}\\\^ ]+)'
         return '{^%s}' % m.group(1)
 
     def _re_handle_prefix(self, m):
-        r'([^{}\\ ]+)\\cxds ?'
+        r'([^{}\\\^ ]+)\\cxds ?'
         return '{%s^}' % m.group(1)
 
     def _re_handle_commands(self, m):
@@ -193,7 +202,7 @@ class TranslationConverter:
         return result
 
     def _re_handle_text(self, m):
-        r'[^{}\\]+'
+        r'[^{}\\\^]+'
         text = m.group()
         if self._whitespace:
             text = self._multiple_whitespace_pattern.sub(r'{^\1^}', text)

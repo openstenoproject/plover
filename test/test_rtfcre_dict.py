@@ -190,6 +190,9 @@ RTF_LOAD_TESTS = (
     # Stenovations extensions...
     lambda: (r'{\*\cxsvatdictflags N}', '{-|}'),
     lambda: (r'{\*\cxsvatdictflags LN1}', '{-|}'),
+    lambda: (r'\cxds .^', '{^.}{^ ^}'),
+    lambda: (r'\cxds .\^', '{^.}^'),
+    lambda: (r'\^', '^'),
     # caseCATalyst declares new styles without a preceding \par so we treat
     # it as an implicit par.
     lambda: (r'\s1', '{#Return}{#Return}'),
