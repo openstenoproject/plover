@@ -29,11 +29,47 @@ RTF_LOAD_TESTS = (
     ''',
 
     # One translation on multiple lines.
-    lambda: pytest.param('''
+    lambda: '''
     {\\*\\cxs SP}\r\ntranslation
 
     'SP': 'translation'
-    ''', marks=pytest.mark.xfail),
+    ''',
+
+    # Stroke on multiple lines
+    lambda: '''
+    {\\*\\cxs S\nP}translation
+
+    'SP': 'translation'
+    ''',
+
+    # Strokes and translations on multiple lines
+    lambda: '''
+    {\\*\\cxs S\r\nP}tran\r\nsla\r\ntion\r\n{\\*\\cxs S\r\nPT}tran\r\nsla\r\ntion2
+
+    'SP': 'translation',
+    'SPT': 'translation2'
+    ''',
+
+    # One translation followed by a command next line
+    lambda: '''
+    {\\*\\cxs SP}translation\r\n{\\*\\cxsvatdictentrydate\\yr2020\\mo6\\da4}
+
+    'SP': 'translation'
+    ''',
+
+    # One translation followed by a partial command
+    lambda: '''
+    {\\*\\cxs SP}translation\r\n{\\*\\cxsvatdictentrydate\r\n\\yr2020\\mo6\\da4}
+
+    'SP': 'translation'
+    ''',
+
+    # One translation followed by a command with a newline after {
+    lambda: '''
+    {\\*\\cxs SP}translation{\r\n\\*\\cxsvatdictentrydate\r\n\\yr2020\\mo6\\da4}
+
+    'SP': 'translation'
+    ''',
 
     # Multiple translations no newlines.
     lambda: r'''

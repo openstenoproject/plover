@@ -24,10 +24,12 @@ from plover.formatting import ATOM_RE
 
 
 # A regular expression to capture an individual entry in the dictionary.
-DICT_ENTRY_PATTERN = re.compile(r'(?s)(?<!\\){\\\*\\cxs (?P<steno>[^}]+)}' + 
-                                r'(?P<translation>.*?)(?:(?<!\\)(?:\r\n|\n))*?'+
+DICT_ENTRY_PATTERN = re.compile(r'(?s)(?<!\\){\\\*\\cxs (?P<steno>[^}]+)}' +
+                                r'(?P<translation>.*?)' +
+                                # translation group ends on unescaped \cxs
                                 r'(?=(?:(?<!\\){\\\*\\cxs [^}]+})|' +
-                                r'(?:(?:(?<!\\)(?:\r\n|\n)\s*)*}\s*\Z))')
+                                # or when the file ends
+                                r'(?:}\s*\Z))')
 
 class TranslationConverter:
     """Convert an RTF/CRE translation into plover's internal format."""
@@ -86,15 +88,15 @@ class TranslationConverter:
         return '{#Return}{#Return}'
         
     def _re_handle_infix(self, m):
-        r'\\cxds ([^{}\\\r\n]+)\\cxds ?'
+        r'\\cxds ([^{}\\]+)\\cxds ?'
         return '{^%s^}' % m.group(1)
         
     def _re_handle_suffix(self, m):
-        r'\\cxds ([^{}\\\r\n ]+)'
+        r'\\cxds ([^{}\\ ]+)'
         return '{^%s}' % m.group(1)
 
     def _re_handle_prefix(self, m):
-        r'([^{}\\\r\n ]+)\\cxds ?'
+        r'([^{}\\ ]+)\\cxds ?'
         return '{%s^}' % m.group(1)
 
     def _re_handle_commands(self, m):
@@ -191,7 +193,7 @@ class TranslationConverter:
         return result
 
     def _re_handle_text(self, m):
-        r'[^{}\\\r\n]+'
+        r'[^{}\\]+'
         text = m.group()
         if self._whitespace:
             text = self._multiple_whitespace_pattern.sub(r'{^\1^}', text)
@@ -310,11 +312,21 @@ def format_translation(t):
     return t
 
 
+# digitalCAT likes to keep lines a little on the short side
+# so if you have a really long sequence of strokes (or translation!)
+# the RTF/CRE dictionary might have newlines anywhere
+# including in the strokes themselves, the translation or any random command
+# note, this pattern does not include whitespace..
+# which *is* meaningful in the core RTF standard
+UNESCAPED_NEWLINE_PATTERN = re.compile(r'(?:(?<!\\)(?:\r\n|\n))')
+
+
 class RtfDictionary(StenoDictionary):
 
     def _load(self, filename):
         with open(filename, 'rb') as fp:
-            s = fp.read().decode('cp1252')
+            s = UNESCAPED_NEWLINE_PATTERN.sub('', fp.read().decode('cp1252'))
+
         def parse():
             styles = load_stylesheet(s)
             converter = TranslationConverter(styles)
