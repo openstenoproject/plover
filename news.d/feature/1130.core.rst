@@ -1,0 +1,1 @@
+RTF dictionaries now support ^ as a space for digitalCAT

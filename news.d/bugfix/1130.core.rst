@@ -1,0 +1,1 @@
+RTF dictionaries with newlines in odd places now load correctly
