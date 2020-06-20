@@ -1,0 +1,1 @@
+Add config option which allows setting a timeout in milliseconds to be applied between all emulated key presses. This delays key events, providing a workaround for programs which drop or reorder key presses in case of too many events.
