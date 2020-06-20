@@ -18,6 +18,7 @@ import multiprocessing
 import os
 import threading
 import winreg
+from time import sleep;
 
 from ctypes import windll, wintypes
 
@@ -361,6 +362,10 @@ class KeyboardEmulation:
 
     def __init__(self):
         self.keyboard_layout = KeyboardLayout()
+        self._time_between_key_presses = 0
+
+    def set_time_between_key_presses(self, ms):
+        self._time_between_key_presses = ms
 
     # Sends input types to buffer
     @staticmethod
@@ -433,6 +438,8 @@ class KeyboardEmulation:
     def send_backspaces(self, number_of_backspaces):
         for _ in range(number_of_backspaces):
             self._key_press('\x08')
+            if self._time_between_key_presses != 0:
+                sleep(self._time_between_key_presses / 1000)
 
     def send_string(self, s):
         self._refresh_keyboard_layout()
@@ -443,6 +450,8 @@ class KeyboardEmulation:
             else:
                 # Otherwise, we send it as a Unicode string.
                 self._key_unicode(char)
+        if self._time_between_key_presses != 0:
+            sleep(self._time_between_key_presses / 1000)
 
     def send_key_combination(self, combo_string):
         """Emulate a sequence of key combinations.

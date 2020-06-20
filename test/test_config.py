@@ -115,6 +115,7 @@ DEFAULTS = {
     'start_attached': False,
     'start_capitalized': False,
     'undo_levels': config.DEFAULT_UNDO_LEVELS,
+    'time_between_key_presses': config.DEFAULT_TIME_BETWEEN_KEY_PRESSES,
     'log_file_name': expand_path('strokes.log'),
     'enable_stroke_logging': False,
     'enable_translation_logging': False,
@@ -150,18 +151,21 @@ CONFIG_TESTS = (
      start_attached = true
      start_capitalized = yes
      undo_levels = 42
+     time_between_key_presses = 1337
      ''',
      dict_replace(DEFAULTS, {
          'space_placement': 'After Output',
          'start_attached': True,
          'start_capitalized': True,
          'undo_levels': 42,
+         'time_between_key_presses': 1337,
      }),
      {
          'space_placement': 'Before Output',
          'start_attached': False,
          'start_capitalized': False,
          'undo_levels': 200,
+         'time_between_key_presses': 5,
      },
      None,
      '''
@@ -170,6 +174,7 @@ CONFIG_TESTS = (
      start_attached = False
      start_capitalized = False
      undo_levels = 200
+     time_between_key_presses = 5
      ''',
     ),
 
@@ -442,6 +447,16 @@ CONFIG_TESTS = (
      ''',
      DEFAULTS,
      ('undo_levels', -42),
+     config.InvalidConfigOption,
+     '''
+     '''
+    ),
+
+    ('setitem_invalid_2',
+     '''
+     ''',
+     DEFAULTS,
+     ('time_between_key_presses', -1),
      config.InvalidConfigOption,
      '''
      '''

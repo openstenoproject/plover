@@ -306,9 +306,12 @@ class KeyboardEmulation:
 
     def __init__(self):
         self._layout = KeyboardLayout()
+        self._time_between_key_presses = 0
 
-    @staticmethod
-    def send_backspaces(number_of_backspaces):
+    def set_time_between_key_presses(self, ms):
+        self._time_between_key_presses = ms
+
+    def send_backspaces(self, number_of_backspaces):
         for _ in range(number_of_backspaces):
             backspace_down = CGEventCreateKeyboardEvent(
                 OUTPUT_SOURCE, BACK_SPACE, True)
@@ -316,6 +319,8 @@ class KeyboardEmulation:
                 OUTPUT_SOURCE, BACK_SPACE, False)
             CGEventPost(kCGSessionEventTap, backspace_down)
             CGEventPost(kCGSessionEventTap, backspace_up)
+            if self._time_between_key_presses != 0:
+                sleep(self._time_between_key_presses / 1000)
 
     def send_string(self, s):
         """
@@ -379,14 +384,15 @@ class KeyboardEmulation:
             elif press_type is self.RAW_PRESS:
                 self._send_sequence(sequence)
 
-    @staticmethod
-    def _send_string_press(c):
+    def _send_string_press(self, c):
         event = CGEventCreateKeyboardEvent(OUTPUT_SOURCE, 0, True)
         KeyboardEmulation._set_event_string(event, c)
         CGEventPost(kCGSessionEventTap, event)
         event = CGEventCreateKeyboardEvent(OUTPUT_SOURCE, 0, False)
         KeyboardEmulation._set_event_string(event, c)
         CGEventPost(kCGSessionEventTap, event)
+        if self._time_between_key_presses != 0:
+                sleep(self._time_between_key_presses / 1000)
 
     def send_key_combination(self, combo_string):
         """Emulate a sequence of key combinations.
@@ -463,8 +469,7 @@ class KeyboardEmulation:
             -1
         ).CGEvent()
 
-    @staticmethod
-    def _send_sequence(sequence):
+    def _send_sequence(self, sequence):
         # There is a bug in the event system that seems to cause inconsistent
         # modifiers on key events:
         # http://stackoverflow.com/questions/2008126/cgeventpost-possible-bug-when-simulating-keyboard-events
@@ -507,3 +512,5 @@ class KeyboardEmulation:
                     mods_flags &= ~kCGEventFlagMaskSecondaryFn
 
             CGEventPost(kCGSessionEventTap, event)
+            if self._time_between_key_presses != 0:
+                sleep(self._time_between_key_presses / 1000)

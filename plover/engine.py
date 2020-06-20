@@ -192,6 +192,7 @@ class StenoEngine:
         self._formatter.start_attached = config['start_attached']
         self._formatter.start_capitalized = config['start_capitalized']
         self._translator.set_min_undo_length(config['undo_levels'])
+        self._keyboard_emulation.set_time_between_key_presses(config['time_between_key_presses'])
         # Update system.
         system_name = config['system_name']
         if system.NAME != system_name:

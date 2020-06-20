@@ -25,7 +25,7 @@ from PyQt5.QtWidgets import (
     QWidget,
 )
 
-from plover.config import MINIMUM_UNDO_LEVELS
+from plover.config import MINIMUM_UNDO_LEVELS, MINIMUM_TIME_BETWEEN_KEY_PRESSES
 from plover.misc import expand_path, shorten_path
 from plover.registry import registry
 
@@ -332,6 +332,16 @@ class ConfigWindow(QDialog, Ui_ConfigWindow, WindowState):
                                '\n'
                                'Note: the effective value will take into account the\n'
                                'dictionaries entry with the maximum number of strokes.')),
+                ConfigOption(_('Time between key presses (ms)'), 'time_between_key_presses',
+                             partial(IntOption,
+                                     minimum=MINIMUM_TIME_BETWEEN_KEY_PRESSES),
+                             _('Set the timeout between emulated key presses.\n'
+                               '\n'
+                               'Some programs may drop some keys like hitting backspace\n'
+                               'not enough times, leaving some remainder characters.\n'
+                               'Increasing this number helps solve that problem.\n'
+                               'A high number negatively impacts the performance of\n'
+                               'the key stroke output.')),
             )),
             (_('Plugins'), (
                 ConfigOption(_('Extension:'), 'enabled_extensions',
