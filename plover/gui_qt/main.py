@@ -1,4 +1,5 @@
 import signal
+import sys
 
 from PyQt5.QtCore import (
     QCoreApplication,
@@ -80,10 +81,17 @@ def show_error(title, message):
     del app
 
 
+def default_excepthook(*exc_info):
+    log.error('Qt GUI error', exc_info=exc_info)
+
+
 def main(config):
     # Setup internationalization support.
     install_gettext()
     use_qt_notifications = not log.has_platform_handler()
+    # Log GUI exceptions that make it back to the event loop.
+    if sys.excepthook is sys.__excepthook__:
+        sys.excepthook = default_excepthook
     app = Application(config, use_qt_notifications)
     code = app.run()
     del app
