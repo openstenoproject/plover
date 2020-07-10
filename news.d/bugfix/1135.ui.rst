@@ -1,0 +1,1 @@
+Fix crashes due to GUI exceptions reaching the event loop.
