@@ -5,7 +5,7 @@ cmarkgfm==0.4.2
 docutils==0.16
 pip==20.0.2
 pkginfo==1.5.0.1
-plover-plugins-manager==0.5.14
+plover-plugins-manager==0.5.15
 pycparser==2.20
 Pygments==2.6.1
 readme-renderer==25.0
@@ -15,7 +15,7 @@ requests==2.23.0
 webencodings==0.5.1
 wheel==0.34.2
 # plover-treal
-hidapi==0.7.99.post21
+hidapi==0.9.0.post2
 plover-treal==1.0.1
 
 # vim: ft=cfg commentstring=#\ %s list
