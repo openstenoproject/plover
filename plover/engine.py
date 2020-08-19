@@ -321,6 +321,7 @@ class StenoEngine:
 
     def _consume_engine_command(self, command):
         # The first commands can be used whether plover has output enabled or not.
+        original_command = command
         command = command.lower()
         if command == 'resume':
             self._set_output(True)
@@ -347,7 +348,7 @@ class StenoEngine:
         else:
             command_args = command.split(':', 1)
             command_fn = registry.get_plugin('command', command_args[0]).obj
-            command_fn(self, command_args[1] if len(command_args) == 2 else '')
+            command_fn(self, original_command[len(command_args[0])+1:])
         return False
 
     def _on_stroked(self, steno_keys):
