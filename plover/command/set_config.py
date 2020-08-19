@@ -23,6 +23,7 @@ def set_config(engine, cmdline):
 
 def _cmdline_to_dict(cmdline):
     """ Add braces and parse the entire command line as a Python dict literal. """
+    cmdline = cmdline.lower()
     try:
         opt_dict = ast.literal_eval('{'+cmdline+'}')
         assert isinstance(opt_dict, dict)
