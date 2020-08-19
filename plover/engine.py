@@ -347,7 +347,7 @@ class StenoEngine:
             self._trigger_hook('lookup')
         else:
             command_fn = registry.get_plugin('command', command_name).obj
-            command_fn(self, command_args[0] if command_args else "")
+            command_fn(self, command_args[0] if command_args else '')
         return False
 
     def _on_stroked(self, steno_keys):
