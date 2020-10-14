@@ -321,33 +321,33 @@ class StenoEngine:
 
     def _consume_engine_command(self, command):
         # The first commands can be used whether plover has output enabled or not.
-        command = command.lower()
-        if command == 'resume':
+        command_name, *command_args = command.split(':', 1)
+        command_name = command_name.lower()
+        if command_name == 'resume':
             self._set_output(True)
             return True
-        elif command == 'toggle':
+        elif command_name == 'toggle':
             self._toggle_output()
             return True
-        elif command == 'quit':
+        elif command_name == 'quit':
             self.quit()
             return True
         if not self._is_running:
             return False
         # These commands can only be run when plover has output enabled.
-        if command == 'suspend':
+        if command_name == 'suspend':
             self._set_output(False)
-        elif command == 'configure':
+        elif command_name == 'configure':
             self._trigger_hook('configure')
-        elif command == 'focus':
+        elif command_name == 'focus':
             self._trigger_hook('focus')
-        elif command == 'add_translation':
+        elif command_name == 'add_translation':
             self._trigger_hook('add_translation')
-        elif command == 'lookup':
+        elif command_name == 'lookup':
             self._trigger_hook('lookup')
         else:
-            command_args = command.split(':', 1)
-            command_fn = registry.get_plugin('command', command_args[0]).obj
-            command_fn(self, command_args[1] if len(command_args) == 2 else '')
+            command_fn = registry.get_plugin('command', command_name).obj
+            command_fn(self, command_args[0] if command_args else '')
         return False
 
     def _on_stroked(self, steno_keys):
