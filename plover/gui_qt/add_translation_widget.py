@@ -232,7 +232,7 @@ class AddTranslationWidget(QWidget, Ui_AddTranslationWidget):
             index = len(self._dictionaries) - index - 1
         self._selected_dictionary = self._dictionaries[index].path
 
-    def _format_label(self, fmt, strokes, translation = None, filename = None):
+    def _format_label(self, fmt, strokes, translation=None, filename=None):
         if strokes:
             strokes = ', '.join(self._special_fmt % html_escape('/'.join(s))
                                 for s in sort_steno_strokes(strokes))
@@ -240,7 +240,7 @@ class AddTranslationWidget(QWidget, Ui_AddTranslationWidget):
             translation = self._special_fmt_bold % html_escape(escape_translation(translation))
 
         if filename:
-            filename = self._special_fmt % html_escape(filename)
+            filename = html_escape(filename)
 
         return fmt.format(strokes=strokes, translation=translation, filename=filename)
 
@@ -252,16 +252,24 @@ class AddTranslationWidget(QWidget, Ui_AddTranslationWidget):
         if strokes:
             translations = self._engine.raw_lookup_from_all(strokes)
             if translations:
+
                 info = self._format_label(_('{strokes} maps to '), (strokes,))
-                for idx, t in enumerate(translations):
-                    if idx == 1:
-                        info += '<br>It is also mapped to :<br>'
-                    (v, d) = t
-                    d_filename = os_path_split(resource_filename(d.path))[1]
-                    info += self._format_label(_('<bf>{translation}<bf/> in {filename}<br>'),
-                                               None, v, d_filename)
+                entries = [
+                    self._format_label(
+                        ('• ' if i else '') + '<bf>{translation}<bf/>\t({filename})',
+                        None,
+                        translation,
+                        os_path_split(resource_filename(dictionary.path))[1]
+                    ) for i, (translation, dictionary) in enumerate(translations)
+                ]
+                if (len(entries) > 1):
+                    entries.insert(1, _('<br />Overwritten entries:'))
+                info += '<br />'.join(entries)
             else:
-                info = self._format_label(_('{strokes} is not in the dictionaries'), (strokes, ))
+                info = self._format_label(
+                    _('{strokes} is not mapped in any dictionary'),
+                    (strokes, )
+                )
         else:
             info = ''
         self.strokes_info.setText(info)
