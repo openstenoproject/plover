@@ -457,6 +457,14 @@ class StenoEngine:
         return self._dictionaries.raw_lookup(translation)
 
     @with_lock
+    def lookup_from_all(self, translation):
+        return self._dictionaries.lookup_from_all(translation)
+
+    @with_lock
+    def raw_lookup_from_all(self, translation):
+        return self._dictionaries.raw_lookup_from_all(translation)
+
+    @with_lock
     def reverse_lookup(self, translation):
         matches = self._dictionaries.reverse_lookup(translation)
         return [] if matches is None else matches

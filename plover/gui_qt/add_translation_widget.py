@@ -1,8 +1,9 @@
 
 from collections import namedtuple
 from html import escape as html_escape
+from os.path import split as os_path_split
 
-from PyQt5.QtCore import QEvent
+from PyQt5.QtCore import QEvent, QTimer
 from PyQt5.QtWidgets import QApplication, QWidget
 
 from plover.misc import shorten_path
@@ -10,6 +11,7 @@ from plover.steno import normalize_steno, sort_steno_strokes
 from plover.engine import StartingStrokeState
 from plover.translation import escape_translation, unescape_translation
 from plover.formatting import RetroFormatter
+from plover.resource import resource_filename
 
 from plover.gui_qt.add_translation_widget_ui import Ui_AddTranslationWidget
 from plover.gui_qt.i18n import get_gettext
@@ -43,8 +45,27 @@ class AddTranslationWidget(QWidget, Ui_AddTranslationWidget):
             '">%s</span>'
         )
 
+        self._special_fmt_bold = (
+            '<span style="' +
+            'background-color:' + self.palette().base().color().name() +';' +
+            'font-family:monospace;' +
+            'font-weight:bold;' +
+            '">%s</span>'
+        )
+
         self.strokes.installEventFilter(self)
         self.translation.installEventFilter(self)
+
+        # Prevent unnecessary lookups during user input by debouncing.
+        def get_debounce_timer(fn):
+            debounce_timer = QTimer()
+            debounce_timer.setInterval(50)
+            debounce_timer.setSingleShot(True)
+            debounce_timer.timeout.connect(fn)
+            return debounce_timer
+
+        self.stroke_debounce = get_debounce_timer(self._update_strokes)
+        self.translation_debounce = get_debounce_timer(self._update_translation)
 
         with engine:
 
@@ -211,28 +232,51 @@ class AddTranslationWidget(QWidget, Ui_AddTranslationWidget):
             index = len(self._dictionaries) - index - 1
         self._selected_dictionary = self._dictionaries[index].path
 
-    def _format_label(self, fmt, strokes, translation):
+    def _format_label(self, fmt, strokes, translation=None, filename=None):
         if strokes:
             strokes = ', '.join(self._special_fmt % html_escape('/'.join(s))
                                 for s in sort_steno_strokes(strokes))
         if translation:
-            translation = self._special_fmt % html_escape(escape_translation(translation))
-        return fmt.format(strokes=strokes, translation=translation)
+            translation = self._special_fmt_bold % html_escape(escape_translation(translation))
+
+        if filename:
+            filename = html_escape(filename)
+
+        return fmt.format(strokes=strokes, translation=translation, filename=filename)
 
     def on_strokes_edited(self):
+        self.stroke_debounce.start()
+
+    def _update_strokes(self):
         strokes = self._strokes()
         if strokes:
-            translation = self._engine.raw_lookup(strokes)
-            if translation is not None:
-                fmt = _('{strokes} maps to {translation}')
+            translations = self._engine.raw_lookup_from_all(strokes)
+            if translations:
+                info = self._format_label(_('{strokes} maps to '), (strokes,))
+                entries = [
+                    self._format_label(
+                        ('• ' if i else '') + '<bf>{translation}<bf/>\t({filename})',
+                        None,
+                        translation,
+                        os_path_split(resource_filename(dictionary.path))[1]
+                    ) for i, (translation, dictionary) in enumerate(translations)
+                ]
+                if (len(entries) > 1):
+                    entries.insert(1, _('<br />Overwritten entries:'))
+                info += '<br />'.join(entries)
             else:
-                fmt = _('{strokes} is not in the dictionary')
-            info = self._format_label(fmt, (strokes,), translation)
+                info = self._format_label(
+                    _('{strokes} is not mapped in any dictionary'),
+                    (strokes, )
+                )
         else:
             info = ''
         self.strokes_info.setText(info)
 
     def on_translation_edited(self):
+        self.translation_debounce.start()
+
+    def _update_translation(self):
         translation = self._translation()
         if translation:
             strokes = self._engine.reverse_lookup(translation)
