@@ -252,7 +252,6 @@ class AddTranslationWidget(QWidget, Ui_AddTranslationWidget):
         if strokes:
             translations = self._engine.raw_lookup_from_all(strokes)
             if translations:
-
                 info = self._format_label(_('{strokes} maps to '), (strokes,))
                 entries = [
                     self._format_label(
