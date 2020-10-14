@@ -1,5 +1,8 @@
 
+from contextlib import contextmanager
+from tempfile import NamedTemporaryFile
 import os
+import shutil
 
 import pkg_resources
 
@@ -25,3 +28,18 @@ def resource_filename(resource_name):
 def resource_timestamp(resource_name):
     filename = resource_filename(resource_name)
     return os.path.getmtime(filename)
+
+@contextmanager
+def resource_update(resource_name):
+    filename = resource_filename(resource_name)
+    directory = os.path.dirname(filename)
+    extension = os.path.splitext(filename)[1]
+    tempfile = NamedTemporaryFile(delete=False, dir=directory,
+                                  suffix=extension or None)
+    try:
+        tempfile.close()
+        yield tempfile.name
+        shutil.move(tempfile.name, filename)
+    finally:
+        if os.path.exists(tempfile.name):
+            os.unlink(tempfile.name)

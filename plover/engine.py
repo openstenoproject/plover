@@ -180,6 +180,9 @@ class StenoEngine:
                 for option, value in config.items()
                 if value != original_config[option]
             }
+            # Save config if anything changed.
+            if config_update:
+                self._config.save()
         # Update logging.
         log.set_stroke_filename(config['log_file_name'])
         log.enable_stroke_logging(config['enable_stroke_logging'])
@@ -318,27 +321,28 @@ class StenoEngine:
 
     def _consume_engine_command(self, command):
         # The first commands can be used whether plover has output enabled or not.
-        if command == 'RESUME':
+        command = command.lower()
+        if command == 'resume':
             self._set_output(True)
             return True
-        elif command == 'TOGGLE':
+        elif command == 'toggle':
             self._toggle_output()
             return True
-        elif command == 'QUIT':
+        elif command == 'quit':
             self.quit()
             return True
         if not self._is_running:
             return False
         # These commands can only be run when plover has output enabled.
-        if command == 'SUSPEND':
+        if command == 'suspend':
             self._set_output(False)
-        elif command == 'CONFIGURE':
+        elif command == 'configure':
             self._trigger_hook('configure')
-        elif command == 'FOCUS':
+        elif command == 'focus':
             self._trigger_hook('focus')
-        elif command == 'ADD_TRANSLATION':
+        elif command == 'add_translation':
             self._trigger_hook('add_translation')
-        elif command == 'LOOKUP':
+        elif command == 'lookup':
             self._trigger_hook('lookup')
         else:
             command_args = command.split(':', 1)
@@ -422,8 +426,7 @@ class StenoEngine:
 
     def load_config(self):
         try:
-            with open(self._config.target_file, 'rb') as f:
-                self._config.load(f)
+            self._config.load()
         except Exception:
             log.error('loading configuration failed, resetting to default', exc_info=True)
             self._config.clear()

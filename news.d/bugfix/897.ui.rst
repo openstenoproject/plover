@@ -1,0 +1,1 @@
+Fix a possible crash on close when opening a read-only dictionary in the editor.

@@ -1,0 +1,1 @@
+Be more restrictive with macro names: only accept valid identifier, so for example ``==`` is not handled like a macro anymore.

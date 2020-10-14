@@ -1,0 +1,1 @@
+``StenoDictionaryCollection.casereverse_lookup`` now returns a ``set`` (instead of a ``list``).

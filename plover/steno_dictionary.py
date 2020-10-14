@@ -9,9 +9,8 @@ A steno dictionary maps sequences of steno strokes to translations.
 
 import collections
 import os
-import shutil
 
-from plover.resource import ASSET_SCHEME, resource_filename, resource_timestamp
+from plover.resource import ASSET_SCHEME, resource_filename, resource_timestamp, resource_update
 
 
 class StenoDictionary:
@@ -72,15 +71,9 @@ class StenoDictionary:
 
     def save(self):
         assert not self.readonly
-        filename = resource_filename(self.path)
-        # Write the new file to a temp location.
-        tmp = filename + '.tmp'
-        self._save(tmp)
-        timestamp = resource_timestamp(tmp)
-        # Then move the new file to the final location.
-        shutil.move(tmp, filename)
-        # And update our timestamp.
-        self.timestamp = timestamp
+        with resource_update(self.path) as temp_path:
+            self._save(temp_path)
+        self.timestamp = resource_timestamp(self.path)
 
     def _load(self, filename):
         raise NotImplementedError()

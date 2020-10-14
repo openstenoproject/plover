@@ -4,22 +4,17 @@
 """Configuration management."""
 
 from collections import ChainMap, namedtuple, OrderedDict
-import codecs
 import configparser
 import json
-import os
 import re
 
 from plover.exception import InvalidConfigurationError
 from plover.machine.keymap import Keymap
 from plover.registry import registry
-from plover.oslayer.config import CONFIG_DIR
+from plover.resource import resource_update
 from plover.misc import boolean, expand_path, shorten_path
 from plover import log
 
-
-# Config path.
-CONFIG_FILE = os.path.join(CONFIG_DIR, 'plover.cfg')
 
 # General configuration sections, options and defaults.
 MACHINE_CONFIG_SECTION = 'Machine Configuration'
@@ -297,28 +292,29 @@ def dictionaries_option():
 
 class Config:
 
-    def __init__(self):
+    def __init__(self, path=None):
         self._config = None
         self._cache = {}
         # A convenient place for other code to store a file name.
-        self.target_file = None
+        self.path = path
         self.clear()
 
-    def load(self, fp):
+    def load(self):
         self.clear()
-        reader = codecs.getreader('utf8')(fp)
-        try:
-            self._config.read_file(reader)
-        except configparser.Error as e:
-            raise InvalidConfigurationError(str(e))
+        with open(self.path, encoding='utf-8') as fp:
+            try:
+                self._config.read_file(fp)
+            except configparser.Error as e:
+                raise InvalidConfigurationError(str(e))
 
     def clear(self):
         self._config = configparser.RawConfigParser()
         self._cache.clear()
 
-    def save(self, fp):
-        writer = codecs.getwriter('utf8')(fp)
-        self._config.write(writer)
+    def save(self):
+        with resource_update(self.path) as temp_path:
+            with open(temp_path, mode='w', encoding='utf-8') as fp:
+                self._config.write(fp)
 
     def _set(self, section, option, value):
         if not self._config.has_section(section):

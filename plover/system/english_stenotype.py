@@ -73,6 +73,7 @@ ORTHOGRAPHY_RULES = [
 
 ORTHOGRAPHY_RULES_ALIASES = {
     'able': 'ible',
+    'ability': 'ibility',
 }
 
 ORTHOGRAPHY_WORDLIST = 'american_english_words.txt'

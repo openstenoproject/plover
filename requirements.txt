@@ -1,14 +1,14 @@
-Babel==2.6.0
-check-manifest==0.37
-Cython==0.29
-https://github.com/benoit-pierre/dmgbuild/archive/plover.zip; "darwin" in sys_platform
-macholib==1.11; "darwin" in sys_platform
-pip==18.1
-pytest==3.10.0
-readme-renderer[md]==24.0
-setuptools-scm==3.1.0
-twine==1.12.1
-wheel==0.32.2
+Babel==2.7.0
+check-manifest==0.41
+Cython==0.29.16
+dmgbuild==1.3.3; "darwin" in sys_platform
+macholib==1.14; "darwin" in sys_platform
+pip==20.0.2
+pytest==5.4.1
+readme-renderer[md]==25.0
+setuptools-scm==3.5.0
+twine==1.15.0
+wheel==0.34.2
 -r requirements_distribution.txt
 
 # vim: ft=cfg commentstring=#\ %s list
