@@ -1,7 +1,6 @@
 # Copyright (c) 2013 Hesky Fisher
 # See LICENSE.txt for details.
 
-import io
 import json
 from collections import defaultdict
 
@@ -18,14 +17,11 @@ DICT_PATH = 'plover/assets/'
 
 def test_no_duplicates_categorized_files():
     d = defaultdict(list)
-    dictionary = None
-    def read_key_pairs(pairs):
+    for dictionary in DICT_NAMES:
+        with open(DICT_PATH + dictionary, encoding='utf-8') as fp:
+            pairs = json.load(fp, object_pairs_hook=lambda x: x)
         for key, value in pairs:
             d[key].append((value, dictionary))
-        return d
-    for dictionary in map(lambda x: DICT_PATH + x, DICT_NAMES):
-        with io.open(dictionary, encoding='utf-8') as fp:
-            json.load(fp, object_pairs_hook=read_key_pairs)
     msg_list = []
     has_duplicate = False
     for key, value_list in d.items():
@@ -40,6 +36,9 @@ def test_no_duplicates_categorized_files():
 
 @pytest.mark.parametrize('dictionary', DICT_NAMES)
 def test_entries_are_valid(dictionary):
-    with io.open(DICT_PATH + dictionary, encoding='utf-8') as fp:
-        for k, v in json.load(fp).items():
-            [steno_to_stroke(s) for s in k.split('/')]
+    all_strokes = []
+    with open(DICT_PATH + dictionary, encoding='utf-8') as fp:
+        for k in json.load(fp):
+            all_strokes += k.split('/')
+    for s in set(all_strokes):
+        steno_to_stroke(s)
