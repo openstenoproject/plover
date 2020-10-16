@@ -380,7 +380,7 @@ class DictionariesWidget(QWidget, Ui_DictionariesWidget):
     def on_save_as(self, row):
         dictionary_path = self._config_dictionaries[row].path
         new_filename = QFileDialog.getSaveFileName(
-            self, _('Save dictionary as'), dictionary_path,
+            self, _('Save a Copy As...'), dictionary_path,
             _dictionary_filters(include_readonly=False),
         )[0]
         if not new_filename:
