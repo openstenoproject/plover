@@ -76,8 +76,9 @@ bootstrap_dist "$plover_wheel"
 # Make launcher
 plover_executable=MacOS/Plover
 launcher_file="$app_dir/Contents/$plover_executable"
-sed "s/pythonexecutable/$target_python/g" "$osx_dir/app_resources/plover_launcher.sh" >"$launcher_file"
-chmod +x "$launcher_file"
+sed "s/pythonexecutable/$target_python/g" "$osx_dir/app_resources/plover_launcher.c" > "$launcher_file.c"
+gcc "$launcher_file.c" -o "$launcher_file"
+rm "$launcher_file.c"
 
 # Copy icon
 cp "$osx_dir/app_resources/plover.icns" "$app_dir/Contents/Resources/plover.icns"
@@ -98,9 +99,11 @@ cp "$osx_dir/app_resources/plover.icns" "$app_dir/Contents/Resources/plover.icns
 /usr/libexec/PlistBuddy -c 'Add :CFBundleInfoDictionaryVersion string "6.0"' "$app_dir/Contents/Info.plist"
 year=$(date '+%Y')
 copyright="© $year, Open Steno Project"
+/usr/libexec/PlistBuddy -c 'Add :NSAppleEventsUsageDescription string "Plover needs to control system events in order to raise and lower dialogs over other windows."' "$app_dir/Contents/Info.plist"
 /usr/libexec/PlistBuddy -c "Add :NSHumanReadableCopyright string \"$copyright\"" "$app_dir/Contents/Info.plist"
 /usr/libexec/PlistBuddy -c 'Add :NSPrincipalClass string "NSApplication"' "$app_dir/Contents/Info.plist"
 /usr/libexec/PlistBuddy -c 'Add :NSAppSleepDisabled bool true' "$app_dir/Contents/Info.plist"
+
 
 # Remove broken symlinks
 rm "$target_dir/Python.framework/Headers"
