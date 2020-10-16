@@ -6,7 +6,11 @@ You need Python 3.6 installed with pip support.
 
 For installing all the required dependencies, you can use:
 
-`pip3 install --user -r requirements.txt`
+`python -m pip install -r requirements.txt`
+
+To install the standard plugins, you can use:
+
+`python -m pip install --user -e . -r requirements_plugins.txt`
 
 ## Development helpers
 

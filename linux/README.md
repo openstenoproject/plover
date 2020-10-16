@@ -6,7 +6,7 @@ You need Python 3.6 installed with pip support.
 
 Some of the dependencies cannot be installed with pip:
 
-* system libraries needed to build python-hidapi and dbus-python
+* system libraries are needed to build `python-hidapi` and `dbus-python`
 
 For the other dependencies, you can use:
 
