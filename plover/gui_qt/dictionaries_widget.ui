@@ -33,7 +33,7 @@
     <number>0</number>
    </property>
    <item>
-    <widget class="QTableWidget" name="table">
+    <widget class="DictionariesTable" name="table">
      <property name="frameShape">
       <enum>QFrame::Box</enum>
      </property>
@@ -173,6 +173,13 @@
   </action>
  </widget>
  <layoutdefault spacing="5" margin="8"/>
+ <customwidgets>
+  <customwidget>
+   <class>DictionariesTable</class>
+   <extends>QTableWidget</extends>
+   <header>plover.gui_qt.dictionaries_table</header>
+  </customwidget>
+ </customwidgets>
  <resources>
   <include location="resources/resources.qrc"/>
  </resources>
