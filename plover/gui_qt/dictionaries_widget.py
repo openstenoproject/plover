@@ -377,7 +377,7 @@ class DictionariesWidget(QWidget, Ui_DictionariesWidget):
         self._update_dictionaries(dictionaries, keep_selection=False,
                                   loaded_dictionaries=self._loaded_dictionaries)
 
-    def on_save_as(self, row: int) -> None:
+    def on_save_as(self, row):
         new_filename = QFileDialog.getSaveFileName(
             self, _('Save dictionary as'), None,
             _dictionary_filters(include_readonly=False),

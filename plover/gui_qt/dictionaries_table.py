@@ -1,7 +1,7 @@
 from PyQt5.QtWidgets import QWidget, QMenu, QAction, QTableWidget
 
 class DictionariesTable(QTableWidget):
-    def contextMenuEvent(self, event: "QContextMenuEvent"):
+    def contextMenuEvent(self, event):
         menu = QMenu(self)
         saveAsAction = QAction("Save as...", self)
         row = self.rowAt(event.y())
