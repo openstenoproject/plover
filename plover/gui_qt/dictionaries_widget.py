@@ -378,8 +378,9 @@ class DictionariesWidget(QWidget, Ui_DictionariesWidget):
                                   loaded_dictionaries=self._loaded_dictionaries)
 
     def on_save_as(self, row):
+        dictionary_path = self._config_dictionaries[row].path
         new_filename = QFileDialog.getSaveFileName(
-            self, _('Save dictionary as'), None,
+            self, _('Save dictionary as'), dictionary_path,
             _dictionary_filters(include_readonly=False),
         )[0]
         if not new_filename:
@@ -387,7 +388,7 @@ class DictionariesWidget(QWidget, Ui_DictionariesWidget):
         new_filename = normalize_path(new_filename)
         try:
             d = create_dictionary(new_filename, threaded_save=False)
-            d.update(self._loaded_dictionaries[self._config_dictionaries[row].path])
+            d.update(self._loaded_dictionaries[dictionary_path])
             d.save()
         except:
             log.error('creating dictionary %s failed', new_filename, exc_info=True)
