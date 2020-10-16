@@ -4,7 +4,7 @@
 
 You need Python 3.6 installed with pip support.
 
-If you plan on building Plover for distribution, you'll need to be using Python as distributed on [python.org](https://www.python.org/downloads/). For running from source, a brew or pyenv python should suffice.
+If you plan on building Plover for distribution, you'll need to be using Python installed from [python.org](https://www.python.org/downloads/). For running from source, a brew or pyenv python should suffice.
 
 For installing all the required dependencies, you can use:
 
