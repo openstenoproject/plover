@@ -15,6 +15,7 @@ from PyQt5.QtWidgets import (
     QMenu,
     QTableWidgetItem,
     QWidget,
+    QAction,
 )
 
 from plover.config import DictionaryConfig
@@ -376,6 +377,21 @@ class DictionariesWidget(QWidget, Ui_DictionariesWidget):
         # the user decided to overwrite an already loaded dictionary).
         self._update_dictionaries(dictionaries, keep_selection=False,
                                   loaded_dictionaries=self._loaded_dictionaries)
+
+    def on_table_context_menu(self, row, global_pos):
+        if row == -1:
+            # when the user right-clicks in the empty area of the table
+            return
+
+        menu = QMenu(self)
+        saveAsAction = QAction("Save a Copy As...", self)
+        saveAsAction.triggered.connect(lambda: self.on_save_as(row))
+
+        selected_rows = self._get_selection()
+        assert row in selected_rows
+        saveAsAction.setDisabled(len(selected_rows) != 1)
+        menu.addAction(saveAsAction)
+        menu.popup(global_pos)
 
     def on_save_as(self, row):
         dictionary_path = self._config_dictionaries[row].path
