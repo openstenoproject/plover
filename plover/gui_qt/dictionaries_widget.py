@@ -409,6 +409,10 @@ class DictionariesWidget(QWidget, Ui_DictionariesWidget):
         except:
             log.error('creating dictionary %s failed', new_filename, exc_info=True)
             return
+        # Note: pass in `loaded_dictionaries` to force update (use case:
+        # the user decided to overwrite an already loaded dictionary).
+        self._update_dictionaries(self._config_dictionaries,
+                                  loaded_dictionaries=self._loaded_dictionaries)
 
     def on_add_translation(self):
         selection = self._get_selection()
