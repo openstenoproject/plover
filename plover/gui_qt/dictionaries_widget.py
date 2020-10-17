@@ -383,9 +383,17 @@ class DictionariesWidget(QWidget, Ui_DictionariesWidget):
             # when the user right-clicks in the empty area of the table
             return
 
+        dictionary_path = self._config_dictionaries[row].path
         menu = QMenu(self)
         saveAsAction = QAction(_('Save a Copy As...'), self)
-        saveAsAction.triggered.connect(lambda: self.on_save_as(row))
+        saveAsAction.triggered.connect(lambda: self.on_save_as(
+            default_name=dictionary_path,
+            dictionary=self._loaded_dictionaries[dictionary_path]))
+
+        def cleanup():
+            menu.deleteLater()
+            saveAsAction.deleteLater()
+        menu.aboutToHide.connect(cleanup)
 
         selected_rows = self._get_selection()
         assert row in selected_rows
@@ -393,10 +401,9 @@ class DictionariesWidget(QWidget, Ui_DictionariesWidget):
         menu.addAction(saveAsAction)
         menu.popup(global_pos)
 
-    def on_save_as(self, row):
-        dictionary_path = self._config_dictionaries[row].path
+    def on_save_as(self, default_name, dictionary):
         new_filename = QFileDialog.getSaveFileName(
-            self, _('Save a Copy As...'), dictionary_path,
+            self, _('Save a Copy As...'), default_name,
             _dictionary_filters(include_readonly=False),
         )[0]
         if not new_filename:
@@ -404,7 +411,7 @@ class DictionariesWidget(QWidget, Ui_DictionariesWidget):
         new_filename = normalize_path(new_filename)
         try:
             d = create_dictionary(new_filename, threaded_save=False)
-            d.update(self._loaded_dictionaries[dictionary_path])
+            d.update(dictionary)
             d.save()
         except:
             log.error('creating dictionary %s failed', new_filename, exc_info=True)
