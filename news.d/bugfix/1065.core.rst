@@ -1,1 +1,0 @@
-Fix keymap validation: properly fallback to default keymap when invalid.

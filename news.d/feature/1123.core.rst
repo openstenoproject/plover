@@ -1,1 +1,0 @@
-The configuration is now automatically saved on change, rather than on exit.

@@ -1,1 +1,0 @@
-Add menu entry for opening the configuration directory ("File" => "Open config folder").
