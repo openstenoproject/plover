@@ -77,7 +77,7 @@ bootstrap_dist "$plover_wheel"
 plover_executable=MacOS/Plover
 launcher_file="$app_dir/Contents/$plover_executable"
 sed "s/pythonexecutable/$target_python/g" "$osx_dir/app_resources/plover_launcher.c" > "$launcher_file.c"
-gcc "$launcher_file.c" -o "$launcher_file"
+gcc -Wall -O2 "$launcher_file.c" -o "$launcher_file"
 rm "$launcher_file.c"
 
 # Copy icon
