@@ -384,7 +384,7 @@ class DictionariesWidget(QWidget, Ui_DictionariesWidget):
             return
 
         menu = QMenu(self)
-        saveAsAction = QAction("Save a Copy As...", self)
+        saveAsAction = QAction(_('Save a Copy As...'), self)
         saveAsAction.triggered.connect(lambda: self.on_save_as(row))
 
         selected_rows = self._get_selection()
