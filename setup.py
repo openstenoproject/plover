@@ -305,7 +305,7 @@ class BinaryDistApp(Command):
         pass
 
     def run(self):
-        cmd = 'bash osx/make_app.sh %s %s' % (self.bdist_wheel(), PACKAGE)
+        cmd = 'bash osx/make_app.sh %s' % self.bdist_wheel()
         log.info('running %s', ' '.join(cmd))
         subprocess.check_call(cmd.split())
 

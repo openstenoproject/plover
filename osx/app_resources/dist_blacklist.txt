@@ -1,11 +1,18 @@
 # Python.
-:Versions/$python_version
-  bin
+:
+  _CodeSignature
   share
-  bin
-  Resources
-  lib/pkgconfig
-:Versions/$python_version/lib/$target_python
+  Resources/English.lproj
+:bin
+  !python
+  *
+:lib
+  **/*.tcl
+  itcl*
+  pkgconfig
+  tcl*
+  [Tt]k*
+:lib/python$python_base_version
   pkgconfig
   tkinter
   idlelib
@@ -15,7 +22,7 @@
   **/*.exe
   */test*
 # PyQt5.
-:Versions/$python_version/lib/$target_python/site-packages/PyQt5
+:lib/python$python_base_version/site-packages/PyQt5
   **/*AxContainer*
   **/*Bluetooth*
   **/*CLucene*
@@ -51,7 +58,7 @@
   pyrcc*
   uic
 # Plover.
-:Versions/$python_version/lib/$target_python/site-packages/plover
+:lib/python$python_base_version/site-packages/plover
   gui_qt/*.ui
   gui_qt/messages/**/*.po
   gui_qt/messages/plover.pot

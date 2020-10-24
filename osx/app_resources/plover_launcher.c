@@ -18,7 +18,7 @@ int main(int argc, char *argv[])
     // Get path to the Python interpreter.
     snprintf(
       python_path, sizeof (python_path),
-      "%s/Frameworks/pythonexecutable",
+      "%s/Python.framework/Versions/Current/bin/python",
       app_dir
     );
 
