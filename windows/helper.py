@@ -130,8 +130,7 @@ class WineEnvironment(Environment):
             info('intializing Wine prefix')
             for cmd in (
                 'env DISPLAY= wineboot --init',
-                # Wait for previous command to finish.
-                'wineserver -w',
+                'wineserver -k',
                 'winetricks --no-isolate --unattended corefonts',
                 'winetricks win7',
             ):
@@ -543,8 +542,8 @@ class Helper:
 class WineHelper(Helper):
 
     DEPENDENCIES = (
-        ('Python', 'https://www.python.org/ftp/python/3.6.8/python-3.6.8-amd64.exe',
-         '0c80bc4e3ea98e1415264b29f3290fb7195a8bc3', None, ('PrependPath=1', '/S'), None),
+        ('Python', 'https://www.python.org/ftp/python/3.7.9/python-3.7.9-amd64.exe',
+         'f8d42a421db25a01b53f0c135a9a74ddae042643', None, ('PrependPath=1', '/S'), None),
     ) + Helper.DEPENDENCIES
 
     def __init__(self):

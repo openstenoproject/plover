@@ -90,14 +90,14 @@ class BinaryDistWin(Command):
         # First things first: create Plover wheel.
         plover_wheel = self.bdist_wheel()
         # Setup embedded Python distribution.
-        # Note: python36.zip is decompressed to prevent errors when 2to3
+        # Note: python37.zip is decompressed to prevent errors when 2to3
         # is used (including indirectly by setuptools `build_py` command).
-        py_embedded = download('https://www.python.org/ftp/python/3.6.8/python-3.6.8-embed-amd64.zip',
-                               'f9d16a818e06ce2552076a9839039dbabb8baf1c')
+        py_embedded = download('https://www.python.org/ftp/python/3.7.9/python-3.7.9-embed-amd64.zip',
+                               '50b144212d4972bb539d0d48b49b0ad4ad2f65e0')
         dist_dir = os.path.join(os.path.dirname(plover_wheel), PACKAGE + '-win64')
         dist_data = os.path.join(dist_dir, 'data')
         dist_py = os.path.join(dist_data, 'python.exe')
-        dist_stdlib = os.path.join(dist_data, 'python36.zip')
+        dist_stdlib = os.path.join(dist_data, 'python37.zip')
         if os.path.exists(dist_dir):
             shutil.rmtree(dist_dir)
         os.makedirs(dist_data)
@@ -110,7 +110,7 @@ class BinaryDistWin(Command):
         # directory and for the current directory to be prepended
         # to `sys.path` so `plover_build_utils` can be used and
         # plugins can be installed from source.
-        dist_pth = os.path.join(dist_data, 'python36._pth')
+        dist_pth = os.path.join(dist_data, 'python37._pth')
         with open(dist_pth, 'r+') as fp:
             pth = fp.read() + 'import site\n'
             fp.seek(0)
@@ -125,8 +125,8 @@ class BinaryDistWin(Command):
                 '''
             ).lstrip())
         # Use standard site.py so user site packages are enabled.
-        site_py = download('https://github.com/python/cpython/raw/v3.6.8/Lib/site.py',
-                           '46d88612c34b1ed0098f1fbf655454b46afde049')
+        site_py = download('https://github.com/python/cpython/raw/v3.7.9/Lib/site.py',
+                           '33326741fe4ae2e3220969f753a6e5e44f415cf5')
         shutil.copyfile(site_py, os.path.join(dist_site_packages, 'site.py'))
         # Run command helper.
         def run(*args):
