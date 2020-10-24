@@ -135,7 +135,7 @@ CHAR_TO_KEYNAME = {
 }
 
 
-_SPLIT_RX = re.compile(r'(\s+|(?:\w+(?:\s*\()?)|.)')
+_SPLIT_RX = re.compile(r'(\s+|(?:\w+(?:\s*(?:\(|:up|:down))?)|.)')
 
 def parse_key_combo(combo_string, key_name_to_key_code=None):
 
@@ -164,13 +164,18 @@ def parse_key_combo(combo_string, key_name_to_key_code=None):
             pass
 
         elif re.match(r'\w', token):
-
-            if token.endswith('('):
-                key_name = token[:-1].rstrip().lower()
-                release = False
+            token = token.lower()
+            for suffix, press, release, push_stack in (
+                (":up", False, True, False),
+                (":down", True, False, False),
+                ("(", True, False, True),
+                ):
+                if token.endswith(suffix):
+                    key_name = token[:-len(suffix)].rstrip()
+                    break
             else:
-                key_name = token.lower()
-                release = True
+                press, release, push_stack = True, True, False
+                key_name = token
 
             key_code = key_name_to_key_code(key_name)
             if key_code is None:
@@ -178,11 +183,11 @@ def parse_key_combo(combo_string, key_name_to_key_code=None):
             elif key_code in down_keys:
                 _raise_error(ValueError, 'key "%s" already pressed' % key_name)
 
-            key_events.append((key_code, True))
-
+            if press:
+                key_events.append((key_code, True))
             if release:
                 key_events.append((key_code, False))
-            else:
+            if push_stack:
                 down_keys.append(key_code)
 
         elif token == ')':
