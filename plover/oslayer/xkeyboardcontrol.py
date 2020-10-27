@@ -21,6 +21,7 @@ http://tronche.com/gui/x/xlib/input/keyboard-encoding.html
 
 """
 
+from functools import wraps
 import errno
 import os
 import string
@@ -143,6 +144,19 @@ KEYCODE_TO_KEY = {
 
 KEY_TO_KEYCODE = dict(zip(KEYCODE_TO_KEY.values(), KEYCODE_TO_KEY.keys()))
 
+def with_display_lock(func):
+    """
+    Use this function as a decorator on a method of the XEventLoop class (or
+    one of its subclasses) to acquire the _display_lock of the object before
+    calling the function and release it afterwards.
+    """
+    # To keep __doc__/__name__ attributes of the initial function.
+    @wraps(func)
+    def wrapped(self, *args, **kwargs):
+        with self._display_lock:
+            return func(self, *args, **kwargs)
+    return wrapped
+
 class XEventLoop(threading.Thread):
 
     def __init__(self, name='xev'):
@@ -150,14 +164,18 @@ class XEventLoop(threading.Thread):
         self.name += '-' + name
         self._display = display.Display()
         self._pipe = os.pipe()
+        self._display_lock = threading.Lock()
 
     def _on_event(self, event):
         pass
 
     def run(self):
-        display_fileno = self._display.fileno()
+        with self._display_lock:
+            display_fileno = self._display.fileno()
         while True:
-            if not self._display.pending_events():
+            with self._display_lock:
+                pending_events = self._display.pending_events()
+            if not pending_events:
                 try:
                     rlist, wlist, xlist = select.select((self._pipe[0],
                                                          display_fileno),
@@ -177,7 +195,9 @@ class XEventLoop(threading.Thread):
                 # If we're here, rlist should contains display_fileno,
                 # trigger a new iteration to check for pending events.
                 continue
-            self._on_event(self._display.next_event())
+            with self._display_lock:
+                next_event = self._display.next_event()
+            self._on_event(next_event)
 
     def cancel(self):
         # Wake up the capture thread...
@@ -204,6 +224,8 @@ class KeyboardCapture(XEventLoop):
 
     def _update_devices(self):
         # Find all keyboard devices.
+        # This function is never called while the event loop thread is running,
+        # so it is unnecessary to lock self._display_lock.
         keyboard_devices = []
         for devinfo in self._display.xinput_query_device(xinput.AllDevices).devices:
             # Only keep slave devices.
@@ -281,6 +303,7 @@ class KeyboardCapture(XEventLoop):
                                                keycode,
                                                (0, X.Mod2Mask))
 
+    @with_display_lock
     def suppress_keyboard(self, suppressed_keys=()):
         suppressed_keys = set(suppressed_keys)
         if self._suppressed_keys == suppressed_keys:
