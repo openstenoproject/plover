@@ -1,0 +1,1 @@
+Fix a race condition that may freeze Plover while toggling with keyboard input machine.
