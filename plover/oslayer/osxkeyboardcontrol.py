@@ -392,7 +392,7 @@ class KeyboardEmulation:
         KeyboardEmulation._set_event_string(event, c)
         CGEventPost(kCGSessionEventTap, event)
         if self._time_between_key_presses != 0:
-                sleep(self._time_between_key_presses / 1000)
+            sleep(self._time_between_key_presses / 1000)
 
     def send_key_combination(self, combo_string):
         """Emulate a sequence of key combinations.

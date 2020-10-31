@@ -1220,8 +1220,8 @@ class KeyboardEmulation:
             self._send_keycode(self._backspace_mapping.keycode,
                                self._backspace_mapping.modifiers)
             if self._time_between_key_presses != 0:
-                sleep(self._time_between_key_presses / 1000)
                 self._display.sync()
+                sleep(self._time_between_key_presses / 1000)
         self._display.sync()
 
     def send_string(self, s):
@@ -1242,8 +1242,8 @@ class KeyboardEmulation:
             self._send_keycode(mapping.keycode,
                                mapping.modifiers)
             if self._time_between_key_presses != 0:
-                sleep(self._time_between_key_presses / 1000)
                 self._display.sync()
+                sleep(self._time_between_key_presses / 1000)
         self._display.sync()
 
     def send_key_combination(self, combo_string):
@@ -1276,6 +1276,9 @@ class KeyboardEmulation:
         # Emulate the key combination by sending key events.
         for keycode, event_type in key_events:
             xtest.fake_input(self._display, event_type, keycode)
+            if self._time_between_key_presses != 0:
+                self._display.sync()
+                sleep(self._time_between_key_presses / 1000)
         self._display.sync()
 
     def _send_keycode(self, keycode, modifiers=0):

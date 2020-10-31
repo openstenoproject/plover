@@ -475,3 +475,5 @@ class KeyboardEmulation:
         # Send events...
         for keycode, pressed in key_events:
             self._key_event(keycode, pressed)
+            if self._time_between_key_presses != 0:
+                sleep(self._time_between_key_presses / 1000)

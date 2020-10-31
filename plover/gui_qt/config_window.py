@@ -334,6 +334,7 @@ class ConfigWindow(QDialog, Ui_ConfigWindow, WindowState):
                                'dictionaries entry with the maximum number of strokes.')),
                 ConfigOption(_('Time between key presses (ms)'), 'time_between_key_presses',
                              partial(IntOption,
+                                     maximum=100000,
                                      minimum=MINIMUM_TIME_BETWEEN_KEY_PRESSES),
                              _('Set the timeout between emulated key presses.\n'
                                '\n'
