@@ -580,7 +580,7 @@ class _Action:
 
         word_is_finished -- True if word is finished.
 
-        othography -- True if orthography rules should be applies when adding
+        orthography -- True if orthography rules should be applies when adding
                       a suffix to this action.
 
         space_char -- this character will replace spaces after all other

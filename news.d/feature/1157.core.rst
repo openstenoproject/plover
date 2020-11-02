@@ -1,0 +1,1 @@
+Add prefix strokes (syntax ``/STROKE``) that will only translate if they are at the beginning of a word. Word endings can be specified with ``{:word_end}`` or ``{$}``.
