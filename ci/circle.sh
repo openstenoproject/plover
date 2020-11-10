@@ -4,43 +4,13 @@ set -e
 
 . ./plover_build_utils/functions.sh
 
-download()
-{
-  name="$1"
-  url="$2"
-  md5="$3"
-
-  dst="$downloads/$name"
-  for retry in $(seq 3)
-  do
-    if ! [ -r "$dst" ]
-    then
-      [ -d "$downloads" ] || run mkdir -p "$downloads"
-      if ! run curl --show-error --silent -o "$dst" "$url"
-      then
-        err "$name download failed"
-        run rm -f "$dst"
-        continue
-      fi
-    fi
-    if [ $opt_dry_run -eq 0 ] && [ "$(md5 -q "$dst")" != "$md5" ]
-    then
-      err "$name md5 did not match"
-      run rm -f "$dst"
-      continue
-    fi
-    return 0
-  done
-  return 1
-}
-
 setup()
 {
-  mkdir -p "$CIRCLE_ARTIFACTS"
-  # Install Python.
-  download 'python37.pkg' 'https://www.python.org/ftp/python/3.7.9/python-3.7.9-macosx10.9.pkg' '4b544fc0ac8c3cffdb67dede23ddb79e'
-  run sudo installer -pkg "$downloads/python37.pkg" -target /
-  # Update certifiates.
+  installer="$downloads/python37.pkg"
+  # Install Python (using the default system Python for fetching the installer).
+  run python2 -m plover_build_utils.download 'https://www.python.org/ftp/python/3.7.9/python-3.7.9-macosx10.9.pkg' '51d6d52c0aeb8c9dd728f323e3011d83746504d8' "$installer"
+  run sudo installer -pkg "$installer" -target /
+  # Update certificates.
   run '/Applications/Python 3.7/Install Certificates.command'
   # Setup development environment.
   bootstrap_dev --user
@@ -51,6 +21,7 @@ build()
   run "$python" setup.py patch_version
   run "$python" setup.py test
   run "$python" setup.py bdist_dmg
+  run mkdir -p "$CIRCLE_ARTIFACTS"
   run mv dist/*.dmg "$CIRCLE_ARTIFACTS/"
 }
 
