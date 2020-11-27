@@ -24,6 +24,7 @@ import sphinx_rtd_theme
 
 extensions = [
   'sphinx_rtd_theme',
+  'sphinxcontrib.yt',
 ]
 
 templates_path = ['_templates']
