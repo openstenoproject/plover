@@ -27,8 +27,9 @@ with dictionary plugins, and the English Stenotype layout is a system plugin.
 Initial Setup
 -------------
 
-To create a Plover plugin, first create a Python package with the following
-directory structure:
+To create a Plover plugin, first
+`create a Python package <https://packaging.python.org/tutorials/packaging-projects/>`__
+with the following directory structure:
 
 .. highlight:: none
 
