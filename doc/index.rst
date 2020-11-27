@@ -10,5 +10,10 @@ open up stenography to the general public. The Open Steno Project has
 manifested as efforts for free software, free learning resources, and open
 source hardware options.
 
+.. toctree::
+    :maxdepth: 2
+
+    dev_guide
+
 .. _`Plover`: https://www.openstenoproject.org/plover/
 .. _`Open Steno Project`: https://www.openstenoproject.org/
