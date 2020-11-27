@@ -29,6 +29,17 @@ Then, install the required dependencies via ``pip``:
     to use your system's package manager to install ``python-hidapi`` and
     ``dbus-python``.
 
+.. note::
+    On macOS 11 Big Sur, the Qt-based interface may freeze or not open at all.
+    Upgrading to PyQt 5.15.2 fixes this issue:
+
+    ::
+
+        python3 -m pip install --upgrade PyQt5
+
+    See `this Stack Overflow post <https://stackoverflow.com/a/64856281>`_
+    for more information.
+
 In addition, to install the standard plugins, as well as Plover itself:
 
 ::
