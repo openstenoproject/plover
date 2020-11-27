@@ -10,3 +10,4 @@ as how to contribute to the Plover codebase itself.
     plugin_dev
     pull_requests
     releases
+    api_reference
