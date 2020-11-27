@@ -26,9 +26,9 @@ files and asset directories.
 
     Otherwise, the location of this directory depends on the platform:
 
-      * Windows: ``C:\Users\<username>\AppData\Local\plover``
-      * macOS: ``/Users/<username>/Library/Application Support/plover``
-      * Linux: ``/home/<username>/.config/plover``
+      * Windows: ``%USERPROFILE%\AppData\Local\plover``
+      * macOS: ``~/Library/Application Support/plover``
+      * Linux: ``~/.config/plover``
 
 .. data:: CONFIG_FILE
 
