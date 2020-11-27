@@ -13,6 +13,9 @@ source hardware options.
 .. toctree::
     :maxdepth: 2
 
+    quick_start
+    advanced_usage
+
     cli_reference
     dev_guide
 
