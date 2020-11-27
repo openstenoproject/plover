@@ -408,8 +408,8 @@ The macro can be used in dictionary entries:
 
 Macros are implemented as **functions** that take a
 :class:`Translator<plover.translation.Translator>` object, a
-:class:`Stroke<plover.translation.Stroke>` object, and an optional string
-argument. If an argument is not passed in the dictionary entry, it will be ``''``.
+:class:`Stroke<plover.steno.Stroke>` object, and an optional string argument.
+If an argument is not passed in the dictionary entry, it will be ``''``.
 
 ::
 
