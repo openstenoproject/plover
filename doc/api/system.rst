@@ -276,8 +276,8 @@ plugin authors, and will not need to be defined separately.
 
     A dictionary mapping steno key labels (both the keys themselves and
     number equivalents) to their index in the steno order defined in
-    :data:`KEYS`. The first key (``#`` in English Stenotype) will map to ``0``,
-    the second key (``S-``, as well as its numeric equivalent ``1-``) to ``1``,
+    :data:`KEYS`. The first key (``#`` in English Stenotype) will map to 0,
+    the second key (``S-``, as well as its numeric equivalent ``1-``) to 1,
     and so on.
 
     :type: Dict[str, int]
