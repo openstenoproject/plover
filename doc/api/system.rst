@@ -197,7 +197,7 @@ Authors of system plugins will also need to define these.
 
         [
           # ...
-          (r"^(.+)ie  \^ ing$", r"\1ying"),
+          (r"^(.+)ie \^ ing$", r"\1ying"),
           # ...
         ]
 
