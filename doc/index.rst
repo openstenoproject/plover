@@ -13,6 +13,7 @@ source hardware options.
 .. toctree::
     :maxdepth: 2
 
+    cli_reference
     dev_guide
 
 .. _`Plover`: https://www.openstenoproject.org/plover/
