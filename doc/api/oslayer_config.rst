@@ -36,7 +36,7 @@ files and asset directories.
 
 .. data:: PLUGINS_PLATFORM
 
-    The platform Plover is running on; one of either ``win``, ``darwin`` or
+    The platform Plover is running on; one of either ``win``, ``mac`` or
     ``linux``.
 
 .. data:: ASSETS_DIR
