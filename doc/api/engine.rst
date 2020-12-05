@@ -51,10 +51,30 @@
 
     .. method:: _in_engine_thread()
     .. method:: run()
+
     .. method:: send_backspaces(b)
+
+        Send backspaces over keyboard output. `b` is the number of backspaces.
+
     .. method:: send_string(s)
+
+        Send the string `s` over keyboard output.
+
     .. method:: send_key_combination(c)
+
+        Send a keyboard combination over keyboard output. `c` is a string
+        representing a keyboard combination, for example ``Alt_L(Tab)``.
+
     .. method:: send_engine_command(command)
+
+        Run the specified Plover command, which can be either a built-in
+        command like ``set_config`` or one from an external plugin.
+
+        `command` is a string containing the command and its argument (if any),
+        separated by a colon. For example, ``lookup`` sends the
+        ``lookup`` command (the same as stroking ``{PLOVER:LOOKUP}``), and
+        ``run_shell:foo`` sends the ``run_shell`` command with the argument
+        ``foo``.
 
     .. method:: toggle_output
 
