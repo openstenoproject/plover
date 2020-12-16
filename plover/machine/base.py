@@ -147,7 +147,7 @@ class _ThreadedStenotypeThread(threading.Thread):
             self.machine.run()
         except Exception:
             if not self.machine.finished.isSet():
-                log.error(self.machine.name + ' got disconnected.')
+                log.error('%s disconnected', self.machine.name)
                 self.machine._error()
 
 class ThreadedStenotypeBase(StenotypeBase):
@@ -156,7 +156,7 @@ class ThreadedStenotypeBase(StenotypeBase):
     Subclasses should override run.
     """
     def __init__(self):
-        self.name = self.__class__.__name__ + '-machine'
+        self.name = self.__class__.__name__
         StenotypeBase.__init__(self)
         self.finished = threading.Event()
         self._machine_thread = _ThreadedStenotypeThread(self)
