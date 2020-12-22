@@ -21,10 +21,10 @@ Check the :doc:`troubleshooting` if you run into any issues building or
 running Plover.
 
 .. note::
-    The pre-built Plover distribution will **not work** on macOS 11 Big Sur due
-    to an issue with Python 3.6; you will have to
-    :doc:`build Plover from source<from_source>`
-    against Python 3.7 or later.
+    The official Plover builds will **not work** on macOS 11 Big Sur due
+    to an issue with Python 3.6; try using this `unofficial Big Sur build`_.
+
+.. _`unofficial Big Sur build`: https://github.com/sammdot/plover/releases/tag/v4.0.0.dev8+235
 
 Windows
 -------

@@ -4,6 +4,14 @@ Building Plover from Source
 Building Plover from source currently requires Python 3.6 installed with
 ``pip`` support.
 
+.. important::
+    As of **November 30, 2020**, this build process is broken due to a change
+    in the way ``pip`` resolves packages (see `this GitHub issue`_ for more
+    information). You will probably not be able to build from source at all
+    until this is fixed; use a :doc:`prebuilt version<installation>` instead.
+
+.. _`this GitHub issue`: https://github.com/openstenoproject/plover/issues/1177
+
 .. note::
     If you are building on macOS 11 Big Sur, please note that Python 3.6 does
     not work on this platform (see `bpo-41100`_ for more information); you can
