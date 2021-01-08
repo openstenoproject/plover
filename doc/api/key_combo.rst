@@ -7,6 +7,16 @@ This module provides utility functions for translating key combination
 descriptions as written in translations, as well as mappings between Unicode
 symbols and logical key names.
 
+A key combo is specified as a sequence of keys, separated by spaces, some of
+which may be surrounded by parentheses and preceded by a modifier key. Key
+combos are case-insensitive. For example, the following key combo:
+
+.. code-block::
+
+    a ctrl_l(z shift(z))
+
+is equivalent to pressing ``A``, then ``Ctrl+Z``, then ``Ctrl+Shift+Z``.
+
 .. data:: KEYNAME_TO_CHAR
 
     A dictionary mapping logical key names to Unicode characters they represent.
