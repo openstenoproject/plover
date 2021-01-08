@@ -3,32 +3,36 @@
 
 .. py:module:: plover.formatting
 
-.. class:: Case
+This module handles parsing Plover's dictionary entry mini-language and
+converting it into *actions* that the translation engine can execute.
 
-    .. data:: CAP_FIRST_WORD
-    .. data:: LOWER
-    .. data:: LOWER_FIRST_CHAR
-    .. data:: TITLE
-    .. data:: UPPER
-    .. data:: UPPER_FIRST_WORD
-
-.. data:: SPACE
-.. data:: META_ATTACH_FLAG
-.. data:: META_CARRY_CAPITALIZATION
-.. data:: META_GLUE_FLAG
-.. data:: META_ESCAPE
-.. data:: RE_META_ESCAPE
-.. data:: META_START
-.. data:: META_END
-.. data:: META_ESC_START
-.. data:: META_ESC_END
 .. data:: ATOM_RE
+
+    A regular expression for detecting individual formatting items in a
+    dictionary entry. Each *atom* is either raw text, possibly containing some
+    escaped braces (``\{`` and ``\}``), or a "meta" formatting or translation
+    command enclosed in braces (e.g. ``{*<}``).
+
 .. data:: WORD_RX
+
+    A regular expression for detecting words in translation output. Each *word*
+    consists of either an uninterrupted series of letters or numbers, or
+    a punctuation character that may be surrounded by whitespace characters on
+    either side.
 
 .. class:: RetroFormatter(previous_translations)
 
+    A helper class for iterating over the results of previous translations.
+    It supports iterating over previous actions or translated text.
+
     .. attribute:: previous_translations
+
     .. data:: FRAGMENT_RX
+
+        A regular expression for detecting fragments in a string of text.
+        Each *fragment* is a series of non-whitespace characters followed by
+        zero or more trailing whitespace characters.
+
     .. method:: iter_last_actions()
     .. method:: iter_last_fragments()
     .. method:: last_fragments([count=1])
@@ -106,6 +110,15 @@
 
     .. method:: copy_state()
     .. method:: new_state()
+
+.. class:: Case
+
+    .. data:: CAP_FIRST_WORD
+    .. data:: LOWER
+    .. data:: LOWER_FIRST_CHAR
+    .. data:: TITLE
+    .. data:: UPPER
+    .. data:: UPPER_FIRST_WORD
 
 .. function:: apply_case(text, case)
 
