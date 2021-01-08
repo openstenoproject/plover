@@ -3,66 +3,293 @@
 
 .. py:module:: plover.steno_dictionary
 
+This module handles *dictionaries*, which Plover uses to look up translations
+for input steno strokes. Plover's steno engine uses a :class:`StenoDictionaryCollection`
+to look up possible translations across multiple dictionaries, which can be
+configured by the user.
+
 .. class:: StenoDictionary
 
-    .. attribute:: reverse
-    .. attribute:: casereverse
-    .. attribute:: filters
-    .. attribute:: timestamp
-    .. attribute:: readonly
-    .. attribute:: enabled
-    .. attribute:: path
+    Represents a single steno dictionary.
 
     .. classmethod:: create(resource)
+
+        Creates a new empty steno dictionary, saved at the path `resource`.
+        If `resource` refers to an :ref:`asset path<asset_paths>` or the
+        dictionary class is read-only (i.e. :attr:`readonly` is true), this
+        call will fail.
+
+        :rtype: :class:`StenoDictionary`
+
     .. classmethod:: load(resource)
+
+        Loads a dictionary from the file at `resource` and returns the
+        dictionary object. If `resource` refers to an `:ref:`asset path<asset_paths>`
+        or the file is not writable by the user, the dictionary will be
+        read-only.
+
+        :rtype: :class:`StenoDictionary`
 
     .. method:: save()
 
-    .. method:: _save()
-    .. method:: _load()
+        Saves the contents of the dictionary to the file it was loaded from.
+        This may need to be called after adding dictionary entries.
+
+    .. attribute:: enabled
+
+        ``True`` if the dictionary is enabled, which means Plover can use it to
+        look up translations, ``False`` otherwise.
+
+    .. attribute:: readonly
+
+        ``True`` if the dictionary is read-only, either because the dictionary
+        class does not support it or the file itself is read-only.
+        For most dictionaries this will be ``False``.
+
+    .. attribute:: timestamp
+
+        The Unix timestamp in seconds when the file was last loaded or saved.
+
+    .. attribute:: path
+
+        The path to the dictionary file.
+
+    .. method:: clear()
+
+        Removes all entries in the dictionary.
+
+    .. method:: items()
+
+        Returns the list of items in the dictionary.
+
+        :rtype: List[Tuple[Tuple[str], str]]
+
+    .. method:: update(*args, **kwargs)
+
+        Adds the entries provided in `args` and `kwargs` to the dictionary.
+        Each item in `args` is an iterable containing steno entries (perhaps
+        batch-loaded from other dictionaries); each key-value pair in `kwargs`
+        corresponds to one steno entry.
+
+        :type args: Iterable[Iterable[Tuple[Tuple[str], str]]
+        :type kwargs: Iterable[Tuple[Tuple[str], str]]
+
+    The following methods are available to perform various lookup functionality:
+
+    .. method:: __getitem__(key)
+
+        Returns the translation for the steno outline `key`, or raises a
+        ``KeyError`` if it is not in the dictionary.
+
+        :type key: Tuple[str]
+
+    .. method:: __setitem__(key, value)
+
+        Sets the translation for the steno outline `key` to `value`.
+        Fails if the dictionary is read-only.
+
+        :type key: Tuple[str]
+        :type value: str
+
+    .. method:: __delitem__(key)
+
+        Deletes the translation for the steno outline `key`.
+        Fails if the dictionary is read-only.
+
+        :type key: Tuple[str]
+
+    .. method:: __contains__(key)
+
+        Returns ``True`` if the dictionary contains a translation for the
+        steno outline `key`.
+
+        :type key: Tuple[str]
+
+    .. method:: get(key[, fallback=None])
+
+        Returns the translation for the steno outline `key`, or `fallback` if
+        it is not in the dictionary.
+
+        :type key: Tuple[str]
+
+    .. attribute:: reverse
+
+        A dictionary mapping translations to possible steno outlines.
+
+        :type: Dict[str, List[Tuple[str]]]
+
+    .. attribute:: casereverse
+
+        A case-insensitive version of :attr:`reverse`.
+
+    .. method:: reverse_lookup(value)
+
+        Returns the list of steno outlines that translate to `value`.
+
+        :type value: str
+        :rtype: List[Tuple[str]]
+
+    .. method:: casereverse_lookup(value)
+
+        Like :meth:`reverse_lookup`, but performs a case-insensitive lookup.
+
+    The dictionary provides the following interface to access the longest key
+    in the dictionary, to be used to automatically filter out some dictionaries
+    to speed up lookups.
 
     .. attribute:: longest_key
 
-    .. method:: __getitem__(key)
-    .. method:: __setitem__(key, value)
-    .. method:: __delitem__(key)
-    .. method:: __contains__(key)
-
-    .. method:: clear()
-    .. method:: items()
-    .. method:: get(key[, fallback=None])
-    .. method:: update(*args, **kwargs)
-
-    .. method:: reverse_lookup(value)
-    .. method:: casereverse_lookup(value)
+        The number of strokes in the longest key in this dictionary.
 
     .. method:: add_longest_key_listener(callback)
+
+        Adds a `callback` that gets called when the :attr:`longest_key` in a
+        dictionary changes, such as when entries are added or removed.
+        `callback` is called with the new longest key as a parameter.
+
     .. method:: remove_longest_key_listener(callback)
+
+        Removes `callback` if it has been registered as a callback for
+        changes to :attr:`longest_key`. `callback` is called with the new
+        longest key as a parameter.
+
+    In addition, dictionary implementors *should* implement the following
+    methods for reading and writing to dictionary files:
+
+    .. method:: _load(filename)
+
+        Reads the dictionary at `filename` and loads its contents into
+        the current dictionary. This is only called when the dictionary is
+        first initialized so it is guaranteed to be empty.
+
+    .. method:: _save(filename)
+
+        Writes the contents of the dictionary to `filename`.
 
 .. class:: StenoDictionaryCollection([dicts=None])
 
+    A collection of steno dictionaries for the same steno system. Plover would
+    typically look up outlines in these dictionaries in order until it can
+    find a translation, but the interface also allows you to access translations
+    from all dictionaries.
+
     .. attribute:: dicts
-    .. attribute:: filters
-    .. attribute:: longest_key
-    .. attribute:: longest_key_callbacks
+
+        A list of :class:`StenoDictionary` objects, in decreasing order of
+        priority.
 
     .. method:: set_dicts(dicts)
 
-    .. method:: lookup(key)
-    .. method:: raw_lookup(key)
-    .. method:: lookup_from_all(key)
-    .. method:: raw_lookup_from_all(key)
-    .. method:: reverse_lookup(value)
-    .. method:: casereverse_lookup(value)
+        Sets the list of dictionaries to `dicts`.
 
     .. method:: first_writable()
 
+        Returns the first dictionary that is writable, or raises ``KeyError``
+        if none of the dictionaries are writable.
+
     .. method:: set(key, value[, path=None])
+
+        Adds a dictionary entry mapping the steno outline `key` to the
+        translation `value`. If `path` is specified, the entry is added there,
+        otherwise, it is added to the first writable dictionary.
+
     .. method:: save([path_list=None])
-    .. method:: get(path)
+
+        Saves all of the dictionaries whose paths are in `path_list`.
+        If `path_list` is not specified, all writable dictionaries are saved.
+        Fails if any of the dictionaries are read-only.
+
     .. method:: __getitem__(path)
 
+        Returns the dictionary at the specified path, or raises a ``KeyError``
+        if that dictionary is not part of this collection.
+
+    .. method:: get(path)
+
+        Returns the dictionary at the specified path, or ``None`` if it is not
+        part of this collection.
+
+    :class:`StenoDictionaryCollection` supports *filters*, to remove words that
+    satisfy certain criteria from lookup results. The interface to work with
+    them is as follows:
+
+    .. attribute:: filters
+
+        The list of filters currently active. Each filter is a function that
+        takes a steno outline and a translation and returns a Boolean value.
+        If a filter returns ``True``, the corresponding entry is **removed**
+        from lookup results.
+
+        :type: List[Function[(Tuple[str], str), bool]]
+
     .. method:: add_filter(f)
+
+        Adds `f` to the list of filters.
+
     .. method:: remove_filter(f)
+
+        Removes `f` from the list of filters.
+
+    To look up dictionary entries, the interface is similar to
+    :class:`StenoDictionary`:
+
+    .. method:: lookup(key)
+
+        Returns the first available translation for the steno outline `key`
+        from the highest-priority dictionary that is not filtered out by
+        :attr:`filters`. If none of the dictionaries have an entry for this
+        outline, returns ``None``.
+
+        :type key: Tuple[str]
+        :rtype: str | None
+
+    .. method:: raw_lookup(key)
+
+        Like :meth:`lookup`, but returns *all* results, including the ones that
+        have been filtered out by :attr:`filters`.
+
+    .. method:: lookup_from_all(key)
+
+        Returns the list of translations for the steno outline `key` from
+        *all* dictionaries, except those that are filtered out by :attr:`filters`.
+        Each translation is of the format `(translation, dictionary)`.
+
+        :type key: Tuple[str]
+        :rtype: List[Tuple[str, :class:`StenoDictionary`]]
+
+    .. method:: raw_lookup_from_all(key)
+
+        Like :meth:`lookup`, but returns *all* results, including the ones that
+        have been filtered out by :attr:`filters`.
+
+    .. method:: reverse_lookup(value)
+
+        Returns the list of steno outlines from all dictionaries that translate
+        to `value`.
+
+        :rtype: List[Tuple[str]]
+
+    .. method:: casereverse_lookup(value)
+
+        Like :meth:`reverse_lookup`, but performs a case-insensitive lookup.
+
+    You can also access the longest key across all dictionaries:
+
+    .. attribute:: longest_key
+
+        The longest key across all dictionaries.
+
+    .. attribute:: longest_key_callbacks
+
+        The list of functions that get called when the longest key changes.
+        Callbacks are called with the new longest key.
+
+        :type: List[Function[(int)]]
+
     .. method:: add_longest_key_listener(callback)
+
+        Adds `callback` to the list of longest key callbacks.
+
     .. method:: remove_longest_key_listener(callback)
+
+        Removes `callback` from the list of longest key callbacks.
