@@ -29,7 +29,11 @@ and dictionaries.
         configuration.
 
     .. attribute:: translator_state
+
     .. attribute:: starting_stroke_state
+
+        A :class:`StartingStrokeState` representing the initial state of the
+        formatter.
 
     .. attribute:: dictionaries
 
@@ -112,7 +116,13 @@ and dictionaries.
         steno mode, or ``False`` to disable it.
 
     .. method:: __getitem__(setting)
+
+        Returns the value of the configuration property `setting`.
+
     .. method:: __setitem__(setting, value)
+
+        Sets the configuration property `setting` to `value`.
+
     .. method:: lookup(translation)
     .. method:: raw_lookup(translation)
     .. method:: lookup_from_all(translation)
@@ -122,6 +132,7 @@ and dictionaries.
     .. method:: add_dictionary_filter(dictionary_filter)
     .. method:: remove_dictionary_filter(dictionary_filter)
     .. method:: get_suggestions(translation)
+
     .. method:: clear_translator_state([undo=False])
     .. method:: add_translation(strokes, translation[, dictionary_path=None])
 
@@ -140,8 +151,18 @@ and dictionaries.
 
 .. class:: StartingStrokeState(attach, capitalize)
 
+    An object representing the starting state of the formatter before any
+    strokes are input.
+
     .. attribute:: attach
+
+        Whether to delete the space before the translation when the initial
+        stroke is translated.
+
     .. attribute:: capitalize
+
+        Whether to capitalize the translation when the initial stroke is
+        translated.
 
 .. class:: MachineParams(type, options, keymap)
 
