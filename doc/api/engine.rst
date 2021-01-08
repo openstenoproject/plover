@@ -3,6 +3,141 @@
 
 .. py:module:: plover.engine
 
+The steno engine is the core of Plover; it handles communication between the
+machine and the translation and formatting subsystems, and manages configuration
+and dictionaries.
+
+.. class:: StenoEngine(config, keyboard_emulation)
+
+    .. data:: HOOKS
+
+        A list of all the possible engine hooks. See :ref:`engine_hooks` below for
+        a list of valid hooks.
+
+    .. attribute:: machine_state
+
+        The connection state of the current machine. One of ``stopped``,
+        ``initializing``, ``connected`` or ``disconnected``.
+
+    .. attribute:: output
+
+        ``True`` if steno output is enabled, ``False`` otherwise.
+
+    .. attribute:: config
+
+        A :class:`Config<plover.config.Config>` object containing the engine's
+        configuration.
+
+    .. attribute:: translator_state
+    .. attribute:: starting_stroke_state
+
+    .. attribute:: dictionaries
+
+        A
+        :class:`StenoDictionaryCollection<plover.steno_dictionary.StenoDictionaryCollection>`
+        of all the dictionaries Plover has loaded for the current system.
+        This includes disabled dictionaries and dictionaries that failed to load.
+
+    .. method:: _in_engine_thread()
+
+        Returns whether we are currently in the same thread that the engine
+        is running on. This is useful because event listeners for machines and
+        others are run on separate threads, and we want to be able to run
+        engine events on the same thread as the main engine.
+
+    .. method:: start()
+
+        Starts the steno engine.
+
+    .. method:: quit([code=0])
+
+        Quits the steno engine, ensuring that all pending tasks are completed
+        before exiting.
+
+    .. method:: restart()
+
+        Quits and restarts the steno engine, ensuring that all pending tasks
+        are completed.
+
+    .. method:: run()
+
+        Starts the steno engine, translating any strokes that are input.
+
+    .. method:: join()
+
+        Joins any sub-threads if necessary and returns an exit code.
+
+    .. method:: load_config()
+
+        Loads the Plover configuration file and returns ``True`` if it was
+        loaded successfully, ``False`` if not.
+
+    .. method:: reset_machine()
+
+        Resets the machine state and Plover's connection with the machine, if
+        necessary, and loads all the configuration and dictionaries.
+
+    .. method:: send_backspaces(b)
+
+        Sends backspaces over keyboard output. `b` is the number of backspaces.
+
+    .. method:: send_string(s)
+
+        Sends the string `s` over keyboard output.
+
+    .. method:: send_key_combination(c)
+
+        Sends a keyboard combination over keyboard output. `c` is a string
+        representing a keyboard combination, for example ``Alt_L(Tab)``.
+
+    .. method:: send_engine_command(command)
+
+        Runs the specified Plover command, which can be either a built-in
+        command like ``set_config`` or one from an external plugin.
+
+        `command` is a string containing the command and its argument (if any),
+        separated by a colon. For example, ``lookup`` sends the
+        ``lookup`` command (the same as stroking ``{PLOVER:LOOKUP}``), and
+        ``run_shell:foo`` sends the ``run_shell`` command with the argument
+        ``foo``.
+
+    .. method:: toggle_output
+
+        Toggles steno mode. See :attr:`output` to get the current state, or
+        :meth:`set_output` to set the state to a specific value.
+
+    .. method:: set_output(enabled)
+
+        Enables or disables steno mode. Set `enabled` to ``True`` to enable
+        steno mode, or ``False`` to disable it.
+
+    .. method:: __getitem__(setting)
+    .. method:: __setitem__(setting, value)
+    .. method:: lookup(translation)
+    .. method:: raw_lookup(translation)
+    .. method:: lookup_from_all(translation)
+    .. method:: raw_lookup_from_all(translation)
+    .. method:: reverse_lookup(translation)
+    .. method:: casereverse_lookup(translation)
+    .. method:: add_dictionary_filter(dictionary_filter)
+    .. method:: remove_dictionary_filter(dictionary_filter)
+    .. method:: get_suggestions(translation)
+    .. method:: clear_translator_state([undo=False])
+    .. method:: add_translation(strokes, translation[, dictionary_path=None])
+
+    .. method:: hook_connect(hook, callback)
+
+        Adds `callback` to the list of handlers that are called when the `hook`
+        hook gets triggered. Raises a ``KeyError`` if `hook` is not in
+        :data:`HOOKS`.
+
+    .. method:: hook_disconnect(hook, callback)
+
+        Removes `callback` from the list of handlers that are called when
+        the `hook` hook is triggered. Raises a ``KeyError`` if `hook` is not in
+        :data:`HOOKS`, and a ``ValueError`` if `callback` was never added as
+        a handler in the first place.
+
 .. class:: StartingStrokeState(attach, capitalize)
 
     .. attribute:: attach
@@ -21,103 +156,6 @@
 
     :param path: The path to the dictionary file.
     :param exception: The exception that caused the dictionary loading to fail.
-
-.. class:: StenoEngine(config, keyboard_emulation)
-
-    .. data:: HOOKS
-
-        A list of all the possible engine hooks. See "Engine Hooks" below for
-        a list of valid hooks.
-
-    .. attribute:: machine_state
-
-        The connection state of the current machine. One of ``stopped``,
-        ``initializing``, ``connected`` or ``disconnected``.
-
-    .. attribute:: output
-
-        ``True`` if steno output is enabled, ``False`` otherwise.
-
-    .. attribute:: config
-    .. attribute:: translator_state
-    .. attribute:: starting_stroke_state
-
-    .. attribute:: dictionaries
-
-        A
-        :class:`StenoDictionaryCollection<plover.steno_dictionary.StenoDictionaryCollection>`
-        of all the dictionaries Plover has loaded for the current system.
-        This includes disabled dictionaries and dictionaries that failed to load.
-
-    .. method:: _in_engine_thread()
-    .. method:: run()
-
-    .. method:: send_backspaces(b)
-
-        Send backspaces over keyboard output. `b` is the number of backspaces.
-
-    .. method:: send_string(s)
-
-        Send the string `s` over keyboard output.
-
-    .. method:: send_key_combination(c)
-
-        Send a keyboard combination over keyboard output. `c` is a string
-        representing a keyboard combination, for example ``Alt_L(Tab)``.
-
-    .. method:: send_engine_command(command)
-
-        Run the specified Plover command, which can be either a built-in
-        command like ``set_config`` or one from an external plugin.
-
-        `command` is a string containing the command and its argument (if any),
-        separated by a colon. For example, ``lookup`` sends the
-        ``lookup`` command (the same as stroking ``{PLOVER:LOOKUP}``), and
-        ``run_shell:foo`` sends the ``run_shell`` command with the argument
-        ``foo``.
-
-    .. method:: toggle_output
-
-        Toggle steno mode. See :attr:`output` to get the current state, or
-        :meth:`set_output` to set the state to a specific value.
-
-    .. method:: set_output(enabled)
-
-        Enable or disable steno mode. Set `enabled` to ``True`` to enable
-        steno mode, or ``False`` to disable it.
-
-    .. method:: __getitem__(setting)
-    .. method:: __setitem__(setting, value)
-    .. method:: reset_machine()
-    .. method:: load_config()
-    .. method:: start()
-    .. method:: quit([code=0])
-    .. method:: restart()
-    .. method:: join()
-    .. method:: lookup(translation)
-    .. method:: raw_lookup(translation)
-    .. method:: lookup_from_all(translation)
-    .. method:: raw_lookup_from_all(translation)
-    .. method:: reverse_lookup(translation)
-    .. method:: casereverse_lookup(translation)
-    .. method:: add_dictionary_filter(dictionary_filter)
-    .. method:: remove_dictionary_filter(dictionary_filter)
-    .. method:: get_suggestions(translation)
-    .. method:: clear_translator_state([undo=False])
-    .. method:: add_translation(strokes, translation[, dictionary_path=None])
-
-    .. method:: hook_connect(hook, callback)
-
-        Add `callback` to the list of handlers that are called when the `hook`
-        hook gets triggered. Raises a ``KeyError`` if `hook` is not in
-        :data:`HOOKS`.
-
-    .. method:: hook_disconnect(hook, callback)
-
-        Removes `callback` from the list of handlers that are called when
-        the `hook` hook is triggered. Raises a ``KeyError`` if `hook` is not in
-        :data:`HOOKS`, and a ``ValueError`` if `callback` was never added as
-        a handler in the first place.
 
 .. _engine_hooks:
 
