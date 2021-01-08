@@ -131,7 +131,12 @@ and dictionaries.
     .. method:: casereverse_lookup(translation)
     .. method:: add_dictionary_filter(dictionary_filter)
     .. method:: remove_dictionary_filter(dictionary_filter)
+
     .. method:: get_suggestions(translation)
+
+        Returns a list of suggestions for the specified `translation`.
+
+        :rtype: List[:class:`Suggestion<plover.suggestions.Suggestion>`]
 
     .. method:: clear_translator_state([undo=False])
     .. method:: add_translation(strokes, translation[, dictionary_path=None])
