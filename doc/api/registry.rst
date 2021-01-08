@@ -48,6 +48,16 @@ list of available plugins, as well as possibly adding new ones.
         Re-scans the Python environment to look for plugins, and registers any
         that were previously not loaded.
 
+    .. method:: register_plugin_from_entrypoint(plugin_type, entrypoint)
+
+        Adds a plugin of the specified type discovered through the entry point
+        mechanism to the registry.
+
+        :type entrypoint: |EntryPoint|_
+
+        .. |EntryPoint| replace:: ``pkg_resources.EntryPoint``
+        .. _EntryPoint: https://setuptools.readthedocs.io/en/latest/pkg_resources.html#entrypoint-objects
+
     .. method:: register_plugin(plugin_type, name, obj)
 
         Adds a plugin named `name` of the specified type to the registry.
@@ -58,9 +68,13 @@ list of available plugins, as well as possibly adding new ones.
         If `plugin_type` is not a valid plugin type (i.e. not in :data:`PLUGIN_TYPES`),
         this raises a ``KeyError``.
 
-    .. method:: register_plugin_from_entrypoint(plugin_type, entrypoint)
-
     .. method:: list_distributions()
+
+        Returns the list of distributions that Plover has found to contain
+        Plover plugins. If :meth:`update` has not been called, this will
+        return an empty list.
+
+        :rtype: List[:class:`PluginDistribution`]
 
 .. class:: Plugin(plugin_type, name, obj)
 
@@ -85,4 +99,17 @@ list of available plugins, as well as possibly adding new ones.
 .. class:: PluginDistribution(dist, plugins)
 
     .. attribute:: dist
+
+        A |Distribution|_ providing information on a single package either
+        bundled with Plover, or installed from the plugins manager, for
+        example, the main Plover package ``plover 4.0.0-dev8``. Each
+        distribution may contain multiple plugins.
+
+        .. |Distribution| replace:: ``pkg_resources.Distribution``
+        .. _Distribution: https://setuptools.readthedocs.io/en/latest/pkg_resources.html#distribution-objects
+
     .. attribute:: plugins
+
+        The list of plugins contained in this distribution.
+
+        :type: List[:class:`Plugin`]
