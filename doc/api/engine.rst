@@ -30,6 +30,9 @@ and dictionaries.
 
     .. attribute:: translator_state
 
+        A :class:`_State<plover.translation._State>` object containing the
+        current state of the translator.
+
     .. attribute:: starting_stroke_state
 
         A :class:`StartingStrokeState` representing the initial state of the
@@ -123,15 +126,6 @@ and dictionaries.
 
         Sets the configuration property `setting` to `value`.
 
-    .. method:: lookup(translation)
-    .. method:: raw_lookup(translation)
-    .. method:: lookup_from_all(translation)
-    .. method:: raw_lookup_from_all(translation)
-    .. method:: reverse_lookup(translation)
-    .. method:: casereverse_lookup(translation)
-    .. method:: add_dictionary_filter(dictionary_filter)
-    .. method:: remove_dictionary_filter(dictionary_filter)
-
     .. method:: get_suggestions(translation)
 
         Returns a list of suggestions for the specified `translation`.
@@ -139,7 +133,6 @@ and dictionaries.
         :rtype: List[:class:`Suggestion<plover.suggestions.Suggestion>`]
 
     .. method:: clear_translator_state([undo=False])
-    .. method:: add_translation(strokes, translation[, dictionary_path=None])
 
     .. method:: hook_connect(hook, callback)
 
@@ -153,6 +146,50 @@ and dictionaries.
         the `hook` hook is triggered. Raises a ``KeyError`` if `hook` is not in
         :data:`HOOKS`, and a ``ValueError`` if `callback` was never added as
         a handler in the first place.
+
+    The following methods simply provide a way to access the underlying
+    :class:`StenoDictionaryCollection<plover.steno_dictionary.StenoDictionaryCollection>`.
+    See the documentation there for more complete information.
+
+    .. method:: lookup(translation)
+
+        Returns the first translation for the steno outline `translation` using
+        all the filters.
+
+    .. method:: raw_lookup(translation)
+
+        Like :meth:`lookup`, but without any of the filters.
+
+    .. method:: lookup_from_all(translation)
+
+        Returns all translations for the steno outline `translation` using
+        all the filters.
+
+    .. method:: raw_lookup_from_all(translation)
+
+        Like :meth:`lookup_from_all`, but without any of the filters.
+
+    .. method:: reverse_lookup(translation)
+
+        Returns the list of steno outlines that translate to `translation`.
+
+    .. method:: casereverse_lookup(translation)
+
+        Like :meth:`reverse_lookup`, but performs a case-insensitive lookup.
+
+    .. method:: add_dictionary_filter(dictionary_filter)
+
+        Adds `dictionary_filter` to the list of dictionary filters.
+
+    .. method:: remove_dictionary_filter(dictionary_filter)
+
+        Removes `dictionary_filter` from the list of dictionary filters.
+
+    .. method:: add_translation(strokes, translation[, dictionary_path=None])
+
+        Adds a steno entry mapping the steno outline `strokes` to
+        `translation` in the dictionary at `dictionary_path`, if specified,
+        or the first writable dictionary.
 
 .. class:: StartingStrokeState(attach, capitalize)
 
