@@ -208,9 +208,22 @@ and dictionaries.
 
 .. class:: MachineParams(type, options, keymap)
 
+    An object representing the current state of the machine.
+
     .. attribute:: type
+
+        The name of the machine. This is the same as the name of the plugin
+        that provides the machine's functionality. ``Keyboard`` by default.
+
     .. attribute:: options
+
+        A dictionary of machine specific options. See :mod:`plover.config`
+        for more information.
+
     .. attribute:: keymap
+
+        A :class:`Keymap<plover.machine.keymap.Keymap>` mapping the current
+        system to this machine.
 
 .. class:: ErroredDictionary(path, exception)
 
