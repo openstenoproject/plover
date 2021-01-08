@@ -31,6 +31,12 @@ keyboard emulation (writing the output from steno translation).
 
     .. method:: suppress_keyboard([suppressed_keys=()])
 
+        Suppresses the specified keys, preventing them from returning any
+        output through regular typing. This allows us to intercept keyboard
+        events when using keyboard input.
+
+        :type suppressed_keys: List[str]
+
     .. method:: key_down(key)
 
         A custom method that is called when a key is pressed. `key` is a string
@@ -49,7 +55,15 @@ keyboard emulation (writing the output from steno translation).
     Encapsulates logic for sending keystrokes. Pass an instance of this to
     the :class:`StenoEngine<plover.engine.StenoEngine>` when it is initialized.
 
-    .. attribute:: keyboard_layout
     .. method:: send_backspaces(number_of_backspaces)
+
+        Sends the specified number of backspace keys.
+
     .. method:: send_string(s)
+
+        Sends the sequence of keys that would produce the specified string.
+
     .. method:: send_key_combination(combo_string)
+
+        Sends the specified key combination. `combo_string` is a string in the
+        key combo format described in :mod:`plover.key_combo`.
