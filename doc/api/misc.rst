@@ -7,7 +7,7 @@ This module provides miscellaneous utility functions.
 
 .. function:: popcount_8(v)
 
-    Returns the number of ``1`` bytes in the 8-bit number `v`.
+    Returns the number of ``1`` bits in the 8-bit number `v`.
 
 .. function:: expand_path(path)
 
