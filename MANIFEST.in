@@ -38,12 +38,9 @@ include tox.ini
 include windows/*
 # Exclude: CI/Git/GitHub specific files,
 # as well as generated Python files (UI).
-exclude *.yml
 exclude .gitignore
 exclude archlinux/.gitignore
 exclude plover/gui_qt/*_rc.py
 exclude plover/gui_qt/*_ui.py
 exclude plover/gui_qt/.gitignore
-prune .circleci
 prune .github
-prune ci

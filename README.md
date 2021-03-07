@@ -2,8 +2,6 @@
 
 > Bringing stenography to everyone.
 
-[![Linux CI badge][]][Linux CI] [![macOS CI badge][]][macOS CI] [![Windows CI badge][]][Windows CI]
-
 |              |              |          |          |                  |                  |
 |--------------|--------------|----------|----------|------------------|------------------|
 | [Homepage][] | [Releases][] | [Wiki][] | [Blog][] | [Google Group][] | [Discord Chat][] |
@@ -124,10 +122,3 @@ Please follow through for your system:
   [Wiki]: https://github.com/openstenoproject/plover/wiki
   [installation guide]: https://github.com/openstenoproject/plover/wiki/Installation-Guide
   [morinted/plover\_icons]: https://github.com/morinted/plover_icons
-
-  [Linux CI]: https://travis-ci.org/openstenoproject/plover?branch=master
-  [Linux CI badge]: https://img.shields.io/travis/openstenoproject/plover/master?label=Linux
-  [Windows CI]: https://ci.appveyor.com/project/morinted/plover?branch=master
-  [Windows CI badge]: https://img.shields.io/appveyor/build/morinted/plover/master?label=Windows
-  [macOS CI]: https://app.circleci.com/pipelines/github/openstenoproject/plover?branch=master
-  [macOS CI badge]: https://img.shields.io/circleci/build/gh/openstenoproject/plover/master?label=macOS

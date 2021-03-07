@@ -127,16 +127,6 @@ rwt()
   run rm -rf .rwt
 )}
 
-bootstrap_dev()
-{
-  # Install/upgrade pip/wheel.
-  get_base_devel "$@"
-  # Install requirements.
-  wheels_install -r requirements.txt "$@"
-  # List installed Python packages.
-  run "$python" -m pip list --format=freeze
-}
-
 bootstrap_dist()
 {
   wheel="$1"
