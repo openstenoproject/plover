@@ -129,7 +129,7 @@ rwt()
   done
   run export PYTHONPATH="$PWD/.rwt${PYTHONPATH:+:$PYTHONPATH}"
   get_pip -t "$PWD/.rwt"
-  wheels_install -t "$PWD/.rwt" "${rwt_args[@]}"
+  wheels_install -t "$PWD/.rwt" --upgrade "${rwt_args[@]}"
   find "$PWD/.rwt" -name '*-info'
   "$@"
   run rm -rf .rwt
