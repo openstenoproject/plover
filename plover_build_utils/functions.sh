@@ -157,9 +157,8 @@ bootstrap_dist()
   #  - remove `plover.egg-info` beforehand so pip does not think
   #    Plover is already installed
   run rm -rf plover.egg-info
-  rwt Cython -- wheels_install \
-    -r requirements_distribution.txt "$wheel" \
-    -r requirements_plugins.txt "$@"
+  rwt Cython -- wheels_install -r requirements_distribution.txt "$wheel" "$@"
+  rwt Cython -- wheels_install -r requirements_plugins.txt "$@"
   # Avoid caching Plover's wheel.
   rm "$wheels/$(basename "$wheel")"
 }
