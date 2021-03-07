@@ -3,7 +3,6 @@ bleach==3.1.4
 cffi==1.14.0
 cmarkgfm==0.4.2
 docutils==0.16
-pip==20.0.2
 pkginfo==1.5.0.1
 plover-plugins-manager==0.5.15
 pycparser==2.20
@@ -13,7 +12,6 @@ requests-cache==0.5.2
 requests-futures==1.0.0
 requests==2.23.0
 webencodings==0.5.1
-wheel==0.34.2
 # plover-treal
 hidapi==0.9.0.post2
 plover-treal==1.0.1
