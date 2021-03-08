@@ -109,7 +109,6 @@ def install_wheels(args, verbose=True, no_install=False, no_progress=True):
     wheels_cache = WHEELS_CACHE
     wheel_args = []
     install_args = []
-    constraint_args = []
     while len(args) > 0:
         a = args.pop(0)
         if not a.startswith('-'):
@@ -143,28 +142,14 @@ def install_wheels(args, verbose=True, no_install=False, no_progress=True):
             raise ValueError('unsupported option: %s' % opt)
         a = [opt] + args[:nb_args]
         del args[:nb_args]
-        if opt in ('-c', '--constraint'):
-            constraint_args.extend(a)
-            continue
         if not install_only:
             wheel_args.extend(a)
         install_args.extend(a)
     wheel_args[0:0] = ['wheel', '-f', wheels_cache, '-w', wheels_cache]
-    install_args[0:0] = ['install', '-f', wheels_cache]
-    if constraint_args:
-        # Since pip will not build and cache wheels for VCS links, we do it ourselves:
-        # - first, update the cache (without VCS links), and try to install from it
-        code = _pip(wheel_args, no_progress=no_progress)
-        if code == 0 and not no_install:
-            code = _pip(install_args, no_progress=no_progress)
-    else:
-        code = 1
-    if code != 0:
-      # - if it failed, try to update the cache again, this time with VCS links
-      code = _pip(wheel_args + constraint_args, no_progress=no_progress)
-      if code == 0 and not no_install:
-          # - and try again
-          code = _pip(install_args, no_progress=no_progress)
+    install_args[0:0] = ['install', '--no-index', '--no-cache-dir', '-f', wheels_cache]
+    code = _pip(wheel_args, no_progress=no_progress)
+    if code == 0 and not no_install:
+        code = _pip(install_args, no_progress=no_progress)
     if code != 0:
         raise Exception('wheels installation failed: pip execution returned %u' % code)
 
