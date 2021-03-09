@@ -65,6 +65,7 @@ _PIP_INSTALL_OPTS = _split_opts(
     --root 1
     --prefix 1
     --require-hashes 0
+    --no-warn-script-location 0
     '''
 )
 
