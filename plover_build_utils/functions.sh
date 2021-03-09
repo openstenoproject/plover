@@ -57,7 +57,7 @@ info()
       shift
       ;;
   esac
-  if [ -t 2 ]
+  if [ -t 2 -o "x$CI" = "xtrue" ]
   then
     echo "[${color}m$@[0m" 1>&2
   else
