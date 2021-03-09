@@ -110,54 +110,31 @@ run_eval()
 
 get_base_devel()
 {
-  run "$python" -m plover_build_utils.get_pip --disable-pip-version-check \
-    -c requirements_base_devel.txt pip wheel setuptools \
-    "$@"
+  run "$python" -m plover_build_utils.get_pip -r requirements_base_devel.txt "$@"
 }
 
-wheels_install()
+install_wheels()
 {
   run "$python" -m plover_build_utils.install_wheels --disable-pip-version-check "$@"
 }
-
-# Crude version of https://github.com/jaraco/rwt
-rwt()
-{(
-  local rwt_args=()
-  while [ $# -ne 0 ]
-  do
-    if [ "x$1" = 'x--' ]
-    then
-      shift
-      break
-    fi
-    rwt_args+=("$1")
-    shift
-  done
-  run export PYTHONPATH="$PWD/.rwt${PYTHONPATH:+:$PYTHONPATH}"
-  get_base_devel -t "$PWD/.rwt"
-  wheels_install -t "$PWD/.rwt" --upgrade "${rwt_args[@]}"
-  find "$PWD/.rwt" -name '*-info'
-  "$@"
-  run rm -rf .rwt
-)}
 
 bootstrap_dist()
 {
   wheel="$1"
   shift
-  # Install pip/wheel...
-  get_base_devel "$@"
-  # Install Plover and its dependencies, as well as standard plugins.
-  # Note:
-  #  - temporarily install Cython to speedup cython-hidapi's install
-  #  - remove `plover.egg-info` beforehand so pip does not think
-  #    Plover is already installed
-  run rm -rf plover.egg-info
-  rwt Cython -- wheels_install -r requirements_distribution.txt "$wheel" "$@"
-  rwt Cython -- wheels_install -r requirements_plugins.txt "$@"
+  # We still need setuptools/wheel to be available (not even --use-pep517
+  # works around that). While we're at it, install Plover's wheel too,
+  # taking advantage of the fact that thanks to get_pip the current
+  # working directory is not added to sys.path.
+  get_base_devel "$wheel" --no-deps "$@" || die
+  # Install the rest: Plover's dependencies, as well as standard plugins.
+  install_wheels \
+    -c requirements_base_devel.txt \
+    -r requirements_distribution.txt \
+    -r requirements_plugins.txt \
+    "$@" || die
   # Avoid caching Plover's wheel.
-  rm "$wheels/$(basename "$wheel")"
+  run rm "$wheels/$(basename "$wheel")"
 }
 
 parse_opts args "$@"
