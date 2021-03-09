@@ -54,10 +54,14 @@ run mkdir -p "$appdir" "$cachedir" "$distdir"
 
 # Fetch some helpers.
 # Note:
-# - extract AppImages so fuse is not needed.
+# - zsync2's URL is unfortunately versioned,
+#   so we need to use Github's API to find
+#   the latest continuous release asset.
+# - extract AppImages so FUSE is not needed.
 # - we start with zsync2 and do two passes
 #   so it can update itself as needed.
-while read tool url sha1;
+run_eval "zsync2_url='$(wget -q -O - https://api.github.com/repos/AppImage/zsync2/releases/tags/continuous | sed -n 's/^\s*"browser_download_url": "\([^"]*zsync2-[^"]*-x86_64.AppImage\)"$/\1/p')'"
+while read tool url;
 do
   if [ ! -r "$cachedir/$tool" ]
   then
@@ -70,9 +74,9 @@ do
   fi
   run extract_appimage "$cachedir/$tool" "$builddir/$tool"
   run_eval "$tool='$builddir/$tool/AppRun'"
-done <<\EOF
-zsync2        https://github.com/AppImage/zsync2/releases/download/continuous/zsync2-15-86cfd3a-x86_64.AppImage
-zsync2        https://github.com/AppImage/zsync2/releases/download/continuous/zsync2-15-86cfd3a-x86_64.AppImage
+done <<EOF
+zsync2        $zsync2_url
+zsync2        $zsync2_url
 linuxdeploy   https://github.com/linuxdeploy/linuxdeploy/releases/download/continuous/linuxdeploy-x86_64.AppImage
 appimagetool  https://github.com/probonopd/AppImageKit/releases/download/continuous/appimagetool-x86_64.AppImage
 EOF
