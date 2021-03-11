@@ -286,7 +286,7 @@ class KeyboardCaptureProcess(multiprocessing.Process):
             return windll.user32.CallNextHookEx(hook_id, code, wparam, lparam)
 
         pointer = KeyboardProc(low_level_handler)
-        hook_id = windll.user32.SetWindowsHookExA(0x00D, pointer, windll.kernel32.GetModuleHandleW(None), 0)
+        hook_id = windll.user32.SetWindowsHookExA(0x00D, pointer, None, 0)
         atexit.register(windll.user32.UnhookWindowsHookEx, hook_id)
         msg = wintypes.MSG()
         while windll.user32.GetMessageW(ctypes.byref(msg), 0, 0, 0):
