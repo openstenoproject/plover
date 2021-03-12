@@ -32,6 +32,7 @@ from plover_build_utils.setup import (
 
 
 BuildPy.build_dependencies.append('build_ui')
+Test.build_before = False
 cmdclass = {
     'build_py': BuildPy,
     'build_ui': BuildUi,
