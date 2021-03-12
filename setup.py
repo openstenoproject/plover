@@ -8,7 +8,6 @@ import os
 import re
 import subprocess
 import sys
-import textwrap
 
 from setuptools import setup
 
@@ -198,9 +197,9 @@ class BinaryDistApp(Command):
         pass
 
     def run(self):
-        cmd = 'bash osx/make_app.sh %s %s' % (self.bdist_wheel(), PACKAGE)
+        cmd = ['bash', 'osx/make_app.sh', self.bdist_wheel()]
         log.info('running %s', ' '.join(cmd))
-        subprocess.check_call(cmd.split())
+        subprocess.check_call(cmd)
 
 class BinaryDistDmg(Command):
 
@@ -215,19 +214,16 @@ class BinaryDistDmg(Command):
 
     def run(self):
         self.run_command('bdist_app')
-        subprocess.check_call((sys.executable, '-c', textwrap.dedent(
-            '''
-            __import__('dmgbuild').build_dmg(
-                {output!r}, {name!r},
-                {settings!r}, **{options!r},
-            )
-            '''
-        ).format(
-            output='dist/%s.dmg' % PACKAGE,
+        args = '{out!r}, {name!r}, {settings!r}, lookForHiDPI=True'.format(
+            out='dist/%s.dmg' % PACKAGE,
             name=__software_name__.capitalize(),
             settings='osx/dmg_resources/settings.py',
-            options=dict(lookForHiDPI=True),
-        )))
+        )
+        log.info('running dmgbuild(%s)', args)
+        script = "__import__('dmgbuild').build_dmg(" + args + ')'
+        subprocess.check_call((sys.executable, '-u', '-c', script))
+
+
 
 if sys.platform.startswith('darwin'):
     cmdclass['bdist_app'] = BinaryDistApp

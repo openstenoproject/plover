@@ -2,7 +2,6 @@ Babel==2.7.0
 check-manifest==0.41
 Cython==0.29.16
 dmgbuild==1.4.2; "darwin" in sys_platform
-macholib==1.14; "darwin" in sys_platform
 pytest==5.4.1
 readme-renderer[md]==25.0
 setuptools-scm==3.5.0

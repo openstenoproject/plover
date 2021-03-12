@@ -137,5 +137,35 @@ bootstrap_dist()
   run rm "$wheels/$(basename "$wheel")"
 }
 
+osx_standalone_python()
+{
+  [[ $# -eq 6 ]] || return 1
+
+  dest="$1"
+  py_version="$2"
+  py_macos="$3"
+  py_sha1="$4"
+  reloc_py_url="$5"
+  reloc_py_sha1="$6"
+
+  py_framework_dir="$dest/Python.framework"
+
+  [[ ! -e "$py_framework_dir" ]] || return 1
+
+  run mkdir -p "$dest"
+  run "$python" -m plover_build_utils.download "https://www.python.org/ftp/python/$py_version/python-$py_version-macosx$py_macos.pkg" "$py_sha1"
+  reloc_py_zip="$(run "$python" -m plover_build_utils.download "$reloc_py_url" "$reloc_py_sha1")"
+  run unzip -d "$dest" "$reloc_py_zip"
+  reloc_py_dir="$(echo -n "$dest"/relocatable-python-*/)"
+  run "$python" "$reloc_py_dir/make_relocatable_python_framework.py" \
+    --baseurl="file://$downloads/%s/../python-%s-macosx%s.pkg" \
+    --python-version="$py_version" --os-version="$py_macos" \
+    --pip-requirements=/dev/null \
+    --destination="$dest" \
+    ;
+  run ln -s 'python3' "$py_framework_dir/Versions/Current/bin/python"
+  run rm -rf "$reloc_py_dir"
+}
+
 parse_opts args "$@"
 set -- "${args[@]}"
