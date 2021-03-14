@@ -348,10 +348,11 @@ if sys.platform.startswith('darwin'):
 class BinaryDistAppImage(Command):
 
     description = 'create AppImage distribution for Linux'
+    command_consumes_arguments = True
     user_options = []
 
     def initialize_options(self):
-        pass
+        self.args = None
 
     def finalize_options(self):
         pass
@@ -359,7 +360,8 @@ class BinaryDistAppImage(Command):
     def run(self):
         cmd = ['./linux/appimage/build.sh',
                '--python', sys.executable,
-               '--wheel', self.bdist_wheel()]
+               '--wheel', self.bdist_wheel()
+              ] + self.args
         log.info('running %s', ' '.join(cmd))
         subprocess.check_call(cmd)
 
