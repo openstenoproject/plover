@@ -68,27 +68,9 @@ _PIP_INSTALL_OPTS = _split_opts(
     '''
 )
 
-_PIP_SCRIPT = '''
-import sys
-
-from pkg_resources import load_entry_point
-
-# Work around isatty attribute being read-only with Python 2.
-class NoTTY:
-    def __init__(self, fp):
-        self._fp = fp
-    def isatty(self):
-        return False
-    def __getattr__(self, name):
-        return getattr(self._fp, name)
-
-if len(sys.argv) > 1 and sys.argv[1] == '--no-tty':
-    sys.stdout = NoTTY(sys.stdout)
-    del sys.argv[1]
-sys.exit(load_entry_point('pip', 'console_scripts', 'pip')())
-'''
-
 def _pip(args, verbose=True, no_progress=True):
+    if no_progress:
+        args.append('--progress-bar=off')
     if verbose:
         print('running pip %s' % ' '.join(a for a in args))
         sys.stdout.flush()
@@ -99,9 +81,7 @@ def _pip(args, verbose=True, no_progress=True):
         cmd.append('-s')
     if sys.flags.ignore_environment:
         cmd.append('-E')
-    cmd.extend(('-c', _PIP_SCRIPT))
-    if no_progress:
-        cmd.append('--no-tty')
+    cmd.extend(('-m', 'pip'))
     cmd.extend(args)
     return subprocess.call(cmd)
 
