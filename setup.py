@@ -6,11 +6,9 @@ from distutils import log
 from distutils.errors import DistutilsModuleError
 import os
 import re
-import shutil
 import subprocess
 import sys
 import textwrap
-import zipfile
 
 from setuptools import setup
 
@@ -73,11 +71,14 @@ class BinaryDistWin(Command):
          'create a zip of the resulting directory'),
         ('installer', 'i',
          'create an executable installer for the resulting distribution'),
+        ('bash=', None,
+         'bash executable to use for running the build script'),
     ]
     boolean_options = ['installer', 'trim', 'zipdir']
     extra_args = []
 
     def initialize_options(self):
+        self.bash = None
         self.installer = False
         self.trim = False
         self.zipdir = False
@@ -86,126 +87,16 @@ class BinaryDistWin(Command):
         pass
 
     def run(self):
-        from plover_build_utils.install_wheels import WHEELS_CACHE
-        # Download helper.
-        from plover_build_utils.download import download
-        # First things first: create Plover wheel.
-        plover_wheel = self.bdist_wheel()
-        # Setup embedded Python distribution.
-        # Note: python36.zip is decompressed to prevent errors when 2to3
-        # is used (including indirectly by setuptools `build_py` command).
-        py_embedded = download('https://www.python.org/ftp/python/3.6.8/python-3.6.8-embed-amd64.zip',
-                               'f9d16a818e06ce2552076a9839039dbabb8baf1c')
-        dist_dir = os.path.join(os.path.dirname(plover_wheel), PACKAGE + '-win64')
-        dist_data = os.path.join(dist_dir, 'data')
-        dist_py = os.path.join(dist_data, 'python.exe')
-        dist_stdlib = os.path.join(dist_data, 'python36.zip')
-        if os.path.exists(dist_dir):
-            shutil.rmtree(dist_dir)
-        os.makedirs(dist_data)
-        for path in (py_embedded, dist_stdlib):
-            with zipfile.ZipFile(path) as zip:
-                zip.extractall(dist_data)
-        os.unlink(dist_stdlib)
-        # We don't want a completely isolated Python when using
-        # python.exe/pythonw.exe directly, we need a working site
-        # directory and for the current directory to be prepended
-        # to `sys.path` so `plover_build_utils` can be used and
-        # plugins can be installed from source.
-        dist_pth = os.path.join(dist_data, 'python36._pth')
-        with open(dist_pth, 'r+') as fp:
-            pth = fp.read() + 'import site\n'
-            fp.seek(0)
-            fp.write(pth)
-        dist_site_packages = os.path.join(dist_data, 'Lib', 'site-packages')
-        os.makedirs(dist_site_packages)
-        with open(os.path.join(dist_site_packages, 'sitecustomize.py'), 'w') as fp:
-            fp.write(textwrap.dedent(
-                '''
-                import os, sys
-                sys.path.insert(0, os.getcwd())
-                '''
-            ).lstrip())
-        # Use standard site.py so user site packages are enabled.
-        site_py = download('https://github.com/python/cpython/raw/v3.6.8/Lib/site.py',
-                           '46d88612c34b1ed0098f1fbf655454b46afde049')
-        shutil.copyfile(site_py, os.path.join(dist_site_packages, 'site.py'))
-        # Run command helper.
-        def run(*args):
-            if self.verbose:
-                log.info('running %s', ' '.join(args))
-            subprocess.check_call(args)
-        def pyrun(*args):
-            run(dist_py, '-E', '-s', *args)
-        # Install pip/wheel.
-        pyrun('-m', 'plover_build_utils.get_pip')
-        # Install Plover + standard plugins and dependencies.
-        # Note: do not use the embedded Python executable with `setup.py
-        # install` to prevent setuptools from installing extra development
-        # dependencies...
-        pyrun('-m', 'plover_build_utils.install_wheels',
-              '-r', 'requirements_distribution.txt')
-        pyrun('-m', 'plover_build_utils.install_wheels',
-              '--ignore-installed', '--no-deps', plover_wheel)
-        pyrun('-m', 'plover_build_utils.install_wheels',
-              '-r', 'requirements_plugins.txt')
-        os.unlink(os.path.join(WHEELS_CACHE, os.path.basename(plover_wheel)))
-        # Trim the fat...
-        if self.trim:
-            from plover_build_utils.trim import trim
-            trim(dist_data, 'windows/dist_blacklist.txt', verbose=self.verbose)
-        # Add miscellaneous files: icon, license, ...
-        for src, target_dir in (
-            ('LICENSE.txt'             , '.'   ),
-            ('plover/assets/plover.ico', 'data')
-        ):
-            dst = os.path.join(dist_dir, target_dir, os.path.basename(src))
-            shutil.copyfile(src, dst)
-        # Create launchers.
-        for entrypoint, gui in (
-            ('plover         = plover.dist_main:main', True ),
-            ('plover_console = plover.dist_main:main', False),
-        ):
-            pyrun('-c', textwrap.dedent(
-                '''
-                from pip._vendor.distlib.scripts import ScriptMaker
-                sm = ScriptMaker(source_dir='{dist_dir}', target_dir='{dist_dir}')
-                sm.executable = 'data\\python.exe'
-                sm.variants = set(('',))
-                sm.make('{entrypoint}', options={{'gui': {gui}}})
-                '''.rstrip()).format(dist_dir=dist_dir,
-                                     entrypoint=entrypoint,
-                                     gui=gui))
-        # Fix Visual C++ Redistributable DLL location.
-        os.rename(os.path.join(dist_dir, 'data', 'vcruntime140.dll'),
-                  os.path.join(dist_dir, 'vcruntime140.dll'))
-        # Make distribution source-less.
-        pyrun('-m', 'plover_build_utils.source_less',
-              # Don't touch pip._vendor.distlib sources,
-              # or `pip install` will not be usable...
-              dist_data, '*/pip/_vendor/distlib/*',
-             )
-        # Check requirements.
-        pyrun('-I', '-m', 'plover_build_utils.check_requirements')
-        # Zip results.
-        if self.zipdir:
-            from plover_build_utils.zipdir import zipdir
-            if self.verbose:
-                log.info('zipping %s', dist_dir)
-            zipdir(dist_dir)
-        # Create an installer.
+        cmd = [self.bash or 'bash', 'windows/dist_build.sh']
         if self.installer:
-            installer_exe = '%s.setup.exe' % dist_dir
-            # Compute install size for "Add/Remove Programs" entry.
-            install_size = sum(os.path.getsize(os.path.join(dirpath, f))
-                               for dirpath, dirnames, filenames
-                               in os.walk(dist_dir) for f in filenames)
-            run('makensis.exe', '/NOCD',
-                '/Dsrcdir=' + dist_dir,
-                '/Dversion=' + __version__,
-                '/Dinstall_size=' + str(install_size // 1024),
-                'windows/installer.nsi',
-                '/XOutFile ' + installer_exe)
+            cmd.append('--installer')
+        if self.trim:
+            cmd.append('--trim')
+        if self.zipdir:
+            cmd.append('--zipdir')
+        cmd.extend((__software_name__, __version__, self.bdist_wheel()))
+        log.info('running %s', ' '.join(cmd))
+        subprocess.check_call(cmd)
 
 if sys.platform.startswith('win32'):
     cmdclass['bdist_win'] = BinaryDistWin
