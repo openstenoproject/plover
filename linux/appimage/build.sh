@@ -12,6 +12,8 @@ cachedir="$topdir/.cache/appimage"
 wheel=''
 python='python3'
 
+. ./linux/appimage/deps.sh
+
 while [ $# -ne 0 ]
 do
   case "$1" in
@@ -54,19 +56,17 @@ run mkdir -p "$appdir" "$cachedir" "$distdir"
 
 # Fetch some helpers.
 # Note:
-# - zsync2's URL is unfortunately versioned,
-#   so we need to use Github's API to find
-#   the latest continuous release asset.
 # - extract AppImages so FUSE is not needed.
 # - we start with zsync2 and do two passes
 #   so it can update itself as needed.
-run_eval "zsync2_url='$(wget -q -O - https://api.github.com/repos/AppImage/zsync2/releases/tags/continuous | sed -n 's/^\s*"browser_download_url": "\([^"]*zsync2-[^"]*-x86_64.AppImage\)"$/\1/p')'"
 while read tool url;
 do
   if [ ! -r "$cachedir/$tool" ]
   then
+    # Initial fetch.
     run wget -O "$cachedir/$tool" "$url"
   else
+    # Update using zsync2.
     if [ -n "$zsync2" ]
     then
       run_eval "(cd '$cachedir' && '$zsync2' -o '$cachedir/$tool' '$url.zsync')"
@@ -77,8 +77,8 @@ do
 done <<EOF
 zsync2        $zsync2_url
 zsync2        $zsync2_url
-linuxdeploy   https://github.com/linuxdeploy/linuxdeploy/releases/download/continuous/linuxdeploy-x86_64.AppImage
-appimagetool  https://github.com/probonopd/AppImageKit/releases/download/continuous/appimagetool-x86_64.AppImage
+linuxdeploy   $linuxdeploy_url
+appimagetool  $appimagetool_url
 EOF
 
 # Generate Plover wheel.
