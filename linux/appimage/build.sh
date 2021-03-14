@@ -11,6 +11,7 @@ appdir="$builddir/plover.AppDir"
 cachedir="$topdir/.cache/appimage"
 wheel=''
 python='python3'
+update_tools=1
 
 . ./linux/appimage/deps.sh
 
@@ -24,6 +25,9 @@ do
     -w|--wheel)
       wheel="$2"
       shift
+      ;;
+    --no-update-tools)
+      update_tools=0
       ;;
     -*)
       err "invalid option: $1"
@@ -67,7 +71,7 @@ do
     run wget -O "$cachedir/$tool" "$url"
   else
     # Update using zsync2.
-    if [ -n "$zsync2" ]
+    if [ "$update_tools" -eq 1 -a -n "$zsync2" ]
     then
       run_eval "(cd '$cachedir' && '$zsync2' -o '$cachedir/$tool' '$url.zsync')"
     fi
