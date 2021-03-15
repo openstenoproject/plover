@@ -556,6 +556,10 @@ def test_config_dir(tree, expected_config_dir, tmpdir):
     env = dict(os.environ)
     env['HOME'] = str(home)
     env['PYTHONUSERBASE'] = USER_BASE
+    # Ensure XDG_xxx environment variables don't screw up our isolation.
+    for k in list(env):
+        if k.startswith('XDG_'):
+            del env[k]
     # Helpers.
     def pyeval(script):
         return literal_eval(subprocess.check_output(
