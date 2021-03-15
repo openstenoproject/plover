@@ -69,12 +69,9 @@ _PIP_INSTALL_OPTS = _split_opts(
     '''
 )
 
-def _pip(args, verbose=True, no_progress=True):
+def _pip(args, pip_install=None, verbose=True, no_progress=True):
     if no_progress:
         args.append('--progress-bar=off')
-    if verbose:
-        print('running pip %s' % ' '.join(a for a in args))
-        sys.stdout.flush()
     cmd = [sys.executable]
     if sys.flags.no_site:
         cmd.append('-S')
@@ -82,11 +79,16 @@ def _pip(args, verbose=True, no_progress=True):
         cmd.append('-s')
     if sys.flags.ignore_environment:
         cmd.append('-E')
-    cmd.extend(('-m', 'pip'))
+    if pip_install is not None:
+        cmd.append(pip_install)
+    else:
+        cmd.extend(('-m', 'pip'))
     cmd.extend(args)
+    if verbose:
+        print('running', ' '.join(cmd), flush=True)
     return subprocess.call(cmd)
 
-def install_wheels(args, verbose=True, no_install=False, no_progress=True):
+def install_wheels(args, pip_install=None, verbose=True, no_install=False, no_progress=True):
     wheels_cache = WHEELS_CACHE
     wheel_args = []
     install_args = []
@@ -128,9 +130,10 @@ def install_wheels(args, verbose=True, no_install=False, no_progress=True):
         install_args.extend(a)
     wheel_args[0:0] = ['wheel', '-f', wheels_cache, '-w', wheels_cache]
     install_args[0:0] = ['install', '--no-index', '--no-cache-dir', '-f', wheels_cache]
-    code = _pip(wheel_args, no_progress=no_progress)
+    pip_kwargs = dict(pip_install=pip_install, no_progress=no_progress)
+    code = _pip(wheel_args, **pip_kwargs)
     if code == 0 and not no_install:
-        code = _pip(install_args, no_progress=no_progress)
+        code = _pip(install_args, **pip_kwargs)
     if code != 0:
         raise Exception('wheels installation failed: pip execution returned %u' % code)
 
