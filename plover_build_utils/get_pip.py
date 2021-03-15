@@ -1,25 +1,37 @@
 #!/usr/bin/env python3
 
 import os
-import subprocess
+import shutil
 import sys
+import zipfile
 
 from .download import download
-from .install_wheels import WHEELS_CACHE
+from .install_wheels import WHEELS_CACHE, install_wheels
+
+
+PIP_VERSION = '20.0.2'
+PIP_WHEEL_URL = 'https://files.pythonhosted.org/packages/54/0c/d01aa759fdc501a58f431eb594a17495f15b88da142ce14b5845662c13f3/pip-20.0.2-py2.py3-none-any.whl'
+PIP_INSTALL = os.path.join('.cache', 'pip', PIP_VERSION)
 
 
 def get_pip(args=None):
-    # Download `get-pip.py`.
-    script = download('https://github.com/pypa/get-pip/raw/69941dc3ee6a2562d873f8616a4df31ba401b2a9/get-pip.py',
-                      '29295f4181a2a3df9539dcf1cebc2079da569320')
-    # Make sure wheels cache directory exists to avoid warning.
-    if not os.path.exists(WHEELS_CACHE):
-        os.makedirs(WHEELS_CACHE)
-    # Install pip/wheel...
-    get_pip_cmd = [sys.executable, script, '-f', WHEELS_CACHE]
-    if args is not None:
-        get_pip_cmd.extend(args)
-    subprocess.check_call(get_pip_cmd)
+    # Download the wheel.
+    pip_wheel = download(PIP_WHEEL_URL, downloads_dir=WHEELS_CACHE)
+    # "Install" it (can't run directly from it because of the PEP 517 code).
+    if not os.path.exists(PIP_INSTALL):
+        os.makedirs(PIP_INSTALL)
+        # Extract it.
+        with zipfile.ZipFile(pip_wheel) as z:
+            z.extractall(PIP_INSTALL)
+        # Get rid of the info metadata.
+        shutil.rmtree(os.path.join(PIP_INSTALL, 'pip-%s.dist-info' % PIP_VERSION))
+    # If no arguments where passed, or only options arguments,
+    # automatically install pip / setuptools / wheel,
+    # otherwise, let the caller be in charge.
+    if args is None or not next((a for a in args if not a.startswith('-')), None):
+        args = (args or []) + [pip_wheel, 'setuptools', 'wheel']
+    # Run pip from the wheel we just got.
+    install_wheels(args, pip_install=os.path.join(PIP_INSTALL, 'pip'))
 
 
 if __name__ == '__main__':
