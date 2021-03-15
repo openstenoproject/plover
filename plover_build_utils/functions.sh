@@ -170,5 +170,20 @@ osx_standalone_python()
   run rm -rf "$reloc_py_dir"
 }
 
+packaging_checks()
+{
+  # setup check
+  run "$python" setup.py -q check -m -s
+  run rm -rf dist
+  run "$python" -m pip --disable-pip-version-check wheel -w dist --no-deps .
+  run "$python" -m twine check --strict dist/*.whl
+  # sdist bdist_wheel check
+  run rm -rf dist
+  run "$python" setup.py -q sdist bdist_wheel
+  run "$python" -m twine check --strict dist/*
+  # manifest check
+  run "$python" -m check_manifest -v
+}
+
 parse_opts args "$@"
 set -- "${args[@]}"
