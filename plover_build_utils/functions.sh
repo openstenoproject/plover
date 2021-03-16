@@ -69,6 +69,21 @@ err()
   info -c31 "$@"
 }
 
+die()
+{
+  code=$?
+  if [ $# -ne 0 ]
+  then
+    code="$1"
+    shift
+  fi
+  if [ $# -ne 0 ]
+  then
+    err "$@"
+  fi
+  exit "$code"
+}
+
 run()
 {
   info "$@"
