@@ -42,6 +42,7 @@ _PIP_OPTS = _split_opts(
     -c 1 --constraint 1
     -r 1 --requirement 1
     --no-deps 0
+    --use-pep517 0
     '''
     # Package Index.
     '''
