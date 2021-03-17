@@ -4,8 +4,9 @@ opt_dry_run=0
 opt_timings=0
 
 python='false'
-wheels="$PWD/.cache/wheels"
-downloads="$PWD/.cache/downloads"
+cache_dir='.cache'
+wheels_cache="$cache_dir/wheels"
+downloads_cache="$cache_dir/downloads"
 
 # Usage: parse_opts args "$@"
 #
@@ -134,7 +135,7 @@ bootstrap_dist()
     -r requirements_plugins.txt \
     "$@" || die
   # Avoid caching Plover's wheel.
-  run rm "$wheels/$(basename "$wheel")"
+  run rm "$wheels_cache/$(basename "$wheel")"
 }
 
 osx_standalone_python()
@@ -158,7 +159,7 @@ osx_standalone_python()
   run unzip -d "$dest" "$reloc_py_zip"
   reloc_py_dir="$(echo -n "$dest"/relocatable-python-*/)"
   run "$python" "$reloc_py_dir/make_relocatable_python_framework.py" \
-    --baseurl="file://$downloads/%s/../python-%s-macosx%s.pkg" \
+    --baseurl="file://$PWD/$downloads_cache/%s/../python-%s-macosx%s.pkg" \
     --python-version="$py_version" --os-version="$py_macos" \
     --pip-requirements=/dev/null \
     --destination="$dest" \
