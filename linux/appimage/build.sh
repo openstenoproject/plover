@@ -142,7 +142,7 @@ run strip_binaries
 #   to bundle its system dependencies.
 run mv "$pydist/$pypurelib/PyQt5" "$builddir"
 run "$linuxdeploy" \
-  --desktop-file='application/plover.desktop' \
+  --desktop-file='linux/plover.desktop' \
   --icon-file='plover/assets/plover.png' \
   --appdir="$appdir" \
   --verbosity=2

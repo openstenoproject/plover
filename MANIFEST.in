@@ -3,7 +3,6 @@
 include CONTRIBUTING.md
 include LICENSE.txt
 include NEWS.md
-include application/*
 include archlinux/*
 include debian/*
 include debian/source/*
