@@ -45,7 +45,7 @@ parse_opts()
     esac
     shift
   done
-  eval "$args_varname=(${_args[@]@Q})"
+  eval "$args_varname=(\"\${_args[@]}\")"
 }
 
 info()
