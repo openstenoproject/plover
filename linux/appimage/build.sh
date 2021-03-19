@@ -94,7 +94,8 @@ fi
 
 # Setup Python distribution.
 pydist="$appdir/usr"
-run_eval "$("$python" linux/appimage/pyinfo.py)"
+metadata="$("$python" linux/appimage/pyinfo.py)"
+run_eval "$metadata"
 run mkdir -p "$pydist/"{bin,lib,"$pystdlib"/..,"$pyinclude"/..}
 run cp "$pyexe" "$pydist/bin/python"
 run cp -a "$pyprefix/$pyinclude" "$pydist/$pyinclude/../"
