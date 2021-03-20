@@ -87,14 +87,25 @@ die()
 
 run()
 {
+  if [ $opt_dry_run -eq 0 -a "x$CI" = "xtrue" ]
+  then
+    echo -n '::group::' 1>&2
+  fi
   info "$(printf "%q " "$@")"
   [ $opt_dry_run -ne 0 ] && return
   if [ $opt_timings -ne 0 ]
   then
     time "$@"
+    code=$?
   else
     "$@"
+    code=$?
   fi
+  if [ "x$CI" = "xtrue" ]
+  then
+    echo "::endgroup::" 1>&2
+  fi
+  return $code
 }
 
 run_eval()
