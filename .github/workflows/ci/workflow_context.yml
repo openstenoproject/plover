@@ -8,6 +8,8 @@ action_setup_python: actions/setup-python@v2
 action_upload_artifact: actions/upload-artifact@v2
 action_download_artifact: actions/download-artifact@v2
 
+skippy_enabled: true
+
 vars:
   - &dist_linux
     variant: Linux
@@ -38,11 +40,14 @@ jobs:
     <<: *dist_linux
     type: test
     reqs: ['dist', 'test']
+    skiplists: ['job_test', 'os_linux']
   - <<: *test
     <<: *dist_macos
     cache_extra_deps: ['osx/deps.sh']
+    skiplists: ['job_test', 'os_macos']
   - <<: *test
     <<: *dist_win
+    skiplists: ['job_test', 'os_windows']
 
   # Python tests.
   - &python_test
@@ -50,6 +55,7 @@ jobs:
     <<: *dist_other
     variant: Python 3.6
     python: '3.6'
+    skiplists: ['job_test', 'os_linux', 'os_macos', 'os_windows']
   - <<: *python_test
     variant: Python 3.7
     python: '3.7'
@@ -63,6 +69,7 @@ jobs:
     variant: Packaging
     python: '3.9'
     reqs: ['packaging', 'setup']
+    skiplists: ['job_test_packaging']
 
   # Platform builds.
   - &build
@@ -71,11 +78,14 @@ jobs:
     needs: [test_linux]
     reqs: ['build', 'setup']
     cache_extra_deps: ['reqs/dist_*.txt', 'linux/appimage/deps.sh']
+    skiplists: ['job_build', 'os_linux']
   - <<: *build
     <<: *dist_macos
     needs: [test_macos]
     cache_extra_deps: ['reqs/dist_*.txt', 'osx/deps.sh']
+    skiplists: ['job_build', 'os_macos']
   - <<: *build
     <<: *dist_win
     needs: [test_windows]
     cache_extra_deps: ['reqs/dist_*.txt', 'windows/dist_deps.sh']
+    skiplists: ['job_build', 'os_windows']

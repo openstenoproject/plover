@@ -1,5 +1,6 @@
 #!/usr/bin/env python
 
+import shlex
 import textwrap
 
 import jinja2
@@ -44,6 +45,19 @@ for j in context['jobs']:
     j['needs'] = j.get('needs', [])
     j['reqs'] = ['reqs/%s.txt' % r for r in j['reqs']]
     j['cache_extra_deps'] = j.get('cache_extra_deps', [])
+    if context['skippy_enabled']:
+        # Path to the "skip_cache" file.
+        j['skip_cache_path'] = '.skip_cache_{id}'.format(**j)
+        # Name of the "skip_cache" (name + tree SHA1 = key).
+        j['skip_cache_name'] = 'skip_{id}_py-{python}_{platform}'.format(cache_epoch=context['cache_epoch'], **j)
+    shell_definition = []
+    for k, v in sorted(j.items()):
+        if isinstance(v, list):
+            v = '(' + ' '.join(map(shlex.quote, v)) + ')'
+        else:
+            v = shlex.quote(v)
+        shell_definition.append('job_%s=%s' % (k, v))
+    j['shell_definition'] = '; '.join(shell_definition)
 
 # Render template.
 workflow = template.render(context)

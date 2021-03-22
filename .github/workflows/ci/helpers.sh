@@ -143,6 +143,33 @@ publish_pypi_release()
   run "$python" -m twine upload dist/Source/* dist/Wheel/*
 }
 
+skippy_set_job_skip_cache_key()
+{
+  echo -n '::group::' 1>&2; info "$job_name"
+  skiplists=()
+  for list in default "${job_skiplists[@]}"
+  do
+    skiplists+=(".github/workflows/ci/skiplist_$list.txt")
+  done
+  sha1="$(git_tree_sha1 -d '@' "${skiplists[@]}")" || die
+  echo "::set-output name=${job_id}_skip_cache_key::${job_skip_cache_name}_$sha1"
+  echo '::endgroup::' 1>&2
+}
+
+skippy_set_job_skip_job()
+{
+  if [ "$is_release" = "no" -a -e "$job_skip_cache_path" ]
+  then
+    run_link="$(< "$job_skip_cache_path")" || die
+    echo 2>&1 "::warning ::Skipping \`$job_name\` job, the same subtree has already successfully been run as part of: $run_link"
+    skip_job='yes'
+  else
+    skip_job='no'
+  fi
+  info "Skip $job_name? $skip_job"
+  echo "::set-output name=${job_id}_skip_job::$skip_job"
+}
+
 python='python3'
 
 exec 2>&1

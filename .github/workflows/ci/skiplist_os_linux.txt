@@ -1,0 +1,11 @@
+.github/workflows/ci/skiplist_os_Windows.txt
+.github/workflows/ci/skiplist_os_macOS.txt
+osx/*
+plover/oslayer/log_osx.py
+plover/oslayer/log_plyer.py
+plover/oslayer/osxkeyboardcontrol.py
+plover/oslayer/osxkeyboardlayout.py
+plover/oslayer/winkeyboardcontrol.py
+plover/oslayer/winkeyboardlayout.py
+windows/*
+{EOF}

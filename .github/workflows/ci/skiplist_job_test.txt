@@ -1,0 +1,16 @@
+.github/workflows/ci/skiplist_job_build.txt
+.github/workflows/ci/skiplist_job_test_packaging.txt
+.gitignore
+LICENSE.txt
+linux/*
+MANIFEST.in
+osx/*_resources
+osx/make_app.sh
+plover/gui_*/*
+pyproject.toml
+reqs/build.txt
+reqs/dist_*.txt
+reqs/packaging.txt
+reqs/setup.txt
+windows/*
+{EOF}

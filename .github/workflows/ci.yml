@@ -14,12 +14,159 @@ defaults:
 
 jobs:
 
+  # Job: Skippy {{{
+  skippy:
+
+    name: Skippy
+    runs-on: ubuntu-latest
+
+    steps:
+
+      - name: Checkout
+        uses: actions/checkout@v2
+
+      - name: Calculate skip cache keys
+        id: set_cache
+        run: |
+          job_cache_extra_deps=(); job_id=test_linux; job_name='Test (Linux)'; job_needs=(); job_os=Linux; job_platform=ubuntu-16.04; job_python=3.8; job_reqs=(reqs/dist.txt reqs/test.txt); job_skip_cache_name=skip_test_linux_py-3.8_ubuntu-16.04; job_skip_cache_path=.skip_cache_test_linux; job_skiplists=(job_test os_linux); job_type=test; job_variant=Linux; skippy_set_job_skip_cache_key
+          job_cache_extra_deps=(osx/deps.sh); job_id=test_macos; job_name='Test (macOS)'; job_needs=(); job_os=macOS; job_platform=macos-10.15; job_python=3.8; job_reqs=(reqs/dist.txt reqs/test.txt); job_skip_cache_name=skip_test_macos_py-3.8_macos-10.15; job_skip_cache_path=.skip_cache_test_macos; job_skiplists=(job_test os_macos); job_type=test; job_variant=macOS; skippy_set_job_skip_cache_key
+          job_cache_extra_deps=(); job_id=test_windows; job_name='Test (Windows)'; job_needs=(); job_os=Windows; job_platform=windows-2019; job_python=3.8; job_reqs=(reqs/dist.txt reqs/test.txt); job_skip_cache_name=skip_test_windows_py-3.8_windows-2019; job_skip_cache_path=.skip_cache_test_windows; job_skiplists=(job_test os_windows); job_type=test; job_variant=Windows; skippy_set_job_skip_cache_key
+          job_cache_extra_deps=(); job_id=test_python_36; job_name='Test (Python 3.6)'; job_needs=(); job_os=Linux; job_platform=ubuntu-latest; job_python=3.6; job_reqs=(reqs/dist.txt reqs/test.txt); job_skip_cache_name=skip_test_python_36_py-3.6_ubuntu-latest; job_skip_cache_path=.skip_cache_test_python_36; job_skiplists=(job_test os_linux os_macos os_windows); job_type=test; job_variant='Python 3.6'; skippy_set_job_skip_cache_key
+          job_cache_extra_deps=(); job_id=test_python_37; job_name='Test (Python 3.7)'; job_needs=(); job_os=Linux; job_platform=ubuntu-latest; job_python=3.7; job_reqs=(reqs/dist.txt reqs/test.txt); job_skip_cache_name=skip_test_python_37_py-3.7_ubuntu-latest; job_skip_cache_path=.skip_cache_test_python_37; job_skiplists=(job_test os_linux os_macos os_windows); job_type=test; job_variant='Python 3.7'; skippy_set_job_skip_cache_key
+          job_cache_extra_deps=(); job_id=test_python_39; job_name='Test (Python 3.9)'; job_needs=(); job_os=Linux; job_platform=ubuntu-latest; job_python=3.9; job_reqs=(reqs/dist.txt reqs/test.txt); job_skip_cache_name=skip_test_python_39_py-3.9_ubuntu-latest; job_skip_cache_path=.skip_cache_test_python_39; job_skiplists=(job_test os_linux os_macos os_windows); job_type=test; job_variant='Python 3.9'; skippy_set_job_skip_cache_key
+          job_cache_extra_deps=(); job_id=test_packaging; job_name='Test (Packaging)'; job_needs=(); job_os=Linux; job_platform=ubuntu-latest; job_python=3.9; job_reqs=(reqs/packaging.txt reqs/setup.txt); job_skip_cache_name=skip_test_packaging_py-3.9_ubuntu-latest; job_skip_cache_path=.skip_cache_test_packaging; job_skiplists=(job_test_packaging); job_type=test_packaging; job_variant=Packaging; skippy_set_job_skip_cache_key
+          job_cache_extra_deps=('reqs/dist_*.txt' linux/appimage/deps.sh); job_id=build_linux; job_name='Build (Linux)'; job_needs=(test_linux); job_os=Linux; job_platform=ubuntu-16.04; job_python=3.8; job_reqs=(reqs/build.txt reqs/setup.txt); job_skip_cache_name=skip_build_linux_py-3.8_ubuntu-16.04; job_skip_cache_path=.skip_cache_build_linux; job_skiplists=(job_build os_linux); job_type=build; job_variant=Linux; skippy_set_job_skip_cache_key
+          job_cache_extra_deps=('reqs/dist_*.txt' osx/deps.sh); job_id=build_macos; job_name='Build (macOS)'; job_needs=(test_macos); job_os=macOS; job_platform=macos-10.15; job_python=3.8; job_reqs=(reqs/build.txt reqs/setup.txt); job_skip_cache_name=skip_build_macos_py-3.8_macos-10.15; job_skip_cache_path=.skip_cache_build_macos; job_skiplists=(job_build os_macos); job_type=build; job_variant=macOS; skippy_set_job_skip_cache_key
+          job_cache_extra_deps=('reqs/dist_*.txt' windows/dist_deps.sh); job_id=build_windows; job_name='Build (Windows)'; job_needs=(test_windows); job_os=Windows; job_platform=windows-2019; job_python=3.8; job_reqs=(reqs/build.txt reqs/setup.txt); job_skip_cache_name=skip_build_windows_py-3.8_windows-2019; job_skip_cache_path=.skip_cache_build_windows; job_skiplists=(job_build os_windows); job_type=build; job_variant=Windows; skippy_set_job_skip_cache_key
+
+      - name: Check skip cache for Test (Linux)
+        uses: actions/cache@v2
+        with:
+          path: .skip_cache_test_linux
+          key: 0_check_${{ steps.set_cache.outputs.test_linux_skip_cache_key }}_${{ github.run_id }}
+          restore-keys:
+            0_${{ steps.set_cache.outputs.test_linux_skip_cache_key }}
+
+      - name: Check skip cache for Test (macOS)
+        uses: actions/cache@v2
+        with:
+          path: .skip_cache_test_macos
+          key: 0_check_${{ steps.set_cache.outputs.test_macos_skip_cache_key }}_${{ github.run_id }}
+          restore-keys:
+            0_${{ steps.set_cache.outputs.test_macos_skip_cache_key }}
+
+      - name: Check skip cache for Test (Windows)
+        uses: actions/cache@v2
+        with:
+          path: .skip_cache_test_windows
+          key: 0_check_${{ steps.set_cache.outputs.test_windows_skip_cache_key }}_${{ github.run_id }}
+          restore-keys:
+            0_${{ steps.set_cache.outputs.test_windows_skip_cache_key }}
+
+      - name: Check skip cache for Test (Python 3.6)
+        uses: actions/cache@v2
+        with:
+          path: .skip_cache_test_python_36
+          key: 0_check_${{ steps.set_cache.outputs.test_python_36_skip_cache_key }}_${{ github.run_id }}
+          restore-keys:
+            0_${{ steps.set_cache.outputs.test_python_36_skip_cache_key }}
+
+      - name: Check skip cache for Test (Python 3.7)
+        uses: actions/cache@v2
+        with:
+          path: .skip_cache_test_python_37
+          key: 0_check_${{ steps.set_cache.outputs.test_python_37_skip_cache_key }}_${{ github.run_id }}
+          restore-keys:
+            0_${{ steps.set_cache.outputs.test_python_37_skip_cache_key }}
+
+      - name: Check skip cache for Test (Python 3.9)
+        uses: actions/cache@v2
+        with:
+          path: .skip_cache_test_python_39
+          key: 0_check_${{ steps.set_cache.outputs.test_python_39_skip_cache_key }}_${{ github.run_id }}
+          restore-keys:
+            0_${{ steps.set_cache.outputs.test_python_39_skip_cache_key }}
+
+      - name: Check skip cache for Test (Packaging)
+        uses: actions/cache@v2
+        with:
+          path: .skip_cache_test_packaging
+          key: 0_check_${{ steps.set_cache.outputs.test_packaging_skip_cache_key }}_${{ github.run_id }}
+          restore-keys:
+            0_${{ steps.set_cache.outputs.test_packaging_skip_cache_key }}
+
+      - name: Check skip cache for Build (Linux)
+        uses: actions/cache@v2
+        with:
+          path: .skip_cache_build_linux
+          key: 0_check_${{ steps.set_cache.outputs.build_linux_skip_cache_key }}_${{ github.run_id }}
+          restore-keys:
+            0_${{ steps.set_cache.outputs.build_linux_skip_cache_key }}
+
+      - name: Check skip cache for Build (macOS)
+        uses: actions/cache@v2
+        with:
+          path: .skip_cache_build_macos
+          key: 0_check_${{ steps.set_cache.outputs.build_macos_skip_cache_key }}_${{ github.run_id }}
+          restore-keys:
+            0_${{ steps.set_cache.outputs.build_macos_skip_cache_key }}
+
+      - name: Check skip cache for Build (Windows)
+        uses: actions/cache@v2
+        with:
+          path: .skip_cache_build_windows
+          key: 0_check_${{ steps.set_cache.outputs.build_windows_skip_cache_key }}_${{ github.run_id }}
+          restore-keys:
+            0_${{ steps.set_cache.outputs.build_windows_skip_cache_key }}
+
+      - name: Set skip status
+        id: set_skip
+        run: |
+          is_release='${{ github.event_name == 'push' && startsWith(github.ref, 'refs/tags/') && 'yes' || 'no' }}'
+          info "is release? $is_release"
+          job_cache_extra_deps=(); job_id=test_linux; job_name='Test (Linux)'; job_needs=(); job_os=Linux; job_platform=ubuntu-16.04; job_python=3.8; job_reqs=(reqs/dist.txt reqs/test.txt); job_skip_cache_name=skip_test_linux_py-3.8_ubuntu-16.04; job_skip_cache_path=.skip_cache_test_linux; job_skiplists=(job_test os_linux); job_type=test; job_variant=Linux; skippy_set_job_skip_job
+          job_cache_extra_deps=(osx/deps.sh); job_id=test_macos; job_name='Test (macOS)'; job_needs=(); job_os=macOS; job_platform=macos-10.15; job_python=3.8; job_reqs=(reqs/dist.txt reqs/test.txt); job_skip_cache_name=skip_test_macos_py-3.8_macos-10.15; job_skip_cache_path=.skip_cache_test_macos; job_skiplists=(job_test os_macos); job_type=test; job_variant=macOS; skippy_set_job_skip_job
+          job_cache_extra_deps=(); job_id=test_windows; job_name='Test (Windows)'; job_needs=(); job_os=Windows; job_platform=windows-2019; job_python=3.8; job_reqs=(reqs/dist.txt reqs/test.txt); job_skip_cache_name=skip_test_windows_py-3.8_windows-2019; job_skip_cache_path=.skip_cache_test_windows; job_skiplists=(job_test os_windows); job_type=test; job_variant=Windows; skippy_set_job_skip_job
+          job_cache_extra_deps=(); job_id=test_python_36; job_name='Test (Python 3.6)'; job_needs=(); job_os=Linux; job_platform=ubuntu-latest; job_python=3.6; job_reqs=(reqs/dist.txt reqs/test.txt); job_skip_cache_name=skip_test_python_36_py-3.6_ubuntu-latest; job_skip_cache_path=.skip_cache_test_python_36; job_skiplists=(job_test os_linux os_macos os_windows); job_type=test; job_variant='Python 3.6'; skippy_set_job_skip_job
+          job_cache_extra_deps=(); job_id=test_python_37; job_name='Test (Python 3.7)'; job_needs=(); job_os=Linux; job_platform=ubuntu-latest; job_python=3.7; job_reqs=(reqs/dist.txt reqs/test.txt); job_skip_cache_name=skip_test_python_37_py-3.7_ubuntu-latest; job_skip_cache_path=.skip_cache_test_python_37; job_skiplists=(job_test os_linux os_macos os_windows); job_type=test; job_variant='Python 3.7'; skippy_set_job_skip_job
+          job_cache_extra_deps=(); job_id=test_python_39; job_name='Test (Python 3.9)'; job_needs=(); job_os=Linux; job_platform=ubuntu-latest; job_python=3.9; job_reqs=(reqs/dist.txt reqs/test.txt); job_skip_cache_name=skip_test_python_39_py-3.9_ubuntu-latest; job_skip_cache_path=.skip_cache_test_python_39; job_skiplists=(job_test os_linux os_macos os_windows); job_type=test; job_variant='Python 3.9'; skippy_set_job_skip_job
+          job_cache_extra_deps=(); job_id=test_packaging; job_name='Test (Packaging)'; job_needs=(); job_os=Linux; job_platform=ubuntu-latest; job_python=3.9; job_reqs=(reqs/packaging.txt reqs/setup.txt); job_skip_cache_name=skip_test_packaging_py-3.9_ubuntu-latest; job_skip_cache_path=.skip_cache_test_packaging; job_skiplists=(job_test_packaging); job_type=test_packaging; job_variant=Packaging; skippy_set_job_skip_job
+          job_cache_extra_deps=('reqs/dist_*.txt' linux/appimage/deps.sh); job_id=build_linux; job_name='Build (Linux)'; job_needs=(test_linux); job_os=Linux; job_platform=ubuntu-16.04; job_python=3.8; job_reqs=(reqs/build.txt reqs/setup.txt); job_skip_cache_name=skip_build_linux_py-3.8_ubuntu-16.04; job_skip_cache_path=.skip_cache_build_linux; job_skiplists=(job_build os_linux); job_type=build; job_variant=Linux; skippy_set_job_skip_job
+          job_cache_extra_deps=('reqs/dist_*.txt' osx/deps.sh); job_id=build_macos; job_name='Build (macOS)'; job_needs=(test_macos); job_os=macOS; job_platform=macos-10.15; job_python=3.8; job_reqs=(reqs/build.txt reqs/setup.txt); job_skip_cache_name=skip_build_macos_py-3.8_macos-10.15; job_skip_cache_path=.skip_cache_build_macos; job_skiplists=(job_build os_macos); job_type=build; job_variant=macOS; skippy_set_job_skip_job
+          job_cache_extra_deps=('reqs/dist_*.txt' windows/dist_deps.sh); job_id=build_windows; job_name='Build (Windows)'; job_needs=(test_windows); job_os=Windows; job_platform=windows-2019; job_python=3.8; job_reqs=(reqs/build.txt reqs/setup.txt); job_skip_cache_name=skip_build_windows_py-3.8_windows-2019; job_skip_cache_path=.skip_cache_build_windows; job_skiplists=(job_build os_windows); job_type=build; job_variant=Windows; skippy_set_job_skip_job
+
+    outputs:
+        test_linux_skip_job: ${{ steps.set_skip.outputs.test_linux_skip_job }}
+        test_linux_skip_cache_key: ${{ steps.set_cache.outputs.test_linux_skip_cache_key }}
+        test_macos_skip_job: ${{ steps.set_skip.outputs.test_macos_skip_job }}
+        test_macos_skip_cache_key: ${{ steps.set_cache.outputs.test_macos_skip_cache_key }}
+        test_windows_skip_job: ${{ steps.set_skip.outputs.test_windows_skip_job }}
+        test_windows_skip_cache_key: ${{ steps.set_cache.outputs.test_windows_skip_cache_key }}
+        test_python_36_skip_job: ${{ steps.set_skip.outputs.test_python_36_skip_job }}
+        test_python_36_skip_cache_key: ${{ steps.set_cache.outputs.test_python_36_skip_cache_key }}
+        test_python_37_skip_job: ${{ steps.set_skip.outputs.test_python_37_skip_job }}
+        test_python_37_skip_cache_key: ${{ steps.set_cache.outputs.test_python_37_skip_cache_key }}
+        test_python_39_skip_job: ${{ steps.set_skip.outputs.test_python_39_skip_job }}
+        test_python_39_skip_cache_key: ${{ steps.set_cache.outputs.test_python_39_skip_cache_key }}
+        test_packaging_skip_job: ${{ steps.set_skip.outputs.test_packaging_skip_job }}
+        test_packaging_skip_cache_key: ${{ steps.set_cache.outputs.test_packaging_skip_cache_key }}
+        build_linux_skip_job: ${{ steps.set_skip.outputs.build_linux_skip_job }}
+        build_linux_skip_cache_key: ${{ steps.set_cache.outputs.build_linux_skip_cache_key }}
+        build_macos_skip_job: ${{ steps.set_skip.outputs.build_macos_skip_job }}
+        build_macos_skip_cache_key: ${{ steps.set_cache.outputs.build_macos_skip_cache_key }}
+        build_windows_skip_job: ${{ steps.set_skip.outputs.build_windows_skip_job }}
+        build_windows_skip_cache_key: ${{ steps.set_cache.outputs.build_windows_skip_cache_key }}
+  # }}}
+
   # Job: Test (Linux) {{{
   test_linux:
 
     name: Test (Linux)
     runs-on: ubuntu-16.04
-    needs: []
+    needs: [skippy]
+    if: >-
+      !cancelled()
+      && needs.skippy.outputs.test_linux_skip_job != 'yes'
 
     steps:
 
@@ -53,6 +200,15 @@ jobs:
 
       # }}}
 
+      - name: Update skip cache 1
+        uses: actions/cache@v2
+        with:
+          path: .skip_cache_test_linux
+          key: 0_${{ needs.skippy.outputs.test_linux_skip_cache_key }}
+
+      - name: Update skip cache 2
+        run: run_eval "echo 'https://github.com/$GITHUB_REPOSITORY/actions/runs/$GITHUB_RUN_ID' >'.skip_cache_test_linux'"
+
       - name: List cache contents
         run: list_cache
   # }}}
@@ -62,7 +218,10 @@ jobs:
 
     name: Test (macOS)
     runs-on: macos-10.15
-    needs: []
+    needs: [skippy]
+    if: >-
+      !cancelled()
+      && needs.skippy.outputs.test_macos_skip_job != 'yes'
 
     steps:
 
@@ -95,6 +254,15 @@ jobs:
 
       # }}}
 
+      - name: Update skip cache 1
+        uses: actions/cache@v2
+        with:
+          path: .skip_cache_test_macos
+          key: 0_${{ needs.skippy.outputs.test_macos_skip_cache_key }}
+
+      - name: Update skip cache 2
+        run: run_eval "echo 'https://github.com/$GITHUB_REPOSITORY/actions/runs/$GITHUB_RUN_ID' >'.skip_cache_test_macos'"
+
       - name: List cache contents
         run: list_cache
   # }}}
@@ -104,7 +272,10 @@ jobs:
 
     name: Test (Windows)
     runs-on: windows-2019
-    needs: []
+    needs: [skippy]
+    if: >-
+      !cancelled()
+      && needs.skippy.outputs.test_windows_skip_job != 'yes'
 
     steps:
 
@@ -115,6 +286,11 @@ jobs:
         uses: actions/setup-python@v2
         with:
           python-version: 3.8
+
+      # On Windows, ensure we use a tar compatible
+      # with the one used in the skippy job.
+      - name: Fix tar
+        run: rm C:/Windows/System32/tar
 
       - name: Set cache name
         id: set_cache
@@ -138,6 +314,15 @@ jobs:
 
       # }}}
 
+      - name: Update skip cache 1
+        uses: actions/cache@v2
+        with:
+          path: .skip_cache_test_windows
+          key: 0_${{ needs.skippy.outputs.test_windows_skip_cache_key }}
+
+      - name: Update skip cache 2
+        run: run_eval "echo 'https://github.com/$GITHUB_REPOSITORY/actions/runs/$GITHUB_RUN_ID' >'.skip_cache_test_windows'"
+
       - name: List cache contents
         run: list_cache
   # }}}
@@ -147,7 +332,10 @@ jobs:
 
     name: Test (Python 3.6)
     runs-on: ubuntu-latest
-    needs: []
+    needs: [skippy]
+    if: >-
+      !cancelled()
+      && needs.skippy.outputs.test_python_36_skip_job != 'yes'
 
     steps:
 
@@ -181,6 +369,15 @@ jobs:
 
       # }}}
 
+      - name: Update skip cache 1
+        uses: actions/cache@v2
+        with:
+          path: .skip_cache_test_python_36
+          key: 0_${{ needs.skippy.outputs.test_python_36_skip_cache_key }}
+
+      - name: Update skip cache 2
+        run: run_eval "echo 'https://github.com/$GITHUB_REPOSITORY/actions/runs/$GITHUB_RUN_ID' >'.skip_cache_test_python_36'"
+
       - name: List cache contents
         run: list_cache
   # }}}
@@ -190,7 +387,10 @@ jobs:
 
     name: Test (Python 3.7)
     runs-on: ubuntu-latest
-    needs: []
+    needs: [skippy]
+    if: >-
+      !cancelled()
+      && needs.skippy.outputs.test_python_37_skip_job != 'yes'
 
     steps:
 
@@ -224,6 +424,15 @@ jobs:
 
       # }}}
 
+      - name: Update skip cache 1
+        uses: actions/cache@v2
+        with:
+          path: .skip_cache_test_python_37
+          key: 0_${{ needs.skippy.outputs.test_python_37_skip_cache_key }}
+
+      - name: Update skip cache 2
+        run: run_eval "echo 'https://github.com/$GITHUB_REPOSITORY/actions/runs/$GITHUB_RUN_ID' >'.skip_cache_test_python_37'"
+
       - name: List cache contents
         run: list_cache
   # }}}
@@ -233,7 +442,10 @@ jobs:
 
     name: Test (Python 3.9)
     runs-on: ubuntu-latest
-    needs: []
+    needs: [skippy]
+    if: >-
+      !cancelled()
+      && needs.skippy.outputs.test_python_39_skip_job != 'yes'
 
     steps:
 
@@ -267,6 +479,15 @@ jobs:
 
       # }}}
 
+      - name: Update skip cache 1
+        uses: actions/cache@v2
+        with:
+          path: .skip_cache_test_python_39
+          key: 0_${{ needs.skippy.outputs.test_python_39_skip_cache_key }}
+
+      - name: Update skip cache 2
+        run: run_eval "echo 'https://github.com/$GITHUB_REPOSITORY/actions/runs/$GITHUB_RUN_ID' >'.skip_cache_test_python_39'"
+
       - name: List cache contents
         run: list_cache
   # }}}
@@ -276,7 +497,10 @@ jobs:
 
     name: Test (Packaging)
     runs-on: ubuntu-latest
-    needs: []
+    needs: [skippy]
+    if: >-
+      !cancelled()
+      && needs.skippy.outputs.test_packaging_skip_job != 'yes'
 
     steps:
 
@@ -330,6 +554,15 @@ jobs:
 
       # }}}
 
+      - name: Update skip cache 1
+        uses: actions/cache@v2
+        with:
+          path: .skip_cache_test_packaging
+          key: 0_${{ needs.skippy.outputs.test_packaging_skip_cache_key }}
+
+      - name: Update skip cache 2
+        run: run_eval "echo 'https://github.com/$GITHUB_REPOSITORY/actions/runs/$GITHUB_RUN_ID' >'.skip_cache_test_packaging'"
+
       - name: List cache contents
         run: list_cache
   # }}}
@@ -339,7 +572,11 @@ jobs:
 
     name: Build (Linux)
     runs-on: ubuntu-16.04
-    needs: [test_linux]
+    needs: [skippy, test_linux]
+    if: >-
+      !cancelled()
+      && needs.skippy.outputs.build_linux_skip_job != 'yes'
+      && (needs.test_linux.result == 'success' || needs.test_linux.result == 'skipped')
 
     steps:
 
@@ -388,6 +625,15 @@ jobs:
 
       # }}}
 
+      - name: Update skip cache 1
+        uses: actions/cache@v2
+        with:
+          path: .skip_cache_build_linux
+          key: 0_${{ needs.skippy.outputs.build_linux_skip_cache_key }}
+
+      - name: Update skip cache 2
+        run: run_eval "echo 'https://github.com/$GITHUB_REPOSITORY/actions/runs/$GITHUB_RUN_ID' >'.skip_cache_build_linux'"
+
       - name: List cache contents
         run: list_cache
   # }}}
@@ -397,7 +643,11 @@ jobs:
 
     name: Build (macOS)
     runs-on: macos-10.15
-    needs: [test_macos]
+    needs: [skippy, test_macos]
+    if: >-
+      !cancelled()
+      && needs.skippy.outputs.build_macos_skip_job != 'yes'
+      && (needs.test_macos.result == 'success' || needs.test_macos.result == 'skipped')
 
     steps:
 
@@ -442,6 +692,15 @@ jobs:
 
       # }}}
 
+      - name: Update skip cache 1
+        uses: actions/cache@v2
+        with:
+          path: .skip_cache_build_macos
+          key: 0_${{ needs.skippy.outputs.build_macos_skip_cache_key }}
+
+      - name: Update skip cache 2
+        run: run_eval "echo 'https://github.com/$GITHUB_REPOSITORY/actions/runs/$GITHUB_RUN_ID' >'.skip_cache_build_macos'"
+
       - name: List cache contents
         run: list_cache
   # }}}
@@ -451,7 +710,11 @@ jobs:
 
     name: Build (Windows)
     runs-on: windows-2019
-    needs: [test_windows]
+    needs: [skippy, test_windows]
+    if: >-
+      !cancelled()
+      && needs.skippy.outputs.build_windows_skip_job != 'yes'
+      && (needs.test_windows.result == 'success' || needs.test_windows.result == 'skipped')
 
     steps:
 
@@ -465,6 +728,11 @@ jobs:
         uses: actions/setup-python@v2
         with:
           python-version: 3.8
+
+      # On Windows, ensure we use a tar compatible
+      # with the one used in the skippy job.
+      - name: Fix tar
+        run: rm C:/Windows/System32/tar
 
       - name: Set cache name
         id: set_cache
@@ -505,6 +773,15 @@ jobs:
           path: dist/*.zip
 
       # }}}
+
+      - name: Update skip cache 1
+        uses: actions/cache@v2
+        with:
+          path: .skip_cache_build_windows
+          key: 0_${{ needs.skippy.outputs.build_windows_skip_cache_key }}
+
+      - name: Update skip cache 2
+        run: run_eval "echo 'https://github.com/$GITHUB_REPOSITORY/actions/runs/$GITHUB_RUN_ID' >'.skip_cache_build_windows'"
 
       - name: List cache contents
         run: list_cache

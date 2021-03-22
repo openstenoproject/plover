@@ -9,13 +9,69 @@ defaults:
 
 jobs:
 
+  <% if skippy_enabled %>
+  # Job: Skippy {{{
+  skippy:
+
+    name: Skippy
+    runs-on: ubuntu-latest
+
+    steps:
+
+      - name: Checkout
+        uses: <@ action_checkout @>
+
+      - name: Calculate skip cache keys
+        id: set_cache
+        run: |
+          <% for j in jobs %>
+          <@ j.shell_definition @>; skippy_set_job_skip_cache_key
+          <% endfor %>
+
+      <% for j in jobs %>
+      - name: Check skip cache for <@ j.name @>
+        uses: actions/cache@v2
+        with:
+          path: <@ j.skip_cache_path @>
+          key: <@ cache_epoch @>_check_${{ steps.set_cache.outputs.<@ j.id @>_skip_cache_key }}_${{ github.run_id }}
+          restore-keys:
+            <@ cache_epoch @>_${{ steps.set_cache.outputs.<@ j.id @>_skip_cache_key }}
+
+      <% endfor %>
+      - name: Set skip status
+        id: set_skip
+        run: |
+          is_release='${{ <@ is_release @> && 'yes' || 'no' }}'
+          info "is release? $is_release"
+          <% for j in jobs %>
+          <@ j.shell_definition @>; skippy_set_job_skip_job
+          <% endfor %>
+
+    outputs:
+      <% for j in jobs %>
+        <@ j.id @>_skip_job: ${{ steps.set_skip.outputs.<@ j.id @>_skip_job }}
+        <@ j.id @>_skip_cache_key: ${{ steps.set_cache.outputs.<@ j.id @>_skip_cache_key }}
+      <% endfor %>
+  # }}}
+
+  <% endif %>
   <% for j in jobs %>
   # Job: <@ j.name @> {{{
   <@ j.id @>:
 
     name: <@ j.name @>
     runs-on: <@ j.platform @>
+    <% if skippy_enabled %>
+    needs: [<@ (['skippy'] + j.needs)|join(', ') @>]
+    if: >-
+      !cancelled()
+      && needs.skippy.outputs.<@ j.id @>_skip_job != 'yes'
+      <% for need_id in j.needs %>
+      && (needs.<@ need_id @>.result == 'success' || needs.<@ need_id @>.result == 'skipped')
+      <% endfor %>
+    <% else %>
     needs: [<@ j.needs|join(', ') @>]
+    <% endif %>
 
     steps:
 
@@ -32,6 +88,13 @@ jobs:
         uses: <@ action_setup_python @>
         with:
           python-version: <@ j.python @>
+
+      <% endif %>
+      <% if skippy_enabled and j.os == 'Windows' %>
+      # On Windows, ensure we use a tar compatible
+      # with the one used in the skippy job.
+      - name: Fix tar
+        run: rm C:/Windows/System32/tar
 
       <% endif %>
       - name: Set cache name
@@ -144,6 +207,17 @@ jobs:
 
       <% endif %>
       # }}}
+
+      <% endif %>
+      <% if skippy_enabled %>
+      - name: Update skip cache 1
+        uses: <@ action_cache @>
+        with:
+          path: <@ j.skip_cache_path @>
+          key: <@ cache_epoch @>_${{ needs.skippy.outputs.<@ j.id @>_skip_cache_key }}
+
+      - name: Update skip cache 2
+        run: run_eval "echo 'https://github.com/$GITHUB_REPOSITORY/actions/runs/$GITHUB_RUN_ID' >'<@ j.skip_cache_path @>'"
 
       <% endif %>
       - name: List cache contents
