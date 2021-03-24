@@ -5,12 +5,13 @@ and a reference to any issue tickets that the PR is intended to solve.
 All PRs with code changes should include tests. All changes should include a
 changelog entry.
 
-Plover uses [towncrier](https://pypi.org/project/towncrier)
-for changelog management, so when making a PR, please add a news fragment in
-the `news.d/` folder. Changelog files are written in reStructuredText and
-should be a 1 or 2 sentence description of the substantive changes in the PR.
-They should be named `<section>/<pr_number>.<category>.rst`, where the
-sections / categories are:
+Plover uses [towncrier](https://pypi.org/project/towncrier) for changelog
+management, so when making a PR, please add a news fragment in the `news.d/`
+folder. Changelog files are written in Markdown and should be a 1 or 2 sentence
+description of the substantive changes in the PR.
+
+They should be named `<section>/<pr_number>.<category>.md`, where the sections
+/ categories are:
 
 * `feature`: New features:
 
@@ -36,6 +37,6 @@ documentation fragment for documentation changes accompanying the relevant
 code changes. See the following for an example news fragment:
 
 ``` bash
-$ cat news.d/bugfix/1041.ui.rst
+$ cat news.d/bugfix/1041.ui.md
 Fix possible crash when changing machine parameters in the configuration dialog.
 ```
