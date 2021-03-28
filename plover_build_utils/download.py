@@ -1,18 +1,10 @@
 #!/usr/bin/env python3
 
+from urllib.request import urlopen
+from urllib.parse import urlsplit
 import hashlib
 import os
 import sys
-
-
-if sys.version_info[0] < 3:
-    # Python 2.
-    from urllib import urlretrieve
-    from urlparse import urlsplit
-else:
-    # Python 3.
-    from urllib.request import urlretrieve
-    from urllib.parse import urlsplit
 
 
 DOWNLOADS_DIR = os.path.join('.cache', 'downloads')
@@ -30,7 +22,8 @@ def download(url, sha1=None, filename=None, downloads_dir=DOWNLOADS_DIR):
         if sha1 is None or not os.path.exists(dst):
             retries += 1
             try:
-                urlretrieve(url, dst)
+                with urlopen(url) as req, open(dst, 'wb') as fp:
+                    fp.write(req.read())
             except Exception as e:
                 print('error', e)
                 continue
