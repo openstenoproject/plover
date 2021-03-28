@@ -11,19 +11,19 @@ action_download_artifact: actions/download-artifact@v2
 vars:
   - &dist_linux
     variant: Linux
-    python: '3.6'
+    python: '3.8'
     os: Linux
     platform: ubuntu-16.04
 
   - &dist_macos
     variant: macOS
-    python: '3.6'
+    python: '3.8'
     os: macOS
     platform: macos-10.15
 
   - &dist_win
     variant: Windows
-    python: '3.6'
+    python: '3.8'
     os: Windows
     platform: windows-2019
 
@@ -48,11 +48,11 @@ jobs:
   - &python_test
     <<: *test
     <<: *dist_other
+    variant: Python 3.6
+    python: '3.6'
+  - <<: *python_test
     variant: Python 3.7
     python: '3.7'
-  - <<: *python_test
-    variant: Python 3.8
-    python: '3.8'
   - <<: *python_test
     variant: Python 3.9
     python: '3.9'

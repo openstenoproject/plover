@@ -9,7 +9,7 @@ chardet==3.0.4
 check-manifest==0.41
 click==7.1.2
 click-default-group==1.2.2
-cmarkgfm==0.4.2
+cmarkgfm==0.5.3
 colorama==0.4.4
 cryptography==3.4.7; "linux" in sys_platform
 dbus-python==1.2.16; "linux" in sys_platform

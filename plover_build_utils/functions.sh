@@ -174,8 +174,8 @@ osx_standalone_python()
   run "$python" "$reloc_py_dir/make_relocatable_python_framework.py" \
     --baseurl="file://$PWD/$downloads_cache/%s/../python-%s-macosx%s.pkg" \
     --python-version="$py_version" --os-version="$py_macos" \
-    --pip-requirements=/dev/null \
     --destination="$dest" \
+    --without-pip \
     ;
   run ln -s 'python3' "$py_framework_dir/Versions/Current/bin/python"
   run rm -rf "$reloc_py_dir"

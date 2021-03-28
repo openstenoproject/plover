@@ -29,11 +29,11 @@ jobs:
       - name: Setup Python
         uses: actions/setup-python@v2
         with:
-          python-version: 3.6
+          python-version: 3.8
 
       - name: Set cache name
         id: set_cache
-        run: setup_cache_name '3.6' 'ubuntu-16.04'
+        run: setup_cache_name '3.8' 'ubuntu-16.04'
 
       - name: Setup cache
         uses: actions/cache@v2
@@ -71,7 +71,7 @@ jobs:
 
       - name: Set cache name
         id: set_cache
-        run: setup_cache_name '3.6' 'macos-10.15'
+        run: setup_cache_name '3.8' 'macos-10.15'
 
       - name: Setup cache
         uses: actions/cache@v2
@@ -84,7 +84,7 @@ jobs:
 
       # To support older macOS versions, setup Python from an official installer.
       - name: Setup Python
-        run: setup_osx_python '3.6'
+        run: setup_osx_python '3.8'
 
       - name: Setup Python environment
         run: setup_python_env -c reqs/constraints.txt -r reqs/dist.txt -r reqs/test.txt
@@ -114,11 +114,54 @@ jobs:
       - name: Setup Python
         uses: actions/setup-python@v2
         with:
+          python-version: 3.8
+
+      - name: Set cache name
+        id: set_cache
+        run: setup_cache_name '3.8' 'windows-2019'
+
+      - name: Setup cache
+        uses: actions/cache@v2
+        with:
+          path: .cache
+          key: 0_${{ steps.set_cache.outputs.cache_name }}_${{ hashFiles('reqs/constraints.txt', 'reqs/dist.txt', 'reqs/test.txt') }}
+
+      - name: Setup pip options
+        run: setup_pip_options
+
+      - name: Setup Python environment
+        run: setup_python_env -c reqs/constraints.txt -r reqs/dist.txt -r reqs/test.txt
+      # Test {{{
+
+      - name: Run tests
+        run: run_tests
+
+      # }}}
+
+      - name: List cache contents
+        run: list_cache
+  # }}}
+
+  # Job: Test (Python 3.6) {{{
+  test_python_36:
+
+    name: Test (Python 3.6)
+    runs-on: ubuntu-latest
+    needs: []
+
+    steps:
+
+      - name: Checkout
+        uses: actions/checkout@v2
+
+      - name: Setup Python
+        uses: actions/setup-python@v2
+        with:
           python-version: 3.6
 
       - name: Set cache name
         id: set_cache
-        run: setup_cache_name '3.6' 'windows-2019'
+        run: setup_cache_name '3.6' 'ubuntu-latest'
 
       - name: Setup cache
         uses: actions/cache@v2
@@ -162,49 +205,6 @@ jobs:
       - name: Set cache name
         id: set_cache
         run: setup_cache_name '3.7' 'ubuntu-latest'
-
-      - name: Setup cache
-        uses: actions/cache@v2
-        with:
-          path: .cache
-          key: 0_${{ steps.set_cache.outputs.cache_name }}_${{ hashFiles('reqs/constraints.txt', 'reqs/dist.txt', 'reqs/test.txt') }}
-
-      - name: Setup pip options
-        run: setup_pip_options
-
-      - name: Setup Python environment
-        run: setup_python_env -c reqs/constraints.txt -r reqs/dist.txt -r reqs/test.txt
-      # Test {{{
-
-      - name: Run tests
-        run: run_tests
-
-      # }}}
-
-      - name: List cache contents
-        run: list_cache
-  # }}}
-
-  # Job: Test (Python 3.8) {{{
-  test_python_38:
-
-    name: Test (Python 3.8)
-    runs-on: ubuntu-latest
-    needs: []
-
-    steps:
-
-      - name: Checkout
-        uses: actions/checkout@v2
-
-      - name: Setup Python
-        uses: actions/setup-python@v2
-        with:
-          python-version: 3.8
-
-      - name: Set cache name
-        id: set_cache
-        run: setup_cache_name '3.8' 'ubuntu-latest'
 
       - name: Setup cache
         uses: actions/cache@v2
@@ -352,11 +352,11 @@ jobs:
       - name: Setup Python
         uses: actions/setup-python@v2
         with:
-          python-version: 3.6
+          python-version: 3.8
 
       - name: Set cache name
         id: set_cache
-        run: setup_cache_name '3.6' 'ubuntu-16.04'
+        run: setup_cache_name '3.8' 'ubuntu-16.04'
 
       - name: Setup cache
         uses: actions/cache@v2
@@ -409,7 +409,7 @@ jobs:
 
       - name: Set cache name
         id: set_cache
-        run: setup_cache_name '3.6' 'macos-10.15'
+        run: setup_cache_name '3.8' 'macos-10.15'
 
       - name: Setup cache
         uses: actions/cache@v2
@@ -422,7 +422,7 @@ jobs:
 
       # To support older macOS versions, setup Python from an official installer.
       - name: Setup Python
-        run: setup_osx_python '3.6'
+        run: setup_osx_python '3.8'
 
       - name: Setup Python environment
         run: setup_python_env -c reqs/constraints.txt -r reqs/build.txt -r reqs/setup.txt
@@ -464,11 +464,11 @@ jobs:
       - name: Setup Python
         uses: actions/setup-python@v2
         with:
-          python-version: 3.6
+          python-version: 3.8
 
       - name: Set cache name
         id: set_cache
-        run: setup_cache_name '3.6' 'windows-2019'
+        run: setup_cache_name '3.8' 'windows-2019'
 
       - name: Setup cache
         uses: actions/cache@v2
@@ -516,7 +516,7 @@ jobs:
     name: Release
     environment: release
     runs-on: ubuntu-latest
-    needs: [test_linux, test_macos, test_windows, test_python_37, test_python_38, test_python_39, test_packaging, build_linux, build_macos, build_windows]
+    needs: [test_linux, test_macos, test_windows, test_python_36, test_python_37, test_python_39, test_packaging, build_linux, build_macos, build_windows]
     if: github.event_name == 'push' && startsWith(github.ref, 'refs/tags/')
 
     steps:
