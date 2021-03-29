@@ -87,7 +87,7 @@ die()
 
 run()
 {
-  info "$@"
+  info "$(printf "%q " "$@")"
   [ $opt_dry_run -ne 0 ] && return
   if [ $opt_timings -ne 0 ]
   then
