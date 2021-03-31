@@ -317,6 +317,10 @@ BuildPy.build_dependencies.append('compile_catalog')
 
 # }}}
 
+def reqs(name):
+    with open(os.path.join('reqs', name + '.txt')) as fp:
+        return fp.read()
+
 setup(
     name=__software_name__,
     version=__version__,
@@ -327,6 +331,12 @@ setup(
     license=__license__,
     options=options,
     cmdclass=cmdclass,
+    install_requires=reqs('dist'),
+    extras_require={
+        'gui_qt': reqs('dist_extra_gui_qt'),
+        'log': reqs('dist_extra_log'),
+    },
+    tests_require=reqs('test'),
 )
 
 # vim: foldmethod=marker
