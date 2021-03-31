@@ -1,0 +1,13 @@
+appdirs>=1.3.0
+appnope>=0.1.0; "darwin" in sys_platform
+certifi
+pyobjc-core>=4.0; "darwin" in sys_platform
+pyobjc-framework-Cocoa>=4.0; "darwin" in sys_platform
+pyobjc-framework-Quartz>=4.0; "darwin" in sys_platform
+pyserial>=2.7
+python-xlib>=0.16; "linux" in sys_platform and python_version < "3.9"
+python-xlib>=0.29; "linux" in sys_platform and python_version >= "3.9"
+setuptools
+wcwidth
+
+# vim: ft=cfg commentstring=#\ %s list

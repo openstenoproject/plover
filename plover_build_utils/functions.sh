@@ -111,7 +111,7 @@ run_eval()
 
 get_base_devel()
 {
-  run "$python" -m plover_build_utils.get_pip -r requirements_base_devel.txt "$@"
+  run "$python" -m plover_build_utils.get_pip -c reqs/constraints.txt pip setuptools wheel "$@"
 }
 
 install_wheels()
@@ -130,9 +130,11 @@ bootstrap_dist()
   get_base_devel "$wheel" --no-deps "$@" || die
   # Install the rest: Plover's dependencies, as well as standard plugins.
   install_wheels \
-    -c requirements_base_devel.txt \
-    -r requirements_distribution.txt \
-    -r requirements_plugins.txt \
+    -c reqs/constraints.txt \
+    -r reqs/dist.txt \
+    -r reqs/dist_extra_gui_qt.txt \
+    -r reqs/dist_extra_log.txt \
+    -r reqs/dist_plugins.txt \
     "$@" || die
   # Avoid caching Plover's wheel.
   run rm "$wheels_cache/$(basename "$wheel")"
