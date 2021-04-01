@@ -1592,3 +1592,12 @@ class TestsBlackbox:
 
         TEFT/AT/TEFT  ' testattach test'
         '''
+
+    def test_prefix_strokes(self):
+        r'''
+        "/S": "{prefix^}",
+        "S": "{^suffix}",
+        "O": "{O'^}{$}",
+
+        S/S/O/S/S  " prefixsuffix O'prefixsuffix"
+        '''
