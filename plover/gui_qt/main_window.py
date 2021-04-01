@@ -132,6 +132,8 @@ class MainWindow(QMainWindow, Ui_MainWindow, WindowState):
         engine.signal_connect('configure', partial(self._configure, manage_windows=True))
         engine.signal_connect('lookup', partial(self._activate_dialog, 'lookup',
                                                 manage_windows=True))
+        engine.signal_connect('suggestions', partial(self._activate_dialog, 'suggestions',
+                                                     manage_windows=True))
         # Load the configuration (but do not start the engine yet).
         if not engine.load_config():
             self.on_configure()

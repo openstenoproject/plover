@@ -88,6 +88,7 @@ class StenoEngine:
     focus
     configure
     lookup
+    suggestions
     quit
     '''.split()
 
@@ -345,6 +346,8 @@ class StenoEngine:
             self._trigger_hook('add_translation')
         elif command_name == 'lookup':
             self._trigger_hook('lookup')
+        elif command_name == 'suggestions':
+            self._trigger_hook('suggestions')
         else:
             command_fn = registry.get_plugin('command', command_name).obj
             command_fn(self, command_args[0] if command_args else '')

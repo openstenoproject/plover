@@ -26,6 +26,7 @@ class Engine(StenoEngine, QThread):
     signal_focus = pyqtSignal()
     signal_configure = pyqtSignal()
     signal_lookup = pyqtSignal()
+    signal_suggestions = pyqtSignal()
     signal_quit = pyqtSignal()
 
     def __init__(self, config, keyboard_emulation):
