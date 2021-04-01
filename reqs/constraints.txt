@@ -36,7 +36,7 @@ pluggy==0.13.1
 plyer==1.4.3; "win32" in sys_platform
 py==1.10.0
 pycparser==2.20
-Pygments==2.6.1
+Pygments==2.7.4
 pyobjc-core==6.2; "darwin" in sys_platform
 pyobjc-framework-Cocoa==6.2; "darwin" in sys_platform
 pyobjc-framework-Quartz==6.2; "darwin" in sys_platform
