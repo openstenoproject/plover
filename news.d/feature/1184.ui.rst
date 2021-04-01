@@ -1,0 +1,1 @@
+A new command, ``{PLOVER:SUGGESTIONS}``, is available to open the suggestions window with a steno stroke.
