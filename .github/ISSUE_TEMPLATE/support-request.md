@@ -1,11 +1,12 @@
 ---
 name: Support request
-about: Get help if you're having trouble getting Plover up and running.
+about: Get help if Plover isn't working
 title: ''
 labels: support
 assignees: ''
 
 ---
+<!-- Note: If your issue is not specific, but rather general, such as, "How do I get the most out of Plover on Windows?", then consider opening a Discussion instead of an Issue. -->
 
 **Describe your issue**
 
