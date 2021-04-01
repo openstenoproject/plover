@@ -3,7 +3,6 @@
 include CONTRIBUTING.md
 include LICENSE.txt
 include NEWS.md
-include application/*
 include archlinux/*
 include debian/*
 include debian/source/*
@@ -28,7 +27,7 @@ include plover/gui_qt/resources/*.qrc
 include plover/gui_qt/resources/*.svg
 include plover_build_utils/*.sh
 include pyproject.toml
-include requirements*.txt
+include reqs/*.txt
 include rpm/*.spec
 include test.bat
 include test.sh
@@ -38,12 +37,9 @@ include tox.ini
 include windows/*
 # Exclude: CI/Git/GitHub specific files,
 # as well as generated Python files (UI).
-exclude *.yml
 exclude .gitignore
 exclude archlinux/.gitignore
 exclude plover/gui_qt/*_rc.py
 exclude plover/gui_qt/*_ui.py
 exclude plover/gui_qt/.gitignore
-prune .circleci
 prune .github
-prune ci

@@ -1,0 +1,6 @@
+check-manifest
+readme-renderer[md]
+setuptools-scm
+twine
+
+# vim: ft=cfg commentstring=#\ %s list

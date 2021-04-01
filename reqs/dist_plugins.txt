@@ -1,0 +1,4 @@
+plover-plugins-manager
+plover-treal
+
+# vim: ft=cfg commentstring=#\ %s list

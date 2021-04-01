@@ -44,7 +44,7 @@ sed -i '/^\s*PyQt5\b.*/d' setup.cfg
 %install
 %py3_install
 install -vDm644 -t "%{buildroot}/usr/share/pixmaps" plover/assets/plover.png
-install -vDm644 -t "%{buildroot}/usr/share/applications" application/plover.desktop
+install -vDm644 -t "%{buildroot}/usr/share/applications" linux/plover.desktop
 
 %check
 %{__python3} setup.py test

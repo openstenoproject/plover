@@ -11,6 +11,9 @@ appdir="$builddir/plover.AppDir"
 cachedir="$topdir/.cache/appimage"
 wheel=''
 python='python3'
+update_tools=1
+
+. ./linux/appimage/deps.sh
 
 while [ $# -ne 0 ]
 do
@@ -22,6 +25,9 @@ do
     -w|--wheel)
       wheel="$2"
       shift
+      ;;
+    --no-update-tools)
+      update_tools=0
       ;;
     -*)
       err "invalid option: $1"
@@ -54,27 +60,29 @@ run mkdir -p "$appdir" "$cachedir" "$distdir"
 
 # Fetch some helpers.
 # Note:
-# - extract AppImages so fuse is not needed.
+# - extract AppImages so FUSE is not needed.
 # - we start with zsync2 and do two passes
 #   so it can update itself as needed.
-while read tool url sha1;
+while read tool url;
 do
   if [ ! -r "$cachedir/$tool" ]
   then
+    # Initial fetch.
     run wget -O "$cachedir/$tool" "$url"
   else
-    if [ -n "$zsync2" ]
+    # Update using zsync2.
+    if [ "$update_tools" -eq 1 -a -n "$zsync2" ]
     then
       run_eval "(cd '$cachedir' && '$zsync2' -o '$cachedir/$tool' '$url.zsync')"
     fi
   fi
   run extract_appimage "$cachedir/$tool" "$builddir/$tool"
   run_eval "$tool='$builddir/$tool/AppRun'"
-done <<\EOF
-zsync2        https://github.com/AppImage/zsync2/releases/download/continuous/zsync2-15-86cfd3a-x86_64.AppImage
-zsync2        https://github.com/AppImage/zsync2/releases/download/continuous/zsync2-15-86cfd3a-x86_64.AppImage
-linuxdeploy   https://github.com/linuxdeploy/linuxdeploy/releases/download/continuous/linuxdeploy-x86_64.AppImage
-appimagetool  https://github.com/probonopd/AppImageKit/releases/download/continuous/appimagetool-x86_64.AppImage
+done <<EOF
+zsync2        $zsync2_url
+zsync2        $zsync2_url
+linuxdeploy   $linuxdeploy_url
+appimagetool  $appimagetool_url
 EOF
 
 # Generate Plover wheel.
@@ -86,7 +94,8 @@ fi
 
 # Setup Python distribution.
 pydist="$appdir/usr"
-run_eval "$("$python" linux/appimage/pyinfo.py)"
+metadata="$("$python" linux/appimage/pyinfo.py)"
+run_eval "$metadata"
 run mkdir -p "$pydist/"{bin,lib,"$pystdlib"/..,"$pyinclude"/..}
 run cp "$pyexe" "$pydist/bin/python"
 run cp -a "$pyprefix/$pyinclude" "$pydist/$pyinclude/../"
@@ -133,7 +142,7 @@ run strip_binaries
 #   to bundle its system dependencies.
 run mv "$pydist/$pypurelib/PyQt5" "$builddir"
 run "$linuxdeploy" \
-  --desktop-file='application/plover.desktop' \
+  --desktop-file='linux/plover.desktop' \
   --icon-file='plover/assets/plover.png' \
   --appdir="$appdir" \
   --verbosity=2
