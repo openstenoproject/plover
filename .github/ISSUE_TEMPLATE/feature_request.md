@@ -6,7 +6,7 @@ labels: feature-request
 assignees: ''
 
 ---
-<!-- Note: If your feature request is not specific, but rather general, such as, "How do we solve multiwindow management?" or "Wouldn't it be cool if there was a plugin to do X?", then consider opening a Discussion instead of an Issue. -->
+<!-- Note: If your feature request is not specific, but rather general, such as, "How do we solve multiwindow management?" or "Wouldn't it be cool if there were a plugin to do X?", then consider opening a Discussion instead of an Issue. -->
 
 **Is your feature request related to a problem? Please describe.**
 
