@@ -1,0 +1,8 @@
+blank_issues_enabled: false
+contact_links:
+  - name: GitHub Discussions
+    url: https://github.com/openstenoproject/plover/discussions
+    about: Have questions or ideas that you want to collaborate on? Start a Discussion instead of opening an Issue.
+  - name: Plover Discord Chat
+    url: https://discord.me/Plover
+    about: Connect with the Plover community Discord to chat about Plover, steno, and more.
