@@ -226,7 +226,7 @@ class MultipleChoicesOption(QTableWidget):
     def _on_cell_changed(self, row, column):
         if self._updating:
             return
-        assert (row, column) == (0, 1)
+        assert column == 1
         choice = self._reversed_choices[self.item(row, 0).data(Qt.DisplayRole)]
         if self.item(row, 1).checkState():
             self._value.add(choice)
