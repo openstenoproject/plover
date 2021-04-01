@@ -9,8 +9,8 @@ from .download import download
 from .install_wheels import WHEELS_CACHE, install_wheels
 
 
-PIP_VERSION = '20.0.2'
-PIP_WHEEL_URL = 'https://files.pythonhosted.org/packages/54/0c/d01aa759fdc501a58f431eb594a17495f15b88da142ce14b5845662c13f3/pip-20.0.2-py2.py3-none-any.whl'
+PIP_VERSION = '21.0.1'
+PIP_WHEEL_URL = 'https://files.pythonhosted.org/packages/fe/ef/60d7ba03b5c442309ef42e7d69959f73aacccd0d86008362a681c4698e83/pip-21.0.1-py3-none-any.whl'
 PIP_INSTALL = os.path.join('.cache', 'pip', PIP_VERSION)
 
 
