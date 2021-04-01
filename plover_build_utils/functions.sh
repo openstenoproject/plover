@@ -93,24 +93,16 @@ run_eval()
   fi
 }
 
-get_pip()
+get_base_devel()
 {
-  run "$python" -m plover_build_utils.get_pip "$@"
-}
-
-# Crude version of wheels_install, that will work
-# if wheel is not installed and for installing it,
-# but still tries to hit/update the wheels cache.
-pip_install()
-{
-  run mkdir -p "$wheels" || return $?
-  run "$python" -m pip install -d "$wheels" -f "$wheels" "$@" || true
-  run "$python" -m pip install -f "$wheels" "$@"
+  run "$python" -m plover_build_utils.get_pip --disable-pip-version-check \
+    -c requirements_base_devel.txt pip wheel setuptools \
+    "$@"
 }
 
 wheels_install()
 {
-  run "$python" -m plover_build_utils.install_wheels "$@"
+  run "$python" -m plover_build_utils.install_wheels --disable-pip-version-check "$@"
 }
 
 # Crude version of https://github.com/jaraco/rwt
@@ -128,8 +120,8 @@ rwt()
     shift
   done
   run export PYTHONPATH="$PWD/.rwt${PYTHONPATH:+:$PYTHONPATH}"
-  get_pip -t "$PWD/.rwt"
-  wheels_install -t "$PWD/.rwt" "${rwt_args[@]}"
+  get_base_devel -t "$PWD/.rwt"
+  wheels_install -t "$PWD/.rwt" --upgrade "${rwt_args[@]}"
   find "$PWD/.rwt" -name '*-info'
   "$@"
   run rm -rf .rwt
@@ -138,7 +130,7 @@ rwt()
 bootstrap_dev()
 {
   # Install/upgrade pip/wheel.
-  get_pip --upgrade "$@"
+  get_base_devel "$@"
   # Install requirements.
   wheels_install -r requirements.txt "$@"
   # List installed Python packages.
@@ -150,16 +142,15 @@ bootstrap_dist()
   wheel="$1"
   shift
   # Install pip/wheel...
-  get_pip "$@"
+  get_base_devel "$@"
   # Install Plover and its dependencies, as well as standard plugins.
   # Note:
   #  - temporarily install Cython to speedup cython-hidapi's install
   #  - remove `plover.egg-info` beforehand so pip does not think
   #    Plover is already installed
   run rm -rf plover.egg-info
-  rwt Cython -- wheels_install \
-    -r requirements_distribution.txt "$wheel" \
-    -r requirements_plugins.txt "$@"
+  rwt Cython -- wheels_install -r requirements_distribution.txt "$wheel" "$@"
+  rwt Cython -- wheels_install -r requirements_plugins.txt "$@"
   # Avoid caching Plover's wheel.
   rm "$wheels/$(basename "$wheel")"
 }

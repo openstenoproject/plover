@@ -71,8 +71,8 @@ do
   run extract_appimage "$cachedir/$tool" "$builddir/$tool"
   run_eval "$tool='$builddir/$tool/AppRun'"
 done <<\EOF
-zsync2        https://github.com/AppImage/zsync2/releases/download/continuous/zsync2-156-10e85c0-x86_64.AppImage
-zsync2        https://github.com/AppImage/zsync2/releases/download/continuous/zsync2-156-10e85c0-x86_64.AppImage
+zsync2        https://github.com/AppImage/zsync2/releases/download/continuous/zsync2-15-86cfd3a-x86_64.AppImage
+zsync2        https://github.com/AppImage/zsync2/releases/download/continuous/zsync2-15-86cfd3a-x86_64.AppImage
 linuxdeploy   https://github.com/linuxdeploy/linuxdeploy/releases/download/continuous/linuxdeploy-x86_64.AppImage
 appimagetool  https://github.com/probonopd/AppImageKit/releases/download/continuous/appimagetool-x86_64.AppImage
 EOF

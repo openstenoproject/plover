@@ -1,0 +1,1 @@
+Fix an exception caused by an incorrect assertion that would prevent enabling and disabling extension plugins if they weren't on the first row.

@@ -1,40 +1,27 @@
-v4.0.0.dev8+66.g685bd33 (2018-07-02)
-====================================
+# v4.0.0.dev8+66.g685bd33 (2018-07-02)
 
+## Features
 
-Features
---------
+### Dictionaries
 
-Dictionaries
-~~~~~~~~~~~~
-
-- Use ``AOE`` instead of ``E`` for prefix "e". (#951)
+- Use `AOE` instead of `E` for prefix "e". (#951)
 - Quality of Life changes/additions to the dictionaries. (#959, #960)
 
-
-User Interface
-~~~~~~~~~~~~~~
+### User Interface
 
 - Add tooltips to dictionary status icons. (#962)
 
+## Bugfixes
 
-Bugfixes
---------
-
-Core
-~~~~
+### Core
 
 - Fix issues when output is set to "Spaces After". (#965)
 
-
-macOS
-~~~~~
+### macOS
 
 - Fix portable mode. (#932)
 
-
-Windows
-~~~~~~~
+### Windows
 
 - Add missing C++ redistributable DLL to the installer. (#957)
 - Fix emoji output. (#942)

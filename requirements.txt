@@ -3,12 +3,11 @@ check-manifest==0.41
 Cython==0.29.16
 dmgbuild==1.4.2; "darwin" in sys_platform
 macholib==1.14; "darwin" in sys_platform
-pip==20.0.2
 pytest==5.4.1
 readme-renderer[md]==25.0
 setuptools-scm==3.5.0
 twine==1.15.0
-wheel==0.34.2
+-r requirements_base_devel.txt
 -r requirements_distribution.txt
 
 # vim: ft=cfg commentstring=#\ %s list

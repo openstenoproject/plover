@@ -1,19 +1,48 @@
 # -*- coding: utf-8 -*-
 
-import sys
+from collections import defaultdict, namedtuple
+from ctypes import windll, wintypes
 import codecs
 import ctypes
-from ctypes import windll, wintypes
-from collections import defaultdict, namedtuple
+import sys
 
 from plover.key_combo import CHAR_TO_KEYNAME, add_modifiers_aliases
+from plover.oslayer.wmctrl import GetForegroundWindow
 from plover.misc import popcount_8
 
 
 GetKeyboardLayout = windll.user32.GetKeyboardLayout
+GetKeyboardLayout.argtypes = [
+    wintypes.DWORD, # idThread
+]
+GetKeyboardLayout.restype = wintypes.HKL
+
 GetWindowThreadProcessId = windll.user32.GetWindowThreadProcessId
+GetWindowThreadProcessId.argtypes = [
+    wintypes.HWND,    # hWnd
+    wintypes.LPDWORD, # lpdwProcessId
+]
+GetWindowThreadProcessId.restype = wintypes.DWORD
+
 MapVirtualKeyEx = windll.user32.MapVirtualKeyExW
+MapVirtualKeyEx.argtypes = [
+    wintypes.UINT, # uCode,
+    wintypes.UINT, # uMapType,
+    wintypes.HKL,  # dwhkl
+]
+MapVirtualKeyEx.restype = wintypes.UINT
+
 ToUnicodeEx = windll.user32.ToUnicodeEx
+ToUnicodeEx.argtypes = [
+  wintypes.UINT,   # wVirtKey,
+  wintypes.UINT,   # wScanCode,
+  wintypes.LPBYTE, # lpKeyState,
+  wintypes.LPWSTR, # pwszBuff,
+  ctypes.c_int,    # cchBuff,
+  wintypes.UINT,   # wFlags,
+  wintypes.HKL,    # dwhkl
+]
+ToUnicodeEx.restype = ctypes.c_int
 
 
 def enum(name, items):
@@ -439,7 +468,7 @@ class KeyboardLayout: # {{{
 
     @staticmethod
     def current_layout_id():
-        pid = GetWindowThreadProcessId(windll.user32.GetForegroundWindow(), 0)
+        pid = GetWindowThreadProcessId(GetForegroundWindow(), None)
         return GetKeyboardLayout(pid)
 
 # }}}
