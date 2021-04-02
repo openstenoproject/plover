@@ -33,12 +33,12 @@ ORTHOGRAPHY_RULES = [
     # == +ly ==
     # artistic + ly = artistically
     (r'^(.*[aeiou]c) \^ ly$', r'\1ally'),
-        
-    # == +ry ==      
+
+    # == +ry ==
     # statute + ry = statutory
     (r'^(.*t)e \^ ry$', r'\1ory'),
-        
-    # == t +cy ==      
+
+    # == t +cy ==
     # frequent + cy = frequency (tcy/tecy removal)
     (r'^(.*[naeiou])te? \^ cy$', r'\1cy'),
 
@@ -58,10 +58,10 @@ ORTHOGRAPHY_RULES = [
     # beauty + ful = beautiful (y -> i)
     (r'^(.+[bcdfghjklmnpqrstvwxz])y \^ ([a-hj-xz].*)$', r'\1i\2'),
 
-    # == e ==
+    # == +en ==
     # write + en = written
     (r'^(.+)te \^ en$', r'\1tten'),
-    # free + ed = freed 
+    # free + ed = freed
     (r'^(.+e)e \^ (e.+)$', r'\1\2'),
     # narrate + ing = narrating (silent e)
     (r'^(.+[bcdfghjklmnpqrstuvwxz])e \^ ([aeiouy].*)$', r'\1\2'),
