@@ -121,7 +121,12 @@ class Launch(Command):
             python_path = os.environ.get('PYTHONPATH', '').split(os.pathsep)
             python_path.insert(0, sys.path[0])
             os.environ['PYTHONPATH'] = os.pathsep.join(python_path)
-            os.execv(sys.executable, [sys.executable, '-m', 'plover.main'] + self.args)
+            cmd = [sys.executable, '-m', 'plover.main'] + self.args
+            if sys.platform.startswith('win32'):
+                # Workaround https://bugs.python.org/issue19066
+                subprocess.Popen(cmd, cwd=os.getcwd())
+                sys.exit(0)
+            os.execv(cmd[0], cmd)
 
 cmdclass['launch'] = Launch
 
