@@ -52,7 +52,7 @@
       </sizepolicy>
      </property>
      <property name="text">
-      <string>#STKPWHRAO*EUFRPBLGTSDZ</string>
+      <string notr="true">#STKPWHRAO*EUFRPBLGTSDZ</string>
      </property>
     </widget>
    </item>
