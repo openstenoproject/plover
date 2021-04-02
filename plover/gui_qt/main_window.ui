@@ -127,14 +127,14 @@
        <item row="0" column="0">
         <widget class="QRadioButton" name="output_enable">
          <property name="text">
-          <string>Enable</string>
+          <string>Enabled</string>
          </property>
         </widget>
        </item>
        <item row="1" column="0">
         <widget class="QRadioButton" name="output_disable">
          <property name="text">
-          <string>Disable</string>
+          <string>Disabled</string>
          </property>
          <property name="checked">
           <bool>true</bool>
