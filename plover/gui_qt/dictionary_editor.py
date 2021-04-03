@@ -224,10 +224,11 @@ class DictionaryItemModel(QAbstractTableModel):
                     break
             if dictionary == old_item.dictionary:
                 return False
-        try:
-            del old_item.dictionary[old_item.strokes]
-        except KeyError:
-            pass
+        if (old_item.dictionary, old_item.strokes) != (dictionary, strokes):
+            try:
+                del old_item.dictionary[old_item.strokes]
+            except KeyError:
+                pass
         if not old_item.strokes and not old_item.translation:
             # Merge operations when editing a newly added row.
             if self._operations and self._operations[-1] == [(None, old_item)]:
