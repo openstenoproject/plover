@@ -78,10 +78,4 @@
    </hints>
   </connection>
  </connections>
- <slots>
-  <slot>on_machine_type_changed(QString)</slot>
-  <slot>on_auto_start_changed(bool)</slot>
-  <slot>on_space_placement_changed(QString)</slot>
-  <slot>on_option_selected(QModelIndex)</slot>
- </slots>
 </ui>
