@@ -124,5 +124,5 @@ Please follow through for your system:
   [installation guide]: https://github.com/openstenoproject/plover/wiki/Installation-Guide
   [morinted/plover\_icons]: https://github.com/morinted/plover_icons
 
-  [CI Badge]: https://github.com/openstenoproject/plover/actions/workflows/ci.yml/badge.svg
-  [CI Link]: https://github.com/openstenoproject/plover/actions/workflows/ci.yml
+  [CI Badge]: https://github.com/openstenoproject/plover/actions/workflows/ci.yml/badge.svg?branch=master
+  [CI Link]: https://github.com/openstenoproject/plover/actions/workflows/ci.yml?query=branch%3Amaster
