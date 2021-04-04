@@ -122,7 +122,7 @@ run_eval()
 
 get_base_devel()
 {
-  run "$python" -m plover_build_utils.get_pip -c reqs/constraints.txt pip setuptools wheel "$@"
+  run "$python" -m plover_build_utils.get_pip -c reqs/constraints.txt -r reqs/bootstrap.txt "$@"
 }
 
 install_wheels()
