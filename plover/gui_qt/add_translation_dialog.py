@@ -13,7 +13,6 @@ class AddTranslationDialog(Tool, Ui_AddTranslationDialog):
     TITLE = _('Add Translation')
     ICON = ':/translation_add.svg'
     ROLE = 'add_translation'
-    SHORTCUT = 'Ctrl+N'
 
     def __init__(self, engine, dictionary_path=None):
         super().__init__(engine)
