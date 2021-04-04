@@ -157,10 +157,10 @@ class StenoDictionary:
         return self.get(key) is not None
 
     def reverse_lookup(self, value):
-        return set(self.reverse[value])
+        return set(self.reverse.get(value, ()))
 
     def casereverse_lookup(self, value):
-        return set(self.casereverse[value])
+        return set(self.casereverse.get(value, ()))
 
     @property
     def _longest_key(self):

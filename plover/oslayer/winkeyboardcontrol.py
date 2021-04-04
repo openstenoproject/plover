@@ -13,9 +13,12 @@ emulate keyboard input.
 
 """
 
+from ctypes import windll, wintypes
+import atexit
 import ctypes
 import multiprocessing
 import os
+import signal
 import threading
 import winreg
 
@@ -26,38 +29,26 @@ from plover.oslayer.winkeyboardlayout import KeyboardLayout
 from plover import log
 from plover.misc import to_surrogate_pair
 
-SendInput = windll.user32.SendInput
-LONG = ctypes.c_long
-DWORD = ctypes.c_ulong
-ULONG_PTR = ctypes.POINTER(DWORD)
-WORD = ctypes.c_ushort
-KEYEVENTF_EXTENDEDKEY = 0x0001
-KEYEVENTF_KEYUP = 0x0002
-KEYEVENTF_SCANCODE = 0x0008
-KEYEVENTF_UNICODE = 0x0004
-INPUT_MOUSE = 0
-INPUT_KEYBOARD = 1
-
 
 # For the purposes of this class, we'll only report key presses that
 # result in these outputs in order to exclude special key combos.
 SCANCODE_TO_KEY = {
     59: 'F1', 60: 'F2', 61: 'F3', 62: 'F4', 63: 'F5', 64: 'F6',
     65: 'F7', 66: 'F8', 67: 'F9', 68: 'F10', 87: 'F11', 88: 'F12',
-    41: '`', 2: '1', 3: '2', 4: '3', 5: '4', 6: '5', 7: '6', 8: '7', 
-    9: '8', 10: '9', 11: '0', 12: '-', 13: '=', 16: 'q', 
+    41: '`', 2: '1', 3: '2', 4: '3', 5: '4', 6: '5', 7: '6', 8: '7',
+    9: '8', 10: '9', 11: '0', 12: '-', 13: '=', 16: 'q',
     17: 'w', 18: 'e', 19: 'r', 20: 't', 21: 'y', 22: 'u', 23: 'i',
     24: 'o', 25: 'p', 26: '[', 27: ']', 43: '\\',
     30: 'a', 31: 's', 32: 'd', 33: 'f', 34: 'g', 35: 'h', 36: 'j',
     37: 'k', 38: 'l', 39: ';', 40: '\'', 44: 'z', 45: 'x',
-    46: 'c', 47: 'v', 48: 'b', 49: 'n', 50: 'm', 51: ',', 
+    46: 'c', 47: 'v', 48: 'b', 49: 'n', 50: 'm', 51: ',',
     52: '.', 53: '/', 57: 'space', 58: "BackSpace", 83: "Delete",
     80: "Down", 79: "End", 1: "Escape", 71: "Home", 82: "Insert",
     75: "Left", 73: "Page_Down", 81: "Page_Up", 28 : "Return",
     77: "Right", 15: "Tab", 72: "Up",
 }
 
-KEY_TO_SCANCODE = {v: k for k, v in SCANCODE_TO_KEY.items()}
+KEY_TO_SCANCODE = dict(zip(SCANCODE_TO_KEY.values(), SCANCODE_TO_KEY.keys()))
 
 # Keys that need an extended key flag for Windows input
 EXTENDED_KEYS = {
@@ -67,104 +58,206 @@ EXTENDED_KEYS = {
     0x27, 0x28, 0x90, 0x03, 0x2C, 0x6F
 }
 
+PASSTHROUGH_KEYS = {
+    0XA2, 0XA3, # Control
+    0XA0, 0XA1, # Shift
+    0XA4, 0XA5, # Alt
+    0X5B, 0X5C, # Win
+}
+
+
 """
-SendInput code and classes based off of code
-from user "inControl" on StackOverflow:
+SendInput code and classes based off:
 http://stackoverflow.com/questions/11906925/python-simulate-keydown
 """
 
 class MOUSEINPUT(ctypes.Structure):
-    _fields_ = (('dx', LONG),
-                ('dy', LONG),
-                ('mouseData', DWORD),
-                ('dwFlags', DWORD),
-                ('time', DWORD),
-                ('dwExtraInfo', ULONG_PTR))
-
+    _fields_ = (('dx', wintypes.LONG),
+                ('dy', wintypes.LONG),
+                ('mouseData', wintypes.DWORD),
+                ('dwFlags', wintypes.DWORD),
+                ('time', wintypes.DWORD),
+                ('dwExtraInfo', wintypes.PULONG))
 
 class KEYBDINPUT(ctypes.Structure):
-    _fields_ = (('wVk', WORD),
-                ('wScan', WORD),
-                ('dwFlags', DWORD),
-                ('time', DWORD),
-                ('dwExtraInfo', ULONG_PTR))
-
+    _fields_ = (('wVk', wintypes.WORD),
+                ('wScan', wintypes.WORD),
+                ('dwFlags', wintypes.DWORD),
+                ('time', wintypes.DWORD),
+                ('dwExtraInfo', wintypes.PULONG))
 
 class _INPUTunion(ctypes.Union):
     _fields_ = (('mi', MOUSEINPUT),
                 ('ki', KEYBDINPUT))
 
-
 class INPUT(ctypes.Structure):
-    _fields_ = (('type', DWORD),
+    _fields_ = (('type', wintypes.DWORD),
                 ('union', _INPUTunion))
 
+SendInput = windll.user32.SendInput
+SendInput.argtypes = [
+    wintypes.UINT,         # cInputs
+    ctypes.POINTER(INPUT), # pInputs,
+    ctypes.c_int,          # cbSize
+]
+SendInput.restype = wintypes.UINT
+
+KEYEVENTF_EXTENDEDKEY = 0x0001
+KEYEVENTF_KEYUP = 0x0002
+KEYEVENTF_SCANCODE = 0x0008
+KEYEVENTF_UNICODE = 0x0004
+
+INPUT_MOUSE = 0
+INPUT_KEYBOARD = 1
+
+
+# Process utils code code based on psutil implementation.
+
+OpenProcess = windll.kernel32.OpenProcess
+OpenProcess.argtypes = [
+    wintypes.DWORD, # dwDesiredAccess
+    wintypes.BOOL,  # bInheritHandle
+    wintypes.DWORD, # dwProcessId
+]
+OpenProcess.restype = wintypes.HANDLE
+
+GetExitCodeProcess = windll.kernel32.GetExitCodeProcess
+GetExitCodeProcess.argtypes = [
+    wintypes.HANDLE,  # hProcess
+    wintypes.LPDWORD, # lpExitCode
+]
+GetExitCodeProcess.restype = wintypes.BOOL
+
+CloseHandle = windll.kernel32.CloseHandle
+CloseHandle.argtypes = [
+    wintypes.HANDLE, # hObject
+]
+CloseHandle.restype = wintypes.BOOL
+
+PROCESS_QUERY_INFORMATION = 0x0400
+PROCESS_VM_READ = 0x0010
+ERROR_INVALID_PARAMETER = 87
+ERROR_ACCESS_DENIED = 5
+STILL_ACTIVE = 0x00000103
 
 def pid_exists(pid):
     """Check whether pid exists in the current process table."""
-    # Code based on psutil implementation.
-    kernel32 = ctypes.windll.kernel32
 
-    PROCESS_QUERY_INFORMATION = 0x0400
-    PROCESS_VM_READ = 0x0010
-    ERROR_INVALID_PARAMETER = 87
-    ERROR_ACCESS_DENIED = 5
-    STILL_ACTIVE = 0x00000103
-
-    process = kernel32.OpenProcess(PROCESS_QUERY_INFORMATION | PROCESS_VM_READ, 0, pid)
+    process = OpenProcess(PROCESS_QUERY_INFORMATION | PROCESS_VM_READ, 0, pid)
     if not process:
-        err = kernel32.GetLastError()
+        err = ctypes.GetLastError()
         if err == ERROR_INVALID_PARAMETER:
             # Invalid parameter is no such process.
             return False
         if err == ERROR_ACCESS_DENIED:
             # Access denied obviously means there's a process to deny access to...
             return True
-        raise WindowsError(err, '')
+        raise ctypes.WinError(err)
 
     try:
-        exitcode = DWORD()
-        out = kernel32.GetExitCodeProcess(process, ctypes.byref(exitcode))
+        exitcode = wintypes.DWORD()
+        out = GetExitCodeProcess(process, ctypes.byref(exitcode))
         if not out:
-            err = kernel32.GetLastError()
+            err = ctypes.GetLastError()
             if err == ERROR_ACCESS_DENIED:
                 # Access denied means there's a process
                 # there so we'll assume it's running.
                 return True
-            raise WindowsError(err, '')
+            raise ctypes.WinError(err)
 
         return exitcode.value == STILL_ACTIVE
 
     finally:
-        kernel32.CloseHandle(process)
+        CloseHandle(process)
 
 
 class HeartBeat(threading.Thread):
 
-    def __init__(self, ppid, atexit):
+    def __init__(self, ppid, exitcb):
         super().__init__()
         self._ppid = ppid
-        self._atexit = atexit
+        self._exitcb = exitcb
         self._finished = threading.Event()
 
     def run(self):
         while pid_exists(self._ppid):
             if self._finished.wait(1):
                 break
-        self._atexit()
+        self._exitcb()
 
     def stop(self):
         self._finished.set()
         self.join()
 
 
-class KeyboardCaptureProcess(multiprocessing.Process):
+class KBDLLHOOKSTRUCT(ctypes.Structure):
+    _fields_ = (("vkCode", wintypes.DWORD),
+                ("scanCode", wintypes.DWORD),
+                ("flags", wintypes.DWORD),
+                ("time", wintypes.DWORD),
+                ("dwExtraInfo", ctypes.c_void_p))
 
-    CONTROL_KEYS = {0xA2, 0xA3}
-    SHIFT_KEYS = {0xA0, 0xA1}
-    ALT_KEYS = {0xA4, 0xA5}
-    WIN_KEYS = {0x5B, 0x5C}
-    PASSTHROUGH_KEYS = CONTROL_KEYS | SHIFT_KEYS | ALT_KEYS | WIN_KEYS
+PKBDLLHOOKSTRUCT = ctypes.POINTER(KBDLLHOOKSTRUCT)
+LRESULT = ctypes.c_long
+HOOKPROC = ctypes.CFUNCTYPE(LRESULT, ctypes.c_int, wintypes.WPARAM, wintypes.LPARAM)
+
+SetWindowsHookExA = windll.user32.SetWindowsHookExA
+SetWindowsHookExA.argtypes = (
+  ctypes.c_int,       # idHook,
+  HOOKPROC,  # lpfn,
+  wintypes.HINSTANCE, # hmod,
+  wintypes.DWORD,     # dwThreadId
+)
+SetWindowsHookExA.restype = wintypes.HHOOK
+
+CallNextHookEx = windll.user32.CallNextHookEx
+CallNextHookEx.argtypes = (
+  wintypes.HHOOK,  # hhk
+  ctypes.c_int,    # nCode
+  wintypes.WPARAM, # wParam
+  wintypes.LPARAM, # lParam
+)
+CallNextHookEx.restype = LRESULT
+
+UnhookWindowsHookEx = windll.user32.UnhookWindowsHookEx
+UnhookWindowsHookEx.argtypes = (wintypes.HHOOK,)
+UnhookWindowsHookEx.restype = wintypes.BOOL
+
+GetMessageW = windll.user32.GetMessageW
+GetMessageW.argtypes = (
+  wintypes.LPMSG, # lpMsg,
+  wintypes.HWND,  # hWnd,
+  wintypes.UINT,  # wMsgFilterMin,
+  wintypes.UINT,  # wMsgFilterMax
+)
+GetMessageW.restype = wintypes.BOOL
+
+TranslateMessage = windll.user32.TranslateMessage
+TranslateMessage.argtypes = (wintypes.MSG,)
+TranslateMessage.restype = wintypes.BOOL
+
+DispatchMessageW = windll.user32.DispatchMessageW
+DispatchMessageW.argtypes = (wintypes.MSG,)
+DispatchMessageW.restype = LRESULT
+
+PostThreadMessageW = windll.user32.PostThreadMessageW
+PostThreadMessageW.argtypes = (
+  wintypes.DWORD,  # idThread
+  wintypes.UINT,   # Msg
+  wintypes.WPARAM, # wParam
+  wintypes.LPARAM, # lParam
+)
+PostThreadMessageW.restype = wintypes.BOOL
+
+WM_QUIT = 0x12
+
+# Registry setting for low level hook timeout.
+REG_LLHOOK_KEY_FULL_NAME = r'HKEY_CURRENT_USER\Control Panel\Desktop\LowLevelHooksTimeout'
+REG_LLHOOK_KEY_VALUE_NAME = 'LowLevelHooksTimeout'
+REG_LLHOOK_KEY_VALUE_TYPE = winreg.REG_DWORD
+REG_LLHOOK_KEY_VALUE = 5000
+
+class KeyboardCaptureProcess(multiprocessing.Process):
 
     def __init__(self):
         super().__init__()
@@ -191,21 +284,15 @@ class KeyboardCaptureProcess(multiprocessing.Process):
         # later, the hook is silently removed without being called. There is no
         # way for the application to know whether the hook is removed.
 
-
         def _open_key(rights):
             return winreg.OpenKey(winreg.HKEY_CURRENT_USER,
                                   r'Control Panel\Desktop',
                                   0, rights)
 
-        REG_LLHOOK_KEY_FULL_NAME = r'HKEY_CURRENT_USER\Control Panel\Desktop\LowLevelHooksTimeout'
-        REG_LLHOOK_KEY_VALUE_NAME = 'LowLevelHooksTimeout'
-        REG_LLHOOK_KEY_VALUE_TYPE = winreg.REG_DWORD
-        REG_LLHOOK_KEY_VALUE = 5000
-
         read_key = _open_key(winreg.KEY_READ)
         try:
             value, value_type = winreg.QueryValueEx(read_key, REG_LLHOOK_KEY_VALUE_NAME)
-        except WindowsError:
+        except OSError:
             value, value_type = (None, None)
 
         if value_type != REG_LLHOOK_KEY_VALUE_TYPE or value != REG_LLHOOK_KEY_VALUE:
@@ -213,7 +300,7 @@ class KeyboardCaptureProcess(multiprocessing.Process):
                 write_key = _open_key(winreg.KEY_WRITE)
                 winreg.SetValueEx(write_key, REG_LLHOOK_KEY_VALUE_NAME, 0,
                                   REG_LLHOOK_KEY_VALUE_TYPE, REG_LLHOOK_KEY_VALUE)
-            except WindowsError:
+            except OSError:
                 log.warning('could not update registry key: %s, see documentation',
                             REG_LLHOOK_KEY_FULL_NAME)
             else:
@@ -221,26 +308,14 @@ class KeyboardCaptureProcess(multiprocessing.Process):
                             'you should reboot: %s', REG_LLHOOK_KEY_FULL_NAME)
 
     def run(self):
-
         heartbeat = HeartBeat(self._ppid, self._send_quit)
         heartbeat.start()
+        try:
+            self._run()
+        finally:
+            heartbeat.stop()
 
-        import atexit
-        import signal
-
-        class KBDLLHOOKSTRUCT(ctypes.Structure):
-            _fields_ = [
-                ("vkCode", wintypes.DWORD),
-                ("scanCode", wintypes.DWORD),
-                ("flags", wintypes.DWORD),
-                ("time", wintypes.DWORD),
-                ("dwExtraInfo", ctypes.c_void_p),
-            ]
-
-        KeyboardProc = ctypes.CFUNCTYPE(ctypes.c_int,
-                                        ctypes.c_int,
-                                        wintypes.WPARAM,
-                                        ctypes.POINTER(KBDLLHOOKSTRUCT))
+    def _run(self):
 
         # Ignore KeyboardInterrupt when attached to a console...
         signal.signal(signal.SIGINT, signal.SIG_IGN)
@@ -252,10 +327,10 @@ class KeyboardCaptureProcess(multiprocessing.Process):
         passthrough_down_keys = set()
 
         def on_key(pressed, event):
-            if (event.flags & 0x10):
+            if event.flags & 0x10:
                 # Ignore simulated events (e.g. from KeyboardEmulation).
                 return False
-            if event.vkCode in self.PASSTHROUGH_KEYS:
+            if event.vkCode in PASSTHROUGH_KEYS:
                 if pressed:
                     passthrough_down_keys.add(event.vkCode)
                 else:
@@ -272,33 +347,35 @@ class KeyboardCaptureProcess(multiprocessing.Process):
                 down_keys.add(key)
             else:
                 down_keys.discard(key)
-            self._queue.put((key, pressed))
+            self._queue.put((None, key, pressed))
             return suppressed
 
         hook_id = None
 
         def low_level_handler(code, wparam, lparam):
             if code >= 0:
+                event = ctypes.cast(lparam, PKBDLLHOOKSTRUCT)[0]
                 pressed = wparam in (0x100, 0x104)
-                if on_key(pressed, lparam[0]):
+                if on_key(pressed, event):
                     # Suppressed...
                     return 1
-            return windll.user32.CallNextHookEx(hook_id, code, wparam, lparam)
+            return CallNextHookEx(hook_id, code, wparam, lparam)
 
-        pointer = KeyboardProc(low_level_handler)
-        hook_id = windll.user32.SetWindowsHookExA(0x00D, pointer, windll.kernel32.GetModuleHandleW(None), 0)
-        atexit.register(windll.user32.UnhookWindowsHookEx, hook_id)
+        hook_proc = HOOKPROC(low_level_handler)
+        hook_id = SetWindowsHookExA(0xd, hook_proc, None, 0)
+        if not hook_id:
+            self._queue.put((('failed to install keyboard hook: %s',
+                              ctypes.FormatError()), None, None))
+            return
+        atexit.register(UnhookWindowsHookEx, hook_id)
         msg = wintypes.MSG()
-        while windll.user32.GetMessageW(ctypes.byref(msg), 0, 0, 0):
-            windll.user32.TranslateMessage(ctypes.byref(msg))
-            windll.user32.DispatchMessageW(ctypes.byref(msg))
-
-        heartbeat.stop()
+        msg_p = ctypes.byref(msg)
+        while GetMessageW(msg_p, None, 0, 0):
+            TranslateMessage(msg_p)
+            DispatchMessageW(msg_p)
 
     def _send_quit(self):
-        windll.user32.PostThreadMessageW(self._tid,
-                                         0x0012, # WM_QUIT
-                                         0, 0)
+        PostThreadMessageW(self._tid, WM_QUIT, 0, 0)
 
     def start(self):
         self.daemon = True
@@ -310,7 +387,7 @@ class KeyboardCaptureProcess(multiprocessing.Process):
             self._send_quit()
             self.join()
         # Wake up capture thread, so it gets a chance to check if it must stop.
-        self._queue.put((None, None))
+        self._queue.put((None, None, None))
 
     def suppress_keyboard(self, suppressed_keys):
         bitmask = [0] * len(self._suppressed_keys_bitmask)
@@ -341,10 +418,13 @@ class KeyboardCapture(threading.Thread):
 
     def run(self):
         while True:
-            key, pressed = self._proc.get()
+            error, key, pressed = self._proc.get()
+            if error is not None:
+                log.error(*error)
             if self._finished.isSet():
                 break
-            (self.key_down if pressed else self.key_up)(key)
+            if key is not None:
+                (self.key_down if pressed else self.key_up)(key)
 
     def cancel(self):
         self._finished.set()

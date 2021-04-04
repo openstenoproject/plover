@@ -8,10 +8,11 @@ requires = [
 
 [tool.towncrier]
 package = "plover"
-filename = "NEWS.rst"
+filename = "NEWS.md"
 directory = "news.d"
-template = "news.d/template.rst"
-title_format = "v{version} ({project_date})"
+template = "news.d/template.md"
+title_format = "# v{version} ({project_date})"
+underlines = ["", ""]
 
 [[tool.towncrier.section]]
 path = "feature"

@@ -61,6 +61,10 @@ def main():
     log.info('Plover %s', __version__)
     log.info('configuration directory: %s', CONFIG_DIR)
 
+    if sys.platform == 'darwin':
+        # Fixes PyQt issue on macOS Big Sur.
+        os.environ['QT_MAC_WANTS_LAYER'] = '1'
+
     registry.update()
 
     if args.gui is None:

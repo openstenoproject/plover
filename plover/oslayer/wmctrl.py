@@ -4,28 +4,29 @@ import sys
 
 if sys.platform.startswith('win32'):
 
-    from ctypes import windll
+    from ctypes import windll, wintypes
 
     GetForegroundWindow = windll.user32.GetForegroundWindow
+    GetForegroundWindow.argtypes = []
+    GetForegroundWindow.restype = wintypes.HWND
+
     SetForegroundWindow = windll.user32.SetForegroundWindow
+    SetForegroundWindow.argtypes = [
+        wintypes.HWND, # hWnd
+    ]
+    SetForegroundWindow.restype = wintypes.BOOL
 
 
 elif sys.platform.startswith('darwin'):
 
-    from Foundation import NSAppleScript
+    from Cocoa import NSWorkspace, NSRunningApplication, NSApplicationActivateIgnoringOtherApps
 
     def GetForegroundWindow():
-        return NSAppleScript.alloc().initWithSource_("""
-tell application "System Events"
-    return unix id of first process whose frontmost = true
-end tell""").executeAndReturnError_(None)[0].int32Value()
+        return NSWorkspace.sharedWorkspace().frontmostApplication().processIdentifier()
 
     def SetForegroundWindow(pid):
-        NSAppleScript.alloc().initWithSource_("""
-tell application "System Events"
-    set the frontmost of first process whose unix id is %d to true
-end tell""" % pid).executeAndReturnError_(None)
-
+        target_window = NSRunningApplication.runningApplicationWithProcessIdentifier_(pid)
+        target_window.activateWithOptions_(NSApplicationActivateIgnoringOtherApps)
 
 elif sys.platform.startswith('linux'):
 

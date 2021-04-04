@@ -39,7 +39,7 @@ from plover import log
 XK.load_keysym_group('xf86')
 # Load non-us keyboard related keysyms.
 XK.load_keysym_group('xkb')
-   
+
 # Create case insensitive mapping of keyname to keysym.
 KEY_TO_KEYSYM = {}
 for symbol in sorted(dir(XK)): # Sorted so XK_a is preferred over XK_A.
@@ -1137,6 +1137,8 @@ class KeyboardEmulation:
     CUSTOM_MAPPING_LENGTH = 3
     # Special keysym to mark custom keyboard mappings.
     PLOVER_MAPPING_KEYSYM = 0x01ffffff
+    # Free unused keysym.
+    UNUSED_KEYSYM = 0xffffff # XK_VoidSymbol
 
     def __init__(self):
         """Prepare to emulate keyboard events."""
@@ -1158,7 +1160,7 @@ class KeyboardEmulation:
                 mapping = mapping[:-1]
             if not mapping:
                 # Free never used before keycode.
-                custom_mapping = [X.NoSymbol] * self.CUSTOM_MAPPING_LENGTH
+                custom_mapping = [self.UNUSED_KEYSYM] * self.CUSTOM_MAPPING_LENGTH
                 custom_mapping[-1] = self.PLOVER_MAPPING_KEYSYM
                 mapping = custom_mapping
             elif self.CUSTOM_MAPPING_LENGTH == len(mapping) and \
@@ -1181,7 +1183,7 @@ class KeyboardEmulation:
                     # 3rd (AltGr) level.
                     modifiers |= X.Mod5Mask
                 mapping = self.Mapping(keycode, modifiers, keysym, custom_mapping)
-                if keysym != X.NoSymbol:
+                if keysym != X.NoSymbol and keysym != self.UNUSED_KEYSYM:
                     # Some keysym are mapped multiple times, prefer lower modifiers combos.
                     previous_mapping = self._keymap.get(keysym)
                     if previous_mapping is None or mapping.modifiers < previous_mapping.modifiers:

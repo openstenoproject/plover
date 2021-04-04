@@ -1,0 +1,557 @@
+#
+# DO NOT MODIFY! AUTO-GENERATED FROM:
+# .github/workflows/ci/workflow_template.yml
+#
+
+name: CI
+
+on: [push, pull_request]
+
+defaults:
+  run:
+    # Powershell on Windows? No thank you...
+    shell: bash --noprofile --norc -eo pipefail .github/workflows/ci/helpers.sh . {0}
+
+jobs:
+
+  # Job: Test (Linux) {{{
+  test_linux:
+
+    name: Test (Linux)
+    runs-on: ubuntu-16.04
+    needs: []
+
+    steps:
+
+      - name: Checkout
+        uses: actions/checkout@v2
+
+      - name: Setup Python
+        uses: actions/setup-python@v2
+        with:
+          python-version: 3.8
+
+      - name: Set cache name
+        id: set_cache
+        run: setup_cache_name '3.8' 'ubuntu-16.04'
+
+      - name: Setup cache
+        uses: actions/cache@v2
+        with:
+          path: .cache
+          key: 0_${{ steps.set_cache.outputs.cache_name }}_${{ hashFiles('reqs/constraints.txt', 'reqs/dist.txt', 'reqs/test.txt') }}
+
+      - name: Setup pip options
+        run: setup_pip_options
+
+      - name: Setup Python environment
+        run: setup_python_env -c reqs/constraints.txt -r reqs/dist.txt -r reqs/test.txt
+      # Test {{{
+
+      - name: Run tests
+        run: run_tests
+
+      # }}}
+
+      - name: List cache contents
+        run: list_cache
+  # }}}
+
+  # Job: Test (macOS) {{{
+  test_macos:
+
+    name: Test (macOS)
+    runs-on: macos-10.15
+    needs: []
+
+    steps:
+
+      - name: Checkout
+        uses: actions/checkout@v2
+
+      - name: Set cache name
+        id: set_cache
+        run: setup_cache_name '3.8' 'macos-10.15'
+
+      - name: Setup cache
+        uses: actions/cache@v2
+        with:
+          path: .cache
+          key: 0_${{ steps.set_cache.outputs.cache_name }}_${{ hashFiles('reqs/constraints.txt', 'reqs/dist.txt', 'reqs/test.txt', 'osx/deps.sh') }}
+
+      - name: Setup pip options
+        run: setup_pip_options
+
+      # To support older macOS versions, setup Python from an official installer.
+      - name: Setup Python
+        run: setup_osx_python '3.8'
+
+      - name: Setup Python environment
+        run: setup_python_env -c reqs/constraints.txt -r reqs/dist.txt -r reqs/test.txt
+      # Test {{{
+
+      - name: Run tests
+        run: run_tests
+
+      # }}}
+
+      - name: List cache contents
+        run: list_cache
+  # }}}
+
+  # Job: Test (Windows) {{{
+  test_windows:
+
+    name: Test (Windows)
+    runs-on: windows-2019
+    needs: []
+
+    steps:
+
+      - name: Checkout
+        uses: actions/checkout@v2
+
+      - name: Setup Python
+        uses: actions/setup-python@v2
+        with:
+          python-version: 3.8
+
+      - name: Set cache name
+        id: set_cache
+        run: setup_cache_name '3.8' 'windows-2019'
+
+      - name: Setup cache
+        uses: actions/cache@v2
+        with:
+          path: .cache
+          key: 0_${{ steps.set_cache.outputs.cache_name }}_${{ hashFiles('reqs/constraints.txt', 'reqs/dist.txt', 'reqs/test.txt') }}
+
+      - name: Setup pip options
+        run: setup_pip_options
+
+      - name: Setup Python environment
+        run: setup_python_env -c reqs/constraints.txt -r reqs/dist.txt -r reqs/test.txt
+      # Test {{{
+
+      - name: Run tests
+        run: run_tests
+
+      # }}}
+
+      - name: List cache contents
+        run: list_cache
+  # }}}
+
+  # Job: Test (Python 3.6) {{{
+  test_python_36:
+
+    name: Test (Python 3.6)
+    runs-on: ubuntu-latest
+    needs: []
+
+    steps:
+
+      - name: Checkout
+        uses: actions/checkout@v2
+
+      - name: Setup Python
+        uses: actions/setup-python@v2
+        with:
+          python-version: 3.6
+
+      - name: Set cache name
+        id: set_cache
+        run: setup_cache_name '3.6' 'ubuntu-latest'
+
+      - name: Setup cache
+        uses: actions/cache@v2
+        with:
+          path: .cache
+          key: 0_${{ steps.set_cache.outputs.cache_name }}_${{ hashFiles('reqs/constraints.txt', 'reqs/dist.txt', 'reqs/test.txt') }}
+
+      - name: Setup pip options
+        run: setup_pip_options
+
+      - name: Setup Python environment
+        run: setup_python_env -c reqs/constraints.txt -r reqs/dist.txt -r reqs/test.txt
+      # Test {{{
+
+      - name: Run tests
+        run: run_tests
+
+      # }}}
+
+      - name: List cache contents
+        run: list_cache
+  # }}}
+
+  # Job: Test (Python 3.7) {{{
+  test_python_37:
+
+    name: Test (Python 3.7)
+    runs-on: ubuntu-latest
+    needs: []
+
+    steps:
+
+      - name: Checkout
+        uses: actions/checkout@v2
+
+      - name: Setup Python
+        uses: actions/setup-python@v2
+        with:
+          python-version: 3.7
+
+      - name: Set cache name
+        id: set_cache
+        run: setup_cache_name '3.7' 'ubuntu-latest'
+
+      - name: Setup cache
+        uses: actions/cache@v2
+        with:
+          path: .cache
+          key: 0_${{ steps.set_cache.outputs.cache_name }}_${{ hashFiles('reqs/constraints.txt', 'reqs/dist.txt', 'reqs/test.txt') }}
+
+      - name: Setup pip options
+        run: setup_pip_options
+
+      - name: Setup Python environment
+        run: setup_python_env -c reqs/constraints.txt -r reqs/dist.txt -r reqs/test.txt
+      # Test {{{
+
+      - name: Run tests
+        run: run_tests
+
+      # }}}
+
+      - name: List cache contents
+        run: list_cache
+  # }}}
+
+  # Job: Test (Python 3.9) {{{
+  test_python_39:
+
+    name: Test (Python 3.9)
+    runs-on: ubuntu-latest
+    needs: []
+
+    steps:
+
+      - name: Checkout
+        uses: actions/checkout@v2
+
+      - name: Setup Python
+        uses: actions/setup-python@v2
+        with:
+          python-version: 3.9
+
+      - name: Set cache name
+        id: set_cache
+        run: setup_cache_name '3.9' 'ubuntu-latest'
+
+      - name: Setup cache
+        uses: actions/cache@v2
+        with:
+          path: .cache
+          key: 0_${{ steps.set_cache.outputs.cache_name }}_${{ hashFiles('reqs/constraints.txt', 'reqs/dist.txt', 'reqs/test.txt') }}
+
+      - name: Setup pip options
+        run: setup_pip_options
+
+      - name: Setup Python environment
+        run: setup_python_env -c reqs/constraints.txt -r reqs/dist.txt -r reqs/test.txt
+      # Test {{{
+
+      - name: Run tests
+        run: run_tests
+
+      # }}}
+
+      - name: List cache contents
+        run: list_cache
+  # }}}
+
+  # Job: Test (Packaging) {{{
+  test_packaging:
+
+    name: Test (Packaging)
+    runs-on: ubuntu-latest
+    needs: []
+
+    steps:
+
+      - name: Checkout
+        uses: actions/checkout@v2
+        with:
+          # We need the whole history for patching the version.
+          fetch-depth: 0
+
+      - name: Setup Python
+        uses: actions/setup-python@v2
+        with:
+          python-version: 3.9
+
+      - name: Set cache name
+        id: set_cache
+        run: setup_cache_name '3.9' 'ubuntu-latest'
+
+      - name: Setup cache
+        uses: actions/cache@v2
+        with:
+          path: .cache
+          key: 0_${{ steps.set_cache.outputs.cache_name }}_${{ hashFiles('reqs/constraints.txt', 'reqs/packaging.txt', 'reqs/setup.txt') }}
+
+      - name: Setup pip options
+        run: setup_pip_options
+
+      - name: Setup Python environment
+        run: setup_python_env -c reqs/constraints.txt -r reqs/packaging.txt -r reqs/setup.txt
+      - name: Patch version
+        run: python setup.py patch_version
+
+      # Test packaging {{{
+
+      - name: Run packaging sanity checks
+        run: packaging_checks
+
+      - name: Archive artifact (sdist)
+        if: github.event_name == 'push' && startsWith(github.ref, 'refs/tags/')
+        uses: actions/upload-artifact@v2
+        with:
+          name: Source
+          path: dist/*.tar.gz
+
+      - name: Archive artifact (wheel)
+        if: github.event_name == 'push' && startsWith(github.ref, 'refs/tags/')
+        uses: actions/upload-artifact@v2
+        with:
+          name: Wheel
+          path: dist/*.whl
+
+      # }}}
+
+      - name: List cache contents
+        run: list_cache
+  # }}}
+
+  # Job: Build (Linux) {{{
+  build_linux:
+
+    name: Build (Linux)
+    runs-on: ubuntu-16.04
+    needs: [test_linux]
+
+    steps:
+
+      - name: Checkout
+        uses: actions/checkout@v2
+        with:
+          # We need the whole history for patching the version.
+          fetch-depth: 0
+
+      - name: Setup Python
+        uses: actions/setup-python@v2
+        with:
+          python-version: 3.8
+
+      - name: Set cache name
+        id: set_cache
+        run: setup_cache_name '3.8' 'ubuntu-16.04'
+
+      - name: Setup cache
+        uses: actions/cache@v2
+        with:
+          path: .cache
+          key: 0_${{ steps.set_cache.outputs.cache_name }}_${{ hashFiles('reqs/constraints.txt', 'reqs/build.txt', 'reqs/setup.txt', 'reqs/dist_*.txt', 'linux/appimage/deps.sh') }}
+
+      - name: Setup pip options
+        run: setup_pip_options
+
+      - name: Install system dependencies
+        run: apt_get_install libdbus-1-dev libdbus-glib-1-dev libudev-dev libusb-1.0-0-dev
+
+      - name: Setup Python environment
+        run: setup_python_env -c reqs/constraints.txt -r reqs/build.txt -r reqs/setup.txt
+      - name: Patch version
+        run: python setup.py patch_version
+
+      # Build {{{
+
+      - name: Build distribution (Linux AppImage)
+        run: python setup.py -q bdist_appimage -- --no-update-tools
+
+      - name: Archive artifact (Linux AppImage)
+        uses: actions/upload-artifact@v2
+        with:
+          name: Linux AppImage
+          path: dist/*.AppImage
+
+      # }}}
+
+      - name: List cache contents
+        run: list_cache
+  # }}}
+
+  # Job: Build (macOS) {{{
+  build_macos:
+
+    name: Build (macOS)
+    runs-on: macos-10.15
+    needs: [test_macos]
+
+    steps:
+
+      - name: Checkout
+        uses: actions/checkout@v2
+        with:
+          # We need the whole history for patching the version.
+          fetch-depth: 0
+
+      - name: Set cache name
+        id: set_cache
+        run: setup_cache_name '3.8' 'macos-10.15'
+
+      - name: Setup cache
+        uses: actions/cache@v2
+        with:
+          path: .cache
+          key: 0_${{ steps.set_cache.outputs.cache_name }}_${{ hashFiles('reqs/constraints.txt', 'reqs/build.txt', 'reqs/setup.txt', 'reqs/dist_*.txt', 'osx/deps.sh') }}
+
+      - name: Setup pip options
+        run: setup_pip_options
+
+      # To support older macOS versions, setup Python from an official installer.
+      - name: Setup Python
+        run: setup_osx_python '3.8'
+
+      - name: Setup Python environment
+        run: setup_python_env -c reqs/constraints.txt -r reqs/build.txt -r reqs/setup.txt
+      - name: Patch version
+        run: python setup.py patch_version
+
+      # Build {{{
+
+      - name: Build distribution (macOS DMG)
+        run: python setup.py -q bdist_dmg
+
+      - name: Archive artifact (macOS DMG)
+        uses: actions/upload-artifact@v2
+        with:
+          name: macOS DMG
+          path: dist/*.dmg
+
+      # }}}
+
+      - name: List cache contents
+        run: list_cache
+  # }}}
+
+  # Job: Build (Windows) {{{
+  build_windows:
+
+    name: Build (Windows)
+    runs-on: windows-2019
+    needs: [test_windows]
+
+    steps:
+
+      - name: Checkout
+        uses: actions/checkout@v2
+        with:
+          # We need the whole history for patching the version.
+          fetch-depth: 0
+
+      - name: Setup Python
+        uses: actions/setup-python@v2
+        with:
+          python-version: 3.8
+
+      - name: Set cache name
+        id: set_cache
+        run: setup_cache_name '3.8' 'windows-2019'
+
+      - name: Setup cache
+        uses: actions/cache@v2
+        with:
+          path: .cache
+          key: 0_${{ steps.set_cache.outputs.cache_name }}_${{ hashFiles('reqs/constraints.txt', 'reqs/build.txt', 'reqs/setup.txt', 'reqs/dist_*.txt', 'windows/dist_deps.sh') }}
+
+      - name: Setup pip options
+        run: setup_pip_options
+
+      - name: Setup Python environment
+        run: setup_python_env -c reqs/constraints.txt -r reqs/build.txt -r reqs/setup.txt
+      - name: Patch version
+        run: python setup.py patch_version
+
+      # Build {{{
+
+      - name: Build distributions (Windows)
+        run: |
+          # Note: we avoid using the WSL bash (which does not work).
+          bash="$(cygpath -w -a "$(which bash)")"
+          python setup.py -q bdist_win -t -z -i --bash="$bash"
+
+      - name: Archive artifact (Windows Installer)
+        uses: actions/upload-artifact@v2
+        with:
+          name: Windows Installer
+          path: dist/*.exe
+
+      - name: Archive artifact (Windows ZIP)
+        uses: actions/upload-artifact@v2
+        with:
+          name: Windows ZIP
+          path: dist/*.zip
+
+      # }}}
+
+      - name: List cache contents
+        run: list_cache
+  # }}}
+
+  # Job: Release {{{
+  release:
+
+    name: Release
+    environment: release
+    runs-on: ubuntu-latest
+    needs: [test_linux, test_macos, test_windows, test_python_36, test_python_37, test_python_39, test_packaging, build_linux, build_macos, build_windows]
+    if: github.event_name == 'push' && startsWith(github.ref, 'refs/tags/')
+
+    steps:
+
+      - name: Checkout
+        uses: actions/checkout@v2
+
+      - name: Setup Python
+        uses: actions/setup-python@v2
+        with:
+          python-version: 3.x
+
+      - name: Install dependencies
+        run: |
+          apt_get_install -qq pandoc
+          run "$python" -m pip install twine
+
+      - name: Download artifacts
+        uses: actions/download-artifact@v2
+        with:
+          path: dist
+
+      - name: Publish PyPI release
+        env:
+          TWINE_NON_INTERACTIVE: 1
+          TWINE_USERNAME: __token__
+          TWINE_PASSWORD: ${{ secrets.PYPI_TOKEN }}
+          # Optional: twine will fallback to default if empty.
+          TWINE_REPOSITORY_URL: ${{ secrets.PYPI_URL }}
+        run: publish_pypi_release
+
+      - name: Publish GitHub release
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: publish_github_release
+  # }}}
+
+# vim: foldmethod=marker foldlevel=0

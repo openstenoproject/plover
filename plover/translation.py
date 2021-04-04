@@ -25,6 +25,8 @@ from plover.registry import registry
 from plover import system
 
 
+PREFIX_STROKE = Stroke(())
+
 _ESCAPE_RX = re.compile('(\\\\[nrt]|[\n\r\t])')
 _ESCAPE_REPLACEMENTS = {
     '\n': r'\n',
@@ -299,7 +301,7 @@ class Translator:
         stroke -- The Stroke object to process.
 
         """
-        mapping = self.lookup([stroke])
+        mapping = self._lookup_with_prefix(self._state.translations, [stroke])
         macro = _mapping_to_macro(mapping, stroke)
         if macro is not None:
             self.translate_macro(macro)
@@ -354,7 +356,7 @@ class Translator:
             replaced = translations[i:]
             strokes = [s for t in replaced for s in t.strokes]
             strokes.append(stroke)
-            mapping = self.lookup(strokes, suffixes)
+            mapping = self._lookup_with_prefix(translations[:i], strokes, suffixes)
             if mapping is not None:
                 t = Translation(strokes, mapping)
                 t.replaced = replaced
@@ -381,6 +383,21 @@ class Translator:
                     continue
                 return main_mapping + ' ' + suffix_mapping
         return None
+
+    def _previous_word_is_finished(self, last_translations):
+        if not last_translations:
+            return True
+        formatting = last_translations[-1].formatting
+        if not formatting:
+            return True
+        return formatting[-1].word_is_finished
+
+    def _lookup_with_prefix(self, last_translations, strokes, suffixes=()):
+        if self._previous_word_is_finished(last_translations):
+            mapping = self.lookup([PREFIX_STROKE] + strokes, suffixes)
+            if mapping is not None:
+                return mapping
+        return self.lookup(strokes, suffixes)
 
 
 class _State:

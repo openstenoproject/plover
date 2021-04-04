@@ -101,6 +101,10 @@ _parse_meta = _build_metas_parser((
     (r'\*-\|', 'retro_case', Case.CAP_FIRST_WORD.value  ),
     (r'\*>'  , 'retro_case', Case.LOWER_FIRST_CHAR.value),
     (r'\*<'  , 'retro_case', Case.UPPER_FIRST_WORD.value),
+    # Explicit word end.
+    (r'(\$)', 'word_end', 0),
+    # Conditional.
+    (r'=(.*)', 'if_next_matches', 0),
     # Mode.
     (r'MODE:(.*)', 'mode', 0),
     # Currency.
@@ -387,6 +391,34 @@ class Formatter:
 
         old = [a for t in undo for a in t.formatting]
 
+        # Take into account previous look-ahead actions.
+
+        if prev:
+            text = ''
+            for a in new:
+                if a.text:
+                    text = a.text
+                    break
+            tail = []
+            for a in RetroFormatter(prev).iter_last_actions():
+                if isinstance(a, _LookAheadAction):
+                    old_a, new_a = a.action, a.update(text)
+                    # Does the look-ahead action need updating?
+                    if new_a == old_a:
+                        # No, we're done.
+                        break
+                    old[0:0] = [old_a] + tail
+                    new[0:0] = [new_a] + tail
+                    text = a.text
+                    tail = []
+                    # Updating this action can impact another
+                    # previous look-ahead action, keep going.
+                elif a.text is not None:
+                    if a.text:
+                        # Stop when encountering a non-empty text action.
+                        break
+                    tail.insert(0, a)
+
         # Figure out what really changed.
 
         min_length = min(len(old), len(new))
@@ -554,7 +586,7 @@ class _Action:
                  # Current.
                  glue=False, word=None, orthography=True, space_char=' ',
                  upper_carry=False, case=None, text=None, trailing_space='',
-                 combo=None, command=None,
+                 word_is_finished=None, combo=None, command=None,
                  # Next.
                  next_attach=False, next_case=None
                 ):
@@ -576,7 +608,9 @@ class _Action:
 
         upper_carry -- True if we are uppercasing the current word.
 
-        othography -- True if orthography rules should be applies when adding
+        word_is_finished -- True if word is finished.
+
+        orthography -- True if orthography rules should be applies when adding
                       a suffix to this action.
 
         space_char -- this character will replace spaces after all other
@@ -609,6 +643,10 @@ class _Action:
         self.orthography = orthography
         self.next_attach = next_attach
         self.next_case = next_case
+        if word_is_finished is None:
+            self.word_is_finished = not self.next_attach
+        else:
+            self.word_is_finished = word_is_finished
         # Persistent state variables
         self.space_char = space_char
         self.case = case
@@ -628,6 +666,7 @@ class _Action:
             case=self.case, glue=self.glue, orthography=self.orthography,
             space_char=self.space_char, upper_carry=self.upper_carry,
             word=self.word, trailing_space=self.trailing_space,
+            word_is_finished=self.word_is_finished,
             # Next.
             next_attach=self.next_attach, next_case=self.next_case,
         )
@@ -660,6 +699,29 @@ class _Action:
         return str(self)
 
 _Action.DEFAULT = _Action()
+
+
+class _LookAheadAction(_Action):
+
+    def __init__(self, pattern, action1, action2):
+        self.pattern = pattern
+        self.action1 = action1
+        self.action2 = action2
+        self.action = None
+        self.update('')
+
+    def update(self, text):
+        if re.match(self.pattern, text) is None:
+            self.action = self.action2
+        else:
+            self.action = self.action1
+        return self.action
+
+    def __getattr__(self, name):
+        return getattr(self.action, name)
+
+    def __str__(self):
+        return 'LookAheadAction(%s)' % str(self.__dict__)
 
 
 def _translation_to_actions(translation, ctx):
@@ -754,29 +816,36 @@ def _atom_to_action(atom, ctx):
     else:
         action = ctx.new_action()
         action.text = _unescape_atom(atom)
-
-    # Finalize action's text.
-    text = action.text
-    if text is not None:
-        # Update word.
-        if action.word is None:
-            last_word = None
-            if action.glue and ctx.last_action.glue:
-                last_word = ctx.last_action.word
-            action.word = rightmost_word((last_word or '') + text)
-        # Apply case.
-        case = ctx.last_action.next_case
-        if case is None and action.prev_attach and ctx.last_action.upper_carry:
-            case = Case.UPPER_FIRST_WORD
-        text = apply_case(text, case)
-        if case == Case.UPPER_FIRST_WORD:
-            action.upper_carry = not has_word_boundary(text)
-        # Apply mode.
-        action.text = apply_mode(text, action.case, action.space_char,
-                                 action.prev_attach, ctx.last_action)
-        # Update trailing space.
-        action.trailing_space = '' if action.next_attach else action.space_char
+    _finalize_action(action, ctx)
     return action
+
+def _finalize_action(action, ctx):
+    '''Finalize action's text.'''
+    if isinstance(action, _LookAheadAction):
+        _finalize_action(action.action1, ctx)
+        _finalize_action(action.action2, ctx)
+        return
+    text = action.text
+    if text is None:
+        return
+    # Update word.
+    if action.word is None:
+        last_word = None
+        if action.glue and ctx.last_action.glue:
+            last_word = ctx.last_action.word
+        action.word = rightmost_word((last_word or '') + text)
+    # Apply case.
+    case = ctx.last_action.next_case
+    if case is None and action.prev_attach and ctx.last_action.upper_carry:
+        case = Case.UPPER_FIRST_WORD
+    text = apply_case(text, case)
+    if case == Case.UPPER_FIRST_WORD:
+        action.upper_carry = not has_word_boundary(text)
+    # Apply mode.
+    action.text = apply_mode(text, action.case, action.space_char,
+                             action.prev_attach, ctx.last_action)
+    # Update trailing space.
+    action.trailing_space = '' if action.next_attach else action.space_char
 
 
 def apply_case(text, case):

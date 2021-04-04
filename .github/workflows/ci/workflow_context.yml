@@ -1,0 +1,81 @@
+cache_epoch: 0 # <- increase number to clear cache.
+
+is_release: github.event_name == 'push' && startsWith(github.ref, 'refs/tags/')
+
+action_cache: actions/cache@v2
+action_checkout: actions/checkout@v2
+action_setup_python: actions/setup-python@v2
+action_upload_artifact: actions/upload-artifact@v2
+action_download_artifact: actions/download-artifact@v2
+
+vars:
+  - &dist_linux
+    variant: Linux
+    python: '3.8'
+    os: Linux
+    platform: ubuntu-16.04
+
+  - &dist_macos
+    variant: macOS
+    python: '3.8'
+    os: macOS
+    platform: macos-10.15
+
+  - &dist_win
+    variant: Windows
+    python: '3.8'
+    os: Windows
+    platform: windows-2019
+
+  - &dist_other
+    os: Linux
+    platform: ubuntu-latest
+
+jobs:
+
+  # Platform tests.
+  - &test
+    <<: *dist_linux
+    type: test
+    reqs: ['dist', 'test']
+  - <<: *test
+    <<: *dist_macos
+    cache_extra_deps: ['osx/deps.sh']
+  - <<: *test
+    <<: *dist_win
+
+  # Python tests.
+  - &python_test
+    <<: *test
+    <<: *dist_other
+    variant: Python 3.6
+    python: '3.6'
+  - <<: *python_test
+    variant: Python 3.7
+    python: '3.7'
+  - <<: *python_test
+    variant: Python 3.9
+    python: '3.9'
+
+  # Packaging tests.
+  - <<: *dist_other
+    type: test_packaging
+    variant: Packaging
+    python: '3.9'
+    reqs: ['packaging', 'setup']
+
+  # Platform builds.
+  - &build
+    <<: *dist_linux
+    type: build
+    needs: [test_linux]
+    reqs: ['build', 'setup']
+    cache_extra_deps: ['reqs/dist_*.txt', 'linux/appimage/deps.sh']
+  - <<: *build
+    <<: *dist_macos
+    needs: [test_macos]
+    cache_extra_deps: ['reqs/dist_*.txt', 'osx/deps.sh']
+  - <<: *build
+    <<: *dist_win
+    needs: [test_windows]
+    cache_extra_deps: ['reqs/dist_*.txt', 'windows/dist_deps.sh']

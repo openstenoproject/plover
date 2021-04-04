@@ -1,8 +1,5 @@
 #!/usr/bin/env python3
 
-# Python 2/3 compatibility.
-from __future__ import print_function
-
 from collections import OrderedDict
 
 import pkg_resources
@@ -54,4 +51,4 @@ for requirement in sorted_requirements(all_requirements):
     if requirement not in plover_deps and \
        requirement not in plugins_deps:
       print(requirement)
-print('# vim: ft=cfg commentstring=#\ %s list')
+print('# ''vim: ft=cfg commentstring=#\ %s list')
