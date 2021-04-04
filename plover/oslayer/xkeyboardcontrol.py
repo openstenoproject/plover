@@ -165,39 +165,38 @@ class XEventLoop(threading.Thread):
         self._display = display.Display()
         self._pipe = os.pipe()
         self._display_lock = threading.Lock()
+        self._readfds = (self._pipe[0], self._display.fileno())
 
     def _on_event(self, event):
         pass
 
+    @with_display_lock
+    def _process_pending_events(self):
+        for __ in range(self._display.pending_events()):
+            self._on_event(self._display.next_event())
+
     def run(self):
-        with self._display_lock:
-            display_fileno = self._display.fileno()
         while True:
-            with self._display_lock:
-                pending_events = self._display.pending_events()
-            if not pending_events:
-                try:
-                    rlist, wlist, xlist = select.select((self._pipe[0],
-                                                         display_fileno),
-                                                        (), ())
-                except select.error as err:
-                    if isinstance(err, OSError):
-                        code = err.errno
-                    else:
-                        code = err[0]
-                    if code != errno.EINTR:
-                        raise
-                    continue
-                assert not wlist
-                assert not xlist
-                if self._pipe[0] in rlist:
-                    break
-                # If we're here, rlist should contains display_fileno,
-                # trigger a new iteration to check for pending events.
+            self._process_pending_events()
+            # No more events: sleep until we get new data on the
+            # display connection, or on the pipe used to signal
+            # the end of the loop.
+            try:
+                rlist, wlist, xlist = select.select(self._readfds, (), ())
+            except select.error as err:
+                if isinstance(err, OSError):
+                    code = err.errno
+                else:
+                    code = err[0]
+                if code != errno.EINTR:
+                    raise
                 continue
-            with self._display_lock:
-                next_event = self._display.next_event()
-            self._on_event(next_event)
+            assert not wlist
+            assert not xlist
+            if self._pipe[0] in rlist:
+                break
+            # If we're here, rlist should contains the display fd,
+            # and the next iteration will find some pending events.
 
     def cancel(self):
         # Wake up the capture thread...
