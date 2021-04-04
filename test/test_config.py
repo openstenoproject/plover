@@ -554,7 +554,10 @@ def test_config_dir(tree, expected_config_dir, tmpdir):
     }
     # Setup environment.
     env = dict(os.environ)
-    env['HOME'] = str(home)
+    if sys.platform.startswith('win32'):
+        env['USERPROFILE'] = str(home)
+    else:
+        env['HOME'] = str(home)
     env['PYTHONUSERBASE'] = USER_BASE
     # Ensure XDG_xxx environment variables don't screw up our isolation.
     for k in list(env):
