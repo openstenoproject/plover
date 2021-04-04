@@ -383,25 +383,38 @@ class DictionariesWidget(QWidget, Ui_DictionariesWidget):
             # when the user right-clicks in the empty area of the table
             return
 
-        dictionary_path = self._config_dictionaries[row].path
+        selected_rows = self._get_selection()
+        assert list(selected_rows) == sorted(selected_rows)
+        if row not in selected_rows:
+            # in some cases (Ctrl+right click, for example), the current row might not be selected
+            return
+
         menu = QMenu(self)
-        saveAsAction = QAction(_('Save a Copy As...'), self)
+
+        # the path of the dictionary on the row the mouse clicked on
+        dictionary_path = self._config_dictionaries[row].path
+
+        if len(selected_rows) == 1:
+            saveAsAction = QAction(_('Save a Copy As...'), self)
+        else:
+            saveAsAction = QAction(_('Merge and Save a Copy As...'), self)
+
         saveAsAction.triggered.connect(lambda: self.on_save_as(
             default_name=dictionary_path,
-            dictionary=self._loaded_dictionaries[dictionary_path]))
+            dictionaries=[
+                self._loaded_dictionaries[self._config_dictionaries[row].path]
+                for row in selected_rows]
+            ))
 
         def cleanup():
             menu.deleteLater()
             saveAsAction.deleteLater()
         menu.aboutToHide.connect(cleanup)
 
-        selected_rows = self._get_selection()
-        assert row in selected_rows
-        saveAsAction.setDisabled(len(selected_rows) != 1)
         menu.addAction(saveAsAction)
         menu.popup(global_pos)
 
-    def on_save_as(self, default_name, dictionary):
+    def on_save_as(self, default_name, dictionaries):
         new_filename = QFileDialog.getSaveFileName(
             self, _('Save a Copy As...'), default_name,
             _dictionary_filters(include_readonly=False),
@@ -411,7 +424,8 @@ class DictionariesWidget(QWidget, Ui_DictionariesWidget):
         new_filename = normalize_path(new_filename)
         try:
             d = create_dictionary(new_filename, threaded_save=False)
-            d.update(dictionary)
+            for dictionary in reversed(dictionaries):
+                d.update(dictionary)
             d.save()
         except:
             log.error('creating dictionary %s failed', new_filename, exc_info=True)
