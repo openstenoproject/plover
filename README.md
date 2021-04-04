@@ -26,8 +26,7 @@ Plover is part of the [Open Steno Project][]. The Open Steno Project's
 goal is to provide everything you need to learn machine shorthand on
 your own, from free software, to cheap hardware, to learning resources.
 
-Plover is GPLv2+ as of version 3.1.0. See the [license](LICENSE.TXT) for
-details.
+Plover is GPLv2+ as of version 3.1.0. See the [license][] for details.
 
 ## Installation
 
@@ -99,19 +98,20 @@ platform.
 
 Please follow through for your system:
 
--   [Windows](windows/README.md)
--   [Linux](linux/README.md)
--   [Mac](osx/README.md)
+-   [Windows][Windows README]
+-   [Linux][Linux README]
+-   [Mac][macOS README]
 
   [Beginner's Guide]: https://github.com/openstenoproject/plover/wiki/Beginner's-Guide:-Get-Started-with-Plover
   [Blog]: http://plover.stenoknight.com
-  [Contributing]: CONTRIBUTING.md
+  [Contributing]: https://github.com/openstenoproject/plover/blob/master/CONTRIBUTING.md
   [Discord Chat]: https://discord.gg/0lQde43a6dGmAMp2
   [Donate]: http://www.openstenoproject.org/donate
   [Google Group]: https://groups.google.com/forum/#!forum/ploversteno
   [Homepage Source]: https://github.com/openstenoproject/plover/tree/gh-pages
   [Homepage]: http://opensteno.org/plover
   [Issues]: https://github.com/openstenoproject/plover/issues?q=is:issue
+  [License]: https://github.com/openstenoproject/plover/blob/master/LICENSE.txt
   [Open Steno Project Homepage Source]: https://github.com/openstenoproject/openstenoproject.github.io
   [Open Steno Project]: http://opensteno.org
   [Mascot]: http://plover.stenoknight.com/2010/10/new-logo.html
@@ -123,6 +123,10 @@ Please follow through for your system:
   [Wiki]: https://github.com/openstenoproject/plover/wiki
   [installation guide]: https://github.com/openstenoproject/plover/wiki/Installation-Guide
   [morinted/plover\_icons]: https://github.com/morinted/plover_icons
+
+  [Windows README]: https://github.com/openstenoproject/plover/blob/master/windows/README.md
+  [Linux README]: https://github.com/openstenoproject/plover/blob/master/linux/README.md
+  [macOS README]: https://github.com/openstenoproject/plover/blob/master/osx/README.md
 
   [CI Badge]: https://github.com/openstenoproject/plover/actions/workflows/ci.yml/badge.svg?branch=master
   [CI Link]: https://github.com/openstenoproject/plover/actions/workflows/ci.yml?query=branch%3Amaster
