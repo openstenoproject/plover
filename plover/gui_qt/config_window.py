@@ -207,6 +207,9 @@ class MultipleChoicesOption(QTableWidget):
         self.setRowCount(0)
         if value is None:
             value = set()
+        else:
+            # Don't mutate the original value.
+            value = set(value)
         self._value = value
         row = -1
         for choice in sorted(self._reversed_choices):
