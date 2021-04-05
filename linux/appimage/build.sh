@@ -120,7 +120,7 @@ run sed -e "s/\${pyversion}/$pyversion/g" -i "$builddir/blacklist.txt"
 run "$python" -m plover_build_utils.trim "$appdir" "$builddir/blacklist.txt"
 
 # Make distribution source-less.
-run "$python" -m plover_build_utils.source_less "$pydist/$purelib" "$pydist/$platlib" '*/pip/_vendor/distlib/*'
+run "$python" -m plover_build_utils.source_less "$pydist/$purelib" "$pydist/$platlib" '*/pip/_vendor/distlib/*' '*/pip/_vendor/pep517/*'
 
 # Avoid possible permission errors.
 run chmod u+w -R "$appdir"
