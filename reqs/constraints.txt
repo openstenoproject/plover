@@ -57,7 +57,6 @@ requests-toolbelt==0.9.1
 rfc3986==1.4.0
 SecretStorage==3.3.1; "linux" in sys_platform
 setuptools==54.2.0
-setuptools-scm==6.0.1
 six==1.15.0
 toml==0.10.2
 towncrier==21.3.0rc1

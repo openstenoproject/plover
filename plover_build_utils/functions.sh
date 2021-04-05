@@ -183,16 +183,12 @@ osx_standalone_python()
 
 packaging_checks()
 {
-  # setup check
-  run "$python" setup.py -q check -m -s
   run rm -rf dist
-  run "$python" -m pip --disable-pip-version-check wheel -w dist --no-deps .
-  run "$python" -m twine check --strict dist/*.whl
-  # sdist bdist_wheel check
-  run rm -rf dist
-  run "$python" setup.py -q sdist bdist_wheel
+  # Check PEP 517/518 support.
+  run "$python" -m build --sdist --wheel .
+  # Validate distributions.
   run "$python" -m twine check --strict dist/*
-  # manifest check
+  # Check manifest.
   run "$python" -m check_manifest -v
 }
 
