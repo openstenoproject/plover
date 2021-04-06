@@ -115,7 +115,7 @@ setup_python_env()
 
 publish_github_release()
 {
-  run_eval "tag=${GITHUB_REF##*/tags/}"
+  run_eval "tag=${GITHUB_REF#refs/tags/}"
   run_eval "is_prerelease=$("$python" <<EOF
 from pkg_resources import parse_version
 version = parse_version('${tag#v}')
