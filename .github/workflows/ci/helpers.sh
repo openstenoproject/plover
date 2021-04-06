@@ -134,6 +134,7 @@ EOF
     --title "$tag" \
     --notes-file notes.md \
     ${is_prerelease:+--prerelease} \
+    --target "$GITHUB_SHA" \
     "$tag" dist/*/*
 }
 
