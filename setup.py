@@ -243,20 +243,30 @@ if sys.platform.startswith('darwin'):
 class BinaryDistAppImage(Command):
 
     description = 'create AppImage distribution for Linux'
-    command_consumes_arguments = True
-    user_options = []
+    user_options = [
+        ('docker', None,
+         'use docker to run the build script'),
+        ('no-update-tools', None,
+         'don\'t try to update AppImage tools, only fetch missing ones'),
+    ]
+    boolean_options = ['docker', 'no-update-tools']
 
     def initialize_options(self):
-        self.args = None
+        self.docker = False
+        self.no_update_tools = False
 
     def finalize_options(self):
         pass
 
     def run(self):
-        cmd = ['./linux/appimage/build.sh',
-               '--python', sys.executable,
-               '--wheel', self.bdist_wheel()
-              ] + self.args
+        cmd = ['./linux/appimage/build.sh']
+        if self.docker:
+            cmd.append('--docker')
+        else:
+            cmd.extend(('--python', sys.executable))
+        if self.no_update_tools:
+            cmd.append('--no-update-tools')
+        cmd.extend(('--wheel', self.bdist_wheel()))
         log.info('running %s', ' '.join(cmd))
         subprocess.check_call(cmd)
 

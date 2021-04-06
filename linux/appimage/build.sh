@@ -12,8 +12,7 @@ cachedir="$topdir/.cache/appimage"
 wheel=''
 python='python3'
 update_tools=1
-
-. ./linux/appimage/deps.sh
+use_docker=0
 
 while [ $# -ne 0 ]
 do
@@ -29,6 +28,9 @@ do
     --no-update-tools)
       update_tools=0
       ;;
+    --docker)
+      use_docker=1
+      ;;
     -*)
       err "invalid option: $1"
       exit 1
@@ -36,6 +38,17 @@ do
   esac
   shift
 done
+
+# Helper to make a copy of the current git checkout (sans ignored/others).
+copy_git_checkout()
+{(
+  src="$1"
+  dst="$2"
+  mkdir "$2" &&
+  cd "$1" &&
+  git ls-files -z |
+  xargs -0 cp -a --no-dereference --parents --target-directory="$2"
+)}
 
 # Helper to extract an AppImage so it can be used without needing fuse.
 extract_appimage()
@@ -52,19 +65,69 @@ extract_appimage()
   rmdir "$tmpdir"
 )}
 
+run rm -rf "$builddir"
+run mkdir -p "$builddir" "$cachedir" "$distdir"
+
 version="$("$python" -c 'from plover import __version__; print(__version__)')"
 appimage="$distdir/plover-$version-x86_64.AppImage"
 
-run rm -rf "$builddir"
-run mkdir -p "$appdir" "$cachedir" "$distdir"
+if [ $use_docker -eq 1 ]
+then
+  docker_image='plover:appimage'
+  docker_workdir="$topdir/build/appimage/docker"
+  docker_srcdir="$docker_workdir/src"
+  docker_cache="$cachedir/docker"
+  run mkdir -p "$docker_workdir" "$docker_cache"
+  if [ -n "$wheel" ]
+  then
+    run cp "$wheel" "$docker_workdir/${wheel##*/}"
+    docker_wheel="../${wheel##*/}"
+  else
+    docker_wheel=''
+  fi
+  # Build docker image.
+  docker build -t "$docker_image" linux/appimage
+  # Create a copy of the current checkout.
+  run copy_git_checkout "$topdir" "$docker_srcdir"
+  # Setup cache.
+  run ln -s /cache "$docker_srcdir/.cache"
+  # Create a dedicated user so there are no issues
+  # accessing the files generated during the docker
+  # run.
+  run tee "$docker_workdir/entrypoint.sh" <<EOF
+#!/bin/sh
+set -ex
+useradd -u $(id -u) '$USER'
+usermod -a -G sudo '$USER' 2>/dev/null || :
+usermod -a -G wheel '$USER' 2>/dev/null || :
+usermod -a -G adm '$USER' 2>/dev/null || :
+export HOME='/home/$USER'
+exec chroot --skip-chdir --userspec='$USER' / "\$@"
+EOF
+  run chmod a+x "$docker_workdir/entrypoint.sh"
+  docker run \
+    --entrypoint=/work/entrypoint.sh \
+    --network=host \
+    --rm=true \
+    --tty=true \
+    --volume "$docker_cache:/cache" \
+    --volume "$docker_workdir:/work" \
+    --workdir /work/src \
+    "$docker_image" \
+    bash "${0#$topdir}" --wheel "$docker_wheel" --python "$python"
+    mv "$docker_srcdir/dist/${appimage##*/}" "$appimage"
+    exit
+fi
 
 # Fetch some helpers.
 # Note:
 # - extract AppImages so FUSE is not needed.
 # - we start with zsync2 and do two passes
 #   so it can update itself as needed.
+. ./linux/appimage/deps.sh
 while read tool url;
 do
+  [ -n "$url" ] || die 1 "missing URL for $tool"
   if [ ! -r "$cachedir/$tool" ]
   then
     # Initial fetch.
