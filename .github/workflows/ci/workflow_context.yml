@@ -1,7 +1,5 @@
 cache_epoch: 0 # <- increase number to clear cache.
 
-is_release: github.event_name == 'push' && startsWith(github.ref, 'refs/tags/')
-
 action_cache: actions/cache@v2
 action_checkout: actions/checkout@v2
 action_setup_python: actions/setup-python@v2

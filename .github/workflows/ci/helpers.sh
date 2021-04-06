@@ -115,27 +115,92 @@ setup_python_env()
 
 publish_github_release()
 {
-  run_eval "tag=${GITHUB_REF#refs/tags/}"
-  run_eval "is_prerelease=$("$python" <<EOF
+  case "$RELEASE_TYPE" in
+    continuous)
+      tag='continuous'
+      title='Continuous build'
+      is_draft=''
+      is_prerelease='yes'
+      overwrite='yes'
+      notes_body='news_draft.md'
+      run_eval "towncrier --draft --version '$RELEASE_VERSION' >$notes_body" || die
+      ;;
+    tagged)
+      tag="${GITHUB_REF#refs/tags/}"
+      title="$tag"
+      is_draft='yes'
+      is_prerelease="$("$python" <<EOF
 from pkg_resources import parse_version
-version = parse_version('${tag#v}')
+version = parse_version('$RELEASE_VERSION')
 print('1' if version.is_prerelease else '')
 EOF
-  )" || die
+)" || die
+      overwrite=''
+      notes_body='NEWS.md'
+      ;;
+    *)
+      die 1 "unsupported release type: $RELEASE_TYPE"
+      ;;
+  esac
+  assets=()
+  for a in dist/*/*
+  do
+    case "$a" in
+      # plover-4.0.0.dev8+380.gdf570a7-macosx_10_13_x86_64.dmg
+      # plover-4.0.0.dev8+380.gdf570a7-py3-none-any.whl
+      # plover-4.0.0.dev8+380.gdf570a7-win64.setup.exe
+      # plover-4.0.0.dev8+380.gdf570a7-win64.zip
+      # plover-4.0.0.dev8+380.gdf570a7-x86_64.AppImage
+      # plover-4.0.0.dev8+380.gdf570a7.tar.gz
+      *.AppImage) name='Linux: AppImage' ;;
+      *.dmg)      name='macOS: Disk Image' ;;
+      *.exe)      name='Windows: Installer' ;;
+      *.zip)      name='Windows: Portable ZIP' ;;
+      *.tar.gz)   name='Python: Source Distribution' ;;
+      *.whl)      name='Python: Wheel' ;;
+      *) name='' ;;
+    esac
+    assets+=("$a${name:+# }$name")
+  done
   run pandoc --from=gfm --to=gfm \
     --lua-filter=.github/RELEASE_DRAFT_FILTER.lua \
     --template=.github/RELEASE_DRAFT_TEMPLATE.md \
     --base-header-level=2 --wrap=none \
-    --variable="version:$tag" \
+    --variable="version:$RELEASE_VERSION" \
     --output=notes.md \
-    NEWS.md || die
+    "$notes_body" || die
+  if [ -n "$overwrite" ]
+  then
+    # Is there an existing release?
+    if run_eval "last_release=\"\$(gh release view "$tag")\""
+    then
+      # Yes, check we're not downgrading.
+      head -n20 <<<"$last_release"
+      run_eval "last_version=\"\$(echo -n \"\$last_release\" | sed -n '/^# \\w\\+ \\([^ ]\\+\\)\$/{s//\\1/;P;Q0};\$Q1')\""
+      if python <<EOF
+from pkg_resources import parse_version
+import sys
+version = parse_version('$RELEASE_VERSION')
+last_version = parse_version('$last_version')
+sys.exit(0 if version < last_version else 1)
+EOF
+      then
+        die 1 "cowardly refusing to downgrade \`$tag\` from \`$last_version\` to \`$RELEASE_VERSION\`"
+      fi
+      # Delete it.
+      run gh release delete "$tag" -y
+    fi
+    # Create / force update tag manually.
+    run git tag --force "$tag"
+    run git push -f "$GITHUB_SERVER_URL/$GITHUB_REPOSITORY" "$tag"
+  fi
   run gh release create \
-    --draft \
-    --title "$tag" \
-    --notes-file notes.md \
     ${is_prerelease:+--prerelease} \
+    ${is_draft:+--draft} \
     --target "$GITHUB_SHA" \
-    "$tag" dist/*/*
+    --title "$title" \
+    --notes-file notes.md \
+    "$tag" "${assets[@]}"
 }
 
 publish_pypi_release()
@@ -143,7 +208,36 @@ publish_pypi_release()
   run "$python" -m twine upload dist/Source/* dist/Wheel/*
 }
 
-skippy_set_job_skip_cache_key()
+analyze_set_release_info()
+{
+  if [[ "$GITHUB_REF" == refs/tags/* ]]
+  then
+    # Tagged release.
+    release_type='tagged'
+  elif [[ "$GITHUB_REF" == refs/heads/$CONTINUOUS_RELEASE_BRANCH ]]
+  then
+    # Continuous release.
+    release_type='continuous'
+  else
+    # Not a release.
+    release_type=''
+  fi
+  # Are we releasing something?
+  if [[ "$GITHUB_EVENT_NAME" == 'push' ]] && [[ -n "$release_type" ]]
+  then
+    is_release='yes'
+    skip_release='no'
+  else
+    is_release='no'
+    skip_release='yes'
+  fi
+  info "Skip Release? $skip_release ($release_type)"
+  echo "::set-output name=is_release::$is_release"
+  echo "::set-output name=release_type::$release_type"
+  echo "::set-output name=release_skip_job::$skip_release"
+}
+
+analyze_set_job_skip_cache_key()
 {
   echo -n '::group::' 1>&2; info "$job_name"
   skiplists=()
@@ -156,7 +250,7 @@ skippy_set_job_skip_cache_key()
   echo '::endgroup::' 1>&2
 }
 
-skippy_set_job_skip_job()
+analyze_set_job_skip_job()
 {
   if [ "$is_release" = "no" -a -e "$job_skip_cache_path" ]
   then

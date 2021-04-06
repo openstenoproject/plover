@@ -1,6 +1,13 @@
 name: CI
 
-on: [push, pull_request]
+on:
+  push:
+    branches:
+      - '*'
+    tags-ignore:
+      # Ignore continuous releases' tag.
+      - 'continuous'
+  pull_request:
 
 defaults:
   run:
@@ -9,11 +16,10 @@ defaults:
 
 jobs:
 
-  <% if skippy_enabled %>
-  # Job: Skippy {{{
-  skippy:
+  # Job: Analyze {{{
+  analyze:
 
-    name: Skippy
+    name: Analyze
     runs-on: ubuntu-latest
 
     steps:
@@ -21,11 +27,12 @@ jobs:
       - name: Checkout
         uses: <@ action_checkout @>
 
+    <% if skippy_enabled %>
       - name: Calculate skip cache keys
         id: set_cache
         run: |
           <% for j in jobs %>
-          <@ j.shell_definition @>; skippy_set_job_skip_cache_key
+          <@ j.shell_definition @>; analyze_set_job_skip_cache_key
           <% endfor %>
 
       <% for j in jobs %>
@@ -38,40 +45,44 @@ jobs:
             <@ cache_epoch @>_${{ steps.set_cache.outputs.<@ j.id @>_skip_cache_key }}
 
       <% endfor %>
-      - name: Set skip status
-        id: set_skip
+      <% endif %>
+      - name: Set outputs
+        id: set_ouputs
+        env:
+          CONTINUOUS_RELEASE_BRANCH: ${{ secrets.CONTINUOUS_RELEASE_BRANCH }}
         run: |
-          is_release='${{ <@ is_release @> && 'yes' || 'no' }}'
-          info "is release? $is_release"
+          analyze_set_release_info
           <% for j in jobs %>
-          <@ j.shell_definition @>; skippy_set_job_skip_job
+          <% if skippy_enabled %>
+          <@ j.shell_definition @>; analyze_set_job_skip_job
+          <% else %>
+          echo "::set-output name=<@ j.id @>_skip_job::no"
+          <% endif %>
           <% endfor %>
 
     outputs:
+      is_release: ${{ steps.set_ouputs.outputs.is_release }}
+      release_type: ${{ steps.set_ouputs.outputs.release_type }}
       <% for j in jobs %>
-        <@ j.id @>_skip_job: ${{ steps.set_skip.outputs.<@ j.id @>_skip_job }}
-        <@ j.id @>_skip_cache_key: ${{ steps.set_cache.outputs.<@ j.id @>_skip_cache_key }}
+      <@ j.id @>_skip_job: ${{ steps.set_ouputs.outputs.<@ j.id @>_skip_job }}
+      <@ j.id @>_skip_cache_key: ${{ steps.set_cache.outputs.<@ j.id @>_skip_cache_key }}
       <% endfor %>
+      release_skip_job: ${{ steps.set_ouputs.outputs.release_skip_job }}
   # }}}
 
-  <% endif %>
   <% for j in jobs %>
   # Job: <@ j.name @> {{{
   <@ j.id @>:
 
     name: <@ j.name @>
     runs-on: <@ j.platform @>
-    <% if skippy_enabled %>
-    needs: [<@ (['skippy'] + j.needs)|join(', ') @>]
+    needs: [analyze, <@ j.needs|join(', ') @>]
     if: >-
       !cancelled()
-      && needs.skippy.outputs.<@ j.id @>_skip_job != 'yes'
       <% for need_id in j.needs %>
       && (needs.<@ need_id @>.result == 'success' || needs.<@ need_id @>.result == 'skipped')
       <% endfor %>
-    <% else %>
-    needs: [<@ j.needs|join(', ') @>]
-    <% endif %>
+      && needs.analyze.outputs.<@ j.id @>_skip_job == 'no'
 
     steps:
 
@@ -92,7 +103,7 @@ jobs:
       <% endif %>
       <% if skippy_enabled and j.os == 'Windows' %>
       # On Windows, ensure we use a tar compatible
-      # with the one used in the skippy job.
+      # with the one used in the analyze job.
       - name: Fix tar
         run: rm C:/Windows/System32/tar
 
@@ -126,7 +137,12 @@ jobs:
 
       <% if j.type in ['build', 'test_packaging'] %>
       - name: Patch version
-        run: python setup.py patch_version
+        id: set_version
+        run: |
+          python setup.py patch_version
+          <% if j.type == 'test_packaging' %>
+          echo "::set-output name=version::$(python setup.py --version)"
+          <% endif %>
 
       <% endif %>
       <% if j.type == 'test' %>
@@ -145,14 +161,14 @@ jobs:
         run: packaging_checks
 
       - name: Archive artifact (sdist)
-        if: <@ is_release @>
+        if: needs.analyze.outputs.is_release
         uses: <@ action_upload_artifact @>
         with:
           name: Source
           path: dist/*.tar.gz
 
       - name: Archive artifact (wheel)
-        if: <@ is_release @>
+        if: needs.analyze.outputs.is_release
         uses: <@ action_upload_artifact @>
         with:
           name: Wheel
@@ -214,7 +230,7 @@ jobs:
         uses: <@ action_cache @>
         with:
           path: <@ j.skip_cache_path @>
-          key: <@ cache_epoch @>_${{ needs.skippy.outputs.<@ j.id @>_skip_cache_key }}
+          key: <@ cache_epoch @>_${{ needs.analyze.outputs.<@ j.id @>_skip_cache_key }}
 
       - name: Update skip cache 2
         run: run_eval "echo 'https://github.com/$GITHUB_REPOSITORY/actions/runs/$GITHUB_RUN_ID' >'<@ j.skip_cache_path @>'"
@@ -222,6 +238,11 @@ jobs:
       <% endif %>
       - name: List cache contents
         run: list_cache
+    <% if j.type == 'test_packaging' %>
+  
+    outputs:
+      version: ${{ steps.set_version.outputs.version }}
+    <% endif %>
   # }}}
 
   <% endfor %>
@@ -231,8 +252,13 @@ jobs:
     name: Release
     environment: release
     runs-on: ubuntu-latest
-    needs: [<@ jobs|join(', ', attribute='id') @>]
-    if: <@ is_release @>
+    needs: [analyze, <@ jobs|join(', ', attribute='id') @>]
+    if: >-
+      !cancelled()
+      <% for j in jobs %>
+      && needs.<@ j.id @>.result == 'success'
+      <% endfor %>
+      && needs.analyze.outputs.release_skip_job == 'no'
 
     steps:
 
@@ -246,8 +272,8 @@ jobs:
 
       - name: Install dependencies
         run: |
-          apt_get_install -qq pandoc
-          run "$python" -m pip install twine
+          run apt_get_install -qq pandoc
+          run "$python" -m pip install -c reqs/constraints.txt -r reqs/release.txt
 
       - name: Download artifacts
         uses: <@ action_download_artifact @>
@@ -255,6 +281,7 @@ jobs:
           path: dist
 
       - name: Publish PyPI release
+        if: needs.analyze.outputs.release_type == 'tagged'
         env:
           TWINE_NON_INTERACTIVE: 1
           TWINE_USERNAME: __token__
@@ -263,9 +290,11 @@ jobs:
           TWINE_REPOSITORY_URL: ${{ secrets.PYPI_URL }}
         run: publish_pypi_release
 
-      - name: Publish GitHub release
+      - name: Publish GitHub release (${{ needs.analyze.outputs.release_type }})
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          RELEASE_TYPE: ${{ needs.analyze.outputs.release_type }}
+          RELEASE_VERSION: ${{ needs.test_packaging.outputs.version }}
         run: publish_github_release
   # }}}
 
