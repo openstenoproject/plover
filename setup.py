@@ -172,32 +172,6 @@ cmdclass['patch_version'] = PatchVersion
 
 # }}}
 
-# `tag_weekly` command. {{{
-
-class TagWeekly(Command):
-
-    description = 'tag weekly version'
-    user_options = []
-
-    def initialize_options(self):
-        pass
-
-    def finalize_options(self):
-        pass
-
-    def run(self):
-        version = get_version()
-        if version is None:
-            sys.exit(1)
-        weekly_version = 'weekly-v%s' % version
-        log.info('tagging as %s', weekly_version)
-        subprocess.check_call('git tag -f -m'.split()
-                              + [weekly_version, weekly_version])
-
-cmdclass['tag_weekly'] = TagWeekly
-
-# }}}
-
 # `bdist_app` and `bdist_dmg` commands. {{{
 
 class BinaryDistApp(Command):
