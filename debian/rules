@@ -1,8 +1,0 @@
-#!/usr/bin/make -f
-
-override_dh_auto_test:
-	PYBUILD_SYSTEM=custom \
-	PYBUILD_TEST_ARGS="python{version} -m pytest test" dh_auto_test
-
-%:
-	dh $@ --with=python3 --buildsystem=pybuild

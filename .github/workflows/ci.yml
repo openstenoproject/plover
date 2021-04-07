@@ -378,7 +378,7 @@ jobs:
       # Build {{{
 
       - name: Build distribution (Linux AppImage)
-        run: python setup.py -q bdist_appimage -- --no-update-tools
+        run: python setup.py -q bdist_appimage --no-update-tools
 
       - name: Archive artifact (Linux AppImage)
         uses: actions/upload-artifact@v2

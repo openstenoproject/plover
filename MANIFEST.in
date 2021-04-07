@@ -3,9 +3,6 @@
 include CONTRIBUTING.md
 include LICENSE.txt
 include NEWS.md
-include archlinux/*
-include debian/*
-include debian/source/*
 include doc/*
 include launch.bat
 include launch.sh
@@ -28,7 +25,6 @@ include plover/gui_qt/resources/*.svg
 include plover_build_utils/*.sh
 include pyproject.toml
 include reqs/*.txt
-include rpm/*.spec
 include test.bat
 include test.sh
 include test/__init__.py
