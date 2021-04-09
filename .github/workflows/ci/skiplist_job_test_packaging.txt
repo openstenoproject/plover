@@ -1,0 +1,7 @@
+.github/workflows/ci/skiplist_job_build.txt
+.github/workflows/ci/skiplist_job_test.txt
+.github/workflows/ci/skiplist_os_*.txt
+reqs/build.txt
+reqs/release.txt
+reqs/test.txt
+{EOF}

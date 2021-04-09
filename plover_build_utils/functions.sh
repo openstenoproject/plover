@@ -120,6 +120,17 @@ run_eval()
   fi
 }
 
+sha1sum()
+{
+  kernel="$(uname -s)" || die
+  if [ "$kernel" = 'Darwin' ]
+  then
+    shasum "$@"
+  else
+    command sha1sum "$@"
+  fi
+}
+
 get_base_devel()
 {
   run "$python" -m plover_build_utils.get_pip -c reqs/constraints.txt -r reqs/bootstrap.txt "$@"
@@ -190,6 +201,53 @@ packaging_checks()
   run "$python" -m twine check --strict dist/*
   # Check manifest.
   run "$python" -m check_manifest -v
+}
+
+git_tree_sha1()
+{
+  if [ "x$1" = "x-d" ]
+  then
+    debug=1
+    shift
+  else
+    debug=1
+  fi
+  refspec="$1"
+  shift
+  # Build excludes list.
+  excludes=()
+  for skiplist in "$@"
+  do
+    IFS=$'\r\n' read -r -d '{EOF}' -a patterns <"$skiplist" || die
+    excludes+=("${patterns[@]/#/:!:}")
+  done
+  if [ $debug -eq 1 ]
+  then
+    info "excludes [${#excludes[@]}]"
+    echo "${excludes[@]}" 1>&2
+  fi
+  # Build source tree listing.
+  IFS=$'\r\n' sources=($(git ls-files "${excludes[@]}")) || die
+  if [ $debug -eq 1 ]
+  then
+    info "sources [${#sources[@]}]:"
+    echo "${sources[@]}" 1>&2
+  fi
+  # Build git tree listing.
+  tree="$(git ls-tree "$refspec" "${sources[@]}")" || die
+  if [ $debug -eq 1 ]
+  then
+    info "tree: [$(wc -l <<<"$tree")]"
+    echo "${tree}" 1>&2
+  fi
+  # Calculate tree SHA1.
+  sha1="$(sha1sum <<<"$tree")" || die
+  sha1="${sha1%% *}"
+  if [ $debug -eq 1 ]
+  then
+    info "sha1: $sha1"
+  fi
+  echo "$sha1"
 }
 
 parse_opts args "$@"
