@@ -332,15 +332,24 @@ class DictionariesWidget(QWidget, Ui_DictionariesWidget):
     def on_selection_changed(self):
         if self._updating:
             return
-        enabled = bool(self.table.selectedItems())
+        selection = self._get_selection()
+        has_selection = bool(selection)
         for widget in (
             self.action_RemoveDictionaries,
+            self.action_MoveDictionariesUp,
+            self.action_MoveDictionariesDown,
+        ):
+            widget.setEnabled(has_selection)
+        has_live_selection = any(
+            self._config_dictionaries[row].path in self._loaded_dictionaries
+            for row in selection
+        )
+        for widget in (
             self.action_EditDictionaries,
             self.action_SaveDictionaries,
-            self.action_MoveDictionariesDown,
             self.menu_SaveDictionaries,
         ):
-            widget.setEnabled(enabled)
+            widget.setEnabled(has_live_selection)
 
     def on_dictionary_changed(self, item):
         if self._updating:
