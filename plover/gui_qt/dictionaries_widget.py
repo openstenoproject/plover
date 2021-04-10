@@ -22,6 +22,7 @@ from plover.config import DictionaryConfig
 from plover.dictionary.base import create_dictionary
 from plover.engine import ErroredDictionary
 from plover.misc import normalize_path
+from plover.oslayer.config import CONFIG_DIR
 from plover.registry import registry
 from plover import log
 
@@ -65,6 +66,9 @@ def _get_dictionary_save_name(parent_widget, title, default_name=None,
         default_name += '.' + next((e for e in default_extensions
                                     if e in writable_extensions),
                                    'json')
+        default_name = os.path.join(CONFIG_DIR, default_name)
+    else:
+        default_name = CONFIG_DIR
     new_filename = QFileDialog.getSaveFileName(
         parent=parent_widget, caption=title, directory=default_name,
         filter=_dictionary_filters(include_readonly=False),
