@@ -1,4 +1,5 @@
 from contextlib import contextmanager
+import functools
 import os
 
 from PyQt5.QtCore import (
@@ -93,6 +94,7 @@ class DictionariesWidget(QWidget, Ui_DictionariesWidget):
         for action in (
             self.action_Undo,
             self.action_EditDictionaries,
+            self.action_SaveDictionaries,
             self.action_RemoveDictionaries,
             self.action_MoveDictionariesUp,
             self.action_MoveDictionariesDown,
@@ -119,6 +121,16 @@ class DictionariesWidget(QWidget, Ui_DictionariesWidget):
         self.menu_AddDictionaries.addAction(_(
             _('New dictionary'),
         )).triggered.connect(self._create_new_dictionary)
+        # Save menu.
+        self.menu_SaveDictionaries = QMenu(self.action_SaveDictionaries.text())
+        self.menu_SaveDictionaries.setIcon(self.action_SaveDictionaries.icon())
+        self.menu_SaveDictionaries.addAction(_(
+            _('Create a copy of each dictionary'),
+        )).triggered.connect(self._save_dictionaries)
+        self.menu_SaveDictionaries.addAction(_(
+            _('Merge dictionaries into a new one'),
+        )).triggered.connect(functools.partial(self._save_dictionaries,
+                                               merge=True))
         self.table.supportedDropActions = self._supported_drop_actions
         self.table.dragEnterEvent = self._drag_enter_event
         self.table.dragMoveEvent = self._drag_move_event
@@ -317,13 +329,14 @@ class DictionariesWidget(QWidget, Ui_DictionariesWidget):
         if self._updating:
             return
         enabled = bool(self.table.selectedItems())
-        for action in (
+        for widget in (
             self.action_RemoveDictionaries,
             self.action_EditDictionaries,
-            self.action_MoveDictionariesUp,
+            self.action_SaveDictionaries,
             self.action_MoveDictionariesDown,
+            self.menu_SaveDictionaries,
         ):
-            action.setEnabled(enabled)
+            widget.setEnabled(enabled)
 
     def on_dictionary_changed(self, item):
         if self._updating:
@@ -354,6 +367,59 @@ class DictionariesWidget(QWidget, Ui_DictionariesWidget):
         selection = self._get_selection()
         assert selection
         self._edit([self._config_dictionaries[row] for row in selection])
+
+    def _copy_dictionaries(self, dictionaries_list):
+        need_reload = False
+        title_template = _('Save a copy of {name} as...')
+        default_name_template = _('{name} - Copy')
+        for dictionary in dictionaries_list:
+            title = title_template.format(name=dictionary.short_path)
+            name, ext = os.path.splitext(os.path.basename(dictionary.path))
+            default_name = default_name_template.format(name=name)
+            new_filename = _get_dictionary_save_name(self, title, default_name, [ext[1:]],
+                                                     initial_filename=dictionary.path)
+            if new_filename is None:
+                continue
+            with _new_dictionary(new_filename) as d:
+                d.update(self._loaded_dictionaries[dictionary.path])
+            need_reload = True
+        return need_reload
+
+    def _merge_dictionaries(self, dictionaries_list):
+        names, exts = zip(*(
+            os.path.splitext(os.path.basename(d.path))
+            for d in dictionaries_list))
+        default_name = ' + '.join(names)
+        default_exts = list(dict.fromkeys(e[1:] for e in exts))
+        title = _('Merge {names} as...').format(names=default_name)
+        new_filename = _get_dictionary_save_name(self, title, default_name, default_exts)
+        if new_filename is None:
+            return False
+        with _new_dictionary(new_filename) as d:
+            # Merge in reverse priority order, so higher
+            # priority entries overwrite lower ones.
+            for dictionary in reversed(dictionaries_list):
+                d.update(self._loaded_dictionaries[dictionary.path])
+        return True
+
+    def _save_dictionaries(self, merge=False):
+        selection = self._get_selection()
+        assert selection
+        dictionaries_list = [self._config_dictionaries[row]
+                             for row in selection]
+        # Ignore dictionaries that are not loaded.
+        dictionaries_list = [dictionary
+                             for dictionary in dictionaries_list
+                             if dictionary.path in self._loaded_dictionaries]
+        if not dictionaries_list:
+            return
+        if merge:
+            save_fn = self._merge_dictionaries
+        else:
+            save_fn = self._copy_dictionaries
+        if save_fn(dictionaries_list):
+            # This will trigger a reload of any modified dictionary.
+            self._engine.config = {}
 
     def on_remove_dictionaries(self):
         selection = self._get_selection()

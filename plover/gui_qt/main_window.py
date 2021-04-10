@@ -51,6 +51,7 @@ class MainWindow(QMainWindow, Ui_MainWindow, WindowState):
         edit_menu.addSeparator()
         edit_menu.addMenu(self.dictionaries.menu_AddDictionaries)
         edit_menu.addAction(self.dictionaries.action_EditDictionaries)
+        edit_menu.addMenu(self.dictionaries.menu_SaveDictionaries)
         edit_menu.addAction(self.dictionaries.action_RemoveDictionaries)
         edit_menu.addSeparator()
         edit_menu.addAction(self.dictionaries.action_MoveDictionariesUp)
