@@ -1,4 +1,4 @@
-
+from contextlib import contextmanager
 import os
 
 from PyQt5.QtCore import (
@@ -46,6 +46,34 @@ def _dictionary_filters(include_readonly=True):
         for ext in formats
     )
     return ';; '.join(filters)
+
+@contextmanager
+def _new_dictionary(filename):
+    try:
+        d = create_dictionary(filename, threaded_save=False)
+        yield d
+        d.save()
+    except Exception as e:
+        raise Exception('creating dictionary %s failed. %s' % (filename, e)) from e
+
+def _get_dictionary_save_name(parent_widget, title, default_name=None,
+                              default_extensions=(), initial_filename=None):
+    if default_name is not None:
+        # Default to a writable dictionary format.
+        writable_extensions = set(_dictionary_formats(include_readonly=False))
+        default_name += '.' + next((e for e in default_extensions
+                                    if e in writable_extensions),
+                                   'json')
+    new_filename = QFileDialog.getSaveFileName(
+        parent=parent_widget, caption=title, directory=default_name,
+        filter=_dictionary_filters(include_readonly=False),
+    )[0]
+    if not new_filename:
+        return None
+    new_filename = normalize_path(new_filename)
+    if new_filename == initial_filename:
+        return None
+    return new_filename
 
 
 class DictionariesWidget(QWidget, Ui_DictionariesWidget):
@@ -353,19 +381,11 @@ class DictionariesWidget(QWidget, Ui_DictionariesWidget):
         self._update_dictionaries(dictionaries, keep_selection=False)
 
     def _create_new_dictionary(self):
-        new_filename = QFileDialog.getSaveFileName(
-            self, _('New dictionary'), None,
-            _dictionary_filters(include_readonly=False),
-        )[0]
-        if not new_filename:
+        new_filename = _get_dictionary_save_name(self, _('New dictionary'))
+        if new_filename is None:
             return
-        new_filename = normalize_path(new_filename)
-        try:
-            d = create_dictionary(new_filename, threaded_save=False)
-            d.save()
-        except:
-            log.error('creating dictionary %s failed', new_filename, exc_info=True)
-            return
+        with _new_dictionary(new_filename) as d:
+            pass
         dictionaries = self._config_dictionaries[:]
         for d in dictionaries:
             if d.path == new_filename:
