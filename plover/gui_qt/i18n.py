@@ -5,6 +5,7 @@ import gettext
 
 import pkg_resources
 
+from plover.oslayer.config import CONFIG_DIR
 from plover import log
 
 
@@ -40,14 +41,23 @@ def get_language():
         lang = 'en'
     return lang
 
+def get_locale_dir(package, resource_dir):
+    for locale_dir in [
+        os.path.join(CONFIG_DIR, 'messages'),
+        pkg_resources.resource_filename(package, resource_dir),
+    ]:
+        if gettext.find(package, locale_dir):
+            break
+    return locale_dir
+
 def install_gettext():
     lang = get_language()
     log.info('setting language to: %s', lang)
     os.environ['LANGUAGE'] = lang
-    locale_dir = pkg_resources.resource_filename('plover', 'gui_qt/messages')
+    locale_dir = get_locale_dir('plover', 'gui_qt/messages')
     gettext.install('plover', locale_dir)
 
 def get_gettext(package='plover', resource_dir='gui_qt/messages'):
-    locale_dir = pkg_resources.resource_filename(package, resource_dir)
+    locale_dir = get_locale_dir(package, resource_dir)
     translation = gettext.translation(package, locale_dir, fallback=True)
     return translation.gettext
