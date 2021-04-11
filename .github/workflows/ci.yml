@@ -566,6 +566,17 @@ jobs:
           name: Wheel
           path: dist/*.whl
 
+      - name: Generate translations catalogs archive
+        if: needs.analyze.outputs.is_release
+        run: generate_translations_catalogs_archive
+
+      - name: Archive artifact (translations catalogs)
+        if: needs.analyze.outputs.is_release
+        uses: actions/upload-artifact@v2
+        with:
+          name: Translations Catalogs
+          path: dist/*-messages.zip
+
       # }}}
 
       - name: Update skip cache 1
