@@ -14,7 +14,7 @@ cmarkgfm==0.5.3
 colorama==0.4.4
 cryptography==3.4.7; "linux" in sys_platform
 dbus-python==1.2.16; "linux" in sys_platform
-dmgbuild==1.4.2; "darwin" in sys_platform
+dmgbuild==1.4.2+1.gd79dc1e; "darwin" in sys_platform
 docutils==0.16
 ds_store==1.3.0; "darwin" in sys_platform
 hidapi==0.10.0.post1
