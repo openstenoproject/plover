@@ -119,21 +119,21 @@ class DictionariesWidget(QWidget, Ui_DictionariesWidget):
         # Add menu.
         self.menu_AddDictionaries = QMenu(self.action_AddDictionaries.text())
         self.menu_AddDictionaries.setIcon(self.action_AddDictionaries.icon())
-        self.menu_AddDictionaries.addAction(_(
+        self.menu_AddDictionaries.addAction(
             _('Open dictionaries'),
-        )).triggered.connect(self._add_existing_dictionaries)
-        self.menu_AddDictionaries.addAction(_(
+        ).triggered.connect(self._add_existing_dictionaries)
+        self.menu_AddDictionaries.addAction(
             _('New dictionary'),
-        )).triggered.connect(self._create_new_dictionary)
+        ).triggered.connect(self._create_new_dictionary)
         # Save menu.
         self.menu_SaveDictionaries = QMenu(self.action_SaveDictionaries.text())
         self.menu_SaveDictionaries.setIcon(self.action_SaveDictionaries.icon())
-        self.menu_SaveDictionaries.addAction(_(
+        self.menu_SaveDictionaries.addAction(
             _('Create a copy of each dictionary'),
-        )).triggered.connect(self._save_dictionaries)
-        self.menu_SaveDictionaries.addAction(_(
+        ).triggered.connect(self._save_dictionaries)
+        self.menu_SaveDictionaries.addAction(
             _('Merge dictionaries into a new one'),
-        )).triggered.connect(functools.partial(self._save_dictionaries,
+        ).triggered.connect(functools.partial(self._save_dictionaries,
                                                merge=True))
         self.table.supportedDropActions = self._supported_drop_actions
         self.table.dragEnterEvent = self._drag_enter_event
