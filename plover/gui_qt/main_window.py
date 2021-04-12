@@ -51,10 +51,14 @@ class MainWindow(QMainWindow, Ui_MainWindow, WindowState):
         edit_menu.addSeparator()
         edit_menu.addMenu(self.dictionaries.menu_AddDictionaries)
         edit_menu.addAction(self.dictionaries.action_EditDictionaries)
+        edit_menu.addMenu(self.dictionaries.menu_SaveDictionaries)
         edit_menu.addAction(self.dictionaries.action_RemoveDictionaries)
         edit_menu.addSeparator()
         edit_menu.addAction(self.dictionaries.action_MoveDictionariesUp)
         edit_menu.addAction(self.dictionaries.action_MoveDictionariesDown)
+        self.dictionaries.setContextMenuPolicy(Qt.CustomContextMenu)
+        self.dictionaries.customContextMenuRequested.connect(
+            lambda p: edit_menu.exec_(self.dictionaries.mapToGlobal(p)))
         # Tray icon.
         self._trayicon = TrayIcon()
         self._trayicon.enable()

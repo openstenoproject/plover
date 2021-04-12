@@ -1,4 +1,5 @@
-
+from contextlib import contextmanager
+import functools
 import os
 
 from PyQt5.QtCore import (
@@ -21,6 +22,7 @@ from plover.config import DictionaryConfig
 from plover.dictionary.base import create_dictionary
 from plover.engine import ErroredDictionary
 from plover.misc import normalize_path
+from plover.oslayer.config import CONFIG_DIR
 from plover.registry import registry
 from plover import log
 
@@ -47,6 +49,15 @@ def _dictionary_filters(include_readonly=True):
     )
     return ';; '.join(filters)
 
+@contextmanager
+def _new_dictionary(filename):
+    try:
+        d = create_dictionary(filename, threaded_save=False)
+        yield d
+        d.save()
+    except Exception as e:
+        raise Exception('creating dictionary %s failed. %s' % (filename, e)) from e
+
 
 class DictionariesWidget(QWidget, Ui_DictionariesWidget):
 
@@ -62,9 +73,12 @@ class DictionariesWidget(QWidget, Ui_DictionariesWidget):
         self._config_dictionaries = {}
         self._loaded_dictionaries = {}
         self._reverse_order = False
+        # The save/open/new dialogs will open on that directory.
+        self._file_dialogs_directory = CONFIG_DIR
         for action in (
             self.action_Undo,
             self.action_EditDictionaries,
+            self.action_SaveDictionaries,
             self.action_RemoveDictionaries,
             self.action_MoveDictionariesUp,
             self.action_MoveDictionariesDown,
@@ -85,12 +99,22 @@ class DictionariesWidget(QWidget, Ui_DictionariesWidget):
         # Add menu.
         self.menu_AddDictionaries = QMenu(self.action_AddDictionaries.text())
         self.menu_AddDictionaries.setIcon(self.action_AddDictionaries.icon())
-        self.menu_AddDictionaries.addAction(_(
+        self.menu_AddDictionaries.addAction(
             _('Open dictionaries'),
-        )).triggered.connect(self._add_existing_dictionaries)
-        self.menu_AddDictionaries.addAction(_(
+        ).triggered.connect(self._add_existing_dictionaries)
+        self.menu_AddDictionaries.addAction(
             _('New dictionary'),
-        )).triggered.connect(self._create_new_dictionary)
+        ).triggered.connect(self._create_new_dictionary)
+        # Save menu.
+        self.menu_SaveDictionaries = QMenu(self.action_SaveDictionaries.text())
+        self.menu_SaveDictionaries.setIcon(self.action_SaveDictionaries.icon())
+        self.menu_SaveDictionaries.addAction(
+            _('Create a copy of each dictionary'),
+        ).triggered.connect(self._save_dictionaries)
+        self.menu_SaveDictionaries.addAction(
+            _('Merge dictionaries into a new one'),
+        ).triggered.connect(functools.partial(self._save_dictionaries,
+                                               merge=True))
         self.table.supportedDropActions = self._supported_drop_actions
         self.table.dragEnterEvent = self._drag_enter_event
         self.table.dragMoveEvent = self._drag_move_event
@@ -288,14 +312,24 @@ class DictionariesWidget(QWidget, Ui_DictionariesWidget):
     def on_selection_changed(self):
         if self._updating:
             return
-        enabled = bool(self.table.selectedItems())
-        for action in (
+        selection = self._get_selection()
+        has_selection = bool(selection)
+        for widget in (
             self.action_RemoveDictionaries,
-            self.action_EditDictionaries,
             self.action_MoveDictionariesUp,
             self.action_MoveDictionariesDown,
         ):
-            action.setEnabled(enabled)
+            widget.setEnabled(has_selection)
+        has_live_selection = any(
+            self._config_dictionaries[row].path in self._loaded_dictionaries
+            for row in selection
+        )
+        for widget in (
+            self.action_EditDictionaries,
+            self.action_SaveDictionaries,
+            self.menu_SaveDictionaries,
+        ):
+            widget.setEnabled(has_live_selection)
 
     def on_dictionary_changed(self, item):
         if self._updating:
@@ -327,6 +361,82 @@ class DictionariesWidget(QWidget, Ui_DictionariesWidget):
         assert selection
         self._edit([self._config_dictionaries[row] for row in selection])
 
+    def _get_dictionary_save_name(self, title, default_name=None,
+                                  default_extensions=(), initial_filename=None):
+        if default_name is not None:
+            # Default to a writable dictionary format.
+            writable_extensions = set(_dictionary_formats(include_readonly=False))
+            default_name += '.' + next((e for e in default_extensions
+                                        if e in writable_extensions),
+                                       'json')
+            default_name = os.path.join(self._file_dialogs_directory, default_name)
+        else:
+            default_name = self._file_dialogs_directory
+        new_filename = QFileDialog.getSaveFileName(
+            parent=self, caption=title, directory=default_name,
+            filter=_dictionary_filters(include_readonly=False),
+        )[0]
+        if not new_filename:
+            return None
+        new_filename = normalize_path(new_filename)
+        self._file_dialogs_directory = os.path.dirname(new_filename)
+        if new_filename == initial_filename:
+            return None
+        return new_filename
+
+    def _copy_dictionaries(self, dictionaries_list):
+        need_reload = False
+        title_template = _('Save a copy of {name} as...')
+        default_name_template = _('{name} - Copy')
+        for dictionary in dictionaries_list:
+            title = title_template.format(name=dictionary.short_path)
+            name, ext = os.path.splitext(os.path.basename(dictionary.path))
+            default_name = default_name_template.format(name=name)
+            new_filename = self._get_dictionary_save_name(title, default_name, [ext[1:]],
+                                                          initial_filename=dictionary.path)
+            if new_filename is None:
+                continue
+            with _new_dictionary(new_filename) as d:
+                d.update(self._loaded_dictionaries[dictionary.path])
+            need_reload = True
+        return need_reload
+
+    def _merge_dictionaries(self, dictionaries_list):
+        names, exts = zip(*(
+            os.path.splitext(os.path.basename(d.path))
+            for d in dictionaries_list))
+        default_name = ' + '.join(names)
+        default_exts = list(dict.fromkeys(e[1:] for e in exts))
+        title = _('Merge {names} as...').format(names=default_name)
+        new_filename = self._get_dictionary_save_name(title, default_name, default_exts)
+        if new_filename is None:
+            return False
+        with _new_dictionary(new_filename) as d:
+            # Merge in reverse priority order, so higher
+            # priority entries overwrite lower ones.
+            for dictionary in reversed(dictionaries_list):
+                d.update(self._loaded_dictionaries[dictionary.path])
+        return True
+
+    def _save_dictionaries(self, merge=False):
+        selection = self._get_selection()
+        assert selection
+        dictionaries_list = [self._config_dictionaries[row]
+                             for row in selection]
+        # Ignore dictionaries that are not loaded.
+        dictionaries_list = [dictionary
+                             for dictionary in dictionaries_list
+                             if dictionary.path in self._loaded_dictionaries]
+        if not dictionaries_list:
+            return
+        if merge:
+            save_fn = self._merge_dictionaries
+        else:
+            save_fn = self._copy_dictionaries
+        if save_fn(dictionaries_list):
+            # This will trigger a reload of any modified dictionary.
+            self._engine.config = {}
+
     def on_remove_dictionaries(self):
         selection = self._get_selection()
         assert selection
@@ -340,11 +450,14 @@ class DictionariesWidget(QWidget, Ui_DictionariesWidget):
 
     def _add_existing_dictionaries(self):
         new_filenames = QFileDialog.getOpenFileNames(
-            self, _('Add dictionaries'), None, _dictionary_filters(),
+            parent=self, caption=_('Add dictionaries'),
+            directory=self._file_dialogs_directory,
+            filter=_dictionary_filters(),
         )[0]
         dictionaries = self._config_dictionaries[:]
         for filename in new_filenames:
             filename = normalize_path(filename)
+            self._file_dialogs_directory = os.path.dirname(filename)
             for d in dictionaries:
                 if d.path == filename:
                     break
@@ -353,19 +466,11 @@ class DictionariesWidget(QWidget, Ui_DictionariesWidget):
         self._update_dictionaries(dictionaries, keep_selection=False)
 
     def _create_new_dictionary(self):
-        new_filename = QFileDialog.getSaveFileName(
-            self, _('New dictionary'), None,
-            _dictionary_filters(include_readonly=False),
-        )[0]
-        if not new_filename:
+        new_filename = self._get_dictionary_save_name(_('New dictionary'))
+        if new_filename is None:
             return
-        new_filename = normalize_path(new_filename)
-        try:
-            d = create_dictionary(new_filename, threaded_save=False)
-            d.save()
-        except:
-            log.error('creating dictionary %s failed', new_filename, exc_info=True)
-            return
+        with _new_dictionary(new_filename) as d:
+            pass
         dictionaries = self._config_dictionaries[:]
         for d in dictionaries:
             if d.path == new_filename:

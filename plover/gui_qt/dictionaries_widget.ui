@@ -87,6 +87,21 @@
     <string>Ctrl+E</string>
    </property>
   </action>
+  <action name="action_SaveDictionaries">
+   <property name="icon">
+    <iconset resource="resources/resources.qrc">
+     <normaloff>:/save.svg</normaloff>:/save.svg</iconset>
+   </property>
+   <property name="text">
+    <string>&amp;Save dictionaries as...</string>
+   </property>
+   <property name="toolTip">
+    <string>Save the selected dictionaries: create a new copy of each dictionary, or merge them into a new dictionary.</string>
+   </property>
+   <property name="shortcut">
+    <string>Ctrl+S</string>
+   </property>
+  </action>
   <action name="action_RemoveDictionaries">
    <property name="icon">
     <iconset resource="resources/resources.qrc">
