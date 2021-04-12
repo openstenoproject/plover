@@ -58,28 +58,6 @@ def _new_dictionary(filename):
     except Exception as e:
         raise Exception('creating dictionary %s failed. %s' % (filename, e)) from e
 
-def _get_dictionary_save_name(parent_widget, title, default_name=None,
-                              default_extensions=(), initial_filename=None):
-    if default_name is not None:
-        # Default to a writable dictionary format.
-        writable_extensions = set(_dictionary_formats(include_readonly=False))
-        default_name += '.' + next((e for e in default_extensions
-                                    if e in writable_extensions),
-                                   'json')
-        default_name = os.path.join(CONFIG_DIR, default_name)
-    else:
-        default_name = CONFIG_DIR
-    new_filename = QFileDialog.getSaveFileName(
-        parent=parent_widget, caption=title, directory=default_name,
-        filter=_dictionary_filters(include_readonly=False),
-    )[0]
-    if not new_filename:
-        return None
-    new_filename = normalize_path(new_filename)
-    if new_filename == initial_filename:
-        return None
-    return new_filename
-
 
 class DictionariesWidget(QWidget, Ui_DictionariesWidget):
 
@@ -95,6 +73,8 @@ class DictionariesWidget(QWidget, Ui_DictionariesWidget):
         self._config_dictionaries = {}
         self._loaded_dictionaries = {}
         self._reverse_order = False
+        # The save/open/new dialogs will open on that directory.
+        self._file_dialogs_directory = CONFIG_DIR
         for action in (
             self.action_Undo,
             self.action_EditDictionaries,
@@ -381,6 +361,29 @@ class DictionariesWidget(QWidget, Ui_DictionariesWidget):
         assert selection
         self._edit([self._config_dictionaries[row] for row in selection])
 
+    def _get_dictionary_save_name(self, title, default_name=None,
+                                  default_extensions=(), initial_filename=None):
+        if default_name is not None:
+            # Default to a writable dictionary format.
+            writable_extensions = set(_dictionary_formats(include_readonly=False))
+            default_name += '.' + next((e for e in default_extensions
+                                        if e in writable_extensions),
+                                       'json')
+            default_name = os.path.join(self._file_dialogs_directory, default_name)
+        else:
+            default_name = self._file_dialogs_directory
+        new_filename = QFileDialog.getSaveFileName(
+            parent=self, caption=title, directory=default_name,
+            filter=_dictionary_filters(include_readonly=False),
+        )[0]
+        if not new_filename:
+            return None
+        new_filename = normalize_path(new_filename)
+        self._file_dialogs_directory = os.path.dirname(new_filename)
+        if new_filename == initial_filename:
+            return None
+        return new_filename
+
     def _copy_dictionaries(self, dictionaries_list):
         need_reload = False
         title_template = _('Save a copy of {name} as...')
@@ -389,8 +392,8 @@ class DictionariesWidget(QWidget, Ui_DictionariesWidget):
             title = title_template.format(name=dictionary.short_path)
             name, ext = os.path.splitext(os.path.basename(dictionary.path))
             default_name = default_name_template.format(name=name)
-            new_filename = _get_dictionary_save_name(self, title, default_name, [ext[1:]],
-                                                     initial_filename=dictionary.path)
+            new_filename = self._get_dictionary_save_name(title, default_name, [ext[1:]],
+                                                          initial_filename=dictionary.path)
             if new_filename is None:
                 continue
             with _new_dictionary(new_filename) as d:
@@ -405,7 +408,7 @@ class DictionariesWidget(QWidget, Ui_DictionariesWidget):
         default_name = ' + '.join(names)
         default_exts = list(dict.fromkeys(e[1:] for e in exts))
         title = _('Merge {names} as...').format(names=default_name)
-        new_filename = _get_dictionary_save_name(self, title, default_name, default_exts)
+        new_filename = self._get_dictionary_save_name(title, default_name, default_exts)
         if new_filename is None:
             return False
         with _new_dictionary(new_filename) as d:
@@ -447,11 +450,14 @@ class DictionariesWidget(QWidget, Ui_DictionariesWidget):
 
     def _add_existing_dictionaries(self):
         new_filenames = QFileDialog.getOpenFileNames(
-            self, _('Add dictionaries'), None, _dictionary_filters(),
+            parent=self, caption=_('Add dictionaries'),
+            directory=self._file_dialogs_directory,
+            filter=_dictionary_filters(),
         )[0]
         dictionaries = self._config_dictionaries[:]
         for filename in new_filenames:
             filename = normalize_path(filename)
+            self._file_dialogs_directory = os.path.dirname(filename)
             for d in dictionaries:
                 if d.path == filename:
                     break
@@ -460,7 +466,7 @@ class DictionariesWidget(QWidget, Ui_DictionariesWidget):
         self._update_dictionaries(dictionaries, keep_selection=False)
 
     def _create_new_dictionary(self):
-        new_filename = _get_dictionary_save_name(self, _('New dictionary'))
+        new_filename = self._get_dictionary_save_name(_('New dictionary'))
         if new_filename is None:
             return
         with _new_dictionary(new_filename) as d:
