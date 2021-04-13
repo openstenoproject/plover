@@ -2,6 +2,7 @@ from copy import copy
 
 from PyQt5.QtCore import QVariant, pyqtSignal
 from PyQt5.QtWidgets import QWidget
+from PyQt5.QtGui import QStandardItemModel, QStandardItem
 
 from serial import Serial
 from serial.tools.list_ports import comports
@@ -13,7 +14,6 @@ from plover.gui_qt.i18n import get_gettext
 
 _ = get_gettext()
 
-
 class SerialOption(QWidget, Ui_SerialWidget):
 
     valueChanged = pyqtSignal(QVariant)
@@ -21,6 +21,10 @@ class SerialOption(QWidget, Ui_SerialWidget):
     def __init__(self):
         super().__init__()
         self.setupUi(self)
+
+        self.ports = QStandardItemModel()
+        self.port.setModel(self.ports)
+
         self._value = {}
 
     def setValue(self, value):
@@ -63,10 +67,13 @@ class SerialOption(QWidget, Ui_SerialWidget):
 
     def on_scan(self):
         self.port.clear()
-        self.port.addItems(sorted(f"{port.device} ({port.description})" for port in comports()))
+        for port in comports():
+            portItem = QStandardItem(str(port))
+            portItem.setData(port.device)
+            self.ports.appendRow(portItem)
 
     def on_port_changed(self, value):
-        port = value.split(" ")[0]
+        port = self.ports.item(self.port.currentIndex()).data()
         self.port.setCurrentText(port)
         self._update('port', port)
 
