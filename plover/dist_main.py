@@ -8,7 +8,7 @@ from plover.oslayer.config import CONFIG_DIR, PLUGINS_PLATFORM
 
 def main():
     args = sys.argv[:]
-    args[0:1] = [sys.executable, '-m', 'plover.main']
+    args[0:1] = [sys.executable, '-m', 'plover.main', '--gui', 'qt']
     if '--no-user-plugins' in args[3:]:
         args.remove('--no-user-plugins')
         args.insert(1, '-s')
