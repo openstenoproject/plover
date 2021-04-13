@@ -94,6 +94,35 @@ class Test(Command):
 
 # }}}
 
+# i18n support. {{{
+
+def babel_options(package, resource_dir=None):
+    if resource_dir is None:
+        localedir = '%s/gui_qt/messages' % package
+    else:
+        localedir = '%s/%s' % (package, resource_dir)
+    template = '%s/%s.pot' % (localedir, package)
+    return {
+        'compile_catalog': {
+            'domain': package,
+            'directory': localedir,
+        },
+        'extract_messages': {
+            'output_file': template,
+        },
+        'init_catalog': {
+            'domain': package,
+            'input_file': template,
+            'output_dir': localedir,
+        },
+        'update_catalog': {
+            'domain': package,
+            'output_dir': localedir,
+        }
+    }
+
+# }}}
+
 # UI generation. {{{
 
 class BuildUi(Command):
@@ -106,7 +135,6 @@ class BuildUi(Command):
 
     hooks = '''
     plover_build_utils.pyqt:fix_icons
-    plover_build_utils.pyqt:gettext
     plover_build_utils.pyqt:no_autoconnection
     '''.split()
 

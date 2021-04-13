@@ -24,7 +24,7 @@ from plover import (
 )
 
 from plover_build_utils.setup import (
-    BuildPy, BuildUi, Command, Test,
+    BuildPy, BuildUi, Command, Test, babel_options
 )
 
 
@@ -275,62 +275,12 @@ if sys.platform.startswith('linux'):
 
 # }}}
 
-# Translations support. {{{
+# i18n support. {{{
 
-try:
-    from babel.messages import frontend as babel
-except:
-    babel_available = False
-else:
-    babel_available = True
-
-if babel_available:
-
-    cmdclass.update({
-        'compile_catalog': babel.compile_catalog,
-        'extract_messages': babel.extract_messages,
-        'init_catalog': babel.init_catalog,
-        'update_catalog': babel.update_catalog
-    })
-    locale_dir = 'plover/gui_qt/messages'
-    template = '%s/%s.pot' % (locale_dir, __software_name__)
-    options['compile_catalog'] = {
-        'domain': __software_name__,
-        'directory': locale_dir,
-    }
-    options['extract_messages'] = {
-        'output_file': template,
-    }
-    options['init_catalog'] = {
-        'domain': __software_name__,
-        'input_file': template,
-        'output_dir': locale_dir,
-    }
-    options['update_catalog'] = {
-        'domain': __software_name__,
-        'output_dir': locale_dir,
-    }
-
-else:
-
-    class CompileCatalogs(Command):
-
-        description = 'compile message catalogs'
-        command_consumes_arguments = True
-        user_options = []
-
-        def initialize_options(self):
-            self.args = None
-
-        def finalize_options(self):
-            pass
-
-        def run(self):
-            raise DistutilsModuleError('babel is not available')
-
-    cmdclass.update({'compile_catalog': CompileCatalogs}),
+options.update(babel_options(__software_name__))
 
 BuildPy.build_dependencies.append('compile_catalog')
+BuildUi.hooks.append('plover_build_utils.pyqt:gettext')
 
 # }}}
 
