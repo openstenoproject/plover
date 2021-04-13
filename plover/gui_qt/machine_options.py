@@ -63,10 +63,12 @@ class SerialOption(QWidget, Ui_SerialWidget):
 
     def on_scan(self):
         self.port.clear()
-        self.port.addItems(sorted(x[0] for x in comports()))
+        self.port.addItems(sorted(f"{port.device} ({port.description})" for port in comports()))
 
     def on_port_changed(self, value):
-        self._update('port', value)
+        port = value.split(" ")[0]
+        self.port.setCurrentText(port)
+        self._update('port', port)
 
     def on_baudrate_changed(self, value):
         self._update('baudrate', int(value))
