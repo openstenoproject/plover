@@ -7,7 +7,12 @@ import pytest
 from plover import system
 from plover.config import Config, DictionaryConfig
 from plover.engine import ErroredDictionary, StenoEngine
-from plover.machine.base import StenotypeBase
+from plover.machine.base import (
+    STATE_INITIALIZING,
+    STATE_RUNNING,
+    STATE_STOPPED,
+    StenotypeBase,
+)
 from plover.machine.keymap import Keymap
 from plover.registry import Registry
 from plover.steno_dictionary import StenoDictionaryCollection
@@ -120,9 +125,9 @@ def test_engine(engine):
     engine.events.clear()
     engine.reset_machine()
     assert engine.events == [
-        ('machine_state_changed', ('Fake', 'stopped'), {}),
-        ('machine_state_changed', ('Fake', 'initializing'), {}),
-        ('machine_state_changed', ('Fake', 'connected'), {}),
+        ('machine_state_changed', ('Fake', STATE_STOPPED), {}),
+        ('machine_state_changed', ('Fake', STATE_INITIALIZING), {}),
+        ('machine_state_changed', ('Fake', STATE_RUNNING), {}),
     ]
     assert FakeMachine.instance is not None
     assert FakeMachine.instance.is_suppressed
@@ -149,7 +154,7 @@ def test_engine(engine):
     engine.quit(42)
     assert engine.join() == 42
     assert engine.events == [
-        ('machine_state_changed', ('Fake', 'stopped'), {}),
+        ('machine_state_changed', ('Fake', STATE_STOPPED), {}),
         ('quit', (), {}),
     ]
     assert FakeMachine.instance is None
