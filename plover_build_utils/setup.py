@@ -179,6 +179,12 @@ class BuildUi(Command):
 
     def run(self):
         self.run_command('egg_info')
+        std_hook_prefix = __package__ + '.pyqt:'
+        hooks_info = [
+            h[len(std_hook_prefix):] if h.startswith(std_hook_prefix) else h
+            for h in self.hooks
+        ]
+        log.info('generating ui (hooks: %s)', ', '.join(hooks_info))
         ei_cmd = self.get_finalized_command('egg_info')
         for src in ei_cmd.filelist.files:
             if src.endswith('.qrc'):
