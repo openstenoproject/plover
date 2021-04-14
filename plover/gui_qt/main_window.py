@@ -19,7 +19,7 @@ from plover.registry import registry
 from plover.resource import resource_filename
 
 from plover.gui_qt.log_qt import NotificationHandler
-from plover.gui_qt.main_window_ui import Ui_MainWindow
+from plover.gui_qt.main_window_ui import _, Ui_MainWindow
 from plover.gui_qt.config_window import ConfigWindow
 from plover.gui_qt.about_dialog import AboutDialog
 from plover.gui_qt.trayicon import TrayIcon

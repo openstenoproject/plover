@@ -98,7 +98,7 @@ class Test(Command):
 
 def babel_options(package, resource_dir=None):
     if resource_dir is None:
-        localedir = '%s/gui_qt/messages' % package
+        localedir = '%s/messages' % package
     else:
         localedir = '%s/%s' % (package, resource_dir)
     template = '%s/%s.pot' % (localedir, package)
@@ -108,7 +108,9 @@ def babel_options(package, resource_dir=None):
             'directory': localedir,
         },
         'extract_messages': {
+            'add_comments': ['i18n:'],
             'output_file': template,
+            'strip_comments': True,
         },
         'init_catalog': {
             'domain': package,

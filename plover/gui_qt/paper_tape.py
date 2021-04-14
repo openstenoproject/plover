@@ -13,13 +13,9 @@ from wcwidth import wcwidth
 
 from plover import system
 
-from plover.gui_qt.paper_tape_ui import Ui_PaperTape
-from plover.gui_qt.i18n import get_gettext
+from plover.gui_qt.paper_tape_ui import _, Ui_PaperTape
 from plover.gui_qt.utils import ToolBar
 from plover.gui_qt.tool import Tool
-
-
-_ = get_gettext()
 
 
 class PaperTape(Tool, Ui_PaperTape):

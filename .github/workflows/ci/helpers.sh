@@ -14,7 +14,7 @@ generate_translations_catalogs_archive()
   run "$python" setup.py extract_messages
   archive="$PWD/dist/$("$python" setup.py --name)-$("$python" setup.py --version)-messages.zip"
   run mkdir -p "${archive%/*}"
-  run_eval "(cd plover/gui_qt && zip -9 '$archive' messages/{*.pot,*/*/*.po})"
+  run_eval "(cd plover && zip -9 '$archive' messages/{*.pot,*/*/*.po})"
 }
 
 list_cache()

@@ -4,7 +4,7 @@ from PyQt5.QtCore import QObject, pyqtSignal
 from PyQt5.QtGui import QIcon
 from PyQt5.QtWidgets import QMessageBox, QSystemTrayIcon
 
-from plover import __name__ as __software_name__
+from plover import _, __name__ as __software_name__
 from plover import log
 
 

@@ -17,11 +17,11 @@ include osx/app_resources/*
 include osx/dmg_resources/*
 include plover/assets/*
 include plover/gui_qt/*.ui
-include plover/gui_qt/messages/*/LC_MESSAGES/*.po
-include plover/gui_qt/messages/plover.pot
 include plover/gui_qt/resources/*.png
 include plover/gui_qt/resources/*.qrc
 include plover/gui_qt/resources/*.svg
+include plover/messages/*/LC_MESSAGES/*.po
+include plover/messages/plover.pot
 include plover_build_utils/*.sh
 include pyproject.toml
 include reqs/*.txt

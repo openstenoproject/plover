@@ -6,12 +6,8 @@ from PyQt5.QtWidgets import QWidget
 from serial import Serial
 from serial.tools.list_ports import comports
 
-from plover.gui_qt.config_keyboard_widget_ui import Ui_KeyboardWidget
+from plover.gui_qt.config_keyboard_widget_ui import _, Ui_KeyboardWidget
 from plover.gui_qt.config_serial_widget_ui import Ui_SerialWidget
-from plover.gui_qt.i18n import get_gettext
-
-
-_ = get_gettext()
 
 
 class SerialOption(QWidget, Ui_SerialWidget):

@@ -13,10 +13,7 @@ from plover.translation import escape_translation, unescape_translation
 from plover.formatting import RetroFormatter
 from plover.resource import resource_filename
 
-from plover.gui_qt.add_translation_widget_ui import Ui_AddTranslationWidget
-from plover.gui_qt.i18n import get_gettext
-
-_ = get_gettext()
+from plover.gui_qt.add_translation_widget_ui import _, Ui_AddTranslationWidget
 
 
 class AddTranslationWidget(QWidget, Ui_AddTranslationWidget):

@@ -26,7 +26,7 @@ from plover.oslayer.config import CONFIG_DIR
 from plover.registry import registry
 from plover import log
 
-from plover.gui_qt.dictionaries_widget_ui import Ui_DictionariesWidget
+from plover.gui_qt.dictionaries_widget_ui import _, Ui_DictionariesWidget
 from plover.gui_qt.dictionary_editor import DictionaryEditor
 from plover.gui_qt.utils import ToolBar
 

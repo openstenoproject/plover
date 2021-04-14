@@ -3,6 +3,11 @@
 
 """Plover: Open Source Stenography Software"""
 
+from plover.i18n import Translator
+
+
+_ = Translator(__package__)
+
 __version__ = '4.0.0.dev8'
 __copyright__ = '(C) Open Steno Project'
 __url__ = 'http://www.openstenoproject.org/'

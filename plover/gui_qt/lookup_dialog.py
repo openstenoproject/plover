@@ -3,12 +3,8 @@ from PyQt5.QtCore import QEvent, Qt
 
 from plover.translation import unescape_translation
 
-from plover.gui_qt.lookup_dialog_ui import Ui_LookupDialog
-from plover.gui_qt.i18n import get_gettext
+from plover.gui_qt.lookup_dialog_ui import _, Ui_LookupDialog
 from plover.gui_qt.tool import Tool
-
-
-_ = get_gettext()
 
 
 class LookupDialog(Tool, Ui_LookupDialog):

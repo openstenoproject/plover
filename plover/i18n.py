@@ -6,18 +6,6 @@ import gettext
 import pkg_resources
 
 from plover.oslayer.config import CONFIG_DIR
-from plover import log
-
-
-# Mark some strings for localization.
-def _unused():
-    # Machines.
-    _('Keyboard')
-    # States.
-    _('stopped')
-    _('initializing')
-    _('connected')
-    _('disconnected')
 
 
 def get_language():
@@ -50,14 +38,31 @@ def get_locale_dir(package, resource_dir):
             break
     return locale_dir
 
-def install_gettext():
-    lang = get_language()
-    log.info('setting language to: %s', lang)
-    os.environ['LANGUAGE'] = lang
-    locale_dir = get_locale_dir('plover', 'gui_qt/messages')
-    gettext.install('plover', locale_dir)
 
-def get_gettext(package='plover', resource_dir='gui_qt/messages'):
-    locale_dir = get_locale_dir(package, resource_dir)
-    translation = gettext.translation(package, locale_dir, fallback=True)
-    return translation.gettext
+class Translator:
+
+    def __init__(self, package, resource_dir='messages', lang=None):
+        self.package = package
+        self.resource_dir = resource_dir
+        if lang is None:
+            lang = get_language()
+        self.lang = lang
+
+    @property
+    def lang(self):
+        return self._lang
+
+    @lang.setter
+    def lang(self, lang):
+        self._lang = lang
+        localedir = get_locale_dir(self.package, self.resource_dir)
+        self._translation = gettext.translation(self.package, localedir=localedir,
+                                                languages=[lang], fallback=True)
+        self.gettext = self._translation.gettext
+        self.ngettext = self._translation.ngettext
+
+    def __call__(self, message):
+        return self.gettext(message)
+
+    def _(self, message):
+        return message
