@@ -67,16 +67,18 @@ class SerialOption(QWidget, Ui_SerialWidget):
         self.valueChanged.emit(self._value)
 
     def on_scan(self):
-        self.port.clear()
+        self.ports.clear()
         for port in comports():
             portItem = QStandardItem(str(port))
             portItem.setData(port.device)
             self.ports.appendRow(portItem)
 
     def on_port_changed(self, value):
-        port = self.ports.item(self.port.currentIndex()).data()
-        self.port.setCurrentText(port)
-        self._update('port', port)
+        portItem = self.ports.item(self.port.currentIndex())
+        if portItem:
+            port = portItem.data()
+            self.port.setCurrentText(port)
+            self._update('port', port)
 
     def on_baudrate_changed(self, value):
         self._update('baudrate', int(value))
