@@ -14,6 +14,7 @@ from plover.gui_qt.i18n import get_gettext
 
 _ = get_gettext()
 
+
 class SerialOption(QWidget, Ui_SerialWidget):
 
     valueChanged = pyqtSignal(QVariant)
