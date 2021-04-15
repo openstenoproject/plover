@@ -1,3 +1,62 @@
+# Environment setup
+
+You need Python >= 3.6 installed, and you need [tox](https://pypi.org/project/tox/) >= 3.10.
+
+Using tox takes care of all the details of creating and managing an isolated
+virtual environment, installing the necessary dependencies, and isolating
+testsuite runs.
+
+The command for using tox is: `tox {-e envlist} {-- arguments}`. Use `tox -a
+-v` to get a list of available environments.
+
+The same virtual environment is reused by the following tox environments:
+- `tox -e test -- ARGS`: run the testsuite. This is the default environment
+  when not provided.
+- `tox -e launch -- ARGS`: run Plover from source.
+- `tox -e setup -- COMMAND`: run `./setup.py COMMAND`.
+- `tox -e packaging_checks`: run the same packaging checks as the CI (add `--
+  -n` to see a dry-run of the exact checks).
+- `tox -e plugins_install`: install the distribution plugins (or the specified
+  plugins when run with `tox -e plugins_install -- REQS`). Note that this does
+  not use the plugins manager for installing.
+- `tox -e release_prepare -- NEW_VERSION`: execute all the steps necessary for
+  preparing a new release: patch the version to `NEW_VERSION` and update
+  `NEWS.md`, staging all the changes for review.
+- `tox -e release_finalize`: finalize the release: commit the staged changes,
+  create an annotated tag, and print the git command necessary for pushing the
+  release to GitHub.
+
+The actual virtual environment lives in `.tox/dev`, and can be ["activated" like
+any other virtual environment](https://virtualenv.pypa.io/en/latest/user_guide.html#activators).
+
+The configuration also provides support for lightweight tests only environment:
+`pyX`, where `X` is the version of the Python interpreter to use.  E.g. running
+`tox -e 'py3{6,7,8,9}` will execute the testsuite for each version of Python we
+support.
+
+## Development helpers
+
+
+Once the `.tox/dev` virtual environment as been activated, you can use the
+following helpers:
+
+- `./launch.sh` or `launch.bat`: to run from source
+- `./test.sh` or `test.bat`: to run the tests
+
+
+# Creating a binary distribution
+
+A number of commands are provided by `setup.py` for creating binary
+distributions (which include all the necessary dependencies):
+
+- `bdist_appimage`: Linux only, create an [AppImage](https://appimage.org/).
+- `bdist_app`: macOS only, build an **application bundle**.
+- `bdist_dmg`: macOS only, create a **disk image**.
+- `bdist_win`: Windows only, create a portable version.
+
+Use `bdist_xxx --help` to get more information on each command supported options.
+
+
 # Making a pull request
 
 When making a pull request, please include a short summary of the changes
