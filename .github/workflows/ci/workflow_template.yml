@@ -161,25 +161,25 @@ jobs:
         run: packaging_checks
 
       - name: Archive artifact (sdist)
-        if: needs.analyze.outputs.is_release
+        if: needs.analyze.outputs.is_release == 'yes'
         uses: <@ action_upload_artifact @>
         with:
           name: Source
           path: dist/*.tar.gz
 
       - name: Archive artifact (wheel)
-        if: needs.analyze.outputs.is_release
+        if: needs.analyze.outputs.is_release == 'yes'
         uses: <@ action_upload_artifact @>
         with:
           name: Wheel
           path: dist/*.whl
 
       - name: Generate translations catalogs archive
-        if: needs.analyze.outputs.is_release
+        if: needs.analyze.outputs.is_release == 'yes'
         run: generate_translations_catalogs_archive
 
       - name: Archive artifact (translations catalogs)
-        if: needs.analyze.outputs.is_release
+        if: needs.analyze.outputs.is_release == 'yes'
         uses: <@ action_upload_artifact @>
         with:
           name: Translations Catalogs
