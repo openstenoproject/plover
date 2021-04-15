@@ -7,6 +7,7 @@ from PyQt5.QtCore import (
     QTimer,
     QTranslator,
     Qt,
+    pyqtRemoveInputHook,
 )
 from PyQt5.QtWidgets import QApplication, QMessageBox
 
@@ -17,6 +18,11 @@ from plover.oslayer.keyboardcontrol import KeyboardEmulation
 
 from plover.gui_qt.engine import Engine
 from plover.gui_qt.i18n import get_language, install_gettext
+
+
+# Disable pyqtRemoveInputHook to avoid getting
+# spammed when using the debugger.
+pyqtRemoveInputHook()
 
 
 class Application:
