@@ -3,10 +3,14 @@
 
 """Plover: Open Source Stenography Software"""
 
-from plover.i18n import Translator
-
-
-_ = Translator(__package__)
+if __name__ == 'plover':
+    from plover.i18n import Translator
+    _ = Translator(__package__)
+else:
+    # exec from `setup.py`, package data
+    # may not be available, and we don't
+    # want to translate anyway.
+    _ = lambda s: s
 
 __version__ = '4.0.0.dev8'
 __copyright__ = '(C) Open Steno Project'

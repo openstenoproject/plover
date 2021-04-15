@@ -13,15 +13,10 @@ from setuptools import setup
 
 sys.path.insert(0, os.path.dirname(__file__))
 
-from plover import (
-    __name__ as __software_name__,
-    __version__,
-    __description__,
-    __url__,
-    __download_url__,
-    __license__,
-    __copyright__,
-)
+__software_name__ = 'plover'
+
+with open(os.path.join(__software_name__, '__init__.py')) as fp:
+    exec(fp.read())
 
 from plover_build_utils.setup import (
     BuildPy, BuildUi, Command, Test, babel_options
