@@ -68,7 +68,7 @@ extract_appimage()
 run rm -rf "$builddir"
 run mkdir -p "$builddir" "$cachedir" "$distdir"
 
-version="$("$python" -c 'from plover import __version__; print(__version__)')"
+version="$("$python" -c 'exec(open("plover/__init__.py").read()); print(__version__)')"
 appimage="$distdir/plover-$version-x86_64.AppImage"
 
 if [ $use_docker -eq 1 ]
