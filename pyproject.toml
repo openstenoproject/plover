@@ -8,7 +8,8 @@ requires = [
 build-backend = "setuptools.build_meta"
 
 [tool.towncrier]
-package = "plover"
+name = ""
+version = ""
 filename = "NEWS.md"
 directory = "news.d"
 template = "news.d/template.md"
