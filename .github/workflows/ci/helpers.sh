@@ -132,7 +132,7 @@ publish_github_release()
       is_prerelease='yes'
       overwrite='yes'
       notes_body='news_draft.md'
-      run_eval "towncrier --draft --version '$RELEASE_VERSION' >$notes_body" || die
+      run_eval "'$python' -m towncrier --draft >$notes_body" || die
       ;;
     tagged)
       tag="${GITHUB_REF#refs/tags/}"
