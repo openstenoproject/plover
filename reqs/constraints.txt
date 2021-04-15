@@ -59,7 +59,7 @@ SecretStorage==3.3.1; "linux" in sys_platform
 setuptools==54.2.0
 six==1.15.0
 toml==0.10.2
-towncrier==21.3.0rc1
+towncrier==21.3.0
 tqdm==4.59.0
 twine==3.4.1
 urllib3==1.26.4
