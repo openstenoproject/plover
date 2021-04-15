@@ -39,11 +39,13 @@ def _dictionary_formats(include_readonly=True):
 def _dictionary_filters(include_readonly=True):
     formats = sorted(_dictionary_formats(include_readonly=include_readonly))
     filters = ['*.' + ext for ext in formats]
-    filters = [_('Dictionaries') + ' (%s)' % ' '.join(filters)]
+    # i18n: Widget: “DictionariesWidget”, file picker.
+    filters = [_('Dictionaries ({extensions})').format(extensions=' '.join(filters))]
     filters.extend(
-        (_('%s dictionaries') + ' (%s)') % (
-            ext.strip('.').upper(),
-            '*.' + ext,
+        # i18n: Widget: “DictionariesWidget”, file picker.
+        _('{format} dictionaries ({extensions})').format(
+            format=ext.strip('.').upper(),
+            extensions='*.' + ext,
         )
         for ext in formats
     )
@@ -100,18 +102,22 @@ class DictionariesWidget(QWidget, Ui_DictionariesWidget):
         self.menu_AddDictionaries = QMenu(self.action_AddDictionaries.text())
         self.menu_AddDictionaries.setIcon(self.action_AddDictionaries.icon())
         self.menu_AddDictionaries.addAction(
+            # i18n: Widget: “DictionariesWidget”, “add” menu.
             _('Open dictionaries'),
         ).triggered.connect(self._add_existing_dictionaries)
         self.menu_AddDictionaries.addAction(
+            # i18n: Widget: “DictionariesWidget”, “add” menu.
             _('New dictionary'),
         ).triggered.connect(self._create_new_dictionary)
         # Save menu.
         self.menu_SaveDictionaries = QMenu(self.action_SaveDictionaries.text())
         self.menu_SaveDictionaries.setIcon(self.action_SaveDictionaries.icon())
         self.menu_SaveDictionaries.addAction(
+            # i18n: Widget: “DictionariesWidget”, “save” menu.
             _('Create a copy of each dictionary'),
         ).triggered.connect(self._save_dictionaries)
         self.menu_SaveDictionaries.addAction(
+            # i18n: Widget: “DictionariesWidget”, “save” menu.
             _('Merge dictionaries into a new one'),
         ).triggered.connect(functools.partial(self._save_dictionaries,
                                                merge=True))
@@ -186,6 +192,7 @@ class DictionariesWidget(QWidget, Ui_DictionariesWidget):
             item = QTableWidgetItem(str(n + 1))
             if dictionary.path not in loaded_dictionaries:
                 icon = 'loading'
+                # i18n: Widget: “DictionariesWidget”, tooltip.
                 tooltip = _('This dictionary is being loaded.')
             else:
                 d = loaded_dictionaries.get(dictionary.path)
@@ -194,9 +201,11 @@ class DictionariesWidget(QWidget, Ui_DictionariesWidget):
                     tooltip = str(d.exception)
                 elif d.readonly:
                     icon = 'readonly'
+                    # i18n: Widget: “DictionariesWidget”, tooltip.
                     tooltip = _('This dictionary is read-only.')
                 elif not favorite_set and dictionary.enabled:
                     icon = 'favorite'
+                    # i18n: Widget: “DictionariesWidget”, tooltip.
                     tooltip = _('This dictionary is marked as a favorite.')
                     favorite_set = True
                 else:
@@ -386,7 +395,9 @@ class DictionariesWidget(QWidget, Ui_DictionariesWidget):
 
     def _copy_dictionaries(self, dictionaries_list):
         need_reload = False
+        # i18n: Widget: “DictionariesWidget”, “save as copy” file picker.
         title_template = _('Save a copy of {name} as...')
+        # i18n: Widget: “DictionariesWidget”, “save as copy” file picker.
         default_name_template = _('{name} - Copy')
         for dictionary in dictionaries_list:
             title = title_template.format(name=dictionary.short_path)
@@ -407,6 +418,7 @@ class DictionariesWidget(QWidget, Ui_DictionariesWidget):
             for d in dictionaries_list))
         default_name = ' + '.join(names)
         default_exts = list(dict.fromkeys(e[1:] for e in exts))
+        # i18n: Widget: “DictionariesWidget”, “save as merge” file picker.
         title = _('Merge {names} as...').format(names=default_name)
         new_filename = self._get_dictionary_save_name(title, default_name, default_exts)
         if new_filename is None:
@@ -450,6 +462,7 @@ class DictionariesWidget(QWidget, Ui_DictionariesWidget):
 
     def _add_existing_dictionaries(self):
         new_filenames = QFileDialog.getOpenFileNames(
+            # i18n: Widget: “DictionariesWidget”, “add” file picker.
             parent=self, caption=_('Add dictionaries'),
             directory=self._file_dialogs_directory,
             filter=_dictionary_filters(),
@@ -466,6 +479,7 @@ class DictionariesWidget(QWidget, Ui_DictionariesWidget):
         self._update_dictionaries(dictionaries, keep_selection=False)
 
     def _create_new_dictionary(self):
+        # i18n: Widget: “DictionariesWidget”, “new” file picker.
         new_filename = self._get_dictionary_save_name(_('New dictionary'))
         if new_filename is None:
             return

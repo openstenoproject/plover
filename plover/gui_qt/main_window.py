@@ -127,7 +127,7 @@ class MainWindow(QMainWindow, Ui_MainWindow, WindowState):
         engine.signal_connect('config_changed', self.on_config_changed)
         engine.signal_connect('machine_state_changed',
             lambda machine, state:
-            self.machine_state.setText(_(state.capitalize()))
+            self.machine_state.setText(state.capitalize())
         )
         self.restore_state()
         # Commands.

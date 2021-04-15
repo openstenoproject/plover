@@ -9,7 +9,8 @@ from plover.gui_qt.tool import Tool
 
 class LookupDialog(Tool, Ui_LookupDialog):
 
-    ''' Search the dictionary for translations. '''
+    # i18n: Widget: “LookupDialog”, tooltip.
+    __doc__ = _('Search the dictionary for translations.')
 
     TITLE = _('Lookup')
     ICON = ':/lookup.svg'

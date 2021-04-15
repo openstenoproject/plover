@@ -159,10 +159,13 @@ class DictionaryItemModel(QAbstractTableModel):
         if orientation != Qt.Horizontal or role != Qt.DisplayRole:
             return None
         if section == _COL_STENO:
+            # i18n: Widget: “DictionaryEditor”.
             return _('Strokes')
         if section == _COL_TRANS:
+            # i18n: Widget: “DictionaryEditor”.
             return _('Translation')
         if section == _COL_DICT:
+            # i18n: Widget: “DictionaryEditor”.
             return _('Dictionary')
 
     def data(self, index, role):

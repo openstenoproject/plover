@@ -4,7 +4,8 @@ from plover.gui_qt.tool import Tool
 
 class AddTranslationDialog(Tool, Ui_AddTranslationDialog):
 
-    ''' Add a new translation to the dictionary. '''
+    # i18n: Widget: “AddTranslationDialog”, tooltip.
+    __doc__ = _('Add a new translation to the dictionary.')
 
     TITLE = _('Add Translation')
     ICON = ':/translation_add.svg'
