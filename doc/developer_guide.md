@@ -34,15 +34,6 @@ The configuration also provides support for lightweight tests only environment:
 `tox -e 'py3{6,7,8,9}` will execute the testsuite for each version of Python we
 support.
 
-## Development helpers
-
-
-Once the `.tox/dev` virtual environment as been activated, you can use the
-following helpers:
-
-- `./launch.sh` or `launch.bat`: to run from source
-- `./test.sh` or `test.bat`: to run the tests
-
 
 # Creating a binary distribution
 
