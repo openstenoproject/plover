@@ -2,21 +2,12 @@
 
 ## Environment setup
 
-You need Python 3.6 installed with pip support.
+To be able to setup a complete development environment, you'll need to manually
+install some system libraries (including the development version of your
+distribution corresponding packages):
+- [`hidapi` package](https://pypi.org/project/hidapi/) (Treal support) needs
+  `libusb` (1.0) and `libudev`.
+- [`dbus-python` package](https://pypi.org/project/dbus-python/) (log /
+  notifications support) needs `libdbus`.
 
-Some of the dependencies cannot be installed with pip:
-
-* system libraries are needed to build `python-hidapi` and `dbus-python`
-
-For the other dependencies, you can use:
-
-`pip3 install --user -r requirements.txt`
-
-To install the standard plugins, you can use:
-
-`pip3 install --user -e . -r requirements_plugins.txt`
-
-## Development helpers
-
-* `./launch.sh`: run from source
-* `./test.sh`: run tests
+For the rest of the steps, follow the [developer guide](../doc/developer_guide.md).

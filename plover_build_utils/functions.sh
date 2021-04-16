@@ -250,5 +250,29 @@ git_tree_sha1()
   echo "$sha1"
 }
 
+release_prepare()
+{
+  [ $# -eq 1 ] || die 1 'expecting one argument: the new version'
+  version="$("$python" setup.py --version)"
+  run "$python" setup.py patch_version "$1"
+  run git add plover/__init__.py
+  run towncrier --version="$version" --yes
+}
+
+release_finalize()
+{
+  [ $# -eq 0 ] || die 1 'expecting no argument'
+  version="$("$python" setup.py --version)"
+  message="release $version"
+  tag="v$version"
+  run git commit -m "$message"
+  run git tag -m "$message" "$tag"
+  cat <<EOF
+# now all that's left is to push to GitHub,
+# assuming \`origin\` is the correct remote:
+git push origin HEAD "$tag"
+EOF
+}
+
 parse_opts args "$@"
 set -- "${args[@]}"
