@@ -11,7 +11,7 @@
   !python
   *
 :usr/lib/python${pyversion}
-  config-${pyversion}m*/libpython${pyversion}m.a
+  config-*/libpython*.a
   ctypes/test
   distutils/command/*.exe
   distutils/tests
