@@ -8,11 +8,12 @@ requires = [
 build-backend = "setuptools.build_meta"
 
 [tool.towncrier]
-package = "plover"
+name = ""
+version = ""
 filename = "NEWS.md"
 directory = "news.d"
 template = "news.d/template.md"
-title_format = "# v{version} ({project_date})"
+title_format = "# v{version} ({project_date})\n\n"
 underlines = ["", ""]
 
 [[tool.towncrier.section]]

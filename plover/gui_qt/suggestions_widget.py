@@ -7,7 +7,7 @@ from PyQt5.QtWidgets import QWidget
 
 from plover.translation import escape_translation
 
-from plover.gui_qt.suggestions_widget_ui import Ui_SuggestionsWidget
+from plover.gui_qt.suggestions_widget_ui import _, Ui_SuggestionsWidget
 
 
 class SuggestionsWidget(QWidget, Ui_SuggestionsWidget):
@@ -38,6 +38,7 @@ class SuggestionsWidget(QWidget, Ui_SuggestionsWidget):
             cursor.block().setUserState(self.STYLE_TRANSLATION)
             cursor.insertText(escape_translation(suggestion.text) + ':')
             if not suggestion.steno_list:
+                # i18n: Widget: “SuggestionsWidget”.
                 cursor.insertText(' ' + _('no suggestions'))
                 continue
             for strokes_list in suggestion.steno_list[:10]:

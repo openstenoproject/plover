@@ -22,8 +22,8 @@
 :Lib/site-packages/plover
   gui_qt/*.ui
   gui_qt/*.ui
-  gui_qt/messages/**/*.po
-  gui_qt/messages/plover.pot
   gui_qt/resources
+  messages/**/*.po
+  messages/plover.pot
 
 # vim: ft=config

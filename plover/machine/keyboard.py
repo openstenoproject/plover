@@ -4,9 +4,14 @@
 
 "For use with a computer keyboard (preferably NKRO) as a steno machine."
 
+from plover import _
 from plover.machine.base import StenotypeBase
 from plover.misc import boolean
 from plover.oslayer.keyboardcontrol import KeyboardCapture
+
+
+# i18n: Machine name.
+_._('Keyboard')
 
 
 class Keyboard(StenotypeBase):

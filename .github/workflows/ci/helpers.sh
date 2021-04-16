@@ -8,6 +8,15 @@ apt_get_install()
   run sudo apt-get install -qqy "$@"
 }
 
+generate_translations_catalogs_archive()
+{
+  # Make sure the main catalog is up-to-date first.
+  run "$python" setup.py extract_messages
+  archive="$PWD/dist/$("$python" setup.py --name)-$("$python" setup.py --version)-messages.zip"
+  run mkdir -p "${archive%/*}"
+  run_eval "(cd plover && zip -9 '$archive' messages/{*.pot,*/*/*.po})"
+}
+
 list_cache()
 {
   "$python" -m plover_build_utils.tree -L 2 .cache
@@ -123,7 +132,7 @@ publish_github_release()
       is_prerelease='yes'
       overwrite='yes'
       notes_body='news_draft.md'
-      run_eval "towncrier --draft --version '$RELEASE_VERSION' >$notes_body" || die
+      run_eval "'$python' -m towncrier --draft >$notes_body" || die
       ;;
     tagged)
       tag="${GITHUB_REF#refs/tags/}"
@@ -147,17 +156,19 @@ EOF
   do
     case "$a" in
       # plover-4.0.0.dev8+380.gdf570a7-macosx_10_13_x86_64.dmg
+      # plover-4.0.0.dev8+380.gdf570a7-messages.zip
       # plover-4.0.0.dev8+380.gdf570a7-py3-none-any.whl
       # plover-4.0.0.dev8+380.gdf570a7-win64.setup.exe
       # plover-4.0.0.dev8+380.gdf570a7-win64.zip
       # plover-4.0.0.dev8+380.gdf570a7-x86_64.AppImage
       # plover-4.0.0.dev8+380.gdf570a7.tar.gz
-      *.AppImage) name='Linux: AppImage' ;;
-      *.dmg)      name='macOS: Disk Image' ;;
-      *.exe)      name='Windows: Installer' ;;
-      *.zip)      name='Windows: Portable ZIP' ;;
-      *.tar.gz)   name='Python: Source Distribution' ;;
-      *.whl)      name='Python: Wheel' ;;
+      *-messages.zip) name='Translations Catalogs' ;;
+      *.AppImage)     name='Linux: AppImage' ;;
+      *.dmg)          name='macOS: Disk Image' ;;
+      *.exe)          name='Windows: Installer' ;;
+      *.zip)          name='Windows: Portable ZIP' ;;
+      *.tar.gz)       name='Python: Source Distribution' ;;
+      *.whl)          name='Python: Wheel' ;;
       *) name='' ;;
     esac
     assets+=("$a${name:+# }$name")

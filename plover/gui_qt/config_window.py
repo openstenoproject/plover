@@ -29,7 +29,7 @@ from plover.config import MINIMUM_UNDO_LEVELS
 from plover.misc import expand_path, shorten_path
 from plover.registry import registry
 
-from plover.gui_qt.config_window_ui import Ui_ConfigWindow
+from plover.gui_qt.config_window_ui import _, Ui_ConfigWindow
 from plover.gui_qt.config_file_widget_ui import Ui_FileWidget
 from plover.gui_qt.utils import WindowState
 
@@ -40,6 +40,8 @@ class NopeOption(QLabel):
 
     def __init__(self):
         super().__init__()
+        # i18n: Widget: “NopeOption” (empty config option message,
+        # e.g. the machine option when selecting the Treal machine).
         self.setText(_('Nothing to see here!'))
 
     def setValue(self, value):
@@ -138,7 +140,12 @@ class KeymapOption(QTableWidget):
         self._value = []
         self._updating = False
         self.setColumnCount(2)
-        self.setHorizontalHeaderLabels((_('Key'), _('Action')))
+        self.setHorizontalHeaderLabels((
+            # i18n: Widget: “KeymapOption”.
+            _('Key'),
+            # i18n: Widget: “KeymapOption”.
+            _('Action'),
+        ))
         self.horizontalHeader().setStretchLastSection(True)
         self.verticalHeader().hide()
         self.setVerticalScrollBarPolicy(Qt.ScrollBarAlwaysOff)
@@ -184,8 +191,18 @@ class MultipleChoicesOption(QTableWidget):
 
     valueChanged = pyqtSignal(QVariant)
 
-    def __init__(self, choices=None, labels=(_('Choice'), _('Selected'))):
+    LABELS = (
+        # i18n: Widget: “MultipleChoicesOption”.
+        _('Choice'),
+        # i18n: Widget: “MultipleChoicesOption”.
+        _('Selected'),
+    )
+
+    # i18n: Widget: “MultipleChoicesOption”.
+    def __init__(self, choices=None, labels=None):
         super().__init__()
+        if labels is None:
+            labels = self.LABELS
         self._value = {}
         self._updating = False
         self._choices = {} if choices is None else choices
@@ -273,6 +290,7 @@ class ConfigWindow(QDialog, Ui_ConfigWindow, WindowState):
             for plugin in registry.list_plugins('machine')
         }
         mappings = (
+            # i18n: Widget: “ConfigWindow”.
             (_('Interface'), (
                 ConfigOption(_('Start minimized:'), 'start_minimized', BooleanOption,
                              _('Minimize the main window to systray on startup.')),
@@ -292,17 +310,19 @@ class ConfigWindow(QDialog, Ui_ConfigWindow, WindowState):
                                '- top-down: match the search order; highest priority first\n'
                                '- bottom-up: reverse search order; lowest priority first\n')),
             )),
+            # i18n: Widget: “ConfigWindow”.
             (_('Logging'), (
                 ConfigOption(_('Log file:'), 'log_file_name',
                              partial(FileOption,
                                      _('Select a log file'),
-                                     _('Log files') + ' (*.log)'),
+                                     _('Log files (*.log)')),
                              _('File to use for logging strokes/translations.')),
                 ConfigOption(_('Log strokes:'), 'enable_stroke_logging', BooleanOption,
                              _('Save strokes to the logfile.')),
                 ConfigOption(_('Log translations:'), 'enable_translation_logging', BooleanOption,
                              _('Save translations to the logfile.')),
             )),
+            # i18n: Widget: “ConfigWindow”.
             (_('Machine'), (
                 ConfigOption(_('Machine:'), 'machine_type', partial(ChoiceOption, choices=machines),
                              dependents=(
@@ -312,6 +332,7 @@ class ConfigWindow(QDialog, Ui_ConfigWindow, WindowState):
                 ConfigOption(_('Options:'), 'machine_specific_options', self._machine_option),
                 ConfigOption(_('Keymap:'), 'system_keymap', KeymapOption),
             )),
+            # i18n: Widget: “ConfigWindow”.
             (_('Output'), (
                 ConfigOption(_('Enable at start:'), 'auto_start', BooleanOption,
                              _('Enable output on startup.')),
@@ -336,6 +357,7 @@ class ConfigWindow(QDialog, Ui_ConfigWindow, WindowState):
                                'Note: the effective value will take into account the\n'
                                'dictionaries entry with the maximum number of strokes.')),
             )),
+            # i18n: Widget: “ConfigWindow”.
             (_('Plugins'), (
                 ConfigOption(_('Extension:'), 'enabled_extensions',
                              partial(MultipleChoicesOption, choices={
@@ -344,6 +366,7 @@ class ConfigWindow(QDialog, Ui_ConfigWindow, WindowState):
                              }, labels=(_('Name'), _('Enabled'))),
                              _('Configure enabled plugin extensions.')),
             )),
+            # i18n: Widget: “ConfigWindow”.
             (_('System'), (
                 ConfigOption(_('System:'), 'system_name',
                              partial(ChoiceOption, choices={

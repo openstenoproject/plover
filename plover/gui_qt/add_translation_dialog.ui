@@ -17,7 +17,7 @@
    </sizepolicy>
   </property>
   <property name="windowTitle">
-   <string>Plover: Add Translation</string>
+   <string notr="true"/>
   </property>
   <property name="sizeGripEnabled">
    <bool>true</bool>

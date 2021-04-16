@@ -19,7 +19,7 @@ from plover.registry import registry
 from plover.resource import resource_filename
 
 from plover.gui_qt.log_qt import NotificationHandler
-from plover.gui_qt.main_window_ui import Ui_MainWindow
+from plover.gui_qt.main_window_ui import _, Ui_MainWindow
 from plover.gui_qt.config_window import ConfigWindow
 from plover.gui_qt.about_dialog import AboutDialog
 from plover.gui_qt.trayicon import TrayIcon
@@ -127,7 +127,7 @@ class MainWindow(QMainWindow, Ui_MainWindow, WindowState):
         engine.signal_connect('config_changed', self.on_config_changed)
         engine.signal_connect('machine_state_changed',
             lambda machine, state:
-            self.machine_state.setText(_(state.capitalize()))
+            self.machine_state.setText(state.capitalize())
         )
         self.restore_state()
         # Commands.

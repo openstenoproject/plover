@@ -18,7 +18,7 @@ from plover.translation import escape_translation, unescape_translation
 from plover.misc import expand_path, shorten_path
 from plover.steno import normalize_steno
 
-from plover.gui_qt.dictionary_editor_ui import Ui_DictionaryEditor
+from plover.gui_qt.dictionary_editor_ui import _, Ui_DictionaryEditor
 from plover.gui_qt.utils import ToolBar, WindowState
 
 
@@ -159,10 +159,13 @@ class DictionaryItemModel(QAbstractTableModel):
         if orientation != Qt.Horizontal or role != Qt.DisplayRole:
             return None
         if section == _COL_STENO:
+            # i18n: Widget: “DictionaryEditor”.
             return _('Strokes')
         if section == _COL_TRANS:
+            # i18n: Widget: “DictionaryEditor”.
             return _('Translation')
         if section == _COL_DICT:
+            # i18n: Widget: “DictionaryEditor”.
             return _('Dictionary')
 
     def data(self, index, role):

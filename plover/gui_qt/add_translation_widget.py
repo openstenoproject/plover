@@ -13,15 +13,13 @@ from plover.translation import escape_translation, unescape_translation
 from plover.formatting import RetroFormatter
 from plover.resource import resource_filename
 
-from plover.gui_qt.add_translation_widget_ui import Ui_AddTranslationWidget
-from plover.gui_qt.i18n import get_gettext
-
-_ = get_gettext()
+from plover.gui_qt.add_translation_widget_ui import _, Ui_AddTranslationWidget
 
 
 class AddTranslationWidget(QWidget, Ui_AddTranslationWidget):
 
-    ''' Add a new translation to the dictionary. '''
+    # i18n: Widget: “AddTranslationWidget”, tooltip.
+    __doc__ = _('Add a new translation to the dictionary.')
 
     EngineState = namedtuple('EngineState', 'dictionary_filter translator starting_stroke')
 
@@ -197,7 +195,8 @@ class AddTranslationWidget(QWidget, Ui_AddTranslationWidget):
         for d in iterable:
             item = shorten_path(d.path)
             if not d.enabled:
-                item += ' [' + _('disabled') + ']'
+                # i18n: Widget: “AddTranslationWidget”.
+                item = _('{dictionary} (disabled)').format(dictionary=item)
             self.dictionary.addItem(item)
         selected_index = 0
         if self._selected_dictionary is None:
@@ -255,6 +254,7 @@ class AddTranslationWidget(QWidget, Ui_AddTranslationWidget):
         if strokes:
             translations = self._engine.raw_lookup_from_all(strokes)
             if translations:
+                # i18n: Widget: “AddTranslationWidget”.
                 info = self._format_label(_('{strokes} maps to '), (strokes,))
                 entries = [
                     self._format_label(
@@ -265,10 +265,12 @@ class AddTranslationWidget(QWidget, Ui_AddTranslationWidget):
                     ) for i, (translation, dictionary) in enumerate(translations)
                 ]
                 if (len(entries) > 1):
-                    entries.insert(1, _('<br />Overwritten entries:'))
+                    # i18n: Widget: “AddTranslationWidget”.
+                    entries.insert(1, '<br />' + _('Overwritten entries:'))
                 info += '<br />'.join(entries)
             else:
                 info = self._format_label(
+                    # i18n: Widget: “AddTranslationWidget”.
                     _('{strokes} is not mapped in any dictionary'),
                     (strokes, )
                 )
@@ -284,8 +286,10 @@ class AddTranslationWidget(QWidget, Ui_AddTranslationWidget):
         if translation:
             strokes = self._engine.reverse_lookup(translation)
             if strokes:
+                # i18n: Widget: “AddTranslationWidget”.
                 fmt = _('{translation} is mapped to: {strokes}')
             else:
+                # i18n: Widget: “AddTranslationWidget”.
                 fmt = _('{translation} is not in the dictionary')
             info = self._format_label(fmt, strokes, translation)
         else:

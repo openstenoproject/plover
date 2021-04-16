@@ -11,15 +11,19 @@ import threading
 
 import serial
 
-from plover import log
+from plover import _, log
 from plover.machine.keymap import Keymap
 from plover.misc import boolean
 
 
-STATE_STOPPED = 'stopped'
-STATE_INITIALIZING = 'initializing'
-STATE_RUNNING = 'connected'
-STATE_ERROR = 'disconnected'
+# i18n: Machine state.
+STATE_STOPPED = _('stopped')
+# i18n: Machine state.
+STATE_INITIALIZING = _('initializing')
+# i18n: Machine state.
+STATE_RUNNING = _('connected')
+# i18n: Machine state.
+STATE_ERROR = _('disconnected')
 
 
 class StenotypeBase:

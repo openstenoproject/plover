@@ -13,13 +13,9 @@ from wcwidth import wcwidth
 
 from plover import system
 
-from plover.gui_qt.paper_tape_ui import Ui_PaperTape
-from plover.gui_qt.i18n import get_gettext
+from plover.gui_qt.paper_tape_ui import _, Ui_PaperTape
 from plover.gui_qt.utils import ToolBar
 from plover.gui_qt.tool import Tool
-
-
-_ = get_gettext()
 
 
 class PaperTape(Tool, Ui_PaperTape):
@@ -31,7 +27,12 @@ class PaperTape(Tool, Ui_PaperTape):
     ROLE = 'paper_tape'
     SHORTCUT = 'Ctrl+T'
 
-    STYLE_PAPER, STYLE_RAW = (_('Paper'), _('Raw'))
+    STYLE_PAPER, STYLE_RAW = (
+        # i18n: Paper tape style.
+        _('Paper'),
+        # i18n: Paper tape style.
+        _('Raw'),
+    )
     STYLES = (STYLE_PAPER, STYLE_RAW)
 
     def __init__(self, engine):
@@ -154,7 +155,7 @@ class PaperTape(Tool, Ui_PaperTape):
     def on_clear(self):
         flags = self.windowFlags()
         msgbox = QMessageBox()
-        msgbox.setText(_("Do you want to clear the paper tape?"))
+        msgbox.setText(_('Do you want to clear the paper tape?'))
         msgbox.setStandardButtons(QMessageBox.Yes | QMessageBox.No)
         # Make sure the message box ends up above the paper tape!
         msgbox.setWindowFlags(msgbox.windowFlags() | (flags & Qt.WindowStaysOnTopHint))
@@ -169,7 +170,8 @@ class PaperTape(Tool, Ui_PaperTape):
         filename_suggestion = 'steno-notes-%s.txt' % time.strftime('%Y-%m-%d-%H-%M')
         filename = QFileDialog.getSaveFileName(
             self, _('Save Paper Tape'), filename_suggestion,
-            _('Text files') + ' (*.txt)',
+            # i18n: Paper tape, "save" file picker.
+            _('Text files (*.txt)'),
         )[0]
         if not filename:
             return
