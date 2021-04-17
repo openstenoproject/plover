@@ -260,7 +260,7 @@ msgstr "Open het venster met suggesties bij het opstarten."
 
 #: plover/gui_qt/config_window.py:301
 msgid "Add translation dialog opacity:"
-msgstr "Doorzichtigheid van vertaling-toevoegen-venster:"
+msgstr "Doorzichtigheid van het vertalingsvenster:"
 
 #: plover/gui_qt/config_window.py:303
 msgid ""
@@ -1018,4 +1018,3 @@ msgstr "verbinding verbroken"
 #: plover/machine/keyboard.py:14
 msgid "Keyboard"
 msgstr "Toetsenbord"
-
