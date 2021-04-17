@@ -2,191 +2,262 @@ msgid ""
 msgstr ""
 "Project-Id-Version: Plover\n"
 "Report-Msgid-Bugs-To: EMAIL@ADDRESS\n"
-"POT-Creation-Date: 2021-04-02 13:26+0200\n"
-"PO-Revision-Date: 2021-04-02 17:10+0200\n"
+"POT-Creation-Date: 2021-04-16 18:46+0200\n"
+"PO-Revision-Date: 2021-04-17 06:45+0200\n"
 "Last-Translator: Noelia Ruiz Martínez <nrm1977@gmail.com>\n"
-"Language: es\n"
 "Language-Team: Noelia Ruiz Martínez <nrm1977@gmail.com>\n"
-"Plural-Forms: nplurals=2; plural=(n != 1);\n"
+"Language: es\n"
 "MIME-Version: 1.0\n"
 "Content-Type: text/plain; charset=utf-8\n"
 "Content-Transfer-Encoding: 8bit\n"
+"Plural-Forms: nplurals=2; plural=(n != 1);\n"
 "Generated-By: Babel 2.9.0\n"
 "X-Generator: Poedit 1.8.7\n"
 
-#: plover/gui_qt/about_dialog_ui.py:36
+#: plover/__init__.py:19
+msgid ""
+"Founded by stenographer Mirabai Knight.\n"
+"\n"
+"Developers:\n"
+"\n"
+"Joshua Lifton\n"
+"Hesky Fisher\n"
+"Ted Morin\n"
+"Benoit Pierre\n"
+"\n"
+"and many more on GitHub:\n"
+"<https://github.com/openstenoproject/plover>"
+msgstr ""
+"Fundado por Mirabai Knight, estenotipista.\n"
+"\n"
+"Desarrolladores:\n"
+"\n"
+"Joshua Lifton\n"
+"Hesky Fisher\n"
+"Ted Morin\n"
+"Benoit Pierre\n"
+"\n"
+"Y muchos más en GitHub:\n"
+"<https://github.com/openstenoproject/plover>"
+
+#. Short description for Plover, currently not used in the interface.
+#: plover/__init__.py:33
+msgid "Open Source Stenography Software"
+msgstr "Software de estenotipia de código abierto"
+
+#: plover/__init__.py:34
+msgid ""
+"Plover is a free open source program intended to bring realtime\n"
+"stenographic technology not just to stenographers, but also to\n"
+"hackers, hobbyists, accessibility mavens, and all-around speed demons."
+msgstr ""
+"Plover es un programa libre de código abierto que tiene el objetivo de "
+"llevar la tecnología de estenotipia en tiempo real,\n"
+"no solo a estenotipistas, sino también\n"
+"a hackers, personas aficionadas, expertas en accesibilidad y genios de la "
+"velocidad por todas partes."
+
+#. Widget: “AboutDialog”, windowtitle.
+#: plover/gui_qt/about_dialog_ui.py:38
 msgid "Plover: About"
 msgstr "Plover: Acerca de"
 
-#: plover/gui_qt/add_translation_dialog.py:13
+#. Widget: “AddTranslationDialog”, tooltip.
+#. Widget: “AddTranslationWidget”, tooltip.
+#: plover/gui_qt/add_translation_dialog.py:8
+#: plover/gui_qt/add_translation_widget.py:22
+msgid "Add a new translation to the dictionary."
+msgstr "Añadir una nueva traducción al diccionario."
+
+#: plover/gui_qt/add_translation_dialog.py:10
 msgid "Add Translation"
 msgstr "Añadir traducción"
 
-#: plover/gui_qt/add_translation_dialog_ui.py:40
-msgid "Plover: Add Translation"
-msgstr "Plover: Añadir traducción"
+#. Widget: “AddTranslationWidget”.
+#: plover/gui_qt/add_translation_widget.py:199
+msgid "{dictionary} (disabled)"
+msgstr "{dictionary} (desactivado)"
 
-#: plover/gui_qt/add_translation_widget.py:200
-msgid "disabled"
-msgstr "deshabilitado"
-
+#. Widget: “AddTranslationWidget”.
 #: plover/gui_qt/add_translation_widget.py:258
 msgid "{strokes} maps to "
 msgstr "{strokes} se asigna a "
 
-#: plover/gui_qt/add_translation_widget.py:268
-msgid "<br />Overwritten entries:"
-msgstr "<br /> Entradas sobrescritas:"
+#. Widget: “AddTranslationWidget”.
+#: plover/gui_qt/add_translation_widget.py:269
+msgid "Overwritten entries:"
+msgstr "Entradas sobrescritas:"
 
-#: plover/gui_qt/add_translation_widget.py:272
+#. Widget: “AddTranslationWidget”.
+#: plover/gui_qt/add_translation_widget.py:274
 msgid "{strokes} is not mapped in any dictionary"
 msgstr "{strokes} no está asignada en ningún diccionario"
 
-#: plover/gui_qt/add_translation_widget.py:287
+#. Widget: “AddTranslationWidget”.
+#: plover/gui_qt/add_translation_widget.py:290
 msgid "{translation} is mapped to: {strokes}"
 msgstr "\"{translation}\" está asignada a {strokes}"
 
-#: plover/gui_qt/add_translation_widget.py:289
+#. Widget: “AddTranslationWidget”.
+#: plover/gui_qt/add_translation_widget.py:293
 msgid "{translation} is not in the dictionary"
 msgstr "{translation} no está en el diccionario"
 
-#: plover/gui_qt/add_translation_widget_ui.py:99
+#. Widget: “AddTranslationWidget”, text.
+#: plover/gui_qt/add_translation_widget_ui.py:101
 msgid "Strokes:"
 msgstr "Acordes:"
 
-#: plover/gui_qt/add_translation_widget_ui.py:100
+#. Widget: “AddTranslationWidget”, text.
+#: plover/gui_qt/add_translation_widget_ui.py:103
 msgid "Translation:"
 msgstr "Traducción:"
 
-#: plover/gui_qt/add_translation_widget_ui.py:101
+#. Widget: “AddTranslationWidget”, text.
+#: plover/gui_qt/add_translation_widget_ui.py:105
 msgid "Dictionary:"
 msgstr "Diccionario:"
 
-#: plover/gui_qt/config_file_widget_ui.py:42
-#: plover/gui_qt/config_keyboard_widget_ui.py:33
-#: plover/gui_qt/config_serial_widget_ui.py:206
-#: plover/gui_qt/dictionaries_widget_ui.py:93
-#: plover/gui_qt/suggestions_widget_ui.py:31
-msgid "Form"
-msgstr "Formulario"
-
-#: plover/gui_qt/config_file_widget_ui.py:43
+#. Widget: “FileWidget”, text.
+#: plover/gui_qt/config_file_widget_ui.py:45
 msgid "Browse"
 msgstr "Examinar"
 
-#: plover/gui_qt/config_keyboard_widget_ui.py:34
+#. Widget: “KeyboardWidget”, text.
+#: plover/gui_qt/config_keyboard_widget_ui.py:36
 msgid "Arpeggiate"
 msgstr "Arpegiar"
 
-#: plover/gui_qt/config_serial_widget_ui.py:207
+#. Widget: “SerialWidget”, title.
+#: plover/gui_qt/config_serial_widget_ui.py:209
 msgid "Connection"
 msgstr "Conexión"
 
-#: plover/gui_qt/config_serial_widget_ui.py:208
+#. Widget: “SerialWidget”, text.
+#: plover/gui_qt/config_serial_widget_ui.py:211
 msgid "Port"
 msgstr "Puerto"
 
-#: plover/gui_qt/config_serial_widget_ui.py:209
+#. Widget: “SerialWidget”, text.
+#: plover/gui_qt/config_serial_widget_ui.py:213
 msgid "Scan"
 msgstr "Escanear"
 
-#: plover/gui_qt/config_serial_widget_ui.py:210
+#. Widget: “SerialWidget”, text.
+#: plover/gui_qt/config_serial_widget_ui.py:215
 msgid "Baudrate"
 msgstr "Baudios"
 
-#: plover/gui_qt/config_serial_widget_ui.py:211
+#. Widget: “SerialWidget”, title.
+#: plover/gui_qt/config_serial_widget_ui.py:217
 msgid "Data format"
 msgstr "Formato de datos"
 
-#: plover/gui_qt/config_serial_widget_ui.py:212
+#. Widget: “SerialWidget”, text.
+#: plover/gui_qt/config_serial_widget_ui.py:219
 msgid "Data bits"
 msgstr "Bits de datos"
 
-#: plover/gui_qt/config_serial_widget_ui.py:213
+#. Widget: “SerialWidget”, text.
+#: plover/gui_qt/config_serial_widget_ui.py:221
 msgid "Stop bits"
 msgstr "Bits de parada"
 
-#: plover/gui_qt/config_serial_widget_ui.py:214
+#. Widget: “SerialWidget”, text.
+#: plover/gui_qt/config_serial_widget_ui.py:223
 msgid "Parity"
 msgstr "Paridad"
 
-#: plover/gui_qt/config_serial_widget_ui.py:215
+#. Widget: “SerialWidget”, title.
+#: plover/gui_qt/config_serial_widget_ui.py:225
 msgid "Timeout"
 msgstr "Tiempo de espera"
 
-#: plover/gui_qt/config_serial_widget_ui.py:216
+#. Widget: “SerialWidget”, text.
+#: plover/gui_qt/config_serial_widget_ui.py:227
 msgid "seconds"
 msgstr "segundos"
 
-#: plover/gui_qt/config_serial_widget_ui.py:217
+#. Widget: “SerialWidget”, text.
+#: plover/gui_qt/config_serial_widget_ui.py:229
 msgid "Use timeout"
 msgstr "Usar tiempo de espera"
 
-#: plover/gui_qt/config_serial_widget_ui.py:218
+#. Widget: “SerialWidget”, title.
+#: plover/gui_qt/config_serial_widget_ui.py:231
 msgid "Flow control"
 msgstr "Control de flujo"
 
-#: plover/gui_qt/config_serial_widget_ui.py:219
+#. Widget: “SerialWidget”, text.
+#: plover/gui_qt/config_serial_widget_ui.py:233
 msgid "Xon/Xoff"
 msgstr "Xon/Xoff"
 
-#: plover/gui_qt/config_serial_widget_ui.py:220
+#. Widget: “SerialWidget”, text.
+#: plover/gui_qt/config_serial_widget_ui.py:235
 msgid "RTS/CTS"
 msgstr "RTS/CTS"
 
-#: plover/gui_qt/config_window.py:43
+#. Widget: “NopeOption” (empty config option message,
+#. e.g. the machine option when selecting the Treal machine).
+#: plover/gui_qt/config_window.py:45
 msgid "Nothing to see here!"
 msgstr "¡Aquí no hay nada para ver!"
 
-#: plover/gui_qt/config_window.py:141
+#. Widget: “KeymapOption”.
+#: plover/gui_qt/config_window.py:145
 msgid "Key"
 msgstr "Tecla"
 
-#: plover/gui_qt/config_window.py:141
+#. Widget: “KeymapOption”.
+#: plover/gui_qt/config_window.py:147
 msgid "Action"
 msgstr "Acción"
 
-#: plover/gui_qt/config_window.py:187
+#. Widget: “MultipleChoicesOption”.
+#: plover/gui_qt/config_window.py:196
 msgid "Choice"
 msgstr "Opción"
 
-#: plover/gui_qt/config_window.py:187
+#. Widget: “MultipleChoicesOption”.
+#: plover/gui_qt/config_window.py:198
 msgid "Selected"
 msgstr "Seleccionado"
 
-#: plover/gui_qt/config_window.py:273
+#. Widget: “ConfigWindow”.
+#: plover/gui_qt/config_window.py:294
 msgid "Interface"
 msgstr "Interfaz"
 
-#: plover/gui_qt/config_window.py:274
+#: plover/gui_qt/config_window.py:295
 msgid "Start minimized:"
 msgstr "Iniciar minimizado:"
 
-#: plover/gui_qt/config_window.py:275
+#: plover/gui_qt/config_window.py:296
 msgid "Minimize the main window to systray on startup."
 msgstr "Minimizar la ventana principal a la bandeja del sistema al arrancar."
 
-#: plover/gui_qt/config_window.py:276
+#: plover/gui_qt/config_window.py:297
 msgid "Show paper tape:"
 msgstr "Mostrar tira de papel:"
 
-#: plover/gui_qt/config_window.py:277
+#: plover/gui_qt/config_window.py:298
 msgid "Open the paper tape on startup."
 msgstr "Abrir la tira de papel al arrancar."
 
-#: plover/gui_qt/config_window.py:278
+#: plover/gui_qt/config_window.py:299
 msgid "Show suggestions:"
 msgstr "Mostrar sugerencias:"
 
-#: plover/gui_qt/config_window.py:279
+#: plover/gui_qt/config_window.py:300
 msgid "Open the suggestions dialog on startup."
 msgstr "Abrir el diálogo de sugerencias al arrancar."
 
-#: plover/gui_qt/config_window.py:280
+#: plover/gui_qt/config_window.py:301
 msgid "Add translation dialog opacity:"
 msgstr "Añadir opacidad para el diálogo de traducción:"
 
-#: plover/gui_qt/config_window.py:282
+#: plover/gui_qt/config_window.py:303
 msgid ""
 "Set the translation dialog opacity:\n"
 "- 0 makes the dialog invisible\n"
@@ -196,19 +267,19 @@ msgstr ""
 "- 0 hace invisible el diálogo\n"
 "- 100 es totalmente opaco"
 
-#: plover/gui_qt/config_window.py:285
+#: plover/gui_qt/config_window.py:306
 msgid "Dictionaries display order:"
 msgstr "Orden para visualización de diccionarios:"
 
-#: plover/gui_qt/config_window.py:287
+#: plover/gui_qt/config_window.py:308
 msgid "top-down"
 msgstr "De arriba abajo"
 
-#: plover/gui_qt/config_window.py:287
+#: plover/gui_qt/config_window.py:308
 msgid "bottom-up"
 msgstr "De abajo arriba"
 
-#: plover/gui_qt/config_window.py:288
+#: plover/gui_qt/config_window.py:309
 msgid ""
 "Set the display order for dictionaries:\n"
 "- top-down: match the search order; highest priority first\n"
@@ -220,75 +291,80 @@ msgstr ""
 "- de abajo arriba: invertir el orden de búsqueda; primero el de menor "
 "prioridad\n"
 
-#: plover/gui_qt/config_window.py:292
+#. Widget: “ConfigWindow”.
+#: plover/gui_qt/config_window.py:314
 msgid "Logging"
 msgstr "Registro"
 
-#: plover/gui_qt/config_window.py:293
+#: plover/gui_qt/config_window.py:315
 msgid "Log file:"
 msgstr "Fichero de registro:"
 
-#: plover/gui_qt/config_window.py:295
+#: plover/gui_qt/config_window.py:317
 msgid "Select a log file"
 msgstr "Seleccionar un fichero de registro"
 
-#: plover/gui_qt/config_window.py:296
-msgid "Log files"
-msgstr "Ficheros de registro"
+#: plover/gui_qt/config_window.py:318
+msgid "Log files (*.log)"
+msgstr "Ficheros de registro (*.log)"
 
-#: plover/gui_qt/config_window.py:297
+#: plover/gui_qt/config_window.py:319
 msgid "File to use for logging strokes/translations."
 msgstr "Fichero para usar en el registro de acordes/traducciones."
 
-#: plover/gui_qt/config_window.py:298
+#: plover/gui_qt/config_window.py:320
 msgid "Log strokes:"
 msgstr "Registrar acordes:"
 
-#: plover/gui_qt/config_window.py:299
+#: plover/gui_qt/config_window.py:321
 msgid "Save strokes to the logfile."
 msgstr "Guardar acordes en el fichero de registro."
 
-#: plover/gui_qt/config_window.py:300
+#: plover/gui_qt/config_window.py:322
 msgid "Log translations:"
 msgstr "Registrar traducciones:"
 
-#: plover/gui_qt/config_window.py:301
+#: plover/gui_qt/config_window.py:323
 msgid "Save translations to the logfile."
 msgstr "Guardar traducciones en el fichero de registro."
 
-#: plover/gui_qt/config_window.py:303 plover/gui_qt/main_window_ui.py:168
+#. Widget: “ConfigWindow”.
+#. Widget: “MainWindow”, title.
+#: plover/gui_qt/config_window.py:326 plover/gui_qt/main_window_ui.py:170
 msgid "Machine"
 msgstr "Máquina"
 
-#: plover/gui_qt/config_window.py:304
+#: plover/gui_qt/config_window.py:327
 msgid "Machine:"
 msgstr "Máquina:"
 
-#: plover/gui_qt/config_window.py:309
+#: plover/gui_qt/config_window.py:332
 msgid "Options:"
 msgstr "Opciones:"
 
-#: plover/gui_qt/config_window.py:310
+#: plover/gui_qt/config_window.py:333
 msgid "Keymap:"
 msgstr "Asignaciones de teclas:"
 
-#: plover/gui_qt/config_window.py:312 plover/gui_qt/main_window_ui.py:170
+#. Widget: “ConfigWindow”.
+#. Widget: “MainWindow”, title.
+#: plover/gui_qt/config_window.py:336 plover/gui_qt/main_window_ui.py:174
 msgid "Output"
 msgstr "Salida"
 
-#: plover/gui_qt/config_window.py:313
+#: plover/gui_qt/config_window.py:337
 msgid "Enable at start:"
 msgstr "Activar al inicio:"
 
-#: plover/gui_qt/config_window.py:314
+#: plover/gui_qt/config_window.py:338
 msgid "Enable output on startup."
 msgstr "Activar la salida al arrancar."
 
-#: plover/gui_qt/config_window.py:315
+#: plover/gui_qt/config_window.py:339
 msgid "Start attached:"
 msgstr "Suprimir espacio inicial:"
 
-#: plover/gui_qt/config_window.py:316
+#: plover/gui_qt/config_window.py:340
 msgid ""
 "Disable preceding space on first output.\n"
 "\n"
@@ -298,37 +374,37 @@ msgstr ""
 "\n"
 "Esta opción solo es aplicable cuando los espacios se colocan antes."
 
-#: plover/gui_qt/config_window.py:319
+#: plover/gui_qt/config_window.py:343
 msgid "Start capitalized:"
 msgstr "Inicio en mayúscula:"
 
-#: plover/gui_qt/config_window.py:320
+#: plover/gui_qt/config_window.py:344
 msgid "Capitalize the first word."
 msgstr "Poner en mayúscula la primera palabra."
 
-#: plover/gui_qt/config_window.py:321
+#: plover/gui_qt/config_window.py:345
 msgid "Space placement:"
 msgstr "Ubicación de espacio:"
 
-#: plover/gui_qt/config_window.py:323
+#: plover/gui_qt/config_window.py:347
 msgid "Before Output"
 msgstr "Antes de la salida"
 
-#: plover/gui_qt/config_window.py:324
+#: plover/gui_qt/config_window.py:348
 msgid "After Output"
 msgstr "Después de la salida"
 
-#: plover/gui_qt/config_window.py:326
+#: plover/gui_qt/config_window.py:350
 msgid "Set automatic space placement: before or after each word."
 msgstr ""
 "Establecer la ubicación automática del espacio: antes o después de cada "
 "palabra."
 
-#: plover/gui_qt/config_window.py:327
+#: plover/gui_qt/config_window.py:351
 msgid "Undo levels:"
 msgstr "Niveles para deshacer:"
 
-#: plover/gui_qt/config_window.py:331
+#: plover/gui_qt/config_window.py:355
 msgid ""
 "Set how many preceding strokes can be undone.\n"
 "\n"
@@ -340,232 +416,317 @@ msgstr ""
 "Nota: el valor efectivo tendrá en cuenta \n"
 "la entrada de diccionarios con el máximo número de acordes."
 
-#: plover/gui_qt/config_window.py:336
+#. Widget: “ConfigWindow”.
+#: plover/gui_qt/config_window.py:361
 msgid "Plugins"
 msgstr "Complementos"
 
-#: plover/gui_qt/config_window.py:337
+#: plover/gui_qt/config_window.py:362
 msgid "Extension:"
 msgstr "Extensión:"
 
-#: plover/gui_qt/config_window.py:341
+#: plover/gui_qt/config_window.py:366
 msgid "Name"
 msgstr "Nombre"
 
-#: plover/gui_qt/config_window.py:341 plover/gui_qt/main_window_ui.py:171
+#. Widget: “MainWindow”, text.
+#: plover/gui_qt/config_window.py:366 plover/gui_qt/main_window_ui.py:176
 msgid "Enabled"
 msgstr "Habilitado"
 
-#: plover/gui_qt/config_window.py:342
+#: plover/gui_qt/config_window.py:367
 msgid "Configure enabled plugin extensions."
 msgstr "Configurar extensiones de complementos habilitadas."
 
-#: plover/gui_qt/config_window.py:344
+#. Widget: “ConfigWindow”.
+#: plover/gui_qt/config_window.py:370
 msgid "System"
 msgstr "Sistema"
 
-#: plover/gui_qt/config_window.py:345
+#: plover/gui_qt/config_window.py:371
 msgid "System:"
 msgstr "Sistema:"
 
-#: plover/gui_qt/config_window_ui.py:40
+#. Widget: “ConfigWindow”, windowtitle.
+#: plover/gui_qt/config_window_ui.py:43
 msgid "Plover: Configuration"
 msgstr "Plover: Configuración"
 
-#: plover/gui_qt/dictionaries_widget.py:40
-#: plover/gui_qt/dictionaries_widget_ui.py:95
-msgid "Dictionaries"
-msgstr "Diccionarios"
+#. Widget: “DictionariesWidget”, file picker.
+#: plover/gui_qt/dictionaries_widget.py:43
+msgid "Dictionaries ({extensions})"
+msgstr "Diccionarios ({extensions})"
 
-#: plover/gui_qt/dictionaries_widget.py:42
-#, python-format
-msgid "%s dictionaries"
-msgstr "%s diccionarios"
+#. Widget: “DictionariesWidget”, file picker.
+#: plover/gui_qt/dictionaries_widget.py:46
+msgid "{format} dictionaries ({extensions})"
+msgstr "Diccionarios {format} ({extensions})"
 
-#: plover/gui_qt/dictionaries_widget.py:89
+#. Widget: “DictionariesWidget”, “add” menu.
+#: plover/gui_qt/dictionaries_widget.py:106
 msgid "Open dictionaries"
 msgstr "Abrir diccionarios"
 
-#: plover/gui_qt/dictionaries_widget.py:92
-#: plover/gui_qt/dictionaries_widget.py:357
+#. Widget: “DictionariesWidget”, “add” menu.
+#. Widget: “DictionariesWidget”, “new” file picker.
+#: plover/gui_qt/dictionaries_widget.py:110
+#: plover/gui_qt/dictionaries_widget.py:483
 msgid "New dictionary"
 msgstr "Nuevo diccionario"
 
-#: plover/gui_qt/dictionaries_widget.py:165
+#. Widget: “DictionariesWidget”, “save” menu.
+#: plover/gui_qt/dictionaries_widget.py:117
+msgid "Create a copy of each dictionary"
+msgstr "Crear una copia de cada diccionario"
+
+#. Widget: “DictionariesWidget”, “save” menu.
+#: plover/gui_qt/dictionaries_widget.py:121
+msgid "Merge dictionaries into a new one"
+msgstr "Fusionar diccionarios en uno nuevo"
+
+#. Widget: “DictionariesWidget”, tooltip.
+#: plover/gui_qt/dictionaries_widget.py:196
 msgid "This dictionary is being loaded."
 msgstr "Este diccionario se está cargando."
 
-#: plover/gui_qt/dictionaries_widget.py:173
+#. Widget: “DictionariesWidget”, tooltip.
+#: plover/gui_qt/dictionaries_widget.py:205
 msgid "This dictionary is read-only."
 msgstr "Este diccionario es de solo lectura."
 
-#: plover/gui_qt/dictionaries_widget.py:176
+#. Widget: “DictionariesWidget”, tooltip.
+#: plover/gui_qt/dictionaries_widget.py:209
 msgid "This dictionary is marked as a favorite."
 msgstr "Este diccionario está marcado como favorito."
 
-#: plover/gui_qt/dictionaries_widget.py:343
-#: plover/gui_qt/dictionaries_widget_ui.py:106
+#. Widget: “DictionariesWidget”, “save as copy” file picker.
+#: plover/gui_qt/dictionaries_widget.py:399
+msgid "Save a copy of {name} as..."
+msgstr "Guardar una copia de {name} como..."
+
+#. Widget: “DictionariesWidget”, “save as copy” file picker.
+#: plover/gui_qt/dictionaries_widget.py:401
+msgid "{name} - Copy"
+msgstr "{name} - Copiar"
+
+#. Widget: “DictionariesWidget”, “save as merge” file picker.
+#: plover/gui_qt/dictionaries_widget.py:422
+msgid "Merge {names} as..."
+msgstr "Fusionar {names} como..."
+
+#. Widget: “DictionariesWidget”, “add” file picker.
+#. Widget: “DictionariesWidget”, tooltip.
+#: plover/gui_qt/dictionaries_widget.py:466
+#: plover/gui_qt/dictionaries_widget_ui.py:130
 msgid "Add dictionaries"
 msgstr "Añadir diccionarios"
 
-#: plover/gui_qt/dictionaries_widget_ui.py:96
+#. Widget: “DictionariesWidget”, text.
+#: plover/gui_qt/dictionaries_widget_ui.py:102
+msgid "Dictionaries"
+msgstr "Diccionarios"
+
+#. Widget: “DictionariesWidget”, text.
+#: plover/gui_qt/dictionaries_widget_ui.py:104
 msgid "&Edit dictionaries"
 msgstr "&Editar diccionarios"
 
-#: plover/gui_qt/dictionaries_widget_ui.py:97
+#. Widget: “DictionariesWidget”, tooltip.
+#: plover/gui_qt/dictionaries_widget_ui.py:106
 msgid "Edit selected dictionaries"
 msgstr "Editar diccionarios seleccionados"
 
-#: plover/gui_qt/dictionaries_widget_ui.py:98
+#. Widget: “DictionariesWidget”, shortcut.
+#: plover/gui_qt/dictionaries_widget_ui.py:108
 msgid "Ctrl+E"
 msgstr "Ctrl+E"
 
-#: plover/gui_qt/dictionaries_widget_ui.py:99
+#. Widget: “DictionariesWidget”, text.
+#: plover/gui_qt/dictionaries_widget_ui.py:110
+msgid "&Save dictionaries as..."
+msgstr "&Guardar diccionarios como..."
+
+#. Widget: “DictionariesWidget”, tooltip.
+#: plover/gui_qt/dictionaries_widget_ui.py:112
+msgid ""
+"Save the selected dictionaries: create a new copy of each dictionary, or "
+"merge them into a new dictionary."
+msgstr ""
+"Guardar los diccionarios seleccionados: crear una nueva copia de cada "
+"diccionario o fusionarlos en uno nuevo."
+
+#. Widget: “DictionariesWidget”, shortcut.
+#. Widget: “PaperTape”, shortcut.
+#: plover/gui_qt/dictionaries_widget_ui.py:114
+#: plover/gui_qt/paper_tape_ui.py:99
+msgid "Ctrl+S"
+msgstr "Ctrl+S"
+
+#. Widget: “DictionariesWidget”, text.
+#: plover/gui_qt/dictionaries_widget_ui.py:116
 msgid "&Remove dictionaries"
 msgstr "Elimina&r diccionarios"
 
-#: plover/gui_qt/dictionaries_widget_ui.py:100
+#. Widget: “DictionariesWidget”, tooltip.
+#: plover/gui_qt/dictionaries_widget_ui.py:118
 msgid "Remove selected dictionaries"
 msgstr "Eliminar diccionarios seleccionados"
 
-#: plover/gui_qt/dictionaries_widget_ui.py:101
-#: plover/gui_qt/dictionary_editor_ui.py:106
+#. Widget: “DictionariesWidget”, shortcut.
+#. Widget: “DictionaryEditor”, shortcut.
+#: plover/gui_qt/dictionaries_widget_ui.py:120
+#: plover/gui_qt/dictionary_editor_ui.py:116
 msgid "Del"
 msgstr "Suprimir"
 
-#: plover/gui_qt/dictionaries_widget_ui.py:102
-#: plover/gui_qt/dictionary_editor_ui.py:107
+#. Widget: “DictionariesWidget”, text.
+#. Widget: “DictionaryEditor”, text.
+#: plover/gui_qt/dictionaries_widget_ui.py:122
+#: plover/gui_qt/dictionary_editor_ui.py:118
 msgid "&Undo"
-msgstr "Deshacer"
+msgstr "Des&hacer"
 
-#: plover/gui_qt/dictionaries_widget_ui.py:103
+#. Widget: “DictionariesWidget”, tooltip.
+#: plover/gui_qt/dictionaries_widget_ui.py:124
 msgid "Undo last add/delete/reorder operation."
 msgstr "Deshacer última operación añadir/borrar/reordenar."
 
-#: plover/gui_qt/dictionaries_widget_ui.py:104
-#: plover/gui_qt/dictionary_editor_ui.py:109
+#. Widget: “DictionariesWidget”, shortcut.
+#. Widget: “DictionaryEditor”, shortcut.
+#: plover/gui_qt/dictionaries_widget_ui.py:126
+#: plover/gui_qt/dictionary_editor_ui.py:122
 msgid "Ctrl+Z"
 msgstr "Ctrl+Z"
 
-#: plover/gui_qt/dictionaries_widget_ui.py:105
+#. Widget: “DictionariesWidget”, text.
+#: plover/gui_qt/dictionaries_widget_ui.py:128
 msgid "&Add dictionaries"
 msgstr "&Añadir diccionarios"
 
-#: plover/gui_qt/dictionaries_widget_ui.py:107
+#. Widget: “DictionariesWidget”, shortcut.
+#: plover/gui_qt/dictionaries_widget_ui.py:132
 msgid "Ctrl+O"
 msgstr "Ctrl+O"
 
-#: plover/gui_qt/dictionaries_widget_ui.py:108
+#. Widget: “DictionariesWidget”, text.
+#: plover/gui_qt/dictionaries_widget_ui.py:134
 msgid "Add &translation"
 msgstr "Añadir &traducción"
 
-#: plover/gui_qt/dictionaries_widget_ui.py:109
-#: plover/gui_qt/dictionary_editor_ui.py:111
+#. Widget: “DictionariesWidget”, tooltip.
+#. Widget: “DictionaryEditor”, tooltip.
+#: plover/gui_qt/dictionaries_widget_ui.py:136
+#: plover/gui_qt/dictionary_editor_ui.py:126
 msgid "Add a new translation"
 msgstr "Añadir nueva traducción"
 
-#: plover/gui_qt/dictionaries_widget_ui.py:110
-#: plover/gui_qt/dictionary_editor_ui.py:112
+#. Widget: “DictionariesWidget”, shortcut.
+#. Widget: “DictionaryEditor”, shortcut.
+#: plover/gui_qt/dictionaries_widget_ui.py:138
+#: plover/gui_qt/dictionary_editor_ui.py:128
 msgid "Ctrl+N"
 msgstr "Ctrl+N"
 
-#: plover/gui_qt/dictionaries_widget_ui.py:111
+#. Widget: “DictionariesWidget”, text.
+#: plover/gui_qt/dictionaries_widget_ui.py:140
 msgid "Move dictionaries &up"
 msgstr "S&ubir diccionarios"
 
-#: plover/gui_qt/dictionaries_widget_ui.py:112
+#. Widget: “DictionariesWidget”, tooltip.
+#: plover/gui_qt/dictionaries_widget_ui.py:142
 msgid "Move selected dictionaries up."
 msgstr "Desplazar diccionarios seleccionados hacia arriba."
 
-#: plover/gui_qt/dictionaries_widget_ui.py:113
+#. Widget: “DictionariesWidget”, text.
+#: plover/gui_qt/dictionaries_widget_ui.py:144
 msgid "Move dictionaries &down"
 msgstr "Bajar &diccionarios"
 
-#: plover/gui_qt/dictionaries_widget_ui.py:114
+#. Widget: “DictionariesWidget”, tooltip.
+#: plover/gui_qt/dictionaries_widget_ui.py:146
 msgid "Move selected dictionaries down."
 msgstr "Desplazar diccionarios seleccionados hacia abajo."
 
-#: plover/gui_qt/dictionary_editor.py:162
+#. Widget: “DictionaryEditor”.
+#: plover/gui_qt/dictionary_editor.py:163
 msgid "Strokes"
 msgstr "Acordes"
 
-#: plover/gui_qt/dictionary_editor.py:164
+#. Widget: “DictionaryEditor”.
+#: plover/gui_qt/dictionary_editor.py:166
 msgid "Translation"
 msgstr "Traducción"
 
-#: plover/gui_qt/dictionary_editor.py:166
+#. Widget: “DictionaryEditor”.
+#: plover/gui_qt/dictionary_editor.py:169
 msgid "Dictionary"
 msgstr "Diccionario"
 
-#: plover/gui_qt/dictionary_editor_ui.py:98
+#. Widget: “DictionaryEditor”, windowtitle.
+#: plover/gui_qt/dictionary_editor_ui.py:100
 msgid "Plover: Dictionary Editor"
 msgstr "Plover: Editor de diccionario"
 
-#: plover/gui_qt/dictionary_editor_ui.py:99
+#. Widget: “DictionaryEditor”, title.
+#: plover/gui_qt/dictionary_editor_ui.py:102
 msgid "Filter"
 msgstr "Filtrar"
 
-#: plover/gui_qt/dictionary_editor_ui.py:100
+#. Widget: “DictionaryEditor”, text.
+#: plover/gui_qt/dictionary_editor_ui.py:104
 msgid "By strokes:"
 msgstr "Por acordes:"
 
-#: plover/gui_qt/dictionary_editor_ui.py:101
+#. Widget: “DictionaryEditor”, text.
+#: plover/gui_qt/dictionary_editor_ui.py:106
 msgid "Apply"
 msgstr "Aplicar"
 
-#: plover/gui_qt/dictionary_editor_ui.py:102
+#. Widget: “DictionaryEditor”, text.
+#: plover/gui_qt/dictionary_editor_ui.py:108
 msgid "By translation:"
 msgstr "Por traducción:"
 
-#: plover/gui_qt/dictionary_editor_ui.py:103
+#. Widget: “DictionaryEditor”, text.
+#: plover/gui_qt/dictionary_editor_ui.py:110
 msgid "Clear"
 msgstr "Limpiar"
 
-#: plover/gui_qt/dictionary_editor_ui.py:104
+#. Widget: “DictionaryEditor”, text.
+#: plover/gui_qt/dictionary_editor_ui.py:112
 msgid "&Delete"
 msgstr "Borrar"
 
-#: plover/gui_qt/dictionary_editor_ui.py:105
+#. Widget: “DictionaryEditor”, tooltip.
+#: plover/gui_qt/dictionary_editor_ui.py:114
 msgid "Delete selected entries."
 msgstr "Borrar entradas seleccionadas."
 
-#: plover/gui_qt/dictionary_editor_ui.py:108
+#. Widget: “DictionaryEditor”, tooltip.
+#: plover/gui_qt/dictionary_editor_ui.py:120
 msgid "Undo last add/delete/edit operation."
 msgstr "Deshacer última operación añadir/borrar/editar."
 
-#: plover/gui_qt/dictionary_editor_ui.py:110
+#. Widget: “DictionaryEditor”, text.
+#: plover/gui_qt/dictionary_editor_ui.py:124
 msgid "&New translation"
 msgstr "&Nueva traducción"
 
-#: plover/gui_qt/i18n.py:14
-msgid "Keyboard"
-msgstr "Teclado"
+#. Widget: “LookupDialog”, tooltip.
+#: plover/gui_qt/lookup_dialog.py:13
+msgid "Search the dictionary for translations."
+msgstr "Buscar traducciones en el diccionario."
 
-#: plover/gui_qt/i18n.py:16
-msgid "stopped"
-msgstr "detenido"
-
-#: plover/gui_qt/i18n.py:17
-msgid "initializing"
-msgstr "inicializando"
-
-#: plover/gui_qt/i18n.py:18
-msgid "connected"
-msgstr "conectada"
-
-#: plover/gui_qt/i18n.py:19
-msgid "disconnected"
-msgstr "desconectada"
-
-#: plover/gui_qt/lookup_dialog.py:18
+#: plover/gui_qt/lookup_dialog.py:15
 msgid "Lookup"
 msgstr "Buscar"
 
-#: plover/gui_qt/lookup_dialog_ui.py:54
+#. Widget: “LookupDialog”, windowtitle.
+#: plover/gui_qt/lookup_dialog_ui.py:56
 msgid "Plover: Dictionary Lookup"
 msgstr "Plover: Búsqueda en diccionario"
 
-#: plover/gui_qt/machine_options.py:108
+#: plover/gui_qt/machine_options.py:104
 msgid ""
 "Arpeggiate allows using non-NKRO keyboards.\n"
 "\n"
@@ -576,209 +737,321 @@ msgstr ""
 "\n"
 "Cada tecla puede pulsarse por separado y el espacio envía el acorde."
 
-#: plover/gui_qt/main_window_ui.py:169 plover/gui_qt/main_window_ui.py:189
+#. Widget: “MainWindow”, tooltip.
+#: plover/gui_qt/main_window_ui.py:172 plover/gui_qt/main_window_ui.py:212
 msgid "Disconnect and reconnect the machine."
 msgstr "Desconectar y reconectar la máquina."
 
-#: plover/gui_qt/main_window_ui.py:172
+#. Widget: “MainWindow”, text.
+#: plover/gui_qt/main_window_ui.py:178
 msgid "Disabled"
 msgstr "Deshabilitado"
 
-#: plover/gui_qt/main_window_ui.py:173
+#. Widget: “MainWindow”, title.
+#: plover/gui_qt/main_window_ui.py:180
 msgid "&File"
 msgstr "&Archivo"
 
-#: plover/gui_qt/main_window_ui.py:174
+#. Widget: “MainWindow”, title.
+#: plover/gui_qt/main_window_ui.py:182
 msgid "&Tools"
 msgstr "Herramien&tas"
 
-#: plover/gui_qt/main_window_ui.py:175
+#. Widget: “MainWindow”, title.
+#: plover/gui_qt/main_window_ui.py:184
 msgid "&Help"
 msgstr "A&yuda"
 
-#: plover/gui_qt/main_window_ui.py:176
+#. Widget: “MainWindow”, title.
+#: plover/gui_qt/main_window_ui.py:186
 msgid "&Edit"
 msgstr "&Editar"
 
-#: plover/gui_qt/main_window_ui.py:177
+#. Widget: “MainWindow”, windowtitle.
+#: plover/gui_qt/main_window_ui.py:188
 msgid "Plover: Toolbar"
 msgstr "Plover: Barra de herramientas"
 
-#: plover/gui_qt/main_window_ui.py:178
+#. Widget: “MainWindow”, text.
+#: plover/gui_qt/main_window_ui.py:190
 msgid "&Quit Plover"
 msgstr "&Salir de Plover"
 
-#: plover/gui_qt/main_window_ui.py:179
+#. Widget: “MainWindow”, tooltip.
+#: plover/gui_qt/main_window_ui.py:192
 msgid "Quit the application."
 msgstr "Salir de la aplicación."
 
-#: plover/gui_qt/main_window_ui.py:180
+#. Widget: “MainWindow”, shortcut.
+#: plover/gui_qt/main_window_ui.py:194
 msgid "Ctrl+Q"
 msgstr "Ctrl+Q"
 
-#: plover/gui_qt/main_window_ui.py:181
+#. Widget: “MainWindow”, text.
+#: plover/gui_qt/main_window_ui.py:196
 msgid "&Configure"
 msgstr "&Configurar"
 
-#: plover/gui_qt/main_window_ui.py:182
+#. Widget: “MainWindow”, tooltip.
+#: plover/gui_qt/main_window_ui.py:198
 msgid "Open the configuration dialog."
 msgstr "Abrir el diálogo de configuración."
 
-#: plover/gui_qt/main_window_ui.py:183
+#. Widget: “MainWindow”, shortcut.
+#: plover/gui_qt/main_window_ui.py:200
 msgid "Ctrl+,"
 msgstr "Ctrl+,"
 
-#: plover/gui_qt/main_window_ui.py:184
+#. Widget: “MainWindow”, text.
+#: plover/gui_qt/main_window_ui.py:202
 msgid "Open config &folder"
 msgstr "Abrir carpeta de &configuración"
 
-#: plover/gui_qt/main_window_ui.py:185
+#. Widget: “MainWindow”, tooltip.
+#: plover/gui_qt/main_window_ui.py:204
 msgid "Open the configuration folder."
 msgstr "Abrir carpeta de configuración."
 
-#: plover/gui_qt/main_window_ui.py:186
+#. Widget: “MainWindow”, text.
+#: plover/gui_qt/main_window_ui.py:206
 msgid "&About"
 msgstr "&Acerca de"
 
-#: plover/gui_qt/main_window_ui.py:187
+#. Widget: “MainWindow”, tooltip.
+#: plover/gui_qt/main_window_ui.py:208
 msgid "Open the about dialog."
 msgstr "Abrir el diálogo Acerca de."
 
-#: plover/gui_qt/main_window_ui.py:188
+#. Widget: “MainWindow”, text.
+#: plover/gui_qt/main_window_ui.py:210
 msgid "&Reconnect machine"
 msgstr "&Reconectar máquina"
 
-#: plover/gui_qt/main_window_ui.py:190
+#. Widget: “MainWindow”, shortcut.
+#: plover/gui_qt/main_window_ui.py:214
 msgid "Ctrl+R"
 msgstr "Ctrl+R"
 
-#: plover/gui_qt/main_window_ui.py:191
+#. Widget: “MainWindow”, text.
+#: plover/gui_qt/main_window_ui.py:216
 msgid "&Show"
 msgstr "&Mostrar"
 
-#: plover/gui_qt/main_window_ui.py:192
+#. Widget: “MainWindow”, tooltip.
+#: plover/gui_qt/main_window_ui.py:218
 msgid "Show the main window."
 msgstr "Mostrar la ventana principal."
 
-#: plover/gui_qt/main_window_ui.py:193
+#. Widget: “MainWindow”, text.
+#: plover/gui_qt/main_window_ui.py:220
 msgid "Toggle &output"
 msgstr "Cambiar estad&o de salida"
 
-#: plover/gui_qt/main_window_ui.py:194
+#. Widget: “MainWindow”, tooltip.
+#: plover/gui_qt/main_window_ui.py:222
 msgid "Toggle the output."
 msgstr "Cambiar el estado de la salida."
 
-#: plover/gui_qt/main_window_ui.py:195
+#. Widget: “MainWindow”, shortcut.
+#: plover/gui_qt/main_window_ui.py:224
 msgid "Ctrl+."
 msgstr "Ctrl+."
 
-#: plover/gui_qt/paper_tape.py:29
+#: plover/gui_qt/paper_tape.py:25
 msgid "Paper Tape"
 msgstr "Tira de papel"
 
-#: plover/gui_qt/paper_tape.py:34
+#. Paper tape style.
+#: plover/gui_qt/paper_tape.py:32
 msgid "Paper"
 msgstr "Papel"
 
+#. Paper tape style.
 #: plover/gui_qt/paper_tape.py:34
 msgid "Raw"
 msgstr "Sin procesar"
 
-#: plover/gui_qt/paper_tape.py:157
+#: plover/gui_qt/paper_tape.py:158
 msgid "Do you want to clear the paper tape?"
 msgstr "¿Quieres limpiar la tira de papel?"
 
-#: plover/gui_qt/paper_tape.py:171
+#: plover/gui_qt/paper_tape.py:172
 msgid "Save Paper Tape"
 msgstr "Guardar tira de papel"
 
-#: plover/gui_qt/paper_tape.py:172
-msgid "Text files"
-msgstr "Ficheros de texto"
+#. Paper tape, "save" file picker.
+#: plover/gui_qt/paper_tape.py:174
+msgid "Text files (*.txt)"
+msgstr "Ficheros de texto (*.txt)"
 
-#: plover/gui_qt/paper_tape_ui.py:84
-msgid "Plover: Paper Tape"
-msgstr "Plover: Tira de papel"
-
-#: plover/gui_qt/paper_tape_ui.py:85
+#. Widget: “PaperTape”, text.
+#: plover/gui_qt/paper_tape_ui.py:87
 msgid "Mode"
 msgstr "Modo"
 
-#: plover/gui_qt/paper_tape_ui.py:86 plover/gui_qt/suggestions_dialog_ui.py:50
+#. Widget: “PaperTape”, text.
+#. Widget: “SuggestionsDialog”, text.
+#: plover/gui_qt/paper_tape_ui.py:89 plover/gui_qt/suggestions_dialog_ui.py:53
 msgid "&Clear"
 msgstr "&Limpiar"
 
-#: plover/gui_qt/paper_tape_ui.py:87 plover/gui_qt/suggestions_dialog_ui.py:51
-msgid "Clear paper tape"
-msgstr "Limpiar tira de papel"
+#. Widget: “PaperTape”, tooltip.
+#: plover/gui_qt/paper_tape_ui.py:91
+msgid "Clear paper tape."
+msgstr "Limpiar la tira de papel."
 
-#: plover/gui_qt/paper_tape_ui.py:88 plover/gui_qt/suggestions_dialog_ui.py:52
+#. Widget: “PaperTape”, shortcut.
+#. Widget: “SuggestionsDialog”, shortcut.
+#: plover/gui_qt/paper_tape_ui.py:93 plover/gui_qt/suggestions_dialog_ui.py:57
 msgid "Ctrl+L"
 msgstr "Ctrl+L"
 
-#: plover/gui_qt/paper_tape_ui.py:89
+#. Widget: “PaperTape”, text.
+#: plover/gui_qt/paper_tape_ui.py:95
 msgid "&Save"
 msgstr "&Guardar"
 
-#: plover/gui_qt/paper_tape_ui.py:90
-msgid "Save paper tape to file"
-msgstr "Guardar tira de papel en fichero"
+#. Widget: “PaperTape”, tooltip.
+#: plover/gui_qt/paper_tape_ui.py:97
+msgid "Save paper tape to file."
+msgstr "Guardar tira de papel en fichero."
 
-#: plover/gui_qt/paper_tape_ui.py:91
-msgid "Ctrl+S"
-msgstr "Ctrl+S"
-
-#: plover/gui_qt/paper_tape_ui.py:92 plover/gui_qt/suggestions_dialog_ui.py:53
+#. Widget: “PaperTape”, text.
+#. Widget: “SuggestionsDialog”, text.
+#: plover/gui_qt/paper_tape_ui.py:101 plover/gui_qt/suggestions_dialog_ui.py:59
 msgid "&Toggle \"always on top\""
 msgstr "Cambiar es&tado de \"siempre arriba\""
 
-#: plover/gui_qt/paper_tape_ui.py:93 plover/gui_qt/suggestions_dialog_ui.py:54
-msgid "Toggle \"always on top\""
-msgstr "Cambiar estado de \"siempre arriba\""
+#. Widget: “PaperTape”, tooltip.
+#. Widget: “SuggestionsDialog”, tooltip.
+#: plover/gui_qt/paper_tape_ui.py:103 plover/gui_qt/suggestions_dialog_ui.py:61
+msgid "Toggle \"always on top\"."
+msgstr "Cambiar estado de \"siempre arriba\"."
 
-#: plover/gui_qt/paper_tape_ui.py:94 plover/gui_qt/suggestions_dialog_ui.py:55
+#. Widget: “PaperTape”, shortcut.
+#. Widget: “SuggestionsDialog”, shortcut.
+#: plover/gui_qt/paper_tape_ui.py:105 plover/gui_qt/suggestions_dialog_ui.py:63
 msgid "Ctrl+T"
 msgstr "Ctrl+T"
 
-#: plover/gui_qt/paper_tape_ui.py:95 plover/gui_qt/suggestions_dialog_ui.py:56
+#. Widget: “PaperTape”, text.
+#. Widget: “SuggestionsDialog”, text.
+#: plover/gui_qt/paper_tape_ui.py:107 plover/gui_qt/suggestions_dialog_ui.py:65
 msgid "Select &font"
 msgstr "Seleccionar &fuente"
 
-#: plover/gui_qt/paper_tape_ui.py:96 plover/gui_qt/suggestions_dialog_ui.py:57
-msgid "Open font selection dialog"
-msgstr "Abrir diálogo para selección de fuentes"
+#. Widget: “PaperTape”, tooltip.
+#. Widget: “SuggestionsDialog”, tooltip.
+#: plover/gui_qt/paper_tape_ui.py:109 plover/gui_qt/suggestions_dialog_ui.py:67
+msgid "Open font selection dialog."
+msgstr "Abrir diálogo de selección de fuentes."
 
-#: plover/gui_qt/suggestions_dialog.py:31
+#. Widget: “SuggestionsDialog”, tooltip.
+#: plover/gui_qt/suggestions_dialog.py:26
+msgid "Suggest possible strokes for the last written words."
+msgstr "Sugerir posibles acordes para las últimas palabras escritas."
+
+#: plover/gui_qt/suggestions_dialog.py:28
 msgid "Suggestions"
 msgstr "Sugerencias"
 
-#: plover/gui_qt/suggestions_dialog.py:59
+#. Widget: “SuggestionsDialog”, “font” menu.
+#: plover/gui_qt/suggestions_dialog.py:57
 msgid "&Text"
 msgstr "&Texto"
 
-#: plover/gui_qt/suggestions_dialog.py:60
+#. Widget: “SuggestionsDialog”, “font” menu.
+#: plover/gui_qt/suggestions_dialog.py:59
 msgid "&Strokes"
 msgstr "Acorde&s"
 
-#: plover/gui_qt/suggestions_dialog_ui.py:49
-msgid "Plover: Suggestions"
-msgstr "Plover: Sugerencias"
+#. Widget: “SuggestionsDialog”, tooltip.
+#: plover/gui_qt/suggestions_dialog_ui.py:55
+msgid "Clear the history."
+msgstr "Vaciar el historial."
 
-#: plover/gui_qt/suggestions_widget.py:41
+#. Widget: “SuggestionsWidget”.
+#: plover/gui_qt/suggestions_widget.py:42
 msgid "no suggestions"
 msgstr "no hay sugerencias"
 
-#: plover/gui_qt/trayicon.py:110
+#: plover/gui_qt/trayicon.py:116
 msgid "{machine} is {state}"
 msgstr "{machine} está {state}"
 
-#: plover/gui_qt/trayicon.py:115
+#. Tray icon tooltip.
+#: plover/gui_qt/trayicon.py:122
 msgid "output is enabled"
 msgstr "la salida está activada"
 
-#: plover/gui_qt/trayicon.py:117
+#. Tray icon tooltip.
+#: plover/gui_qt/trayicon.py:125
 msgid "output is disabled"
 msgstr "la salida está desactivada"
+
+#. Machine state.
+#: plover/machine/base.py:20
+msgid "stopped"
+msgstr "detenido"
+
+#. Machine state.
+#: plover/machine/base.py:22
+msgid "initializing"
+msgstr "inicializando"
+
+#. Machine state.
+#: plover/machine/base.py:24
+msgid "connected"
+msgstr "conectada"
+
+#. Machine state.
+#: plover/machine/base.py:26
+msgid "disconnected"
+msgstr "desconectada"
+
+#. Machine name.
+#: plover/machine/keyboard.py:14
+msgid "Keyboard"
+msgstr "Teclado"
+
+#~ msgid "Plover: Add Translation"
+#~ msgstr "Plover: Añadir traducción"
+
+#~ msgid "disabled"
+#~ msgstr "deshabilitado"
+
+#~ msgid "<br />Overwritten entries:"
+#~ msgstr "<br /> Entradas sobrescritas:"
+
+#~ msgid "Form"
+#~ msgstr "Formulario"
+
+#~ msgid "Log files"
+#~ msgstr "Ficheros de registro"
+
+#~ msgid "%s dictionaries"
+#~ msgstr "%s diccionarios"
+
+#~ msgid "Text files"
+#~ msgstr "Ficheros de texto"
+
+#~ msgid "Plover: Paper Tape"
+#~ msgstr "Plover: Tira de papel"
+
+#~ msgid "Clear paper tape"
+#~ msgstr "Limpiar tira de papel"
+
+#~ msgid "Save paper tape to file"
+#~ msgstr "Guardar tira de papel en fichero"
+
+#~ msgid "Toggle \"always on top\""
+#~ msgstr "Cambiar estado de \"siempre arriba\""
+
+#~ msgid "Open font selection dialog"
+#~ msgstr "Abrir diálogo para selección de fuentes"
+
+#~ msgid "Plover: Suggestions"
+#~ msgstr "Plover: Sugerencias"
 
 #~ msgid "Keys"
 #~ msgstr "Teclas"
