@@ -49,7 +49,7 @@ msgstr ""
 #. Short description for Plover, currently not used in the interface.
 #: plover/__init__.py:33
 msgid "Open Source Stenography Software"
-msgstr "Open Source-software voor stenografie"
+msgstr "Opensourcesoftware voor stenografie"
 
 #: plover/__init__.py:34
 msgid ""
@@ -57,7 +57,7 @@ msgid ""
 "stenographic technology not just to stenographers, but also to\n"
 "hackers, hobbyists, accessibility mavens, and all-around speed demons."
 msgstr ""
-"Plover is een vrij open-source programma met het doel om realtime\n"
+"Plover is een vrij opensourceprogramma met het doel om realtime\n"
 "stenografische technologie beschikbaar te maken niet alleen voor\n"
 "stenografen, maar ook voor hackers, hobbyisten, fans van toegankelijkheid\n"
 "en snelheidsduivels."
@@ -268,7 +268,7 @@ msgid ""
 "- 0 makes the dialog invisible\n"
 "- 100 is fully opaque"
 msgstr ""
-"Dit stelt in hoe doorzichtig het venster om vertalingen toe te voegen is:\n"
+"Dit stelt in hoe doorzichtig het vertalingsvenster is:\n"
 "- 0 maakt het venster onzichtbaar\n"
 "- 100 is volledig ondoorzichtig"
 
@@ -587,7 +587,7 @@ msgstr "Del"
 #: plover/gui_qt/dictionaries_widget_ui.py:122
 #: plover/gui_qt/dictionary_editor_ui.py:118
 msgid "&Undo"
-msgstr "Ongedaan maken"
+msgstr "&Ongedaan maken"
 
 #. Widget: “DictionariesWidget”, tooltip.
 #: plover/gui_qt/dictionaries_widget_ui.py:124
@@ -703,7 +703,7 @@ msgstr "&Verwijderen"
 #. Widget: “DictionaryEditor”, tooltip.
 #: plover/gui_qt/dictionary_editor_ui.py:114
 msgid "Delete selected entries."
-msgstr "Verwijder de geselecteerde regels."
+msgstr "Verwijder geselecteerde regels."
 
 #. Widget: “DictionaryEditor”, tooltip.
 #: plover/gui_qt/dictionary_editor_ui.py:120
@@ -745,7 +745,7 @@ msgstr ""
 #. Widget: “MainWindow”, tooltip.
 #: plover/gui_qt/main_window_ui.py:172 plover/gui_qt/main_window_ui.py:212
 msgid "Disconnect and reconnect the machine."
-msgstr "Verbreek en herstel vervolgens de verbinding met de machine."
+msgstr "Verbreek en herstel de verbinding met de machine."
 
 #. Widget: “MainWindow”, text.
 #: plover/gui_qt/main_window_ui.py:178
@@ -810,7 +810,7 @@ msgstr "Ctrl+,"
 #. Widget: “MainWindow”, text.
 #: plover/gui_qt/main_window_ui.py:202
 msgid "Open config &folder"
-msgstr "Open instellingenmap"
+msgstr "Open &instellingenmap"
 
 #. Widget: “MainWindow”, tooltip.
 #: plover/gui_qt/main_window_ui.py:204
