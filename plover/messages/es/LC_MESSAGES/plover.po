@@ -96,7 +96,7 @@ msgstr "{strokes} no está asignada en ningún diccionario"
 #. Widget: “AddTranslationWidget”.
 #: plover/gui_qt/add_translation_widget.py:290
 msgid "{translation} is mapped to: {strokes}"
-msgstr "\"{translation}\" está asignada a {strokes}"
+msgstr "{translation} está asignada a {strokes}"
 
 #. Widget: “AddTranslationWidget”.
 #: plover/gui_qt/add_translation_widget.py:293
