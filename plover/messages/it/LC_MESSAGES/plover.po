@@ -820,7 +820,7 @@ msgstr "Apre la cartella di configurazione."
 #. Widget: “MainWindow”, text.
 #: plover/gui_qt/main_window_ui.py:206
 msgid "&About"
-msgstr "Plover: Informazioni su"
+msgstr "Informazioni su"
 
 #. Widget: “MainWindow”, tooltip.
 #: plover/gui_qt/main_window_ui.py:208
@@ -909,7 +909,7 @@ msgstr "Cancella schermo."
 #. Widget: “SuggestionsDialog”, shortcut.
 #: plover/gui_qt/paper_tape_ui.py:93 plover/gui_qt/suggestions_dialog_ui.py:57
 msgid "Ctrl+L"
-msgstr "Cancellare le note steno"
+msgstr "Ctrl+L"
 
 #. Widget: “PaperTape”, text.
 #: plover/gui_qt/paper_tape_ui.py:95
