@@ -2,10 +2,11 @@
 :
   _CodeSignature
   share
-  Resources/English.lproj
+  Resources
 :bin
   !python
   !python3*
+  !Info.plist
   *
 :lib
   **/*.tcl
