@@ -30,6 +30,24 @@ run mkdir -p "$frameworks_dir" "$resources_dir" "$macos_dir"
 # Create the Python framework.
 run osx_standalone_python "$frameworks_dir" "$py_installer_version" "$py_installer_macos" "$py_installer_sha1" "$reloc_py_url" "$reloc_py_sha1"
 
+py_binary="$py_home/bin/python${py_version%.*}"
+
+# Extract Python binary from launcher and fix its references.
+run mv "$py_home/Resources/Python.app/Contents/MacOS/Python" "$py_binary"
+run install_name_tool -rpath "@executable_path/../../../../../../" "@executable_path/../../../" "$py_binary"
+# Remove the codesignature so that we can change the identifier for notifications.
+run /usr/bin/codesign -s - --deep --force "$py_binary"
+run tee "$py_home/bin/Info.plist" <<\EOF
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
+<plist version="1.0">
+<dict>
+    <key>CFBundleIdentifier</key>
+    <string>org.openstenoproject.plover</string>
+</dict>
+</plist>
+EOF
+
 # Switch to target Python.
 SSL_CERT_FILE="$("$python" -m certifi)"
 run_eval "appdir_python() { env PYTHONNOUSERSITE=1 "$py_home/bin/python" \"\$@\"; }"

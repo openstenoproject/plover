@@ -34,6 +34,9 @@ nosetests.xml
 .idea
 .cache
 
+# VSCode
+.vscode
+
 #Mr Developer
 .mr.developer.cfg
 

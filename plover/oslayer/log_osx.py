@@ -19,8 +19,7 @@ class OSXNotificationHandler(logging.Handler):
         # Notification Center has no levels or timeouts.
         notification = NSUserNotification.alloc().init()
 
-        notification.setTitle_(__software_name__.capitalize())
-        notification.setSubtitle_(record.levelname.title())
+        notification.setTitle_(record.levelname.title())
         notification.setInformativeText_(self.format(record))
 
         ns = NSUserNotificationCenter.defaultUserNotificationCenter()
