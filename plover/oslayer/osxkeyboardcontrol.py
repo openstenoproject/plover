@@ -302,8 +302,12 @@ class KeyboardEmulation(KeyboardEmulationBase):
 
     RAW_PRESS, STRING_PRESS = range(2)
 
-    def __init__(self):
+    def __init__(self, params):
+        assert not params
         self._layout = KeyboardLayout()
+
+    def cancel(self):
+        self._layout.cancel()
 
     @staticmethod
     def send_backspaces(number_of_backspaces):

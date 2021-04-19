@@ -285,6 +285,10 @@ class ConfigWindow(QDialog, Ui_ConfigWindow, WindowState):
         super().__init__()
         self.setupUi(self)
         self._engine = engine
+        outputs = {
+            plugin.name: _(plugin.name)
+            for plugin in registry.list_plugins('output')
+        }
         machines = {
             plugin.name: _(plugin.name)
             for plugin in registry.list_plugins('machine')
@@ -334,6 +338,11 @@ class ConfigWindow(QDialog, Ui_ConfigWindow, WindowState):
             )),
             # i18n: Widget: “ConfigWindow”.
             (_('Output'), (
+                ConfigOption(_('Type:'), 'output_type', partial(ChoiceOption, choices=outputs),
+                             dependents=(
+                                 ('output_specific_options', self._update_output_options),
+                             )),
+                ConfigOption(_('Options:'), 'output_specific_options', self._output_option),
                 ConfigOption(_('Enable at start:'), 'auto_start', BooleanOption,
                              _('Enable output on startup.')),
                 ConfigOption(_('Start attached:'), 'start_attached', BooleanOption,
@@ -426,27 +435,37 @@ class ConfigWindow(QDialog, Ui_ConfigWindow, WindowState):
                 if name in self._supported_options
             })
 
-    def _machine_option(self, *args):
-        machine_options = {
+    def _plugin_option(self, config_option, plugin_type, *args):
+        plugin_options = {
             plugin.name: plugin.obj
-            for plugin in registry.list_plugins('gui.qt.machine_option')
+            for plugin in registry.list_plugins('gui.qt.%s_option' % plugin_type)
         }
-        machine_type = self._config['machine_type']
-        machine_class = registry.get_plugin('machine', machine_type).obj
-        for klass in machine_class.mro():
+        plugin_name = self._config[config_option]
+        plugin_class = registry.get_plugin(plugin_type, plugin_name).obj
+        for klass in plugin_class.mro():
             # Look for `module_name:class_name` before `class_name`.
             for name in (
                 '%s:%s' % (klass.__module__, klass.__name__),
                 klass.__name__,
             ):
-                opt_class = machine_options.get(name)
+                opt_class = plugin_options.get(name)
                 if opt_class is not None:
                     return opt_class(*args)
         return NopeOption(*args)
 
+    def _machine_option(self, *args):
+        return self._plugin_option('machine_type', 'machine')
+
+    def _output_option(self, *args):
+        return self._plugin_option('output_type', 'output')
+
     def _update_machine_options(self, machine_type=None):
         return self._engine[('machine_specific_options',
                              machine_type or self._config['machine_type'])]
+
+    def _update_output_options(self, output_type=None):
+        return self._engine[('output_specific_options',
+                             output_type or self._config['output_type'])]
 
     def _update_keymap(self, system_name=None, machine_type=None):
         return self._engine[('system_keymap',

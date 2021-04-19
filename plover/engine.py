@@ -22,6 +22,7 @@ from plover.translation import Translator
 StartingStrokeState = namedtuple('StartingStrokeState', 'attach capitalize')
 
 MachineParams = namedtuple('MachineParams', 'type options keymap')
+OutputParams = namedtuple('OutputParams', 'type options')
 
 
 class ErroredDictionary(StenoDictionary):
@@ -92,7 +93,7 @@ class StenoEngine:
     quit
     '''.split()
 
-    def __init__(self, config, keyboard_emulation):
+    def __init__(self, config):
         self._config = config
         self._is_running = False
         self._queue = Queue()
@@ -100,6 +101,8 @@ class StenoEngine:
         self._machine = None
         self._machine_state = None
         self._machine_params = MachineParams(None, None, None)
+        self._output = None
+        self._output_params = OutputParams(None, None)
         self._formatter = Formatter()
         self._formatter.set_output(self)
         self._formatter.add_listener(self._on_translated)
@@ -109,7 +112,6 @@ class StenoEngine:
         self._dictionaries = self._translator.get_dictionary()
         self._dictionaries_manager = DictionaryLoadingManager()
         self._running_state = self._translator.get_state()
-        self._keyboard_emulation = keyboard_emulation
         self._hooks = { hook: [] for hook in self.HOOKS }
         self._running_extensions = {}
 
@@ -193,6 +195,16 @@ class StenoEngine:
         self._formatter.start_attached = config['start_attached']
         self._formatter.start_capitalized = config['start_capitalized']
         self._translator.set_min_undo_length(config['undo_levels'])
+        output_params = OutputParams(config['output_type'],
+                                     config['output_specific_options'])
+        if output_params != self._output_params:
+            if self._output is not None:
+                self._output.cancel()
+                self._output = None
+            output_class = registry.get_plugin('output', output_params.type).obj
+            self._output = output_class(output_params.options)
+            self._output.start()
+            self._output_params = output_params
         # Update system.
         system_name = config['system_name']
         if system.NAME != system_name:
@@ -364,26 +376,26 @@ class StenoEngine:
     def send_backspaces(self, b):
         if not self._is_running:
             return
-        self._keyboard_emulation.send_backspaces(b)
+        self._output.send_backspaces(b)
         self._trigger_hook('send_backspaces', b)
 
     def send_string(self, s):
         if not self._is_running:
             return
-        self._keyboard_emulation.send_string(s)
+        self._output.send_string(s)
         self._trigger_hook('send_string', s)
 
     def send_key_combination(self, c):
         if not self._is_running:
             return
-        self._keyboard_emulation.send_key_combination(c)
+        self._output.send_key_combination(c)
         self._trigger_hook('send_key_combination', c)
 
     def send_engine_command(self, command):
         suppress = not self._is_running
         suppress &= self._consume_engine_command(command)
         if suppress:
-            self._machine.suppress_last_stroke(self._keyboard_emulation.send_backspaces)
+            self._machine.suppress_last_stroke(self._output.send_backspaces)
 
     def toggle_output(self):
         self._same_thread_hook(self._toggle_output)

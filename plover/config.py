@@ -330,6 +330,8 @@ class Config:
         boolean_option('start_attached', False, OUTPUT_CONFIG_SECTION),
         boolean_option('start_capitalized', False, OUTPUT_CONFIG_SECTION),
         int_option('undo_levels', DEFAULT_UNDO_LEVELS, MINIMUM_UNDO_LEVELS, None, OUTPUT_CONFIG_SECTION),
+        plugin_option('output_type', 'output', 'Keyboard Emulation', OUTPUT_CONFIG_SECTION),
+        plugin_specific_options('output_specific_options', 'output_type', 'output'),
         # Logging.
         path_option('log_file_name', expand_path('strokes.log'), LOGGING_CONFIG_SECTION, 'log_file'),
         boolean_option('enable_stroke_logging', False, LOGGING_CONFIG_SECTION),

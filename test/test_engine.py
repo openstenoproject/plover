@@ -48,6 +48,19 @@ class FakeMachine(StenotypeBase):
 
 class FakeKeyboardEmulation:
 
+    @classmethod
+    def get_option_info(cls):
+        return {}
+
+    def __init__(self, params):
+        assert not params
+
+    def start(self):
+        pass
+
+    def cancel(self):
+        pass
+
     def send_backspaces(self, b):
         pass
 
@@ -83,9 +96,9 @@ def engine(monkeypatch):
     registry = Registry()
     registry.update()
     registry.register_plugin('machine', 'Fake', FakeMachine)
+    registry.register_plugin('output', 'Fake', FakeKeyboardEmulation)
     monkeypatch.setattr('plover.config.registry', registry)
     monkeypatch.setattr('plover.engine.registry', registry)
-    kbd = FakeKeyboardEmulation()
     cfg_file = tempfile.NamedTemporaryFile(prefix='plover',
                                            suffix='config',
                                            delete=False)
@@ -94,9 +107,10 @@ def engine(monkeypatch):
         cfg = Config(cfg_file.name)
         cfg['dictionaries'] = []
         cfg['machine_type'] = 'Fake'
+        cfg['output_type'] = 'Fake'
         cfg['system_keymap'] = [(k, k) for k in system.KEYS]
         cfg.save()
-        yield FakeEngine(cfg, kbd)
+        yield FakeEngine(cfg)
     finally:
         os.unlink(cfg_file.name)
 

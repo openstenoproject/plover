@@ -29,8 +29,8 @@ class Engine(StenoEngine, QThread):
     signal_suggestions = pyqtSignal()
     signal_quit = pyqtSignal()
 
-    def __init__(self, config, keyboard_emulation):
-        StenoEngine.__init__(self, config, keyboard_emulation)
+    def __init__(self, config):
+        StenoEngine.__init__(self, config)
         QThread.__init__(self)
         self._signals = {}
         for hook in self.HOOKS:
