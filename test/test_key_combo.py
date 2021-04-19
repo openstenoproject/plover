@@ -4,7 +4,7 @@ import itertools
 
 import pytest
 
-from plover.key_combo import parse_key_combo
+from plover.key_combo import KeyCombo
 
 
 def generate_combo_tests(test_id, *params, key_name_to_key_code=None):
@@ -18,26 +18,49 @@ def generate_combo_tests(test_id, *params, key_name_to_key_code=None):
         ]
         if len(iterables) < 2:
             iterables.append(('',))
-        for combo_string, parse_result, in itertools.product(*iterables):
+        if len(iterables) < 3:
+            iterables.append((False,))
+        if len(iterables) < 4:
+            iterables.append(('',))
+        for combo_string, parse_result, bool_result, reset_result in itertools.product(*iterables):
             yield (
                 ('parse', combo_string, parse_result),
+                ('bool', bool_result),
+                ('reset', reset_result),
             )
 
-
-# Test directives:
-# - id TEST_IDENTIFIER
-# - key_name_to_key_code KEY_NAME_TO_KEY_CODE_FUNCTION
-# - parse COMBO_STRING KEY_EVENTS
 KEY_COMBO_TESTS = tuple(itertools.chain(
-
     (
+        # id TEST_IDENTIFIER
+        # key_name_to_key_code KEY_NAME_TO_KEY_CODE_FUNCTION
+        # parse COMBO_STRING KEY_EVENTS
+        # bool HAS_PRESSED
+        # reset KEY_EVENTS
+
         ('key_name_to_key_code', lambda k: k),
+
+        # Initial state.
+        ('id', 'initial_state'),
+        (
+            ('bool', False),
+            ('reset', ''),
+        ),
+
+        # Reset after holding a key.
+        ('id', 'reset'),
+        (
+            ('parse', '+a b', '+a +b -b'),
+            ('bool', True),
+            ('reset', '-a'),
+            ('bool', False),
+            ('reset', ''),
+        ),
     ),
 
     # No-op.
     generate_combo_tests(
         'no-op',
-        (('', '   '), ''),
+        (('', '   '), '', False, ''),
     ),
 
     # Syntax error:
@@ -64,7 +87,7 @@ KEY_COMBO_TESTS = tuple(itertools.chain(
             # - [-+]key() is not valid
             '+foo ()',
             '+foo()',
-        ), SyntaxError),
+        ), SyntaxError, False, ''),
     ),
 
     # Pressing an already pressed key.
@@ -76,37 +99,68 @@ KEY_COMBO_TESTS = tuple(itertools.chain(
             'foo(fOo(arg))',
             'foo(bar(Foo))',
             'foo(bar(foo(x)))',
-        ), ValueError),
+            '+foo +foo',
+            'foo(+foo)',
+            '+foo bar(foo)',
+            '+foo bar(+foo)',
+        ), ValueError, False, ''),
+    ),
+
+    # Trying to release a key not pressed.
+    generate_combo_tests(
+        'already_released',
+        (('-foo', 'foo(-bar)'), ValueError, False, ''),
     ),
 
     # Stacking.
     generate_combo_tests(
         'stacking',
         # 1 is not a valid identifier, but still a valid key name.
-        ('1', '+1 -1'),
-        (('Shift_l', 'SHIFT_L'), '+shift_l -shift_l'),
+        (('1', '+1 -1'), '+1 -1'),
+        (('Shift_l', 'SHIFT_L', '+shift_l -SHIFT_l'), '+shift_l -shift_l'),
         # Case does not matter.
-        (('a', ' A '), '+a -a'),
-        (('a(b c)', 'a ( b c   )'), '+a +b -b +c -c -a'),
-        (('a(bc)', ' a(  Bc )'), '+a +bc -bc -a'),
-        (('a(bc(d)e f(g) h())i j'),
+        (('a', ' A ', ' +A -a  '), '+a -a'),
+        (('a(b c)', 'a ( b c   )', 'a(+b-b+c-c)'), '+a +b -b +c -c -a'),
+        (('a(bc)', ' a(  Bc )', '+A+BC-BC-A'), '+a +bc -bc -a'),
+        (('a(bc(d)e f(g) h())i j', '+a +bc d -bc e +f g -f h -a i j'),
          '+a +bc +d -d -bc +e -e +f +g -g -f +h -h -a +i -i +j -j'),
-        (('foo () bar ( foo a b c (d))', 'fOo () Bar ( FOO a B c (D))'),
+        (('foo () bar ( foo a b c (d))', 'fOo () Bar ( FOO a B c (D))',
+          '+foo -foo +bar +foo -foo +a -a +b -b +c +d -d -c -bar'),
          '+foo -foo +bar +foo -foo +a -a +b -b +c +d -d -c -bar'),
+    ),
+
+    # Held keys.
+    generate_combo_tests(
+        'held_keys',
+        ('+a', '+a', True, '-a'),
+        (('+alt tab', '+alt +tab -tab'), '+alt +tab -tab', True, '-alt'),
+    ),
+
+    # Split combo.
+    (
+        ('id', 'split_combo'),
+        (
+            ('parse', '+alt tab', '+alt +tab -tab'),
+            ('bool', True),
+            ('parse', 'tab', '+tab -tab'),
+            ('bool', True),
+            ('reset', '-alt'),
+            ('bool', False),
+        ),
     ),
 
     # Invalid key name.
     generate_combo_tests(
         'invalid_key',
-        ('1 (c) 2 bad 3 (a b c)', ValueError),
+        (('1 (c) 2 bad 3 (a b c)', '1 +c 2 +bad 3',), ValueError),
         key_name_to_key_code={c: c for c in '123abc'}.get,
     ),
 
     # Same key code, multiple key names.
     generate_combo_tests(
         'aliasing',
-        ('1 exclam', '+10 -10 +10 -10'),
-        (('1 ( exclam )', 'exclam(1)'), ValueError),
+        (('1 exclam', '+1 -exclam +exclam -1'), '+10 -10 +10 -10'),
+        (('1 ( exclam )', 'exclam(1)', '+1 +exclam', 'exclam(-1)'), ValueError),
         key_name_to_key_code={'1': '10', 'exclam': '10'}.get,
     ),
 
@@ -141,13 +195,20 @@ def test_key_combo(key_name_to_key_code, instructions):
         assert isinstance(events, list)
         return ['%s%s' % ('+' if pressed else '-', key)
                 for key, pressed in events]
+    kc = KeyCombo(key_name_to_key_code)
     for action, *args in instructions:
         if action == 'parse':
             combo_string, key_events = args
             if inspect.isclass(key_events):
                 with pytest.raises(key_events):
-                    parse_key_combo(combo_string, key_name_to_key_code=key_name_to_key_code)
+                    kc.parse(combo_string)
             else:
-                assert repr_key_events(parse_key_combo(combo_string, key_name_to_key_code=key_name_to_key_code)) == repr_expected(key_events)
+                assert repr_key_events(kc.parse(combo_string)) == repr_expected(key_events)
+        elif action == 'bool':
+            has_pressed = args[0]
+            assert bool(kc) == has_pressed
+        elif action == 'reset':
+            key_events = args[0]
+            assert repr_key_events(kc.reset()) == repr_expected(key_events)
         else:
             raise ValueError(args[0])

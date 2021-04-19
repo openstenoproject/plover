@@ -5,7 +5,12 @@
 "For use with a computer keyboard (preferably NKRO) as a steno machine."
 
 from plover import _
-from plover.machine.base import StenotypeBase
+from plover.machine.base import (
+    StenotypeBase,
+    SUPPRESSION_NONE,
+    SUPPRESSION_PARTIAL,
+    SUPPRESSION_FULL,
+)
 from plover.misc import boolean
 from plover.oslayer.keyboardcontrol import KeyboardCapture
 
@@ -38,7 +43,7 @@ class Keyboard(StenotypeBase):
         """Monitor the keyboard's events."""
         super().__init__()
         self._arpeggiate = params['arpeggiate']
-        self._is_suppressed = False
+        self._suppression = SUPPRESSION_NONE
         # Currently held keys.
         self._down_keys = set()
         # All keys part of the stroke.
@@ -51,7 +56,15 @@ class Keyboard(StenotypeBase):
     def _suppress(self):
         if self._keyboard_capture is None:
             return
-        suppressed_keys = self._bindings.keys() if self._is_suppressed else ()
+        if self._suppression == SUPPRESSION_NONE:
+            # No suppression.
+            suppress_keyboard = False
+            suppressed_keys = ()
+        else:
+            # Partial or full suppression.
+            suppress_keyboard = self._suppression == SUPPRESSION_FULL
+            suppressed_keys = self._bindings.keys()
+        self._keyboard_capture.suppress_keyboard(suppress_keyboard)
         self._keyboard_capture.suppress_keys(suppressed_keys)
 
     def _update_bindings(self):
@@ -90,14 +103,14 @@ class Keyboard(StenotypeBase):
     def stop_capture(self):
         """Stop listening for output from the stenotype machine."""
         if self._keyboard_capture is not None:
-            self._is_suppressed = False
+            self._suppression = SUPPRESSION_NONE
             self._suppress()
             self._keyboard_capture.cancel()
             self._keyboard_capture = None
         self._stopped()
 
-    def set_suppression(self, enabled):
-        self._is_suppressed = enabled
+    def set_suppression(self, mode):
+        self._suppression = mode
         self._suppress()
 
     def suppress_last_stroke(self, send_backspaces):

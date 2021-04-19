@@ -43,7 +43,7 @@ from Quartz import (
     NSSystemDefined,
 )
 
-from plover.key_combo import add_modifiers_aliases, parse_key_combo, KEYNAME_TO_CHAR
+from plover.key_combo import add_modifiers_aliases, KEYNAME_TO_CHAR
 from plover.oslayer.keyboardcontrol_base import KeyboardCaptureBase, KeyboardEmulationBase
 from plover.oslayer.osxkeyboardlayout import KeyboardLayout
 from plover import log
@@ -174,6 +174,7 @@ class KeyboardCapture(threading.Thread, KeyboardCaptureBase):
         self._loop = None
         self._event_queue = Queue()  # Drained by event handler thread.
         self._suppressed_keys = set()
+        self._keyboard_suppressed = False
 
         # Returning the event means that it is passed on
         # for further processing by others.
@@ -210,14 +211,14 @@ class KeyboardCapture(threading.Thread, KeyboardCaptureBase):
                                       kCGEventFlagMaskNonCoalesced)
             has_nonsupressible_modifiers = \
                 CGEventGetFlags(event) & ~suppressible_modifiers
-            if has_nonsupressible_modifiers:
+            if not self._keyboard_suppressed and has_nonsupressible_modifiers:
                 return PASS_EVENT_THROUGH
 
             keycode = CGEventGetIntegerValueField(
                 event, kCGKeyboardEventKeycode)
             key = KEYCODE_TO_KEY.get(keycode)
             self._async_dispatch(key, event_type)
-            if key in self._suppressed_keys:
+            if self._keyboard_suppressed or key in self._suppressed_keys:
                 return SUPPRESS_EVENT
             return PASS_EVENT_THROUGH
 
@@ -264,6 +265,9 @@ class KeyboardCapture(threading.Thread, KeyboardCaptureBase):
     def suppress_keys(self, suppressed_keys=()):
         self._suppressed_keys = set(suppressed_keys)
 
+    def suppress_keyboard(self, suppress):
+        self._keyboard_suppressed = suppress
+
     def _async_dispatch(self, key, event_type):
         """
         Dispatches a key string in KEYCODE_TO_KEY.values() and a CGEventType
@@ -305,6 +309,22 @@ class KeyboardEmulation(KeyboardEmulationBase):
     def __init__(self, params):
         assert not params
         self._layout = KeyboardLayout()
+
+    def translate_key_name(self, key_name):
+        # Static key codes
+        code = KEYNAME_TO_KEYCODE.get(key_name)
+        if code is not None:
+            pass
+        # Dead keys
+        elif key_name.startswith('dead_'):
+            code, mod = self._layout.deadkey_symbol_to_key_sequence(
+                DEADKEY_SYMBOLS.get(key_name)
+            )[0]
+        # Normal keys
+        else:
+            char = KEYNAME_TO_CHAR.get(key_name, key_name)
+            code, mods = self._layout.char_to_key_sequence(char)[0]
+        return code
 
     def cancel(self):
         self._layout.cancel()
@@ -390,41 +410,7 @@ class KeyboardEmulation(KeyboardEmulationBase):
         KeyboardEmulation._set_event_string(event, c)
         CGEventPost(kCGSessionEventTap, event)
 
-    def send_key_combination(self, combo_string):
-        """Emulate a sequence of key combinations.
-
-        Args:
-            combo_string: A string representing a sequence of key
-                combinations. Keys are represented by their names in the
-                Xlib.XK module, without the 'XK_' prefix. For example, the
-                left Alt key is represented by 'Alt_L'. Keys are either
-                separated by a space or a left or right parenthesis.
-                Parentheses must be properly formed in pairs and may be
-                nested. A key immediately followed by a parenthetical
-                indicates that the key is pressed down while all keys enclosed
-                in the parenthetical are pressed and released in turn. For
-                example, Alt_L(Tab) means to hold the left Alt key down, press
-                and release the Tab key, and then release the left Alt key.
-
-        """
-        def name_to_code(name):
-            # Static key codes
-            code = KEYNAME_TO_KEYCODE.get(name)
-            if code is not None:
-                pass
-            # Dead keys
-            elif name.startswith('dead_'):
-                code, mod = self._layout.deadkey_symbol_to_key_sequence(
-                    DEADKEY_SYMBOLS.get(name)
-                )[0]
-            # Normal keys
-            else:
-                char = KEYNAME_TO_CHAR.get(name, name)
-                code, mods = self._layout.char_to_key_sequence(char)[0]
-            return code
-        # Parse and validate combo.
-        key_events = parse_key_combo(combo_string, name_to_code)
-        # Send events...
+    def send_key_combination(self, key_events):
         self._send_sequence(key_events)
 
     @staticmethod

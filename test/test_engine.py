@@ -11,6 +11,9 @@ from plover.machine.base import (
     STATE_INITIALIZING,
     STATE_RUNNING,
     STATE_STOPPED,
+    SUPPRESSION_NONE,
+    SUPPRESSION_PARTIAL,
+    SUPPRESSION_FULL,
     StenotypeBase,
 )
 from plover.machine.keymap import Keymap
@@ -27,7 +30,7 @@ class FakeMachine(StenotypeBase):
     def __init__(self, options):
         super().__init__()
         self.options = options
-        self.is_suppressed = False
+        self.suppression = SUPPRESSION_NONE
 
     @classmethod
     def get_keys(cls):
@@ -43,8 +46,8 @@ class FakeMachine(StenotypeBase):
         FakeMachine.instance = None
         self._stopped()
 
-    def set_suppression(self, enabled):
-        self.is_suppressed = enabled
+    def set_suppression(self, mode):
+        self.suppression = mode
 
 class FakeKeyboardEmulation:
 
@@ -68,6 +71,15 @@ class FakeKeyboardEmulation:
         pass
 
     def send_key_combination(self, c):
+        pass
+
+    def translate_key_name(self, k):
+        return k
+
+    def __enter__(self):
+        pass
+
+    def __exit__(self, type, value, traceback):
         pass
 
 class FakeEngine(StenoEngine):
@@ -127,14 +139,14 @@ def test_engine(engine):
         ('config_changed', (engine.config,), {}),
     ]
     assert FakeMachine.instance is not None
-    assert not FakeMachine.instance.is_suppressed
+    assert FakeMachine.instance.suppression == SUPPRESSION_NONE
     # Output enabled.
     engine.events.clear()
     engine.output = True
     assert engine.events == [
         ('output_changed', (True,), {}),
     ]
-    assert FakeMachine.instance.is_suppressed
+    assert FakeMachine.instance.suppression == SUPPRESSION_PARTIAL
     # Machine reconnection.
     engine.events.clear()
     engine.reset_machine()
@@ -144,7 +156,7 @@ def test_engine(engine):
         ('machine_state_changed', ('Fake', STATE_RUNNING), {}),
     ]
     assert FakeMachine.instance is not None
-    assert FakeMachine.instance.is_suppressed
+    assert FakeMachine.instance.suppression == SUPPRESSION_PARTIAL
     # No machine reset on keymap change.
     engine.events.clear()
     new_keymap = Keymap(system.KEYS, system.KEYS)
@@ -162,7 +174,7 @@ def test_engine(engine):
     assert engine.events == [
         ('output_changed', (False,), {}),
     ]
-    assert not FakeMachine.instance.is_suppressed
+    assert FakeMachine.instance.suppression == SUPPRESSION_NONE
     # Stopped.
     engine.events.clear()
     engine.quit(42)

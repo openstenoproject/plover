@@ -4,6 +4,11 @@ from unittest.mock import MagicMock, call, patch
 import pytest
 
 from plover import system
+from plover.machine.base import (
+    SUPPRESSION_NONE,
+    SUPPRESSION_PARTIAL,
+    SUPPRESSION_FULL,
+)
 from plover.machine.keyboard import Keyboard
 from plover.machine.keymap import Keymap
 from plover.oslayer.keyboardcontrol import KeyboardCapture
@@ -49,15 +54,17 @@ def test_lifecycle(capture, machine, strokes):
     # Start machine.
     machine.start_capture()
     assert capture.mock_calls == [
+        call.suppress_keyboard(False),
         call.suppress_keys(()),
         call.start(),
     ]
     capture.reset_mock()
-    machine.set_suppression(True)
+    machine.set_suppression(SUPPRESSION_PARTIAL)
     suppressed_keys = dict(machine.keymap.get_bindings())
     del suppressed_keys['space']
     assert strokes == []
     assert capture.mock_calls == [
+        call.suppress_keyboard(False),
         call.suppress_keys(suppressed_keys.keys()),
     ]
     # Trigger some strokes.
@@ -73,6 +80,7 @@ def test_lifecycle(capture, machine, strokes):
     machine.stop_capture()
     assert strokes == []
     assert capture.mock_calls == [
+        call.suppress_keyboard(False),
         call.suppress_keys(()),
         call.cancel(),
     ]

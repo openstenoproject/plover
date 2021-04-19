@@ -26,6 +26,11 @@ STATE_RUNNING = _('connected')
 STATE_ERROR = _('disconnected')
 
 
+SUPPRESSION_NONE = 'no suppression'
+SUPPRESSION_PARTIAL = 'partial suppression'
+SUPPRESSION_FULL = 'full suppression'
+
+
 class StenotypeBase:
     """The base class for all Stenotype classes."""
 
@@ -90,11 +95,11 @@ class StenotypeBase:
         for callback in self.stroke_subscribers:
             callback(steno_keys)
 
-    def set_suppression(self, enabled):
+    def set_suppression(self, mode):
         '''Enable keyboard suppression.
 
         This is only of use for the keyboard machine,
-        to suppress the keyboard when then engine is running.
+        to suppress the keyboard when the engine is running.
         '''
         pass
 

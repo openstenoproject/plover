@@ -33,10 +33,19 @@ class KeyboardEmulationBase:
         pass
 
     def send_backspaces(self, number_of_backspaces):
+        '''Emulate the given number of backspaces.'''
         raise NotImplementedError()
 
     def send_string(self, s):
+        '''Emulate the given string.'''
         raise NotImplementedError()
 
     def send_key_combination(self, combo_string):
+        '''Emulate a sequence of key combinations.'''
         raise NotImplementedError()
+
+    def __enter__(self):
+        pass
+
+    def __exit__(self, type, value, traceback):
+        pass

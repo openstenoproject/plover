@@ -32,7 +32,7 @@ from Xlib import X, XK, display
 from Xlib.ext import xinput, xtest
 from Xlib.ext.ge import GenericEventCode
 
-from plover.key_combo import add_modifiers_aliases, parse_key_combo
+from plover.key_combo import add_modifiers_aliases
 from plover.oslayer.keyboardcontrol_base import KeyboardCaptureBase, KeyboardEmulationBase
 from plover import log
 
@@ -215,8 +215,10 @@ class KeyboardCapture(XEventLoop, KeyboardCaptureBase):
         self._window = self._display.screen().root
         if not self._display.has_extension('XInputExtension'):
             raise Exception('Xlib\'s XInput extension is required, but could not be found.')
+        self._keyboard_suppressed = False
         self._suppressed_keys = set()
         self._devices = []
+        self._update_devices()
 
     def _update_devices(self):
         # Find all keyboard devices.
@@ -261,24 +263,23 @@ class KeyboardCapture(XEventLoop, KeyboardCaptureBase):
             return
         # ...or pass it on to a callback method.
         if event.evtype == xinput.KeyPress:
-            # Ignore event if a modifier is set.
-            if modifiers == 0:
+            # Ignore event if a modifier is set and
+            # the whole keyboard is not suppressed.
+            if self._keyboard_suppressed or modifiers == 0:
                 self.key_down(key)
         elif event.evtype == xinput.KeyRelease:
             self.key_up(key)
 
     def start(self):
-        self._update_devices()
         self._window.xinput_select_events([
             (deviceid, XINPUT_EVENT_MASK)
             for deviceid in self._devices
         ])
-        suppressed_keys = self._suppressed_keys
-        self._suppressed_keys = set()
-        self.suppress_keys(suppressed_keys)
         super().start()
 
     def cancel(self):
+        if self._keyboard_suppressed:
+            self.suppress_keyboard(False)
         self.suppress_keys()
         super().cancel()
 
@@ -299,6 +300,17 @@ class KeyboardCapture(XEventLoop, KeyboardCaptureBase):
                                                keycode,
                                                (0, X.Mod2Mask))
 
+    def _grab_device(self, deviceid):
+        self._window.xinput_grab_device(deviceid,
+                                       X.CurrentTime,
+                                       xinput.GrabModeAsync,
+                                       xinput.GrabModeAsync,
+                                       True,
+                                       XINPUT_EVENT_MASK)
+
+    def _ungrab_device(self, deviceid):
+        self._display.xinput_ungrab_device(deviceid, X.CurrentTime)
+
     @with_display_lock
     def suppress_keys(self, suppressed_keys=()):
         suppressed_keys = set(suppressed_keys)
@@ -311,6 +323,16 @@ class KeyboardCapture(XEventLoop, KeyboardCaptureBase):
             self._grab_key(KEY_TO_KEYCODE[key])
             self._suppressed_keys.add(key)
         assert self._suppressed_keys == suppressed_keys
+        self._display.sync()
+
+    @with_display_lock
+    def suppress_keyboard(self, suppress):
+        if self._keyboard_suppressed == suppress:
+            return
+        self._keyboard_suppressed = suppress
+        fn = self._grab_device if suppress else self._ungrab_device
+        for deviceid in self._devices:
+            fn(deviceid)
         self._display.sync()
 
 
@@ -1240,7 +1262,6 @@ class KeyboardEmulation(KeyboardEmulationBase):
         for x in range(number_of_backspaces):
             self._send_keycode(self._backspace_mapping.keycode,
                                self._backspace_mapping.modifiers)
-        self._display.sync()
 
     def send_string(self, s):
         """Emulate the given string.
@@ -1259,39 +1280,11 @@ class KeyboardEmulation(KeyboardEmulationBase):
                 continue
             self._send_keycode(mapping.keycode,
                                mapping.modifiers)
-        self._display.sync()
 
-    def send_key_combination(self, combo_string):
-        """Emulate a sequence of key combinations.
-
-        KeyboardCapture instance would normally detect the emulated
-        key events. In order to prevent this, all KeyboardCapture
-        instances are told to ignore the emulated key events.
-
-        Argument:
-
-        combo_string -- A string representing a sequence of key
-        combinations. Keys are represented by their names in the
-        Xlib.XK module, without the 'XK_' prefix. For example, the
-        left Alt key is represented by 'Alt_L'. Keys are either
-        separated by a space or a left or right parenthesis.
-        Parentheses must be properly formed in pairs and may be
-        nested. A key immediately followed by a parenthetical
-        indicates that the key is pressed down while all keys enclosed
-        in the parenthetical are pressed and released in turn. For
-        example, Alt_L(Tab) means to hold the left Alt key down, press
-        and release the Tab key, and then release the left Alt key.
-
-        """
-        # Parse and validate combo.
-        key_events = [
-            (keycode, X.KeyPress if pressed else X.KeyRelease) for keycode, pressed
-            in parse_key_combo(combo_string, self._get_keycode_from_keystring)
-        ]
-        # Emulate the key combination by sending key events.
-        for keycode, event_type in key_events:
+    def send_key_combination(self, key_events):
+        for keycode, pressed in key_events:
+            event_type = X.KeyPress if pressed else X.KeyRelease
             xtest.fake_input(self._display, event_type, keycode)
-        self._display.sync()
 
     def _send_keycode(self, keycode, modifiers=0):
         """Emulate a key press and release.
@@ -1320,12 +1313,12 @@ class KeyboardEmulation(KeyboardEmulationBase):
         for mod_keycode in reversed(modifiers_list):
             xtest.fake_input(self._display, X.KeyRelease, mod_keycode)
 
-    def _get_keycode_from_keystring(self, keystring):
-        '''Find the physical key <keystring> is mapped to.
+    def translate_key_name(self, key_name):
+        '''Find the physical key <key_name> is mapped to.
 
-        Return None of if keystring is not mapped.
+        Return None of if key is not mapped.
         '''
-        keysym = KEY_TO_KEYSYM.get(keystring)
+        keysym = KEY_TO_KEYSYM.get(key_name)
         if keysym is None:
             return None
         mapping = self._get_mapping(keysym, automatically_map=False)
@@ -1378,3 +1371,8 @@ class KeyboardEmulation(KeyboardEmulationBase):
             self._custom_mappings_queue.append(mapping)
         return mapping
 
+    def __enter__(self):
+        pass
+
+    def __exit__(self, type, value, traceback):
+        self._display.sync()

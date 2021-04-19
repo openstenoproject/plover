@@ -10,6 +10,8 @@ from plover import log, system
 from plover.dictionary.loading_manager import DictionaryLoadingManager
 from plover.exception import DictionaryLoaderException
 from plover.formatting import Formatter
+from plover.key_combo import KeyCombo
+from plover.machine.base import SUPPRESSION_NONE, SUPPRESSION_PARTIAL, SUPPRESSION_FULL
 from plover.misc import shorten_path
 from plover.registry import registry
 from plover.resource import ASSET_SCHEME, resource_filename
@@ -103,6 +105,7 @@ class StenoEngine:
         self._machine_params = MachineParams(None, None, None)
         self._output = None
         self._output_params = OutputParams(None, None)
+        self._key_combo = None
         self._formatter = Formatter()
         self._formatter.set_output(self)
         self._formatter.add_listener(self._on_translated)
@@ -199,12 +202,15 @@ class StenoEngine:
                                      config['output_specific_options'])
         if output_params != self._output_params:
             if self._output is not None:
+                self._clear_key_combo()
+                self._key_combo = None
                 self._output.cancel()
                 self._output = None
             output_class = registry.get_plugin('output', output_params.type).obj
             self._output = output_class(output_params.options)
             self._output.start()
             self._output_params = output_params
+            self._key_combo = KeyCombo(self._output.translate_key_name)
         # Update system.
         system_name = config['system_name']
         if system.NAME != system_name:
@@ -227,8 +233,15 @@ class StenoEngine:
                 self._machine = None
             machine_class = registry.get_plugin('machine', machine_params.type).obj
             log.info('setting machine: %s', machine_params.type)
+            if self._is_running:
+                if self._key_combo:
+                    suppression = SUPPRESSION_FULL
+                else:
+                    suppression = SUPPRESSION_PARTIAL
+            else:
+                suppression = SUPPRESSION_NONE
             self._machine = machine_class(machine_params.options)
-            self._machine.set_suppression(self._is_running)
+            self._machine.set_suppression(suppression)
             self._machine.add_state_callback(self._machine_state_callback)
             self._machine.add_stroke_callback(self._machine_stroke_callback)
             self._machine_params = machine_params
@@ -311,10 +324,13 @@ class StenoEngine:
         self._is_running = enabled
         if enabled:
             self._translator.set_state(self._running_state)
+            suppression = SUPPRESSION_PARTIAL
         else:
+            self._clear_key_combo()
             self._translator.clear_state()
+            suppression = SUPPRESSION_NONE
         if self._machine is not None:
-            self._machine.set_suppression(enabled)
+            self._machine.set_suppression(suppression)
         self._trigger_hook('output_changed', enabled)
 
     def _machine_state_callback(self, machine_state):
@@ -373,23 +389,45 @@ class StenoEngine:
             return
         self._trigger_hook('translated', old, new)
 
-    def send_backspaces(self, b):
-        if not self._is_running:
+    def _clear_key_combo(self):
+        if not self._key_combo:
             return
-        self._output.send_backspaces(b)
-        self._trigger_hook('send_backspaces', b)
+        self._output.send_key_combination(self._key_combo.reset())
+        self._machine.set_suppression(SUPPRESSION_PARTIAL)
 
-    def send_string(self, s):
+    def send_backspaces(self, count):
         if not self._is_running:
             return
-        self._output.send_string(s)
-        self._trigger_hook('send_string', s)
+        with self._output:
+            self._clear_key_combo()
+            self._output.send_backspaces(count)
+        self._trigger_hook('send_backspaces', count)
 
-    def send_key_combination(self, c):
+    def send_string(self, string):
         if not self._is_running:
             return
-        self._output.send_key_combination(c)
-        self._trigger_hook('send_key_combination', c)
+        with self._output:
+            self._clear_key_combo()
+            self._output.send_string(string)
+        self._trigger_hook('send_string', string)
+
+    def send_key_combination(self, combo):
+        if not self._is_running:
+            return
+        with self._output:
+            if combo.startswith('#'):
+                # Continuing combo.
+                combo = combo[1:]
+            elif self._key_combo:
+                # New combo.
+                self._output.send_key_combination(self._key_combo.reset())
+            self._output.send_key_combination(self._key_combo.parse(combo))
+        if self._key_combo:
+            suppression = SUPPRESSION_FULL
+        else:
+            suppression = SUPPRESSION_PARTIAL
+        self._machine.set_suppression(suppression)
+        self._trigger_hook('send_key_combination', combo)
 
     def send_engine_command(self, command):
         suppress = not self._is_running

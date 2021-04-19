@@ -1,5 +1,6 @@
 # -*- coding: utf-8 -*-
 
+from collections import OrderedDict
 import re
 
 
@@ -135,71 +136,109 @@ CHAR_TO_KEYNAME = {
 }
 
 
-_SPLIT_RX = re.compile(r'(\s+|(?:\w+(?:\s*\()?)|.)')
+_SPLIT_RX = re.compile(r'(\s+|[-+]\w+|\w+(?:\s*\()?|.)')
 
-def parse_key_combo(combo_string, key_name_to_key_code=None):
 
-    if key_name_to_key_code is None:
-        key_name_to_key_code = lambda key_name: key_name
+class KeyCombo(object):
 
-    key_events = []
-    down_keys = []
-    token = None
-    count = 0
+    def __init__(self, key_name_to_key_code=None):
+        self._down_keys = OrderedDict()
+        if key_name_to_key_code is None:
+            key_name_to_key_code = lambda key_name: key_name
+        self._key_name_to_key_code = key_name_to_key_code
 
-    def _raise_error(exception, details):
-        msg = '%s in "%s"' % (
-            details,
-            combo_string[:count] +
-            '[' + token + ']' +
-            combo_string[count+len(token):],
-        )
-        raise exception(msg)
+    def __bool__(self):
+        return bool(self._down_keys)
 
-    for token in _SPLIT_RX.split(combo_string):
-        if not token:
-            continue
+    def reset(self):
+        key_events = [
+            (key_code, False)
+            for key_code in self._down_keys
+        ]
+        self._down_keys = OrderedDict()
+        key_events.reverse()
+        return key_events
 
-        if token.isspace():
-            pass
+    def parse(self, combo_string):
 
-        elif re.match(r'\w', token):
+        down_keys = OrderedDict(self._down_keys)
+        key_events = []
+        key_stack = []
+        token = None
+        count = 0
 
-            if token.endswith('('):
-                key_name = token[:-1].rstrip().lower()
-                release = False
-            else:
-                key_name = token.lower()
-                release = True
+        def _raise_error(exception, details):
+            msg = '%s in "%s"' % (
+                details,
+                combo_string[:count] +
+                '[' + token + ']' +
+                combo_string[count+len(token):],
+            )
+            raise exception(msg)
 
-            key_code = key_name_to_key_code(key_name)
-            if key_code is None:
-                _raise_error(ValueError, 'unknown key')
-            elif key_code in down_keys:
-                _raise_error(ValueError, 'key "%s" already pressed' % key_name)
+        for token in _SPLIT_RX.split(combo_string):
+            if not token:
+                continue
 
-            key_events.append((key_code, True))
+            if token[0].isspace():
+                pass
 
-            if release:
+            elif re.match(r'[-+]?\w', token):
+
+                add_to_stack = False
+                if token.startswith('+'):
+                    key_name = token[1:].lower()
+                    press, release = True, False
+                elif token.startswith('-'):
+                    key_name = token[1:].lower()
+                    press, release = False, True
+                elif token.endswith('('):
+                    key_name = token[:-1].rstrip().lower()
+                    press, release = True, False
+                    add_to_stack = True
+                else:
+                    key_name = token.lower()
+                    press, release = True, True
+
+                key_code = self._key_name_to_key_code(key_name)
+                if key_code is None:
+                    _raise_error(ValueError, 'unknown key')
+
+                if press:
+                    if key_code in down_keys:
+                        _raise_error(ValueError, 'key "%s" already pressed' % key_name)
+                    key_events.append((key_code, True))
+                    down_keys[key_code] = True
+
+                if release:
+                    if key_code not in down_keys:
+                        _raise_error(ValueError, 'key "%s" already released' % key_name)
+                    key_events.append((key_code, False))
+                    del down_keys[key_code]
+
+                if add_to_stack:
+                    key_stack.append(key_code)
+
+            elif token == ')':
+                if not key_stack:
+                    _raise_error(SyntaxError, 'unbalanced ")"')
+                key_code = key_stack.pop()
+                if key_code not in down_keys:
+                    _raise_error(ValueError, 'key "%s" already released' % key_name)
                 key_events.append((key_code, False))
+                del down_keys[key_code]
+
             else:
-                down_keys.append(key_code)
+                _raise_error(SyntaxError, 'invalid character "%s"' % token)
 
-        elif token == ')':
-            if not down_keys:
-                _raise_error(SyntaxError, 'unbalanced ")"')
-            key_code = down_keys.pop()
-            key_events.append((key_code, False))
+            count += len(token)
 
-        else:
-            _raise_error(SyntaxError, 'invalid character "%s"' % token)
+        if key_stack:
+            _raise_error(SyntaxError, 'unbalanced "("')
 
-        count += len(token)
+        self._down_keys = down_keys
 
-    if down_keys:
-        _raise_error(SyntaxError, 'unbalanced "("')
-
-    return key_events
+        return key_events
 
 
 def add_modifiers_aliases(dictionary):

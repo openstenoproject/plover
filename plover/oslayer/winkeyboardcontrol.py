@@ -22,7 +22,6 @@ import signal
 import threading
 import winreg
 
-from plover.key_combo import parse_key_combo
 from plover.oslayer.keyboardcontrol_base import KeyboardCaptureBase, KeyboardEmulationBase
 from plover.oslayer.winkeyboardlayout import KeyboardLayout
 from plover import log
@@ -267,6 +266,7 @@ class KeyboardCaptureProcess(multiprocessing.Process):
         self._queue = multiprocessing.Queue()
         self._suppressed_keys_bitmask = multiprocessing.Array(ctypes.c_uint64, (max(SCANCODE_TO_KEY.keys()) + 63) // 64)
         self._suppressed_keys_bitmask[:] = (0xffffffffffffffff,) * len(self._suppressed_keys_bitmask)
+        self._keyboard_suppressed = False
 
     @staticmethod
     def _update_registry():
@@ -336,18 +336,18 @@ class KeyboardCaptureProcess(multiprocessing.Process):
                     passthrough_down_keys.discard(event.vkCode)
             key = SCANCODE_TO_KEY.get(event.scanCode)
             if key is None:
-                # Unhandled, ignore and don't suppress.
-                return False
+                # Unhandled, ignore.
+                return self._keyboard_suppressed
             suppressed = bool(self._suppressed_keys_bitmask[event.scanCode // 64] & (1 << (event.scanCode % 64)))
             if pressed:
-                if passthrough_down_keys:
+                if not self._keyboard_suppressed and passthrough_down_keys:
                     # Modifier(s) pressed, ignore.
                     return False
                 down_keys.add(key)
             else:
                 down_keys.discard(key)
             self._queue.put((None, key, pressed))
-            return suppressed
+            return suppressed or self._keyboard_suppressed
 
         hook_id = None
 
@@ -395,6 +395,9 @@ class KeyboardCaptureProcess(multiprocessing.Process):
             bitmask[code // 64] |= (1 << (code % 64))
         self._suppressed_keys_bitmask[:] = bitmask
 
+    def suppress_keyboard(self, suppress):
+        self._keyboard_suppressed = suppress
+
     def get(self):
         return self._queue.get()
 
@@ -404,13 +407,11 @@ class KeyboardCapture(threading.Thread, KeyboardCaptureBase):
 
     def __init__(self):
         super().__init__()
-        self._suppressed_keys = set()
         self._proc = KeyboardCaptureProcess()
         self._finished = threading.Event()
 
     def start(self):
         self._proc.start()
-        self._proc.suppress_keys(self._suppressed_keys)
         super().start()
 
     def run(self):
@@ -430,8 +431,10 @@ class KeyboardCapture(threading.Thread, KeyboardCaptureBase):
             self.join()
 
     def suppress_keys(self, suppressed_keys=()):
-        self._suppressed_keys = set(suppressed_keys)
-        self._proc.suppress_keys(self._suppressed_keys)
+        self._proc.suppress_keys(suppressed_keys)
+
+    def suppress_keyboard(self, suppress):
+        self._proc.suppress_keyboard(suppress)
 
 
 class KeyboardEmulation(KeyboardEmulationBase):
@@ -513,7 +516,6 @@ class KeyboardEmulation(KeyboardEmulationBase):
             self._key_press('\x08')
 
     def send_string(self, s):
-        self._refresh_keyboard_layout()
         for char in s:
             if char in self.keyboard_layout.char_to_vk_ss:
                 # We know how to simulate the character.
@@ -522,25 +524,15 @@ class KeyboardEmulation(KeyboardEmulationBase):
                 # Otherwise, we send it as a Unicode string.
                 self._key_unicode(char)
 
-    def send_key_combination(self, combo_string):
-        """Emulate a sequence of key combinations.
-        Argument:
-        combo_string -- A string representing a sequence of key
-        combinations. Keys are represented by their names in the
-        self.keyboard_layout.keyname_to_keycode above. For example, the
-        left Alt key is represented by 'Alt_L'. Keys are either
-        separated by a space or a left or right parenthesis.
-        Parentheses must be properly formed in pairs and may be
-        nested. A key immediately followed by a parenthetical
-        indicates that the key is pressed down while all keys enclosed
-        in the parenthetical are pressed and released in turn. For
-        example, Alt_L(Tab) means to hold the left Alt key down, press
-        and release the Tab key, and then release the left Alt key.
-        """
-        # Make sure keyboard layout is up-to-date.
-        self._refresh_keyboard_layout()
-        # Parse and validate combo.
-        key_events = parse_key_combo(combo_string, self.keyboard_layout.keyname_to_vk.get)
-        # Send events...
+    def send_key_combination(self, key_events):
         for keycode, pressed in key_events:
             self._key_event(keycode, pressed)
+
+    def translate_key_name(self, key_name):
+        return self.keyboard_layout.keyname_to_vk.get(key_name)
+
+    def __enter__(self):
+        self._refresh_keyboard_layout()
+
+    def __exit__(self, type, value, traceback):
+        pass
