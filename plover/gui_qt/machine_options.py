@@ -1,7 +1,7 @@
 from copy import copy
 
 from PyQt5.QtCore import QVariant, pyqtSignal
-from PyQt5.QtWidgets import QWidget
+from PyQt5.QtWidgets import QWidget, QCompleter, QComboBox
 from PyQt5.QtGui import QStandardItemModel, QStandardItem
 
 from serial import Serial
@@ -25,6 +25,7 @@ class SerialOption(QWidget, Ui_SerialWidget):
 
         self.ports = QStandardItemModel()
         self.port.setModel(self.ports)
+        self.port.setInsertPolicy(QComboBox.NoInsert)
 
         self._value = {}
 
@@ -68,17 +69,22 @@ class SerialOption(QWidget, Ui_SerialWidget):
 
     def on_scan(self):
         self.ports.clear()
+        completion_list = []
         for port in comports():
             port_item = QStandardItem(str(port))
             port_item.setData(port.device)
             self.ports.appendRow(port_item)
+            completion_list.append(port.device)
+        self.port.setCompleter(QCompleter(completion_list))
 
     def on_port_changed(self, value):
         port_item = self.ports.item(self.port.currentIndex())
-        if port_item:
+        if port_item and value == port_item.text():
             port = port_item.data()
-            self.port.setCurrentText(port)
-            self._update('port', port)
+        else:
+            port = value
+        self.port.setCurrentText(port)
+        self._update('port', port)
 
     def on_baudrate_changed(self, value):
         self._update('baudrate', int(value))
