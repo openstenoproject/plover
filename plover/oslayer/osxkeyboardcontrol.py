@@ -46,7 +46,7 @@ from Quartz import (
 from plover.key_combo import add_modifiers_aliases, parse_key_combo, KEYNAME_TO_CHAR
 from plover.oslayer.keyboardcontrol_base import KeyboardCaptureBase, KeyboardEmulationBase
 from plover.oslayer.osxkeyboardlayout import KeyboardLayout
-import plover.log
+from plover import log
 
 
 BACK_SPACE = 51
@@ -197,9 +197,9 @@ class KeyboardCapture(threading.Thread, KeyboardCaptureBase):
                 if event_type == kCGEventTapDisabledByTimeout:
                     # Re-enable the tap and hope we act faster next time
                     CGEventTapEnable(self._tap, True)
-                    plover.log.warning(
-                        "Keystrokes may have been missed. "
-                        + "Keyboard event tap has been re-enabled. ")
+                    log.warning(
+                        "Keystrokes may have been missed, "
+                        + "keyboard event tap has been re-enabled.")
                 return SUPPRESS_EVENT
 
             # Don't intercept the event if it has modifiers, allow
