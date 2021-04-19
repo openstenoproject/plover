@@ -166,17 +166,17 @@ def enabled_extensions_option():
         return set(value)
     return json_option('enabled_extensions', lambda c, k: set(), 'Plugins', 'enabled_extensions', validate)
 
-def machine_specific_options():
+def plugin_specific_options(name, base_option, plugin_type):
     def full_key(config, key):
         if isinstance(key, tuple):
             assert len(key) == 2
             return key
-        return (key, config['machine_type'])
+        return (key, config[base_option])
     def default(config, key):
-        machine_class = registry.get_plugin('machine', key[1]).obj
+        plugin_class = registry.get_plugin(plugin_type, key[1]).obj
         return {
-            name: params[0]
-            for name, params in machine_class.get_option_info().items()
+            option_name: params[0]
+            for option_name, params in plugin_class.get_option_info().items()
         }
     def getter(config, key):
         return config._config[key[1]]
@@ -185,26 +185,26 @@ def machine_specific_options():
     def validate(config, key, raw_options):
         if not isinstance(raw_options, (dict, configparser.SectionProxy)):
             raise InvalidConfigOption(raw_options, default(config, key))
-        machine_options = OrderedDict()
+        plugin_options = OrderedDict()
         invalid_options = OrderedDict()
-        machine_class = registry.get_plugin('machine', key[1]).obj
-        for name, params in sorted(machine_class.get_option_info().items()):
+        plugin_class = registry.get_plugin(plugin_type, key[1]).obj
+        for option_name, params in sorted(plugin_class.get_option_info().items()):
             fallback, convert = params
             try:
-                raw_value = raw_options[name]
+                raw_value = raw_options[option_name]
             except KeyError:
                 value = fallback
             else:
                 try:
                     value = convert(raw_value)
                 except ValueError:
-                    invalid_options[name] = raw_value
+                    invalid_options[option_name] = raw_value
                     value = fallback
-            machine_options[name] = value
+            plugin_options[option_name] = value
         if invalid_options:
-            raise InvalidConfigOption(invalid_options, machine_options)
-        return machine_options
-    return ConfigOption('machine_specific_options', default, getter, setter, validate, full_key)
+            raise InvalidConfigOption(invalid_options, plugin_options)
+        return plugin_options
+    return ConfigOption(name, default, getter, setter, validate, full_key)
 
 def system_keymap_option():
     def full_key(config, key):
@@ -345,7 +345,7 @@ class Config:
         # Machine.
         boolean_option('auto_start', False, MACHINE_CONFIG_SECTION),
         plugin_option('machine_type', 'machine', 'Keyboard', MACHINE_CONFIG_SECTION),
-        machine_specific_options(),
+        plugin_specific_options('machine_specific_options', 'machine_type', 'machine'),
         # System.
         plugin_option('system_name', 'system', DEFAULT_SYSTEM_NAME, 'System', 'name'),
         system_keymap_option(),
