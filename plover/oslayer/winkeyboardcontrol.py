@@ -23,6 +23,7 @@ import threading
 import winreg
 
 from plover.key_combo import parse_key_combo
+from plover.oslayer.keyboardcontrol_base import KeyboardCaptureBase, KeyboardEmulationBase
 from plover.oslayer.winkeyboardlayout import KeyboardLayout
 from plover import log
 from plover.misc import to_surrogate_pair
@@ -398,14 +399,12 @@ class KeyboardCaptureProcess(multiprocessing.Process):
         return self._queue.get()
 
 
-class KeyboardCapture(threading.Thread):
+class KeyboardCapture(threading.Thread, KeyboardCaptureBase):
     """Listen to all keyboard events."""
 
     def __init__(self):
         super().__init__()
         self._suppressed_keys = set()
-        self.key_down = lambda key: None
-        self.key_up = lambda key: None
         self._proc = KeyboardCaptureProcess()
         self._finished = threading.Event()
 
@@ -435,7 +434,7 @@ class KeyboardCapture(threading.Thread):
         self._proc.suppress_keyboard(self._suppressed_keys)
 
 
-class KeyboardEmulation:
+class KeyboardEmulation(KeyboardEmulationBase):
 
     def __init__(self):
         self.keyboard_layout = KeyboardLayout()

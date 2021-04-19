@@ -43,8 +43,9 @@ from Quartz import (
     NSSystemDefined,
 )
 
-from plover.oslayer.osxkeyboardlayout import KeyboardLayout
 from plover.key_combo import add_modifiers_aliases, parse_key_combo, KEYNAME_TO_CHAR
+from plover.oslayer.keyboardcontrol_base import KeyboardCaptureBase, KeyboardEmulationBase
+from plover.oslayer.osxkeyboardlayout import KeyboardLayout
 import plover.log
 
 
@@ -163,7 +164,7 @@ def keycode_needs_fn_mask(keycode):
         and keycode not in MODIFIER_KEYS_TO_MASKS
     )
 
-class KeyboardCapture(threading.Thread):
+class KeyboardCapture(threading.Thread, KeyboardCaptureBase):
     """Implementation of KeyboardCapture for OSX."""
 
     _KEYBOARD_EVENTS = {kCGEventKeyDown, kCGEventKeyUp}
@@ -172,10 +173,7 @@ class KeyboardCapture(threading.Thread):
         threading.Thread.__init__(self, name="KeyboardEventTapThread")
         self._loop = None
         self._event_queue = Queue()  # Drained by event handler thread.
-
         self._suppressed_keys = set()
-        self.key_down = lambda key: None
-        self.key_up = lambda key: None
 
         # Returning the event means that it is passed on
         # for further processing by others.
@@ -300,7 +298,7 @@ class KeyboardCapture(threading.Thread):
             handler(key)
 
 
-class KeyboardEmulation:
+class KeyboardEmulation(KeyboardEmulationBase):
 
     RAW_PRESS, STRING_PRESS = range(2)
 

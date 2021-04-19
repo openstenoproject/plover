@@ -33,6 +33,7 @@ from Xlib.ext import xinput, xtest
 from Xlib.ext.ge import GenericEventCode
 
 from plover.key_combo import add_modifiers_aliases, parse_key_combo
+from plover.oslayer.keyboardcontrol_base import KeyboardCaptureBase, KeyboardEmulationBase
 from plover import log
 
 
@@ -207,19 +208,15 @@ class XEventLoop(threading.Thread):
             os.close(fd)
 
 
-class KeyboardCapture(XEventLoop):
-    """Listen to keyboard press and release events."""
+class KeyboardCapture(XEventLoop, KeyboardCaptureBase):
 
     def __init__(self):
-        """Prepare to listen for keyboard events."""
         super().__init__(name='capture')
         self._window = self._display.screen().root
         if not self._display.has_extension('XInputExtension'):
             raise Exception('Xlib\'s XInput extension is required, but could not be found.')
         self._suppressed_keys = set()
         self._devices = []
-        self.key_down = lambda key: None
-        self.key_up = lambda key: None
 
     def _update_devices(self):
         # Find all keyboard devices.
@@ -1135,8 +1132,7 @@ def keysym_to_string(keysym):
     return chr(code)
 
 
-class KeyboardEmulation:
-    """Emulate keyboard events."""
+class KeyboardEmulation(KeyboardEmulationBase):
 
     class Mapping:
 

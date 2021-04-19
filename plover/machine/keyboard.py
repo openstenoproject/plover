@@ -23,7 +23,15 @@ class Keyboard(StenotypeBase):
 
     """
 
-    KEYS_LAYOUT = KeyboardCapture.SUPPORTED_KEYS_LAYOUT
+    KEYS_LAYOUT = '''
+    Escape  F1 F2 F3 F4  F5 F6 F7 F8  F9 F10 F11 F12
+
+      `  1  2  3  4  5  6  7  8  9  0  -  =  \\ BackSpace  Insert Home Page_Up
+     Tab  q  w  e  r  t  y  u  i  o  p  [  ]               Delete End  Page_Down
+           a  s  d  f  g  h  j  k  l  ;  '      Return
+            z  x  c  v  b  n  m  ,  .  /                          Up
+                     space                                   Left Down Right
+    '''
     ACTIONS = ('arpeggiate',)
 
     def __init__(self, params):
