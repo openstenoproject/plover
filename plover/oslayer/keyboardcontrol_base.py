@@ -19,6 +19,19 @@ class KeyboardCaptureBase:
 class KeyboardEmulationBase:
     """Emulate keyboard events."""
 
+    @classmethod
+    def get_option_info(cls):
+        return {}
+
+    def __init__(self, params):
+        pass
+
+    def start(self):
+        pass
+
+    def cancel(self):
+        pass
+
     def send_backspaces(self, number_of_backspaces):
         raise NotImplementedError()
 

@@ -30,10 +30,12 @@ class Registry:
         'extension',
         'gui',
         'gui.qt.machine_option',
+        'gui.qt.output_option',
         'gui.qt.tool',
         'machine',
         'macro',
         'meta',
+        'output',
         'system',
     )
 

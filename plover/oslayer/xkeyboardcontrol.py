@@ -1158,9 +1158,15 @@ class KeyboardEmulation(KeyboardEmulationBase):
     # Free unused keysym.
     UNUSED_KEYSYM = 0xffffff # XK_VoidSymbol
 
-    def __init__(self):
+    def __init__(self, params):
         """Prepare to emulate keyboard events."""
+        assert not params
         self._display = display.Display()
+        self._backspace_mapping = None
+        self._custom_mappings_queue = []
+        self._keymap = {}
+
+    def start(self):
         self._update_keymap()
 
     def _update_keymap(self):

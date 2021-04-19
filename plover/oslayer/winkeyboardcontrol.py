@@ -436,7 +436,8 @@ class KeyboardCapture(threading.Thread, KeyboardCaptureBase):
 
 class KeyboardEmulation(KeyboardEmulationBase):
 
-    def __init__(self):
+    def __init__(self, params):
+        assert not params
         self.keyboard_layout = KeyboardLayout()
 
     # Sends input types to buffer

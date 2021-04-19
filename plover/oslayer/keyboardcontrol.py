@@ -40,7 +40,7 @@ if __name__ == '__main__':
     import time
 
     kc = KeyboardCapture()
-    ke = KeyboardEmulation()
+    ke = KeyboardEmulation({})
 
     pressed = set()
     status = u'pressed: '
@@ -62,9 +62,11 @@ if __name__ == '__main__':
     kc.key_up = lambda k: test(k, u'released')
     kc.suppress_keyboard('a s d f'.split())
     kc.start()
+    ke.start()
     print('Press CTRL-c to quit.')
     try:
         while True:
             time.sleep(1)
     except KeyboardInterrupt:
+        ke.cancel()
         kc.cancel()

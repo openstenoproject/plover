@@ -1,7 +1,5 @@
 from threading import Event
 
-from plover.oslayer.keyboardcontrol import KeyboardEmulation
-
 from plover.gui_none.engine import Engine
 
 
@@ -10,7 +8,7 @@ def show_error(title, message):
 
 
 def main(config):
-    engine = Engine(config, KeyboardEmulation())
+    engine = Engine(config)
     if not engine.load_config():
         return 3
     quitting = Event()

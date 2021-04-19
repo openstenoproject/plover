@@ -23,6 +23,7 @@ from plover.config import DictionaryConfig
 from plover.machine.keyboard import Keyboard
 from plover.machine.keymap import Keymap
 from plover.misc import expand_path
+from plover.oslayer.keyboardcontrol import KeyboardEmulation
 from plover.registry import Registry
 from plover.system import english_stenotype
 
@@ -115,6 +116,7 @@ DEFAULTS = {
     'start_attached': False,
     'start_capitalized': False,
     'undo_levels': config.DEFAULT_UNDO_LEVELS,
+    'output_type': 'Keyboard Emulation',
     'log_file_name': expand_path('strokes.log'),
     'enable_stroke_logging': False,
     'enable_translation_logging': False,
@@ -460,6 +462,7 @@ def test_config(original_contents, original_config,
     registry = Registry()
     registry.register_plugin('machine', 'Keyboard', Keyboard)
     registry.register_plugin('machine', 'Faky faky', FakeMachine)
+    registry.register_plugin('output', 'Keyboard Emulation', KeyboardEmulation)
     registry.register_plugin('system', 'English Stenotype', english_stenotype)
     registry.register_plugin('system', 'Faux système', FakeSystem)
     monkeypatch.setattr('plover.config.registry', registry)
