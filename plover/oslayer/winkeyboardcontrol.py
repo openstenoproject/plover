@@ -22,8 +22,6 @@ import signal
 import threading
 import winreg
 
-from ctypes import windll, wintypes
-
 from plover.key_combo import parse_key_combo
 from plover.oslayer.winkeyboardlayout import KeyboardLayout
 from plover import log
