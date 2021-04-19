@@ -388,7 +388,7 @@ class KeyboardCaptureProcess(multiprocessing.Process):
         # Wake up capture thread, so it gets a chance to check if it must stop.
         self._queue.put((None, None, None))
 
-    def suppress_keyboard(self, suppressed_keys):
+    def suppress_keys(self, suppressed_keys):
         bitmask = [0] * len(self._suppressed_keys_bitmask)
         for key in suppressed_keys:
             code = KEY_TO_SCANCODE[key]
@@ -410,7 +410,7 @@ class KeyboardCapture(threading.Thread, KeyboardCaptureBase):
 
     def start(self):
         self._proc.start()
-        self._proc.suppress_keyboard(self._suppressed_keys)
+        self._proc.suppress_keys(self._suppressed_keys)
         super().start()
 
     def run(self):
@@ -429,9 +429,9 @@ class KeyboardCapture(threading.Thread, KeyboardCaptureBase):
         if self.is_alive():
             self.join()
 
-    def suppress_keyboard(self, suppressed_keys=()):
+    def suppress_keys(self, suppressed_keys=()):
         self._suppressed_keys = set(suppressed_keys)
-        self._proc.suppress_keyboard(self._suppressed_keys)
+        self._proc.suppress_keys(self._suppressed_keys)
 
 
 class KeyboardEmulation(KeyboardEmulationBase):

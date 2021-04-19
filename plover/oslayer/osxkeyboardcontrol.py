@@ -261,7 +261,7 @@ class KeyboardCapture(threading.Thread, KeyboardCaptureBase):
         self.join()
         self._loop = None
 
-    def suppress_keyboard(self, suppressed_keys=()):
+    def suppress_keys(self, suppressed_keys=()):
         self._suppressed_keys = set(suppressed_keys)
 
     def _async_dispatch(self, key, event_type):

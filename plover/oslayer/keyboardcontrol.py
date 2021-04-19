@@ -60,7 +60,7 @@ if __name__ == '__main__':
 
     kc.key_down = lambda k: test(k, u'pressed')
     kc.key_up = lambda k: test(k, u'released')
-    kc.suppress_keyboard('a s d f'.split())
+    kc.suppress_keys('a s d f'.split())
     kc.start()
     ke.start()
     print('Press CTRL-c to quit.')

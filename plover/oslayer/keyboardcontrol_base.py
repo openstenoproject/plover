@@ -12,7 +12,7 @@ class KeyboardCaptureBase:
     def cancel(self):
         pass
 
-    def suppress_keyboard(self, suppressed_keys=()):
+    def suppress_keys(self, suppressed_keys=()):
         raise NotImplementedError()
 
 
