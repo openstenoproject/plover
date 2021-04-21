@@ -1,4 +1,5 @@
 from functools import partial
+from unittest.mock import MagicMock
 import os
 import tempfile
 
@@ -15,6 +16,7 @@ from plover.machine.base import (
 )
 from plover.machine.keymap import Keymap
 from plover.misc import normalize_path
+from plover.oslayer.controller import Controller
 from plover.registry import Registry
 from plover.steno_dictionary import StenoDictionaryCollection
 
@@ -86,6 +88,7 @@ def engine(monkeypatch):
     registry.register_plugin('machine', 'Fake', FakeMachine)
     monkeypatch.setattr('plover.config.registry', registry)
     monkeypatch.setattr('plover.engine.registry', registry)
+    ctrl = MagicMock(spec=Controller)
     kbd = FakeKeyboardEmulation()
     cfg_file = tempfile.NamedTemporaryFile(prefix='plover',
                                            suffix='config',
@@ -97,7 +100,7 @@ def engine(monkeypatch):
         cfg['machine_type'] = 'Fake'
         cfg['system_keymap'] = [(k, k) for k in system.KEYS]
         cfg.save()
-        yield FakeEngine(cfg, kbd)
+        yield FakeEngine(cfg, ctrl, kbd)
     finally:
         os.unlink(cfg_file.name)
 
@@ -115,6 +118,9 @@ def test_engine(engine):
     ]
     assert FakeMachine.instance is not None
     assert not FakeMachine.instance.is_suppressed
+    assert len(engine._controller.mock_calls) == 1
+    engine._controller.start.assert_called_once()
+    engine._controller.reset_mock()
     # Output enabled.
     engine.events.clear()
     engine.output = True
@@ -159,6 +165,8 @@ def test_engine(engine):
         ('quit', (), {}),
     ]
     assert FakeMachine.instance is None
+    assert len(engine._controller.mock_calls) == 1
+    engine._controller.stop.assert_called_once()
 
 def test_loading_dictionaries(tmp_path, engine):
     def check_loaded_events(actual_events, expected_events):

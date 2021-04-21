@@ -9,8 +9,8 @@ def show_error(title, message):
     print('%s: %s' % (title, message))
 
 
-def main(config):
-    engine = Engine(config, KeyboardEmulation())
+def main(config, controller):
+    engine = Engine(config, controller, KeyboardEmulation())
     if not engine.load_config():
         return 3
     quitting = Event()
