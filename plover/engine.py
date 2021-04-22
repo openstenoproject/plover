@@ -101,7 +101,12 @@ class StenoEngine:
         self._machine_state = None
         self._machine_params = MachineParams(None, None, None)
         self._formatter = Formatter()
-        self._formatter.set_output(self)
+        self._formatter.set_output(Formatter.output_type(
+            self._send_backspaces,
+            self._send_string,
+            self._send_key_combination,
+            self._send_engine_command,
+        ))
         self._formatter.add_listener(self._on_translated)
         self._translator = Translator()
         self._translator.add_listener(log.translation)
@@ -361,25 +366,25 @@ class StenoEngine:
             return
         self._trigger_hook('translated', old, new)
 
-    def send_backspaces(self, b):
+    def _send_backspaces(self, b):
         if not self._is_running:
             return
         self._keyboard_emulation.send_backspaces(b)
         self._trigger_hook('send_backspaces', b)
 
-    def send_string(self, s):
+    def _send_string(self, s):
         if not self._is_running:
             return
         self._keyboard_emulation.send_string(s)
         self._trigger_hook('send_string', s)
 
-    def send_key_combination(self, c):
+    def _send_key_combination(self, c):
         if not self._is_running:
             return
         self._keyboard_emulation.send_key_combination(c)
         self._trigger_hook('send_key_combination', c)
 
-    def send_engine_command(self, command):
+    def _send_engine_command(self, command):
         suppress = not self._is_running
         suppress &= self._consume_engine_command(command)
         if suppress:
