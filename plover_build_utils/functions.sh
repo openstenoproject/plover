@@ -253,10 +253,9 @@ git_tree_sha1()
 release_prepare()
 {
   [ $# -eq 1 ] || die 1 'expecting one argument: the new version'
-  version="$("$python" setup.py --version)"
   run "$python" setup.py patch_version "$1"
   run git add plover/__init__.py
-  run towncrier --version="$version" --yes
+  run towncrier --version="$1" --yes
 }
 
 release_finalize()
