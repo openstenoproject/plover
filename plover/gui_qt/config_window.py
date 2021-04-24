@@ -149,6 +149,7 @@ class KeymapOption(QTableWidget):
         self.horizontalHeader().setStretchLastSection(True)
         self.verticalHeader().hide()
         self.setVerticalScrollBarPolicy(Qt.ScrollBarAlwaysOff)
+        self.setTabKeyNavigation(False)
         self.cellChanged.connect(self._on_cell_changed)
 
     def setValue(self, value):
@@ -215,6 +216,7 @@ class MultipleChoicesOption(QTableWidget):
         self.horizontalHeader().setStretchLastSection(True)
         self.verticalHeader().hide()
         self.setVerticalScrollBarPolicy(Qt.ScrollBarAlwaysOff)
+        self.setTabKeyNavigation(False)
         self.cellChanged.connect(self._on_cell_changed)
 
     def setValue(self, value):

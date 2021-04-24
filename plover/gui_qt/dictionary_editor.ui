@@ -80,6 +80,9 @@
      <property name="frameShape">
       <enum>QFrame::Box</enum>
      </property>
+     <property name="tabKeyNavigation">
+      <bool>false</bool>
+     </property>
      <property name="showDropIndicator" stdset="0">
       <bool>true</bool>
      </property>
