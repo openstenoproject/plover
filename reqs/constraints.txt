@@ -49,6 +49,7 @@ pyserial==3.5
 pytest==6.2.2
 python-xlib==0.29; "linux" in sys_platform
 pytz==2021.1
+PyYAML==5.4.1
 readme-renderer==29.0
 requests==2.25.1
 requests-cache==0.5.2
