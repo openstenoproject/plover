@@ -8,7 +8,8 @@ import pytest
 from plover.dictionary.rtfcre_dict import RtfDictionary, format_translation
 from plover.steno import normalize_steno
 
-from . import parametrize
+from plover_build_utils.testing import parametrize
+
 from .utils import make_dict
 
 

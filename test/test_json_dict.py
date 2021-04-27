@@ -10,8 +10,9 @@ import pytest
 
 from plover.dictionary.json_dict import JsonDictionary
 
+from plover_build_utils.testing import parametrize
+
 from .utils import make_dict
-from . import parametrize
 
 
 LOAD_TESTS = (

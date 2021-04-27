@@ -5,7 +5,7 @@
 
 from plover.steno import normalize_steno, Stroke
 
-from . import parametrize
+from plover_build_utils.testing import parametrize
 
 
 NORMALIZE_TESTS = (

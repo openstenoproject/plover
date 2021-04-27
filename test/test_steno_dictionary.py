@@ -11,8 +11,6 @@ import pytest
 
 from plover.steno_dictionary import StenoDictionary, StenoDictionaryCollection
 
-from . import parametrize
-
 
 def test_dictionary():
     notifications = []

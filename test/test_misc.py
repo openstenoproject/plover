@@ -13,7 +13,7 @@ import plover.misc as misc
 import plover.oslayer.config as conf
 from plover.resource import ASSET_SCHEME
 
-from . import parametrize
+from plover_build_utils.testing import parametrize
 
 
 def test_popcount_8():

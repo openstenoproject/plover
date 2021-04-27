@@ -8,7 +8,7 @@ from plover.command.set_config import set_config
 from plover.config import Config, DictionaryConfig
 from test.test_config import DEFAULTS, DEFAULT_KEYMAP
 
-from . import parametrize
+from plover_build_utils.testing import parametrize
 
 
 class FakeEngine:
