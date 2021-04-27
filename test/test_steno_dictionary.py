@@ -3,10 +3,6 @@
 
 """Unit tests for steno_dictionary.py."""
 
-import os
-import stat
-import tempfile
-
 import pytest
 
 from plover.steno_dictionary import StenoDictionary, StenoDictionaryCollection
@@ -293,6 +289,15 @@ def test_dictionary_readonly_file(tmp_dict):
         # Deleting the file will fail on Windows
         # if we don't restore write permission.
         tmp_dict.chmod(0o660)
+
+def test_dictionary_readonly_class(tmp_dict):
+    # If the class implementation is marked as read-only,
+    # then loading from a writable file should still
+    # result in a read-only dictionary.
+    class ReadOnlyFakeDictionary(FakeDictionary):
+        readonly = True
+    d = ReadOnlyFakeDictionary.load(str(tmp_dict))
+    assert d.readonly
 
 def test_dictionary_readonly_asset():
     # Assets are always readonly.
