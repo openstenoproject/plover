@@ -259,27 +259,42 @@ def test_dictionary_enabled():
     assert dc.reverse_lookup('Testing') == set()
 
 
-def test_dictionary_readonly():
-    class FakeDictionary(StenoDictionary):
-        def _load(self, filename):
-            pass
-        def _save(self):
-            raise NotImplementedError
-    tf = tempfile.NamedTemporaryFile(delete=False)
+class FakeDictionary(StenoDictionary):
+
+    def _load(self, filename):
+        pass
+
+    def _save(self):
+        raise NotImplementedError
+
+
+@pytest.fixture
+def tmp_dict(tmp_path):
+    tf = tmp_path / 'dict.json'
     try:
-        tf.close()
-        d = FakeDictionary.load(tf.name)
-        # Writable file: not readonly.
-        assert not d.readonly
-        # Readonly file: readonly dictionary.
-        os.chmod(tf.name, stat.S_IREAD)
-        d = FakeDictionary.load(tf.name)
+        tf.write_text('{}')
+        yield tf
+    finally:
+        tf.unlink()
+
+
+def test_dictionary_writable(tmp_dict):
+    d = FakeDictionary.load(str(tmp_dict))
+    # Writable file: not readonly.
+    assert not d.readonly
+
+def test_dictionary_readonly_file(tmp_dict):
+    # Readonly file: readonly dictionary.
+    tmp_dict.chmod(0o440)
+    try:
+        d = FakeDictionary.load(str(tmp_dict))
         assert d.readonly
     finally:
         # Deleting the file will fail on Windows
         # if we don't restore write permission.
-        os.chmod(tf.name, stat.S_IWRITE)
-        os.unlink(tf.name)
+        tmp_dict.chmod(0o660)
+
+def test_dictionary_readonly_asset():
     # Assets are always readonly.
     d = FakeDictionary.load('asset:plover:assets/main.json')
     assert d.readonly
