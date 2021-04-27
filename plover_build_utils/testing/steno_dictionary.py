@@ -40,14 +40,6 @@ class _DictionaryTests:
             for k, v in ast.literal_eval('{' + entries + '}').items()
         }
 
-    def test_readonly_writable_file(self, tmp_path):
-        '''
-        Writable file: match class read-only attribute.
-        '''
-        with self.sample_dict(tmp_path) as dict_path:
-            d = self.DICT_CLASS.load(str(dict_path))
-            assert d.readonly == self.DICT_CLASS.readonly
-
     def test_readonly_readonly_file(self, tmp_path):
         '''
         Read-only file: read-only dictionary.
@@ -180,16 +172,6 @@ class _DictionaryTests:
 
 
 class _ReadOnlyDictionaryTests:
-
-    def test_readonly_readonly_class(self, tmp_path):
-        '''
-        If the class implementation is marked as read-only,
-        then loading from a writable file should still
-        result in a read-only dictionary.
-        '''
-        with self.sample_dict(tmp_path) as dict_path:
-            d = self.DICT_CLASS.load(str(dict_path))
-        assert d.readonly
 
     def test_readonly_no_create_allowed(self, tmp_path):
         '''
