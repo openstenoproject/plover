@@ -10,9 +10,7 @@ import pytest
 
 from plover.dictionary.json_dict import JsonDictionary
 
-from plover_build_utils.testing import parametrize
-
-from .utils import make_dict
+from plover_build_utils.testing import make_dict, parametrize
 
 
 LOAD_TESTS = (
@@ -33,15 +31,15 @@ LOAD_TESTS = (
 )
 
 @parametrize(LOAD_TESTS)
-def test_load_dictionary(contents, expected):
+def test_load_dictionary(tmp_path, contents, expected):
     if isinstance(contents, str):
         contents = contents.encode('utf-8')
-    with make_dict(contents) as filename:
+    with make_dict(tmp_path, contents) as filename:
         if inspect.isclass(expected):
             with pytest.raises(expected):
-                JsonDictionary.load(filename)
+                JsonDictionary.load(str(filename))
         else:
-            d = JsonDictionary.load(filename)
+            d = JsonDictionary.load(str(filename))
             assert dict(d.items()) == expected
 
 
@@ -64,9 +62,9 @@ SAVE_TESTS = (
 )
 
 @parametrize(SAVE_TESTS)
-def test_save_dictionary(contents, expected):
-    with make_dict(b'foo') as filename:
-        d = JsonDictionary.create(filename)
+def test_save_dictionary(tmp_path, contents, expected):
+    with make_dict(tmp_path, b'foo') as filename:
+        d = JsonDictionary.create(str(filename))
         d.update(contents)
         d.save()
         with open(filename, 'rb') as fp:

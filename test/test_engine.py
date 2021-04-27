@@ -14,10 +14,11 @@ from plover.machine.base import (
     StenotypeBase,
 )
 from plover.machine.keymap import Keymap
+from plover.misc import normalize_path
 from plover.registry import Registry
 from plover.steno_dictionary import StenoDictionaryCollection
 
-from .utils import make_dict
+from plover_build_utils.testing import make_dict
 
 
 class FakeMachine(StenotypeBase):
@@ -159,7 +160,7 @@ def test_engine(engine):
     ]
     assert FakeMachine.instance is None
 
-def test_loading_dictionaries(engine):
+def test_loading_dictionaries(tmp_path, engine):
     def check_loaded_events(actual_events, expected_events):
         assert len(actual_events) == len(expected_events)
         for n, event in enumerate(actual_events):
@@ -174,10 +175,14 @@ def test_loading_dictionaries(engine):
                 for d in event_args[0].dicts
             ] == expected_events[n], msg
     with \
-            make_dict(b'{}', 'json', 'valid1') as valid_dict_1, \
-            make_dict(b'{}', 'json', 'valid2') as valid_dict_2, \
-            make_dict(b'', 'json', 'invalid1') as invalid_dict_1, \
-            make_dict(b'', 'json', 'invalid2') as invalid_dict_2:
+            make_dict(tmp_path, b'{}', 'json', 'valid1') as valid_dict_1, \
+            make_dict(tmp_path, b'{}', 'json', 'valid2') as valid_dict_2, \
+            make_dict(tmp_path, b'', 'json', 'invalid1') as invalid_dict_1, \
+            make_dict(tmp_path, b'', 'json', 'invalid2') as invalid_dict_2:
+        valid_dict_1 = normalize_path(str(valid_dict_1))
+        valid_dict_2 = normalize_path(str(valid_dict_2))
+        invalid_dict_1 = normalize_path(str(invalid_dict_1))
+        invalid_dict_2 = normalize_path(str(invalid_dict_2))
         engine.start()
         for new_dictionaries, *expected_events in (
             # Load one valid dictionary.

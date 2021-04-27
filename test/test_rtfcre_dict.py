@@ -8,9 +8,7 @@ import pytest
 from plover.dictionary.rtfcre_dict import RtfDictionary, format_translation
 from plover.steno import normalize_steno
 
-from plover_build_utils.testing import parametrize
-
-from .utils import make_dict
+from plover_build_utils.testing import make_dict, parametrize
 
 
 RTF_LOAD_TESTS = (
@@ -204,7 +202,7 @@ RTF_LOAD_TESTS = (
 )
 
 @parametrize(RTF_LOAD_TESTS, arity=1)
-def test_rtf_load(test_case):
+def test_rtf_load(tmp_path, test_case):
     if isinstance(test_case, tuple):
         # Translation conversion test.
         rtf_entries = r'{\*\cxs S}' + test_case[0]
@@ -234,10 +232,9 @@ def test_rtf_load(test_case):
         + rtf_entries
         + '\r\n}'
     )
-    with make_dict(rtf.encode('cp1252')) as filename:
-        d = RtfDictionary.load(filename)
+    with make_dict(tmp_path, rtf.encode('cp1252')) as filename:
+        d = RtfDictionary.load(str(filename))
         assert dict(d.items()) == dict_entries
-
 
 
 @parametrize((
@@ -259,9 +256,9 @@ def test_format_translation(before, expected):
      b'{\\*\\cxs S///T}pre\\cxds \r\n}\r\n'
     ),
 ))
-def test_save_dictionary(contents, expected):
-    with make_dict(b'foo') as filename:
-        d = RtfDictionary.create(filename)
+def test_save_dictionary(tmp_path, contents, expected):
+    with make_dict(tmp_path, b'foo') as filename:
+        d = RtfDictionary.create(str(filename))
         d.update(contents)
         d.save()
         with open(filename, 'rb') as fp:
