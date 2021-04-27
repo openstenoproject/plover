@@ -44,6 +44,7 @@ pyobjc-framework-Cocoa==7.1; "darwin" in sys_platform
 pyobjc-framework-Quartz==7.1; "darwin" in sys_platform
 pyparsing==2.4.7
 PyQt5==5.15.4
+PyQt5-Qt5==5.15.2
 PyQt5-sip==12.8.1
 pyserial==3.5
 pytest==6.2.2
