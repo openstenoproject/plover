@@ -77,6 +77,7 @@ class _DictionaryTests:
     @pytest.mark.parametrize('method_name, args', (
         ('__delitem__', (VALID_KEY,)),
         ('__setitem__', (VALID_KEY, 'pouet!')),
+        ('clear'      , ()),
         ('save'       , ()),
         ('update'     , ()),
     ))

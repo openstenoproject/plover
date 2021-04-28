@@ -96,6 +96,7 @@ class StenoDictionary:
         return self._dict.__getitem__(key)
 
     def clear(self):
+        assert not self.readonly
         self._dict.clear()
         self.reverse.clear()
         self.casereverse.clear()
