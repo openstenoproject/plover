@@ -6,6 +6,7 @@ from os.path import split as os_path_split
 from PyQt5.QtCore import QEvent, QTimer
 from PyQt5.QtWidgets import QApplication, QWidget
 
+from plover import _
 from plover.misc import shorten_path
 from plover.steno import normalize_steno, sort_steno_strokes
 from plover.engine import StartingStrokeState
@@ -13,7 +14,7 @@ from plover.translation import escape_translation, unescape_translation
 from plover.formatting import RetroFormatter
 from plover.resource import resource_filename
 
-from plover.gui_qt.add_translation_widget_ui import _, Ui_AddTranslationWidget
+from plover.gui_qt.add_translation_widget_ui import Ui_AddTranslationWidget
 
 
 class AddTranslationWidget(QWidget, Ui_AddTranslationWidget):

@@ -12,10 +12,11 @@ from PyQt5.QtWidgets import (
     QMenu,
 )
 
+from plover import _
 from plover.suggestions import Suggestion
 from plover.formatting import RetroFormatter
 
-from plover.gui_qt.suggestions_dialog_ui import _, Ui_SuggestionsDialog
+from plover.gui_qt.suggestions_dialog_ui import Ui_SuggestionsDialog
 from plover.gui_qt.utils import ToolBar
 from plover.gui_qt.tool import Tool
 

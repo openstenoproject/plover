@@ -11,9 +11,9 @@ from PyQt5.QtWidgets import (
 
 from wcwidth import wcwidth
 
-from plover import system
+from plover import _, system
 
-from plover.gui_qt.paper_tape_ui import _, Ui_PaperTape
+from plover.gui_qt.paper_tape_ui import Ui_PaperTape
 from plover.gui_qt.utils import ToolBar
 from plover.gui_qt.tool import Tool
 

@@ -14,11 +14,12 @@ from PyQt5.QtWidgets import (
     QStyledItemDelegate,
 )
 
+from plover import _
 from plover.translation import escape_translation, unescape_translation
 from plover.misc import expand_path, shorten_path
 from plover.steno import normalize_steno
 
-from plover.gui_qt.dictionary_editor_ui import _, Ui_DictionaryEditor
+from plover.gui_qt.dictionary_editor_ui import Ui_DictionaryEditor
 from plover.gui_qt.utils import ToolBar, WindowState
 
 

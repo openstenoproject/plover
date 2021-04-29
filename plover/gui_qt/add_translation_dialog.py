@@ -1,4 +1,6 @@
-from plover.gui_qt.add_translation_dialog_ui import _, Ui_AddTranslationDialog
+from plover import _
+
+from plover.gui_qt.add_translation_dialog_ui import Ui_AddTranslationDialog
 from plover.gui_qt.tool import Tool
 
 
