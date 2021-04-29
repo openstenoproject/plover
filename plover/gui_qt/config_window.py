@@ -25,11 +25,12 @@ from PyQt5.QtWidgets import (
     QWidget,
 )
 
+from plover import _
 from plover.config import MINIMUM_UNDO_LEVELS
 from plover.misc import expand_path, shorten_path
 from plover.registry import registry
 
-from plover.gui_qt.config_window_ui import _, Ui_ConfigWindow
+from plover.gui_qt.config_window_ui import Ui_ConfigWindow
 from plover.gui_qt.config_file_widget_ui import Ui_FileWidget
 from plover.gui_qt.utils import WindowState
 

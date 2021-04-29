@@ -5,9 +5,10 @@ from PyQt5.QtGui import (
 )
 from PyQt5.QtWidgets import QWidget
 
+from plover import _
 from plover.translation import escape_translation
 
-from plover.gui_qt.suggestions_widget_ui import _, Ui_SuggestionsWidget
+from plover.gui_qt.suggestions_widget_ui import Ui_SuggestionsWidget
 
 
 class SuggestionsWidget(QWidget, Ui_SuggestionsWidget):

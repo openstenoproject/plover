@@ -18,15 +18,15 @@ from PyQt5.QtWidgets import (
     QWidget,
 )
 
+from plover import _
 from plover.config import DictionaryConfig
 from plover.dictionary.base import create_dictionary
 from plover.engine import ErroredDictionary
 from plover.misc import normalize_path
 from plover.oslayer.config import CONFIG_DIR
 from plover.registry import registry
-from plover import log
 
-from plover.gui_qt.dictionaries_widget_ui import _, Ui_DictionariesWidget
+from plover.gui_qt.dictionaries_widget_ui import Ui_DictionariesWidget
 from plover.gui_qt.dictionary_editor import DictionaryEditor
 from plover.gui_qt.utils import ToolBar
 
