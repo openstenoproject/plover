@@ -62,8 +62,9 @@ class StenoDictionary:
         timestamp = resource_timestamp(filename)
         d = cls()
         d._load(filename)
-        if resource.startswith(ASSET_SCHEME) or \
-           not os.access(filename, os.W_OK):
+        if (cls.readonly or
+            resource.startswith(ASSET_SCHEME) or
+            not os.access(filename, os.W_OK)):
             d.readonly = True
         d.path = resource
         d.timestamp = timestamp

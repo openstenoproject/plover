@@ -40,6 +40,14 @@ class _DictionaryTests:
             for k, v in ast.literal_eval('{' + entries + '}').items()
         }
 
+    def test_readonly_writable_file(self, tmp_path):
+        '''
+        Writable file: match class read-only attribute.
+        '''
+        with self.sample_dict(tmp_path) as dict_path:
+            d = self.DICT_CLASS.load(str(dict_path))
+            assert d.readonly == self.DICT_CLASS.readonly
+
     def test_readonly_readonly_file(self, tmp_path):
         '''
         Read-only file: read-only dictionary.
