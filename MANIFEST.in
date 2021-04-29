@@ -4,8 +4,6 @@ include CONTRIBUTING.md
 include LICENSE.txt
 include NEWS.md
 include doc/*
-include launch.bat
-include launch.sh
 include linux/*
 include linux/appimage/*
 include news.d/api/*
@@ -25,8 +23,6 @@ include plover/messages/plover.pot
 include plover_build_utils/*.sh
 include pyproject.toml
 include reqs/*.txt
-include test.bat
-include test.sh
 include test/__init__.py
 include test/utils.py
 include tox.ini
@@ -34,7 +30,6 @@ include windows/*
 # Exclude: CI/Git/GitHub specific files,
 # as well as generated Python files (UI).
 exclude .gitignore
-exclude archlinux/.gitignore
 exclude plover/gui_qt/*_rc.py
 exclude plover/gui_qt/*_ui.py
 exclude plover/gui_qt/.gitignore
