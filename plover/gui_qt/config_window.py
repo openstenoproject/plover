@@ -404,9 +404,11 @@ class ConfigWindow(QDialog, Ui_ConfigWindow, WindowState):
             frame = QFrame()
             frame.setLayout(layout)
             frame.setAccessibleName(section)
+            frame.setFocusProxy(option_list[0].widget)
             scroll_area = QScrollArea()
             scroll_area.setWidgetResizable(True)
             scroll_area.setWidget(frame)
+            scroll_area.setFocusProxy(frame)
             self.tabs.addTab(scroll_area, section)
         # Update dependents.
         for option in option_by_name.values():
@@ -417,6 +419,7 @@ class ConfigWindow(QDialog, Ui_ConfigWindow, WindowState):
         buttons = self.findChild(QWidget, 'buttons')
         buttons.button(QDialogButtonBox.Ok).clicked.connect(self.on_apply)
         buttons.button(QDialogButtonBox.Apply).clicked.connect(self.on_apply)
+        self.tabs.currentWidget().setFocus()
         self.restore_state()
         self.finished.connect(self.save_state)
 
