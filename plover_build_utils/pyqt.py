@@ -25,11 +25,17 @@ def gettext(contents):
     def repl(m):
         gd = m.groupdict()
         comment = '{ws}# i18n: Widget: “{widget}”'.format(**gd)
-        if gd['type']:
-            comment += ", {type}".format(type=gd['type'].lower())
+        field = gd['field']
+        if field:
+            field = ' '.join(
+                word.lower()
+                for word in re.split(r'([A-Z][a-z_0-9]+)', field)
+                if word
+            )
+            comment += ", {field}".format(field=field)
         comment += '.'
         return '{comment}\n{ws}{pre1}{pre2}_('.format(comment=comment, **gd)
-    contents = re.sub((r'(?P<ws> *)(?P<pre1>.*?)(?P<pre2>\.set(?P<type>\w+)\()?'
+    contents = re.sub((r'(?P<ws> *)(?P<pre1>.*?)(?P<pre2>\.set(?P<field>\w+)\()?'
                        r'\b_translate\("(?P<widget>.*)",\s'), repl, contents)
     assert re.search(r'\b_translate\(', contents) is None
     return contents
