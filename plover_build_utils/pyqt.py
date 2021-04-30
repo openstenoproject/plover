@@ -34,6 +34,7 @@ def gettext(contents):
             )
             comment += ", {field}".format(field=field)
         comment += '.'
+        gd['pre2'] = gd['pre2'] or ''
         return '{comment}\n{ws}{pre1}{pre2}_('.format(comment=comment, **gd)
     contents = re.sub((r'(?P<ws> *)(?P<pre1>.*?)(?P<pre2>\.set(?P<field>\w+)\()?'
                        r'\b_translate\("(?P<widget>.*)",\s'), repl, contents)
