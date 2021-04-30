@@ -416,9 +416,8 @@ class ConfigWindow(QDialog, Ui_ConfigWindow, WindowState):
                 (option_by_name[option_name], update_fn)
                 for option_name, update_fn in option.dependents
             ]
-        buttons = self.findChild(QWidget, 'buttons')
-        buttons.button(QDialogButtonBox.Ok).clicked.connect(self.on_apply)
-        buttons.button(QDialogButtonBox.Apply).clicked.connect(self.on_apply)
+        self.buttons.button(QDialogButtonBox.Ok).clicked.connect(self.on_apply)
+        self.buttons.button(QDialogButtonBox.Apply).clicked.connect(self.on_apply)
         self.tabs.currentWidget().setFocus()
         self.restore_state()
         self.finished.connect(self.save_state)
