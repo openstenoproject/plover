@@ -278,6 +278,7 @@ class ConfigOption:
         self.dependents = dependents
         self.layout = None
         self.widget = None
+        self.label = None
 
 
 class ConfigWindow(QDialog, Ui_ConfigWindow, WindowState):
@@ -389,28 +390,28 @@ class ConfigWindow(QDialog, Ui_ConfigWindow, WindowState):
             self._supported_options.update(option.option_name for option in option_list)
         self._update_config()
         # Create and fill tabs.
-        options = {}
+        option_by_name = {}
         for section, option_list in mappings:
             layout = QFormLayout()
             for option in option_list:
-                widget = self._create_option_widget(option)
-                options[option.option_name] = option
-                option.tab_index = self.tabs.count()
+                option_by_name[option.option_name] = option
                 option.layout = layout
-                option.widget = widget
-                label = QLabel(option.display_name)
-                label.setToolTip(option.help_text)
-                layout.addRow(label, widget)
+                option.widget = self._create_option_widget(option)
+                option.label = QLabel(option.display_name)
+                option.label.setToolTip(option.help_text)
+                option.label.setBuddy(option.widget)
+                layout.addRow(option.label, option.widget)
             frame = QFrame()
             frame.setLayout(layout)
+            frame.setAccessibleName(section)
             scroll_area = QScrollArea()
             scroll_area.setWidgetResizable(True)
             scroll_area.setWidget(frame)
             self.tabs.addTab(scroll_area, section)
         # Update dependents.
-        for option in options.values():
+        for option in option_by_name.values():
             option.dependents = [
-                (options[option_name], update_fn)
+                (option_by_name[option_name], update_fn)
                 for option_name, update_fn in option.dependents
             ]
         buttons = self.findChild(QWidget, 'buttons')
@@ -459,6 +460,8 @@ class ConfigWindow(QDialog, Ui_ConfigWindow, WindowState):
     def _create_option_widget(self, option):
         widget = option.widget_class()
         widget.setToolTip(option.help_text)
+        widget.setAccessibleName(option.display_name)
+        widget.setAccessibleDescription(option.help_text)
         widget.valueChanged.connect(partial(self.on_option_changed, option))
         widget.setValue(self._config[option.option_name])
         return widget
@@ -478,6 +481,7 @@ class ConfigWindow(QDialog, Ui_ConfigWindow, WindowState):
             self._config.maps[1][dependent.option_name] = update_fn(value)
             widget = self._create_option_widget(dependent)
             dependent.layout.replaceWidget(dependent.widget, widget)
+            dependent.label.setBuddy(widget)
             dependent.widget.deleteLater()
             dependent.widget = widget
 
