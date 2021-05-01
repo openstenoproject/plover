@@ -1,6 +1,3 @@
-
-import sys
-
 from PyQt5.QtCore import (
     QThread,
     QVariant,
@@ -8,6 +5,7 @@ from PyQt5.QtCore import (
 )
 
 from plover.engine import StenoEngine
+from plover.oslayer.config import PLATFORM
 
 
 class Engine(StenoEngine, QThread):
@@ -50,7 +48,7 @@ class Engine(StenoEngine, QThread):
         return self.code
 
     def run(self):
-        if sys.platform.startswith('darwin'):
+        if PLATFORM == 'mac':
             import appnope
             appnope.nope()
         super().run()

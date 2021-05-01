@@ -6,7 +6,6 @@
 
 import inspect
 import os
-import sys
 
 import pytest
 
@@ -26,7 +25,7 @@ def test_popcount_8():
         misc.popcount_8(-1)
 
 
-if sys.platform.startswith('win32'):
+if conf.PLATFORM == 'win':
     ABS_PATH = os.path.normcase(r'c:\foo\bar')
 else:
     ABS_PATH = '/foo/bar'

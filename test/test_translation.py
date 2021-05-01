@@ -6,19 +6,19 @@
 from collections import namedtuple
 import copy
 import operator
-import sys
 
+from plover.oslayer.config import PLATFORM
+from plover.steno import Stroke, normalize_steno
 from plover.steno_dictionary import StenoDictionary, StenoDictionaryCollection
 from plover.translation import Translation, Translator, _State
 from plover.translation import escape_translation, unescape_translation
-from plover.steno import Stroke, normalize_steno
 
 from plover_build_utils.testing import steno_to_stroke as stroke
 
 from . import parametrize
 
 
-if sys.platform.startswith('darwin'):
+if PLATFORM == 'mac':
     BACK_STRING = '{#Alt_L(BackSpace)}{^}'
 else:
     BACK_STRING = '{#Control_L(BackSpace)}{^}'

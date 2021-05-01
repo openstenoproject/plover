@@ -11,7 +11,7 @@ import traceback
 from logging.handlers import RotatingFileHandler
 from logging import DEBUG, INFO, WARNING, ERROR
 
-from plover.oslayer.config import CONFIG_DIR
+from plover.oslayer.config import CONFIG_DIR, PLATFORM
 
 
 LOG_FORMAT = '%(asctime)s [%(threadName)s] %(levelname)s: %(message)s'
@@ -84,13 +84,13 @@ class Logger:
             return
         handler_class = None
         try:
-            if sys.platform.startswith('linux'):
+            if PLATFORM == 'linux':
                 from plover.oslayer.log_dbus import DbusNotificationHandler
                 handler_class = DbusNotificationHandler
-            elif sys.platform.startswith('darwin'):
+            elif PLATFORM == 'mac':
                 from plover.oslayer.log_osx import OSXNotificationHandler
                 handler_class = OSXNotificationHandler
-            elif sys.platform.startswith('win32'):
+            elif PLATFORM == 'win':
                 from plover.oslayer.log_plyer import PlyerNotificationHandler
                 handler_class = PlyerNotificationHandler
         except Exception:
