@@ -54,6 +54,12 @@
       <layout class="QGridLayout" name="gridLayout_2">
        <item row="2" column="0">
         <widget class="QLabel" name="machine_state">
+         <property name="accessibleName">
+          <string>State</string>
+         </property>
+         <property name="accessibleDescription">
+          <string>Connection state for the current machine.</string>
+         </property>
          <property name="text">
           <string/>
          </property>
@@ -68,6 +74,12 @@
           </sizepolicy>
          </property>
          <property name="toolTip">
+          <string>Disconnect and reconnect the machine.</string>
+         </property>
+         <property name="accessibleName">
+          <string>Reconnect</string>
+         </property>
+         <property name="accessibleDescription">
           <string>Disconnect and reconnect the machine.</string>
          </property>
          <property name="text">
@@ -86,6 +98,12 @@
            <horstretch>0</horstretch>
            <verstretch>0</verstretch>
           </sizepolicy>
+         </property>
+         <property name="accessibleName">
+          <string>Type</string>
+         </property>
+         <property name="accessibleDescription">
+          <string>Change the current machine type.</string>
          </property>
         </widget>
        </item>
