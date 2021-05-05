@@ -26,6 +26,7 @@ def _load_wordlist(filename, assets_dir):
         pairs = [word.strip().rsplit(' ', 1) for word in f]
         pairs.sort(reverse=True, key=lambda x: int(x[1]))
         words = {p[0]: int(p[1]) for p in pairs}
+    assert len(pairs) == len(words), path + ' contains duplicate words.'
     return words
 
 def _key_order(keys, numbers):
