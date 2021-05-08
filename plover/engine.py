@@ -276,6 +276,10 @@ class StenoEngine:
             log.info('starting `%s` extension', extension_name)
             try:
                 extension = registry.get_plugin('extension', extension_name).obj(self)
+            except KeyError:
+                # Plugin not installed, skip.
+                continue
+            try:
                 extension.start()
             except Exception:
                 log.error('initializing extension `%s` failed', extension_name, exc_info=True)
