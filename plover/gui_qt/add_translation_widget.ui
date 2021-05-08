@@ -31,6 +31,16 @@
    </property>
    <item>
     <layout class="QFormLayout" name="formLayout">
+     <item row="0" column="0">
+      <widget class="QLabel" name="label_3">
+       <property name="text">
+        <string>Dictionary:</string>
+       </property>
+       <property name="buddy">
+        <cstring>dictionary</cstring>
+       </property>
+      </widget>
+     </item>
      <item row="1" column="0">
       <widget class="QLabel" name="label">
        <property name="sizePolicy">
@@ -42,6 +52,9 @@
        <property name="text">
         <string>Strokes:</string>
        </property>
+       <property name="buddy">
+        <cstring>strokes</cstring>
+       </property>
       </widget>
      </item>
      <item row="1" column="1">
@@ -51,6 +64,9 @@
          <horstretch>0</horstretch>
          <verstretch>0</verstretch>
         </sizepolicy>
+       </property>
+       <property name="accessibleName">
+        <string>Strokes</string>
        </property>
       </widget>
      </item>
@@ -65,6 +81,9 @@
        <property name="text">
         <string>Translation:</string>
        </property>
+       <property name="buddy">
+        <cstring>translation</cstring>
+       </property>
       </widget>
      </item>
      <item row="2" column="1">
@@ -75,17 +94,19 @@
          <verstretch>0</verstretch>
         </sizepolicy>
        </property>
-      </widget>
-     </item>
-     <item row="0" column="0">
-      <widget class="QLabel" name="label_3">
-       <property name="text">
-        <string>Dictionary:</string>
+       <property name="accessibleName">
+        <string>Translation</string>
        </property>
       </widget>
      </item>
      <item row="0" column="1">
       <widget class="QComboBox" name="dictionary">
+       <property name="accessibleName">
+        <string>Dictionary</string>
+       </property>
+       <property name="accessibleDescription">
+        <string>Select the target dictionary for the new translation.</string>
+       </property>
        <property name="editable">
         <bool>false</bool>
        </property>
@@ -94,51 +115,58 @@
     </layout>
    </item>
    <item>
-    <widget class="QLabel" name="strokes_info">
+    <widget class="QTextEdit" name="strokes_info">
      <property name="sizePolicy">
       <sizepolicy hsizetype="MinimumExpanding" vsizetype="MinimumExpanding">
        <horstretch>0</horstretch>
        <verstretch>0</verstretch>
       </sizepolicy>
      </property>
+     <property name="accessibleName">
+      <string>Existing mappings (strokes)</string>
+     </property>
      <property name="frameShape">
       <enum>QFrame::Box</enum>
      </property>
-     <property name="text">
-      <string/>
-     </property>
-     <property name="wordWrap">
-      <bool>true</bool>
-     </property>
      <property name="textInteractionFlags">
       <set>Qt::LinksAccessibleByMouse|Qt::TextSelectableByMouse</set>
+     </property>
+     <property name="text" stdset="0">
+      <string/>
      </property>
     </widget>
    </item>
    <item>
-    <widget class="QLabel" name="translation_info">
+    <widget class="QTextEdit" name="translation_info">
      <property name="sizePolicy">
       <sizepolicy hsizetype="MinimumExpanding" vsizetype="MinimumExpanding">
        <horstretch>0</horstretch>
        <verstretch>0</verstretch>
       </sizepolicy>
      </property>
+     <property name="accessibleName">
+      <string>Existing mappings (translations)</string>
+     </property>
      <property name="frameShape">
       <enum>QFrame::Box</enum>
      </property>
-     <property name="text">
-      <string/>
-     </property>
-     <property name="wordWrap">
-      <bool>true</bool>
-     </property>
      <property name="textInteractionFlags">
       <set>Qt::LinksAccessibleByMouse|Qt::TextSelectableByMouse</set>
+     </property>
+     <property name="text" stdset="0">
+      <string/>
      </property>
     </widget>
    </item>
   </layout>
  </widget>
+ <tabstops>
+  <tabstop>strokes</tabstop>
+  <tabstop>translation</tabstop>
+  <tabstop>strokes_info</tabstop>
+  <tabstop>translation_info</tabstop>
+  <tabstop>dictionary</tabstop>
+ </tabstops>
  <resources/>
  <connections>
   <connection>
