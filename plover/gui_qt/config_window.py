@@ -16,6 +16,7 @@ from PyQt5.QtWidgets import (
     QFileDialog,
     QFormLayout,
     QFrame,
+    QGroupBox,
     QLabel,
     QScrollArea,
     QSpinBox,
@@ -89,7 +90,7 @@ class ChoiceOption(QComboBox):
         self.valueChanged.emit(self.itemData(index))
 
 
-class FileOption(QWidget, Ui_FileWidget):
+class FileOption(QGroupBox, Ui_FileWidget):
 
     valueChanged = pyqtSignal(str)
 

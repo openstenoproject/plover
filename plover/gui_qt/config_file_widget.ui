@@ -21,7 +21,14 @@
   </property>
   <layout class="QVBoxLayout" name="verticalLayout">
    <item>
-    <widget class="QLineEdit" name="path"/>
+    <widget class="QLineEdit" name="path">
+     <property name="accessibleName">
+      <string>Log file path.</string>
+     </property>
+     <property name="accessibleDescription">
+      <string>Path to the log file.</string>
+     </property>
+    </widget>
    </item>
    <item>
     <widget class="QPushButton" name="pushButton">
@@ -30,6 +37,12 @@
        <horstretch>0</horstretch>
        <verstretch>0</verstretch>
       </sizepolicy>
+     </property>
+     <property name="accessibleName">
+      <string>Browse.</string>
+     </property>
+     <property name="accessibleDescription">
+      <string>Open a file picker to select the log file.</string>
      </property>
      <property name="text">
       <string>Browse</string>
