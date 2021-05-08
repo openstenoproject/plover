@@ -1,7 +1,7 @@
 from copy import copy
 
 from PyQt5.QtCore import QVariant, pyqtSignal
-from PyQt5.QtWidgets import QGroupBox, QWidget
+from PyQt5.QtWidgets import QGroupBox
 
 from serial import Serial
 from serial.tools.list_ports import comports
@@ -96,7 +96,7 @@ class SerialOption(QGroupBox, Ui_SerialWidget):
         self._update('rtscts', value)
 
 
-class KeyboardOption(QWidget, Ui_KeyboardWidget):
+class KeyboardOption(QGroupBox, Ui_KeyboardWidget):
 
     valueChanged = pyqtSignal(QVariant)
 
