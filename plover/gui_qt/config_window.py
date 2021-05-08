@@ -119,7 +119,36 @@ class FileOption(QGroupBox, Ui_FileWidget):
         self.valueChanged.emit(expand_path(self.path.text()))
 
 
-class KeymapOption(QTableWidget):
+class TableOption(QTableWidget):
+
+    def __init__(self):
+        super().__init__()
+        self.horizontalHeader().setStretchLastSection(True)
+        self.setSelectionMode(self.SingleSelection)
+        self.setTabKeyNavigation(False)
+        self.setVerticalScrollBarPolicy(Qt.ScrollBarAlwaysOff)
+        self.verticalHeader().hide()
+        self.currentItemChanged.connect(self._on_current_item_changed)
+
+    def _on_current_item_changed(self, current, previous):
+        # Ensure current item is visible.
+        parent = self.parent()
+        while parent is not None:
+            if isinstance(parent, QScrollArea):
+                row = current.row()
+                pos = self.pos()
+                x = pos.x()
+                y = (
+                    + pos.y()
+                    + self.rowViewportPosition(row)
+                    + self.rowHeight(row)
+                )
+                parent.ensureVisible(x, y)
+                return
+            parent = parent.parent()
+
+
+class KeymapOption(TableOption):
 
     valueChanged = pyqtSignal(QVariant)
 
@@ -148,10 +177,6 @@ class KeymapOption(QTableWidget):
             # i18n: Widget: “KeymapOption”.
             _('Action'),
         ))
-        self.horizontalHeader().setStretchLastSection(True)
-        self.verticalHeader().hide()
-        self.setVerticalScrollBarPolicy(Qt.ScrollBarAlwaysOff)
-        self.setTabKeyNavigation(False)
         self.cellChanged.connect(self._on_cell_changed)
 
     def setValue(self, value):
@@ -190,7 +215,7 @@ class KeymapOption(QTableWidget):
         self.valueChanged.emit(self._value)
 
 
-class MultipleChoicesOption(QTableWidget):
+class MultipleChoicesOption(TableOption):
 
     valueChanged = pyqtSignal(QVariant)
 
@@ -215,10 +240,6 @@ class MultipleChoicesOption(QTableWidget):
         }
         self.setColumnCount(2)
         self.setHorizontalHeaderLabels(labels)
-        self.horizontalHeader().setStretchLastSection(True)
-        self.verticalHeader().hide()
-        self.setVerticalScrollBarPolicy(Qt.ScrollBarAlwaysOff)
-        self.setTabKeyNavigation(False)
         self.cellChanged.connect(self._on_cell_changed)
 
     def setValue(self, value):
