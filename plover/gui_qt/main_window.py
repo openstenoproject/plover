@@ -173,7 +173,7 @@ class MainWindow(QMainWindow, Ui_MainWindow, WindowState):
                 if manage_windows and previous_window is not None:
                     wmctrl.SetForegroundWindow(previous_window)
             dialog.finished.connect(on_finished)
-        dialog.show()
+        dialog.showNormal()
         dialog.activateWindow()
         dialog.raise_()
 
