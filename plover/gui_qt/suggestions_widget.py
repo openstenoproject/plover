@@ -3,15 +3,13 @@ from PyQt5.QtGui import (
     QTextCursor,
     QTextCharFormat,
 )
-from PyQt5.QtWidgets import QWidget
+from PyQt5.QtWidgets import QTextEdit
 
 from plover import _
 from plover.translation import escape_translation
 
-from plover.gui_qt.suggestions_widget_ui import Ui_SuggestionsWidget
 
-
-class SuggestionsWidget(QWidget, Ui_SuggestionsWidget):
+class SuggestionsWidget(QTextEdit):
 
     STYLE_TRANSLATION, STYLE_STROKES = range(2)
 
@@ -23,15 +21,15 @@ class SuggestionsWidget(QWidget, Ui_SuggestionsWidget):
 
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
-        self.setupUi(self)
+        self.setReadOnly(True)
         self._translation_char_format = QTextCharFormat()
         self._strokes_char_format = QTextCharFormat()
         self._strokes_char_format.font().setStyleHint(QFont.Monospace)
 
     def append(self, suggestion_list):
-        scrollbar = self.suggestions.verticalScrollBar()
+        scrollbar = self.verticalScrollBar()
         scroll_at_end = scrollbar.value() == scrollbar.maximum()
-        cursor = self.suggestions.textCursor()
+        cursor = self.textCursor()
         cursor.movePosition(QTextCursor.End)
         for suggestion in suggestion_list:
             cursor.insertBlock()
@@ -52,12 +50,9 @@ class SuggestionsWidget(QWidget, Ui_SuggestionsWidget):
         if scroll_at_end:
             scrollbar.setValue(scrollbar.maximum())
 
-    def clear(self):
-        self.suggestions.clear()
-
     def _reformat(self):
-        document = self.suggestions.document()
-        cursor = self.suggestions.textCursor()
+        document = self.document()
+        cursor = self.textCursor()
         block = document.begin()
         style_format = {
             self.STYLE_TRANSLATION: self._translation_char_format,
