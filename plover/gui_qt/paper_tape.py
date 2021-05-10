@@ -107,7 +107,8 @@ class TapeModel(QAbstractListModel):
 
 class PaperTape(Tool, Ui_PaperTape):
 
-    ''' Paper tape display of strokes. '''
+    # i18n: Widget: “PaperTape”, tooltip.
+    __doc__ = _('Paper tape display of strokes.')
 
     TITLE = _('Paper Tape')
     ICON = ':/tape.svg'
