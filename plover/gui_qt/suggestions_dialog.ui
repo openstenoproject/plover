@@ -23,7 +23,11 @@
   </property>
   <layout class="QVBoxLayout" name="verticalLayout">
    <item>
-    <widget class="SuggestionsWidget" name="suggestions" native="true"/>
+    <widget class="SuggestionsWidget" name="suggestions" native="true">
+     <property name="accessibleName">
+      <string>Suggestions</string>
+     </property>
+    </widget>
    </item>
   </layout>
   <action name="action_Clear">
