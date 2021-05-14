@@ -173,7 +173,7 @@ class MainWindow(QMainWindow, Ui_MainWindow, WindowState):
                 if manage_windows and previous_window is not None:
                     wmctrl.SetForegroundWindow(previous_window)
             dialog.finished.connect(on_finished)
-        dialog.show()
+        dialog.showNormal()
         dialog.activateWindow()
         dialog.raise_()
 
@@ -184,7 +184,7 @@ class MainWindow(QMainWindow, Ui_MainWindow, WindowState):
                               manage_windows=manage_windows)
 
     def _focus(self):
-        self.set_visible(True)
+        self.showNormal()
         self.activateWindow()
         self.raise_()
 
