@@ -5,14 +5,14 @@
 
 """Global lock to ensure plover only runs once."""
 
-import sys
+from plover.oslayer.config import PLATFORM
 
 
 class LockNotAcquiredException(Exception):
     pass
 
 
-if sys.platform.startswith('win32'):
+if PLATFORM == 'win':
 
     from ctypes import windll
 

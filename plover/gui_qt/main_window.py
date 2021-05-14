@@ -14,7 +14,7 @@ from PyQt5.QtWidgets import (
 
 from plover import _, log
 from plover.oslayer import wmctrl
-from plover.oslayer.config import CONFIG_DIR
+from plover.oslayer.config import CONFIG_DIR, PLATFORM
 from plover.registry import registry
 from plover.resource import resource_filename
 
@@ -243,11 +243,11 @@ class MainWindow(QMainWindow, Ui_MainWindow, WindowState):
         self._configure()
 
     def on_open_config_folder(self):
-        if sys.platform.startswith('win'):
+        if PLATFORM == 'win':
             os.startfile(CONFIG_DIR)
-        elif sys.platform.startswith('linux'):
+        elif PLATFORM == 'linux':
             subprocess.call(['xdg-open', CONFIG_DIR])
-        elif sys.platform.startswith('darwin'):
+        elif PLATFORM == 'mac':
             subprocess.call(['open', CONFIG_DIR])
 
     def on_reconnect(self):

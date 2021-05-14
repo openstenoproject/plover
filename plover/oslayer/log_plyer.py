@@ -1,16 +1,15 @@
 import os
-import sys
 import logging
 
 from plyer import notification
 
 from plover import log, __name__ as __software_name__
-from plover.oslayer.config import ASSETS_DIR
+from plover.oslayer.config import ASSETS_DIR, PLATFORM
 
 
 APPNAME = __software_name__.capitalize()
 
-if sys.platform.startswith('win32'):
+if PLATFORM == 'win':
     APPICON = os.path.join(ASSETS_DIR, 'plover.ico')
 else:
     APPICON = os.path.join(ASSETS_DIR, 'plover_32x32.png')

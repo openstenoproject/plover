@@ -14,12 +14,9 @@ import traceback
 
 import pkg_resources
 
-if sys.platform.startswith('darwin'):
-    import appnope
-
 from plover.config import Config
 from plover.oslayer import processlock
-from plover.oslayer.config import CONFIG_DIR, CONFIG_FILE
+from plover.oslayer.config import CONFIG_DIR, CONFIG_FILE, PLATFORM
 from plover.registry import registry
 from plover import log
 from plover import __name__ as __software_name__
@@ -61,7 +58,7 @@ def main():
     log.info('Plover %s', __version__)
     log.info('configuration directory: %s', CONFIG_DIR)
 
-    if sys.platform == 'darwin':
+    if PLATFORM == 'mac':
         # Fixes PyQt issue on macOS Big Sur.
         os.environ['QT_MAC_WANTS_LAYER'] = '1'
 
@@ -121,7 +118,8 @@ def main():
 
         # Ensure only one instance of Plover is running at a time.
         with processlock.PloverLock():
-            if sys.platform.startswith('darwin'):
+            if PLATFORM == 'mac':
+                import appnope
                 appnope.nope()
             init_config_dir()
             # This must be done after calling init_config_dir, so
@@ -144,7 +142,7 @@ def main():
             args[0:1] = [sys.executable, '-m', __spec__.name]
         # Execute atexit handlers.
         atexit._run_exitfuncs()
-        if sys.platform.startswith('win32'):
+        if PLATFORM == 'win':
             # Workaround https://bugs.python.org/issue19066
             subprocess.Popen(args, cwd=os.getcwd())
             code = 0

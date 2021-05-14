@@ -20,6 +20,7 @@ import pytest
 
 from plover import config
 from plover.config import DictionaryConfig
+from plover.oslayer.config import PLATFORM
 from plover.machine.keyboard import Keyboard
 from plover.machine.keymap import Keymap
 from plover.misc import expand_path
@@ -102,7 +103,7 @@ def test_config_dict():
             DictionaryConfig(short_path, False)
 
 
-if sys.platform.startswith('win32'):
+if PLATFORM == 'win':
     ABS_PATH = os.path.normcase(r'c:/foo/bar')
 else:
     ABS_PATH = '/foo/bar'
@@ -554,7 +555,7 @@ def test_config_dir(tree, expected_config_dir, tmpdir):
     }
     # Setup environment.
     env = dict(os.environ)
-    if sys.platform.startswith('win32'):
+    if PLATFORM == 'win':
         env['USERPROFILE'] = str(home)
     else:
         env['HOME'] = str(home)

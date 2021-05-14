@@ -1,5 +1,5 @@
 appdirs==1.4.4
-appnope==0.1.2; "darwin" in sys_platform
+appnope==0.1.2
 attrs==20.3.0
 Babel==2.9.0
 bleach==3.3.0
@@ -12,20 +12,20 @@ click==7.1.2
 click-default-group==1.2.2
 cmarkgfm==0.5.3
 colorama==0.4.4
-cryptography==3.4.7; "linux" in sys_platform
-dbus-python==1.2.16; "linux" in sys_platform
-dmgbuild==1.4.2+1.gd79dc1e; "darwin" in sys_platform
+cryptography==3.4.7
+dbus-python==1.2.16
+dmgbuild==1.4.2+1.gd79dc1e
 docutils==0.16
-ds_store==1.3.0; "darwin" in sys_platform
+ds_store==1.3.0
 hidapi==0.10.0.post1
 idna==2.10
 importlib-metadata==3.10.0
 incremental==21.3.0
 iniconfig==1.1.1
-jeepney==0.6.0; "linux" in sys_platform
+jeepney==0.6.0
 Jinja2==2.11.3
 keyring==23.0.1
-mac_alias==2.2.0; "darwin" in sys_platform
+mac_alias==2.2.0
 MarkupSafe==1.1.1
 more-itertools==8.7.0
 packaging==20.9
@@ -35,20 +35,20 @@ pkginfo==1.7.0
 plover-plugins-manager==0.6.0
 plover-treal==1.0.1
 pluggy==0.13.1
-plyer==2.0.0; "win32" in sys_platform
+plyer==2.0.0
 py==1.10.0
 pycparser==2.20
 Pygments==2.8.1
-pyobjc-core==7.1; "darwin" in sys_platform
-pyobjc-framework-Cocoa==7.1; "darwin" in sys_platform
-pyobjc-framework-Quartz==7.1; "darwin" in sys_platform
+pyobjc-core==7.1
+pyobjc-framework-Cocoa==7.1
+pyobjc-framework-Quartz==7.1
 pyparsing==2.4.7
 PyQt5==5.15.4
 PyQt5-Qt5==5.15.2
 PyQt5-sip==12.8.1
 pyserial==3.5
 pytest==6.2.2
-python-xlib==0.29; "linux" in sys_platform
+python-xlib==0.29
 pytz==2021.1
 PyYAML==5.4.1
 readme-renderer==29.0
@@ -57,7 +57,7 @@ requests-cache==0.5.2
 requests-futures==1.0.0
 requests-toolbelt==0.9.1
 rfc3986==1.4.0
-SecretStorage==3.3.1; "linux" in sys_platform
+SecretStorage==3.3.1
 setuptools==54.2.0
 six==1.15.0
 toml==0.10.2

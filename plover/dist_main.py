@@ -1,9 +1,8 @@
-
 import os
 import sys
 import subprocess
 
-from plover.oslayer.config import CONFIG_DIR, PLUGINS_PLATFORM
+from plover.oslayer.config import CONFIG_DIR, PLATFORM, PLUGINS_PLATFORM
 
 
 def main():
@@ -13,7 +12,7 @@ def main():
         args.remove('--no-user-plugins')
         args.insert(1, '-s')
     os.environ['PYTHONUSERBASE'] = os.path.join(CONFIG_DIR, 'plugins', PLUGINS_PLATFORM)
-    if sys.platform.startswith('win32'):
+    if PLATFORM == 'win':
         # Workaround https://bugs.python.org/issue19066
         subprocess.Popen(args, cwd=os.getcwd())
         sys.exit(0)
