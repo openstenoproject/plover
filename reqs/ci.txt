@@ -1,6 +1,4 @@
-certifi
-pip
-setuptools
-wheel
+jinja2
+PyYAML
 
 # vim: ft=cfg commentstring=#\ %s list
