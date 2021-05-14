@@ -3,7 +3,7 @@
 
 from plover.orthography import add_suffix
 
-from . import parametrize
+from plover_build_utils.testing import parametrize
 
 
 ADD_SUFFIX_TESTS = (

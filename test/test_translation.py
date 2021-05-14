@@ -13,9 +13,7 @@ from plover.steno_dictionary import StenoDictionary, StenoDictionaryCollection
 from plover.translation import Translation, Translator, _State
 from plover.translation import escape_translation, unescape_translation
 
-from plover_build_utils.testing import steno_to_stroke as stroke
-
-from . import parametrize
+from plover_build_utils.testing import parametrize, steno_to_stroke as stroke
 
 
 if PLATFORM == 'mac':

@@ -5,70 +5,13 @@ import operator
 import re
 import textwrap
 
-from plover import system
 from plover.formatting import Formatter
-from plover.steno import Stroke, normalize_steno
+from plover.steno import normalize_steno
 from plover.steno_dictionary import StenoDictionary
 from plover.translation import Translator
 
-
-class CaptureOutput:
-
-    def __init__(self):
-        self.instructions = []
-        self.text = ''
-
-    def send_backspaces(self, n):
-        assert n <= len(self.text)
-        self.text = self.text[:-n]
-        self.instructions.append(('b', n))
-
-    def send_string(self, s):
-        self.text += s
-        self.instructions.append(('s', s))
-
-    def send_key_combination(self, c):
-        self.instructions.append(('c', c))
-
-    def send_engine_command(self, c):
-        self.instructions.append(('e', c))
-
-
-def steno_to_stroke(steno):
-    if steno_to_stroke.system != system.NAME:
-        keys = []
-        letters = ''
-        has_hyphen = False
-        for k in system.KEYS:
-            if not has_hyphen and k.startswith('-'):
-                has_hyphen = True
-                keys.append(None)
-                letters += '-'
-            keys.append(k)
-            letters += k.strip('-')
-        steno_to_stroke.keys = keys
-        steno_to_stroke.letters = letters
-        steno_to_stroke.system = system.NAME
-        steno_to_stroke.numbers = {
-            v.strip('-'): k.strip('-')
-            for k, v in system.NUMBERS.items()
-        }
-    n = -1
-    keys = set()
-    for li, l in enumerate(steno):
-        rl = steno_to_stroke.numbers.get(l)
-        if rl is not None:
-            keys.add('#')
-            l = rl
-        n = steno_to_stroke.letters.find(l, n + 1)
-        if n < 0:
-            raise ValueError('invalid steno letter at index %u:\n%s\n%s^' % (li, steno, ' ' * li))
-        k = steno_to_stroke.keys[n]
-        if k is not None:
-            keys.add(k)
-    return Stroke(keys)
-
-steno_to_stroke.system = None
+from .output import CaptureOutput
+from .steno import steno_to_stroke
 
 
 BLACKBOX_OUTPUT_RX = re.compile("r?['\"]")

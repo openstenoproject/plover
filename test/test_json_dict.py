@@ -4,70 +4,82 @@
 
 """Unit tests for json.py."""
 
-import inspect
-
-import pytest
-
 from plover.dictionary.json_dict import JsonDictionary
 
-from .utils import make_dict
-from . import parametrize
+from plover_build_utils.testing import dictionary_test
 
 
-LOAD_TESTS = (
-    lambda: ('{"S": "a"}', {('S', ): 'a'}),
-    # Default encoding is utf-8.
-    lambda: ('{"S": "café"}', {('S', ): 'café'}),
-    # But if that fails, the implementation
-    # must automatically retry with latin-1.
-    lambda: ('{"S": "café"}'.encode('latin-1'), {('S', ): 'café'}),
-    # Invalid JSON.
-    lambda: ('{"foo", "bar",}', ValueError),
-    # Invalid JSON.
-    lambda: ('foo', ValueError),
-    # Cannot convert to dict.
-    lambda: ('"foo"', ValueError),
-    # Ditto.
-    lambda: ('4.2', TypeError),
-)
-
-@parametrize(LOAD_TESTS)
-def test_load_dictionary(contents, expected):
+def json_load_test(contents, expected):
     if isinstance(contents, str):
         contents = contents.encode('utf-8')
-    with make_dict(contents) as filename:
-        if inspect.isclass(expected):
-            with pytest.raises(expected):
-                JsonDictionary.load(filename)
-        else:
-            d = JsonDictionary.load(filename)
-            assert dict(d.items()) == expected
+    return contents, expected
 
-
-SAVE_TESTS = (
-    # Simple test.
-    lambda: ({('S', ): 'a'},
-             '{\n"S": "a"\n}\n'),
-    # Check strokes format: '/' separated.
-    lambda: ({('SAPL', '-PL'): 'sample'},
-             '{\n"SAPL/-PL": "sample"\n}\n'),
-    # Contents should be saved as UTF-8, no escaping.
-    lambda: ({('S', ): 'café'},
-             '{\n"S": "café"\n}\n'),
-    # Check escaping of special characters.
-    lambda: ({('S', ): '{^"\n\t"^}'},
-             '{\n"S": "' + r'{^\"\n\t\"^}' + '"\n}\n'),
-    # Keys are sorted on save.
-    lambda: ({('B', ): 'bravo', ('A', ): 'alpha', ('C', ): 'charlie'},
-             '{\n"A": "alpha",\n"B": "bravo",\n"C": "charlie"\n}\n'),
+JSON_LOAD_TESTS = (
+    lambda: json_load_test('{"S": "a"}', '"S": "a"'),
+    # Default encoding is utf-8.
+    lambda: json_load_test('{"S": "café"}', '"S": "café"'),
+    # But if that fails, the implementation
+    # must automatically retry with latin-1.
+    lambda: json_load_test('{"S": "café"}'.encode('latin-1'), '"S": "café"'),
+    # Invalid JSON.
+    lambda: json_load_test('{"foo", "bar",}', ValueError),
+    # Invalid JSON.
+    lambda: json_load_test('foo', ValueError),
+    # Cannot convert to dict.
+    lambda: json_load_test('"foo"', ValueError),
+    # Ditto.
+    lambda: json_load_test('4.2', TypeError),
 )
 
-@parametrize(SAVE_TESTS)
-def test_save_dictionary(contents, expected):
-    with make_dict(b'foo') as filename:
-        d = JsonDictionary.create(filename)
-        d.update(contents)
-        d.save()
-        with open(filename, 'rb') as fp:
-            contents = fp.read().decode('utf-8')
-        assert contents == expected
+def json_save_test(entries, expected):
+    return entries, expected.encode('utf-8')
+
+JSON_SAVE_TESTS = (
+    # Simple test.
+    lambda: json_save_test(
+        '''
+        'S': 'a',
+        ''',
+        '{\n"S": "a"\n}\n'
+    ),
+    # Check strokes format: '/' separated.
+    lambda: json_save_test(
+        '''
+        'SAPL/-PL': 'sample',
+        ''',
+        '{\n"SAPL/-PL": "sample"\n}\n'
+    ),
+    # Contents should be saved as UTF-8, no escaping.
+    lambda: json_save_test(
+        '''
+        'S': 'café',
+        ''',
+        '{\n"S": "café"\n}\n'
+    ),
+    # Check escaping of special characters.
+    lambda: json_save_test(
+        r'''
+        'S': '{^"\n\t"^}',
+        ''',
+        '{\n"S": "' + r'{^\"\n\t\"^}' + '"\n}\n'
+    ),
+    # Keys are sorted on save.
+    lambda: json_save_test(
+        '''
+        'B': 'bravo',
+        'A': 'alpha',
+        'C': 'charlie',
+        ''',
+        '{\n"A": "alpha",\n"B": "bravo",\n"C": "charlie"\n}\n'
+    ),
+)
+
+@dictionary_test
+class TestJsonDictionary:
+
+    DICT_CLASS = JsonDictionary
+    DICT_EXTENSION = 'json'
+    DICT_REGISTERED = True
+    DICT_LOAD_TESTS = JSON_LOAD_TESTS
+    DICT_SAVE_TESTS = JSON_SAVE_TESTS
+    DICT_SAMPLE = b'{}'

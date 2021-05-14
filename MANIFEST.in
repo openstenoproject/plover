@@ -24,7 +24,7 @@ include plover_build_utils/*.sh
 include pyproject.toml
 include reqs/*.txt
 include test/__init__.py
-include test/utils.py
+include test/conftest.py
 include tox.ini
 include windows/*
 # Exclude: CI/Git/GitHub specific files,

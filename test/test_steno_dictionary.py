@@ -3,54 +3,11 @@
 
 """Unit tests for steno_dictionary.py."""
 
-import os
-import stat
-import tempfile
-
 import pytest
 
 from plover.steno_dictionary import StenoDictionary, StenoDictionaryCollection
 
-from . import parametrize
-
-
-def test_dictionary():
-    notifications = []
-    def listener(longest_key):
-        notifications.append(longest_key)
-
-    d = StenoDictionary()
-    assert d.longest_key == 0
-
-    d.add_longest_key_listener(listener)
-    d[('S',)] = 'a'
-    assert d.longest_key == 1
-    assert notifications == [1]
-    d[('S', 'S', 'S', 'S')] = 'b'
-    assert d.longest_key == 4
-    assert notifications == [1, 4]
-    d[('S', 'S')] = 'c'
-    assert d.longest_key == 4
-    assert d[('S', 'S')] == 'c'
-    assert notifications == [1, 4]
-    del d[('S', 'S', 'S', 'S')]
-    assert d.longest_key == 2
-    assert notifications == [1, 4, 2]
-    del d[('S',)]
-    assert d.longest_key == 2
-    assert notifications == [1, 4, 2]
-    assert d.reverse_lookup('c') == {('S', 'S')}
-    assert d.casereverse_lookup('c') == {'c'}
-    d.clear()
-    assert d.longest_key == 0
-    assert notifications == [1, 4, 2, 0]
-    assert d.reverse_lookup('c') == set()
-    assert d.casereverse_lookup('c') == set()
-
-    d.remove_longest_key_listener(listener)
-    d[('S', 'S')] = 'c'
-    assert d.longest_key == 2
-    assert notifications == [1, 4, 2, 0]
+from plover_build_utils.testing import dictionary_test
 
 
 def test_dictionary_collection():
@@ -171,17 +128,6 @@ def test_dictionary_collection_longest_key():
     assert dc.longest_key == 0
 
 
-def test_casereverse_del():
-    d = StenoDictionary()
-    d[('S-G',)] = 'something'
-    d[('SPH-G',)] = 'something'
-    assert d.casereverse_lookup('something') == {'something'}
-    del d[('S-G',)]
-    assert d.casereverse_lookup('something') == {'something'}
-    del d[('SPH-G',)]
-    assert d.casereverse_lookup('something') == set()
-
-
 def test_casereverse_lookup():
     dc = StenoDictionaryCollection()
 
@@ -259,76 +205,22 @@ def test_dictionary_enabled():
     assert dc.reverse_lookup('Testing') == set()
 
 
-def test_dictionary_readonly():
-    class FakeDictionary(StenoDictionary):
+@dictionary_test
+class TestStenoDictionary:
+
+    class DICT_CLASS(StenoDictionary):
         def _load(self, filename):
             pass
-        def _save(self):
-            raise NotImplementedError
-    tf = tempfile.NamedTemporaryFile(delete=False)
-    try:
-        tf.close()
-        d = FakeDictionary.load(tf.name)
-        # Writable file: not readonly.
-        assert not d.readonly
-        # Readonly file: readonly dictionary.
-        os.chmod(tf.name, stat.S_IREAD)
-        d = FakeDictionary.load(tf.name)
-        assert d.readonly
-    finally:
-        # Deleting the file will fail on Windows
-        # if we don't restore write permission.
-        os.chmod(tf.name, stat.S_IWRITE)
-        os.unlink(tf.name)
-    # Assets are always readonly.
-    d = FakeDictionary.load('asset:plover:assets/main.json')
-    assert d.readonly
+    DICT_EXTENSION = 'dict'
+    DICT_SAMPLE = b''
 
 
-TEST_DICTIONARY_UPDATE_DICT = {
-    ('S-G',): 'something',
-    ('SPH-G',): 'something',
-    ('SPH*G',): 'Something',
-    ('SPH', 'THEUPBG'): 'something',
-}
-TEST_DICTIONARY_UPDATE_STENODICT = StenoDictionary()
-TEST_DICTIONARY_UPDATE_STENODICT.update(TEST_DICTIONARY_UPDATE_DICT)
+@dictionary_test
+class TestReadOnlyStenoDictionary:
 
-@pytest.mark.parametrize('update_from, start_empty', (
-    (dict(TEST_DICTIONARY_UPDATE_DICT), True),
-    (dict(TEST_DICTIONARY_UPDATE_DICT), False),
-    (list(TEST_DICTIONARY_UPDATE_DICT.items()), True),
-    (list(TEST_DICTIONARY_UPDATE_DICT.items()), False),
-    (iter(TEST_DICTIONARY_UPDATE_DICT.items()), True),
-    (iter(TEST_DICTIONARY_UPDATE_DICT.items()), False),
-    (TEST_DICTIONARY_UPDATE_STENODICT, True),
-    (TEST_DICTIONARY_UPDATE_STENODICT, False),
-))
-def test_dictionary_update(update_from, start_empty):
-    d = StenoDictionary()
-    if not start_empty:
-        d.update({
-            ('SPH*G',): 'not something',
-            ('STHEUPBG',): 'something',
-            ('EF', 'REU', 'TH*EUPBG'): 'everything',
-        })
-        assert d[('STHEUPBG',)] == 'something'
-        assert d[('EF', 'REU', 'TH*EUPBG')] == 'everything'
-        assert d.reverse_lookup('not something') == {('SPH*G',)}
-        assert d.longest_key == 3
-    d.update(update_from)
-    assert d[('S-G',)] == 'something'
-    assert d[('SPH-G',)] == 'something'
-    assert d[('SPH*G',)] == 'Something'
-    assert d[('SPH', 'THEUPBG')] == 'something'
-    if not start_empty:
-        assert d[('STHEUPBG',)] == 'something'
-        assert d[('EF', 'REU', 'TH*EUPBG')] == 'everything'
-        assert d.reverse_lookup('not something') == set()
-        assert d.reverse_lookup('something') == {('STHEUPBG',), ('S-G',), ('SPH-G',), ('SPH', 'THEUPBG')}
-        assert d.casereverse_lookup('something') == {'something', 'Something'}
-        assert d.longest_key == 3
-    else:
-        assert d.reverse_lookup('something') == {('S-G',), ('SPH-G',), ('SPH', 'THEUPBG')}
-        assert d.casereverse_lookup('something') == {'something', 'Something'}
-        assert d.longest_key == 2
+    class DICT_CLASS(StenoDictionary):
+        readonly = True
+        def _load(self, filename):
+            pass
+    DICT_EXTENSION = 'dict'
+    DICT_SAMPLE = b''
