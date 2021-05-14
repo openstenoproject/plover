@@ -92,8 +92,9 @@ class StenoEngine:
     quit
     '''.split()
 
-    def __init__(self, config, keyboard_emulation):
+    def __init__(self, config, controller, keyboard_emulation):
         self._config = config
+        self._controller = controller
         self._is_running = False
         self._queue = Queue()
         self._lock = threading.RLock()
@@ -144,7 +145,15 @@ class StenoEngine:
             except Exception:
                 log.error('engine %s failed', func.__name__[1:], exc_info=True)
 
+    def _on_control_message(self, msg):
+        if msg[0] == 'command':
+            self._same_thread_hook(self._execute_engine_command,
+                                   *msg[1:], force=True)
+        else:
+            log.error('ignoring invalid control message: %r', msg)
+
     def _stop(self):
+        self._controller.stop()
         self._stop_extensions(self._running_extensions.keys())
         if self._machine is not None:
             self._machine.stop_capture()
@@ -153,6 +162,7 @@ class StenoEngine:
     def _start(self):
         self._set_output(self._config['auto_start'])
         self._update(full=True)
+        self._controller.start(self._on_control_message)
 
     def _set_dictionaries(self, dictionaries):
         def dictionaries_changed(l1, l2):
@@ -326,7 +336,7 @@ class StenoEngine:
         self._machine_state = machine_state
         self._trigger_hook('machine_state_changed', self._machine_params.type, machine_state)
 
-    def _consume_engine_command(self, command):
+    def _consume_engine_command(self, command, force=False):
         # The first commands can be used whether plover has output enabled or not.
         command_name, *command_args = command.split(':', 1)
         command_name = command_name.lower()
@@ -339,7 +349,7 @@ class StenoEngine:
         elif command_name == 'quit':
             self.quit()
             return True
-        if not self._is_running:
+        if not force and not self._is_running:
             return False
         # These commands can only be run when plover has output enabled.
         if command_name == 'suspend':
@@ -357,6 +367,10 @@ class StenoEngine:
         else:
             command_fn = registry.get_plugin('command', command_name).obj
             command_fn(self, command_args[0] if command_args else '')
+        return False
+
+    def _execute_engine_command(self, command, force=False):
+        self._consume_engine_command(command, force=force)
         return False
 
     def _on_stroked(self, steno_keys):

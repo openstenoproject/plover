@@ -15,7 +15,7 @@ import traceback
 import pkg_resources
 
 from plover.config import Config
-from plover.oslayer import processlock
+from plover.oslayer.controller import Controller
 from plover.oslayer.config import CONFIG_DIR, CONFIG_FILE, PLATFORM
 from plover.registry import registry
 from plover import log
@@ -117,19 +117,34 @@ def main():
             os._exit(code)
 
         # Ensure only one instance of Plover is running at a time.
-        with processlock.PloverLock():
-            if PLATFORM == 'mac':
-                import appnope
-                appnope.nope()
-            init_config_dir()
-            # This must be done after calling init_config_dir, so
-            # Plover's configuration directory actually exists.
-            log.setup_logfile()
-            config = Config(CONFIG_FILE)
-            code = gui.main(config)
-    except processlock.LockNotAcquiredException:
-        gui.show_error('Error', 'Another instance of Plover is already running.')
-        code = 1
+        with Controller() as controller:
+            if controller.is_owner:
+                # Not other instance, regular startup.
+                if PLATFORM == 'mac':
+                    import appnope
+                    appnope.nope()
+                init_config_dir()
+                # This must be done after calling init_config_dir, so
+                # Plover's configuration directory actually exists.
+                log.setup_logfile()
+                config = Config(CONFIG_FILE)
+                code = gui.main(config, controller)
+            else:
+                log.info('another instance is running, sending `focus` command')
+                # Other instance? Try focusing the main window.
+                try:
+                    controller.send_command('focus')
+                except ConnectionRefusedError:
+                    log.error('connection to existing instance failed, '
+                              'force cleaning before restart')
+                    # Assume the previous instance died, leaving
+                    # a stray socket, try cleaning it...
+                    if not controller.force_cleanup():
+                        raise
+                    # ...and restart.
+                    code = -1
+                else:
+                    code = 0
     except:
         gui.show_error('Unexpected error', traceback.format_exc())
         code = 2

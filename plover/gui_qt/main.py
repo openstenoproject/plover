@@ -24,7 +24,7 @@ pyqtRemoveInputHook()
 
 class Application:
 
-    def __init__(self, config, use_qt_notifications):
+    def __init__(self, config, controller, use_qt_notifications):
 
         # This is done dynamically so localization
         # support can be configure beforehand.
@@ -52,7 +52,7 @@ class Application:
 
         QApplication.setQuitOnLastWindowClosed(False)
 
-        self._app.engine = self._engine = Engine(config, KeyboardEmulation())
+        self._app.engine = self._engine = Engine(config, controller, KeyboardEmulation())
         # On macOS, quitting through the dock will result
         # in a direct call to `QCoreApplication.quit`.
         self._app.aboutToQuit.connect(self._app.engine.quit)
@@ -89,13 +89,13 @@ def default_excepthook(*exc_info):
     log.error('Qt GUI error', exc_info=exc_info)
 
 
-def main(config):
+def main(config, controller):
     # Setup internationalization support.
     use_qt_notifications = not log.has_platform_handler()
     # Log GUI exceptions that make it back to the event loop.
     if sys.excepthook is sys.__excepthook__:
         sys.excepthook = default_excepthook
-    app = Application(config, use_qt_notifications)
+    app = Application(config, controller, use_qt_notifications)
     code = app.run()
     del app
     return code

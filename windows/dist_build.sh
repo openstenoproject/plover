@@ -97,8 +97,8 @@ from pip._vendor.distlib.scripts import ScriptMaker
 sm = ScriptMaker(source_dir=r'$builddir', target_dir=r'$builddir')
 sm.executable = r'data\\python.exe'
 sm.variants = set(('',))
-sm.make('plover = plover.dist_main:main', options={'gui': True})
-sm.make('plover_console = plover.dist_main:main', options={'gui': False})
+sm.make('plover = plover.scripts.dist_main:main', options={'gui': True})
+sm.make('plover_console = plover.scripts.dist_main:main', options={'gui': False})
 EOF"
 
   # Fix Visual C++ Redistributable DLL location.
