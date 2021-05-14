@@ -107,7 +107,7 @@ RUN mkdir /usr/local/ssl && \
       ln -s ../lib64 /usr/local/ssl/lib
 
 # Install Python from Github Actions @setup-python.
-ARG GITHUB_ACTIONS_PYTHON="3.8.8-99800/python-3.8.8-linux-16.04-x64.tar.gz"
+ARG GITHUB_ACTIONS_PYTHON="3.8.10-107001/python-3.8.10-linux-16.04-x64.tar.gz"
 RUN wget --quiet "https://github.com/actions/python-versions/releases/download/$GITHUB_ACTIONS_PYTHON"
 RUN tar xaf "${GITHUB_ACTIONS_PYTHON##*/}" -C /usr/local
 RUN rm "${GITHUB_ACTIONS_PYTHON##*/}"
