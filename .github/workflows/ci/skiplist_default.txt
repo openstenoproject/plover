@@ -16,6 +16,7 @@ linux/packpack.mk
 linux/packpack.sh
 news.d/*
 osx/README.md
+reqs/ci.txt
 reqs/release.txt
 test.bat
 test.sh
