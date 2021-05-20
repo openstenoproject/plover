@@ -145,11 +145,17 @@ jobs:
           <% endif %>
 
       <% endif %>
-      <% if j.type == 'test' %>
+      <% if j.type == 'test_gui_qt' %>
+      - name: Build UI
+        run: python setup.py build_ui
+
+      <% endif %>
+      <% if j.type in ['test', 'test_gui_qt'] %>
       # Test {{{
 
       - name: Run tests
-        run: run_tests
+        run: run_tests <@ j.test_args @>
+
 
       # }}}
 

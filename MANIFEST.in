@@ -26,6 +26,7 @@ include pytest.ini
 include reqs/*.txt
 include test/__init__.py
 include test/conftest.py
+include test/gui_qt/test_*.py
 include tox.ini
 include windows/*
 # Exclude: CI/Git/GitHub specific files,
