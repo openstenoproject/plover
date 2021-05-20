@@ -153,8 +153,9 @@ def main():
         args = sys.argv[:]
         if args[0].endswith('.py') or args[0].endswith('.pyc'):
             # We're running from source.
-            assert args[0] == __file__
-            args[0:1] = [sys.executable, '-m', __spec__.name]
+            spec = sys.modules['__main__'].__spec__
+            assert sys.argv[0] == spec.origin
+            args[0:1] = [sys.executable, '-m', spec.name]
         # Execute atexit handlers.
         atexit._run_exitfuncs()
         if PLATFORM == 'win':
