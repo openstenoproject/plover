@@ -147,6 +147,9 @@ class MainWindow(QMainWindow, Ui_MainWindow, WindowState):
         self._configured = False
         self.dictionaries.on_config_changed(config)
         self.set_visible(not config['start_minimized'])
+        # Process events before starting the engine
+        # (to avoid display lag at window creation).
+        QCoreApplication.processEvents()
         # Start the engine.
         engine.start()
 
