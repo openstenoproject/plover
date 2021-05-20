@@ -1,4 +1,4 @@
-FROM ubuntu:xenial as base
+FROM ubuntu:bionic as base
 
 # Tweak shell.
 SHELL ["/bin/bash", "-c"]
@@ -60,11 +60,11 @@ RUN ./install.sh \
       libbz2-1.0 \
       libdb5.3 \
       libffi6 \
-      libgdbm3 \
+      libgdbm5 \
       libgssapi-krb5-2 \
       liblzma5 \
       libncurses5 \
-      libreadline6 \
+      libreadline7 \
       libsqlite3-0 \
       libuuid1 \
       zlib1g \
@@ -107,7 +107,7 @@ RUN mkdir /usr/local/ssl && \
       ln -s ../lib64 /usr/local/ssl/lib
 
 # Install Python from Github Actions @setup-python.
-ARG GITHUB_ACTIONS_PYTHON="3.8.10-107001/python-3.8.10-linux-16.04-x64.tar.gz"
+ARG GITHUB_ACTIONS_PYTHON="3.8.10-107001/python-3.8.10-linux-18.04-x64.tar.gz"
 RUN wget --quiet "https://github.com/actions/python-versions/releases/download/$GITHUB_ACTIONS_PYTHON"
 RUN tar xaf "${GITHUB_ACTIONS_PYTHON##*/}" -C /usr/local
 RUN rm "${GITHUB_ACTIONS_PYTHON##*/}"
