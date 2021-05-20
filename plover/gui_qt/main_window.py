@@ -43,9 +43,8 @@ class MainWindow(QMainWindow, Ui_MainWindow, WindowState):
         }
         all_actions = find_menu_actions(self.menubar)
         # Dictionaries.
-        self.dictionaries = self.scroll_area.widget()
         self.dictionaries.add_translation.connect(self._add_translation)
-        self.dictionaries.setFocus()
+        self.dictionaries.setup(engine)
         edit_menu = all_actions['menu_Edit'].menu()
         edit_menu.addAction(self.dictionaries.action_Undo)
         edit_menu.addSeparator()
@@ -145,7 +144,6 @@ class MainWindow(QMainWindow, Ui_MainWindow, WindowState):
         config = self._engine.config
         self._update_machine(config['machine_type'])
         self._configured = False
-        self.dictionaries.on_config_changed(config)
         self.set_visible(not config['start_minimized'])
         # Process events before starting the engine
         # (to avoid display lag at window creation).

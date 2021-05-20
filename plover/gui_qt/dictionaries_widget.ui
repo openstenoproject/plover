@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <ui version="4.0">
  <class>DictionariesWidget</class>
- <widget class="QWidget" name="DictionariesWidget">
+ <widget class="QGroupBox" name="DictionariesWidget">
   <property name="geometry">
    <rect>
     <x>0</x>
@@ -19,6 +19,9 @@
   <property name="windowTitle">
    <string notr="true"/>
   </property>
+  <property name="title">
+   <string>Dictionaries</string>
+  </property>
   <layout class="QVBoxLayout" name="verticalLayout">
    <property name="leftMargin">
     <number>0</number>
@@ -33,7 +36,7 @@
     <number>0</number>
    </property>
    <item>
-    <widget class="QTableWidget" name="table">
+    <widget class="QListView" name="view">
      <property name="frameShape">
       <enum>QFrame::Box</enum>
      </property>
@@ -55,20 +58,18 @@
      <property name="alternatingRowColors">
       <bool>true</bool>
      </property>
+     <property name="selectionMode">
+      <enum>QAbstractItemView::ExtendedSelection</enum>
+     </property>
      <property name="selectionBehavior">
       <enum>QAbstractItemView::SelectRows</enum>
      </property>
      <property name="textElideMode">
       <enum>Qt::ElideMiddle</enum>
      </property>
-     <attribute name="horizontalHeaderStretchLastSection">
+     <property name="uniformItemSizes">
       <bool>true</bool>
-     </attribute>
-     <column>
-      <property name="text">
-       <string>Dictionaries</string>
-      </property>
-     </column>
+     </property>
     </widget>
    </item>
   </layout>
@@ -193,22 +194,6 @@
  </resources>
  <connections>
   <connection>
-   <sender>table</sender>
-   <signal>itemSelectionChanged()</signal>
-   <receiver>DictionariesWidget</receiver>
-   <slot>on_selection_changed()</slot>
-   <hints>
-    <hint type="sourcelabel">
-     <x>199</x>
-     <y>149</y>
-    </hint>
-    <hint type="destinationlabel">
-     <x>199</x>
-     <y>149</y>
-    </hint>
-   </hints>
-  </connection>
-  <connection>
    <sender>action_RemoveDictionaries</sender>
    <signal>triggered()</signal>
    <receiver>DictionariesWidget</receiver>
@@ -289,10 +274,10 @@
    </hints>
   </connection>
   <connection>
-   <sender>table</sender>
-   <signal>cellActivated(int,int)</signal>
+   <sender>view</sender>
+   <signal>activated(QModelIndex)</signal>
    <receiver>DictionariesWidget</receiver>
-   <slot>on_activate_cell(int,int)</slot>
+   <slot>on_activate(QModelIndex)</slot>
    <hints>
     <hint type="sourcelabel">
      <x>199</x>
@@ -336,33 +321,15 @@
     </hint>
    </hints>
   </connection>
-  <connection>
-   <sender>table</sender>
-   <signal>itemChanged()</signal>
-   <receiver>DictionariesWidget</receiver>
-   <slot>on_dictionary_changed(QTableWidgetItem*)</slot>
-   <hints>
-    <hint type="sourcelabel">
-     <x>182</x>
-     <y>118</y>
-    </hint>
-    <hint type="destinationlabel">
-     <x>182</x>
-     <y>118</y>
-    </hint>
-   </hints>
-  </connection>
  </connections>
  <slots>
-  <slot>on_selection_changed()</slot>
   <slot>on_remove_dictionaries()</slot>
   <slot>on_undo()</slot>
   <slot>on_edit_dictionaries()</slot>
   <slot>on_add_dictionaries()</slot>
   <slot>on_add_translation()</slot>
-  <slot>on_activate_cell(int,int)</slot>
+  <slot>on_activate(QModelIndex)</slot>
   <slot>on_move_dictionaries_up()</slot>
   <slot>on_move_dictionaries_down()</slot>
-  <slot>on_dictionary_changed(QTableWidgetItem*)</slot>
  </slots>
 </ui>
