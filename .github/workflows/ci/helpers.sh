@@ -24,7 +24,8 @@ list_cache()
 
 run_tests()
 {
-  "$python" setup.py -q test -- --color=yes --durations=5 -ra "$@"
+  "$python" setup.py -q egg_info
+  "$python" -m pytest --color=yes --durations=5 "$@"
 }
 
 setup_cache_name()
