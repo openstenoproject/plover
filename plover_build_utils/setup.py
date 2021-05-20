@@ -7,6 +7,7 @@ import subprocess
 import sys
 
 from setuptools.command.build_py import build_py
+from setuptools.command.develop import develop
 import pkg_resources
 import setuptools
 
@@ -206,5 +207,18 @@ class BuildPy(build_py):
         for command in self.build_dependencies:
             self.run_command(command)
         build_py.run(self)
+
+# }}}
+
+# Patched `develop` command. {{{
+
+class Develop(develop):
+
+    build_dependencies = []
+
+    def run(self):
+        for command in self.build_dependencies:
+            self.run_command(command)
+        develop.run(self)
 
 # }}}
