@@ -89,14 +89,14 @@ class MainWindow(QMainWindow, Ui_MainWindow, WindowState):
         engine.signal_connect('machine_state_changed', self._trayicon.update_machine_state)
         engine.signal_connect('quit', self.on_quit)
         self.action_Quit.triggered.connect(engine.quit)
-        # Populate tools bar/menu.
-        tools_menu = all_actions['menu_Tools'].menu()
         # Toolbar popup menu for selecting which tools are shown.
         self.toolbar_menu = QMenu()
         self.toolbar.setContextMenuPolicy(Qt.CustomContextMenu)
         self.toolbar.customContextMenuRequested.connect(
             lambda: self.toolbar_menu.popup(QCursor.pos())
         )
+        # Populate tools bar/menu.
+        tools_menu = all_actions['menu_Tools'].menu()
         for tool_plugin in registry.list_plugins('gui.qt.tool'):
             tool = tool_plugin.obj
             menu_action = tools_menu.addAction(tool.TITLE)
