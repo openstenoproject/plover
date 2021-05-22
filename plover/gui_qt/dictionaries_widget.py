@@ -468,6 +468,21 @@ class DictionariesWidget(QGroupBox, Ui_DictionariesWidget):
         self.view.dragMoveEvent = self._drag_move_event
         self.view.dropEvent = self._drag_drop_event
         self.setFocusProxy(self.view)
+        # Edit context menu.
+        edit_menu = QMenu()
+        edit_menu.addAction(self.action_Undo)
+        edit_menu.addSeparator()
+        edit_menu.addMenu(self.menu_AddDictionaries)
+        edit_menu.addAction(self.action_EditDictionaries)
+        edit_menu.addMenu(self.menu_SaveDictionaries)
+        edit_menu.addAction(self.action_RemoveDictionaries)
+        edit_menu.addSeparator()
+        edit_menu.addAction(self.action_MoveDictionariesUp)
+        edit_menu.addAction(self.action_MoveDictionariesDown)
+        self.view.setContextMenuPolicy(Qt.CustomContextMenu)
+        self.view.customContextMenuRequested.connect(
+            lambda p: edit_menu.exec_(self.view.mapToGlobal(p)))
+        self.edit_menu = edit_menu
 
     def setup(self, engine):
         assert not self._setup

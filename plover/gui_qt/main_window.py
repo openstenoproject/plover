@@ -45,19 +45,10 @@ class MainWindow(QMainWindow, Ui_MainWindow, WindowState):
         # Dictionaries.
         self.dictionaries.add_translation.connect(self._add_translation)
         self.dictionaries.setup(engine)
+        # Populate edit menu from dictionaries' own.
         edit_menu = all_actions['menu_Edit'].menu()
-        edit_menu.addAction(self.dictionaries.action_Undo)
-        edit_menu.addSeparator()
-        edit_menu.addMenu(self.dictionaries.menu_AddDictionaries)
-        edit_menu.addAction(self.dictionaries.action_EditDictionaries)
-        edit_menu.addMenu(self.dictionaries.menu_SaveDictionaries)
-        edit_menu.addAction(self.dictionaries.action_RemoveDictionaries)
-        edit_menu.addSeparator()
-        edit_menu.addAction(self.dictionaries.action_MoveDictionariesUp)
-        edit_menu.addAction(self.dictionaries.action_MoveDictionariesDown)
-        self.dictionaries.setContextMenuPolicy(Qt.CustomContextMenu)
-        self.dictionaries.customContextMenuRequested.connect(
-            lambda p: edit_menu.exec_(self.dictionaries.mapToGlobal(p)))
+        for action in self.dictionaries.edit_menu.actions():
+            edit_menu.addAction(action)
         # Tray icon.
         self._trayicon = TrayIcon()
         self._trayicon.enable()
