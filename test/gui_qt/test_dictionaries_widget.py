@@ -1,6 +1,7 @@
 from collections import namedtuple
 from pathlib import Path
 from textwrap import dedent
+from types import SimpleNamespace
 from unittest import mock
 import operator
 
@@ -13,6 +14,8 @@ from plover.engine import ErroredDictionary
 from plover.gui_qt.dictionaries_widget import DictionariesModel, DictionariesWidget
 from plover.steno_dictionary import StenoDictionary, StenoDictionaryCollection
 from plover.misc import expand_path
+
+from plover_build_utils.testing import parametrize
 
 
 INVALID_EXCEPTION = Exception('loading error')
@@ -163,6 +166,7 @@ def model_test(monkeypatch, request):
     # Patch configuration directory.
     current_dir = Path('.').resolve()
     monkeypatch.setattr('plover.misc.CONFIG_DIR', str(current_dir))
+    monkeypatch.setattr('plover.gui_qt.dictionaries_widget.CONFIG_DIR', str(current_dir))
     # Disable i18n support.
     monkeypatch.setattr('plover.gui_qt.dictionaries_widget._', lambda s: s)
     # Fake config.
@@ -701,3 +705,226 @@ def test_model_undo_2(model_test):
         ''',
         layout_change=True,
     )
+
+
+class WidgetTest(namedtuple('WidgetTest', '''
+                            registry
+                            bot widget
+                            file_dialog
+                            create_dictionary
+                            model_test
+                            ''')):
+
+    def select(self, selection):
+        sm = self.widget.view.selectionModel()
+        for row in selection:
+            sm.select(self.model.index(row), sm.Select)
+
+    def unselect(self, selection):
+        sm = self.widget.view.selectionModel()
+        for row in selection:
+            sm.select(self.model.index(row), sm.Deselect)
+
+    def __getattr__(self, name):
+        return getattr(self.model_test, name)
+
+
+@pytest.fixture
+def widget_test(model_test, monkeypatch, qtbot):
+    # Fake registry.
+    def list_plugins(plugin_type):
+        assert plugin_type == 'dictionary'
+        for name, readonly in (
+            ('bad', False),
+            ('json', False),
+            ('ro', True),
+        ):
+            obj = SimpleNamespace(readonly=readonly)
+            yield SimpleNamespace(name=name, obj=obj)
+    registry = mock.MagicMock(spec=['list_plugins'])
+    registry.list_plugins.side_effect = list_plugins
+    monkeypatch.setattr('plover.gui_qt.dictionaries_widget.registry', registry)
+    # Fake file dialog.
+    file_dialog = mock.MagicMock(spec='''
+                                 getOpenFileNames
+                                 getSaveFileName
+                                 '''.split())
+    monkeypatch.setattr('plover.gui_qt.dictionaries_widget.QFileDialog', file_dialog)
+    # Fake `create_dictionary`.
+    def create_dictionary(filename, threaded_save=True):
+        pass
+    steno_dict = mock.create_autospec(StenoDictionary)
+    create_dictionary = mock.create_autospec(create_dictionary, return_value=steno_dict)
+    monkeypatch.setattr('plover.gui_qt.dictionaries_widget.create_dictionary', create_dictionary)
+    # Patch `DictionariesModel` constructor to use our own instance.
+    monkeypatch.setattr('plover.gui_qt.dictionaries_widget.DictionariesModel',
+                        lambda engine, icons: model_test.model)
+    widget = DictionariesWidget()
+    widget.setup(model_test.engine)
+    qtbot.addWidget(widget)
+    test = WidgetTest(registry, qtbot, widget, file_dialog, create_dictionary, model_test)
+    return test
+
+
+@parametrize((
+    # No selection.
+    lambda: ((), '''
+     AddDictionaries
+     AddTranslation
+     '''),
+    # No loaded dictionary selected.
+    lambda: ([1, 4], '''
+     AddDictionaries
+     AddTranslation
+     MoveDictionariesDown
+     MoveDictionariesUp
+     RemoveDictionaries
+     '''),
+    # At least one loaded dictionary selected.
+    lambda: ([0, 2], '''
+     AddDictionaries
+     AddTranslation
+     EditDictionaries
+     MoveDictionariesDown
+     MoveDictionariesUp
+     RemoveDictionaries
+     SaveDictionaries
+     '''),
+    lambda: ([1, 3], '''
+     AddDictionaries
+     AddTranslation
+     EditDictionaries
+     MoveDictionariesDown
+     MoveDictionariesUp
+     RemoveDictionaries
+     SaveDictionaries
+     '''),
+))
+def test_widget_selection(widget_test, selection, enabled_actions):
+    '''
+    ☑ ★ favorite.json
+    ☑ 🗘 loading.json
+    ☑ ⎕ normal.json
+    ☑ 🛇 read-only.ro
+    ☑ ! invalid.bad
+    '''
+    widget_test.select(selection)
+    for action_name in '''
+    AddDictionaries
+    AddTranslation
+    EditDictionaries
+    MoveDictionariesDown
+    MoveDictionariesUp
+    RemoveDictionaries
+    SaveDictionaries
+    Undo
+    '''.split():
+        action = getattr(widget_test.widget, 'action_' + action_name)
+        enabled = action.isEnabled()
+        msg = '%s is %s' % (action_name, 'enabled' if enabled else 'disabled')
+        assert enabled == (action_name in enabled_actions), msg
+
+
+FILE_PICKER_SAVE_FILTER = 'Dictionaries (*.bad *.json);; BAD dictionaries (*.bad);; JSON dictionaries (*.json)'
+
+def test_widget_save_copy_1(widget_test):
+    '''
+    ☑ ★ favorite.json
+    ☑ 🗘 loading.json
+    ☑ ⎕ normal.json
+    ☑ 🛇 read-only.ro
+    ☑ ! invalid.bad
+    '''
+    # Setup.
+    copy_names = (
+        expand_path('favorite_copy.json'),
+        '',
+        expand_path('read-only_copy.json'),
+    )
+    widget_test.file_dialog.getSaveFileName.side_effect = [
+        [name]
+        for name in copy_names
+    ]
+    steno_dict_copies = (
+        mock.create_autospec(StenoDictionary),
+        mock.create_autospec(StenoDictionary),
+    )
+    widget_test.create_dictionary.side_effect = steno_dict_copies
+    # Execution.
+    widget_test.select(range(5))
+    widget_test.widget.action_CopyDictionaries.trigger()
+    # Check.
+    assert widget_test.file_dialog.mock_calls == [
+        mock.call.getSaveFileName(
+            parent=widget_test.widget,
+            caption='Save a copy of %s as...' % name,
+            directory=expand_path('%s - Copy.json' % Path(name).stem),
+            filter=FILE_PICKER_SAVE_FILTER,
+        )
+        for name in ['favorite.json', 'normal.json', 'read-only.ro']
+    ]
+    assert widget_test.create_dictionary.mock_calls == [
+        mock.call(name, threaded_save=False)
+        for name in copy_names if name
+    ]
+    assert steno_dict_copies[0].mock_calls == [
+        mock.call.update(widget_test.dictionaries.dicts[0]),
+        mock.call.save(),
+    ]
+    assert steno_dict_copies[1].mock_calls == [
+        mock.call.update(widget_test.dictionaries.dicts[2]),
+        mock.call.save(),
+    ]
+
+def test_widget_save_merge_1(widget_test):
+    '''
+    ☑ ★ favorite.json
+    ☑ 🗘 loading.json
+    ☑ ⎕ normal.json
+    ☑ 🛇 read-only.ro
+    ☑ ! invalid.bad
+    '''
+    # Setup.
+    merge_name = 'favorite + normal + read-only'
+    widget_test.file_dialog.getSaveFileName.return_value = [expand_path('merge.json')]
+    # Execution.
+    widget_test.select(range(5))
+    widget_test.widget.action_MergeDictionaries.trigger()
+    # Check.
+    assert widget_test.file_dialog.mock_calls == [mock.call.getSaveFileName(
+        parent=widget_test.widget,
+        caption='Merge %s as...' % merge_name,
+        directory=expand_path(merge_name + '.json'),
+        filter=FILE_PICKER_SAVE_FILTER,
+    )]
+    assert widget_test.create_dictionary.mock_calls == [mock.call(expand_path('merge.json'), threaded_save=False)]
+    steno_dict = widget_test.create_dictionary.return_value
+    assert steno_dict.mock_calls == [
+        mock.call.update(widget_test.dictionaries.dicts[2]),
+        mock.call.update(widget_test.dictionaries.dicts[1]),
+        mock.call.update(widget_test.dictionaries.dicts[0]),
+        mock.call.save(),
+    ]
+
+def test_widget_save_merge_2(widget_test):
+    '''
+    ☑ ★ favorite.json
+    ☑ 🗘 loading.json
+    ☑ ⎕ normal.json
+    ☑ 🛇 read-only.ro
+    ☑ ! invalid.bad
+    '''
+    # Setup.
+    merge_name = 'favorite + normal'
+    widget_test.file_dialog.getSaveFileName.return_value = ['']
+    # Execution.
+    widget_test.select([0, 2])
+    widget_test.widget.action_MergeDictionaries.trigger()
+    # Check.
+    assert widget_test.file_dialog.mock_calls == [mock.call.getSaveFileName(
+        parent=widget_test.widget,
+        caption='Merge %s as...' % merge_name,
+        directory=expand_path(merge_name + '.json'),
+        filter=FILE_PICKER_SAVE_FILTER,
+    )]
+    assert widget_test.create_dictionary.mock_calls == []
