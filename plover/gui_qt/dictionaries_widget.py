@@ -445,25 +445,14 @@ class DictionariesWidget(QGroupBox, Ui_DictionariesWidget):
         # Add menu.
         self.menu_AddDictionaries = QMenu(self.action_AddDictionaries.text())
         self.menu_AddDictionaries.setIcon(self.action_AddDictionaries.icon())
-        self.menu_AddDictionaries.addAction(
-            # i18n: Widget: “DictionariesWidget”, “add” menu.
-            _('Open dictionaries'),
-        ).triggered.connect(self._add_existing_dictionaries)
-        self.menu_AddDictionaries.addAction(
-            # i18n: Widget: “DictionariesWidget”, “add” menu.
-            _('New dictionary'),
-        ).triggered.connect(self._create_new_dictionary)
+        self.menu_AddDictionaries.addAction(self.action_OpenDictionaries)
+        self.menu_AddDictionaries.addAction(self.action_CreateDictionary)
+        self.action_AddDictionaries.setMenu(self.menu_AddDictionaries)
         # Save menu.
         self.menu_SaveDictionaries = QMenu(self.action_SaveDictionaries.text())
         self.menu_SaveDictionaries.setIcon(self.action_SaveDictionaries.icon())
-        self.menu_SaveDictionaries.addAction(
-            # i18n: Widget: “DictionariesWidget”, “save” menu.
-            _('Create a copy of each dictionary'),
-        ).triggered.connect(self._save_dictionaries)
-        self.menu_SaveDictionaries.addAction(
-            # i18n: Widget: “DictionariesWidget”, “save” menu.
-            _('Merge dictionaries into a new one'),
-        ).triggered.connect(functools.partial(self._save_dictionaries, merge=True))
+        self.menu_SaveDictionaries.addAction(self.action_CopyDictionaries)
+        self.menu_SaveDictionaries.addAction(self.action_MergeDictionaries)
         self.view.dragEnterEvent = self._drag_enter_event
         self.view.dragMoveEvent = self._drag_move_event
         self.view.dropEvent = self._drag_drop_event
@@ -621,7 +610,7 @@ class DictionariesWidget(QGroupBox, Ui_DictionariesWidget):
             # This will trigger a reload of any modified dictionary.
             self._engine.config = {}
 
-    def _add_existing_dictionaries(self):
+    def on_open_dictionaries(self):
         new_filenames = QFileDialog.getOpenFileNames(
             # i18n: Widget: “DictionariesWidget”, “add” file picker.
             parent=self, caption=_('Add dictionaries'),
@@ -633,7 +622,7 @@ class DictionariesWidget(QGroupBox, Ui_DictionariesWidget):
         self._file_dialogs_directory = os.path.dirname(new_filenames[-1])
         self._model.add(new_filenames)
 
-    def _create_new_dictionary(self):
+    def on_create_dictionary(self):
         # i18n: Widget: “DictionariesWidget”, “new” file picker.
         new_filename = self._get_dictionary_save_name(_('New dictionary'))
         if new_filename is None:
@@ -642,7 +631,13 @@ class DictionariesWidget(QGroupBox, Ui_DictionariesWidget):
             pass
         self._model.add([new_filename])
 
-    def on_activate(self, index):
+    def on_copy_dictionaries(self):
+        self._save_dictionaries()
+
+    def on_merge_dictionaries(self):
+        self._save_dictionaries(merge=True)
+
+    def on_activate_dictionary(self, index):
         self._edit_dictionaries([index])
 
     def on_add_dictionaries(self):

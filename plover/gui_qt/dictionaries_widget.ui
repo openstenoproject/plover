@@ -187,6 +187,26 @@
     <string>Move selected dictionaries down.</string>
    </property>
   </action>
+  <action name="action_CopyDictionaries">
+   <property name="text">
+    <string>Create a copy of each dictionary</string>
+   </property>
+  </action>
+  <action name="action_MergeDictionaries">
+   <property name="text">
+    <string>Merge dictionaries into a new one</string>
+   </property>
+  </action>
+  <action name="action_OpenDictionaries">
+   <property name="text">
+    <string>Open dictionaries</string>
+   </property>
+  </action>
+  <action name="action_CreateDictionary">
+   <property name="text">
+    <string>New dictionary</string>
+   </property>
+  </action>
  </widget>
  <layoutdefault spacing="5" margin="8"/>
  <resources>
@@ -277,7 +297,7 @@
    <sender>view</sender>
    <signal>activated(QModelIndex)</signal>
    <receiver>DictionariesWidget</receiver>
-   <slot>on_activate(QModelIndex)</slot>
+   <slot>on_activate_dictionary(QModelIndex)</slot>
    <hints>
     <hint type="sourcelabel">
      <x>199</x>
@@ -321,6 +341,70 @@
     </hint>
    </hints>
   </connection>
+  <connection>
+   <sender>action_OpenDictionaries</sender>
+   <signal>triggered()</signal>
+   <receiver>DictionariesWidget</receiver>
+   <slot>on_open_dictionaries()</slot>
+   <hints>
+    <hint type="sourcelabel">
+     <x>-1</x>
+     <y>-1</y>
+    </hint>
+    <hint type="destinationlabel">
+     <x>182</x>
+     <y>118</y>
+    </hint>
+   </hints>
+  </connection>
+  <connection>
+   <sender>action_CreateDictionary</sender>
+   <signal>triggered()</signal>
+   <receiver>DictionariesWidget</receiver>
+   <slot>on_create_dictionary()</slot>
+   <hints>
+    <hint type="sourcelabel">
+     <x>-1</x>
+     <y>-1</y>
+    </hint>
+    <hint type="destinationlabel">
+     <x>182</x>
+     <y>118</y>
+    </hint>
+   </hints>
+  </connection>
+  <connection>
+   <sender>action_MergeDictionaries</sender>
+   <signal>triggered()</signal>
+   <receiver>DictionariesWidget</receiver>
+   <slot>on_merge_dictionaries()</slot>
+   <hints>
+    <hint type="sourcelabel">
+     <x>-1</x>
+     <y>-1</y>
+    </hint>
+    <hint type="destinationlabel">
+     <x>182</x>
+     <y>118</y>
+    </hint>
+   </hints>
+  </connection>
+  <connection>
+   <sender>action_CopyDictionaries</sender>
+   <signal>triggered()</signal>
+   <receiver>DictionariesWidget</receiver>
+   <slot>on_copy_dictionaries()</slot>
+   <hints>
+    <hint type="sourcelabel">
+     <x>-1</x>
+     <y>-1</y>
+    </hint>
+    <hint type="destinationlabel">
+     <x>182</x>
+     <y>118</y>
+    </hint>
+   </hints>
+  </connection>
  </connections>
  <slots>
   <slot>on_remove_dictionaries()</slot>
@@ -328,8 +412,12 @@
   <slot>on_edit_dictionaries()</slot>
   <slot>on_add_dictionaries()</slot>
   <slot>on_add_translation()</slot>
-  <slot>on_activate(QModelIndex)</slot>
+  <slot>on_activate_dictionary(QModelIndex)</slot>
   <slot>on_move_dictionaries_up()</slot>
   <slot>on_move_dictionaries_down()</slot>
+  <slot>on_open_dictionaries()</slot>
+  <slot>on_create_dictionary()</slot>
+  <slot>on_merge_dictionaries()</slot>
+  <slot>on_copy_dictionaries()</slot>
  </slots>
 </ui>
