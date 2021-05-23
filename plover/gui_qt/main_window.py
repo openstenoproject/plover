@@ -143,6 +143,7 @@ class MainWindow(QMainWindow, Ui_MainWindow, WindowState):
             self.on_configure()
         # Apply configuration settings.
         config = self._engine.config
+        self._warn_on_hide_to_tray = not config['start_minimized']
         self._update_machine(config['machine_type'])
         self._configured = False
         self.dictionaries.on_config_changed(config)
@@ -274,7 +275,12 @@ class MainWindow(QMainWindow, Ui_MainWindow, WindowState):
         self._focus()
 
     def closeEvent(self, event):
+        event.ignore()
         self.hide()
         if not self._trayicon.is_enabled():
             self._engine.quit()
-        event.ignore()
+            return
+        if not self._warn_on_hide_to_tray:
+            return
+        self._trayicon.show_message(_('Application is still running.'))
+        self._warn_on_hide_to_tray = False
