@@ -40,7 +40,8 @@ CHECKED_TO_BOOL = {
     Qt.Unchecked: False,
 }
 
-MODEL_ROLES = sorted([Qt.CheckStateRole, Qt.DecorationRole, Qt.DisplayRole, Qt.ToolTipRole])
+MODEL_ROLES = sorted([Qt.AccessibleTextRole, Qt.CheckStateRole,
+                      Qt.DecorationRole, Qt.DisplayRole, Qt.ToolTipRole])
 
 
 def parse_state(state_str):
@@ -206,6 +207,52 @@ def model_test(monkeypatch, request):
         test.reset_mocks()
     return test
 
+
+def test_model_accessible_text_1(model_test):
+    '''
+    ☑ 🗘 read-only.ro
+    ☑ 🗘 user.json
+    ☑ 🗘 invalid.bad
+    ☑ 🗘 commands.json
+    ☐ 🗘 asset:plover:assets/main.json
+    '''
+    for n, expected in enumerate((
+        'read-only.ro, loading',
+        'user.json, loading',
+        'invalid.bad, loading',
+        'commands.json, loading',
+        'asset:plover:assets/main.json, disabled, loading',
+    )):
+        assert model_test.model.index(n).data(Qt.AccessibleTextRole) == expected
+
+def test_model_accessible_text_2(model_test):
+    '''
+    ☑ 🛇 read-only.ro
+    ☑ ★ user.json
+    ☑ ⎕ commands.json
+    ☐ 🛇 asset:plover:assets/main.json
+    '''
+    for n, expected in enumerate((
+        'read-only.ro, read-only',
+        'user.json, favorite',
+        'commands.json',
+        'asset:plover:assets/main.json, disabled, read-only',
+    )):
+        assert model_test.model.index(n).data(Qt.AccessibleTextRole) == expected
+
+def test_model_accessible_text_3(model_test):
+    '''
+    ☑ ! invalid.bad
+    '''
+    expected = 'invalid.bad, errored: %s.' % INVALID_EXCEPTION
+    assert model_test.model.index(0).data(Qt.AccessibleTextRole) == expected
+
+def test_model_accessible_text_4(model_test):
+    '''
+    ☐ ! invalid.bad
+    '''
+    expected = 'invalid.bad, disabled, errored: %s.' % INVALID_EXCEPTION
+    assert model_test.model.index(0).data(Qt.AccessibleTextRole) == expected
 
 def test_model_add_existing(model_test):
     '''
