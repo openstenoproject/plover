@@ -141,6 +141,8 @@ def parse_rtfcre(text, normalize=lambda s: s, skip_errors=True):
                     'cxfing',
                     # Stenovations extensions...
                     'cxsvatdictflags',
+                    # Plover meta.
+                    'cxplovermeta',
                 }:
                     is_ignored = False
                 elif style_rx.fullmatch(destination):
@@ -215,6 +217,9 @@ def parse_rtfcre(text, normalize=lambda s: s, skip_errors=True):
             # Fingerspelling.
             elif g_destination == 'cxfing':
                 text = '{&' + g_text + '}'
+            # Plover meta.
+            elif g_destination == 'cxplovermeta':
+                text = '{' + g_text + '}'
             # Style declaration.
             elif (g_destination is not None and
                   style_rx.fullmatch(g_destination) and

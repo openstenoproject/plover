@@ -89,8 +89,7 @@ class TranslationFormatter:
         (r'{>}'                        , r'\cxfl '                     ),
         (r'{ }'                        , r' '                          ),
         (r'{&([^}]+)}'                 , r'{{\cxfing {0}}}'            ),
-        (r'{#([^}]+)}'                 , r'\\{{#{0}\\}}'               ),
-        (r'{PLOVER:([a-zA-Z]+)}'       , r'\\{{PLOVER:{0}\\}}'         ),
+        (r'{(.*)}'                     , r'{{\*\cxplovermeta {0}}}'    ),
     )
 
     def __init__(self):

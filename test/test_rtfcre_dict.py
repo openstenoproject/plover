@@ -46,6 +46,13 @@ from plover_build_utils.testing import dictionary_test, parametrize
     # Infix with force cap.
     lambda: ('{^\n^}{-|}', r'\cxds \line \cxds \cxfc '),
     lambda: ('{^\n\n^}{-|}', r'\cxds \par \cxds \cxfc '),
+    # Plover custom formatting:
+    # - meta: command
+    lambda: ('{PLOVER:TOGGLE}', r'{\*\cxplovermeta PLOVER:TOGGLE}'),
+    # - meta: key combo
+    lambda: ('{#Return}', r'{\*\cxplovermeta #Return}'),
+    # - meta: other
+    lambda: ('{:retro_case:cap_first_word}', r'{\*\cxplovermeta :retro_case:cap_first_word}'),
 ))
 def test_format_translation(before, expected):
     result = TranslationFormatter().format(before)
@@ -361,6 +368,14 @@ RTF_LOAD_TESTS = (
     lambda: rtf_load_test(r'{\cxconf {\cxc \par\s4}{\*\deleted {\cxc paragraph}}}', '{^\n\n    ^}'),
     lambda: rtf_load_test(r'{\cxconf {\*\deleted {\cxc \par\s4}}{\cxc paragraph}}', 'paragraph'),
 
+    # Plover custom formatting:
+    # - meta: command
+    lambda: rtf_load_test(r'{\*\cxplovermeta plover:focus}', '{plover:focus}'),
+    # - meta: key combo
+    lambda: rtf_load_test(r'{\*\cxplovermeta #Alt_L(Tab Tab)}', '{#Alt_L(Tab Tab)}'),
+    # - meta: other
+    lambda: rtf_load_test(r'{\*\cxplovermeta :retro_currency:$c}', '{:retro_currency:$c}'),
+
     # Unrecoverable content.
 
     # Bad header.
@@ -443,6 +458,12 @@ RTF_SAVE_TESTS = (
         "TEFT": "test\\nsomething",
         ''',
         (br'{\*\cxs TEFT}test\\nsomething',)
+    ),
+    lambda: rtf_save_test(
+        '''
+        "PHROLG": "{PLOVER:TOGGLE}",
+        ''',
+        (br'{\*\cxs PHROLG}{\*\cxplovermeta PLOVER:TOGGLE}',)
     ),
 )
 
