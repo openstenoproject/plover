@@ -5,7 +5,7 @@ import textwrap
 
 import pytest
 
-from plover.dictionary.rtfcre_dict import RtfDictionary, format_translation
+from plover.dictionary.rtfcre_dict import RtfDictionary, TranslationFormatter
 from plover.dictionary.rtfcre_parse import BadRtfError
 
 from plover_build_utils.testing import dictionary_test, parametrize
@@ -13,13 +13,42 @@ from plover_build_utils.testing import dictionary_test, parametrize
 
 @parametrize((
     lambda: ('', ''),
+    # Affix handling.
+    lambda: ('{^}', r'\cxds '),
+    lambda: ('{^^}', r'\cxds '),
     lambda: ('{^in^}', r'\cxds in\cxds '),
     lambda: ('{pre^}', r'pre\cxds '),
     lambda: ('{pre^} ', r'pre\cxds '),
     lambda: ('{pre^}  ', r'pre\cxds '),
+    lambda: ('{ pre ^}  ', r' pre \cxds '),
+    lambda: ('{^post}', r'\cxds post'),
+    lambda: (' {^post}', r'\cxds post'),
+    lambda: ('  {^post}', r'\cxds post'),
+    lambda: ('{^ post }  ', r'\cxds  post '),
+    # Escaping special characters.
+    lambda: (r'\{', r'\\\{'),
+    lambda: (r'\}', r'\\\}'),
+    # Hard space.
+    lambda: ('{^ ^}', r'\~'),
+    # Non-breaking hyphen.
+    lambda: ('{^-^}', r'\_'),
+    # Handling newlines.
+    lambda: ('test\nsomething', r'test\line something'),
+    lambda: ('test\n\nsomething', r'test\par something'),
+    lambda: ('test\\nsomething', r'test\\nsomething'),
+    # Handling tabs.
+    lambda: ('test\tsomething', r'test\tab something'),
+    lambda: ('test\\tsomething', r'test\\tsomething'),
+    # Force Cap.
+    lambda: (r'Mr.{-|}', r'Mr.\cxfc '),
+    # Force Lower Case.
+    lambda: (r'{>}lol', r'\cxfl lol'),
+    # Infix with force cap.
+    lambda: ('{^\n^}{-|}', r'\cxds \line \cxds \cxfc '),
+    lambda: ('{^\n\n^}{-|}', r'\cxds \par \cxds \cxfc '),
 ))
 def test_format_translation(before, expected):
-    result = format_translation(before)
+    result = TranslationFormatter().format(before)
     assert result == expected
 
 
@@ -374,14 +403,46 @@ RTF_LOAD_TESTS = (
         '''),
 )
 
+def rtf_save_test(dict_entries, rtf_entries):
+    rtf_entries = b'\r\n'.join((
+        br'{\rtf1\ansi{\*\cxrev100}\cxdict'
+        br'{\*\cxsystem Plover}'
+        br'{\stylesheet{\s0 Normal;}}',
+    ) + rtf_entries + (b'}', b''))
+    return dict_entries, rtf_entries
+
 RTF_SAVE_TESTS = (
-    lambda: (
+    lambda: rtf_save_test(
+        '''
+        'TEFT': 'test',
+        'TEFT/-G': 'testing',
+        ''',
+        (br'{\*\cxs TEFT}test',
+         br'{\*\cxs TEFT/-G}testing')
+    ),
+    lambda: rtf_save_test(
         '''
         'S/T': '{pre^}',
         ''',
-        (b'{\\rtf1\\ansi{\\*\\cxrev100}\\cxdict{\\*\\cxsystem Plover}'
-         b'{\\stylesheet{\\s0 Normal;}}\r\n'
-         b'{\\*\\cxs S/T}pre\\cxds \r\n}\r\n')
+        (br'{\*\cxs S/T}pre\cxds ',)
+    ),
+    lambda: rtf_save_test(
+        r'''
+        "PWR-S": "\\{",
+        ''',
+        (br'{\*\cxs PWR-S}\\\{',)
+    ),
+    lambda: rtf_save_test(
+        r'''
+        "TEFT": "test\nsomething",
+        ''',
+        (br'{\*\cxs TEFT}test\line something',)
+    ),
+    lambda: rtf_save_test(
+        r'''
+        "TEFT": "test\\nsomething",
+        ''',
+        (br'{\*\cxs TEFT}test\\nsomething',)
     ),
 )
 

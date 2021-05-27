@@ -13,42 +13,109 @@ http://www.legalxml.org/workgroups/substantive/transcripts/cre-spec.htm
 
 """
 
-import codecs
 import re
+import string
 
+from plover.formatting import ATOM_RE
 from plover.steno import normalize_steno
 from plover.steno_dictionary import StenoDictionary
-# TODO: Move dictionary format somewhere more canonical than formatting.
-from plover.formatting import ATOM_RE
 
 from .rtfcre_parse import parse_rtfcre
 
 
-HEADER = ("{\\rtf1\\ansi{\\*\\cxrev100}\\cxdict{\\*\\cxsystem Plover}" +
-          "{\\stylesheet{\\s0 Normal;}}\r\n")
+HEADER = (r'{\rtf1\ansi{\*\cxrev100}'
+          r'\cxdict{\*\cxsystem Plover}'
+          r'{\stylesheet{\s0 Normal;}}')
 
-def format_translation(t):
-    t = ' '.join([x.strip() for x in ATOM_RE.findall(t) if x.strip()])
-    
-    t = re.sub(r'{\.}', r'{\\cxp. }', t)
-    t = re.sub(r'{!}', r'{\\cxp! }', t)
-    t = re.sub(r'{\?}', r'{\\cxp? }', t)
-    t = re.sub(r'{\,}', r'{\\cxp, }', t)
-    t = re.sub(r'{:}', r'{\\cxp: }', t)
-    t = re.sub(r'{;}', r'{\\cxp; }', t)
-    t = re.sub(r'{\^}', r'\\cxds ', t)
-    t = re.sub(r'{\^([^^}]*)}', r'\\cxds \1', t)
-    t = re.sub(r'{([^^}]*)\^}', r'\1\\cxds ', t)
-    t = re.sub(r'{\^([^^}]*)\^}', r'\\cxds \1\\cxds ', t)
-    t = re.sub(r'{-\|}', r'\\cxfc ', t)
-    t = re.sub(r'{>}', r'\\cxfls ', t)
-    t = re.sub(r'{ }', r' ', t)
-    t = re.sub(r'{&([^}]+)}', r'{\\cxfing \1}', t)
-    t = re.sub(r'{#([^}]+)}', r'\\{#\1\\}', t)
-    t = re.sub(r'{PLOVER:([a-zA-Z]+)}', r'\\{PLOVER:\1\\}', t)
-    t = re.sub(r'\\"', r'"', t)
 
-    return t
+class RegexFormatter:
+
+    def __init__(self, spec_list, escape_fn):
+        self._escape_fn = escape_fn
+        self._format_for_lastindex = [None]
+        pattern_list = []
+        for pattern, replacement in spec_list:
+            num_groups = len(self._format_for_lastindex)
+            pattern_groups = re.compile(pattern).groups
+            if pattern_groups:
+                needed = []
+                for token in string.Formatter().parse(replacement):
+                    field_name = token[1]
+                    if not field_name:
+                        continue
+                    group = int(field_name)
+                    assert 0 <= group <= pattern_groups
+                    needed.append(group + num_groups)
+            else:
+                pattern = '(' + pattern + ')'
+                pattern_groups = 1
+                needed = []
+            for n in range(pattern_groups):
+                self._format_for_lastindex.append((needed, replacement))
+            pattern_list.append(pattern)
+        self._format_rx = re.compile('|'.join(pattern_list))
+
+    def format(self, s):
+        m = self._format_rx.fullmatch(s)
+        if m is None:
+            return None
+        needed, replacement = self._format_for_lastindex[m.lastindex]
+        return replacement.format(*(self._escape_fn(m.group(g)) for g in needed))
+
+
+class TranslationFormatter:
+
+    TO_ESCAPE = (
+        (r'([\\{}])', r'\\\1'   ),
+        (r'\n\n'    , r'\\par ' ),
+        (r'\n'      , r'\\line '),
+        (r'\t'      , r'\\tab ' ),
+    )
+    ATOMS_FORMATTERS = (
+        # Note order matters!
+        (r'{\.}'                       , r'{{\cxp. }}'                 ),
+        (r'{!}'                        , r'{{\cxp! }}'                 ),
+        (r'{\?}'                       , r'{{\cxp? }}'                 ),
+        (r'{\,}'                       , r'{{\cxp, }}'                 ),
+        (r'{:}'                        , r'{{\cxp: }}'                 ),
+        (r'{;}'                        , r'{{\cxp; }}'                 ),
+        (r'{\^ \^}'                    , r'\~'                         ),
+        (r'{\^-\^}'                    , r'\_'                         ),
+        (r'{\^\^?}'                    , r'\cxds '                     ),
+        (r'{\^([^^}]*)\^}'             , r'\cxds {0}\cxds '            ),
+        (r'{\^([^^}]*)}'               , r'\cxds {0}'                  ),
+        (r'{([^^}]*)\^}'               , r'{0}\cxds '                  ),
+        (r'{-\|}'                      , r'\cxfc '                     ),
+        (r'{>}'                        , r'\cxfl '                     ),
+        (r'{ }'                        , r' '                          ),
+        (r'{&([^}]+)}'                 , r'{{\cxfing {0}}}'            ),
+        (r'{#([^}]+)}'                 , r'\\{{#{0}\\}}'               ),
+        (r'{PLOVER:([a-zA-Z]+)}'       , r'\\{{PLOVER:{0}\\}}'         ),
+    )
+
+    def __init__(self):
+        self._to_escape = [
+            (re.compile(pattern), replacement)
+            for pattern, replacement in self.TO_ESCAPE
+        ]
+        self._atom_formatter = RegexFormatter(self.ATOMS_FORMATTERS, self.escape)
+
+    def escape(self, text):
+        for rx, replacement in self._to_escape:
+            text = rx.sub(replacement, text)
+        return text
+
+    def format(self, translation):
+        parts = []
+        for atom in ATOM_RE.findall(translation):
+            atom = atom.strip()
+            if not atom:
+                continue
+            s = self._atom_formatter.format(atom)
+            if s is None:
+                s = self.escape(atom)
+            parts.append(s)
+        return ''.join(parts)
 
 
 class RtfDictionary(StenoDictionary):
@@ -59,12 +126,12 @@ class RtfDictionary(StenoDictionary):
         self.update(parse_rtfcre(text, normalize=normalize_steno))
 
     def _save(self, filename):
-        with open(filename, 'wb') as fp:
-            writer = codecs.getwriter('cp1252')(fp)
-            writer.write(HEADER)
+        translation_formatter = TranslationFormatter()
+        with open(filename, 'w', encoding='cp1252', newline='\r\n') as fp:
+            print(HEADER, file=fp)
             for s, t in self.items():
                 s = '/'.join(s)
-                t = format_translation(t)
-                entry = "{\\*\\cxs %s}%s\r\n" % (s, t)
-                writer.write(entry)
-            writer.write("}\r\n")
+                t = translation_formatter.format(t)
+                entry = r'{\*\cxs %s}%s' % (s, t)
+                print(entry, file=fp)
+            print('}', file=fp)
