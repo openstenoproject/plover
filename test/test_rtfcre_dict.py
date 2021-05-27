@@ -6,6 +6,7 @@ import textwrap
 import pytest
 
 from plover.dictionary.rtfcre_dict import RtfDictionary, format_translation
+from plover.dictionary.rtfcre_parse import BadRtfError
 
 from plover_build_utils.testing import dictionary_test, parametrize
 
@@ -22,7 +23,7 @@ def test_format_translation(before, expected):
     assert result == expected
 
 
-def rtf_load_test(*spec):
+def rtf_load_test(*spec, xfail=False):
     assert 1 <= len(spec) <= 2
     if len(spec) == 2:
         # Conversion test.
@@ -34,7 +35,8 @@ def rtf_load_test(*spec):
             rtf_entries, dict_entries = '', ''
         else:
             rtf_entries, dict_entries = tuple(spec.rsplit('\n\n', 1))
-    return rtf_entries, dict_entries
+    kwargs = dict(marks=pytest.mark.xfail) if xfail else {}
+    return pytest.param(rtf_entries, dict_entries, **kwargs)
 
 RTF_LOAD_TESTS = (
 
@@ -55,12 +57,27 @@ RTF_LOAD_TESTS = (
         '''),
 
     # One translation on multiple lines.
-    lambda: pytest.param(*rtf_load_test(
+    lambda: rtf_load_test(
         '''
         {\\*\\cxs SP}\r\ntranslation
 
         'SP': 'translation'
-        '''), marks=pytest.mark.xfail),
+        '''),
+
+    # Steno and translation on multiple lines.
+    lambda: rtf_load_test(
+        '''
+        {\\*\\cxs PHA*-EU/SKWRAO-UPB/SKWR-UL/A-UGT/S-EPT/O-BGT/TPHO*-EF/STK-EPL/SKWRA-PB/TP-EB\r\n
+        /PHA-R/A-EUP}May, June, July, August, September, October, November, December, January,\r\n
+         February, March, April
+
+        ('PHA*-EU/SKWRAO-UPB/SKWR-UL/A-UGT/'
+         'S-EPT/O-BGT/TPHO*-EF/STK-EPL/'
+         'SKWRA-PB/TP-EB/PHA-R/A-EUP'): (
+         'May, June, July, August, September, '
+         'October, November, December, January, '
+         'February, March, April')
+        '''),
 
     # Multiple translations no newlines.
     lambda: rtf_load_test(
@@ -87,20 +104,37 @@ RTF_LOAD_TESTS = (
         'S': 'translation2',
         '''),
 
-    # Escaped \r and \n handled.
+    # Group start split on 2 lines.
+    lambda: rtf_load_test(
+        r'''
+        {\*\cxs TEFT}{
+        \*\ignored I'm invisible}
+
+        'TEFT': '',
+        '''),
+
+    # Mapping to empty string at end.
+    lambda: rtf_load_test(
+        r'''
+        {\*\cxs TEFT}
+
+        'TEFT': '',
+        '''),
+
+    # Escaped \r\n handled.
     lambda: rtf_load_test(
         '''
-        {\\*\\cxs SP}trans\\\r\\\n
+        {\\*\\cxs SP}trans\\\r\n
 
-        'SP': 'trans{#Return}{#Return}{#Return}{#Return}',
+        'SP': 'trans{^\\n\\n^}',
         '''),
 
     # Escaped \r\n handled in mid translation.
     lambda: rtf_load_test(
         '''
-        {\\*\\cxs SP}trans\\\r\\\nlation
+        {\\*\\cxs SP}trans\\\r\nlation
 
-        'SP': 'trans{#Return}{#Return}{#Return}{#Return}lation',
+        'SP': 'trans\\n\\nlation',
         '''),
 
     # Whitespace is preserved in various situations.
@@ -171,16 +205,35 @@ RTF_LOAD_TESTS = (
 
     # Translation conversion tests.
 
+    # Void...
     lambda: rtf_load_test('', ''),
+
+    # Escaped characters.
     lambda: rtf_load_test(r'\-', '-'),
     lambda: rtf_load_test(r'\\ ', '\\ '),
-    lambda: pytest.param(*rtf_load_test(r'\\', '\\'), marks=pytest.mark.xfail),
+    lambda: rtf_load_test(r'\\', '\\'),
     lambda: rtf_load_test(r'\{', '{'),
     lambda: rtf_load_test(r'\}', '}'),
+
+    # Hard space.
     lambda: rtf_load_test(r'\~', '{^ ^}'),
-    lambda: rtf_load_test(r'\_', '-'),
-    lambda: rtf_load_test('\\\r', '{#Return}{#Return}'),
-    lambda: rtf_load_test('\\\n', '{#Return}{#Return}'),
+
+    # Non-breaking hyphen.
+    lambda: rtf_load_test(r'\_', '{^-^}'),
+
+    # Escaped newline.
+    lambda: rtf_load_test('\\\r\n', '{^\n\n^}'),
+
+    # Newline / tabs control words.
+    lambda: rtf_load_test(r'test:\line something', 'test:\nsomething'),
+    lambda: rtf_load_test(r'\line', '\n'),
+    lambda: rtf_load_test(r'\tab', '\t'),
+    lambda: rtf_load_test(r'{\line at group start}', '\nat group start'),
+
+    lambda: rtf_load_test('test text', 'test text'),
+    lambda: rtf_load_test('test  text', 'test  text'),
+
+    # Delete Spaces.
     lambda: rtf_load_test(r'\cxds', '{^}'),
     lambda: rtf_load_test(r'pre\cxds ', '{pre^}'),
     lambda: rtf_load_test(r'pre\cxds  ', '{pre^} '),
@@ -188,30 +241,51 @@ RTF_LOAD_TESTS = (
     lambda: rtf_load_test(r'\cxds post', '{^post}'),
     lambda: rtf_load_test(r'\cxds in\cxds', '{^in^}'),
     lambda: rtf_load_test(r'\cxds in\cxds ', '{^in^}'),
+
+    # Force Cap.
     lambda: rtf_load_test(r'\cxfc', '{-|}'),
+
+    # Force Lower Case.
     lambda: rtf_load_test(r'\cxfl', '{>}'),
     lambda: rtf_load_test(r'pre\cxfl', 'pre{>}'),
-    lambda: rtf_load_test(r'\par', '{#Return}{#Return}'),
+
+    # New paragraph.
+    lambda: rtf_load_test(r'\par', '{^\n\n^}'),
+    lambda: rtf_load_test(r'{\par test}', '{^\n\n^}test'),
+
     # Stenovations extensions...
     lambda: rtf_load_test(r'{\*\cxsvatdictflags N}', '{-|}'),
     lambda: rtf_load_test(r'{\*\cxsvatdictflags LN1}', '{-|}'),
-    # caseCATalyst declares new styles without a preceding \par so we treat
-    # it as an implicit par.
-    lambda: rtf_load_test(r'\s1', '{#Return}{#Return}'),
+
+    # Styles.
+    # Continuation styles are indented.
+    lambda: rtf_load_test(r'\par\s4', '{^\n\n    ^}'),
+    # caseCATalyst declares new styles without a preceding \par,
+    # so we treat it as an implicit par.
+    lambda: rtf_load_test(r'\s1', '{^\n\n^}'),
     # But if the \par is present we don't treat \s as an implicit par.
-    lambda: rtf_load_test(r'\par\s1', '{#Return}{#Return}'),
-    # Continuation styles are indented too.
-    lambda: rtf_load_test(r'\par\s4', '{#Return}{#Return}{^    ^}'),
+    lambda: rtf_load_test(r'\par\s1', '{^\n\n^}'),
+
     # caseCATalyst punctuation.
     lambda: rtf_load_test(r'.', '{.}'),
     lambda: rtf_load_test(r'. ', '{.} '),
     lambda: rtf_load_test(r' . ', ' . '),
+
+    # Automatic Text.
     lambda: rtf_load_test(r'{\cxa Q.}.', 'Q..'),
+
     # Don't mess with period that is part of a word.
     lambda: rtf_load_test(r'Mr.', 'Mr.'),
     lambda: rtf_load_test(r'.attribute', '.attribute'),
+
+    # Stitching.
     lambda: rtf_load_test(r'{\cxstit contents}', 'contents'),
+
+    # Fingerspelling.
     lambda: rtf_load_test(r'{\cxfing c}', '{&c}'),
+    lambda: rtf_load_test(r'\cxfing Z.', '{&Z.}'),
+
+    # Punctuation.
     lambda: rtf_load_test(r'{\cxp.}', '{.}'),
     lambda: rtf_load_test(r'{\cxp .}', '{.}'),
     lambda: rtf_load_test(r'{\cxp . }', '{.}'),
@@ -224,23 +298,80 @@ RTF_LOAD_TESTS = (
     lambda: rtf_load_test('{\\cxp \'}', '{^\'}'),
     lambda: rtf_load_test('{\\cxp -}', '{^-^}'),
     lambda: rtf_load_test('{\\cxp /}', '{^/^}'),
+    # Why not '{^...^}'?
     lambda: rtf_load_test('{\\cxp...  }', '{^...  ^}'),
+    # Why not '{^")^}'?
     lambda: rtf_load_test('{\\cxp ") }', '{^") ^}'),
-    lambda: rtf_load_test('{\\nonexistent }', ''),
-    lambda: rtf_load_test('{\\nonexistent contents}', 'contents'),
-    lambda: rtf_load_test('{\\nonexistent cont\\_ents}', 'cont-ents'),
-    lambda: rtf_load_test('{\\*\\nonexistent }', ''),
-    lambda: rtf_load_test('{\\*\\nonexistent contents}', ''),
-    lambda: rtf_load_test('{eclipse command}', '{eclipse command}'),
-    lambda: rtf_load_test('test text', 'test text'),
-    lambda: rtf_load_test('test  text', 'test{^  ^}text'),
-    lambda: rtf_load_test(r'{\cxconf [{\cxc abc}]}', 'abc'),
-    lambda: rtf_load_test(r'{\cxconf [{\cxc abc}|{\cxc def}]}', 'def'),
-    lambda: rtf_load_test(r'{\cxconf [{\cxc abc}|{\cxc def}|{\cxc ghi}]}', 'ghi'),
-    lambda: rtf_load_test(r'{\cxconf [{\cxc abc}|{\cxc {\cxp... }}]}', '{^... ^}'),
-    lambda: rtf_load_test(r'be\cxds{\*\cxsvatdictentrydate\yr2006\mo5\dy10}', '{be^}'),
+
+    # Unsupported, non-ignored group.
+    lambda: rtf_load_test(r'{\nonexistent }', ''),
+    lambda: rtf_load_test(r'{\nonexistent contents}', 'contents'),
+    lambda: rtf_load_test(r'{\nonexistent cont\_ents}', 'cont{^-^}ents'),
     lambda: rtf_load_test(r'{\nonexistent {\cxp .}}', '{.}'),
+
+    # Unsupported, ignored group.
+    lambda: rtf_load_test(r'{\*\nonexistent }', ''),
+    lambda: rtf_load_test(r'{\*\nonexistent contents}', ''),
     lambda: rtf_load_test(r'{\*\nonexistent {\cxp .}}', ''),
+    lambda: rtf_load_test(r'be\cxds{\*\cxsvatdictentrydate\yr2006\mo5\dy10}', '{be^}'),
+
+    # Why not 'eclipse command'?
+    lambda: rtf_load_test('{eclipse command}', '{eclipse command}', xfail=True),
+
+    # Unresolved conflicts.
+    lambda: rtf_load_test(r'{\cxconf [{\cxc abc}]}', '[abc]'),
+    lambda: rtf_load_test(r'{\cxconf [{\cxc abc}|{\cxc def}]}', '[abc|def]'),
+    lambda: rtf_load_test(r'{\cxconf [{\cxc abc}|{\cxc def}|{\cxc ghi}]}', '[abc|def|ghi]'),
+    lambda: rtf_load_test(r'{\cxconf [{\cxc abc}|{\cxc {\cxp... }}]}', '[abc|{^... ^}]'),
+    lambda: rtf_load_test(r"{\cxconf [{\cxc their}|{\cxc there}|{\cxc they're}]}", "[their|there|they're]"),
+    lambda: rtf_load_test(r'{\cxconf [{\cxc \par\s4}|{\cxc paragraph}]}', '[\n\n    |paragraph]'),
+
+    # Resolved conflicts.
+    lambda: rtf_load_test(r"{\cxconf {\cxc their}{\*\deleted {\cxc there}{\cxc they're}}}", 'their'),
+    lambda: rtf_load_test(r"{\cxconf {\*\deleted {\cxc their}}{\cxc there}{\*\deleted {\cxc they're}}}", 'there'),
+    lambda: rtf_load_test(r'{\cxconf {\cxc \par\s4}{\*\deleted {\cxc paragraph}}}', '{^\n\n    ^}'),
+    lambda: rtf_load_test(r'{\cxconf {\*\deleted {\cxc \par\s4}}{\cxc paragraph}}', 'paragraph'),
+
+    # Unrecoverable content.
+
+    # Bad header.
+    lambda: (br' {  \rtf1 test }', BadRtfError),
+    lambda: (br'\rtf1 test }', BadRtfError),
+    lambda: (br'{\rtf500 ... }', BadRtfError),
+
+    # Recoverable content.
+
+    # Starting new mapping in the middle of previous one.
+    lambda: rtf_load_test(
+        r'''
+        {\*\cxs PWRA*-BGT}{\cxconf [{\cxds arg{\cxc\cxds{\*\cxsvatdictentrydate\yr2016\mo8\da12}
+        {\*\cxs #25-UBG}{\cxconf [{\cxc  the talk}|{\cxc\cxsvatds , 1946,}]}{\*\cxsvatdictentrydate
+        \yr2016\mo7\da14}
+        {\*\cxs #250-UDZ}{\cxconf [{\cxc $25,000}|{\cxc the attitudes}]}{\*\cxsvatdictentrydate
+        \yr2016\mo6\da29}
+
+        'PWRA*BGT': '[{^arg}{^}',
+        '25UBG': '[ the talk|, 1946,]',
+        '250UDZ': '[$25,000|the attitudes]',
+        '''),
+    # Unescaped group end in the middle of a mapping.
+    lambda: rtf_load_test(
+        r'''
+        {\*\cxs SPWHRA*-RB}\cxds \\\cxds{\*\cxsvatdictentrydate\yr2016\mo5\da20}
+        {\*\cxs PWRA*-BGTD}\cxds}]}{\*\cxsvatdictentrydate\yr2016\mo8\da12}
+        {\*\cxs SPA*-EUS}\cxds ^\cxds{\*\cxsvatdictentrydate\yr2016\mo8\da22}
+
+        'SPWHRA*RB': '{^}\\{^}',
+        'PWRA*BGTD' : '{^}]',
+        'SPA*EUS' : '{^^^}',
+        '''),
+    # Fingerspelling without content.
+    lambda: rtf_load_test(r'\cxfing', ''),
+    lambda: (
+        br'{\rtf1\ansi{\*\cxs TEFT}\cxfing',
+        '''
+        'TEFT': ''
+        '''),
 )
 
 RTF_SAVE_TESTS = (

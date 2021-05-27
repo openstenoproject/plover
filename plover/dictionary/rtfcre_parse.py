@@ -267,7 +267,6 @@ def parse_rtfcre(text, normalize=lambda s: s, skip_errors=True):
                     if token == r'\cxds':
                         # Infix
                         g_text += '{^' + text + '^}'
-                        next_token, next_position = None, None
                     else:
                         # Prefix.
                         g_text += '{^' + text + '}'
