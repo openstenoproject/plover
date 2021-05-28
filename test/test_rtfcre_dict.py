@@ -53,6 +53,20 @@ from plover_build_utils.testing import dictionary_test, parametrize
     lambda: ('{#Return}', r'{\*\cxplovermeta #Return}'),
     # - meta: other
     lambda: ('{:retro_case:cap_first_word}', r'{\*\cxplovermeta :retro_case:cap_first_word}'),
+    # - macro
+    lambda: ('{*}', r'{\*\cxplovermacro retrospective_toggle_asterisk}'),
+    lambda: ('{*!}', r'{\*\cxplovermacro retrospective_delete_space}'),
+    lambda: ('{*?}', r'{\*\cxplovermacro retrospective_insert_space}'),
+    lambda: ('{*+}', r'{\*\cxplovermacro repeat_last_stroke}'),
+    lambda: ('=retrospective_delete_space', r'{\*\cxplovermacro retrospective_delete_space}'),
+    lambda: ('=macro:with_arg', r'{\*\cxplovermacro macro:with_arg}'),
+    lambda: ('=macro:', r'{\*\cxplovermacro macro:}'),
+    lambda: ('=undo', r'\cxdstroke'),
+    # - not macros
+    lambda: ('==', '=='),
+    lambda: ('=test()', '=test()'),
+    lambda: ("=macro{<-ceci n'est pas une macro}", r"=macro{\*\cxplovermeta <-ceci n'est pas une macro}"),
+    lambda: ('{*}something', r'{\*\cxplovermeta *}something'),
 ))
 def test_format_translation(before, expected):
     result = TranslationFormatter().format(before)
@@ -375,6 +389,9 @@ RTF_LOAD_TESTS = (
     lambda: rtf_load_test(r'{\*\cxplovermeta #Alt_L(Tab Tab)}', '{#Alt_L(Tab Tab)}'),
     # - meta: other
     lambda: rtf_load_test(r'{\*\cxplovermeta :retro_currency:$c}', '{:retro_currency:$c}'),
+    # - macro
+    lambda: rtf_load_test(r'{\*\cxplovermacro retrospective_delete_space}', '=retrospective_delete_space'),
+    lambda: rtf_load_test(r'\cxdstroke', '=undo'),
 
     # Unrecoverable content.
 

@@ -91,6 +91,14 @@ class TranslationFormatter:
         (r'{&([^}]+)}'                 , r'{{\cxfing {0}}}'            ),
         (r'{(.*)}'                     , r'{{\*\cxplovermeta {0}}}'    ),
     )
+    TRANSLATIONS_FORMATTERS = (
+        (r'{\*}'                       , r'{{\*\cxplovermacro retrospective_toggle_asterisk}}'),
+        (r'{\*!}'                      , r'{{\*\cxplovermacro retrospective_delete_space}}'),
+        (r'{\*\?}'                     , r'{{\*\cxplovermacro retrospective_insert_space}}'),
+        (r'{\*\+}'                     , r'{{\*\cxplovermacro repeat_last_stroke}}'),
+        (r'=undo'                      , r'\cxdstroke'                 ),
+        (r'=(\w+(?::.*)?)'             , r'{{\*\cxplovermacro {0}}}'   ),
+    )
 
     def __init__(self):
         self._to_escape = [
@@ -98,6 +106,7 @@ class TranslationFormatter:
             for pattern, replacement in self.TO_ESCAPE
         ]
         self._atom_formatter = RegexFormatter(self.ATOMS_FORMATTERS, self.escape)
+        self._translation_formatter = RegexFormatter(self.TRANSLATIONS_FORMATTERS, self.escape)
 
     def escape(self, text):
         for rx, replacement in self._to_escape:
@@ -105,6 +114,9 @@ class TranslationFormatter:
         return text
 
     def format(self, translation):
+        s = self._translation_formatter.format(translation)
+        if s is not None:
+            return s
         parts = []
         for atom in ATOM_RE.findall(translation):
             atom = atom.strip()

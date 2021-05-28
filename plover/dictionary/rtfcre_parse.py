@@ -141,6 +141,8 @@ def parse_rtfcre(text, normalize=lambda s: s, skip_errors=True):
                     'cxfing',
                     # Stenovations extensions...
                     'cxsvatdictflags',
+                    # Plover macro.
+                    'cxplovermacro',
                     # Plover meta.
                     'cxplovermeta',
                 }:
@@ -217,6 +219,9 @@ def parse_rtfcre(text, normalize=lambda s: s, skip_errors=True):
             # Fingerspelling.
             elif g_destination == 'cxfing':
                 text = '{&' + g_text + '}'
+            # Plover macro.
+            elif g_destination == 'cxplovermacro':
+                text = '=' + g_text
             # Plover meta.
             elif g_destination == 'cxplovermeta':
                 text = '{' + g_text + '}'
