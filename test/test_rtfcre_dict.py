@@ -413,9 +413,8 @@ class TestRtfDictionary:
         rtf = (
             '\r\n'.join(
                 [r'{\rtf1\ansi\cxdict{\*\cxrev100}{\*\cxsystem Fake Software}'] +
+                [r'{\stylesheet'] +
                 [r'{\s%d %s;}' % (k, v) for k, v in rtf_styles.items()] +
-                ['}'])
-            + contents
-            + '\r\n}'
-        )
+                ['}', contents, '}', '']
+            ))
         return rtf.encode('cp1252')
