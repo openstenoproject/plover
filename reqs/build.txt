@@ -1,4 +1,3 @@
--f https://github.com/benoit-pierre/dmgbuild/releases/tag/v1.4.2%2B1.gd79dc1e
 dmgbuild; "darwin" in sys_platform
 
 # vim: ft=cfg commentstring=#\ %s list
