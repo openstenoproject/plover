@@ -60,7 +60,7 @@ ORTHOGRAPHY_RULES = [
 
     # == y ==
     # die+ing = dying
-    (r'^(.+)ie \^ ing$', r'\1ying'),
+    (r'^(.+)ie \^ (ing|in\')$', r'\1y\2'),
     # metallurgy + ist = metallurgist
     (r'^(.+[cdfghlmnpr])y \^ ist$', r'\1ist'),
     # beauty + ful = beautiful (y -> i)
@@ -77,7 +77,7 @@ ORTHOGRAPHY_RULES = [
     (r'^(.+)y \^ (ial|ially)$', r'\1\2'),
     # == +if ==
     # spaghetti +ification = spaghettification (*spaghettiification)
-    (r'^(.+)i \^ if(y|ying|ied|ies|ication|ications)$', r'\1if\2'),
+    (r'^(.+)i \^ if(y|ying|yin\'|ied|ies|ication|ications)$', r'\1if\2'),
 
     # == +ical ==
     # fantastic +ical = fantastical (*fantasticcal)
@@ -106,20 +106,20 @@ ORTHOGRAPHY_RULES = [
     # == +ize ==
     # token +ize = tokenize (*tokennize)
     # token +ise = tokenise (*tokennise)
-    (r'^(.+)y \^ iz(e|es|ing|ed|er|ers|ation|ations|able|ability)$', r'\1iz\2'),
-    (r'^(.+)y \^ is(e|es|ing|ed|er|ers|ation|ations|able|ability)$', r'\1is\2'),
+    (r'^(.+)y \^ iz(e|es|ing|in\'|ed|er|ers|ation|ations|able|ability)$', r'\1iz\2'),
+    (r'^(.+)y \^ is(e|es|ing|in\'|ed|er|ers|ation|ations|able|ability)$', r'\1is\2'),
     # conditional +ize = conditionalize (*conditionallize)
-    (r'^(.+)al \^ iz(e|ed|es|ing|er|ers|ation|ations|m|ms|able|ability|abilities)$', r'\1aliz\2'),
-    (r'^(.+)al \^ is(e|ed|es|ing|er|ers|ation|ations|m|ms|able|ability|abilities)$', r'\1alis\2'),
+    (r'^(.+)al \^ iz(e|ed|es|ing|in\'|er|ers|ation|ations|m|ms|able|ability|abilities)$', r'\1aliz\2'),
+    (r'^(.+)al \^ is(e|ed|es|ing|in\'|er|ers|ation|ations|m|ms|able|ability|abilities)$', r'\1alis\2'),
     # spectacular +ization = spectacularization (*spectacularrization)
-    (r'^(.+)ar \^ iz(e|ed|es|ing|er|ers|ation|ations|m|ms)$', r'\1ariz\2'),
-    (r'^(.+)ar \^ is(e|ed|es|ing|er|ers|ation|ations|m|ms)$', r'\1aris\2'),
+    (r'^(.+)ar \^ iz(e|ed|es|ing|in\'|er|ers|ation|ations|m|ms)$', r'\1ariz\2'),
+    (r'^(.+)ar \^ is(e|ed|es|ing|in\'|er|ers|ation|ations|m|ms)$', r'\1aris\2'),
 
     # category +ize/+ise = categorize/categorise (*categoryize/*categoryise)
     # custom +izable/+isable = customizable/customisable (*custommizable/*custommisable)
     # fantasy +ize = fantasize (*fantasyize)
-    (r'^(.*[lmnty]) \^ iz(e|es|ing|ed|er|ers|ation|ations|m|ms|able|ability|abilities)$', r'\1iz\2'),
-    (r'^(.*[lmnty]) \^ is(e|es|ing|ed|er|ers|ation|ations|m|ms|able|ability|abilities)$', r'\1is\2'),
+    (r'^(.*[lmnty]) \^ iz(e|es|ing|in\'|ed|er|ers|ation|ations|m|ms|able|ability|abilities)$', r'\1iz\2'),
+    (r'^(.*[lmnty]) \^ is(e|es|ing|in\'|ed|er|ers|ation|ations|m|ms|able|ability|abilities)$', r'\1is\2'),
 
     # == +olog ==
     # criminal + ology = criminology
