@@ -142,6 +142,7 @@ ADD_SUFFIX_TESTS = (
     lambda: ('narrate', 'in\'', 'narratin\''),
     lambda: ('defer', 'in\'', 'deferrin\''),
     lambda: ('interpret', 'in\'', 'interpretin\''),
+    lambda: ('die', 'in\'', 'dyin\''),
 )
 
 @parametrize(ADD_SUFFIX_TESTS)
