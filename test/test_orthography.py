@@ -139,6 +139,9 @@ ADD_SUFFIX_TESTS = (
     lambda: ('criminal', 'ologist', 'criminologist'),
     lambda: ('dermatology', 'ist', 'dermatologist'),
     lambda: ('similar', 'ish', 'similarish'),
+    lambda: ('narrate', 'in\'', 'narratin\''),
+    lambda: ('defer', 'in\'', 'deferrin\''),
+    lambda: ('interpret', 'in\'', 'interpretin\''),
 )
 
 @parametrize(ADD_SUFFIX_TESTS)
