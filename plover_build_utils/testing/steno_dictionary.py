@@ -136,13 +136,13 @@ class _DictionaryTests:
         assert d.readonly == self.DICT_CLASS.readonly
         assert d.timestamp == expected_timestamp
         if self.DICT_SUPPORT_SEQUENCE_METHODS:
-            assert len(d) == len(expected_entries)
-            assert sorted(d) == sorted(expected_entries)
             assert sorted(d.items()) == sorted(expected_entries.items())
+            assert sorted(d) == sorted(expected_entries)
+            assert len(d) == len(expected_entries)
         else:
-            assert len(d) == 0
-            assert tuple(d) == ()
             assert tuple(d.items()) == ()
+            assert tuple(d) == ()
+            assert len(d) == 0
         for k, v in expected_entries.items():
             assert k in d
             assert d[k] == v
