@@ -326,7 +326,7 @@ class KeyboardCaptureProcess(multiprocessing.Process):
             if event.flags & LLKHF_EXTENDED:
                 return False
 
-            if event.flags & 0x10:
+            if event.flags & LLKHF_INJECTED:
                 # Ignore simulated events (e.g. from KeyboardEmulation).
                 return False
             if event.vkCode in PASSTHROUGH_KEYS:
