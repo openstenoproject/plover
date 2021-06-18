@@ -102,6 +102,11 @@ KEYEVENTF_UNICODE = 0x0004
 INPUT_MOUSE = 0
 INPUT_KEYBOARD = 1
 
+KF_EXTENDED = 0x0100
+LLKHF_EXTENDED = KF_EXTENDED >> 8
+LLKHF_LOWER_IL_INJECTED = 0x0002
+LLKHF_INJECTED = 0x0010
+
 
 # Process utils code code based on psutil implementation.
 
@@ -318,6 +323,9 @@ class KeyboardCaptureProcess(multiprocessing.Process):
         passthrough_down_keys = set()
 
         def on_key(pressed, event):
+            if event.flags & LLKHF_EXTENDED:
+                return False
+
             if event.flags & 0x10:
                 # Ignore simulated events (e.g. from KeyboardEmulation).
                 return False
