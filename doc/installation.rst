@@ -41,7 +41,7 @@ You can install Plover using `Homebrew Cask`_ if you have it installed:
 
 ::
 
-    brew cask install plover
+    brew install --cask plover
 
 .. _`Homebrew Cask`: https://caskroom.github.io/
 
