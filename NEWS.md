@@ -1,3 +1,43 @@
+# v4.0.0.dev10 (2021-06-19)
+
+## Features
+
+### Core
+
+- Change behavior when launching Plover and an existing instance is already running: send a `focus` command to the existing instance (to show, raise, and focus the main window). Additionally, a new `plover_send_command` executable/script can be used to send other commands. (#1284)
+- Add FreeBSD/OpenBSD support. (#1306)
+
+### Linux
+
+- The oldest Ubuntu LTS release supported by the AppImage is now Ubuntu Bionic (18.04). (#1329)
+
+## Bugfixes
+
+### Core
+
+- Fix 2 corner cases when handling dictionaries:
+  - If the class implementation is marked as read-only, then loading from a writable file should still result in a read-only dictionary.
+  - Don't allow `clear` on a read-only dictionary. (#1302)
+- Don't try to start missing extensions. (#1313)
+
+### User Interface
+
+- Correctly restore a window if it was minimized: fix the `focus` command, and activating a tool window. (#1314)
+
+## API
+
+### Breaking Changes
+
+- The `Engine` constructor now takes an additional parameter: the controller. (#1284)
+
+### New
+
+- Add some new helpers to `plover_build_utils.testing`:
+  - `dictionary_test`: torture tests for dictionary implementations.
+  - `make_dict`: create a temporary dictionary.
+  - `parametrize`: parametrize helper for tracking test data source line numbers. (#1302)
+
+
 # v4.0.0.dev9 (2021-04-22)
 
 ## Features
