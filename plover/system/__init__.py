@@ -5,6 +5,7 @@ import re
 from plover.oslayer.config import CONFIG_DIR
 from plover.resource import resource_filename
 from plover.registry import registry
+from plover.steno import Stroke
 
 
 def _load_wordlist(filename, assets_dir):
@@ -66,5 +67,6 @@ def setup(system_name):
         system_symbols[symbol] = init(system_mod)
     system_symbols['NAME'] = system_name
     globals().update(system_symbols)
+    Stroke.setup(KEYS, IMPLICIT_HYPHEN_KEYS, NUMBER_KEY, NUMBERS, UNDO_STROKE_STENO)
 
 NAME = None

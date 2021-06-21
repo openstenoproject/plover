@@ -8,7 +8,7 @@ KEYS = (
     '-F', '-R', '-P', '-B', '-L', '-G', '-T', '-S', '-D', '-Z',
 )
 
-IMPLICIT_HYPHEN_KEYS = ('A-', 'O-', '5-', '0-', '-E', '-U', '*')
+IMPLICIT_HYPHEN_KEYS = ('A-', 'O-', '-E', '-U', '*')
 
 SUFFIX_KEYS = ('-Z', '-D', '-S', '-G')
 
