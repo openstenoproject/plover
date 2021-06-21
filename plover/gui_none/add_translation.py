@@ -23,7 +23,7 @@ class AddTranslation:
 
     def _clear_state(self, undo=False):
         self._engine.clear_translator_state(undo)
-        self._engine.starting_stroke_state = StartingStrokeState(False, False)
+        self._engine.starting_stroke_state = StartingStrokeState()
 
     def _push_state(self):
         self._translator_states.insert(0, self._get_state())
