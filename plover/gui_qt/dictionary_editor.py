@@ -20,6 +20,7 @@ from plover.misc import expand_path, shorten_path
 from plover.steno import normalize_steno, steno_to_sort_key
 
 from plover.gui_qt.dictionary_editor_ui import Ui_DictionaryEditor
+from plover.gui_qt.steno_validator import StenoValidator
 from plover.gui_qt.utils import ToolBar, WindowState
 
 
@@ -53,7 +54,10 @@ class DictionaryItemDelegate(QStyledItemDelegate):
             combo = QComboBox(parent)
             combo.addItems(dictionary_paths)
             return combo
-        return super().createEditor(parent, option, index)
+        widget = super().createEditor(parent, option, index)
+        if index.column() == _COL_STENO:
+            widget.setValidator(StenoValidator())
+        return widget
 
 
 class DictionaryItemModel(QAbstractTableModel):
@@ -332,6 +336,7 @@ class DictionaryEditor(QDialog, Ui_DictionaryEditor, WindowState):
             self.action_Delete,
             self.action_New,
         ))
+        self.strokes_filter.setValidator(StenoValidator())
         self.restore_state()
         self.finished.connect(self.save_state)
 
