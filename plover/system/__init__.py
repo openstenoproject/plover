@@ -1,6 +1,4 @@
-
 from collections.abc import Sequence
-from io import open
 import os
 import re
 
