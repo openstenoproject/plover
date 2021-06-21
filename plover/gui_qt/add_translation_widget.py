@@ -1,9 +1,8 @@
-
 from collections import namedtuple
 from html import escape as html_escape
 from os.path import split as os_path_split
 
-from PyQt5.QtCore import QEvent, QTimer
+from PyQt5.QtCore import QEvent, pyqtSignal
 from PyQt5.QtWidgets import QApplication, QWidget
 
 from plover import _
@@ -15,6 +14,7 @@ from plover.formatting import RetroFormatter
 from plover.resource import resource_filename
 
 from plover.gui_qt.add_translation_widget_ui import Ui_AddTranslationWidget
+from plover.gui_qt.steno_validator import StenoValidator
 
 
 class AddTranslationWidget(QWidget, Ui_AddTranslationWidget):
@@ -24,6 +24,8 @@ class AddTranslationWidget(QWidget, Ui_AddTranslationWidget):
 
     EngineState = namedtuple('EngineState', 'dictionary_filter translator starting_stroke')
 
+    mappingValid = pyqtSignal(bool)
+
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
         self.setupUi(self)
@@ -32,6 +34,7 @@ class AddTranslationWidget(QWidget, Ui_AddTranslationWidget):
         self._dictionaries = []
         self._reverse_order = False
         self._selected_dictionary = None
+        self._mapping_is_valid = False
         engine.signal_connect('config_changed', self.on_config_changed)
         self.on_config_changed(engine.config)
         engine.signal_connect('dictionaries_loaded', self.on_dictionaries_loaded)
@@ -52,19 +55,9 @@ class AddTranslationWidget(QWidget, Ui_AddTranslationWidget):
             '">%s</span>'
         )
 
+        self.strokes.setValidator(StenoValidator())
         self.strokes.installEventFilter(self)
         self.translation.installEventFilter(self)
-
-        # Prevent unnecessary lookups during user input by debouncing.
-        def get_debounce_timer(fn):
-            debounce_timer = QTimer()
-            debounce_timer.setInterval(50)
-            debounce_timer.setSingleShot(True)
-            debounce_timer.timeout.connect(fn)
-            return debounce_timer
-
-        self.stroke_debounce = get_debounce_timer(self._update_strokes)
-        self.translation_debounce = get_debounce_timer(self._update_translation)
 
         with engine:
 
@@ -248,9 +241,12 @@ class AddTranslationWidget(QWidget, Ui_AddTranslationWidget):
         return fmt.format(strokes=strokes, translation=translation, filename=filename)
 
     def on_strokes_edited(self):
-        self.stroke_debounce.start()
-
-    def _update_strokes(self):
+        mapping_is_valid = self.strokes.hasAcceptableInput()
+        if mapping_is_valid != self._mapping_is_valid:
+            self._mapping_is_valid = mapping_is_valid
+            self.mappingValid.emit(mapping_is_valid)
+        if not mapping_is_valid:
+            return
         strokes = self._strokes()
         if strokes:
             translations = self._engine.raw_lookup_from_all(strokes)
@@ -280,9 +276,6 @@ class AddTranslationWidget(QWidget, Ui_AddTranslationWidget):
         self.strokes_info.setText(info)
 
     def on_translation_edited(self):
-        self.translation_debounce.start()
-
-    def _update_translation(self):
         translation = self._translation()
         if translation:
             strokes = self._engine.reverse_lookup(translation)
