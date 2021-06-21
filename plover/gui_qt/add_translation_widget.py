@@ -89,11 +89,11 @@ class AddTranslationWidget(QWidget, Ui_AddTranslationWidget):
             engine.clear_translator_state()
             self._strokes_state = self.EngineState(self._dictionary_filter,
                                                    engine.translator_state,
-                                                   StartingStrokeState(True, False))
+                                                   StartingStrokeState(True, False, '/'))
             engine.clear_translator_state()
             self._translations_state = self.EngineState(None,
                                                         engine.translator_state,
-                                                        StartingStrokeState(True, False))
+                                                        StartingStrokeState(True, False, ' '))
         self._engine_state = self._original_state
         self._focus = None
 
