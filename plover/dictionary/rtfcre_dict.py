@@ -16,6 +16,7 @@ http://www.legalxml.org/workgroups/substantive/transcripts/cre-spec.htm
 import re
 import string
 
+from plover import __version__ as plover_version
 from plover.formatting import ATOM_RE
 from plover.steno import normalize_steno
 from plover.steno_dictionary import StenoDictionary
@@ -24,8 +25,8 @@ from .rtfcre_parse import parse_rtfcre
 
 
 HEADER = (r'{\rtf1\ansi{\*\cxrev100}'
-          r'\cxdict{\*\cxsystem Plover}'
-          r'{\stylesheet{\s0 Normal;}}')
+          r'\cxdict{\*\cxsystem Plover %s}'
+          r'{\stylesheet{\s0 Normal;}}') % plover_version
 
 
 class RegexFormatter:

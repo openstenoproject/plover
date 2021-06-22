@@ -5,6 +5,7 @@ import textwrap
 
 import pytest
 
+from plover import __version__ as plover_version
 from plover.dictionary.rtfcre_dict import RtfDictionary, TranslationFormatter
 from plover.dictionary.rtfcre_parse import BadRtfError
 
@@ -441,11 +442,11 @@ RTF_LOAD_TESTS = (
 )
 
 def rtf_save_test(dict_entries, rtf_entries):
-    rtf_entries = b'\r\n'.join((
+    rtf_entries = b'\r\n'.join(((
         br'{\rtf1\ansi{\*\cxrev100}\cxdict'
-        br'{\*\cxsystem Plover}'
-        br'{\stylesheet{\s0 Normal;}}',
-    ) + rtf_entries + (b'}', b''))
+        br'{\*\cxsystem Plover %s}'
+        br'{\stylesheet{\s0 Normal;}}'
+    ) % plover_version.encode(),) + rtf_entries + (b'}', b''))
     return dict_entries, rtf_entries
 
 RTF_SAVE_TESTS = (
