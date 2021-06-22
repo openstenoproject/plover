@@ -14,17 +14,17 @@ from plover_build_utils.testing import dictionary_test, parametrize
 @parametrize((
     lambda: ('', ''),
     # Affix handling.
-    lambda: ('{^}', r'\cxds '),
-    lambda: ('{^^}', r'\cxds '),
-    lambda: ('{^in^}', r'\cxds in\cxds '),
-    lambda: ('{pre^}', r'pre\cxds '),
-    lambda: ('{pre^} ', r'pre\cxds '),
-    lambda: ('{pre^}  ', r'pre\cxds '),
-    lambda: ('{ pre ^}  ', r' pre \cxds '),
-    lambda: ('{^post}', r'\cxds post'),
-    lambda: (' {^post}', r'\cxds post'),
-    lambda: ('  {^post}', r'\cxds post'),
-    lambda: ('{^ post }  ', r'\cxds  post '),
+    lambda: ('{^}', r'{\cxds}'),
+    lambda: ('{^^}', r'{\cxds}'),
+    lambda: ('{^in^}', r'{\cxds in\cxds}'),
+    lambda: ('{pre^}', r'{pre\cxds}'),
+    lambda: ('{pre^} ', r'{pre\cxds}'),
+    lambda: ('{pre^}  ', r'{pre\cxds}'),
+    lambda: ('{ pre ^}  ', r'{ pre \cxds}'),
+    lambda: ('{^post}', r'{\cxds post}'),
+    lambda: (' {^post}', r'{\cxds post}'),
+    lambda: ('  {^post}', r'{\cxds post}'),
+    lambda: ('{^ post }  ', r'{\cxds  post }'),
     # Escaping special characters.
     lambda: (r'\{', r'\\\{'),
     lambda: (r'\}', r'\\\}'),
@@ -44,8 +44,8 @@ from plover_build_utils.testing import dictionary_test, parametrize
     # Force Lower Case.
     lambda: (r'{>}lol', r'\cxfl lol'),
     # Infix with force cap.
-    lambda: ('{^\n^}{-|}', r'\cxds \line \cxds \cxfc '),
-    lambda: ('{^\n\n^}{-|}', r'\cxds \par \cxds \cxfc '),
+    lambda: ('{^\n^}{-|}', r'{\cxds \line \cxds}\cxfc '),
+    lambda: ('{^\n\n^}{-|}', r'{\cxds \par \cxds}\cxfc '),
     # Plover custom formatting:
     # - meta: command
     lambda: ('{PLOVER:TOGGLE}', r'{\*\cxplovermeta PLOVER:TOGGLE}'),
@@ -285,12 +285,17 @@ RTF_LOAD_TESTS = (
 
     # Delete Spaces.
     lambda: rtf_load_test(r'\cxds', '{^}'),
+    lambda: rtf_load_test(r'{\cxds}', '{^}'),
     lambda: rtf_load_test(r'pre\cxds ', '{pre^}'),
+    lambda: rtf_load_test(r'{pre\cxds}', '{pre^}'),
     lambda: rtf_load_test(r'pre\cxds  ', '{pre^} '),
     lambda: rtf_load_test(r'pre\cxds', '{pre^}'),
+    lambda: rtf_load_test(r'{pre\cxds  }', '{pre^} '),
     lambda: rtf_load_test(r'\cxds post', '{^post}'),
+    lambda: rtf_load_test(r'{\cxds post}', '{^post}'),
     lambda: rtf_load_test(r'\cxds in\cxds', '{^in^}'),
     lambda: rtf_load_test(r'\cxds in\cxds ', '{^in^}'),
+    lambda: rtf_load_test(r'{\cxds in\cxds}', '{^in^}'),
 
     # Force Cap.
     lambda: rtf_load_test(r'\cxfc', '{-|}'),
@@ -456,7 +461,7 @@ RTF_SAVE_TESTS = (
         '''
         'S/T': '{pre^}',
         ''',
-        (br'{\*\cxs S/T}pre\cxds ',)
+        (br'{\*\cxs S/T}{pre\cxds}',)
     ),
     lambda: rtf_save_test(
         r'''
