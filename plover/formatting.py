@@ -731,7 +731,7 @@ def _translation_to_actions(translation, ctx):
 
     translation -- A string with the translation to render.
 
-    last_action -- The action in whose context this translation is formatted.
+    ctx -- The context in which this translation is formatted.
 
     Returns: A list of actions.
 
@@ -765,7 +765,7 @@ def _raw_to_actions(stroke, ctx):
 
     stroke -- A string representation of the stroke.
 
-    last_action -- The context in which the new actions are created
+    ctx -- The context in which the new actions are created.
 
     Returns: A list of actions.
 
@@ -804,7 +804,7 @@ def _atom_to_action(atom, ctx):
     either entirely a single meta command or entirely text containing no meta
     commands.
 
-    last_action -- The context in which the new action takes place.
+    ctx -- The context in which the new action takes place.
 
     Returns: An action for the atom.
 

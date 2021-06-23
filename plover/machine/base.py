@@ -194,8 +194,8 @@ class SerialStenotypeBase(ThreadedStenotypeBase):
     def __init__(self, serial_params):
         """Monitor the stenotype over a serial port.
 
-        Keyword arguments are the same as the keyword arguments for a
-        serial.Serial object.
+        The key-value pairs in the <serial_params> dict are the same
+        as the keyword arguments for a serial.Serial object.
 
         """
         ThreadedStenotypeBase.__init__(self)

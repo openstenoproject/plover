@@ -287,7 +287,7 @@ class Translator:
         self._state = state
 
     def clear_state(self):
-        """Reset the sate of the translator."""
+        """Reset the state of the translator."""
         self._state = _State()
 
     def translate_stroke(self, stroke):
