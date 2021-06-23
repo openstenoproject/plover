@@ -5,8 +5,6 @@
 
 """
 
-import codecs
-
 try:
     import simplejson as json
 except ImportError:
@@ -34,9 +32,8 @@ class JsonDictionary(StenoDictionary):
         self.update((normalize_steno(x[0]), x[1]) for x in d.items())
 
     def _save(self, filename):
-        with open(filename, 'wb') as fp:
-            writer = codecs.getwriter('utf-8')(fp)
+        with open(filename, 'w', encoding='utf-8', newline='\n') as fp:
             json.dump({'/'.join(k): v for k, v in self.items()},
-                      writer, ensure_ascii=False, sort_keys=True,
+                      fp, ensure_ascii=False, sort_keys=True,
                       indent=0, separators=(',', ': '))
-            writer.write('\n')
+            fp.write('\n')
