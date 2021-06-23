@@ -32,7 +32,7 @@ class Command(setuptools.Command):
             sys.path.insert(0, pkg_resources.normalize_path(ei_cmd.egg_base))
             pkg_resources.working_set.__init__()
             pkg_resources.add_activation_listener(lambda dist: dist.activate())
-            pkg_resources.require('%s==%s' % (ei_cmd.egg_name, ei_cmd.egg_version))
+            pkg_resources.require(f'{ei_cmd.egg_name}=={ei_cmd.egg_version}')
             yield
         finally:
             sys.path[:] = old_path
@@ -99,10 +99,10 @@ class Test(Command):
 
 def babel_options(package, resource_dir=None):
     if resource_dir is None:
-        localedir = '%s/messages' % package
+        localedir = f'{package}/messages'
     else:
-        localedir = '%s/%s' % (package, resource_dir)
-    template = '%s/%s.pot' % (localedir, package)
+        localedir = f'{package}/{resource_dir}'
+    template = f'{localedir}/{package}.pot'
     return {
         'compile_catalog': {
             'domain': package,
