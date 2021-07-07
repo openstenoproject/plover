@@ -7,7 +7,13 @@ The steno engine is the core of Plover; it handles communication between the
 machine and the translation and formatting subsystems, and manages configuration
 and dictionaries.
 
-.. class:: StenoEngine(config, keyboard_emulation)
+.. class:: StenoEngine(config, controller, keyboard_emulation)
+
+    :param config: A dictionary containing configuration options.
+    :param controller: An instance of :class:`Controller<plover.oslayer.controller.Controller>`
+        for managing commands sent to this Plover instance. This is provided
+        during startup.
+    :param keyboard_emulation: An instance of :class:`KeyboardEmulation<plover.oslayer.keyboardcontrol.KeyboardEmulation>` provided during startup.
 
     .. data:: HOOKS
 
