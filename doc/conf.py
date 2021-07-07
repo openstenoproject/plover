@@ -12,7 +12,7 @@ sys.path.insert(0, os.path.abspath('..'))
 from plover import __name__ as __software_name__, __version__, __copyright__
 
 project = __software_name__.capitalize()
-copyright = "2020 " + __copyright__.replace("(C) ", "")
+copyright = __copyright__.replace("(C) ", "")
 author = copyright
 
 release = __version__
