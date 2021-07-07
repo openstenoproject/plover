@@ -28,6 +28,9 @@ with dictionary plugins, and the English Stenotype layout is a system plugin.
     :maxdepth: 1
 
     plugin-dev/setup
+
+    plugin-dev/commands
+
     plugin-dev/publishing
 
 .. highlight:: python
@@ -232,37 +235,6 @@ class that you import and expand with slightly different values in the various
 fields for multiple system plugins like Michela does for Italian.
 
 See the documentation for :mod:`plover.system` for information on all the fields.
-
-Commands
---------
-
-To define a new command called ``example_command``, add this name as an
-entry point in ``setup.cfg``:
-
-.. code-block:: ini
-
-    [options.entry_points]
-    plover.command =
-      example_command = plover_my_plugin.command:example
-
-The command can be used in dictionary entries:
-
-.. code-block:: json
-
-    {
-      "S-": "{PLOVER:EXAMPLE_COMMAND:argument}",
-      "T-": "{PLOVER:EXAMPLE_COMMAND}"
-    }
-
-Command plugins are implemented as **functions** that take a
-:class:`StenoEngine<plover.engine.StenoEngine>` and an optional string
-argument. If an argument is not passed in the dictionary entry, it will be
-``''``.
-
-::
-
-    def example_command(engine, argument):
-      pass
 
 Macros
 ------
