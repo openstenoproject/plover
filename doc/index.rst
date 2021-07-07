@@ -18,7 +18,8 @@ source hardware options.
     advanced_usage
 
     cli_reference
-    dev_guide
+    plugin_dev
+    api_reference
 
 .. _`Plover`: https://www.openstenoproject.org/plover/
 .. _`Open Steno Project`: https://www.openstenoproject.org/
