@@ -307,6 +307,10 @@ called when Plover hooks get triggered.
 
     The Lookup command was activated -- open the Lookup tool.
 
+.. js:function:: suggestions()
+
+    The Suggestions command was activated -- open the Suggestions tool.
+
 .. js:function:: quit()
 
     The Quit command was activated -- wrap up any pending tasks and quit Plover.
