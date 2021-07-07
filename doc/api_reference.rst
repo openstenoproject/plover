@@ -23,6 +23,6 @@ API Reference
     api/system
     api/translation
     api/qt
-    api/oslayer_processlock
+    api/oslayer_controller
     api/oslayer_wmctrl
     api/misc
