@@ -30,6 +30,7 @@ with dictionary plugins, and the English Stenotype layout is a system plugin.
     plugin-dev/setup
 
     plugin-dev/commands
+    plugin-dev/metas
 
     plugin-dev/publishing
 
@@ -270,47 +271,6 @@ Various methods of the translator can be used to either access or undo
 previously translated entries, as well as apply new translations. See the
 documentation for :class:`Translator<plover.translation.Translator>`
 for more information.
-
-Metas
------
-
-To define a meta called ``example_meta``, add the name as an entry point:
-
-.. code-block:: ini
-
-    [options.entry_points]
-    plover.meta =
-      example_meta = plover_my_plugin.meta:example
-
-The meta can be used in dictionary entries:
-
-.. code-block:: json
-
-    {
-      "S-": "{:example_meta:argument}",
-      "T-": "{:example_meta}"
-    }
-
-Metas are implemented as **functions** that take a
-:class:`formatting._Context<plover.formatting._Context>` and an optional string
-argument. If an argument is not passed in the dictionary entry, it will be ``''``.
-The meta function returns a :class:`formatting._Action<plover.formatting._Action>`
-which will then be applied to the existing output.
-
-You will want to use either
-:meth:`context.new_action()<plover.formatting._Context.new_action>` or
-:meth:`context.copy_last_action()<plover.formatting._Context.copy_last_action>`
-as the basis for the output value. Previously translated text can also be accessed.
-
-::
-
-    def example(ctx, argument) -> None:
-      pass
-
-Various methods of the translator can be used to either access or undo
-previously translated entries, as well as apply new translations. See the
-documentation for :class:`Translator<plover.translation.Translator>` for more
-information.
 
 .. _gui_tools:
 
