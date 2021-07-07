@@ -94,3 +94,23 @@ To install a plugin you are working on locally:
     ::
 
         plover -s plover_plugins install --disable-pip-version-check --upgrade Pygments
+
+.. _send_command:
+
+Sending Commands
+----------------
+
+The ``plover_send_command`` console script can be used to send commands to an
+existing Plover instance:
+
+::
+
+    plover -s plover_send_command
+
+It takes the command name and parameters as an argument, written as they would
+be in a dictionary definition. For example, to send the command
+``{plover:toggle}``, you can invoke this script as follows:
+
+::
+
+    plover -s plover_send_command toggle
