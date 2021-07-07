@@ -7,7 +7,7 @@ Much of Plover's built-in functionality is implemented using the same plugin
 system.
 
 See below for more information on how to install and use plugins, and the
-:doc:`dev_guide` for more technical information on how to develop and publish
+:doc:`plugin_dev` for more technical information on how to develop and publish
 plugins.
 
 Installing Plugins

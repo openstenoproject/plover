@@ -1,5 +1,5 @@
-Plugin Development
-==================
+Plugin Development Guide
+========================
 
 Plover plugins are generally implemented as separate Python packages installed
 into the Python environment that Plover uses. In most cases, this environment
