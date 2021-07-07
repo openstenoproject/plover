@@ -90,19 +90,6 @@ and dictionaries.
         Resets the machine state and Plover's connection with the machine, if
         necessary, and loads all the configuration and dictionaries.
 
-    .. method:: send_backspaces(b)
-
-        Sends backspaces over keyboard output. `b` is the number of backspaces.
-
-    .. method:: send_string(s)
-
-        Sends the string `s` over keyboard output.
-
-    .. method:: send_key_combination(c)
-
-        Sends a keyboard combination over keyboard output. `c` is a string
-        representing a keyboard combination, for example ``Alt_L(Tab)``.
-
     .. method:: send_engine_command(command)
 
         Runs the specified Plover command, which can be either a built-in

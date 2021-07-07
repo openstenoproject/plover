@@ -64,7 +64,7 @@ There are 3 ways to configure the keymap:
     default configuration is the same as the default configuration of the
     specified machine.
 
-See :doc:`api/machine` for more information.
+See :doc:`/api/machine` for more information.
 
 Machine Options
 ---------------
