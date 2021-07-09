@@ -33,6 +33,8 @@ html_static_path = ["_static"]
 
 html_title = f"{project} {version}"
 
+html_favicon = "_static/favicon.ico"
+
 html_css_files = [
   "custom.css",
 ]
