@@ -1,0 +1,13 @@
+@import url(https://fonts.googleapis.com/css?family=Patua+One);
+
+h1, h2, h3, .sidebar-brand-text {
+  font-family: var(--font-stack--header);
+}
+
+.sidebar-brand {
+  text-align: center;
+}
+
+.sidebar-brand:hover {
+  color: var(--color-sidebar-brand-text--hover);
+}
