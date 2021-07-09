@@ -12,22 +12,24 @@ version = release
 # -- General configuration ---------------------------------------------------
 
 extensions = [
-  'sphinxcontrib.yt',
+  "sphinxcontrib.yt",
+  "myst_parser",
 ]
 
-templates_path = ['_templates']
+templates_path = ["_templates"]
 
 exclude_patterns = []
 
 pygments_style = "manni"
 pygments_dark_style = "monokai"
 
+source_suffix = [".rst", ".md"]
 
 # -- Options for HTML output -------------------------------------------------
 
-html_theme = 'furo'
+html_theme = "furo"
 
-html_static_path = ['_static']
+html_static_path = ["_static"]
 
 html_title = f"{project} {version}"
 
@@ -36,7 +38,6 @@ html_css_files = [
 ]
 
 html_theme_options = {
-  # "sidebar_hide_name": True,
   "navigation_with_keys": True,
   "light_css_variables": {
     "color-brand-primary": "#3d6961",
