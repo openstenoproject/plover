@@ -9,7 +9,7 @@ orthography rules for the *current* steno system -- see {doc}`system`, and
 especially the documentation for
 {data}`ORTHOGRAPHY_RULES<plover.system.ORTHOGRAPHY_RULES>`, for more information.
 
-```{function} make_candidates_from_rules(word, suffix[, check])
+```{function} make_candidates_from_rules(word: str, suffix: str[, check: Function[str, bool]]) -> List[str]
 Using the orthography rules of the current system, calculate the possible
 results of attaching `suffix` to the root `word`.
 
@@ -22,7 +22,7 @@ will not be needed; by default this is set to `lambda x: True`, returning
 *all* candidates.
 ```
 
-```{function} add_suffix(word, suffix)
+```{function} add_suffix(word: str, suffix: str) -> str
 Add the `suffix` to the `word`, calculating candidates from
 {func}`make_candidates_from_rules`. If
 {data}`ORTHOGRAPHY_WORDS<plover.system.ORTHOGRAPHY_WORDS>` exists, this
