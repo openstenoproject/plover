@@ -16,8 +16,13 @@ source hardware options.
 
 quick_start
 advanced_usage
-
 cli_reference
+```
+
+```{toctree}
+:maxdepth: 2
+:caption: Developers
+
 plugin_dev
 api_reference
 

@@ -45,6 +45,7 @@ html_theme_options = {
     "color-sidebar-background": "#3d6961",
     "color-sidebar-brand-text": "white",
     "color-sidebar-brand-text--hover": "white",
+    "color-sidebar-caption-text": "white",
     "color-sidebar-link-text": "white",
     "color-sidebar-link-text--top-level": "white",
     "color-sidebar-item-background--hover": "#71a89f",
