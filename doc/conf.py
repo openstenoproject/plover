@@ -1,21 +1,12 @@
 # Configuration file for the Sphinx documentation builder.
 
-# -- Path setup --------------------------------------------------------------
-
-import os
-import sys
-# Add Plover base directory so we can import plover below
-sys.path.insert(0, os.path.abspath('..'))
-
 # -- Project information -----------------------------------------------------
 
-from plover import __name__ as __software_name__, __version__, __copyright__
-
-project = __software_name__.capitalize()
-copyright = __copyright__.replace("(C) ", "")
+project = "Plover"
+copyright = "Open Steno Project"
 author = copyright
 
-release = __version__
+release = "4.0.0-dev10"
 version = release
 
 # -- General configuration ---------------------------------------------------
