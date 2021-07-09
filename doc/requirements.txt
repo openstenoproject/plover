@@ -1,2 +1,3 @@
 sphinxcontrib.yt==0.2.2
 furo==2021.7.5b38
+myst-parser==0.15.1
