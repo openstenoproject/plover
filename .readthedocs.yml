@@ -10,4 +10,3 @@ python:
   version: 3.8
   install:
     - requirements: doc/requirements.txt
-    - requirements: reqs/dist.txt
