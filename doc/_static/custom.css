@@ -11,3 +11,7 @@ h1, h2, h3, .sidebar-brand-text {
 .sidebar-brand:hover {
   color: var(--color-sidebar-brand-text--hover);
 }
+
+.toctree-wrapper.compound > p.caption {
+  display: none;
+}
