@@ -20,10 +20,7 @@ version = release
 
 # -- General configuration ---------------------------------------------------
 
-import sphinx_rtd_theme
-
 extensions = [
-  'sphinx_inline_tabs',
   'sphinxcontrib.yt',
 ]
 

@@ -1,3 +1,2 @@
 sphinxcontrib.yt==0.2.2
-sphinx-inline-tabs==2021.4.11b9
 furo==2021.7.5b38
