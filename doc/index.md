@@ -25,6 +25,5 @@ cli_reference
 
 plugin_dev
 api_reference
-
 contributing
 ```
