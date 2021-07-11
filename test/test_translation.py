@@ -9,6 +9,9 @@ import operator
 
 from plover.oslayer.config import PLATFORM
 from plover.steno import Stroke, normalize_steno
+
+import pytest
+
 from plover.steno_dictionary import StenoDictionary, StenoDictionaryCollection
 from plover.translation import Translation, Translator, _State
 from plover.translation import escape_translation, unescape_translation
@@ -63,28 +66,34 @@ class TestTranslatorStateSize:
         self.dc = StenoDictionaryCollection([self.d])
         self.t.set_dictionary(self.dc)
 
-    def test_dictionary_update_grows_size1(self):
-        self.d[('S',)] = '1'
-        self._check_size_call(1)
-
-    def test_dictionary_update_grows_size4(self):
-        self.d[('S', 'PT', '-Z', 'TOP')] = 'hi'
-        self._check_size_call(4)
+    @pytest.mark.parametrize('key', (
+        ('S',),
+        ('S', 'PT', '-Z', 'TOP'),
+    ))
+    def test_dictionary_update_grows_size(self, key):
+        self.d[key] = 'key'
+        self.t.translate(stroke('T-'))
+        self._check_size_call(len(key))
 
     def test_dictionary_update_no_grow(self):
         self.t.set_min_undo_length(4)
         self._check_size_call(4)
         self.clear()
         self.d[('S', 'T')] = 'nothing'
+        self.t.translate(stroke('T-'))
         self._check_size_call(4)
 
     def test_dictionary_update_shrink(self):
         self.d[('S', 'T', 'P', '-Z', '-D')] = '1'
+        self.t.translate(stroke('T-'))
         self._check_size_call(5)
         self.clear()
         self.d[('A', 'P')] = '2'
-        self._check_no_size_call()
+        self.t.translate(stroke('T-'))
+        self._check_size_call(5)
+        self.clear()
         del self.d[('S', 'T', 'P', '-Z', '-D')]
+        self.t.translate(stroke('T-'))
         self._check_size_call(2)
 
     def test_dictionary_update_no_shrink(self):

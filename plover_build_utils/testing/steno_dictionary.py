@@ -204,31 +204,22 @@ class _WritableDictionaryTests:
 
     def test_longest_key(self):
         '''
-        Check `longest_key` support (including callbacks handling).
+        Check `longest_key` support.
         '''
         assert self.DICT_SUPPORT_SEQUENCE_METHODS
-        notifications = []
-        def listener(longest_key):
-            notifications.append(longest_key)
         d = self.DICT_CLASS()
         assert d.longest_key == 0
-        d.add_longest_key_listener(listener)
         d[('S',)] = 'a'
         assert d.longest_key == 1
-        assert notifications == [1]
         d[('S', 'S', 'S', 'S')] = 'b'
         assert d.longest_key == 4
-        assert notifications == [1, 4]
         d[('S', 'S')] = 'c'
         assert d.longest_key == 4
         assert d[('S', 'S')] == 'c'
-        assert notifications == [1, 4]
         del d[('S', 'S', 'S', 'S')]
         assert d.longest_key == 2
-        assert notifications == [1, 4, 2]
         del d[('S',)]
         assert d.longest_key == 2
-        assert notifications == [1, 4, 2]
         if self.DICT_SUPPORT_REVERSE_LOOKUP:
             assert d.reverse_lookup('c') == {('S', 'S')}
         else:
@@ -239,13 +230,10 @@ class _WritableDictionaryTests:
             assert d.casereverse_lookup('c') == set()
         d.clear()
         assert d.longest_key == 0
-        assert notifications == [1, 4, 2, 0]
         assert d.reverse_lookup('c') == set()
         assert d.casereverse_lookup('c') == set()
-        d.remove_longest_key_listener(listener)
         d[('S', 'S')] = 'c'
         assert d.longest_key == 2
-        assert notifications == [1, 4, 2, 0]
 
     def test_casereverse_del(self):
         '''

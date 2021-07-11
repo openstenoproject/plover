@@ -208,11 +208,7 @@ class Translator:
 
     def set_dictionary(self, d):
         """Set the dictionary."""
-        callback = self._dict_callback
-        if self._dictionary:
-            self._dictionary.remove_longest_key_listener(callback)
         self._dictionary = d
-        d.add_longest_key_listener(callback)
 
     def get_dictionary(self):
         return self._dictionary
@@ -274,9 +270,6 @@ class Translator:
     def _resize_translations(self):
         self._state.restrict_size(max(self._dictionary.longest_key,
                                       self._undo_length))
-
-    def _dict_callback(self, value):
-        self._resize_translations()
 
     def get_state(self):
         """Get the state of the translator."""
@@ -342,9 +335,10 @@ class Translator:
         # stroke and build the stroke list for translation.
         num_strokes = 1
         translation_count = 0
+        longest_key = self._dictionary.longest_key
         for t in reversed(self._state.translations):
             num_strokes += len(t)
-            if num_strokes > self._dictionary.longest_key:
+            if num_strokes > longest_key:
                 break
             translation_count += 1
         translation_index = len(self._state.translations) - translation_count

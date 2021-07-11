@@ -30,8 +30,7 @@ class StenoDictionary:
 
     def __init__(self):
         self._dict = {}
-        self._longest_key_length = 0
-        self._longest_listener_callbacks = set()
+        self._longest_key = 0
         self.reverse = collections.defaultdict(list)
         # Case-insensitive reverse dict
         self.casereverse = collections.defaultdict(list)
@@ -165,22 +164,8 @@ class StenoDictionary:
         return set(self.casereverse.get(value, ()))
 
     @property
-    def _longest_key(self):
-        return self._longest_key_length
-
-    @_longest_key.setter
-    def _longest_key(self, longest_key):
-        if longest_key == self._longest_key_length:
-            return
-        self._longest_key_length = longest_key
-        for callback in self._longest_listener_callbacks:
-            callback(longest_key)
-
-    def add_longest_key_listener(self, callback):
-        self._longest_listener_callbacks.add(callback)
-
-    def remove_longest_key_listener(self, callback):
-        self._longest_listener_callbacks.remove(callback)
+    def longest_key(self):
+        return self._longest_key
 
 
 class StenoDictionaryCollection:
@@ -188,17 +173,16 @@ class StenoDictionaryCollection:
     def __init__(self, dicts=[]):
         self.dicts = []
         self.filters = []
-        self.longest_key = 0
-        self.longest_key_callbacks = set()
         self.set_dicts(dicts)
 
+    @property
+    def longest_key(self):
+        if not self.dicts:
+            return 0
+        return max(d.longest_key for d in self.dicts)
+
     def set_dicts(self, dicts):
-        for d in self.dicts:
-            d.remove_longest_key_listener(self._longest_key_listener)
         self.dicts = dicts[:]
-        for d in self.dicts:
-            d.add_longest_key_listener(self._longest_key_listener)
-        self._longest_key_listener()
 
     def _lookup(self, key, dicts=None, filters=()):
         if dicts is None:
@@ -320,19 +304,3 @@ class StenoDictionaryCollection:
 
     def remove_filter(self, f):
         self.filters.remove(f)
-
-    def add_longest_key_listener(self, callback):
-        self.longest_key_callbacks.add(callback)
-
-    def remove_longest_key_listener(self, callback):
-        self.longest_key_callbacks.remove(callback)
-    
-    def _longest_key_listener(self, ignored=None):
-        if self.dicts:
-            new_longest_key = max(d.longest_key for d in self.dicts)
-        else:
-            new_longest_key = 0
-        if new_longest_key != self.longest_key:
-            self.longest_key = new_longest_key
-            for c in self.longest_key_callbacks:
-                c(new_longest_key)
