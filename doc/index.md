@@ -23,6 +23,7 @@ cli_reference
 :maxdepth: 2
 :caption: Developers
 
+system_dev
 plugin_dev
 api_reference
 contributing
