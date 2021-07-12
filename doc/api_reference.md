@@ -3,6 +3,7 @@
 ```{toctree}
 :maxdepth: 1
 
+api/plover
 api/config
 api/oslayer_config
 api/engine
@@ -22,6 +23,7 @@ api/suggestions
 api/system
 api/translation
 api/qt
+api/i18n
 api/oslayer_controller
 api/oslayer_wmctrl
 api/misc
