@@ -267,7 +267,7 @@ system to this machine.
 ```
 ````
 
-```{class} ErroredDictionary(path, exception)
+````{class} ErroredDictionary(path, exception)
 A placeholder class for a dictionary that failed to load. This is a subclass
 of {class}`StenoDictionary<plover.steno_dictionary.StenoDictionary>`.
 
@@ -282,6 +282,7 @@ The path to the dictionary file.
 
 The exception that caused the dictionary loading to fail.
 ```
+````
 
 (engine-hooks)=
 
