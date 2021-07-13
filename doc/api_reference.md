@@ -19,6 +19,7 @@ api/registry
 api/resource
 api/steno
 api/steno_dictionary
+api/dictionary
 api/suggestions
 api/system
 api/translation
