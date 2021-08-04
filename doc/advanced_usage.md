@@ -7,5 +7,7 @@ other than English.
 ```{toctree}
 :maxdepth: 1
 
+translation_language
+dict_formats
 plugins
 ```

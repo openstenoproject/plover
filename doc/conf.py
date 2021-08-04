@@ -63,3 +63,29 @@ html_theme_options = {
   "light_logo": "dolores.svg",
   "dark_logo": "dolores.svg",
 }
+
+from pygments.lexer import RegexLexer, bygroups
+from pygments import token as t
+from sphinx.highlighting import lexers
+
+class RTFLexer(RegexLexer):
+  name = "rtf"
+
+  tokens = {
+    "root": [
+      (r"(\\[a-z*\\_~\{\}]+)(-?\d+)?", bygroups(t.Keyword, t.Number.Integer)),
+      (r"{\\\*\\cxcomment\s+", t.Comment.Multiline, "comment"),
+      (r"({)(\\\*\\cxs)(\s+)([A-Z#0-9\-/#!,]+)(})",
+        bygroups(t.Operator, t.Keyword, t.Text, t.String, t.Operator)),
+      (r"{", t.Operator),
+      (r"}", t.Operator),
+      (r".+?", t.Text),
+    ],
+    "comment": [
+      (r"{", t.Comment.Multiline, "#push"),
+      (r"}", t.Comment.Multiline, "#pop"),
+      (r".+", t.Comment.Multiline),
+    ]
+  }
+
+lexers["rtf"] = RTFLexer(startinline=True)
