@@ -93,24 +93,7 @@
      </widget>
     </item>
     <item row="2" column="0" colspan="3">
-     <widget class="QScrollArea" name="scroll_area">
-      <property name="frameShape">
-       <enum>QFrame::Panel</enum>
-      </property>
-      <property name="widgetResizable">
-       <bool>true</bool>
-      </property>
-      <widget class="DictionariesWidget" name="dictionaries">
-       <property name="geometry">
-        <rect>
-         <x>0</x>
-         <y>0</y>
-         <width>311</width>
-         <height>233</height>
-        </rect>
-       </property>
-      </widget>
-     </widget>
+     <widget class="DictionariesWidget" name="dictionaries" native="true"/>
     </item>
     <item row="0" column="1">
      <widget class="QGroupBox" name="groupBox">
@@ -304,7 +287,7 @@
   </customwidget>
  </customwidgets>
  <tabstops>
-  <tabstop>scroll_area</tabstop>
+  <tabstop>dictionaries</tabstop>
   <tabstop>machine_type</tabstop>
   <tabstop>reconnect</tabstop>
   <tabstop>output_enable</tabstop>

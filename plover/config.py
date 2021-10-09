@@ -57,6 +57,9 @@ class DictionaryConfig(namedtuple('DictionaryConfig', 'path enabled')):
     def from_dict(d):
         return DictionaryConfig(**d)
 
+    def __repr__(self):
+        return 'DictionaryConfig(%r, %r)' % (self.short_path, self.enabled)
+
 
 ConfigOption = namedtuple('ConfigOption', '''
                           name default

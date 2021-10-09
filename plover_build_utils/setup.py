@@ -2,7 +2,6 @@ from distutils import log
 import contextlib
 import importlib
 import os
-import shutil
 import subprocess
 import sys
 
@@ -48,52 +47,6 @@ class Command(setuptools.Command):
             if cmd == 'bdist_wheel':
                 return dist_path
         raise Exception('could not find wheel path')
-
-# `test` command. {{{
-
-class Test(Command):
-
-    description = 'run unit tests after in-place build'
-    command_consumes_arguments = True
-    user_options = []
-    test_dir = 'test'
-    build_before = True
-
-    def initialize_options(self):
-        self.args = []
-
-    def finalize_options(self):
-        pass
-
-    def run(self):
-        with self.project_on_sys_path(build=self.build_before):
-            self.run_tests()
-
-    def run_tests(self):
-        # Remove __pycache__ directory so pytest does not freak out
-        # when switching between the Linux/Windows versions.
-        pycache = os.path.join(self.test_dir, '__pycache__')
-        if os.path.exists(pycache):
-            shutil.rmtree(pycache)
-        custom_testsuite = None
-        args = []
-        for a in self.args:
-            if '-' == a[0]:
-                args.append(a)
-            elif os.path.exists(a):
-                custom_testsuite = a
-                args.append(a)
-            else:
-                args.extend(('-k', a))
-        if custom_testsuite is None:
-            args.insert(0, self.test_dir)
-        sys.argv[1:] = args
-        main = pkg_resources.load_entry_point('pytest',
-                                              'console_scripts',
-                                              'py.test')
-        sys.exit(main())
-
-# }}}
 
 # i18n support. {{{
 

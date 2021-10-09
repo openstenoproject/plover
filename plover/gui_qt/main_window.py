@@ -43,22 +43,12 @@ class MainWindow(QMainWindow, Ui_MainWindow, WindowState):
         }
         all_actions = find_menu_actions(self.menubar)
         # Dictionaries.
-        self.dictionaries = self.scroll_area.widget()
         self.dictionaries.add_translation.connect(self._add_translation)
-        self.dictionaries.setFocus()
+        self.dictionaries.setup(engine)
+        # Populate edit menu from dictionaries' own.
         edit_menu = all_actions['menu_Edit'].menu()
-        edit_menu.addAction(self.dictionaries.action_Undo)
-        edit_menu.addSeparator()
-        edit_menu.addMenu(self.dictionaries.menu_AddDictionaries)
-        edit_menu.addAction(self.dictionaries.action_EditDictionaries)
-        edit_menu.addMenu(self.dictionaries.menu_SaveDictionaries)
-        edit_menu.addAction(self.dictionaries.action_RemoveDictionaries)
-        edit_menu.addSeparator()
-        edit_menu.addAction(self.dictionaries.action_MoveDictionariesUp)
-        edit_menu.addAction(self.dictionaries.action_MoveDictionariesDown)
-        self.dictionaries.setContextMenuPolicy(Qt.CustomContextMenu)
-        self.dictionaries.customContextMenuRequested.connect(
-            lambda p: edit_menu.exec_(self.dictionaries.mapToGlobal(p)))
+        for action in self.dictionaries.edit_menu.actions():
+            edit_menu.addAction(action)
         # Tray icon.
         self._trayicon = TrayIcon()
         self._trayicon.enable()
@@ -90,14 +80,14 @@ class MainWindow(QMainWindow, Ui_MainWindow, WindowState):
         engine.signal_connect('machine_state_changed', self._trayicon.update_machine_state)
         engine.signal_connect('quit', self.on_quit)
         self.action_Quit.triggered.connect(engine.quit)
-        # Populate tools bar/menu.
-        tools_menu = all_actions['menu_Tools'].menu()
         # Toolbar popup menu for selecting which tools are shown.
         self.toolbar_menu = QMenu()
         self.toolbar.setContextMenuPolicy(Qt.CustomContextMenu)
         self.toolbar.customContextMenuRequested.connect(
             lambda: self.toolbar_menu.popup(QCursor.pos())
         )
+        # Populate tools bar/menu.
+        tools_menu = all_actions['menu_Tools'].menu()
         for tool_plugin in registry.list_plugins('gui.qt.tool'):
             tool = tool_plugin.obj
             menu_action = tools_menu.addAction(tool.TITLE)
@@ -146,7 +136,6 @@ class MainWindow(QMainWindow, Ui_MainWindow, WindowState):
         self._warn_on_hide_to_tray = not config['start_minimized']
         self._update_machine(config['machine_type'])
         self._configured = False
-        self.dictionaries.on_config_changed(config)
         self.set_visible(not config['start_minimized'])
         # Process events before starting the engine
         # (to avoid display lag at window creation).

@@ -1,5 +1,5 @@
 .github/workflows/ci/skiplist_job_build.txt
-.github/workflows/ci/skiplist_job_test_gui_qt.txt
+.github/workflows/ci/skiplist_job_test.txt
 .github/workflows/ci/skiplist_job_test_packaging.txt
 .gitignore
 LICENSE.txt
@@ -7,13 +7,10 @@ linux/*
 MANIFEST.in
 osx/*_resources
 osx/make_app.sh
-plover/gui_*/*
-plover/messages/*
 pyproject.toml
 reqs/build.txt
-reqs/dist_*.txt
 reqs/packaging.txt
 reqs/setup.txt
-test/gui_qt/*
+test/test_*
 windows/*
 {EOF}

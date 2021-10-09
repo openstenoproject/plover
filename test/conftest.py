@@ -1,3 +1,5 @@
+import os
+
 import pytest
 
 from plover import system
@@ -11,3 +13,9 @@ def setup_plover():
     system.setup(DEFAULT_SYSTEM_NAME)
 
 pytest.register_assert_rewrite('plover_build_utils.testing')
+
+def pytest_collection_modifyitems(items):
+    for item in items:
+        # Mark `gui_qt` tests.
+        if 'gui_qt' in item.location[0].split(os.path.sep):
+            item.add_marker(pytest.mark.gui_qt)

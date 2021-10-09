@@ -24,7 +24,10 @@ list_cache()
 
 run_tests()
 {
-  "$python" setup.py -q test -- --color=yes --durations=5 -ra "$@"
+  test_cmd=(env QT_QPA_PLATFORM=offscreen "$python" -m pytest --color=yes --durations=5 "$@")
+  run "$python" setup.py -q egg_info
+  info "$(printf "%q " "${test_cmd[@]}")"
+  "${test_cmd[@]}"
 }
 
 setup_cache_name()
