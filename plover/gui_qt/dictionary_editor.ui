@@ -22,6 +22,9 @@
   <layout class="QVBoxLayout" name="verticalLayout">
    <item>
     <widget class="QGroupBox" name="groupBox">
+     <property name="accessibleName">
+      <string>Filter</string>
+     </property>
      <property name="title">
       <string>Filter</string>
      </property>
@@ -37,10 +40,17 @@
         <property name="text">
          <string>By strokes:</string>
         </property>
+        <property name="buddy">
+         <cstring>strokes_filter</cstring>
+        </property>
        </widget>
       </item>
       <item row="0" column="1">
-       <widget class="QLineEdit" name="strokes_filter"/>
+       <widget class="QLineEdit" name="strokes_filter">
+        <property name="accessibleName">
+         <string>Strokes filter</string>
+        </property>
+       </widget>
       </item>
       <item row="0" column="2">
        <widget class="QPushButton" name="pushButton">
@@ -49,6 +59,9 @@
           <horstretch>0</horstretch>
           <verstretch>0</verstretch>
          </sizepolicy>
+        </property>
+        <property name="accessibleName">
+         <string>Apply filter</string>
         </property>
         <property name="text">
          <string>Apply</string>
@@ -60,13 +73,26 @@
         <property name="text">
          <string>By translation:</string>
         </property>
+        <property name="buddy">
+         <cstring>translation_filter</cstring>
+        </property>
        </widget>
       </item>
       <item row="1" column="1">
-       <widget class="QLineEdit" name="translation_filter"/>
+       <widget class="QLineEdit" name="translation_filter">
+        <property name="accessibleName">
+         <string>Translation filter</string>
+        </property>
+       </widget>
       </item>
       <item row="1" column="2">
        <widget class="QPushButton" name="pushButton_2">
+        <property name="accessibleName">
+         <string>Clear filter</string>
+        </property>
+        <property name="accessibleDescription">
+         <string/>
+        </property>
         <property name="text">
          <string>Clear</string>
         </property>
@@ -77,8 +103,14 @@
    </item>
    <item>
     <widget class="QTableView" name="table">
+     <property name="accessibleName">
+      <string>Mappings</string>
+     </property>
      <property name="frameShape">
       <enum>QFrame::Box</enum>
+     </property>
+     <property name="tabKeyNavigation">
+      <bool>false</bool>
      </property>
      <property name="showDropIndicator" stdset="0">
       <bool>true</bool>
@@ -163,6 +195,13 @@
   </action>
  </widget>
  <layoutdefault spacing="5" margin="8"/>
+ <tabstops>
+  <tabstop>table</tabstop>
+  <tabstop>strokes_filter</tabstop>
+  <tabstop>translation_filter</tabstop>
+  <tabstop>pushButton</tabstop>
+  <tabstop>pushButton_2</tabstop>
+ </tabstops>
  <resources>
   <include location="resources/resources.qrc"/>
  </resources>

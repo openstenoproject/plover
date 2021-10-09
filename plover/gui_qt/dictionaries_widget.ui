@@ -37,8 +37,14 @@
    </property>
    <item>
     <widget class="QListView" name="view">
+     <property name="accessibleName">
+      <string>Dictionaries</string>
+     </property>
      <property name="frameShape">
       <enum>QFrame::Box</enum>
+     </property>
+     <property name="tabKeyNavigation">
+      <bool>false</bool>
      </property>
      <property name="showDropIndicator" stdset="0">
       <bool>true</bool>

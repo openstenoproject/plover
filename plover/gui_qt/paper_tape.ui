@@ -27,7 +27,10 @@
      <item row="0" column="0">
       <widget class="QLabel" name="label">
        <property name="text">
-        <string>Mode</string>
+        <string>Mode:</string>
+       </property>
+       <property name="buddy">
+        <cstring>styles</cstring>
        </property>
       </widget>
      </item>
@@ -38,6 +41,12 @@
          <horstretch>0</horstretch>
          <verstretch>0</verstretch>
         </sizepolicy>
+       </property>
+       <property name="accessibleName">
+        <string>Mode</string>
+       </property>
+       <property name="accessibleDescription">
+        <string>Select paper tape display mode.</string>
        </property>
       </widget>
      </item>
@@ -57,17 +66,23 @@
     </widget>
    </item>
    <item>
-    <widget class="QPlainTextEdit" name="tape">
+    <widget class="QListView" name="tape">
+     <property name="accessibleName">
+      <string>Tape</string>
+     </property>
      <property name="frameShape">
       <enum>QFrame::Panel</enum>
      </property>
-     <property name="undoRedoEnabled">
+     <property name="tabKeyNavigation">
       <bool>false</bool>
      </property>
-     <property name="lineWrapMode">
-      <enum>QPlainTextEdit::NoWrap</enum>
+     <property name="selectionMode">
+      <enum>QAbstractItemView::SingleSelection</enum>
      </property>
-     <property name="readOnly">
+     <property name="selectionBehavior">
+      <enum>QAbstractItemView::SelectRows</enum>
+     </property>
+     <property name="uniformItemSizes">
       <bool>true</bool>
      </property>
     </widget>

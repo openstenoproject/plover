@@ -97,7 +97,8 @@ class DictionariesModel(QAbstractListModel):
             return self.state not in {'loading', 'error'}
 
     SUPPORTED_ROLES = {
-        Qt.CheckStateRole, Qt.DecorationRole, Qt.DisplayRole, Qt.ToolTipRole
+        Qt.AccessibleTextRole, Qt.CheckStateRole,
+        Qt.DecorationRole, Qt.DisplayRole, Qt.ToolTipRole
     }
 
     FLAGS = Qt.ItemIsEnabled | Qt.ItemIsSelectable | Qt.ItemIsUserCheckable
@@ -366,6 +367,25 @@ class DictionariesModel(QAbstractListModel):
             return d.short_path
         if role == Qt.CheckStateRole:
             return Qt.Checked if d.enabled else Qt.Unchecked
+        if role == Qt.AccessibleTextRole:
+            accessible_text = [d.short_path]
+            if not d.enabled:
+                # i18n: Widget: “DictionariesWidget”, accessible text.
+                accessible_text.append(_('disabled'))
+            if d is self._favorite:
+                # i18n: Widget: “DictionariesWidget”, accessible text.
+                accessible_text.append(_('favorite'))
+            elif d.state == 'error':
+                # i18n: Widget: “DictionariesWidget”, accessible text.
+                accessible_text.append(_('errored: {exception}.').format(
+                    exception=str(d.loaded.exception)))
+            elif d.state == 'loading':
+                # i18n: Widget: “DictionariesWidget”, accessible text.
+                accessible_text.append(_('loading'))
+            elif d.state == 'readonly':
+                # i18n: Widget: “DictionariesWidget”, accessible text.
+                accessible_text.append(_('read-only'))
+            return ', '.join(accessible_text)
         if role == Qt.DecorationRole:
             return self._icons.get('favorite' if d is self._favorite else d.state)
         if role == Qt.ToolTipRole:
