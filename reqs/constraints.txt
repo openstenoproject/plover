@@ -33,6 +33,7 @@ pep517==0.10.0
 pip==20.0.2
 pkginfo==1.7.0
 plover-plugins-manager==0.6.0
+plover-stroke==1.0.0
 plover-treal==1.0.1
 pluggy==0.13.1
 plyer==2.0.0

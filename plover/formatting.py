@@ -317,6 +317,7 @@ class Formatter:
         self.last_output_spaces_after = False
         self.start_capitalized = False
         self.start_attached = False
+        self.space_char = ' '
         self._listeners = set()
 
     def add_listener(self, callback):
@@ -347,6 +348,13 @@ class Formatter:
         # before the output or after the output
         self.spaces_after = bool(s == 'After Output')
 
+    def last_action(self, previous_translations):
+        if previous_translations and previous_translations[-1].formatting:
+            return previous_translations[-1].formatting[-1]
+        return _Action(next_attach=self.start_attached or self.spaces_after,
+                       next_case=Case.CAP_FIRST_WORD if self.start_capitalized else None,
+                       space_char=self.space_char)
+
     def format(self, undo, do, prev):
         """Format the given translations.
 
@@ -367,19 +375,8 @@ class Formatter:
         assert undo or do
 
         if do:
-            last_action = None
-            if prev:
-                previous_translations = prev
-                if prev[-1].formatting:
-                    last_action = prev[-1].formatting[-1]
-            else:
-                previous_translations = []
-            if last_action is None:
-                # Initial output.
-                next_attach = self.start_attached or self.spaces_after
-                next_case = Case.CAP_FIRST_WORD if self.start_capitalized else None
-                last_action = _Action(next_attach=next_attach, next_case=next_case)
-            ctx = _Context(previous_translations, last_action)
+            last_action = self.last_action(prev)
+            ctx = _Context(prev or (), last_action)
             for t in do:
                 if t.english:
                     t.formatting = _translation_to_actions(t.english, ctx)

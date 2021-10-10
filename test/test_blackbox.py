@@ -1,9 +1,55 @@
 # -*- coding: utf-8 -*-
 
+import pytest
+
 from plover import system
 from plover.registry import Registry
 
 from plover_build_utils.testing import blackbox_test
+
+
+@pytest.fixture
+def with_melani_system(monkeypatch, request):
+    class Melani:
+        KEYS = (
+            '#',
+            'S-', 'P-', 'C-', 'T-', 'H-', 'V-', 'R-',
+            'I-', 'A-',
+            '-E', '-O',
+            '-c', '-s', '-t', '-h', '-p', '-r',
+            '*',
+            '-i', '-e', '-a', '-o',
+        )
+        IMPLICIT_HYPHEN_KEYS = KEYS
+        SUFFIX_KEYS = ()
+        NUMBER_KEY = '#'
+        NUMBERS = {
+            'S-': '1-',
+            'P-': '2-',
+            'T-': '3-',
+            'V-': '4-',
+            'I-': '5-',
+            '-O': '0-',
+            '-c': '-6',
+            '-t': '-7',
+            '-p': '-8',
+            '-i': '-9',
+        }
+        UNDO_STROKE_STENO = '*'
+        ORTHOGRAPHY_RULES = []
+        ORTHOGRAPHY_RULES_ALIASES = {}
+        ORTHOGRAPHY_WORDLIST = None
+        KEYMAPS = {}
+        DICTIONARIES_ROOT = None
+        DEFAULT_DICTIONARIES = ()
+    registry = Registry()
+    registry.register_plugin('system', 'Melani', Melani)
+    old_system_name = system.NAME
+    with monkeypatch.context() as mp:
+        mp.setattr('plover.system.registry', registry)
+        system.setup('Melani')
+        yield
+    system.setup(old_system_name)
 
 
 @blackbox_test
@@ -1603,49 +1649,13 @@ class TestsBlackbox:
         S/S/O/S/S  " prefixsuffix O'prefixsuffix"
         '''
 
-    def test_melani_implicit_hyphens(self, monkeypatch):
+    def test_melani_implicit_hyphens(self, with_melani_system):
         r'''
         "15/SE/COhro": "XV secolo",
         "16/SE/COhro": "XVI secolo",
 
         15/SE/COhro/16/SE/COhro  " XV secolo XVI secolo"
         '''
-        class Melani:
-            KEYS = (
-                '#',
-                'S-', 'P-', 'C-', 'T-', 'H-', 'V-', 'R-',
-                'I-', 'A-',
-                '-E', '-O',
-                '-c', '-s', '-t', '-h', '-p', '-r',
-                '*',
-                '-i', '-e', '-a', '-o',
-            )
-            IMPLICIT_HYPHEN_KEYS = KEYS
-            SUFFIX_KEYS = ()
-            NUMBER_KEY = '#'
-            NUMBERS = {
-                'S-': '1-',
-                'P-': '2-',
-                'T-': '3-',
-                'V-': '4-',
-                'I-': '5-',
-                '-O': '0-',
-                '-c': '-6',
-                '-t': '-7',
-                '-p': '-8',
-                '-i': '-9',
-            }
-            UNDO_STROKE_STENO = '*'
-            ORTHOGRAPHY_RULES = []
-            ORTHOGRAPHY_RULES_ALIASES = {}
-            ORTHOGRAPHY_WORDLIST = None
-            KEYMAPS = {}
-            DICTIONARIES_ROOT = None
-            DEFAULT_DICTIONARIES = ()
-        system_dict = {}
-        system.setup('Melani', system_mod=Melani, system_dict=system_dict)
-        for k, v in system_dict.items():
-            monkeypatch.setattr(system, k, v)
 
     def test_conditionals_1(self):
         r'''

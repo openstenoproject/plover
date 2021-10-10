@@ -1,8 +1,6 @@
 # Copyright (c) 2010-2011 Joshua Harlan Lifton.
 # See LICENSE.txt for details.
 
-# TODO: unit test this file
-
 """Generic stenography data models.
 
 This module contains the following class:
@@ -11,49 +9,49 @@ Stroke -- A data model class that encapsulates a sequence of steno keys.
 
 """
 
-import re
+from plover_stroke import BaseStroke, StrokeHelper
 
-from plover import system
+from plover import log
 
-
-STROKE_DELIMITER = '/'
-
-_NUMBERS = set('0123456789')
-_IMPLICIT_NUMBER_RX = re.compile('(^|[1-4])([6-9])')
-
-def normalize_stroke(stroke):
-    letters = set(stroke)
-    if letters & _NUMBERS:
-        if system.NUMBER_KEY in letters:
-            stroke = stroke.replace(system.NUMBER_KEY, '')
-        # Insert dash when dealing with 'explicit' numbers
-        m = _IMPLICIT_NUMBER_RX.search(stroke)
-        if m is not None:
-            start = m.start(2)
-            return stroke[:start] + '-' + stroke[start:]
-    if '-' in letters:
-        if stroke.endswith('-'):
-            stroke = stroke[:-1]
-        elif letters & system.IMPLICIT_HYPHENS:
-            stroke = stroke.replace('-', '')
-    return stroke
-
-def normalize_steno(strokes_string):
-    """Convert steno strings to one common form."""
-    if not strokes_string:
-        return ()
-    return tuple(normalize_stroke(stroke) for stroke
-                 in strokes_string.split(STROKE_DELIMITER))
-
-def sort_steno_keys(steno_keys):
-    return sorted(steno_keys, key=lambda x: system.KEY_ORDER.get(x, -1))
 
 def sort_steno_strokes(strokes_list):
     '''Return suggestions, sorted by fewest strokes, then fewest keys.'''
     return sorted(strokes_list, key=lambda x: (len(x), sum(map(len, x))))
 
 
-class Stroke:
+stroke_helper = StrokeHelper()
+
+
+def normalize_stroke(steno, strict=False):
+    try:
+        return stroke_helper.normalize_stroke(steno)
+    except ValueError:
+        if strict:
+            raise
+        log.error(exc_info=True)
+        return steno
+
+def normalize_steno(steno, strict=False):
+    try:
+        return stroke_helper.normalize_steno(steno)
+    except ValueError:
+        if strict:
+            raise
+        log.error('', exc_info=True)
+        return tuple(steno.split('/'))
+
+def steno_to_sort_key(steno, strict=False):
+    try:
+        return stroke_helper.steno_to_sort_key(steno)
+    except ValueError:
+        if strict:
+            raise
+        log.error('', exc_info=True)
+        return b'\x00\x00' + steno.encode('utf-8')
+
+
+class Stroke(BaseStroke):
+
     """A standardized data model for stenotype machine strokes.
 
     This class standardizes the representation of a stenotype chord. A stenotype
@@ -66,52 +64,28 @@ class Stroke:
 
     """
 
-    def __init__(self, steno_keys) :
-        """Create a steno stroke by formatting steno keys.
+    _helper = stroke_helper
 
-        Arguments:
+    PREFIX_STROKE = None
+    UNDO_STROKE = None
 
-        steno_keys -- A sequence of pressed keys.
+    @classmethod
+    def setup(cls, keys, implicit_hyphen_keys, number_key, numbers, undo_stroke):
+        stroke_helper.setup(keys, implicit_hyphen_keys, number_key, numbers)
+        cls.PREFIX_STROKE = cls.from_integer(0)
+        cls.UNDO_STROKE = cls.from_steno(undo_stroke)
 
-        """
-        # Remove duplicate keys and save local versions of the input 
-        # parameters.
-        steno_keys_set = set(steno_keys)
-        if not steno_keys_set:
-            self.steno_keys = []
-            self.rtfcre = ''
-            return
-        # Order the steno keys so comparisons can be made.
-        steno_keys = list(sort_steno_keys(steno_keys_set))
+    @property
+    def steno_keys(self):
+        return list(self.keys())
 
-        # Convert strokes involving the number bar to numbers.
-        if system.NUMBER_KEY in steno_keys:
-            numeral = False
-            for i, e in enumerate(steno_keys):
-                if e in system.NUMBERS:
-                    steno_keys[i] = system.NUMBERS[e]
-                    steno_keys_set.remove(e)
-                    steno_keys_set.add(steno_keys[i])
-                    numeral = True
-            if numeral:
-                steno_keys.remove(system.NUMBER_KEY)
-                steno_keys_set.remove(system.NUMBER_KEY)
+    @property
+    def rtfcre(self):
+        return stroke_helper.stroke_to_steno(self)
 
-        if steno_keys_set & system.IMPLICIT_HYPHEN_KEYS:
-            self.rtfcre = ''.join(key.strip('-') for key in steno_keys)
-        else:
-            pre = ''.join(k.strip('-') for k in steno_keys if k[-1] == '-' or 
-                          k == system.NUMBER_KEY)
-            post = ''.join(k.strip('-') for k in steno_keys if k[0] == '-')
-            self.rtfcre = '-'.join([pre, post]) if post else pre
-
-        self.steno_keys = steno_keys
-
-        # Determine if this stroke is a correction stroke.
-        self.is_correction = (self.rtfcre == system.UNDO_STROKE_STENO)
-
-    def __hash__(self):
-        return hash(self.rtfcre)
+    @property
+    def is_correction(self):
+        return int(self) == int(self.UNDO_STROKE)
 
     def __str__(self):
         if self.is_correction:
@@ -120,13 +94,4 @@ class Stroke:
             prefix = ''
         return '%sStroke(%s : %s)' % (prefix, self.rtfcre, self.steno_keys)
 
-    def __eq__(self, other):
-        return (isinstance(other, Stroke)
-                and self.steno_keys == other.steno_keys)
-
-    def __ne__(self, other):
-        return not self.__eq__(other)
-
-    def __repr__(self):
-        return str(self)
-
+    __repr__ = __str__

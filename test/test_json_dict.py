@@ -66,11 +66,11 @@ JSON_SAVE_TESTS = (
     # Keys are sorted on save.
     lambda: json_save_test(
         '''
-        'B': 'bravo',
-        'A': 'alpha',
-        'C': 'charlie',
+        'T': 'bravo',
+        'S': 'alpha',
+        'R': 'charlie',
         ''',
-        '{\n"A": "alpha",\n"B": "bravo",\n"C": "charlie"\n}\n'
+        '{\n"S": "alpha",\n"T": "bravo",\n"R": "charlie"\n}\n'
     ),
 )
 

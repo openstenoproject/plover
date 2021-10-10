@@ -1,12 +1,11 @@
-
 from collections.abc import Sequence
-from io import open
 import os
 import re
 
 from plover.oslayer.config import CONFIG_DIR
 from plover.resource import resource_filename
 from plover.registry import registry
+from plover.steno import Stroke
 
 
 def _load_wordlist(filename, assets_dir):
@@ -61,15 +60,13 @@ _EXPORTS = {
     'DEFAULT_DICTIONARIES'     : lambda mod: mod.DEFAULT_DICTIONARIES,
 }
 
-def setup(system_name, system_mod=None, system_dict=None):
+def setup(system_name):
     system_symbols = {}
-    if system_mod is None:
-        system_mod = registry.get_plugin('system', system_name).obj
+    system_mod = registry.get_plugin('system', system_name).obj
     for symbol, init in _EXPORTS.items():
         system_symbols[symbol] = init(system_mod)
     system_symbols['NAME'] = system_name
-    if system_dict is None:
-        system_dict = globals()
-    system_dict.update(system_symbols)
+    globals().update(system_symbols)
+    Stroke.setup(KEYS, IMPLICIT_HYPHEN_KEYS, NUMBER_KEY, NUMBERS, UNDO_STROKE_STENO)
 
 NAME = None

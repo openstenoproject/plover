@@ -19,7 +19,11 @@ from plover.suggestions import Suggestions
 from plover.translation import Translator
 
 
-StartingStrokeState = namedtuple('StartingStrokeState', 'attach capitalize')
+class StartingStrokeState(namedtuple('StartingStrokeState', 'attach capitalize space_char')):
+
+    def __new__(cls, attach=False, capitalize=False, space_char=' '):
+        return super().__new__(cls, attach, capitalize, space_char)
+
 
 MachineParams = namedtuple('MachineParams', 'type options keymap')
 
@@ -530,13 +534,15 @@ class StenoEngine:
     @with_lock
     def starting_stroke_state(self):
         return StartingStrokeState(self._formatter.start_attached,
-                                   self._formatter.start_capitalized)
+                                   self._formatter.start_capitalized,
+                                   self._formatter.space_char)
 
     @starting_stroke_state.setter
     @with_lock
     def starting_stroke_state(self, state):
         self._formatter.start_attached = state.attach
         self._formatter.start_capitalized = state.capitalize
+        self._formatter.space_char = state.space_char
 
     @with_lock
     def add_translation(self, strokes, translation, dictionary_path=None):

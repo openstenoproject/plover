@@ -1,3 +1,5 @@
+from PyQt5.QtWidgets import QDialogButtonBox
+
 from plover import _
 
 from plover.gui_qt.add_translation_dialog_ui import Ui_AddTranslationDialog
@@ -17,12 +19,17 @@ class AddTranslationDialog(Tool, Ui_AddTranslationDialog):
     def __init__(self, engine, dictionary_path=None):
         super().__init__(engine)
         self.setupUi(self)
+        self.buttonBox.button(QDialogButtonBox.Ok).setEnabled(False)
         self.add_translation.select_dictionary(dictionary_path)
+        self.add_translation.mappingValid.connect(self.on_mapping_valid)
         engine.signal_connect('config_changed', self.on_config_changed)
         self.on_config_changed(engine.config)
         self.installEventFilter(self)
         self.restore_state()
         self.finished.connect(self.save_state)
+
+    def on_mapping_valid(self, valid):
+        self.buttonBox.button(QDialogButtonBox.Ok).setEnabled(valid)
 
     def on_config_changed(self, config_update):
         if 'translation_frame_opacity' in config_update:
