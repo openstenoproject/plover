@@ -3,12 +3,13 @@ def meta_retro_currency(ctx, dict_format):
     last_words = ctx.last_words(count=1)
     if not last_words:
         return action
+    currency = last_words[0].replace(',', '')
     for cast, fmt in (
         (int,   '{:,}'   ),
         (float, '{:,.2f}'),
     ):
         try:
-            cast_input = cast(last_words[0])
+            cast_input = cast(currency)
         except ValueError:
             continue
         currency_format = dict_format.replace('c', fmt)
