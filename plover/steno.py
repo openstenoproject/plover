@@ -71,6 +71,8 @@ class Stroke(BaseStroke):
 
     @classmethod
     def setup(cls, keys, implicit_hyphen_keys, number_key, numbers, undo_stroke):
+        if number_key is None:
+            numbers = None
         stroke_helper.setup(keys, implicit_hyphen_keys, number_key, numbers)
         cls.PREFIX_STROKE = cls.from_integer(0)
         cls.UNDO_STROKE = cls.from_steno(undo_stroke)
