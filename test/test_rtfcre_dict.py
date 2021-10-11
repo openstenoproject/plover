@@ -371,9 +371,6 @@ RTF_LOAD_TESTS = (
     lambda: rtf_load_test(r'{\*\nonexistent {\cxp .}}', ''),
     lambda: rtf_load_test(r'be\cxds{\*\cxsvatdictentrydate\yr2006\mo5\dy10}', '{be^}'),
 
-    # Why not 'eclipse command'?
-    lambda: rtf_load_test('{eclipse command}', '{eclipse command}', xfail=True),
-
     # Unresolved conflicts.
     lambda: rtf_load_test(r'{\cxconf [{\cxc abc}]}', '[abc]'),
     lambda: rtf_load_test(r'{\cxconf [{\cxc abc}|{\cxc def}]}', '[abc|def]'),
