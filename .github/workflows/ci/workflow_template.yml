@@ -98,7 +98,7 @@ jobs:
       - name: Setup Python
         uses: <@ action_setup_python @>
         with:
-          python-version: <@ j.python @>
+          python-version: '<@ j.python @>'
 
       <% endif %>
       <% if skippy_enabled and j.os == 'Windows' %>
