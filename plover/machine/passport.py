@@ -50,7 +50,7 @@ class Passport(SerialStenotypeBase):
         """Overrides base class run method. Do not call directly."""
         self._ready()
 
-        while not self.finished.isSet():
+        while not self.finished.is_set():
             # Grab data from the serial port.
             raw = self.serial_port.read(max(1, self.serial_port.inWaiting()))
 

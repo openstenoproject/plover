@@ -419,7 +419,7 @@ class KeyboardCapture(threading.Thread):
             error, key, pressed = self._proc.get()
             if error is not None:
                 log.error(*error)
-            if self._finished.isSet():
+            if self._finished.is_set():
                 break
             if key is not None:
                 (self.key_down if pressed else self.key_up)(key)
