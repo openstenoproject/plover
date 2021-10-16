@@ -575,7 +575,7 @@ msgstr "désactivé"
 #. Widget: “DictionariesWidget”, accessible text.
 #: plover/gui_qt/dictionaries_widget.py:377
 msgid "favorite"
-msgstr "favoris"
+msgstr "favori"
 
 #. Widget: “DictionariesWidget”, accessible text.
 #: plover/gui_qt/dictionaries_widget.py:380
@@ -789,7 +789,7 @@ msgstr "Fusionner les dictionnaires en un nouveau"
 #. Widget: “DictionariesWidget”, text.
 #: plover/gui_qt/dictionaries_widget_ui.py:161
 msgid "Open dictionaries"
-msgstr "Ouvrir les dictionnaires"
+msgstr "Ouvrir des dictionnaires"
 
 #. Widget: “DictionaryEditor”, window title.
 #: plover/gui_qt/dictionary_editor_ui.py:108
@@ -836,7 +836,7 @@ msgstr "Filtre de traduction"
 #. Widget: “DictionaryEditor”, accessible name.
 #: plover/gui_qt/dictionary_editor_ui.py:126
 msgid "Clear filter"
-msgstr "Effacer l'historique"
+msgstr "Effacer le filtre"
 
 #. Widget: “DictionaryEditor”, text.
 #: plover/gui_qt/dictionary_editor_ui.py:128
@@ -885,7 +885,7 @@ msgstr "Plover: Recherche"
 #. Widget: “LookupDialog”, accessible name.
 #: plover/gui_qt/lookup_dialog_ui.py:58
 msgid "Pattern"
-msgstr "Modèle"
+msgstr "Motif"
 
 #. Widget: “LookupDialog”, accessible description.
 #: plover/gui_qt/lookup_dialog_ui.py:60
@@ -930,7 +930,7 @@ msgstr "Déconnecte puis reconnecte la machine."
 #. Widget: “MainWindow”, accessible name.
 #: plover/gui_qt/main_window_ui.py:172
 msgid "Reconnect"
-msgstr "Reconnecte"
+msgstr "Reconnecter"
 
 #. Widget: “MainWindow”, accessible name.
 #: plover/gui_qt/main_window_ui.py:176
@@ -940,7 +940,7 @@ msgstr "Modèle"
 #. Widget: “MainWindow”, accessible description.
 #: plover/gui_qt/main_window_ui.py:178
 msgid "Change the current machine type."
-msgstr "Modifier le type de machine."
+msgstr "Modifie le type de machine."
 
 #. Widget: “MainWindow”, text.
 #: plover/gui_qt/main_window_ui.py:184
@@ -1102,7 +1102,7 @@ msgstr "Mode"
 #. Widget: “PaperTape”, accessible description.
 #: plover/gui_qt/paper_tape_ui.py:93
 msgid "Select paper tape display mode."
-msgstr "Choisissez le mode d'affichage du ruban."
+msgstr "Choisit le mode d'affichage du ruban."
 
 #. Widget: “PaperTape”, accessible name.
 #: plover/gui_qt/paper_tape_ui.py:95
@@ -1118,7 +1118,7 @@ msgstr "&Effacer"
 #. Widget: “PaperTape”, tool tip.
 #: plover/gui_qt/paper_tape_ui.py:99
 msgid "Clear paper tape."
-msgstr "Effacer le ruban."
+msgstr "Efface le ruban."
 
 #. Widget: “PaperTape”, shortcut.
 #. Widget: “SuggestionsDialog”, shortcut.
@@ -1134,7 +1134,7 @@ msgstr "&Sauvegarder"
 #. Widget: “PaperTape”, tool tip.
 #: plover/gui_qt/paper_tape_ui.py:105
 msgid "Save paper tape to file."
-msgstr "Enregistrer la bande papier."
+msgstr "Enregistre la bande papier."
 
 #. Widget: “PaperTape”, text.
 #. Widget: “SuggestionsDialog”, text.
@@ -1146,7 +1146,7 @@ msgstr "&Basculer \"toujours visible\""
 #. Widget: “SuggestionsDialog”, tool tip.
 #: plover/gui_qt/paper_tape_ui.py:111 plover/gui_qt/suggestions_dialog_ui.py:63
 msgid "Toggle \"always on top\"."
-msgstr "Basculer \"toujours visible\"."
+msgstr "Bascule \"toujours visible\"."
 
 #. Widget: “PaperTape”, shortcut.
 #. Widget: “SuggestionsDialog”, shortcut.
@@ -1164,7 +1164,7 @@ msgstr "Sélectionner la &fonte de caractères"
 #. Widget: “SuggestionsDialog”, tool tip.
 #: plover/gui_qt/paper_tape_ui.py:117 plover/gui_qt/suggestions_dialog_ui.py:69
 msgid "Open font selection dialog."
-msgstr "Ouvrir la fenêtre de sélection de la fonte de caractères."
+msgstr "Ouvre la fenêtre de sélection de la fonte de caractères."
 
 #. Widget: “SuggestionsDialog”, tooltip.
 #: plover/gui_qt/suggestions_dialog.py:27
@@ -1190,7 +1190,7 @@ msgstr "&Accords"
 #. Widget: “SuggestionsDialog”, tool tip.
 #: plover/gui_qt/suggestions_dialog_ui.py:57
 msgid "Clear the history."
-msgstr "Effacer l'historique."
+msgstr "Efface l'historique."
 
 #. Widget: “SuggestionsWidget”.
 #: plover/gui_qt/suggestions_widget.py:23
