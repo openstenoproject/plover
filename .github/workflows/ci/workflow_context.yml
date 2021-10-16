@@ -61,6 +61,9 @@ jobs:
   - <<: *python_test
     variant: Python 3.9
     python: '3.9'
+  - <<: *python_test
+    variant: Python 3.10
+    python: '3.10'
 
   # Qt GUI tests.
   - <<: *test

@@ -265,7 +265,7 @@ class SerialStenotypeBase(ThreadedStenotypeBase):
             0.01,
         )
         packet = b''
-        while not self.finished.isSet():
+        while not self.finished.is_set():
             raw = self.serial_port.read(packet_size - len(packet))
             if not raw:
                 if packet:

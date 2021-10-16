@@ -48,7 +48,7 @@ PyQt5==5.15.4
 PyQt5-Qt5==5.15.2
 PyQt5-sip==12.8.1
 pyserial==3.5
-pytest==6.2.2
+pytest==6.2.5
 pytest-qt==3.3.0
 python-xlib==0.29
 pytz==2021.1
