@@ -168,10 +168,8 @@ msgstr "Chemin du journal."
 
 #. Widget: “FileWidget”, accessible description.
 #: plover/gui_qt/config_file_widget_ui.py:47
-#, fuzzy
-#| msgid "Save strokes to the logfile."
 msgid "Path to the log file."
-msgstr "Enregistre les accords dans le journal."
+msgstr "Chemin du journal."
 
 #. Widget: “FileWidget”, accessible name.
 #: plover/gui_qt/config_file_widget_ui.py:49
@@ -180,10 +178,8 @@ msgstr "Parcourir."
 
 #. Widget: “FileWidget”, accessible description.
 #: plover/gui_qt/config_file_widget_ui.py:51
-#, fuzzy
-#| msgid "Save strokes to the logfile."
 msgid "Open a file picker to select the log file."
-msgstr "Enregistre les accords dans le journal."
+msgstr "Ouvre un sélecteur de fichiers pour sélectionner le journal."
 
 #. Widget: “FileWidget”, text.
 #: plover/gui_qt/config_file_widget_ui.py:53
@@ -393,7 +389,7 @@ msgstr ""
 "Défini le sens d'affichage des dictionnaires :\n"
 "- haut-en-bas : correspond à l'ordre de recherche; par priorité "
 "décroissante\n"
-"- bas-en-haut: dans l'ordre inverse de recherche; par priorité croissante\n"
+"- bas-en-haut : dans l'ordre inverse de recherche; par priorité croissante\n"
 
 #. Widget: “ConfigWindow”.
 #: plover/gui_qt/config_window.py:340
