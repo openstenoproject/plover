@@ -618,7 +618,7 @@ msgstr "Ce dictionnaire est en lecture-seule."
 #. Widget: “DictionariesWidget”, “save as copy” file picker.
 #: plover/gui_qt/dictionaries_widget.py:586
 msgid "Save a copy of {name} as..."
-msgstr "Sauver une copie de {name} comme..."
+msgstr "Sauvegarder une copie de {name} comme..."
 
 #. Widget: “DictionariesWidget”, “save as copy” file picker.
 #: plover/gui_qt/dictionaries_widget.py:588
@@ -669,7 +669,7 @@ msgstr "Ctrl+E"
 #. Widget: “DictionariesWidget”, text.
 #: plover/gui_qt/dictionaries_widget_ui.py:119
 msgid "&Save dictionaries as..."
-msgstr "&Sauver les dictionnaires comme..."
+msgstr "&Sauvegarder les dictionnaires comme..."
 
 #. Widget: “DictionariesWidget”, tool tip.
 #: plover/gui_qt/dictionaries_widget_ui.py:121
@@ -677,7 +677,7 @@ msgid ""
 "Save the selected dictionaries: create a new copy of each dictionary, or "
 "merge them into a new dictionary."
 msgstr ""
-"Sauve les dictionnaires sélectionnés: crée une copie de chaque dictionnaire, "
+"Sauvegarde les dictionnaires sélectionnés: crée une copie de chaque dictionnaire, "
 "ou fusionne les en un nouveau dictionnaire."
 
 #. Widget: “DictionariesWidget”, shortcut.
