@@ -618,7 +618,7 @@ msgstr "Ce dictionnaire est en lecture-seule."
 #. Widget: “DictionariesWidget”, “save as copy” file picker.
 #: plover/gui_qt/dictionaries_widget.py:586
 msgid "Save a copy of {name} as..."
-msgstr "Sauvegarder une copie de {name} comme..."
+msgstr "Enregistrez une copie de {name} sous..."
 
 #. Widget: “DictionariesWidget”, “save as copy” file picker.
 #: plover/gui_qt/dictionaries_widget.py:588
@@ -628,7 +628,7 @@ msgstr "{name} - Copie"
 #. Widget: “DictionariesWidget”, “save as merge” file picker.
 #: plover/gui_qt/dictionaries_widget.py:609
 msgid "Merge {names} as..."
-msgstr "Fusionner {names} comme..."
+msgstr "Fusionner {names} sous..."
 
 #. Widget: “DictionariesWidget”, “add” file picker.
 #. Widget: “DictionariesWidget”, tool tip.
@@ -669,7 +669,7 @@ msgstr "Ctrl+E"
 #. Widget: “DictionariesWidget”, text.
 #: plover/gui_qt/dictionaries_widget_ui.py:119
 msgid "&Save dictionaries as..."
-msgstr "&Sauvegarder les dictionnaires comme..."
+msgstr "&Enregistrer les dictionnaires sous..."
 
 #. Widget: “DictionariesWidget”, tool tip.
 #: plover/gui_qt/dictionaries_widget_ui.py:121
@@ -677,8 +677,8 @@ msgid ""
 "Save the selected dictionaries: create a new copy of each dictionary, or "
 "merge them into a new dictionary."
 msgstr ""
-"Sauvegarde les dictionnaires sélectionnés: crée une copie de chaque dictionnaire, "
-"ou fusionne les en un nouveau dictionnaire."
+"Enregistre les dictionnaires sélectionnés : crée une copie de chaque "
+"dictionnaire, ou les fusionne en un nouveau dictionnaire."
 
 #. Widget: “DictionariesWidget”, shortcut.
 #. Widget: “PaperTape”, shortcut.
