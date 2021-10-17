@@ -635,7 +635,7 @@ msgstr "Fusionner {names} comme..."
 #: plover/gui_qt/dictionaries_widget.py:636
 #: plover/gui_qt/dictionaries_widget_ui.py:139
 msgid "Add dictionaries"
-msgstr "Ajouter des dictionnaires"
+msgstr "Ajoute des dictionnaires"
 
 #. Widget: “DictionariesWidget”, “new” file picker.
 #. Widget: “DictionariesWidget”, text.
@@ -1036,7 +1036,7 @@ msgstr "Afficher"
 #. Widget: “MainWindow”, tool tip.
 #: plover/gui_qt/main_window_ui.py:224
 msgid "Show the main window."
-msgstr "Afficher la fenêtre principale."
+msgstr "Affiche la fenêtre principale."
 
 #. Widget: “MainWindow”, text.
 #: plover/gui_qt/main_window_ui.py:226
