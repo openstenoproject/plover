@@ -2,49 +2,9 @@ from collections import deque
 import sys
 import re
 
+from rtf_tokenize import RtfTokenizer
+
 from plover import log
-
-
-RTF_TOKEN_RX = re.compile('|'.join((
-    # Group start/end.
-    r'[{}]',
-    # Control word / symbol / escaped new line.
-    r'\\(?:[A-Za-z]+(?:-?[0-9]+)? ?|[^A-Za-z]|)',
-    # Text.
-    r'[^\n\\{}]+',
-)))
-
-
-class RtfTokenizer:
-
-    def __init__(self, text):
-        self._lines = text.split('\r\n')
-        self._token_list = deque()
-        self.lnum = 0
-        self.cnum = 0
-        self.next_token = self.__iter__().__next__
-        self.rewind_token = self._token_list.append
-
-    def __iter__(self):
-        lines = self._lines
-        token_list = self._token_list
-        find_tokens = RTF_TOKEN_RX.findall
-        for lnum, lstr in enumerate(lines):
-            self.lnum = lnum
-            cnum = 0
-            for token in find_tokens(lstr):
-                self.cnum = cnum
-                cnum += len(token)
-                if token[0] == '\\' and token[-1] == ' ':
-                    token = token[:-1]
-                yield token
-                while token_list:
-                    yield token_list.pop()
-        # EOF.
-        yield None
-        while token_list:
-            yield token_list.pop()
-
 
 class RtfParseError(Exception):
 
@@ -247,6 +207,8 @@ def parse_rtfcre(text, normalize=lambda s: s, skip_errors=True):
                 '_': '{^-^}',
                 # Escaped newline: \par.
                 '': '\n\n',
+                '\n': '\n\n',
+                '\r': '\n\n',
                 # Escaped characters.
                 '\\': '\\',
                 '{': '{',
