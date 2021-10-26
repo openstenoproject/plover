@@ -801,6 +801,32 @@ class TestsBlackbox:
         0/R-BG  ' $0'
         '''
 
+    def test_retro_currency6(self):
+        r'''
+        'R-BG': '{:retro_currency:$c}',
+        'THO*U': '{^},000'
+
+        23/THO*U/R-BG  ' $23,000'
+        '''
+
+    def test_retro_currency7(self):
+        r'''
+        'R-BG': '{:retro_currency:$c}',
+        'P-P': '{^}.{^}',
+        'THO*U': '{^},000'
+
+        23/THO*U/P-P/15/R-BG  ' $23,000.15'
+        '''
+
+    def test_retro_currency8(self):
+        r'''
+        'R-BG': '{:retro_currency:$c}',
+        'P-P': '{^}.{^}',
+        'TPR*UPBT': '{^},500,000'
+
+        4/3/1/TPR*UPBT/P-P/69/R-BG  ' $431,500,000.69'
+        '''
+
     def test_retro_upper1(self):
         r'''
         'TEFT': 'test',
