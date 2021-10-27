@@ -138,12 +138,6 @@ RUN ./install.sh \
       libp11-kit0 \
       ;
 
-# Install cython-hidapi build dependencies.
-RUN ./install.sh \
-      libudev-dev \
-      libusb-1.0-0-dev \
-      ;
-
 # Install dbus-python build dependencies.
 RUN ./install.sh \
       libdbus-1-dev \

@@ -174,12 +174,32 @@ python='appdir_python'
 
 "$python" --version
 
+# Install boostrap requirements.
+get_base_devel
+
+# Install dbus-python before running linuxdeploy,
+# as there are no manylinux wheels available, so
+# we need to ensure its system dependencies are
+# included in the AppImage.
+install_wheels -c reqs/constraints.txt dbus-python
+
+# Trim the fat, first pass.
+run cp linux/appimage/blacklist.txt "$builddir/blacklist.txt"
+run sed -e "s/\${pyversion}/$pyversion/g" -i "$builddir/blacklist.txt"
+run "$python" -m plover_build_utils.trim "$appdir" "$builddir/blacklist.txt"
+
+# Finalize the base AppDir.
+# Note: we use a custom launcher that does not change the working directory.
+run "$linuxdeploy" \
+  --desktop-file='linux/plover.desktop' \
+  --icon-file='plover/assets/plover.png' \
+  --appdir="$appdir" \
+  --verbosity=2
+
 # Install Plover and dependencies.
 bootstrap_dist "$wheel"
 
-# Trim the fat.
-run cp linux/appimage/blacklist.txt "$builddir/blacklist.txt"
-run sed -e "s/\${pyversion}/$pyversion/g" -i "$builddir/blacklist.txt"
+# Trim the fat, second pass.
 run "$python" -m plover_build_utils.trim "$appdir" "$builddir/blacklist.txt"
 
 # Make distribution source-less.
@@ -187,29 +207,6 @@ run "$python" -m plover_build_utils.source_less "$pydist/$purelib" "$pydist/$pla
 
 # Avoid possible permission errors.
 run chmod u+w -R "$appdir"
-
-# Strip binaries.
-strip_binaries()
-{
-  {
-    printf '%s\0' "$appdir/usr/bin/python"
-    find "$appdir" -type f -regex '.*\.so\(\.[0-9.]+\)?$' -print0
-  } | xargs -0 --no-run-if-empty strip
-}
-run strip_binaries
-
-# Finalize the AppDir.
-# Note:
-# - use a custom launcher that does not change the working directory.
-# - temporarily move PyQt5 out of the way so linuxdeploy does not try
-#   to bundle its system dependencies.
-run mv "$pydist/$pypurelib/PyQt5" "$builddir"
-run "$linuxdeploy" \
-  --desktop-file='linux/plover.desktop' \
-  --icon-file='plover/assets/plover.png' \
-  --appdir="$appdir" \
-  --verbosity=2
-run mv "$builddir/PyQt5" "$pydist/$pypurelib/PyQt5"
 
 # Remove empty directories.
 remove_emptydirs()
