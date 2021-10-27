@@ -4,7 +4,7 @@ attrs==20.3.0
 Babel==2.9.0
 bleach==3.3.0
 build==0.3.1.post1
-certifi==2020.12.5
+certifi==2021.10.8
 cffi==1.14.5
 chardet==3.0.4
 check-manifest==0.46
@@ -30,7 +30,7 @@ MarkupSafe==1.1.1
 more-itertools==8.7.0
 packaging==20.9
 pep517==0.10.0
-pip==20.0.2
+pip==21.3.1
 pkginfo==1.7.0
 plover-plugins-manager==0.6.0
 plover-stroke==1.0.0
@@ -61,7 +61,7 @@ requests-toolbelt==0.9.1
 rfc3986==1.4.0
 rtf_tokenize==1.0.0
 SecretStorage==3.3.1
-setuptools==54.2.0
+setuptools==58.3.0
 six==1.15.0
 toml==0.10.2
 towncrier==21.3.0
@@ -70,7 +70,7 @@ twine==3.4.1
 urllib3==1.26.4
 wcwidth==0.2.5
 webencodings==0.5.1
-wheel==0.36.2
+wheel==0.37.0
 zipp==3.4.1
 
 # vim: ft=cfg commentstring=#\ %s list
