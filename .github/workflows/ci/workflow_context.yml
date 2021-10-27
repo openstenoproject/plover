@@ -11,19 +11,19 @@ skippy_enabled: true
 vars:
   - &dist_linux
     variant: Linux
-    python: '3.8'
+    python: '3.9'
     os: Linux
     platform: ubuntu-18.04
 
   - &dist_macos
     variant: macOS
-    python: '3.8'
+    python: '3.9'
     os: macOS
     platform: macos-10.15
 
   - &dist_win
     variant: Windows
-    python: '3.8'
+    python: '3.9'
     os: Windows
     platform: windows-2019
 
@@ -59,8 +59,8 @@ jobs:
     variant: Python 3.7
     python: '3.7'
   - <<: *python_test
-    variant: Python 3.9
-    python: '3.9'
+    variant: Python 3.8
+    python: '3.8'
   - <<: *python_test
     variant: Python 3.10
     python: '3.10'
