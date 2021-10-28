@@ -107,7 +107,7 @@ RUN mkdir /usr/local/ssl && \
       ln -s ../lib64 /usr/local/ssl/lib
 
 # Install Python from Github Actions @setup-python.
-ARG GITHUB_ACTIONS_PYTHON="3.8.10-107001/python-3.8.10-linux-18.04-x64.tar.gz"
+ARG GITHUB_ACTIONS_PYTHON="3.9.7-116077/python-3.9.7-linux-18.04-x64.tar.gz"
 RUN wget --quiet "https://github.com/actions/python-versions/releases/download/$GITHUB_ACTIONS_PYTHON"
 RUN tar xaf "${GITHUB_ACTIONS_PYTHON##*/}" -C /usr/local
 RUN rm "${GITHUB_ACTIONS_PYTHON##*/}"
@@ -136,12 +136,6 @@ RUN ldconfig
 RUN ./install.sh \
       file \
       libp11-kit0 \
-      ;
-
-# Install cython-hidapi build dependencies.
-RUN ./install.sh \
-      libudev-dev \
-      libusb-1.0-0-dev \
       ;
 
 # Install dbus-python build dependencies.
