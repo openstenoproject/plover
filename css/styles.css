@@ -53,8 +53,8 @@ h2 {
 
 #github-stars {
   position: absolute;
-  top: 0.5rem;
-  right: -2.9rem;
+  top: 0.6rem;
+  right: -1rem;
 }
 
 hr {
@@ -87,7 +87,7 @@ hr {
   max-width: 60em;
   margin: 0 auto 0.5em;
   padding-top: 80px;
-  padding-bottom: 2em;
+  padding-bottom: 1rem;
 }
 
 #sectionTwo .panel-body {
@@ -141,13 +141,11 @@ a:link {
   align-items: center;
   text-align: center;
 }
-.hero > * {
-  flex: 1;
-}
 .hero p {
-  display: inline;
+  flex: 2;
 }
-.hero-image {
+.hero div {
+  flex: 1;
   text-align: center;
 }
 img {
