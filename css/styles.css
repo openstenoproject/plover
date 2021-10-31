@@ -17,6 +17,7 @@ p {
 
 h2 {
   font-family: 'Cutive Mono', monospaced;
+  letter-spacing: -0.05rem;
   font-weight: bold;
   border-bottom: 1px solid #eee;
   font-size: 190%;
@@ -123,6 +124,31 @@ a:visited {
 a:link {
     text-decoration: none;
     color: #c3823a;
+}
+
+.hero {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  text-align: center;
+}
+.hero > * {
+  flex: 1;
+}
+.hero p {
+  display: inline;
+}
+.hero-image {
+  text-align: center;
+}
+img {
+  max-width: 80vw;
+  max-height: 20rem;
+  /* Negative margin allows the shadow to clip other elements a little. */
+  margin: -0.5rem auto -1rem auto;
+}
+.hero-image + h2 {
+  margin-top: 0rem;
 }
 
 /* Bootstrap overrides */
