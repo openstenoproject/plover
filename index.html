@@ -24,54 +24,61 @@
       </div>
 
       <div id="sectionTwo" class="panel panel-default">
+        <iframe id="github-stars" src="https://ghbtns.com/github-btn.html?user=openstenoproject&repo=plover&type=star&count=true&size=large" frameborder="0" scrolling="0" width="170" height="30" title="GitHub"></iframe>
         <div class="ploverTitle">
           <h1>Plover</h1>
           <div class="btn-group plover-nav" role="group" aria-label="Navigation">
-            <a class="btn btn-lg btn-default" href="http://plover.stenoknight.com/" alt="Mirabai Knight's Plover Blog">Blog</a>
+            <a class="btn btn-lg btn-default" href="http://plover.stenoknight.com/" alt="Mirabai Knight's Plover Blog">The Plover Blog</a>
             <a class="btn btn-lg btn-default" href="https://github.com/openstenoproject/plover/wiki" alt="Plover's Wiki on GitHub">Wiki</a>
-            <a class="btn btn-lg btn-default" href="https://github.com/openstenoproject/plover/releases/latest" alt="Latest Plover release on GitHub">Download</a>
+            <a class="btn btn-lg btn-default" href="#get-started-with-plover" alt="Jump to get started section">Get Started Now</a>
           </div>
         </div>
 
         <div class="panel-body">
           <div class="panel panel-default">
-            <div class="panel-body">
+            <div class="panel-body hero">
               <p id="opening-text">
-                Plover (rhymes with "lover") is a <strong>free, open source stenography engine</strong>. It allows individuals to replace their keyboard and write into any program at speeds of <strong>over 200 words per minute</strong>.
+                Plover (rhymes with "lover") is a <strong>free, open source stenography engine</strong>. Use it instead of typing to write into any program at speeds of <strong>over 200 words per minute</strong>.
               </p>
+              <div>
+                <img src="images/plover_screenshot.png" alt="Screenshot of Plover showing the main screen">
+              </div>
             </div>
           </div>
+          
           <h2>Stenography</h2>
-          <p>The art of stenography has existed for over a century, and has been computerized since the late twentieth century. All over the world, professional stenographers write at realtime speeds in order to take depositions and caption live television. Plover brings this powerful technology to anyone who is willing to learn it.</p>
+          <p>The art of stenography has existed for over a century, and has been computerized since the late twentieth century. All over the world, professional stenographers write at realtime speeds (over 200 words per minute) in order to take depositions and caption live television. Plover brings this powerful technology to anyone who is willing to learn it.</p>
           <h2>Open Steno Project</h2>
-          <p>The <a target="_blank" href="http://openstenoproject.org" alt="Open Steno Project homepage">Open Steno Project</a>, formed to support Plover and related projects, acts as a driver for <i>truly free</i> steno-related resources. While Plover is at the core of the OSP's effort, it is just as important to ensure that we have affordable hardware and open learning resources. Newcomers are encouraged to read through <a target="_blank" href="https://sites.google.com/site/ploverdoc/home" alt="a free online Plover text">Learn Plover!</a>, a free online textbook, and to see <a target="_blank" href="http://stenoarcade.com" alt="Steno arcade's homepage">Steno Arcade</a>, a free game made for stenographers-in-training.</p>
+          <p>The <a target="_blank" href="http://openstenoproject.org" alt="Open Steno Project homepage">Open Steno Project</a>, formed to support Plover and related projects, acts as a driver for <i>truly free</i> steno resources. While Plover is at the core of the Open Steno Project's effort, it is just as important to ensure that we have affordable hardware and open learning resources. Newcomers are encouraged to read through <a target="_blank" href="https://github.com/openstenoproject/plover/wiki/Beginner's-Guide:-Get-Started-with-Plover" alt="The Plover Beginner's Guide">the Beginner's Guide</a> to get started with Plover and start their learning journey.</p>
           <h2>Why Plover</h2>
-          <p>Before there was Plover, there was deposition software, often called CAT software. While this software is very useful for stenographers making depositions, it is not well-fitted to any other purpose. It is sandboxed, proprietary, and often bloated. Plover is a small, slick Python application that you run in the background. It acts as a translator to read steno movements and then emulate keystrokes, so the programs you use can't tell that you are using steno.</p>
+          <p>Before there was Plover, there was deposition software, often called computer-aided transcription (CAT) software. While this software is very useful for stenographers making <em>depositions</em>, it is not well-fitted to other purposes. It is sandboxed, proprietary, and often bloated. Plover is a small, slick Python application that you run in the background. It acts as a translator to read steno input from your keyboard or steno machine and then emulates keystrokes. The programs you use can't tell that you're using steno.</p>
 
-          <p>This means that you can use Plover to chat on Facebook, write into Microsoft Word, browse the web, control your media, use the commandline, fire off keyboard shortcuts, open and close programs, navigate with arrow keys, write code, or anything else you could do with a regular keyboard, but <i>at much greater speeds!</i></p>
-          <p>Plover is used today by hundreds of people, with ranging skillsets. It is used by both professional stenographers, as well as transcriptionists, and by programmers. If you want to know more about the community, it's best to <a target="_blank" href="https://discord.gg/0lQde43a6dGmAMp2" alt="Visit the Plover Discord server, for a rich IRC-like chatroom">join them for a chat.</a></p>
+          <p>This means that you can use Plover to chat on Facebook, write in Microsoft Word, browse the web, control your media, use a terminal, fire off keyboard shortcuts, open and close programs, navigate with arrow keys, write code, or anything else you could do with a regular keyboard, but <i>at potentially much greater speeds!</i></p>
+          <p>Plover is used today by over a thousand people, of varying skills. It is used by both professional stenographers, transcriptionists, programmers, and hobbyists (for general computer use and composition). If you want to know more about the community, it's best to <a target="_blank" href="https://discord.gg/0lQde43a6dGmAMp2" alt="Visit the Plover Discord server, for a rich IRC-like chatroom">join our official Discord server.</a></p>
           <h2>Features</h2>
-          <p style="text-indent: 0">Plover ain't your normal steno software. It's packed with many features which make it a great keyboard replacement.</p>
+          <p style="text-indent: 0">Plover is packed with many features to make it a great keyboard replacement.</p>
           <ul>
-          <li>Works on Windows, Linux, and Mac OS&nbsp;X.</li>
+          <li>Runs on <strong>Windows, Linux, and Mac.</strong></li>
           <li>Works with <a target="_blank" href="https://github.com/openstenoproject/plover/wiki/Supported-Hardware#keyboards">regular keyboards</a> and with <a target="_blank" href="https://github.com/openstenoproject/plover/wiki/Supported-Hardware#stenotype-machines" alt="see a list of supported steno machines">real steno machines.</a></li>
-          <li>Can send keystrokes as if it were a normal keyboard, including modifiers so that you can perform keyboard shortcuts and hit extended keys.</li>
-          <li>Media key support to control media, change volume, and more.</li>
-          <li>Comes with a well-developed theory, built on top of StenEd, but extended with over 50,000 new strokes.</li>
-          <li>Supports JSON and RTF/CRE dictionaries.</li>
-          <li>Includes training tools to help learn stenography.</li>
+          <li>Works in most applications to <strong>input text.</strong></li>
+          <li>Has extensive support for sending <a target="_blank" href="https://github.com/openstenoproject/plover/wiki/Dictionary-Format#keyboard-shortcuts" alt="Plover wiki page on keyboard shortcuts and the dictionary format">keyboard shortcuts.</a></li>
+          <li>Includes <strong>training tools</strong> to help you learn stenography.</li>
           <li>Minimal, clean, out-of-your-face interface so you can focus on writing.</li>
-          <li>...and much, much more.</li>
+          <li>A <strong>plugins manager</strong> to allow the community to add features.</li>
+          <li>&#8230;and much, much more.</li>
           </ul>
-          <h2>Download</h2>
-          <p>Plover sees regular updates, and accepts bug reports, feature requests, art, and usability ideas. Please see <a target="_blank" href="https://github.com/openstenoproject/plover" alt="Plover's GitHub">Plover's GitHub</a> if you would like to contribute. Please follow below to see the latest releases and installation instructions.</p>
+          <h2>Contribute</h2>
+          <p>Plover is open source software. It accepts bug reports, feature requests, art, and usability ideas. Please see <a target="_blank" href="https://github.com/openstenoproject/plover" alt="Plover's GitHub">Plover's GitHub</a> if you would like to contribute.</p>
+          <h2 id="get-started-with-plover">Get Started with Plover</h2>
+          <p>If learning stenography sounds exciting to you, that's amazing! The Open Steno community welcomes you whether your want to learn steno out of curiosity or because you want to make a career out of it.</p>
           <div class="ploverBtns">
-            <a target="_blank" href="https://github.com/openstenoproject/plover/releases/latest" class="btn btn-lg btn-success">Download Latest Stable</a>
+            <a target="_blank" href="https://github.com/openstenoproject/plover/wiki/Beginner's-Guide:-Get-Started-with-Plover" class="btn btn-lg btn-success">Get Started with Plover</a>
             <span class="text-muted">&nbsp;or&nbsp;</span>
-            <a target="_blank" href="https://github.com/openstenoproject/plover/releases" class="btn btn-default">Weekly Builds</a>
+            <a target="_blank" href="https://github.com/openstenoproject/plover/releases/latest" class="btn btn-default">Download Now</a>
           </div>
         </div>
       </div>
+      <footer>&nbsp;</footer>
     </div>
   </body>
 </html>
