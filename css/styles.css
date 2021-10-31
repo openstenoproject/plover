@@ -34,8 +34,8 @@ h2 {
   text-align: center;
 }
 .ploverTitle .btn {
-    color: #182C28;
-  }
+  color: #182C28;
+}
 @media(min-width: 700px) {
   .ploverTitle .btn {
     width: 10em;
@@ -49,6 +49,12 @@ h2 {
   text-align: center;
   font-size: 4.5em;
   font-family: 'Patua One', sans-serif;
+}
+
+#github-stars {
+  position: absolute;
+  top: 0.5rem;
+  right: -2.9rem;
 }
 
 hr {
@@ -67,13 +73,16 @@ hr {
 }
 .ploverLogo > svg {
   width: 100%;
+  position: relative;
+  z-index: 100;
 }
 .plover-nav {
   margin: 0 auto;
 }
 
 #sectionTwo {
-  background-color: #fff;
+  position: relative;
+  background: url("/images/bgnoise.png") #fff;
   width: 95%;
   max-width: 60em;
   margin: 0 auto 0.5em;
@@ -109,7 +118,7 @@ hr {
   text-align: center;
 }
 .ploverBtns .btn {
-  text-size: 130%;
+  font-size: 1.1rem;
 }
 
 /** Links */
