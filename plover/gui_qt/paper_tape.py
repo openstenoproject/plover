@@ -230,6 +230,5 @@ class PaperTape(Tool, Ui_PaperTape):
         if not filename:
             return
         with open(filename, 'w') as fp:
-            for row in range(self.tape.count()):
-                item = self.tape.item(row)
-                print(item.data(Qt.DisplayRole), file=fp)
+            for row in range(self._model.rowCount(self._model.index(-1, -1))):
+                print(self._model.data(self._model.index(row, 0), Qt.DisplayRole), file=fp)
