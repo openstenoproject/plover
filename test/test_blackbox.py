@@ -52,6 +52,42 @@ def with_melani_system(monkeypatch, request):
         yield
     system.setup(old_system_name)
 
+@pytest.fixture
+def with_korean_system(monkeypatch, request):
+    class KoreanCAS:
+        KEYS = (
+            '1-', '2-', '3-', '4-', '5-',
+            'ㅎ-', 'ㅁ-', 'ㄱ-', 'ㅈ-', 'ㄴ-',
+            'ㄷ-', 'ㅇ-', 'ㅅ-', 'ㅂ-', 'ㄹ-',
+            'ㅗ-', 'ㅏ-', 'ㅜ-',
+            '-*', '-ㅓ', '-ㅣ',
+            '-6', '-7', '-8', '-9', '-0',
+            '-ㅎ', '-ㅇ', '-ㄹ', '-ㄱ', '-ㄷ',
+            '-ㅂ', '-ㄴ', '-ㅅ', '-ㅈ', '-ㅁ',
+        )
+        IMPLICIT_HYPHEN_KEYS = (
+            'ㅗ-', 'ㅏ-', 'ㅜ-',
+            '-*', '-ㅓ', '-ㅣ',
+        )
+        SUFFIX_KEYS = ()
+        NUMBER_KEY = None
+        NUMBERS = {}
+        UNDO_STROKE_STENO = '-ㅂㄴ'
+        ORTHOGRAPHY_RULES = []
+        ORTHOGRAPHY_RULES_ALIASES = {}
+        ORTHOGRAPHY_WORDLIST = None
+        KEYMAPS = {}
+        DICTIONARIES_ROOT = None
+        DEFAULT_DICTIONARIES = ()
+    registry = Registry()
+    registry.register_plugin('system', 'English Stenotype', english_stenotype)
+    registry.register_plugin('system', 'Korean Modern C', KoreanCAS)
+    old_system_name = system.NAME
+    with monkeypatch.context() as mp:
+        mp.setattr('plover.system.registry', registry)
+        yield
+    system.setup(old_system_name)
+
 
 @blackbox_test
 class TestsBlackbox:
@@ -1762,4 +1798,39 @@ class TestsBlackbox:
         TP-  r' fa\lse fa\lse FA\LSE'
         *    r' fa\lse fa\lse'
         T-   r' tr/ue tr/ue TR/UE'
+        '''
+
+    def test_bug_1448_1(self, with_korean_system):
+        # Translator tries to represent a previous stroke
+        # from a different system using the current one.
+        #
+        # This test would throw a `ValueError` exception
+        # (invalid keys mask) in the translator when
+        # trying to represent the `ㅎㅁㄱㅈㄴ-ㄴㅅㅈㅁ`
+        # stroke with the `English Stenotype` system.
+        r'''
+        'TEFT': 'test'
+        'TEFT/-G': 'testing'
+
+        :system 'Korean Modern C'
+        ㅎㅁㄱㅈㄴ-ㄴㅅㅈㅁ  ' ㅎㅁㄱㅈㄴ-ㄴㅅㅈㅁ'
+        :system 'English Stenotype'
+        TEFT  ' ㅎㅁㄱㅈㄴ-ㄴㅅㅈㅁ test'
+        '''
+
+    def test_bug_1448_2(self, with_korean_system):
+        # Translator tries to represent a previous stroke
+        # from a different system using the current one.
+        #
+        # This test would trigger a translator lookup for
+        # `#STKP/-G` because `#STKP` (English Stenotype)
+        # and `12345` (Korean Modern C) have the same keys
+        # mask.
+        r'''
+        '#STKP/-G': 'game over'
+
+        :system 'Korean Modern C'
+        12345  ' 12345'
+        :system 'English Stenotype'
+        -G  ' 12345 -G'
         '''

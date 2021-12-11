@@ -9,45 +9,9 @@ Stroke -- A data model class that encapsulates a sequence of steno keys.
 
 """
 
-from plover_stroke import BaseStroke, StrokeHelper
+from plover_stroke import BaseStroke
 
 from plover import log
-
-
-def sort_steno_strokes(strokes_list):
-    '''Return suggestions, sorted by fewest strokes, then fewest keys.'''
-    return sorted(strokes_list, key=lambda x: (len(x), sum(map(len, x))))
-
-
-stroke_helper = StrokeHelper()
-
-
-def normalize_stroke(steno, strict=False):
-    try:
-        return stroke_helper.normalize_stroke(steno)
-    except ValueError:
-        if strict:
-            raise
-        log.error(exc_info=True)
-        return steno
-
-def normalize_steno(steno, strict=False):
-    try:
-        return stroke_helper.normalize_steno(steno)
-    except ValueError:
-        if strict:
-            raise
-        log.error('', exc_info=True)
-        return tuple(steno.split('/'))
-
-def steno_to_sort_key(steno, strict=False):
-    try:
-        return stroke_helper.steno_to_sort_key(steno)
-    except ValueError:
-        if strict:
-            raise
-        log.error('', exc_info=True)
-        return b'\x00\x00' + steno.encode('utf-8')
 
 
 class Stroke(BaseStroke):
@@ -64,18 +28,64 @@ class Stroke(BaseStroke):
 
     """
 
-    _helper = stroke_helper
-
     PREFIX_STROKE = None
     UNDO_STROKE = None
 
     @classmethod
     def setup(cls, keys, implicit_hyphen_keys, number_key, numbers, undo_stroke):
         if number_key is None:
+            assert not numbers
             numbers = None
-        stroke_helper.setup(keys, implicit_hyphen_keys, number_key, numbers)
-        cls.PREFIX_STROKE = cls.from_integer(0)
-        cls.UNDO_STROKE = cls.from_steno(undo_stroke)
+        super().setup(keys, implicit_hyphen_keys, number_key, numbers)
+        cls._class = type(cls.__name__, (cls,), {'_helper': cls._helper})
+        cls._class._class = cls._class
+        cls._class.PREFIX_STROKE = cls.PREFIX_STROKE = cls.from_integer(0)
+        cls._class.UNDO_STROKE = cls.UNDO_STROKE = cls.from_steno(undo_stroke)
+
+    @classmethod
+    def from_steno(cls, steno):
+        return int.__new__(cls._class, cls._helper.stroke_from_steno(steno))
+
+    @classmethod
+    def from_keys(cls, keys):
+        return int.__new__(cls._class, cls._helper.stroke_from_keys(keys))
+
+    @classmethod
+    def from_integer(cls, integer):
+        return int.__new__(cls._class, cls._helper.stroke_from_int(integer))
+
+    @classmethod
+    def normalize_stroke(cls, steno, strict=False):
+        try:
+            return cls._helper.normalize_stroke(steno)
+        except ValueError:
+            if strict:
+                raise
+            log.error(exc_info=True)
+            return steno
+
+    @classmethod
+    def normalize_steno(cls, steno, strict=False):
+        try:
+            return cls._helper.normalize_steno(steno)
+        except ValueError:
+            if strict:
+                raise
+            log.error('', exc_info=True)
+            return tuple(steno.split('/'))
+
+    @classmethod
+    def steno_to_sort_key(cls, steno, strict=False):
+        try:
+            return cls._helper.steno_to_sort_key(steno)
+        except ValueError:
+            if strict:
+                raise
+            log.error('', exc_info=True)
+            return b'\x00\x00' + steno.encode('utf-8')
+
+    def __new__(cls, value):
+        return int.__new__(cls._class, cls._helper.stroke_from_any(value))
 
     @property
     def steno_keys(self):
@@ -83,17 +93,23 @@ class Stroke(BaseStroke):
 
     @property
     def rtfcre(self):
-        return stroke_helper.stroke_to_steno(self)
+        return self._helper.stroke_to_steno(self)
 
     @property
     def is_correction(self):
         return int(self) == int(self.UNDO_STROKE)
 
     def __str__(self):
-        if self.is_correction:
-            prefix = '*'
-        else:
-            prefix = ''
-        return '%sStroke(%s : %s)' % (prefix, self.rtfcre, self.steno_keys)
+        prefix = '*' if self.is_correction else ''
+        return f'{prefix}Stroke({self.rtfcre} : {self.steno_keys})'
 
     __repr__ = __str__
+
+
+normalize_stroke = Stroke.normalize_stroke
+normalize_steno = Stroke.normalize_steno
+steno_to_sort_key = Stroke.steno_to_sort_key
+
+def sort_steno_strokes(strokes_list):
+    '''Return suggestions, sorted by fewest strokes, then fewest keys.'''
+    return sorted(strokes_list, key=lambda x: (len(x), sum(map(len, x))))
