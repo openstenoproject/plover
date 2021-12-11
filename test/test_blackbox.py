@@ -56,11 +56,10 @@ def with_melani_system(monkeypatch, request):
 class TestsBlackbox:
 
     def test_translator_state_handling(self):
-        r'''
         # Check if the translator curtailing the list of last translations
         # according to its dictionary longest key does no affect things
         # like the restrospective repeat-last-stroke command.
-
+        r'''
         "TEFT": "test",
         "R*S": "{*+}",
 
@@ -76,20 +75,18 @@ class TestsBlackbox:
         '''
 
     def test_bug471(self):
-        r'''
         # Repeat-last-stroke after typing two numbers outputs the numbers
         # reversed for some combos.
-
+        r'''
         "R*S": "{*+}",
 
         12/R*S  " 1212"
         '''
 
     def test_bug535(self):
-        r'''
         # Currency formatting a number with a decimal fails by not erasing
         # the previous output.
-
+        r'''
         "P-P": "{^.^}",
         "KR*UR": "{*($c)}",
 
@@ -107,10 +104,9 @@ class TestsBlackbox:
         '''
 
     def test_bug535_spaces_after(self):
-        r'''
         # Currency formatting a number with a decimal fails by not erasing
         # the previous output.
-
+        r'''
         "P-P": "{^.^}",
         "KR*UR": "{*($c)}",
 
@@ -204,11 +200,10 @@ class TestsBlackbox:
         '''
 
     def test_bug557(self):
-        r'''
         # Using the asterisk key to delete letters in fingerspelled words
         # occasionally causes problems when the space placement is set to
         # "After Output".
-
+        r'''
         "EU": "I",
         "HRAOEUBG": "like",
         "T*": "{>}{&t}",
@@ -222,11 +217,10 @@ class TestsBlackbox:
         '''
 
     def test_bug557_resumed(self):
-        r'''
         # Using the asterisk key to delete letters in fingerspelled words
         # occasionally causes problems when the space placement is set to
         # "After Output".
-
+        r'''
         "EU": "I",
         "HRAOEUBG": "like",
         "T*": "{>}{&t}",
@@ -240,11 +234,10 @@ class TestsBlackbox:
         '''
 
     def test_bug557_capitalized(self):
-        r'''
         # Using the asterisk key to delete letters in fingerspelled words
         # occasionally causes problems when the space placement is set to
         # "After Output".
-
+        r'''
         "EU": "I",
         "HRAOEUBG": "like",
         "T*": "{-|}{&t}",
@@ -289,9 +282,8 @@ class TestsBlackbox:
         '''
 
     def test_bug719(self):
-        r'''
         # Glue (&) does not work with "Spaces After".
-
+        r'''
         "P*": "{&P}"
 
         :spaces_after
@@ -299,9 +291,8 @@ class TestsBlackbox:
         '''
 
     def test_bug741(self):
-        r'''
         # Uppercase last word also uppercases next word's prefix.
-
+        r'''
         "KPA*TS": "{*<}",
         "TPAO": "foo",
         "KAUPB": "{con^}",
