@@ -4,6 +4,7 @@ import pytest
 
 from plover import system
 from plover.registry import Registry
+from plover.system import english_stenotype
 
 from plover_build_utils.testing import blackbox_test
 
@@ -43,11 +44,11 @@ def with_melani_system(monkeypatch, request):
         DICTIONARIES_ROOT = None
         DEFAULT_DICTIONARIES = ()
     registry = Registry()
+    registry.register_plugin('system', 'English Stenotype', english_stenotype)
     registry.register_plugin('system', 'Melani', Melani)
     old_system_name = system.NAME
     with monkeypatch.context() as mp:
         mp.setattr('plover.system.registry', registry)
-        system.setup('Melani')
         yield
     system.setup(old_system_name)
 
@@ -1668,6 +1669,7 @@ class TestsBlackbox:
 
     def test_melani_implicit_hyphens(self, with_melani_system):
         r'''
+        :system Melani
         "15/SE/COhro": "XV secolo",
         "16/SE/COhro": "XVI secolo",
 
