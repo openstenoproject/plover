@@ -67,12 +67,6 @@ class TapeModel(QAbstractListModel):
     def _raw_format(stroke):
         return stroke.rtfcre
 
-    def headerData(self, section, orientation, role):
-        if (section != 0 or orientation != Qt.Horizontal or
-            role != Qt.DisplayRole or self._style != STYLE_PAPER):
-            return None
-        return self._all_keys
-
     def data(self, index, role):
         if not index.isValid():
             return None
