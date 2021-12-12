@@ -163,7 +163,8 @@ class PaperTape(Tool, Ui_PaperTape):
 
     def on_config_changed(self, config):
         if 'system_name' in config:
-            self._model.reset()
+            all_keys = self._model.reset()
+            self.header.setText(all_keys)
 
     @property
     def _scroll_at_end(self):
