@@ -7,7 +7,6 @@ import os
 import sys
 
 import appdirs
-import pkg_resources
 
 
 if sys.platform.startswith('darwin'):
@@ -51,6 +50,4 @@ CONFIG_FILE = os.path.join(CONFIG_DIR, CONFIG_BASENAME)
 # Setup plugins directory.
 PLUGINS_PLATFORM = PLATFORM
 
-plover_dist = pkg_resources.working_set.by_key['plover']
-
-ASSETS_DIR = plover_dist.get_resource_filename(__name__, 'plover/assets')
+ASSETS_DIR = os.path.realpath(os.path.join(__file__, '../../assets'))
