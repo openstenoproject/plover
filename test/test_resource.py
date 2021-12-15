@@ -38,6 +38,8 @@ from plover.resource import (
     ('asset:', ValueError, ValueError),
     # Invalid asset: missing path.
     ('asset:package', ValueError, ValueError),
+    # Invalid asset: absolute resource path.
+    ('asset:plover:/assets/user.json', ValueError, ValueError),
 ))
 def test_resource(resource, exists, filename):
     resource = str(resource)
