@@ -1,8 +1,8 @@
 from functools import partial
-from unittest.mock import MagicMock
 import os
 import tempfile
 
+from mock import MagicMock
 import pytest
 
 from plover import system

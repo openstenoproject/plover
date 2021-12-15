@@ -1,6 +1,4 @@
-
-from unittest.mock import MagicMock, call, patch
-
+from mock import MagicMock, call, patch
 import pytest
 
 from plover import system
