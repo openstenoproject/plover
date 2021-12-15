@@ -33,6 +33,8 @@ def resource_timestamp(resource_name):
 
 @contextmanager
 def resource_update(resource_name):
+    if resource_name.startswith(ASSET_SCHEME):
+        raise ValueError(f'updating an asset is unsupported: {resource_name}')
     filename = resource_filename(resource_name)
     directory = os.path.dirname(filename)
     extension = os.path.splitext(filename)[1]
