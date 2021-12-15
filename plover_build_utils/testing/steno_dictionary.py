@@ -68,13 +68,10 @@ class _DictionaryTests:
         '''
         with self.sample_dict(tmp_path) as dict_path:
             fake_asset = ASSET_SCHEME + 'fake:' + dict_path.name
-            def fake_asset_only(p, r, v=None):
-                assert (p, r) == ('fake', dict_path.name)
+            def fake_asset_only(r, v=None):
+                assert r.startswith(ASSET_SCHEME + 'fake:')
                 return v
-            monkeypatch.setattr('pkg_resources.resource_exists',
-                                functools.partial(fake_asset_only,
-                                                  v=True))
-            monkeypatch.setattr('pkg_resources.resource_filename',
+            monkeypatch.setattr('plover.resource._asset_filename',
                                 functools.partial(fake_asset_only,
                                                   v=str(dict_path)))
             d = self.DICT_CLASS.load(fake_asset)
