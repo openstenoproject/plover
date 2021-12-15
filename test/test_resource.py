@@ -65,6 +65,13 @@ def test_resource(resource, exists, filename):
 
 
 def test_resource_update(tmp_path):
+    # Can't update assets.
+    resource = 'asset:plover:assets/pouet.json'
+    resource_path = Path(resource_filename(resource))
+    with pytest.raises(ValueError):
+        with resource_update(resource):
+            resource_path.write_bytes(b'contents')
+    assert not resource_path.exists()
     # Don't update resource on exception (but still cleanup).
     resource = (tmp_path / 'resource').resolve()
     exception_str = 'Houston, we have a problem'
