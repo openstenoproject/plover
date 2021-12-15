@@ -1,9 +1,8 @@
 from contextlib import contextmanager
+from importlib.util import find_spec
 from tempfile import NamedTemporaryFile
 import os
 import shutil
-
-import pkg_resources
 
 
 ASSET_SCHEME = 'asset:'
@@ -15,7 +14,8 @@ def _asset_filename(resource_name):
         raise ValueError(f'invalid asset: {resource_name}')
     if os.path.isabs(components[1]):
         raise ValueError(f'invalid asset: {resource_name}')
-    return pkg_resources.resource_filename(*components)
+    package_dir = os.path.dirname(find_spec(components[0]).origin)
+    return os.path.join(package_dir, components[1])
 
 def resource_exists(resource_name):
     if resource_name.startswith(ASSET_SCHEME):
