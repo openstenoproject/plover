@@ -12,7 +12,7 @@ ASSET_SCHEME = 'asset:'
 def _asset_filename(resource_name):
     components = resource_name[len(ASSET_SCHEME):].split(':', 1)
     if len(components) != 2:
-        raise ValueError('invalid asset: %s' % resource_name)
+        raise ValueError(f'invalid asset: {resource_name}')
     if os.path.isabs(components[1]):
         raise ValueError(f'invalid asset: {resource_name}')
     return pkg_resources.resource_filename(*components)
