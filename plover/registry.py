@@ -3,7 +3,7 @@ from collections import namedtuple
 
 import pkg_resources
 
-from plover.oslayer.config import HAS_GUI_QT, PLUGINS_PLATFORM
+from plover.oslayer.config import PLUGINS_PLATFORM
 from plover import log
 
 
@@ -80,12 +80,20 @@ class Registry:
         return [dist for dist_id, dist in sorted(self._distributions.items())]
 
     def update(self):
+        # Is support for the QT GUI available?
+        try:
+            pkg_resources.load_entry_point('plover', 'plover.gui', 'qt')
+        except ImportError:
+            has_gui_qt = False
+        else:
+            has_gui_qt = True
+        # Register available plugins.
         for plugin_type in self.PLUGIN_TYPES:
-            if plugin_type.startswith('gui.qt.') and not HAS_GUI_QT:
+            if plugin_type.startswith('gui.qt.') and not has_gui_qt:
                 continue
             entrypoint_type = 'plover.%s' % plugin_type
             for entrypoint in pkg_resources.iter_entry_points(entrypoint_type):
-                if 'gui_qt' in entrypoint.extras and not HAS_GUI_QT:
+                if 'gui_qt' in entrypoint.extras and not has_gui_qt:
                     continue
                 self.register_plugin_from_entrypoint(plugin_type, entrypoint)
             if PLUGINS_PLATFORM is not None:
