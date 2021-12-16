@@ -21,7 +21,7 @@ docutils==0.18
 ds-store==1.3.0
 hidapi==0.11.0.post2
 idna==3.3
-importlib-metadata==4.8.1
+importlib-metadata==4.8.2
 incremental==21.3.0
 iniconfig==1.1.1
 jeepney==0.7.1
