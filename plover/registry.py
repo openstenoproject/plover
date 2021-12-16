@@ -1,4 +1,3 @@
-
 from collections import namedtuple
 
 import pkg_resources
@@ -16,7 +15,7 @@ class Plugin:
         self.__doc__ = obj.__doc__ or ''
 
     def __str__(self):
-        return '%s:%s' % (self.plugin_type, self.name)
+        return f'{self.plugin_type}:{self.name}'
 
 
 PluginDistribution = namedtuple('PluginDistribution', 'dist plugins')
@@ -91,16 +90,16 @@ class Registry:
         for plugin_type in self.PLUGIN_TYPES:
             if plugin_type.startswith('gui.qt.') and not has_gui_qt:
                 continue
-            entrypoint_type = 'plover.%s' % plugin_type
+            entrypoint_type = f'plover.{plugin_type}'
             for entrypoint in pkg_resources.iter_entry_points(entrypoint_type):
                 if 'gui_qt' in entrypoint.extras and not has_gui_qt:
                     continue
                 self.register_plugin_from_entrypoint(plugin_type, entrypoint)
-            if PLUGINS_PLATFORM is not None:
-                entrypoint_type = 'plover.%s.%s' % (PLUGINS_PLATFORM, plugin_type)
-                for entrypoint in pkg_resources.iter_entry_points(entrypoint_type):
-                    self.register_plugin_from_entrypoint(plugin_type, entrypoint)
+            if PLUGINS_PLATFORM is None:
+                continue
+            entrypoint_type = f'plover.{PLUGINS_PLATFORM}.{plugin_type}'
+            for entrypoint in pkg_resources.iter_entry_points(entrypoint_type):
+                self.register_plugin_from_entrypoint(plugin_type, entrypoint)
 
 
 registry = Registry()
-
