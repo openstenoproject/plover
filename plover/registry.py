@@ -1,24 +1,19 @@
 from collections import namedtuple
 
-import pkg_resources
+import importlib_metadata
 
 from plover.oslayer.config import PLUGINS_PLATFORM
 from plover import log
 
 
-class Plugin:
+class Plugin(namedtuple('Plugin', 'plugin_type name obj')):
 
-    def __init__(self, plugin_type, name, obj):
-        self.plugin_type = plugin_type
-        self.name = name
-        self.obj = obj
-        self.__doc__ = obj.__doc__ or ''
-
-    def __str__(self):
-        return f'{self.plugin_type}:{self.name}'
+    @property
+    def __doc__(self):
+        return self.obj.__doc__ or ''
 
 
-PluginDistribution = namedtuple('PluginDistribution', 'dist plugins')
+PluginDistribution = namedtuple('PluginDistribution', 'name version plugins')
 
 
 class Registry:
@@ -49,22 +44,25 @@ class Registry:
         return plugin
 
     def register_plugin_from_entrypoint(self, plugin_type, entrypoint):
-        log.info('%s: %s (from %s in %s)', plugin_type, entrypoint.name,
-                 entrypoint.dist, entrypoint.dist.location)
+        log.info('%s: %s (from %s-%s in %s)', plugin_type, entrypoint.name,
+                 entrypoint.dist.name, entrypoint.dist.version,
+                 entrypoint.dist.locate_file('.'))
         try:
             obj = entrypoint.load()
         except:
             log.error('error loading %s plugin: %s (from %s)', plugin_type,
-                      entrypoint.name, entrypoint.module_name, exc_info=True)
+                      entrypoint.name, entrypoint.module, exc_info=True)
             if not self._suppress_errors:
                 raise
         else:
             plugin = self.register_plugin(plugin_type, entrypoint.name, obj)
             # Keep track of distributions providing plugins.
-            dist_id = str(entrypoint.dist)
+            dist_id = f'{entrypoint.dist.name} {entrypoint.dist.version}'
             dist = self._distributions.get(dist_id)
             if dist is None:
-                dist = PluginDistribution(entrypoint.dist, set())
+                dist = PluginDistribution(entrypoint.dist.name,
+                                          entrypoint.dist.version,
+                                          set())
                 self._distributions[dist_id] = dist
             dist.plugins.add(plugin)
 
@@ -79,9 +77,10 @@ class Registry:
         return [dist for dist_id, dist in sorted(self._distributions.items())]
 
     def update(self):
+        all_entrypoints = importlib_metadata.entry_points()
         # Is support for the QT GUI available?
         try:
-            pkg_resources.load_entry_point('plover', 'plover.gui', 'qt')
+            all_entrypoints.select(group='plover.gui', name='qt')['qt'].load()
         except ImportError:
             has_gui_qt = False
         else:
@@ -91,14 +90,15 @@ class Registry:
             if plugin_type.startswith('gui.qt.') and not has_gui_qt:
                 continue
             entrypoint_type = f'plover.{plugin_type}'
-            for entrypoint in pkg_resources.iter_entry_points(entrypoint_type):
+            for entrypoint in all_entrypoints.select(group=entrypoint_type):
                 if 'gui_qt' in entrypoint.extras and not has_gui_qt:
+                    # Ignore GUI specific entry points if it's no available.
                     continue
                 self.register_plugin_from_entrypoint(plugin_type, entrypoint)
             if PLUGINS_PLATFORM is None:
                 continue
             entrypoint_type = f'plover.{PLUGINS_PLATFORM}.{plugin_type}'
-            for entrypoint in pkg_resources.iter_entry_points(entrypoint_type):
+            for entrypoint in all_entrypoints.select(group=entrypoint_type):
                 self.register_plugin_from_entrypoint(plugin_type, entrypoint)
 
 

@@ -30,8 +30,10 @@ registry.update()
 plugins = OrderedDict()
 plugins_deps = set()
 for plugin_dist in registry.list_distributions():
-    if plugin_dist.dist.project_name != 'plover':
-        plugins[plugin_dist.dist.as_requirement()] = set()
+    if plugin_dist.name != 'plover':
+        req_str = f'{plugin_dist.name}=={plugin_dist.version}'
+        req = pkg_resources.Requirement.parse(req_str)
+        plugins[req] = set()
 for requirement, deps in plugins.items():
     for dist in pkg_resources.require(str(requirement)):
         if dist.as_requirement() not in plover_deps:
