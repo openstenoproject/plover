@@ -52,5 +52,5 @@ print('# other')
 for requirement in sorted_requirements(all_requirements):
     if requirement not in plover_deps and \
        requirement not in plugins_deps:
-      print(requirement)
-print('# ''vim: ft=cfg commentstring=#\ %s list')
+        print(requirement)
+print('# ''vim: ft=cfg commentstring=#\\ %s list')
