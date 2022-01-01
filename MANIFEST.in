@@ -20,6 +20,7 @@ include plover/gui_qt/resources/*.qrc
 include plover/gui_qt/resources/*.svg
 include plover/messages/*/LC_MESSAGES/*.po
 include plover/messages/plover.pot
+include plover/oslayer/wayland/*.xml
 include plover_build_utils/*.sh
 include pyproject.toml
 include pytest.ini

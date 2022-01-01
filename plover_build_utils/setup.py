@@ -150,6 +150,41 @@ class BuildUi(Command):
 
 # }}}
 
+# Wayland protocols generation. {{{
+
+class BuildWayland(Command):
+
+    description = 'build Wayland protocol modules'
+    user_options = [
+        ('force', 'f',
+         'force re-generation of all Wayland protocol modules'),
+    ]
+
+    def initialize_options(self):
+        self.force = False
+
+    def finalize_options(self):
+        pass
+
+    def run(self):
+        self.run_command('egg_info')
+        log.info('generating Wayland protocol modules')
+        ei_cmd = self.get_finalized_command('egg_info')
+        base = 'plover/oslayer/wayland'
+        defs = [
+            src for src in ei_cmd.filelist.files
+            if src.startswith(base)
+            and src.endswith('.xml')
+        ]
+        cmd = (
+            sys.executable, '-m', 'pywayland.scanner',
+            '-i', *defs, '/usr/share/wayland/wayland.xml',
+            '-o', base,
+        )
+        subprocess.check_call(cmd)
+
+# }}}
+
 # Patched `build_py` command. {{{
 
 class BuildPy(build_py):
