@@ -28,8 +28,8 @@ from plover_build_utils.setup import (
 )
 
 
-BuildPy.build_dependencies.append('build_ui')
 BuildPy.build_dependencies.append('build_wayland')
+BuildPy.build_dependencies.append('build_ui')
 Develop.build_dependencies.append('build_py')
 cmdclass = {
     'build_py': BuildPy,

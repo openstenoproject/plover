@@ -1,5 +1,6 @@
 from distutils import log
 import contextlib
+import glob
 import importlib
 import os
 import subprocess
@@ -167,19 +168,12 @@ class BuildWayland(Command):
         pass
 
     def run(self):
-        self.run_command('egg_info')
         log.info('generating Wayland protocol modules')
-        ei_cmd = self.get_finalized_command('egg_info')
         base = 'plover/oslayer/wayland'
-        defs = [
-            src for src in ei_cmd.filelist.files
-            if src.startswith(base)
-            and src.endswith('.xml')
-        ]
+        defs = glob.glob(base + '/*.xml') + ['/usr/share/wayland/wayland.xml']
         cmd = (
             sys.executable, '-m', 'pywayland.scanner',
-            '-i', *defs, '/usr/share/wayland/wayland.xml',
-            '-o', base,
+            '-i', *defs, '-o', base,
         )
         subprocess.check_call(cmd)
 
