@@ -156,13 +156,9 @@ class BuildUi(Command):
 class BuildWayland(Command):
 
     description = 'build Wayland protocol modules'
-    user_options = [
-        ('force', 'f',
-         'force re-generation of all Wayland protocol modules'),
-    ]
 
     def initialize_options(self):
-        self.force = False
+        pass
 
     def finalize_options(self):
         pass
