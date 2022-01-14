@@ -77,14 +77,17 @@ def keymap_generate(keysyms):
         f'key <C{keycode}> {{[{keysym}]}};' \
         for keycode, keysym in enumerate(keysyms)
     ])
+    # Sway is more permissive than Xwayland on what an XKB keymap must
+    # or must not include. We need to take care if we want to ensure
+    # compatibility with both. See <https://github.com/atx/wtype/issues/1>
     keymap = f'''xkb_keymap {{
 xkb_keycodes {{
 minimum = {XKB_KEYCODE_OFFSET};
 maximum = {XKB_KEYCODE_OFFSET + len(keysyms)};
 {keycodes}
 }};
-xkb_types {{}};
-xkb_compatibility {{}};
+xkb_types {{ include \"complete\" }};
+xkb_compatibility {{ include \"complete\" }};
 xkb_symbols {{
 {symbols}
 }};
