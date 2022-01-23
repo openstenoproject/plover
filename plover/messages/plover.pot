@@ -585,18 +585,19 @@ msgstr ""
 msgid "Merge {names} as..."
 msgstr ""
 
-#. Widget: “DictionariesWidget”, “add” file picker.
-#. Widget: “DictionariesWidget”, tool tip.
+#. Widget: “DictionariesWidget”, “import” file picker.
+#. Widget: “DictionariesWidget”, text.
 #: plover/gui_qt/dictionaries_widget.py:636
 #: plover/gui_qt/dictionaries_widget_ui.py:139
-msgid "Add dictionaries"
+#: plover/gui_qt/dictionaries_widget_ui.py:161
+msgid "Load dictionaries"
 msgstr ""
 
 #. Widget: “DictionariesWidget”, “new” file picker.
 #. Widget: “DictionariesWidget”, text.
 #: plover/gui_qt/dictionaries_widget.py:647
 #: plover/gui_qt/dictionaries_widget_ui.py:163
-msgid "New dictionary"
+msgid "Create dictionary"
 msgstr ""
 
 #. Widget: “DictionariesWidget”, title.
@@ -677,6 +678,7 @@ msgid "Ctrl+Z"
 msgstr ""
 
 #. Widget: “DictionariesWidget”, text.
+#. Widget: “DictionariesWidget”, tool tip.
 #: plover/gui_qt/dictionaries_widget_ui.py:137
 msgid "&Add dictionaries"
 msgstr ""
@@ -733,11 +735,6 @@ msgstr ""
 #. Widget: “DictionariesWidget”, text.
 #: plover/gui_qt/dictionaries_widget_ui.py:159
 msgid "Merge dictionaries into a new one"
-msgstr ""
-
-#. Widget: “DictionariesWidget”, text.
-#: plover/gui_qt/dictionaries_widget_ui.py:161
-msgid "Open dictionaries"
 msgstr ""
 
 #. Widget: “DictionaryEditor”, window title.
