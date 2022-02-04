@@ -179,6 +179,8 @@ def parse_rtfcre(text, normalize=lambda s: s, skip_errors=True):
             # Fingerspelling.
             elif g_destination == 'cxfing':
                 text = '{&' + g_text + '}'
+                if g_text.islower():
+                    text = '{>}' + text
             # Plover macro.
             elif g_destination == 'cxplovermacro':
                 text = '=' + g_text

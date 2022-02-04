@@ -338,7 +338,8 @@ RTF_LOAD_TESTS = (
     lambda: rtf_load_test(r'{\cxstit contents}', 'contents'),
 
     # Fingerspelling.
-    lambda: rtf_load_test(r'{\cxfing c}', '{&c}'),
+    lambda: rtf_load_test(r'{\cxfing c}', '{>}{&c}'),
+    lambda: rtf_load_test(r'{\cxfing C}', '{&C}'),
     lambda: rtf_load_test(r'\cxfing Z.', '{&Z.}'),
 
     # Punctuation.
