@@ -9,7 +9,7 @@
 """Parsing an RTF/CRE dictionary.
 
 RTF/CRE spec:
-http://www.legalxml.org/workgroups/substantive/transcripts/cre-spec.htm
+https://web.archive.org/web/20201017075356/http://www.legalxml.org/workgroups/substantive/transcripts/cre-spec.htm
 
 """
 
