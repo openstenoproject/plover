@@ -2,11 +2,11 @@ from collections import namedtuple
 from pathlib import Path
 from textwrap import dedent
 from types import SimpleNamespace
-from unittest import mock
 import operator
 
 from PyQt5.QtCore import QModelIndex, QPersistentModelIndex, Qt
 
+import mock
 import pytest
 
 from plover.config import DictionaryConfig
