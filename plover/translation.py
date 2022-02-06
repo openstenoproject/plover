@@ -25,8 +25,6 @@ from plover.registry import registry
 from plover import system
 
 
-PREFIX_STROKE = Stroke(())
-
 _ESCAPE_RX = re.compile('(\\\\[nrt]|[\n\r\t])')
 _ESCAPE_REPLACEMENTS = {
     '\n': r'\n',
@@ -388,7 +386,7 @@ class Translator:
 
     def _lookup_with_prefix(self, last_translations, strokes, suffixes=()):
         if self._previous_word_is_finished(last_translations):
-            mapping = self.lookup([PREFIX_STROKE] + strokes, suffixes)
+            mapping = self.lookup([Stroke.PREFIX_STROKE] + strokes, suffixes)
             if mapping is not None:
                 return mapping
         return self.lookup(strokes, suffixes)

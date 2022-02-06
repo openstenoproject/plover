@@ -4,6 +4,7 @@ import pytest
 
 from plover import system
 from plover.registry import Registry
+from plover.system import english_stenotype
 
 from plover_build_utils.testing import blackbox_test
 
@@ -43,11 +44,47 @@ def with_melani_system(monkeypatch, request):
         DICTIONARIES_ROOT = None
         DEFAULT_DICTIONARIES = ()
     registry = Registry()
+    registry.register_plugin('system', 'English Stenotype', english_stenotype)
     registry.register_plugin('system', 'Melani', Melani)
     old_system_name = system.NAME
     with monkeypatch.context() as mp:
         mp.setattr('plover.system.registry', registry)
-        system.setup('Melani')
+        yield
+    system.setup(old_system_name)
+
+@pytest.fixture
+def with_korean_system(monkeypatch, request):
+    class KoreanCAS:
+        KEYS = (
+            '1-', '2-', '3-', '4-', '5-',
+            'ㅎ-', 'ㅁ-', 'ㄱ-', 'ㅈ-', 'ㄴ-',
+            'ㄷ-', 'ㅇ-', 'ㅅ-', 'ㅂ-', 'ㄹ-',
+            'ㅗ-', 'ㅏ-', 'ㅜ-',
+            '-*', '-ㅓ', '-ㅣ',
+            '-6', '-7', '-8', '-9', '-0',
+            '-ㅎ', '-ㅇ', '-ㄹ', '-ㄱ', '-ㄷ',
+            '-ㅂ', '-ㄴ', '-ㅅ', '-ㅈ', '-ㅁ',
+        )
+        IMPLICIT_HYPHEN_KEYS = (
+            'ㅗ-', 'ㅏ-', 'ㅜ-',
+            '-*', '-ㅓ', '-ㅣ',
+        )
+        SUFFIX_KEYS = ()
+        NUMBER_KEY = None
+        NUMBERS = {}
+        UNDO_STROKE_STENO = '-ㅂㄴ'
+        ORTHOGRAPHY_RULES = []
+        ORTHOGRAPHY_RULES_ALIASES = {}
+        ORTHOGRAPHY_WORDLIST = None
+        KEYMAPS = {}
+        DICTIONARIES_ROOT = None
+        DEFAULT_DICTIONARIES = ()
+    registry = Registry()
+    registry.register_plugin('system', 'English Stenotype', english_stenotype)
+    registry.register_plugin('system', 'Korean Modern C', KoreanCAS)
+    old_system_name = system.NAME
+    with monkeypatch.context() as mp:
+        mp.setattr('plover.system.registry', registry)
         yield
     system.setup(old_system_name)
 
@@ -56,11 +93,10 @@ def with_melani_system(monkeypatch, request):
 class TestsBlackbox:
 
     def test_translator_state_handling(self):
-        r'''
         # Check if the translator curtailing the list of last translations
         # according to its dictionary longest key does no affect things
         # like the restrospective repeat-last-stroke command.
-
+        r'''
         "TEFT": "test",
         "R*S": "{*+}",
 
@@ -76,20 +112,18 @@ class TestsBlackbox:
         '''
 
     def test_bug471(self):
-        r'''
         # Repeat-last-stroke after typing two numbers outputs the numbers
         # reversed for some combos.
-
+        r'''
         "R*S": "{*+}",
 
         12/R*S  " 1212"
         '''
 
     def test_bug535(self):
-        r'''
         # Currency formatting a number with a decimal fails by not erasing
         # the previous output.
-
+        r'''
         "P-P": "{^.^}",
         "KR*UR": "{*($c)}",
 
@@ -107,10 +141,9 @@ class TestsBlackbox:
         '''
 
     def test_bug535_spaces_after(self):
-        r'''
         # Currency formatting a number with a decimal fails by not erasing
         # the previous output.
-
+        r'''
         "P-P": "{^.^}",
         "KR*UR": "{*($c)}",
 
@@ -204,11 +237,10 @@ class TestsBlackbox:
         '''
 
     def test_bug557(self):
-        r'''
         # Using the asterisk key to delete letters in fingerspelled words
         # occasionally causes problems when the space placement is set to
         # "After Output".
-
+        r'''
         "EU": "I",
         "HRAOEUBG": "like",
         "T*": "{>}{&t}",
@@ -222,11 +254,10 @@ class TestsBlackbox:
         '''
 
     def test_bug557_resumed(self):
-        r'''
         # Using the asterisk key to delete letters in fingerspelled words
         # occasionally causes problems when the space placement is set to
         # "After Output".
-
+        r'''
         "EU": "I",
         "HRAOEUBG": "like",
         "T*": "{>}{&t}",
@@ -240,11 +271,10 @@ class TestsBlackbox:
         '''
 
     def test_bug557_capitalized(self):
-        r'''
         # Using the asterisk key to delete letters in fingerspelled words
         # occasionally causes problems when the space placement is set to
         # "After Output".
-
+        r'''
         "EU": "I",
         "HRAOEUBG": "like",
         "T*": "{-|}{&t}",
@@ -289,9 +319,8 @@ class TestsBlackbox:
         '''
 
     def test_bug719(self):
-        r'''
         # Glue (&) does not work with "Spaces After".
-
+        r'''
         "P*": "{&P}"
 
         :spaces_after
@@ -299,9 +328,8 @@ class TestsBlackbox:
         '''
 
     def test_bug741(self):
-        r'''
         # Uppercase last word also uppercases next word's prefix.
-
+        r'''
         "KPA*TS": "{*<}",
         "TPAO": "foo",
         "KAUPB": "{con^}",
@@ -1677,6 +1705,7 @@ class TestsBlackbox:
 
     def test_melani_implicit_hyphens(self, with_melani_system):
         r'''
+        :system Melani
         "15/SE/COhro": "XV secolo",
         "16/SE/COhro": "XVI secolo",
 
@@ -1769,4 +1798,39 @@ class TestsBlackbox:
         TP-  r' fa\lse fa\lse FA\LSE'
         *    r' fa\lse fa\lse'
         T-   r' tr/ue tr/ue TR/UE'
+        '''
+
+    def test_bug_1448_1(self, with_korean_system):
+        # Translator tries to represent a previous stroke
+        # from a different system using the current one.
+        #
+        # This test would throw a `ValueError` exception
+        # (invalid keys mask) in the translator when
+        # trying to represent the `ㅎㅁㄱㅈㄴ-ㄴㅅㅈㅁ`
+        # stroke with the `English Stenotype` system.
+        r'''
+        'TEFT': 'test'
+        'TEFT/-G': 'testing'
+
+        :system 'Korean Modern C'
+        ㅎㅁㄱㅈㄴ-ㄴㅅㅈㅁ  ' ㅎㅁㄱㅈㄴ-ㄴㅅㅈㅁ'
+        :system 'English Stenotype'
+        TEFT  ' ㅎㅁㄱㅈㄴ-ㄴㅅㅈㅁ test'
+        '''
+
+    def test_bug_1448_2(self, with_korean_system):
+        # Translator tries to represent a previous stroke
+        # from a different system using the current one.
+        #
+        # This test would trigger a translator lookup for
+        # `#STKP/-G` because `#STKP` (English Stenotype)
+        # and `12345` (Korean Modern C) have the same keys
+        # mask.
+        r'''
+        '#STKP/-G': 'game over'
+
+        :system 'Korean Modern C'
+        12345  ' 12345'
+        :system 'English Stenotype'
+        -G  ' 12345 -G'
         '''

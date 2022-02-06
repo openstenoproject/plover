@@ -3,8 +3,10 @@ import functools
 import inspect
 import operator
 import re
+import shlex
 import textwrap
 
+from plover import system
 from plover.formatting import Formatter
 from plover.steno import normalize_steno
 from plover.steno_dictionary import StenoDictionary
@@ -27,15 +29,18 @@ def blackbox_setup(blackbox):
     blackbox.dictionary = blackbox.translator.get_dictionary()
     blackbox.dictionary.set_dicts([StenoDictionary()])
 
-
 def blackbox_replay(blackbox, name, test):
     # Hide from traceback on assertions (reduce output size for failed tests).
     __tracebackhide__ = operator.methodcaller('errisinstance', AssertionError)
     definitions, instructions = test.strip().rsplit('\n\n', 1)
-    for steno, translation in ast.literal_eval(
-        '{' + definitions + '}'
-    ).items():
-        blackbox.dictionary.set(normalize_steno(steno), translation)
+    for entry in definitions.split('\n'):
+        if entry.startswith(':'):
+            _blackbox_replay_action(blackbox, entry[1:])
+            continue
+        for steno, translation in ast.literal_eval(
+            '{' + entry + '}'
+        ).items():
+            blackbox.dictionary.set(normalize_steno(steno), translation)
     # Track line number for a more user-friendly assertion message.
     lines = test.split('\n')
     lnum = len(lines)-3 - test.rstrip().rsplit('\n\n', 1)[1].count('\n')
@@ -45,15 +50,7 @@ def blackbox_replay(blackbox, name, test):
         step = step.strip()
         # Support for changing some settings on the fly.
         if step.startswith(':'):
-            action = step[1:]
-            if action == 'start_attached':
-                blackbox.formatter.start_attached = True
-            elif action == 'spaces_after':
-                blackbox.formatter.set_space_placement('After Output')
-            elif action == 'spaces_before':
-                blackbox.formatter.set_space_placement('Before Output')
-            else:
-                raise ValueError('invalid action:\n%s' % msg)
+            _blackbox_replay_action(blackbox, step[1:])
             continue
         steno, output = step.split(None, 1)
         steno = list(map(steno_to_stroke, normalize_steno(steno.strip())))
@@ -88,6 +85,23 @@ def blackbox_replay(blackbox, name, test):
             assert exception_class == expected_exception, assert_msg
         else:
             raise ValueError('invalid output:\n%s' % output)
+
+def _blackbox_replay_action(blackbox, action_spec):
+    action, *args = shlex.split(action_spec)
+    if action == 'start_attached':
+        assert not args
+        blackbox.formatter.start_attached = True
+    elif action == 'spaces_after':
+        assert not args
+        blackbox.formatter.set_space_placement('After Output')
+    elif action == 'spaces_before':
+        assert not args
+        blackbox.formatter.set_space_placement('Before Output')
+    elif action == 'system':
+        assert len(args) == 1
+        system.setup(args[0])
+    else:
+        raise ValueError('invalid action:\n%r' % action_spec)
 
 
 def blackbox_test(cls_or_fn):
