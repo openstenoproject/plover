@@ -32,6 +32,10 @@ class SuggestionsDelegate(QStyledItemDelegate):
         self._translation_char_format = QTextCharFormat()
         self._strokes_char_format = QTextCharFormat()
         self._strokes_char_format.font().setStyleHint(QFont.Monospace)
+        self._size_hint_cache = {}
+
+    def clear_size_hint_cache(self):
+        self._size_hint_cache.clear()
 
     @property
     def text_font(self):
@@ -40,6 +44,7 @@ class SuggestionsDelegate(QStyledItemDelegate):
     @text_font.setter
     def text_font(self, font):
         self._translation_char_format.setFont(font)
+        self.clear_size_hint_cache()
 
     @property
     def strokes_font(self):
@@ -48,6 +53,7 @@ class SuggestionsDelegate(QStyledItemDelegate):
     @strokes_font.setter
     def strokes_font(self, font):
         self._strokes_char_format.setFont(font)
+        self.clear_size_hint_cache()
 
     def _format_suggestion(self, index):
         suggestion = index.data(Qt.DisplayRole)
@@ -78,8 +84,13 @@ class SuggestionsDelegate(QStyledItemDelegate):
         painter.restore()
 
     def sizeHint(self, option, index):
+        size = self._size_hint_cache.get(index.row())
+        if size is not None:
+            return size
         self._format_suggestion(index)
-        return self._doc.size().toSize()
+        size = self._doc.size().toSize()
+        self._size_hint_cache[index.row()] = size
+        return size
 
 
 class SuggestionsModel(QAbstractListModel):
@@ -138,6 +149,7 @@ class SuggestionsWidget(QListView):
 
     def clear(self):
         self._model.clear()
+        self._delegate.clear_size_hint_cache()
 
     def _reformat(self):
         self._model.layoutAboutToBeChanged.emit()
