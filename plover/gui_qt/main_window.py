@@ -2,7 +2,6 @@
 from functools import partial
 import json
 import os
-import sys
 import subprocess
 
 from PyQt5.QtCore import QCoreApplication, Qt

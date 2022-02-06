@@ -3,7 +3,6 @@
 # See LICENSE.txt for details.
 
 from distutils import log
-from distutils.errors import DistutilsModuleError
 import os
 import re
 import subprocess

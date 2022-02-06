@@ -23,7 +23,6 @@ from PyQt5.QtWidgets import (
     QStyledItemDelegate,
     QTableWidget,
     QTableWidgetItem,
-    QWidget,
 )
 
 from plover import _

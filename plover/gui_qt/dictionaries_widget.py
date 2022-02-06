@@ -1,5 +1,4 @@
 from contextlib import contextmanager
-import functools
 import os
 
 from PyQt5.QtCore import (
