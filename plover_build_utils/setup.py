@@ -1,4 +1,3 @@
-from distutils import log
 import contextlib
 import importlib
 import os
@@ -110,7 +109,7 @@ class BuildUi(Command):
             '--from-import', src,
         )
         if self.verbose:
-            log.info('generating %s', dst)
+            print('generating', dst)
         contents = subprocess.check_output(cmd).decode('utf-8')
         for hook in self.hooks:
             mod_name, attr_name = hook.split(':')
@@ -130,7 +129,7 @@ class BuildUi(Command):
             src, '-o', dst,
         )
         if self.verbose:
-            log.info('generating %s', dst)
+            print('generating', dst)
         subprocess.check_call(cmd)
 
     def run(self):
@@ -140,7 +139,8 @@ class BuildUi(Command):
             h[len(std_hook_prefix):] if h.startswith(std_hook_prefix) else h
             for h in self.hooks
         ]
-        log.info('generating ui (hooks: %s)', ', '.join(hooks_info))
+        if self.verbose:
+            print('generating UI using hooks:', ', '.join(hooks_info))
         ei_cmd = self.get_finalized_command('egg_info')
         for src in ei_cmd.filelist.files:
             if src.endswith('.qrc'):
