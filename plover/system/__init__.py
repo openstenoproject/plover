@@ -46,6 +46,7 @@ _EXPORTS = {
     'KEY_ORDER'                : lambda mod: _key_order(mod.KEYS, mod.NUMBERS),
     'NUMBER_KEY'               : lambda mod: mod.NUMBER_KEY,
     'NUMBERS'                  : lambda mod: dict(mod.NUMBERS),
+    'FERAL_NUMBER_KEY'         : lambda mod: getattr(mod, 'FERAL_NUMBER_KEY', False),
     'SUFFIX_KEYS'              : lambda mod: _suffix_keys(mod.SUFFIX_KEYS),
     'UNDO_STROKE_STENO'        : lambda mod: mod.UNDO_STROKE_STENO,
     'IMPLICIT_HYPHEN_KEYS'     : lambda mod: set(mod.IMPLICIT_HYPHEN_KEYS),
@@ -67,6 +68,7 @@ def setup(system_name):
         system_symbols[symbol] = init(system_mod)
     system_symbols['NAME'] = system_name
     globals().update(system_symbols)
-    Stroke.setup(KEYS, IMPLICIT_HYPHEN_KEYS, NUMBER_KEY, NUMBERS, UNDO_STROKE_STENO)
+    Stroke.setup(KEYS, IMPLICIT_HYPHEN_KEYS, NUMBER_KEY, NUMBERS,
+                 FERAL_NUMBER_KEY, UNDO_STROKE_STENO)
 
 NAME = None

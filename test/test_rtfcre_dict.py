@@ -436,6 +436,15 @@ RTF_LOAD_TESTS = (
         '''
         'TEFT': ''
         '''),
+
+    # RTF/CRE spec allow the number key letter anywhere...
+    lambda: rtf_load_test(
+        r'''
+        {\*\cxs 2#}2
+
+        '2': '2',
+        '''),
+
 )
 
 def rtf_save_test(dict_entries, rtf_entries):

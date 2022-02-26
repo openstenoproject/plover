@@ -27,6 +27,14 @@ NUMBERS = {
     '-T': '-9',
 }
 
+# For RTF/CRE support:
+#
+#    IV.C.1.iii Number Bar
+#    If the number bar was used in a stroke, the stroke contains a number sign
+#    to indicate that. T͟h͟e͟ ͟n͟u͟m͟b͟e͟r͟ ͟s͟i͟g͟n͟ ͟m͟a͟y͟ ͟b͟e͟ ͟a͟n͟y͟w͟h͟e͟r͟e͟ ͟w͟i͟t͟h͟i͟n͟ ͟t͟h͟e͟ ͟s͟t͟r͟o͟k͟e͟, […]
+#
+FERAL_NUMBER_KEY = True
+
 UNDO_STROKE_STENO = '*'
 
 ORTHOGRAPHY_RULES = [

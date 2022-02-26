@@ -45,6 +45,12 @@ NORMALIZE_TESTS = (
     lambda: ('#A', ('5',)),
     lambda: ('#0', ('0',)),
     lambda: ('#6', ('-6',)),
+    # RTF/CRE spec allow the number key letter anywhere…
+    lambda: ('#WS', ('#W-S',)),
+    lambda: ('W#S', ('#W-S',)),
+    lambda: ('W-S#', ('#W-S',)),
+    lambda: ('S#A', ('15',)),
+    lambda: ('2#', ('2',)),
     # Implicit hyphens.
     lambda: ('SA-', ('SA',)),
     lambda: ('SA-R', ('SAR',)),
@@ -57,6 +63,7 @@ NORMALIZE_TESTS = (
     lambda: ('S-*R', (ValueError, ('S-*R',))),
     lambda: ('-O-', (ValueError, ('-O-',))),
     lambda: ('-O', (ValueError, ('-O',))),
+    lambda: ('#WS#', (ValueError, ('#WS#',))),
 )
 
 @parametrize(NORMALIZE_TESTS)
