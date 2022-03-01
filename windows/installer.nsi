@@ -50,10 +50,6 @@
 
   !insertmacro MUI_PAGE_INSTFILES
   
-  !define MUI_FINISHPAGE_RUN $INSTDIR\plover.exe
-  !define MUI_FINISHPAGE_RUN_PARAMETERS ""
-  !insertmacro MUI_PAGE_FINISH
-
   !insertmacro MUI_UNPAGE_CONFIRM
   !insertmacro MUI_UNPAGE_INSTFILES
   
