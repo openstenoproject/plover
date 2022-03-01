@@ -138,10 +138,11 @@ RUN ./install.sh \
       libp11-kit0 \
       ;
 
-# Install dbus-python build dependencies.
+# Install log_dbus dependencies.
+# Note: we install the `libdbus-1-dev` because the `libdbus-1.so`
+# symlink is not part of the base `libdbus-1-3` package…
 RUN ./install.sh \
       libdbus-1-dev \
-      libdbus-glib-1-dev \
       ;
 
 # Install PyQt5 (minimal) dependencies.

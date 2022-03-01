@@ -177,11 +177,8 @@ python='appdir_python'
 # Install boostrap requirements.
 get_base_devel
 
-# Install dbus-python before running linuxdeploy,
-# as there are no manylinux wheels available, so
-# we need to ensure its system dependencies are
-# included in the AppImage.
-install_wheels -c reqs/constraints.txt dbus-python
+# Copy log_dbus system dependencies.
+run cp -Lv /usr/lib/x86_64-linux-gnu/libdbus-1.so "$appdir/usr/lib"
 
 # Trim the fat, first pass.
 run cp linux/appimage/blacklist.txt "$builddir/blacklist.txt"
