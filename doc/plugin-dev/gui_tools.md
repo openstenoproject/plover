@@ -65,6 +65,21 @@ generate new Python files.
 See the documentation on {class}`Tool<plover.gui_qt.tool.Tool>` for more
 information.
 
-% TODO:
-% - Qt signal hooks
-% - creating UIs
+Just like extension plugins, GUI tools can interact with the engine through the
+{class}`StenoEngine<plover.engine.StenoEngine>` API, but instead of using
+{ref}`engine hooks<engine-hooks>` directly, GUI tools should use Qt's
+signals mechanism. Plover's {class}`Engine<plover.gui_qt.Engine>` class
+provides Qt signals to be used as hooks.
+
+```python
+class StrokeLogger(Tool, Ui_StrokeLogger):
+  def __init__(self, engine):
+    super().__init__(engine)
+    self.setupUi(self)
+
+    # Instead of engine.hook_connect
+    engine.signal_connect("stroked", self.on_stroked)
+
+  def on_stroked(self, stroke):
+    pass
+```
