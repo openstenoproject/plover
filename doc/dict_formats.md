@@ -25,7 +25,7 @@ separated by commas and surrounded by curly brackets `{}`:
 }
 ```
 
-In each key-value pair, the key is the [canonical steno notation](steno-notation)
+In each key-value pair, the key is the [canonical steno notation](steno_notation)
 of the outline, with the strokes separated by slashes, and the value is the
 translation for that outline in Plover's [translation language](translation_language).
 This format is used for dictionaries because it matches Plover's internal
