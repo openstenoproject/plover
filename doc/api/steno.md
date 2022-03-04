@@ -7,7 +7,7 @@ of strokes performed in succession.
 Many Plover actions deal with steno strokes, and this will be especially useful
 to authors of system and dictionary plugins.
 
-(steno-notation)=
+(steno_notation)=
 
 ## Steno Notation
 
@@ -19,7 +19,7 @@ Steno notation is also sometimes referred to as *RTF/CRE* (Rich Text Format
 with Court Reporting Extensions) *notation*, named after the dictionary format
 that popularized it.
 
-Each steno system has a `steno order`, or a canonical ordering of all the keys
+Each steno system has a *steno order*, or a canonical ordering of all the keys
 on the layout. For most systems, this is the ordering of the keys from left to
 right, starting with the left bank, then the thumb keys, then the right bank,
 but others may use a different order. Well-formed steno notation **must** have
@@ -72,18 +72,33 @@ write:
 Note that `TPHU`, `KWRORBG` and `TAOEUPLS` are all separate strokes, but
 the `/` indicates that they are written in sequence.
 
+## Steno Stroke API
+
 ```{py:module} plover.steno
 ```
 
-```{data} STROKE_DELIMITER
-The character used to separate successive strokes.
-This is equivalent to `/`.
+````{class} Stroke
+An object representing a stroke. This class is a subclass of
+{class}`BaseStroke<plover_stroke.BaseStroke>`.
+
+```{classmethod} normalize_stroke(steno: str[, strict = False]) -> str
+Return the {ref}`normalized steno notation<canonical>` for the singular
+stroke `steno`. Raises an exception if the steno was not parsed
+correctly, and `strict` is `True`.
 ```
 
-````{class} Stroke(steno_keys)
-An object representing a single stroke. `steno_keys` is a list of steno
-keys that does not necessarily have to be in steno order; this class is
-responsible for rearranging them and constructing the steno notation.
+```{classmethod} normalize_steno(steno: str[, strict = False]) -> Tuple[str]
+Return the {ref}`normalized steno notation<canonical>` for the possibly
+multi-stroke outline `steno`, where each stroke may be separated by `/`.
+Each element in the tuple is one stroke in the outline. Raises an
+exception if the steno was not parsed correctly, and `strict` is `True`.
+```
+
+```{classmethod} steno_to_sort_key(steno: str[, strict = False]) -> bytes
+Return a byte string used to place the steno stroke `steno` in order
+in a dictionary. Raises an exception if the steno was not parsed
+correctly, and `strict` is `True`.
+```
 
 ```{attribute} steno_keys
 :type: List[str]
@@ -117,19 +132,16 @@ the previous stroke.
 ```
 ````
 
-```{function} normalize_stroke(stroke: str) -> str
-Return the [canonical](canonical) steno notation for `stroke`.
+```{function} normalize_stroke(steno: str[, strict = False]) -> str
+Same as {meth}`Stroke.normalize_stroke`.
 ```
 
-```{function} normalize_steno(strokes_string: str) -> Tuple[str]
-Return the [canonical](canonical) steno notation for the outline.
-This simply splits the string into individual strokes and calls
-{func}`normalize_stroke` on them.
+```{function} normalize_steno(steno: str[, strict = False]) -> Tuple[str]
+Same as {meth}`Stroke.normalize_steno`.
 ```
 
-```{function} sort_steno_keys(steno_keys: List[str]) -> List[str]
-Return a new list of steno keys, sorted based on the current system's
-steno order.
+```{function} steno_to_sort_key(steno: str[, strict = False]) -> bytes
+Same as {meth}`Stroke.steno_to_sort_key`.
 ```
 
 ```{function} sort_steno_strokes(strokes_list: List[Tuple[str]]) -> List[Tuple[str]]
