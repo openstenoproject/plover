@@ -1,4 +1,5 @@
 @import url(https://fonts.googleapis.com/css?family=Patua+One);
+@import url(https://fonts.googleapis.com/css?family=JetBrains+Mono);
 
 h1, h2, h3, .sidebar-brand-text {
   font-family: var(--font-stack--header);
@@ -14,4 +15,12 @@ h1, h2, h3, .sidebar-brand-text {
 
 .toctree-wrapper.compound > p.caption {
   display: none;
+}
+
+.toctree-l1 {
+  margin: 12px;
+}
+
+.toctree-l2 {
+  margin: 4px;
 }
