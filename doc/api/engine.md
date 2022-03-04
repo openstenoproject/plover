@@ -293,9 +293,8 @@ calling {meth}`engine.hook_connect<StenoEngine.hook_connect>` and passing the
 name of one of the hooks below and a function, you can write handlers that are
 called when Plover hooks get triggered.
 
-```{js:function} stroked(steno_keys: List[str])
-The user just sent a stroke. `steno_keys` is a list of steno keys, for
-example `['K-', 'A-', '-T']`.
+```{js:function} stroked(stroke: plover.steno.Stroke)
+The user just sent a stroke.
 ```
 
 ```{js:function} translated(old, new)
