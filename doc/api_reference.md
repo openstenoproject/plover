@@ -29,4 +29,5 @@ api/oslayer_controller
 api/oslayer_wmctrl
 api/misc
 api/plover_stroke
+api/dictionary_lib
 ```
