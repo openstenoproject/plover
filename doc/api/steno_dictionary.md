@@ -264,19 +264,3 @@ You can also access the longest key across all dictionaries:
 
 The longest key across all dictionaries.
 ```
-
-```{attribute} longest_key_callbacks
-:type: List[Function[(int)]]
-
-The list of functions that get called when the longest key changes.
-Callbacks are called with the new longest key.
-```
-
-```{method} add_longest_key_listener(callback: Function[(int), any])
-Adds `callback` to the list of longest key callbacks.
-```
-
-```{method} remove_longest_key_listener(callback: Function[(int), any])
-Removes `callback` from the list of longest key callbacks.
-```
-````
