@@ -27,7 +27,7 @@ Authors of system plugins will also need to define these.
 :type: Tuple[str]
 
 A tuple of all the keys in the system. This should be given in
-:ref:`steno order <steno-notation>`, i.e. the order they should appear on
+{ref}`steno order<steno_notation>`, i.e. the order they should appear on
 the paper tape, and the order they should be used to form strokes in.
 
 Each key **must** be one of the following:

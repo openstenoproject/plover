@@ -28,4 +28,5 @@ api/i18n
 api/oslayer_controller
 api/oslayer_wmctrl
 api/misc
+api/plover_stroke
 ```
