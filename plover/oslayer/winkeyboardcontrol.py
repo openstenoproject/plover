@@ -321,7 +321,6 @@ class KeyboardCaptureProcess(multiprocessing.Process):
         self._tid = windll.kernel32.GetCurrentThreadId()
         self._queue.put(self._tid)
 
-        down_keys = set()
         passthrough_down_keys = set()
 
         def on_key(pressed, event):
@@ -338,13 +337,9 @@ class KeyboardCaptureProcess(multiprocessing.Process):
                 # Unhandled, ignore and don't suppress.
                 return False
             suppressed = bool(self._suppressed_keys_bitmask[event.scanCode // 64] & (1 << (event.scanCode % 64)))
-            if pressed:
-                if passthrough_down_keys:
-                    # Modifier(s) pressed, ignore.
-                    return False
-                down_keys.add(key)
-            else:
-                down_keys.discard(key)
+            if pressed and passthrough_down_keys:
+                # Modifier(s) pressed, ignore.
+                return False
             self._queue.put((None, key, pressed))
             return suppressed
 
