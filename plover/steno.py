@@ -11,8 +11,6 @@ Stroke -- A data model class that encapsulates a sequence of steno keys.
 
 from plover_stroke import BaseStroke
 
-from plover import log
-
 
 class Stroke(BaseStroke):
 
@@ -55,33 +53,30 @@ class Stroke(BaseStroke):
         return int.__new__(cls._class, cls._helper.stroke_from_int(integer))
 
     @classmethod
-    def normalize_stroke(cls, steno, strict=False):
+    def normalize_stroke(cls, steno, strict=True):
         try:
             return cls._helper.normalize_stroke(steno)
         except ValueError:
             if strict:
                 raise
-            log.error(exc_info=True)
             return steno
 
     @classmethod
-    def normalize_steno(cls, steno, strict=False):
+    def normalize_steno(cls, steno, strict=True):
         try:
             return cls._helper.normalize_steno(steno)
         except ValueError:
             if strict:
                 raise
-            log.error('', exc_info=True)
             return tuple(steno.split('/'))
 
     @classmethod
-    def steno_to_sort_key(cls, steno, strict=False):
+    def steno_to_sort_key(cls, steno, strict=True):
         try:
             return cls._helper.steno_to_sort_key(steno)
         except ValueError:
             if strict:
                 raise
-            log.error('', exc_info=True)
             return b'\x00\x00' + steno.encode('utf-8')
 
     def __new__(cls, value):

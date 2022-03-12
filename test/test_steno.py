@@ -13,7 +13,6 @@ from plover_build_utils.testing import parametrize
 
 
 NORMALIZE_TESTS = (
-    # TODO: More cases
     lambda: ('S', ('S',)),
     lambda: ('S-', ('S',)),
     lambda: ('-S', ('-S',)),
@@ -52,30 +51,26 @@ NORMALIZE_TESTS = (
     lambda: ('O', ('O',)),
     lambda: ('O-', ('O',)),
     lambda: ('S*-R', ('S*R',)),
-    # Invalid, no strict error checking.
-    lambda: ('SRALD/invalid', ('SRALD', 'invalid')),
-    lambda: ('SRALD//invalid', ('SRALD', '', 'invalid')),
-    lambda: ('S-*R', ('S-*R',)),
-    lambda: ('-O-', ('-O-',)),
-    lambda: ('-O', ('-O',)),
-    # Invalid, with strick error checking.
-    lambda: ('SRALD/invalid', ValueError),
-    lambda: ('SRALD//invalid', ValueError),
-    lambda: ('S-*R', ValueError),
-    lambda: ('-O-', ValueError),
-    lambda: ('-O', ValueError),
+    # Invalid.
+    lambda: ('SRALD/invalid', (ValueError, ('SRALD', 'invalid'))),
+    lambda: ('SRALD//invalid', (ValueError, ('SRALD', '', 'invalid'))),
+    lambda: ('S-*R', (ValueError, ('S-*R',))),
+    lambda: ('-O-', (ValueError, ('-O-',))),
+    lambda: ('-O', (ValueError, ('-O',))),
 )
 
 @parametrize(NORMALIZE_TESTS)
-def test_normalize_steno(steno, expected):
-    if inspect.isclass(expected):
-        with pytest.raises(expected):
-            normalize_steno(steno, strict=True)
-        return
-    result = normalize_steno(steno)
-    msg = 'normalize_steno(%r)=%r != %r' % (
-        steno, result, expected,
-    )
+@pytest.mark.parametrize('mode', ('strict=False', 'strict=True'))
+def test_normalize_steno(mode, steno, expected):
+    kwargs = eval('dict(' + mode + ')')
+    if inspect.isclass(expected[0]):
+        if kwargs['strict']:
+            with pytest.raises(expected[0]):
+                normalize_steno(steno)
+            return
+        expected = expected[1]
+    result = normalize_steno(steno, **kwargs)
+    msg = 'normalize_steno(%r, %s)=%r != %r' % (steno, mode, result, expected)
     assert result == expected, msg
 
 

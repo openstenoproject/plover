@@ -135,7 +135,7 @@ class RtfDictionary(StenoDictionary):
     def _load(self, filename):
         with open(filename, 'rb') as fp:
             text = fp.read().decode('cp1252')
-        self.update(parse_rtfcre(text, normalize=normalize_steno))
+        self.update(parse_rtfcre(text, normalize=lambda s: normalize_steno(s, strict=False)))
 
     def _save(self, filename):
         translation_formatter = TranslationFormatter()

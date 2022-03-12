@@ -17,7 +17,7 @@ class StenoValidator(QValidator):
                 state = QValidator.Intermediate
                 steno = prefix
             try:
-                normalize_steno(steno, strict=True)
+                normalize_steno(steno)
             except ValueError:
                 state = QValidator.Invalid
         return state, text, pos

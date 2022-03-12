@@ -31,7 +31,7 @@ class DictionaryItem(namedtuple('DictionaryItem', 'steno translation dictionary'
 
     @property
     def strokes(self):
-        return normalize_steno(self.steno)
+        return normalize_steno(self.steno, strict=False)
 
     @property
     def dictionary_path(self):
@@ -206,7 +206,7 @@ class DictionaryItemModel(QAbstractTableModel):
 
     @staticmethod
     def _item_steno_sort_key(item):
-        return steno_to_sort_key(item[_COL_STENO])
+        return steno_to_sort_key(item[_COL_STENO], strict=False)
 
     def sort(self, column, order):
         self.layoutAboutToBeChanged.emit()
@@ -230,7 +230,7 @@ class DictionaryItemModel(QAbstractTableModel):
         strokes = old_item.strokes
         steno, translation, dictionary = old_item
         if column == _COL_STENO:
-            strokes = normalize_steno(value.strip())
+            strokes = normalize_steno(value.strip(), strict=False)
             steno = '/'.join(strokes)
             if not steno or steno == old_item.steno:
                 return False
