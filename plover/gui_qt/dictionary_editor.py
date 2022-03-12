@@ -8,6 +8,7 @@ from PyQt5.QtCore import (
     QModelIndex,
     Qt,
 )
+from PyQt5.QtGui import QIcon
 from PyQt5.QtWidgets import (
     QComboBox,
     QDialog,
@@ -64,6 +65,7 @@ class DictionaryItemModel(QAbstractTableModel):
 
     def __init__(self, dictionary_list, sort_column, sort_order):
         super().__init__()
+        self._error_icon = QIcon(':/dictionary_error.svg')
         self._dictionary_list = dictionary_list
         self._operations = []
         self._entries = []
@@ -179,10 +181,17 @@ class DictionaryItemModel(QAbstractTableModel):
             return _('Dictionary')
 
     def data(self, index, role):
-        if not index.isValid() or role not in (Qt.EditRole, Qt.DisplayRole):
+        if not index.isValid() or role not in (Qt.EditRole, Qt.DisplayRole, Qt.DecorationRole):
             return None
         item = self._entries[index.row()]
         column = index.column()
+        if role == Qt.DecorationRole:
+            if column == _COL_STENO:
+                try:
+                    normalize_steno(item.steno)
+                except ValueError:
+                    return self._error_icon
+            return None
         if column == _COL_STENO:
             return item.steno
         if column == _COL_TRANS:
