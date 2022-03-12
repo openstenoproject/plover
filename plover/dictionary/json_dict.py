@@ -10,8 +10,9 @@ try:
 except ImportError:
     import json
 
+from plover.dictionary.helpers import StenoNormalizer
 from plover.steno_dictionary import StenoDictionary
-from plover.steno import normalize_steno, steno_to_sort_key
+from plover.steno import steno_to_sort_key
 
 
 class JsonDictionary(StenoDictionary):
@@ -29,7 +30,8 @@ class JsonDictionary(StenoDictionary):
         else:
             raise ValueError('\'%s\' encoding could not be determined' % (filename,))
         d = dict(json.loads(contents))
-        self.update((normalize_steno(x[0], strict=False), x[1]) for x in d.items())
+        with StenoNormalizer(filename) as normalize_steno:
+            self.update((normalize_steno(x[0]), x[1]) for x in d.items())
 
     def _save(self, filename):
         mappings = [('/'.join(k), v) for k, v in self.items()]
