@@ -22,7 +22,6 @@ http://tronche.com/gui/x/xlib/input/keyboard-encoding.html
 """
 
 from functools import wraps
-import errno
 import os
 import string
 import select
@@ -181,16 +180,7 @@ class XEventLoop(threading.Thread):
             # No more events: sleep until we get new data on the
             # display connection, or on the pipe used to signal
             # the end of the loop.
-            try:
-                rlist, wlist, xlist = select.select(self._readfds, (), ())
-            except select.error as err:
-                if isinstance(err, OSError):
-                    code = err.errno
-                else:
-                    code = err[0]
-                if code != errno.EINTR:
-                    raise
-                continue
+            rlist, wlist, xlist = select.select(self._readfds, (), ())
             assert not wlist
             assert not xlist
             if self._pipe[0] in rlist:
@@ -1109,9 +1099,9 @@ def uchr_to_keysym(char):
     # Latin-1 characters: direct, 1:1 mapping.
     if is_latin1(code):
         return code
-    if 0x09 == code:
+    if code == 0x09:
         return XK.XK_Tab
-    if 0x0a == code or 0x0d == code:
+    if code in (0x0a, 0x0d):
         return XK.XK_Return
     return UCS_TO_KEYSYM.get(code, code | 0x01000000)
 
