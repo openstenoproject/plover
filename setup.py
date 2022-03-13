@@ -2,7 +2,6 @@
 # Copyright (c) 2010 Joshua Harlan Lifton.
 # See LICENSE.txt for details.
 
-from distutils import log
 import os
 import re
 import subprocess
@@ -92,7 +91,8 @@ class BinaryDistWin(Command):
         if self.zipdir:
             cmd.append('--zipdir')
         cmd.extend((__software_name__, __version__, self.bdist_wheel()))
-        log.info('running %s', ' '.join(cmd))
+        if self.verbose:
+            print('running', ' '.join(cmd))
         subprocess.check_call(cmd)
 
 if sys.platform.startswith('win32'):
@@ -153,7 +153,8 @@ class PatchVersion(Command):
             version = get_version()
             if version is None:
                 sys.exit(1)
-        log.info('patching version to %s', version)
+        if self.verbose:
+            print('patching version to', version)
         version_file = os.path.join('plover', '__init__.py')
         with open(version_file, 'r') as fp:
             contents = fp.read().split('\n')
@@ -181,7 +182,8 @@ class BinaryDistApp(Command):
 
     def run(self):
         cmd = ['bash', 'osx/make_app.sh', self.bdist_wheel()]
-        log.info('running %s', ' '.join(cmd))
+        if self.verbose:
+            print('running', ' '.join(cmd))
         subprocess.check_call(cmd)
 
 class BinaryDistDmg(Command):
@@ -205,7 +207,8 @@ class BinaryDistDmg(Command):
             name=__software_name__.capitalize(),
             settings='osx/dmg_resources/settings.py',
         )
-        log.info('running dmgbuild(%s)', args)
+        if self.verbose:
+            print('running dmgbuild(%s)' % args)
         script = "__import__('dmgbuild').build_dmg(" + args + ')'
         subprocess.check_call((sys.executable, '-u', '-c', script))
 
@@ -246,7 +249,8 @@ class BinaryDistAppImage(Command):
         if self.no_update_tools:
             cmd.append('--no-update-tools')
         cmd.extend(('--wheel', self.bdist_wheel()))
-        log.info('running %s', ' '.join(cmd))
+        if self.verbose:
+            print('running', ' '.join(cmd))
         subprocess.check_call(cmd)
 
 if sys.platform.startswith('linux'):
