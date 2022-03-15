@@ -1,53 +1,29 @@
-*.py[cod]
+# Cache.
+/.cache/
 
-# C extensions
-*.so
+# Setuptools.
+/build/
+/dist/
+/*.egg-info/
 
-# Packages
-*.egg
-*.egg-info
-.eggs
-dist
-build
-eggs
-parts
-bin
-var
-sdist
-develop-eggs
-.installed.cfg
-lib
-lib64
+# Plover: when run in portable mode from source.
+/*.json
+/*.rtf
+/plover.cfg
+/plover.log
+/steno-notes-*.txt
+/strokes.log
 
-# Installer logs
-pip-log.txt
+# Pytest.
+/.pytest_cache/
 
-# Unit test / coverage reports
-.coverage
-.tox
-nosetests.xml
+# Python.
+__pycache__/
 
-#Translations
-*.mo
-
-# PyCharm
-.idea
-.cache
+# Tox.
+/.tox/
 
 # VSCode
-.vscode
+/.vscode/
 
-#Mr Developer
-.mr.developer.cfg
-
-# mac files
-.DS_store
-
-# emacs backups
-*~
-
-# deleted files
-\#*#
-.#*
-
-/windows/.wine/
+# vim: ft=cfg
