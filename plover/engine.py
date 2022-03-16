@@ -119,6 +119,7 @@ class StenoEngine:
         self._dictionaries = self._translator.get_dictionary()
         self._dictionaries_manager = DictionaryLoadingManager()
         self._running_state = self._translator.get_state()
+        self._translator.clear_state()
         self._keyboard_emulation = keyboard_emulation
         self._hooks = { hook: [] for hook in self.HOOKS }
         self._running_extensions = {}
