@@ -90,9 +90,6 @@ class Logger:
             elif PLATFORM == 'mac':
                 from plover.oslayer.log_osx import OSXNotificationHandler
                 handler_class = OSXNotificationHandler
-            elif PLATFORM == 'win':
-                from plover.oslayer.log_plyer import PlyerNotificationHandler
-                handler_class = PlyerNotificationHandler
         except Exception:
             self.info('could not import platform gui log', exc_info=True)
         if handler_class is None:

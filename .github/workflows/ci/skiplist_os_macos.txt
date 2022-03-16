@@ -2,7 +2,6 @@
 .github/workflows/ci/skiplist_os_Windows.txt
 linux/*
 plover/oslayer/log_dbus.py
-plover/oslayer/log_plyer.py
 plover/oslayer/winkeyboardcontrol.py
 plover/oslayer/winkeyboardlayout.py
 plover/oslayer/xkeyboardcontrol.py
