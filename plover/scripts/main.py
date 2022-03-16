@@ -148,6 +148,8 @@ def main():
     except:
         gui.show_error('Unexpected error', traceback.format_exc())
         code = 2
+    # Execute atexit handlers.
+    atexit._run_exitfuncs()
     if code == -1:
         # Restart.
         args = sys.argv[:]
@@ -156,8 +158,6 @@ def main():
             spec = sys.modules['__main__'].__spec__
             assert sys.argv[0] == spec.origin
             args[0:1] = [sys.executable, '-m', spec.name]
-        # Execute atexit handlers.
-        atexit._run_exitfuncs()
         if PLATFORM == 'win':
             # Workaround https://bugs.python.org/issue19066
             subprocess.Popen(args, cwd=os.getcwd())
