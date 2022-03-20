@@ -22,11 +22,13 @@ import signal
 import threading
 import winreg
 
-from plover.key_combo import parse_key_combo
-from plover.oslayer.winkeyboardlayout import KeyboardLayout
 from plover import log
+from plover.key_combo import parse_key_combo
+from plover.machine.keyboard_capture import Capture
 from plover.misc import to_surrogate_pair
+from plover.output import Output
 
+from .winkeyboardlayout import KeyboardLayout
 
 # For the purposes of this class, we'll only report key presses that
 # result in these outputs in order to exclude special key combos.
@@ -393,14 +395,11 @@ class KeyboardCaptureProcess(multiprocessing.Process):
         return self._queue.get()
 
 
-class KeyboardCapture:
-
-    """Listen to all keyboard events."""
+class KeyboardCapture(Capture):
 
     def __init__(self):
+        super().__init__()
         self._suppressed_keys = set()
-        self.key_down = lambda key: None
-        self.key_up = lambda key: None
         self._finished = None
         self._thread = None
         self._proc = None
@@ -434,9 +433,10 @@ class KeyboardCapture:
         self._proc.suppress(self._suppressed_keys)
 
 
-class KeyboardEmulation:
+class KeyboardEmulation(Output):
 
     def __init__(self):
+        super().__init__()
         self.keyboard_layout = KeyboardLayout()
 
     # Sends input types to buffer
@@ -507,13 +507,13 @@ class KeyboardEmulation:
                   for code in pairs]
         self._send_input(*inputs)
 
-    def send_backspaces(self, number_of_backspaces):
-        for _ in range(number_of_backspaces):
+    def send_backspaces(self, count):
+        for _ in range(count):
             self._key_press('\x08')
 
-    def send_string(self, s):
+    def send_string(self, string):
         self._refresh_keyboard_layout()
-        for char in s:
+        for char in string:
             if char in self.keyboard_layout.char_to_vk_ss:
                 # We know how to simulate the character.
                 self._key_press(char)
@@ -521,25 +521,11 @@ class KeyboardEmulation:
                 # Otherwise, we send it as a Unicode string.
                 self._key_unicode(char)
 
-    def send_key_combination(self, combo_string):
-        """Emulate a sequence of key combinations.
-        Argument:
-        combo_string -- A string representing a sequence of key
-        combinations. Keys are represented by their names in the
-        self.keyboard_layout.keyname_to_keycode above. For example, the
-        left Alt key is represented by 'Alt_L'. Keys are either
-        separated by a space or a left or right parenthesis.
-        Parentheses must be properly formed in pairs and may be
-        nested. A key immediately followed by a parenthetical
-        indicates that the key is pressed down while all keys enclosed
-        in the parenthetical are pressed and released in turn. For
-        example, Alt_L(Tab) means to hold the left Alt key down, press
-        and release the Tab key, and then release the left Alt key.
-        """
+    def send_key_combination(self, combo):
         # Make sure keyboard layout is up-to-date.
         self._refresh_keyboard_layout()
         # Parse and validate combo.
-        key_events = parse_key_combo(combo_string, self.keyboard_layout.keyname_to_vk.get)
+        key_events = parse_key_combo(combo, self.keyboard_layout.keyname_to_vk.get)
         # Send events...
         for keycode, pressed in key_events:
             self._key_event(keycode, pressed)

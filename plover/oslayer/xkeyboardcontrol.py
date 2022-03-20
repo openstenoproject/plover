@@ -21,7 +21,6 @@ http://tronche.com/gui/x/xlib/input/keyboard-encoding.html
 
 """
 
-from functools import wraps
 import os
 import select
 import threading
@@ -31,8 +30,10 @@ from Xlib.display import Display
 from Xlib.ext import xinput, xtest
 from Xlib.ext.ge import GenericEventCode
 
-from plover.key_combo import add_modifiers_aliases, parse_key_combo
 from plover import log
+from plover.key_combo import add_modifiers_aliases, parse_key_combo
+from plover.machine.keyboard_capture import Capture
+from plover.output import Output
 
 
 # Enable support for media keys.
@@ -196,16 +197,14 @@ class XEventLoop:
         self._display = None
 
 
-class KeyboardCapture:
-    """Listen to keyboard press and release events."""
+class KeyboardCapture(Capture):
 
     def __init__(self):
+        super().__init__()
         self._event_loop = None
         self._window = None
         self._suppressed_keys = set()
         self._devices = []
-        self.key_down = lambda key: None
-        self.key_up = lambda key: None
 
     def _update_devices(self, display):
         # Find all keyboard devices.
@@ -277,7 +276,7 @@ class KeyboardCapture:
         self._event_loop.cancel()
 
     def suppress(self, suppressed_keys=()):
-        with self._event_loop as display:
+        with self._event_loop:
             self._suppress_keys(suppressed_keys)
 
     def _grab_key(self, keycode):
@@ -1128,8 +1127,7 @@ def keysym_to_string(keysym):
     return chr(code)
 
 
-class KeyboardEmulation:
-    """Emulate keyboard events."""
+class KeyboardEmulation(Output):
 
     class Mapping:
 
@@ -1156,7 +1154,7 @@ class KeyboardEmulation:
     UNUSED_KEYSYM = 0xffffff # XK_VoidSymbol
 
     def __init__(self):
-        """Prepare to emulate keyboard events."""
+        super().__init__()
         self._display = Display()
         self._update_keymap()
 
@@ -1218,32 +1216,14 @@ class KeyboardEmulation:
         # Get modifier mapping.
         self.modifier_mapping = self._display.get_modifier_mapping()
 
-    def send_backspaces(self, number_of_backspaces):
-        """Emulate the given number of backspaces.
-
-        The emulated backspaces are not detected by KeyboardCapture.
-
-        Argument:
-
-        number_of_backspace -- The number of backspaces to emulate.
-
-        """
-        for x in range(number_of_backspaces):
+    def send_backspaces(self, count):
+        for x in range(count):
             self._send_keycode(self._backspace_mapping.keycode,
                                self._backspace_mapping.modifiers)
         self._display.sync()
 
-    def send_string(self, s):
-        """Emulate the given string.
-
-        The emulated string is not detected by KeyboardCapture.
-
-        Argument:
-
-        s -- The string to emulate.
-
-        """
-        for char in s:
+    def send_string(self, string):
+        for char in string:
             keysym = uchr_to_keysym(char)
             mapping = self._get_mapping(keysym)
             if mapping is None:
@@ -1252,32 +1232,11 @@ class KeyboardEmulation:
                                mapping.modifiers)
         self._display.sync()
 
-    def send_key_combination(self, combo_string):
-        """Emulate a sequence of key combinations.
-
-        KeyboardCapture instance would normally detect the emulated
-        key events. In order to prevent this, all KeyboardCapture
-        instances are told to ignore the emulated key events.
-
-        Argument:
-
-        combo_string -- A string representing a sequence of key
-        combinations. Keys are represented by their names in the
-        Xlib.XK module, without the 'XK_' prefix. For example, the
-        left Alt key is represented by 'Alt_L'. Keys are either
-        separated by a space or a left or right parenthesis.
-        Parentheses must be properly formed in pairs and may be
-        nested. A key immediately followed by a parenthetical
-        indicates that the key is pressed down while all keys enclosed
-        in the parenthetical are pressed and released in turn. For
-        example, Alt_L(Tab) means to hold the left Alt key down, press
-        and release the Tab key, and then release the left Alt key.
-
-        """
+    def send_key_combination(self, combo):
         # Parse and validate combo.
         key_events = [
             (keycode, X.KeyPress if pressed else X.KeyRelease) for keycode, pressed
-            in parse_key_combo(combo_string, self._get_keycode_from_keystring)
+            in parse_key_combo(combo, self._get_keycode_from_keystring)
         ]
         # Emulate the key combination by sending key events.
         for keycode, event_type in key_events:

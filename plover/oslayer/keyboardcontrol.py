@@ -16,24 +16,17 @@ emulate keyboard input.
 
 """
 
-from plover.oslayer.config import PLATFORM
+from .config import PLATFORM
 
-KEYBOARDCONTROL_NOT_FOUND_FOR_OS = \
-        "No keyboard control module was found for platform: %s" % PLATFORM
 
 if PLATFORM in {'linux', 'bsd'}:
-    from plover.oslayer import xkeyboardcontrol as keyboardcontrol
+    from . import xkeyboardcontrol as keyboardcontrol
 elif PLATFORM == 'win':
-    from plover.oslayer import winkeyboardcontrol as keyboardcontrol
+    from . import winkeyboardcontrol as keyboardcontrol
 elif PLATFORM == 'mac':
-    from plover.oslayer import osxkeyboardcontrol as keyboardcontrol
+    from . import osxkeyboardcontrol as keyboardcontrol
 else:
-    raise Exception(KEYBOARDCONTROL_NOT_FOUND_FOR_OS)
+    raise Exception("No keyboard control module for platform %s" % PLATFORM)
 
-
-class KeyboardCapture(keyboardcontrol.KeyboardCapture):
-    """Listen to keyboard events."""
-
-class KeyboardEmulation(keyboardcontrol.KeyboardEmulation):
-    """Emulate printable key presses and backspaces."""
-    pass
+KeyboardCapture = keyboardcontrol.KeyboardCapture
+KeyboardEmulation = keyboardcontrol.KeyboardEmulation

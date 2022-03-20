@@ -44,8 +44,11 @@ from Quartz import (
 )
 
 from plover import log
-from plover.oslayer.osxkeyboardlayout import KeyboardLayout
 from plover.key_combo import add_modifiers_aliases, parse_key_combo, KEYNAME_TO_CHAR
+from plover.machine.keyboard_capture import Capture
+from plover.output import Output
+
+from .keyboardlayout import KeyboardLayout
 
 
 BACK_SPACE = 51
@@ -214,9 +217,7 @@ class KeyboardCaptureLoop:
             CFRunLoopSourceInvalidate(self._source)
 
 
-class KeyboardCapture:
-
-    """Implementation of KeyboardCapture for OSX."""
+class KeyboardCapture(Capture):
 
     _KEYBOARD_EVENTS = {kCGEventKeyDown, kCGEventKeyUp}
 
@@ -227,6 +228,7 @@ class KeyboardCapture:
                                kCGEventFlagMaskNonCoalesced)
 
     def __init__(self):
+        super().__init__()
         self.key_down = lambda key: None
         self.key_up = lambda key: None
         self._suppressed_keys = set()
@@ -300,16 +302,17 @@ class KeyboardCapture:
                 self.key_down(key)
 
 
-class KeyboardEmulation:
+class KeyboardEmulation(Output):
 
     RAW_PRESS, STRING_PRESS = range(2)
 
     def __init__(self):
+        super().__init__()
         self._layout = KeyboardLayout()
 
     @staticmethod
-    def send_backspaces(number_of_backspaces):
-        for _ in range(number_of_backspaces):
+    def send_backspaces(count):
+        for _ in range(count):
             backspace_down = CGEventCreateKeyboardEvent(
                 OUTPUT_SOURCE, BACK_SPACE, True)
             backspace_up = CGEventCreateKeyboardEvent(
@@ -317,22 +320,7 @@ class KeyboardEmulation:
             CGEventPost(kCGSessionEventTap, backspace_down)
             CGEventPost(kCGSessionEventTap, backspace_up)
 
-    def send_string(self, s):
-        """
-
-        Args:
-            s: The string to emulate.
-
-        We can send keys by keycodes or by SetUnicodeString.
-        Setting the string is less ideal, but necessary for things like emoji.
-        We want to try to group modifier presses, where convenient.
-        So, a string like 'THIS dog [dog emoji]' might be processed like:
-            'Raw: Shift down t h i s shift up,
-            Raw: space d o g space,
-            String: [dog emoji]'
-        There are 3 groups, the shifted group, the spaces and dog string,
-        and the emoji.
-        """
+    def send_string(self, string):
         # Key plan will store the type of output
         # (raw keycodes versus setting string)
         # and the list of keycodes or the goal character.
@@ -351,7 +339,7 @@ class KeyboardEmulation:
         apply_raw()
 
         last_modifier = None
-        for c in s:
+        for c in string:
             for keycode, modifier in self._layout.char_to_key_sequence(c):
                 if keycode is not None:
                     if modifier is not last_modifier:
@@ -388,23 +376,7 @@ class KeyboardEmulation:
         KeyboardEmulation._set_event_string(event, c)
         CGEventPost(kCGSessionEventTap, event)
 
-    def send_key_combination(self, combo_string):
-        """Emulate a sequence of key combinations.
-
-        Args:
-            combo_string: A string representing a sequence of key
-                combinations. Keys are represented by their names in the
-                Xlib.XK module, without the 'XK_' prefix. For example, the
-                left Alt key is represented by 'Alt_L'. Keys are either
-                separated by a space or a left or right parenthesis.
-                Parentheses must be properly formed in pairs and may be
-                nested. A key immediately followed by a parenthetical
-                indicates that the key is pressed down while all keys enclosed
-                in the parenthetical are pressed and released in turn. For
-                example, Alt_L(Tab) means to hold the left Alt key down, press
-                and release the Tab key, and then release the left Alt key.
-
-        """
+    def send_key_combination(self, combo):
         def name_to_code(name):
             # Static key codes
             code = KEYNAME_TO_KEYCODE.get(name)
@@ -421,7 +393,7 @@ class KeyboardEmulation:
                 code, mods = self._layout.char_to_key_sequence(char)[0]
             return code
         # Parse and validate combo.
-        key_events = parse_key_combo(combo_string, name_to_code)
+        key_events = parse_key_combo(combo, name_to_code)
         # Send events...
         self._send_sequence(key_events)
 
