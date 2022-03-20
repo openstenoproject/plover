@@ -50,38 +50,3 @@ class KeyboardCapture(keyboardcontrol.KeyboardCapture):
 class KeyboardEmulation(keyboardcontrol.KeyboardEmulation):
     """Emulate printable key presses and backspaces."""
     pass
-
-
-if __name__ == '__main__':
-
-    import time
-
-    kc = KeyboardCapture()
-    ke = KeyboardEmulation()
-
-    pressed = set()
-    status = 'pressed: '
-
-    def test(key, action):
-        global status
-        print(key, action)
-        if 'pressed' == action:
-            pressed.add(key)
-        elif key in pressed:
-            pressed.remove(key)
-        new_status = 'pressed: ' + '+'.join(pressed)
-        if status != new_status:
-            ke.send_backspaces(len(status))
-            ke.send_string(new_status)
-            status = new_status
-
-    kc.key_down = lambda k: test(k, 'pressed')
-    kc.key_up = lambda k: test(k, 'released')
-    kc.suppress_keyboard(KeyboardCapture.SUPPORTED_KEYS)
-    kc.start()
-    print('Press CTRL-c to quit.')
-    try:
-        while True:
-            time.sleep(1)
-    except KeyboardInterrupt:
-        kc.cancel()
