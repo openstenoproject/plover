@@ -7,7 +7,7 @@ from plover import log, __name__ as __software_name__
 import logging
 
 
-class OSXNotificationHandler(logging.Handler):
+class NotificationHandler(logging.Handler):
     """ Handler using OS X Notification Center to show messages. """
 
     def __init__(self):

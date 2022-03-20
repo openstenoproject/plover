@@ -28,7 +28,7 @@ from plover.machine.keyboard_capture import Capture
 from plover.misc import to_surrogate_pair
 from plover.output import Output
 
-from .winkeyboardlayout import KeyboardLayout
+from .keyboardlayout import KeyboardLayout
 
 # For the purposes of this class, we'll only report key presses that
 # result in these outputs in order to exclude special key combos.
