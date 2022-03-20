@@ -47,8 +47,8 @@ def test_lifecycle(capture, machine, strokes):
     # Start machine.
     machine.start_capture()
     assert capture.mock_calls == [
-        call.suppress(()),
         call.start(),
+        call.suppress(()),
     ]
     capture.reset_mock()
     machine.set_suppression(True)
