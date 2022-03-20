@@ -47,7 +47,7 @@ def test_lifecycle(capture, machine, strokes):
     # Start machine.
     machine.start_capture()
     assert capture.mock_calls == [
-        call.suppress_keyboard(()),
+        call.suppress(()),
         call.start(),
     ]
     capture.reset_mock()
@@ -56,7 +56,7 @@ def test_lifecycle(capture, machine, strokes):
     del suppressed_keys['space']
     assert strokes == []
     assert capture.mock_calls == [
-        call.suppress_keyboard(suppressed_keys.keys()),
+        call.suppress(suppressed_keys.keys()),
     ]
     # Trigger some strokes.
     capture.reset_mock()
@@ -71,7 +71,7 @@ def test_lifecycle(capture, machine, strokes):
     machine.stop_capture()
     assert strokes == []
     assert capture.mock_calls == [
-        call.suppress_keyboard(()),
+        call.suppress(()),
         call.cancel(),
     ]
 

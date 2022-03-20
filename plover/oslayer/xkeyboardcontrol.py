@@ -268,11 +268,11 @@ class KeyboardCapture(XEventLoop):
         ])
         suppressed_keys = self._suppressed_keys
         self._suppressed_keys = set()
-        self.suppress_keyboard(suppressed_keys)
+        self.suppress(suppressed_keys)
         super().start()
 
     def cancel(self):
-        self.suppress_keyboard()
+        self.suppress()
         super().cancel()
 
     def _grab_key(self, keycode):
@@ -293,7 +293,7 @@ class KeyboardCapture(XEventLoop):
                                                (0, X.Mod2Mask))
 
     @with_display_lock
-    def suppress_keyboard(self, suppressed_keys=()):
+    def suppress(self, suppressed_keys=()):
         suppressed_keys = set(suppressed_keys)
         if self._suppressed_keys == suppressed_keys:
             return

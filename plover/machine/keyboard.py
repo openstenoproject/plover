@@ -52,7 +52,7 @@ class Keyboard(StenotypeBase):
         if self._keyboard_capture is None:
             return
         suppressed_keys = self._bindings.keys() if self._is_suppressed else ()
-        self._keyboard_capture.suppress_keyboard(suppressed_keys)
+        self._keyboard_capture.suppress(suppressed_keys)
 
     def _update_bindings(self):
         self._arpeggiate_key = None
