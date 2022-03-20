@@ -23,7 +23,6 @@ http://tronche.com/gui/x/xlib/input/keyboard-encoding.html
 
 from functools import wraps
 import os
-import string
 import select
 import threading
 
@@ -1118,7 +1117,7 @@ def keysym_to_string(keysym):
             if keysym_str is None:
                 keysym_str = ''
             for c in keysym_str:
-                if c not in string.printable:
+                if not c.isprintable():
                     keysym_str = ''
                     break
             return keysym_str
