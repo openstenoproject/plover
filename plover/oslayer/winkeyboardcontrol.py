@@ -393,23 +393,26 @@ class KeyboardCaptureProcess(multiprocessing.Process):
         return self._queue.get()
 
 
-class KeyboardCapture(threading.Thread):
+class KeyboardCapture:
+
     """Listen to all keyboard events."""
 
     def __init__(self):
-        super().__init__()
         self._suppressed_keys = set()
         self.key_down = lambda key: None
         self.key_up = lambda key: None
-        self._proc = KeyboardCaptureProcess()
-        self._finished = threading.Event()
+        self._finished = None
+        self._thread = None
+        self._proc = None
 
     def start(self):
+        self._finished = threading.Event()
+        self._proc = KeyboardCaptureProcess()
         self._proc.start()
-        self._proc.suppress(self._suppressed_keys)
-        super().start()
+        self._thread = threading.Thread(target=self._run)
+        self._thread.start()
 
-    def run(self):
+    def _run(self):
         while True:
             error, key, pressed = self._proc.get()
             if error is not None:
@@ -419,10 +422,12 @@ class KeyboardCapture(threading.Thread):
             (self.key_down if pressed else self.key_up)(key)
 
     def cancel(self):
-        self._finished.set()
-        self._proc.stop()
-        if self.is_alive():
-            self.join()
+        if self._finished is not None:
+            self._finished.set()
+        if self._proc is not None:
+            self._proc.stop()
+        if self._thread is not None:
+            self._thread.join()
 
     def suppress(self, suppressed_keys=()):
         self._suppressed_keys = set(suppressed_keys)
