@@ -163,141 +163,141 @@ def keycode_needs_fn_mask(keycode):
         and keycode not in MODIFIER_KEYS_TO_MASKS
     )
 
-class KeyboardCapture(threading.Thread):
+
+class KeyboardCaptureLoop:
+
+    def __init__(self, callback):
+        self._callback = callback
+        self._loop = None
+        self._source = None
+        self._tap = None
+        self._thread = None
+
+    def _run(self, loop_is_set):
+        self._loop = CFRunLoopGetCurrent()
+        loop_is_set.set()
+        del loop_is_set
+        CFRunLoopAddSource(self._loop, self._source, kCFRunLoopCommonModes)
+        CFRunLoopRun()
+
+    def start(self):
+        self._tap = CGEventTapCreate(kCGSessionEventTap,
+                                     kCGHeadInsertEventTap,
+                                     kCGEventTapOptionDefault,
+                                     CGEventMaskBit(kCGEventKeyDown)
+                                     | CGEventMaskBit(kCGEventKeyUp),
+                                     self._callback, None)
+        if self._tap is None:
+            # TODO: See if there is a nice way to show
+            # the user what's needed (or do it for them).
+            raise Exception("Enable access for assistive devices.")
+        self._source = CFMachPortCreateRunLoopSource(None, self._tap, 0)
+        loop_is_set = threading.Event()
+        self._thread = threading.Thread(target=self._run, args=(loop_is_set,),
+                                        name="KeyboardCaptureLoop")
+        self._thread.start()
+        loop_is_set.wait()
+        self.toggle_tap(True)
+
+    def toggle_tap(self, enabled):
+        CGEventTapEnable(self._tap, enabled)
+
+    def cancel(self):
+        if self._loop is not None:
+            CFRunLoopStop(self._loop)
+        if self._thread is not None:
+            self._thread.join()
+        if self._tap is not None:
+            CFMachPortInvalidate(self._tap)
+            CFRelease(self._tap)
+        if self._source is not None:
+            CFRunLoopSourceInvalidate(self._source)
+
+
+class KeyboardCapture:
+
     """Implementation of KeyboardCapture for OSX."""
 
     _KEYBOARD_EVENTS = {kCGEventKeyDown, kCGEventKeyUp}
 
-    def __init__(self):
-        threading.Thread.__init__(self, name="KeyboardEventTapThread")
-        self._loop = None
-        self._event_queue = Queue()  # Drained by event handler thread.
+    # Don't ignore Fn and Numeric flags so we can handle
+    # the arrow and extended (home, end, etc...) keys.
+    _PASSTHROUGH_MODIFIERS = ~(kCGEventFlagMaskNumericPad |
+                               kCGEventFlagMaskSecondaryFn |
+                               kCGEventFlagMaskNonCoalesced)
 
-        self._suppressed_keys = set()
+    def __init__(self):
         self.key_down = lambda key: None
         self.key_up = lambda key: None
+        self._suppressed_keys = set()
+        self._event_queue = Queue()
+        self._event_thread = None
+        self._capture_loop = None
 
-        # Returning the event means that it is passed on
-        # for further processing by others.
-        #
-        # Returning None means that the event is intercepted.
-        #
-        # Delaying too long in returning appears to cause the
-        # system to ignore the tap forever after
-        # (https://github.com/openstenoproject/plover/issues/484#issuecomment-214743466).
-        #
-        # This motivates pushing callbacks to the other side
-        # of a queue of received events, so that we can return
-        # from this callback as soon as possible.
-        def callback(proxy, event_type, event, reference):
-            SUPPRESS_EVENT = None
-            PASS_EVENT_THROUGH = event
+    def _callback(self, proxy, event_type, event, reference):
+        '''
+        Returning the event means that it is passed on
+        for further processing by others.
 
+        Returning None means that the event is intercepted.
+
+        Delaying too long in returning appears to cause the
+        system to ignore the tap forever after
+        (https://github.com/openstenoproject/plover/issues/484#issuecomment-214743466).
+
+        This motivates pushing callbacks to the other side
+        of a queue of received events, so that we can return
+        from this callback as soon as possible.
+        '''
+        if event_type not in self._KEYBOARD_EVENTS:
             # Don't pass on meta events meant for this event tap.
-            is_unexpected_event = event_type not in self._KEYBOARD_EVENTS
-            if is_unexpected_event:
-                if event_type == kCGEventTapDisabledByTimeout:
-                    # Re-enable the tap and hope we act faster next time
-                    CGEventTapEnable(self._tap, True)
-                    log.warning(
-                        "Keystrokes may have been missed, "
-                        + "keyboard event tap has been re-enabled.")
-                return SUPPRESS_EVENT
+            if event_type == kCGEventTapDisabledByTimeout:
+                # Re-enable the tap and hope we act faster next time.
+                self._capture_loop.toggle_tap(True)
+                log.warning("Keystrokes may have been missed, the"
+                            "keyboard event tap has been re-enabled.")
+            return None
+        if CGEventGetFlags(event) & self._PASSTHROUGH_MODIFIERS:
+            # Don't intercept or suppress the event if it has
+            # modifiers and the whole keyboard is not suppressed.
+            return event
+        keycode = CGEventGetIntegerValueField(event, kCGKeyboardEventKeycode)
+        key = KEYCODE_TO_KEY.get(keycode)
+        if key is None:
+            # Not a supported key, don't intercept or suppress.
+            return event
+        # Notify supported key event.
+        self._event_queue.put_nowait((key, event_type))
+        # And suppressed it if asked too.
+        return None if key in self._suppressed_keys else event
 
-            # Don't intercept the event if it has modifiers, allow
-            # Fn and Numeric flags so we can suppress the arrow and
-            # extended (home, end, etc...) keys.
-            suppressible_modifiers = (kCGEventFlagMaskNumericPad |
-                                      kCGEventFlagMaskSecondaryFn |
-                                      kCGEventFlagMaskNonCoalesced)
-            has_nonsupressible_modifiers = \
-                CGEventGetFlags(event) & ~suppressible_modifiers
-            if has_nonsupressible_modifiers:
-                return PASS_EVENT_THROUGH
-
-            keycode = CGEventGetIntegerValueField(
-                event, kCGKeyboardEventKeycode)
-            key = KEYCODE_TO_KEY.get(keycode)
-            self._async_dispatch(key, event_type)
-            if key in self._suppressed_keys:
-                return SUPPRESS_EVENT
-            return PASS_EVENT_THROUGH
-
-        self._tap = CGEventTapCreate(
-            kCGSessionEventTap,
-            kCGHeadInsertEventTap,
-            kCGEventTapOptionDefault,
-            CGEventMaskBit(kCGEventKeyDown) | CGEventMaskBit(kCGEventKeyUp),
-            callback, None)
-        if self._tap is None:
-            # Todo(hesky): See if there is a nice way to show the user what's
-            # needed (or do it for them).
-            raise Exception("Enable access for assistive devices.")
-        CGEventTapEnable(self._tap, False)
-
-    def run(self):
-        source = CFMachPortCreateRunLoopSource(None, self._tap, 0)
-        handler_thread = threading.Thread(
-            target=self._event_handler,
-            name="KeyEventDispatcher")
-        handler_thread.start()
-        self._loop = CFRunLoopGetCurrent()
-        CFRunLoopAddSource(
-            self._loop,
-            source,
-            kCFRunLoopCommonModes
-        )
-        CGEventTapEnable(self._tap, True)
-
-        CFRunLoopRun()
-
-        # Wake up event handler.
-        self._event_queue.put_nowait(None)
-        handler_thread.join()
-        CFMachPortInvalidate(self._tap)
-        CFRelease(self._tap)
-        CFRunLoopSourceInvalidate(source)
+    def start(self):
+        self._capture_loop = KeyboardCaptureLoop(self._callback)
+        self._capture_loop.start()
+        self._event_thread = threading.Thread(name="KeyboardCapture",
+                                              target=self._run)
+        self._event_thread.start()
 
     def cancel(self):
-        CFRunLoopStop(self._loop)
-        self.join()
-        self._loop = None
+        if self._event_thread is not None:
+            self._event_queue.put(None)
+            self._event_thread.join()
+        if self._capture_loop is not None:
+            self._capture_loop.cancel()
 
     def suppress(self, suppressed_keys=()):
         self._suppressed_keys = set(suppressed_keys)
 
-    def _async_dispatch(self, key, event_type):
-        """
-        Dispatches a key string in KEYCODE_TO_KEY.values() and a CGEventType
-        to the appropriate KeyboardCapture callback
-        without blocking execution of its caller.
-        """
-        if key is None:
-            return
-
-        is_keyup = event_type == kCGEventKeyUp
-        pair = (key, is_keyup)
-        self._event_queue.put_nowait(pair)
-
-    def _event_handler(self):
-        """
-        Event dispatching thread launched during run().
-        Loops until None is received from _event_queue.
-        Avoids busy-waiting by blocking on _event_queue.
-
-        In normal operation, it gets a pair of
-        (key_string, is_keyup_bool) from _event_queue
-        and routes the string to self.key_up or self.key_down,
-        then waits for a new pair to arrive.
-        """
+    def _run(self):
         while True:
-            pair = self._event_queue.get(block=True, timeout=None)
-            if pair is None:
+            event = self._event_queue.get()
+            if event is None:
                 return
-
-            key, is_keyup = pair
-            handler = self.key_up if is_keyup else self.key_down
-            handler(key)
+            key, event_type = event
+            if event_type == kCGEventKeyUp:
+                self.key_up(key)
+            else:
+                self.key_down(key)
 
 
 class KeyboardEmulation:
