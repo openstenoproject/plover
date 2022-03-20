@@ -416,8 +416,7 @@ class KeyboardCapture(threading.Thread):
                 log.error(*error)
             if self._finished.is_set():
                 break
-            if key is not None:
-                (self.key_down if pressed else self.key_up)(key)
+            (self.key_down if pressed else self.key_up)(key)
 
     def cancel(self):
         self._finished.set()
