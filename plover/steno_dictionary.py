@@ -177,9 +177,7 @@ class StenoDictionaryCollection:
 
     @property
     def longest_key(self):
-        if not self.dicts:
-            return 0
-        return max(d.longest_key for d in self.dicts)
+        return max((d.longest_key for d in self.dicts if d.enabled), default=0)
 
     def set_dicts(self, dicts):
         self.dicts = dicts[:]
