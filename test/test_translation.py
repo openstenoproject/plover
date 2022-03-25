@@ -4,6 +4,7 @@
 """Unit tests for translation.py."""
 
 from collections import namedtuple
+import ast
 import copy
 import operator
 
@@ -416,15 +417,18 @@ class TestState:
 
 class TestTranslateStroke:
 
+    DICT_COLLECTION_CLASS = StenoDictionaryCollection
+
     class CaptureOutput:
-        output = namedtuple('output', 'undo do prev')
+
+        Output = namedtuple('Output', 'undo do prev')
 
         def __init__(self):
             self.output = []
 
         def __call__(self, undo, new, prev):
             prev = list(prev) if prev else None
-            self.output = type(self).output(undo, new, prev)
+            self.output = self.Output(undo, new, prev)
 
     def t(self, strokes):
         """A quick way to make a translation."""
@@ -470,7 +474,7 @@ class TestTranslateStroke:
 
     def setup_method(self):
         self.d = StenoDictionary()
-        self.dc = StenoDictionaryCollection([self.d])
+        self.dc = self.DICT_COLLECTION_CLASS([self.d])
         self.s = _State()
         self.o = self.CaptureOutput()
         self.tlor = Translator()
@@ -808,3 +812,43 @@ ESCAPE_UNESCAPE_TRANSLATION_TESTS = (
 def test_escape_unescape_translation(raw, escaped):
     assert unescape_translation(escaped) == raw
     assert escape_translation(raw) == escaped
+
+
+class TestNoUnnecessaryLookups(TestTranslateStroke):
+
+    # Custom dictionary collection class for tracking lookups.
+    class DictTracy(StenoDictionaryCollection):
+
+        def __init__(self, dicts):
+            super().__init__(dicts)
+            self.lookup_history = []
+
+        def lookup(self, key):
+            self.lookup_history.append(key)
+            return super().lookup(key)
+
+    DICT_COLLECTION_CLASS = DictTracy
+
+    def _prepare_state(self, definitions, translations):
+        if definitions:
+            for steno, english in ast.literal_eval('{' + definitions + '}').items():
+                self.define(steno, english)
+        translations = self.lt(translations)
+        for t in translations:
+            for s in t.strokes:
+                self.translate(s.rtfcre)
+        state = translations[len(translations)-self.dc.longest_key:]
+        self._check_translations(state)
+        self.dc.lookup_history.clear()
+
+    def _check_lookup_history(self, expected):
+        # Hide from traceback on assertions (reduce output size for failed tests).
+        __tracebackhide__ = operator.methodcaller('errisinstance', AssertionError)
+        result = ['/'.join(key) for key in self.dc.lookup_history]
+        expected = expected.split()
+        msg = '''
+        lookup history:
+            results: %s
+            expected: %s
+        ''' % (result, expected)
+        assert result == expected, msg
