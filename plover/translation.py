@@ -292,14 +292,15 @@ class Translator:
         stroke -- The Stroke object to process.
 
         """
-        mapping = self._lookup_with_prefix(self._state.translations, [stroke])
+        max_len = self._dictionary.longest_key
+        mapping = self._lookup_with_prefix(max_len, self._state.translations, [stroke])
         macro = _mapping_to_macro(mapping, stroke)
         if macro is not None:
             self.translate_macro(macro)
             return
         t = (
-            self._find_translation_helper(stroke) or
-            self._find_translation_helper(stroke, system.SUFFIX_KEYS) or
+            self._find_longest_match(max_len, stroke) or
+            self._find_longest_match(max_len, stroke, system.SUFFIX_KEYS) or
             Translation([stroke], mapping)
         )
         self.translate_translation(t)
@@ -328,15 +329,22 @@ class Translator:
         self._state.translations.extend(translations)
         self._to_do += len(translations)
 
-    def _find_translation_helper(self, stroke, suffixes=()):
+    def _find_longest_match(self, max_len, stroke, suffixes=()):
+        '''Find mapping with the longest series of strokes.
+
+        max_len  -- Maximum number of strokes involved.
+        stroke   -- The latest stroke.
+        suffixes -- List of suffix keys to try.
+
+        Return the corresponding translation, or None if no match is found.
+        '''
         # Figure out how much of the translation buffer can be involved in this
         # stroke and build the stroke list for translation.
         num_strokes = 1
         translation_count = 0
-        longest_key = self._dictionary.longest_key
         for t in reversed(self._state.translations):
             num_strokes += len(t)
-            if num_strokes > longest_key:
+            if num_strokes > max_len:
                 break
             translation_count += 1
         translation_index = len(self._state.translations) - translation_count
@@ -348,7 +356,7 @@ class Translator:
             replaced = translations[i:]
             strokes = [s for t in replaced for s in t.strokes]
             strokes.append(stroke)
-            mapping = self._lookup_with_prefix(translations[:i], strokes, suffixes)
+            mapping = self._lookup_with_prefix(max_len, translations[:i], strokes, suffixes)
             if mapping is not None:
                 t = Translation(strokes, mapping)
                 t.replaced = replaced
@@ -389,12 +397,14 @@ class Translator:
             return True
         return formatting[-1].word_is_finished
 
-    def _lookup_with_prefix(self, last_translations, strokes, suffixes=()):
-        if self._previous_word_is_finished(last_translations):
+    def _lookup_with_prefix(self, max_len, last_translations, strokes, suffixes=()):
+        if len(strokes) < max_len and self._previous_word_is_finished(last_translations):
             mapping = self.lookup([Stroke.PREFIX_STROKE] + strokes, suffixes)
             if mapping is not None:
                 return mapping
-        return self.lookup(strokes, suffixes)
+        if len(strokes) <= max_len:
+            return self.lookup(strokes, suffixes)
+        return None
 
 
 class _State:

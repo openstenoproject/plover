@@ -852,3 +852,35 @@ class TestNoUnnecessaryLookups(TestTranslateStroke):
             expected: %s
         ''' % (result, expected)
         assert result == expected, msg
+
+    def test_zero_lookups(self):
+        # No lookups at all if longest key is zero.
+        self.translate('TEFT')
+        self._check_lookup_history('')
+        self._check_translations(self.lt('TEFT'))
+
+    def test_no_prefix_lookup_over_the_longest_key_limit(self):
+        self._prepare_state(
+            '''
+            "HROPBG/EFT/KAOE": "longest key",
+            "HRETS": "let's",
+            "TKO": "do",
+            "SPH": "some",
+            "TEFT": "test",
+            "-G": "{^ing}",
+            ''',
+            'HRETS TKO SPH TEFT')
+        self.translate('-G')
+        self._check_lookup_history(
+            # Macros.
+            '''
+            /-G
+            -G
+            '''
+            # Others.
+            '''
+            SPH/TEFT/-G
+            /TEFT/-G TEFT/-G
+            /-G -G
+            '''
+        )
