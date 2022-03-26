@@ -163,10 +163,6 @@ class StenoDictionary:
     def casereverse_lookup(self, value):
         return set(self.casereverse.get(value, ()))
 
-    @property
-    def longest_key(self):
-        return self._longest_key
-
 
 class StenoDictionaryCollection:
 
