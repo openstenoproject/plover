@@ -881,7 +881,6 @@ class TestNoUnnecessaryLookups(TestTranslateStroke):
             '''
             SPH/TEFT/-G
             /TEFT/-G TEFT/-G
-            /-G -G
             '''
         )
 
@@ -900,7 +899,6 @@ class TestNoUnnecessaryLookups(TestTranslateStroke):
             '''
             # No suffix.
             '''
-            TEFGT
             '''
             # With suffix.
             '''
@@ -934,8 +932,6 @@ class TestNoUnnecessaryLookups(TestTranslateStroke):
             TEFT/SPH/SUFBGSZ
             /SPH/SUFBGSZ
             SPH/SUFBGSZ
-            /SUFBGSZ
-            SUFBGSZ
             '''
             # Suffix lookups.
             '''

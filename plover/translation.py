@@ -299,9 +299,14 @@ class Translator:
             self.translate_macro(macro)
             return
         t = (
-            self._find_longest_match(max_len, stroke) or
-            self._find_longest_match(max_len, stroke, system.SUFFIX_KEYS) or
-            Translation([stroke], mapping)
+            # No prefix lookups (note we avoid looking up [stroke] again).
+            self._find_longest_match(2, max_len, stroke) or
+            # Return [stroke] result if mapped.
+            (mapping is not None and Translation([stroke], mapping)) or
+            # No direct match, try with suffixes.
+            self._find_longest_match(1, max_len, stroke, system.SUFFIX_KEYS) or
+            # Fallback to untranslate.
+            Translation([stroke], None)
         )
         self.translate_translation(t)
 
@@ -329,9 +334,10 @@ class Translator:
         self._state.translations.extend(translations)
         self._to_do += len(translations)
 
-    def _find_longest_match(self, max_len, stroke, suffixes=()):
+    def _find_longest_match(self, min_len, max_len, stroke, suffixes=()):
         '''Find mapping with the longest series of strokes.
 
+        min_len  -- Minimum number of strokes involved.
         max_len  -- Maximum number of strokes involved.
         stroke   -- The latest stroke.
         suffixes -- List of suffix keys to try.
@@ -366,6 +372,8 @@ class Translator:
             replaced = translations[i:]
             strokes = [s for t in replaced for s in t.strokes]
             strokes.append(stroke)
+            if len(strokes) < min_len:
+                continue
             mapping = self._lookup_with_prefix(max_len, translations[:i], strokes, suffixes)
             if mapping is not None:
                 t = Translation(strokes, mapping)
