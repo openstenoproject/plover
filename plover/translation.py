@@ -380,7 +380,8 @@ class Translator:
             return main_mapping + ' ' + suffix_mapping
         return None
 
-    def _previous_word_is_finished(self, last_translations):
+    @staticmethod
+    def _previous_word_is_finished(last_translations):
         if not last_translations:
             return True
         formatting = last_translations[-1].formatting
