@@ -354,26 +354,30 @@ class Translator:
                 t.replaced = replaced
                 return t
 
+    def _lookup_strokes(self, strokes):
+        '''Look for a matching translation.
+
+        strokes -- a list of Stroke instances.
+
+        Return the resulting mapping.
+        '''
+        return self._dictionary.lookup(tuple(s.rtfcre for s in strokes))
+
     def lookup(self, strokes, suffixes=()):
-        dict_key = tuple(s.rtfcre for s in strokes)
-        result = self._dictionary.lookup(dict_key)
+        result = self._lookup_strokes(strokes)
         if result is not None:
             return result
-        for key in suffixes:
-            if key in strokes[-1].steno_keys:
-                dict_key = (Stroke([key]).rtfcre,)
-                suffix_mapping = self._dictionary.lookup(dict_key)
-                if suffix_mapping is None:
-                    continue
-                keys = strokes[-1].steno_keys[:]
-                keys.remove(key)
-                copy = strokes[:]
-                copy[-1] = Stroke(keys)
-                dict_key = tuple(s.rtfcre for s in copy)
-                main_mapping = self._dictionary.lookup(dict_key)
-                if main_mapping is None:
-                    continue
-                return main_mapping + ' ' + suffix_mapping
+        for suffix_key in suffixes:
+            suffix_stroke = strokes[-1] & suffix_key
+            if not suffix_stroke:
+                continue
+            suffix_mapping = self._lookup_strokes((suffix_stroke,))
+            if suffix_mapping is None:
+                continue
+            main_mapping = self._lookup_strokes(strokes[:-1] + [strokes[-1] - suffix_stroke])
+            if main_mapping is None:
+                continue
+            return main_mapping + ' ' + suffix_mapping
         return None
 
     def _previous_word_is_finished(self, last_translations):
