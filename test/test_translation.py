@@ -907,3 +907,42 @@ class TestNoUnnecessaryLookups(TestTranslateStroke):
             -G TEFT
             '''
         )
+
+    def test_lookup_suffixes_once(self):
+        self._prepare_state(
+            '''
+            "HROPBG/EFT/KAOE": "longest key",
+            "HRETS": "let's",
+            "TEFT": "test",
+            "SPH": "some",
+            "SUFBGS": "suffix",
+            "-G": "{^ing}",
+            "-S": "{^s}",
+            "-D": "{^ed}",
+            "-Z": "{^s}",
+            ''',
+            'HRETS TEFT SPH')
+        self.translate('SUFBGSZ')
+        self._check_lookup_history(
+            # Macros.
+            '''
+            /SUFBGSZ
+            SUFBGSZ
+            '''
+            # Without suffix.
+            '''
+            TEFT/SPH/SUFBGSZ
+            /SPH/SUFBGSZ
+            SPH/SUFBGSZ
+            /SUFBGSZ
+            SUFBGSZ
+            '''
+            # Suffix lookups.
+            '''
+            -Z -S -G
+            TEFT/SPH/SUFBGS TEFT/SPH/SUFBGZ TEFT/SPH/SUFBSZ
+            /SPH/SUFBGS /SPH/SUFBGZ /SPH/SUFBSZ
+            SPH/SUFBGS SPH/SUFBGZ SPH/SUFBSZ
+            /SUFBGS /SUFBGZ /SUFBSZ
+            SUFBGS
+            ''')

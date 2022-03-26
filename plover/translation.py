@@ -342,6 +342,12 @@ class Translator:
         list), or assume the last stroke contains an implicit suffix
         and look for a corresponding match, but not both.
         '''
+        if suffixes:
+            # Implicit suffix lookup, determine possible suffixes.
+            suffixes = self._lookup_involved_suffixes(stroke, suffixes)
+            if not suffixes:
+                # No suffix involved, abort.
+                return None
         # Figure out how much of the translation buffer can be involved in this
         # stroke and build the stroke list for translation.
         num_strokes = 1
@@ -378,7 +384,7 @@ class Translator:
     def _lookup_with_suffix(self, strokes, suffixes=()):
         '''Look for a matching translation.
 
-        suffixes -- A list of suffix keys to try.
+        suffixes -- A list of (suffix stroke, suffix mapping) pairs to try.
 
         If the suffix list is empty, look for a direct match.
 
@@ -388,23 +394,38 @@ class Translator:
         if not suffixes:
             # No suffix, do a regular lookup.
             return self._lookup_strokes(strokes)
-        for suffix_key in suffixes:
-            suffix_stroke = strokes[-1] & suffix_key
-            if not suffix_stroke:
+        for suffix_stroke, suffix_mapping in suffixes:
+            assert suffix_stroke in strokes[-1]
+            main_mapping = self._lookup_strokes(strokes[:-1] + [strokes[-1] - suffix_stroke])
+            if main_mapping is not None:
+                return main_mapping + ' ' + suffix_mapping
+        return None
+
+    def _lookup_involved_suffixes(self, stroke, suffixes):
+        '''Find possible implicit suffixes for a stroke.
+
+        stroke   -- The stroke to check for implicit suffixes.
+        suffixes -- List of supported suffix keys.
+
+        Return a list of (suffix_stroke, suffix_mapping) pairs.
+        '''
+        possible_suffixes = []
+        for suffix_stroke in map(Stroke, suffixes):
+            if suffix_stroke not in stroke:
                 continue
             suffix_mapping = self._lookup_strokes((suffix_stroke,))
             if suffix_mapping is None:
                 continue
-            main_mapping = self._lookup_strokes(strokes[:-1] + [strokes[-1] - suffix_stroke])
-            if main_mapping is None:
-                continue
-            return main_mapping + ' ' + suffix_mapping
-        return None
+            possible_suffixes.append((suffix_stroke, suffix_mapping))
+        return possible_suffixes
 
     def lookup(self, strokes, suffixes=()):
         result = self._lookup_strokes(strokes)
         if result is not None:
             return result
+        suffixes = self._lookup_involved_suffixes(strokes[-1], suffixes)
+        if not suffixes:
+            return None
         return self._lookup_with_suffix(strokes, suffixes)
 
     @staticmethod
