@@ -379,6 +379,7 @@ class Translator:
                 t = Translation(strokes, mapping)
                 t.replaced = replaced
                 return t
+        return None
 
     def _lookup_strokes(self, strokes):
         '''Look for a matching translation.
