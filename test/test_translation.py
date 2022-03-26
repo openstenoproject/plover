@@ -884,3 +884,26 @@ class TestNoUnnecessaryLookups(TestTranslateStroke):
             /-G -G
             '''
         )
+
+    def test_no_duplicate_lookups_for_longest_no_suffix_match(self):
+        self._prepare_state(
+            '''
+            "TEFT": "test",
+            "-G": "{^ing}",
+            ''',
+            'TEFT')
+        self.translate('TEFGT')
+        self._check_lookup_history(
+            # Macros.
+            '''
+            TEFGT
+            '''
+            # No suffix.
+            '''
+            TEFGT
+            '''
+            # With suffix.
+            '''
+            -G TEFT
+            '''
+        )

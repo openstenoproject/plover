@@ -337,6 +337,10 @@ class Translator:
         suffixes -- List of suffix keys to try.
 
         Return the corresponding translation, or None if no match is found.
+
+        Note: the code either look for a direct match (empty suffix
+        list), or assume the last stroke contains an implicit suffix
+        and look for a corresponding match, but not both.
         '''
         # Figure out how much of the translation buffer can be involved in this
         # stroke and build the stroke list for translation.
@@ -371,10 +375,19 @@ class Translator:
         '''
         return self._dictionary.lookup(tuple(s.rtfcre for s in strokes))
 
-    def lookup(self, strokes, suffixes=()):
-        result = self._lookup_strokes(strokes)
-        if result is not None:
-            return result
+    def _lookup_with_suffix(self, strokes, suffixes=()):
+        '''Look for a matching translation.
+
+        suffixes -- A list of suffix keys to try.
+
+        If the suffix list is empty, look for a direct match.
+
+        Otherwise, assume the last stroke contains an implicit suffix,
+        and look for a corresponding match.
+        '''
+        if not suffixes:
+            # No suffix, do a regular lookup.
+            return self._lookup_strokes(strokes)
         for suffix_key in suffixes:
             suffix_stroke = strokes[-1] & suffix_key
             if not suffix_stroke:
@@ -388,6 +401,12 @@ class Translator:
             return main_mapping + ' ' + suffix_mapping
         return None
 
+    def lookup(self, strokes, suffixes=()):
+        result = self._lookup_strokes(strokes)
+        if result is not None:
+            return result
+        return self._lookup_with_suffix(strokes, suffixes)
+
     @staticmethod
     def _previous_word_is_finished(last_translations):
         if not last_translations:
@@ -399,11 +418,11 @@ class Translator:
 
     def _lookup_with_prefix(self, max_len, last_translations, strokes, suffixes=()):
         if len(strokes) < max_len and self._previous_word_is_finished(last_translations):
-            mapping = self.lookup([Stroke.PREFIX_STROKE] + strokes, suffixes)
+            mapping = self._lookup_with_suffix([Stroke.PREFIX_STROKE] + strokes, suffixes)
             if mapping is not None:
                 return mapping
         if len(strokes) <= max_len:
-            return self.lookup(strokes, suffixes)
+            return self._lookup_with_suffix(strokes, suffixes)
         return None
 
 
