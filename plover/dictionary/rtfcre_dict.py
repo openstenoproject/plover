@@ -17,8 +17,8 @@ import re
 import string
 
 from plover import __version__ as plover_version
+from plover.dictionary.helpers import StenoNormalizer
 from plover.formatting import ATOM_RE
-from plover.steno import normalize_steno
 from plover.steno_dictionary import StenoDictionary
 
 from .rtfcre_parse import parse_rtfcre
@@ -135,7 +135,8 @@ class RtfDictionary(StenoDictionary):
     def _load(self, filename):
         with open(filename, 'rb') as fp:
             text = fp.read().decode('cp1252')
-        self.update(parse_rtfcre(text, normalize=normalize_steno))
+        with StenoNormalizer(filename) as normalize_steno:
+            self.update(parse_rtfcre(text, normalize=normalize_steno))
 
     def _save(self, filename):
         translation_formatter = TranslationFormatter()
