@@ -179,9 +179,8 @@ class StenoEngine:
         if not dictionaries_changed(dictionaries, self._dictionaries.dicts):
             # No change.
             return
-        self._dictionaries = StenoDictionaryCollection(dictionaries)
-        self._translator.set_dictionary(self._dictionaries)
-        self._trigger_hook('dictionaries_loaded', self._dictionaries)
+        self._dictionaries.set_dicts(dictionaries)
+        self._trigger_hook('dictionaries_loaded', StenoDictionaryCollection(dictionaries))
 
     def _update(self, config_update=None, full=False, reset_machine=False):
         original_config = self._config.as_dict()
