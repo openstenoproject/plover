@@ -40,7 +40,7 @@ class Application:
         QCoreApplication.setOrganizationName('Open Steno Project')
         QCoreApplication.setOrganizationDomain('openstenoproject.org')
 
-        self._app = QApplication([])
+        self._app = QApplication([sys.argv[0], '-name', 'plover'])
         self._app.setAttribute(Qt.AA_UseHighDpiPixmaps)
 
         # Enable localization of standard Qt controls.
