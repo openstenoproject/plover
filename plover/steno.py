@@ -30,11 +30,12 @@ class Stroke(BaseStroke):
     UNDO_STROKE = None
 
     @classmethod
-    def setup(cls, keys, implicit_hyphen_keys, number_key, numbers, undo_stroke):
+    def setup(cls, keys, implicit_hyphen_keys, number_key,
+              numbers, feral_number_key, undo_stroke):
         if number_key is None:
             assert not numbers
             numbers = None
-        super().setup(keys, implicit_hyphen_keys, number_key, numbers)
+        super().setup(keys, implicit_hyphen_keys, number_key, numbers, feral_number_key)
         cls._class = type(cls.__name__, (cls,), {'_helper': cls._helper})
         cls._class._class = cls._class
         cls._class.PREFIX_STROKE = cls.PREFIX_STROKE = cls.from_integer(0)
