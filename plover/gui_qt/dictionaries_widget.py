@@ -632,7 +632,7 @@ class DictionariesWidget(QGroupBox, Ui_DictionariesWidget):
     def on_open_dictionaries(self):
         new_filenames = QFileDialog.getOpenFileNames(
             # i18n: Widget: “DictionariesWidget”, “add” file picker.
-            parent=self, caption=_('Add dictionaries'),
+            parent=self, caption=_('Load dictionaries'),
             directory=self._file_dialogs_directory,
             filter=_dictionary_filters(),
         )[0]
@@ -643,7 +643,7 @@ class DictionariesWidget(QGroupBox, Ui_DictionariesWidget):
 
     def on_create_dictionary(self):
         # i18n: Widget: “DictionariesWidget”, “new” file picker.
-        new_filename = self._get_dictionary_save_name(_('New dictionary'))
+        new_filename = self._get_dictionary_save_name(_('Create dictionary'))
         if new_filename is None:
             return
         with _new_dictionary(new_filename):

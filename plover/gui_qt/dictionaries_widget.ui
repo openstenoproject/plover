@@ -205,12 +205,12 @@
   </action>
   <action name="action_OpenDictionaries">
    <property name="text">
-    <string>Open dictionaries</string>
+    <string>Load dictionaries</string>
    </property>
   </action>
   <action name="action_CreateDictionary">
    <property name="text">
-    <string>New dictionary</string>
+    <string>Create dictionary</string>
    </property>
   </action>
  </widget>
