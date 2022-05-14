@@ -105,7 +105,7 @@ def engine(monkeypatch):
         os.unlink(cfg_file.name)
 
 
-def test_engine(engine):
+def test_engine_lifecycle(engine):
     # Config load.
     assert engine.load_config()
     assert engine.events == []
@@ -246,3 +246,21 @@ def test_loading_dictionaries(tmp_path, engine):
             (valid_dict_1, False, False),
             (invalid_dict_2, True, True),
         ]])
+
+def test_engine_running_state(engine):
+    # Running state must be different
+    # from initial (disabled state).
+    initial_state = engine.translator_state
+    assert engine.load_config()
+    engine.set_output(True)
+    running_state = engine.translator_state
+    assert running_state != initial_state
+    # Disabled state is reset every time
+    # output is disabled.
+    engine.set_output(False)
+    disabled_state = engine.translator_state
+    assert disabled_state != running_state
+    assert disabled_state != initial_state
+    # Running state is kept throughout.
+    engine.set_output(True)
+    assert engine.translator_state == running_state
