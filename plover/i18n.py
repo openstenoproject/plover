@@ -2,9 +2,8 @@ import os
 import locale
 import gettext
 
-import pkg_resources
-
 from plover.oslayer.config import CONFIG_DIR, PLATFORM
+from plover.resource import ASSET_SCHEME, resource_filename
 
 
 def get_language():
@@ -29,13 +28,10 @@ def get_language():
     return lang
 
 def get_locale_dir(package, resource_dir):
-    for locale_dir in [
-        os.path.join(CONFIG_DIR, 'messages'),
-        pkg_resources.resource_filename(package, resource_dir),
-    ]:
-        if gettext.find(package, locale_dir):
-            break
-    return locale_dir
+    locale_dir = os.path.join(CONFIG_DIR, 'messages')
+    if gettext.find(package, locale_dir):
+        return locale_dir
+    return resource_filename(f'{ASSET_SCHEME}{package}:{resource_dir}')
 
 
 class Translator:
