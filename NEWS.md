@@ -1,3 +1,79 @@
+# v4.0.0.dev11 (2022-05-15)
+
+## Features
+
+### Core
+
+- Switch to `plover_stroke` for better steno handling: faster and stricter. (#1362, #1417, #1452)
+- New faster and improved RTF/CRE parser. (#1364, #1365)
+- Correctly handle formatting currency with thousands separator(s): `23,000.15{:retro_currency:$c}` => `$23,000.15`. (#1391)
+- Improve “English stenotype” system compatibility with RTF/CRE spec: support arbitrary placement of the number sign when parsing steno (e.g. `18#`, `#18`, and `1#8` are all valid and equivalent). (#1491)
+- Improve translation stage: cut down on unnecessary / duplicate dictionary lookups. (#1513)
+
+### User Interface
+
+- Improve accessibility:
+  - Disable tab-key navigation in tables, so focusing a table does not lock global tab-key navigation to it.
+  - Remove some container widgets, tweak focus rules to avoid extra unnecessary steps when using tab-key navigation (like selecting the dictionaries widget outer frame).
+  - In form layouts, link each widget to its label (like each option in the configuration dialog).
+  - Set the accessible name / description of focusable widgets.
+  - Use lists for the dictionaries widget, suggestions widget, and the paper tape. (#1308, #1332, #1434, #1451)
+- Show a message when hiding to tray. (#1333)
+- Improved steno handling:
+  - validate inputs in the "add translation" dialog and dictionary editor
+  - sort on steno order in the dictionary editor, and signal invalid steno entries (#1362, #1501)
+
+### Linux
+
+- Improve D-Bus logger implementation. (#1496)
+- Add `WM_CLASS` property to windows (`WM_CLASS(STRING) = "plover", "Plover"`). (#1498)
+
+## Bugfixes
+
+### Core
+
+- New reworked RTF/CRE support:
+  - correctly handle multi-lines mappings
+  - detect syntax errors (with recovery)
+  - use `\n\n` for new paragraphs (instead of non-undoable `{#Return}{#Returns}`)
+  - similarly, use `\t` and `\n` for `\tab` and `\line`
+  - correctly escape `{}\` on save
+  - use custom ignored groups for Plover macros and metas
+  - use groups to improve round-tripping affixes (so there's no ambiguity when parsing back, e.g. `{^in^}fix` -> `{\cxds in \cxds}fix` instead of `\cxds in\cxds fix`) (#1364, #1365)
+- Fixed a memory leak on reloading externally modified dictionaries. (#1375)
+- Do not discard existing filters on dictionaries reload. (#1388)
+- Fix engine's running state: make sure the translator' state is empty when enabling output for the first time. (#1504)
+- Fix exit handlers not getting always executed. (#1507)
+- Fix `StenoDictionaryCollection.longest_key` implementation: ignore disabled dictionaries! (#1512)
+
+### Dictionaries
+
+- Fix `KHR*PB` stroke to not be misinterpreted as a command. (#1463)
+
+### User Interface
+
+- Speedup dictionary editor startup (avoid duplicate sort). (#1351)
+- Updated Spanish translation. (#1420)
+- Updated French translation. (#1422)
+- Speedup suggestions widget implementation: should noticeably improve performance when there's a large scrollback. (#1481)
+
+### Windows
+
+- Drop launch option from installer's final page: avoid possible issues (e.g. permission errors with the controller's pipe) because Plover was run as admin. (#1495)
+- Fix notifications behavior: no persistent duplicated icons (one for each notification). (#1507, #1508)
+
+## API
+
+### Breaking Changes
+
+- The custom `test` command implementation provided by `plover_build_utils.setup.Test` has been removed:
+  - support for it on setuptools' side has been deprecated since version 41.5.0
+  - the custom handling of arguments conflicts with the use of some pytest options (e.g. `-m MARKEXPR`)
+  - the workaround for pytest cache handling is not necessary anymore (#1332)
+- The `steno` helpers (`Stroke` class, `normalize_stroke`, …) now raise a `ValueError` exception in case of invalid steno. (#1362, #1501)
+- The support for `StenoDictionary` and `StenoDictionaryCollection` longest key callbacks is gone, use the `longest_key` properties instead. (#1375)
+
+
 # v4.0.0.dev10 (2021-06-19)
 
 ## Features
