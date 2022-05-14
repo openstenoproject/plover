@@ -1,3 +1,2 @@
-dbus-python>=1.2.4; "linux" in sys_platform
 
 # vim: ft=cfg commentstring=#\ %s list
