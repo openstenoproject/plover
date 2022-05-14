@@ -51,6 +51,16 @@ py_base_ver="${py_base_ver//.}"
 
 build_dist()
 {(
+  kernel="$(uname -s)" || die
+
+  # Build/cache the wheels we need first using the default Python, so C
+  # extensions can be successfully built (the embedded distribution does
+  # not include the necessary files, e.g. `Python.h`).
+  if [ "$kernel" != "Linux" ]
+  then
+    bootstrap_dist "$wheel" --no-warn-script-location --no-install
+  fi
+
   # Fetch official embedded distribution.
   py_embed_zip="$(run "$python" -m plover_build_utils.download "https://www.python.org/ftp/python/$py_embed_version/python-$py_embed_version-embed-amd64.zip" "$py_embed_sha1")" || die
 
@@ -70,7 +80,6 @@ build_dist()
 
   # Switch to the distribution Python.
   dist_python=("$dist_data/python.exe")
-  kernel="$(uname -s)" || die
   if [ "$kernel" = "Linux" ]
   then
     dist_python=(wine "$dist_python")
@@ -79,7 +88,7 @@ build_dist()
   python='dist_python'
 
   # Install Plover and dependencies.
-  bootstrap_dist "$wheel" --no-warn-script-location
+  bootstrap_dist "$wheel" --no-warn-script-location --no-index
 
   # Trim the fat...
   if [ $opt_trim -eq 1 ]
