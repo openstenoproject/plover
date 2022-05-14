@@ -121,6 +121,18 @@ def test_dictionary_collection_longest_key():
     del d1[k2]
     assert dc.longest_key == 3
 
+    d2.enabled = False
+    assert dc.longest_key == 1
+
+    d1.enabled = False
+    assert dc.longest_key == 0
+
+    d2.enabled = True
+    assert dc.longest_key == 3
+
+    d1.enabled = True
+    assert dc.longest_key == 3
+
     dc.set_dicts([d1])
     assert dc.longest_key == 1
 
