@@ -1,4 +1,5 @@
 import contextlib
+import glob
 import importlib
 import os
 import subprocess
@@ -147,6 +148,30 @@ class BuildUi(Command):
                 self._build_resources(src)
             if src.endswith('.ui'):
                 self._build_ui(src)
+
+# }}}
+
+# Wayland protocols generation. {{{
+
+class BuildWayland(Command):
+
+    description = 'build Wayland protocol modules'
+
+    def initialize_options(self):
+        pass
+
+    def finalize_options(self):
+        pass
+
+    def run(self):
+        log.info('generating Wayland protocol modules')
+        base = 'plover/oslayer/wayland'
+        defs = glob.glob(base + '/*.xml') + ['/usr/share/wayland/wayland.xml']
+        cmd = (
+            sys.executable, '-m', 'pywayland.scanner',
+            '-i', *defs, '-o', base,
+        )
+        subprocess.check_call(cmd)
 
 # }}}
 

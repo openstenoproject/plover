@@ -20,6 +20,16 @@ elif sys.platform.startswith(('freebsd', 'openbsd')):
 else:
     PLATFORM = None
 
+if PLATFORM in {'linux', 'bsd'}:
+    if os.environ.get('WAYLAND_DISPLAY', None):
+        DISPLAY_SERVER = 'wayland'
+    else:
+        DISPLAY_SERVER = 'xorg'
+elif PLATFORM in {'win', 'mac'}:
+    DISPLAY_SERVER = PLATFORM
+else:
+    DISPLAY_SERVER = None
+
 # If the program's working directory has a plover.cfg file then run in
 # "portable mode", i.e. store all data in the same directory. This allows
 # keeping all Plover files in a portable drive.
