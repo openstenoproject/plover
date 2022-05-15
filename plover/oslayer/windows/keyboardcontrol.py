@@ -50,14 +50,6 @@ SCANCODE_TO_KEY = {
 
 KEY_TO_SCANCODE = dict(zip(SCANCODE_TO_KEY.values(), SCANCODE_TO_KEY.keys()))
 
-# Keys that need an extended key flag for Windows input
-EXTENDED_KEYS = {
-    # Control   Alt         INS   DEL   HOME  END   PG UP PG DN Arrows
-    0xA2, 0xA3, 0xA4, 0xA5, 0x2D, 0x2E, 0x21, 0x22, 0x24, 0x23, 0x25, 0x26,
-    # Arrow     NmLk  Break PtSc  Divide
-    0x27, 0x28, 0x90, 0x03, 0x2C, 0x6F
-}
-
 PASSTHROUGH_KEYS = {
     0XA2, 0XA3, # Control
     0XA0, 0XA1, # Shift
@@ -477,8 +469,6 @@ class KeyboardEmulation(Output):
 
     def _key_event(self, keycode, pressed):
         flags = 0 if pressed else KEYEVENTF_KEYUP
-        if keycode in EXTENDED_KEYS:
-            flags |= KEYEVENTF_EXTENDEDKEY
         self._send_input(self._keyboard(keycode, flags))
 
     # Press and release a key
