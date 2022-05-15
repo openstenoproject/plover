@@ -21,18 +21,19 @@ http://tronche.com/gui/x/xlib/input/keyboard-encoding.html
 
 """
 
-from functools import wraps
 import os
-import string
 import select
 import threading
 
-from Xlib import X, XK, display
+from Xlib import X, XK
+from Xlib.display import Display
 from Xlib.ext import xinput, xtest
 from Xlib.ext.ge import GenericEventCode
 
-from plover.key_combo import add_modifiers_aliases, parse_key_combo
 from plover import log
+from plover.key_combo import add_modifiers_aliases, parse_key_combo
+from plover.machine.keyboard_capture import Capture
+from plover.output import Output
 
 
 # Enable support for media keys.
@@ -143,40 +144,33 @@ KEYCODE_TO_KEY = {
 
 KEY_TO_KEYCODE = dict(zip(KEYCODE_TO_KEY.values(), KEYCODE_TO_KEY.keys()))
 
-def with_display_lock(func):
-    """
-    Use this function as a decorator on a method of the XEventLoop class (or
-    one of its subclasses) to acquire the _display_lock of the object before
-    calling the function and release it afterwards.
-    """
-    # To keep __doc__/__name__ attributes of the initial function.
-    @wraps(func)
-    def wrapped(self, *args, **kwargs):
-        with self._display_lock:
-            return func(self, *args, **kwargs)
-    return wrapped
+class XEventLoop:
 
-class XEventLoop(threading.Thread):
-
-    def __init__(self, name='xev'):
-        super().__init__()
-        self.name += '-' + name
-        self._display = display.Display()
+    def __init__(self, on_event, name='XEventLoop'):
+        self._on_event = on_event
+        self._lock = threading.Lock()
+        self._display = Display()
+        self._thread = threading.Thread(name=name, target=self._run)
         self._pipe = os.pipe()
-        self._display_lock = threading.Lock()
         self._readfds = (self._pipe[0], self._display.fileno())
 
-    def _on_event(self, event):
-        pass
+    def __enter__(self):
+        self._lock.__enter__()
+        return self._display
 
-    @with_display_lock
+    def __exit__(self, exc_type, exc_value, traceback):
+        if exc_type is None and self._display is not None:
+            self._display.sync()
+        self._lock.__exit__(exc_type, exc_value, traceback)
+
     def _process_pending_events(self):
         for __ in range(self._display.pending_events()):
             self._on_event(self._display.next_event())
 
-    def run(self):
+    def _run(self):
         while True:
-            self._process_pending_events()
+            with self._lock:
+                self._process_pending_events()
             # No more events: sleep until we get new data on the
             # display connection, or on the pipe used to signal
             # the end of the loop.
@@ -188,35 +182,36 @@ class XEventLoop(threading.Thread):
             # If we're here, rlist should contains the display fd,
             # and the next iteration will find some pending events.
 
+    def start(self):
+        self._thread.start()
+
     def cancel(self):
-        # Wake up the capture thread...
-        os.write(self._pipe[1], b'quit')
-        # ...and wait for it to terminate.
-        self.join()
+        if self._thread.is_alive():
+            # Wake up the capture thread...
+            os.write(self._pipe[1], b'quit')
+            # ...and wait for it to terminate.
+            self._thread.join()
         for fd in self._pipe:
             os.close(fd)
+        self._display.close()
+        self._display = None
 
 
-class KeyboardCapture(XEventLoop):
-    """Listen to keyboard press and release events."""
+class KeyboardCapture(Capture):
 
     def __init__(self):
-        """Prepare to listen for keyboard events."""
-        super().__init__(name='capture')
-        self._window = self._display.screen().root
-        if not self._display.has_extension('XInputExtension'):
-            raise Exception('Xlib\'s XInput extension is required, but could not be found.')
+        super().__init__()
+        self._event_loop = None
+        self._window = None
         self._suppressed_keys = set()
         self._devices = []
-        self.key_down = lambda key: None
-        self.key_up = lambda key: None
 
-    def _update_devices(self):
+    def _update_devices(self, display):
         # Find all keyboard devices.
         # This function is never called while the event loop thread is running,
         # so it is unnecessary to lock self._display_lock.
         keyboard_devices = []
-        for devinfo in self._display.xinput_query_device(xinput.AllDevices).devices:
+        for devinfo in display.xinput_query_device(xinput.AllDevices).devices:
             # Only keep slave devices.
             # Note: we look at pointer devices too, as some keyboards (like the
             # VicTop mechanical gaming keyboard) register 2 devices, including
@@ -261,19 +256,28 @@ class KeyboardCapture(XEventLoop):
             self.key_up(key)
 
     def start(self):
-        self._update_devices()
-        self._window.xinput_select_events([
-            (deviceid, XINPUT_EVENT_MASK)
-            for deviceid in self._devices
-        ])
-        suppressed_keys = self._suppressed_keys
-        self._suppressed_keys = set()
-        self.suppress_keyboard(suppressed_keys)
-        super().start()
+        self._event_loop = XEventLoop(self._on_event, name='KeyboardCapture')
+        with self._event_loop as display:
+            if not display.has_extension('XInputExtension'):
+                raise Exception('X11\'s XInput extension is required, but could not be found.')
+            self._update_devices(display)
+            self._window = display.screen().root
+            self._window.xinput_select_events([
+                (deviceid, XINPUT_EVENT_MASK)
+                for deviceid in self._devices
+            ])
+            self._event_loop.start()
 
     def cancel(self):
-        self.suppress_keyboard()
-        super().cancel()
+        if self._event_loop is None:
+            return
+        with self._event_loop:
+            self._suppress_keys(())
+        self._event_loop.cancel()
+
+    def suppress(self, suppressed_keys=()):
+        with self._event_loop:
+            self._suppress_keys(suppressed_keys)
 
     def _grab_key(self, keycode):
         for deviceid in self._devices:
@@ -292,8 +296,7 @@ class KeyboardCapture(XEventLoop):
                                                keycode,
                                                (0, X.Mod2Mask))
 
-    @with_display_lock
-    def suppress_keyboard(self, suppressed_keys=()):
+    def _suppress_keys(self, suppressed_keys):
         suppressed_keys = set(suppressed_keys)
         if self._suppressed_keys == suppressed_keys:
             return
@@ -304,7 +307,6 @@ class KeyboardCapture(XEventLoop):
             self._grab_key(KEY_TO_KEYCODE[key])
             self._suppressed_keys.add(key)
         assert self._suppressed_keys == suppressed_keys
-        self._display.sync()
 
 
 # Keysym to Unicode conversion table.
@@ -1118,15 +1120,14 @@ def keysym_to_string(keysym):
             if keysym_str is None:
                 keysym_str = ''
             for c in keysym_str:
-                if c not in string.printable:
+                if not c.isprintable():
                     keysym_str = ''
                     break
             return keysym_str
     return chr(code)
 
 
-class KeyboardEmulation:
-    """Emulate keyboard events."""
+class KeyboardEmulation(Output):
 
     class Mapping:
 
@@ -1153,8 +1154,8 @@ class KeyboardEmulation:
     UNUSED_KEYSYM = 0xffffff # XK_VoidSymbol
 
     def __init__(self):
-        """Prepare to emulate keyboard events."""
-        self._display = display.Display()
+        super().__init__()
+        self._display = Display()
         self._update_keymap()
 
     def _update_keymap(self):
@@ -1215,32 +1216,14 @@ class KeyboardEmulation:
         # Get modifier mapping.
         self.modifier_mapping = self._display.get_modifier_mapping()
 
-    def send_backspaces(self, number_of_backspaces):
-        """Emulate the given number of backspaces.
-
-        The emulated backspaces are not detected by KeyboardCapture.
-
-        Argument:
-
-        number_of_backspace -- The number of backspaces to emulate.
-
-        """
-        for x in range(number_of_backspaces):
+    def send_backspaces(self, count):
+        for x in range(count):
             self._send_keycode(self._backspace_mapping.keycode,
                                self._backspace_mapping.modifiers)
         self._display.sync()
 
-    def send_string(self, s):
-        """Emulate the given string.
-
-        The emulated string is not detected by KeyboardCapture.
-
-        Argument:
-
-        s -- The string to emulate.
-
-        """
-        for char in s:
+    def send_string(self, string):
+        for char in string:
             keysym = uchr_to_keysym(char)
             mapping = self._get_mapping(keysym)
             if mapping is None:
@@ -1249,32 +1232,11 @@ class KeyboardEmulation:
                                mapping.modifiers)
         self._display.sync()
 
-    def send_key_combination(self, combo_string):
-        """Emulate a sequence of key combinations.
-
-        KeyboardCapture instance would normally detect the emulated
-        key events. In order to prevent this, all KeyboardCapture
-        instances are told to ignore the emulated key events.
-
-        Argument:
-
-        combo_string -- A string representing a sequence of key
-        combinations. Keys are represented by their names in the
-        Xlib.XK module, without the 'XK_' prefix. For example, the
-        left Alt key is represented by 'Alt_L'. Keys are either
-        separated by a space or a left or right parenthesis.
-        Parentheses must be properly formed in pairs and may be
-        nested. A key immediately followed by a parenthetical
-        indicates that the key is pressed down while all keys enclosed
-        in the parenthetical are pressed and released in turn. For
-        example, Alt_L(Tab) means to hold the left Alt key down, press
-        and release the Tab key, and then release the left Alt key.
-
-        """
+    def send_key_combination(self, combo):
         # Parse and validate combo.
         key_events = [
             (keycode, X.KeyPress if pressed else X.KeyRelease) for keycode, pressed
-            in parse_key_combo(combo_string, self._get_keycode_from_keystring)
+            in parse_key_combo(combo, self._get_keycode_from_keystring)
         ]
         # Emulate the key combination by sending key events.
         for keycode, event_type in key_events:

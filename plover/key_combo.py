@@ -8,7 +8,7 @@ KEYNAME_TO_CHAR = {
     # Generated using:
     #
     # from Xlib import XK
-    # from plover.oslayer.xkeyboardcontrol import keysym_to_string
+    # from plover.oslayer.linux.keyboardcontrol_x11 import keysym_to_string
     # for kn, ks in sorted({
     #     name[3:].lower(): getattr(XK, name)
     #     for name in sorted(dir(XK))

@@ -2,10 +2,6 @@
 .github/workflows/ci/skiplist_os_macOS.txt
 linux/*
 osx/*
-plover/oslayer/log_dbus.py
-plover/oslayer/log_osx.py
-plover/oslayer/osxkeyboardcontrol.py
-plover/oslayer/osxkeyboardlayout.py
-plover/oslayer/xkeyboardcontrol.py
-plover/oslayer/xwmctrl.py
+plover/oslayer/linux/*
+plover/oslayer/osx/*
 {EOF}

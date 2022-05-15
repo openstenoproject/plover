@@ -7,8 +7,9 @@ import ctypes
 import sys
 
 from plover.key_combo import CHAR_TO_KEYNAME, add_modifiers_aliases
-from plover.oslayer.wmctrl import GetForegroundWindow
 from plover.misc import popcount_8
+
+from .wmctrl import GetForegroundWindow
 
 
 GetKeyboardLayout = windll.user32.GetKeyboardLayout

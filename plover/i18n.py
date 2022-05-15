@@ -1,31 +1,22 @@
 import os
-import locale
 import gettext
 
 from plover.oslayer.config import CONFIG_DIR, PLATFORM
+from plover.oslayer.i18n import get_system_language
 from plover.resource import ASSET_SCHEME, resource_filename
 
 
 def get_language():
-    env_vars = ['LANGUAGE']
-    if PLATFORM in {'linux', 'bsd'}:
-        env_vars.extend(('LC_ALL', 'LC_MESSAGES', 'LANG'))
-    for var in env_vars:
-        lang = os.environ.get(var)
-        if lang is not None:
-            return lang
-    if PLATFORM in {'linux', 'bsd'}:
-        lang, enc = locale.getdefaultlocale()
-    elif PLATFORM == 'mac':
-        from AppKit import NSLocale
-        lang_list = NSLocale.preferredLanguages()
-        lang = lang_list[0] if lang_list else None
-    elif PLATFORM == 'win':
-        from ctypes import windll
-        lang = locale.windows_locale[windll.kernel32.GetUserDefaultUILanguage()]
-    if lang is None:
-        lang = 'en'
-    return lang
+    # Give priority to LANGUAGE environment variable.
+    lang = os.environ.get('LANGUAGE')
+    if lang is not None:
+        return lang
+    # Try to get system language.
+    lang = get_system_language()
+    if lang is not None:
+        return lang
+    # Fallback to English.
+    return 'en'
 
 def get_locale_dir(package, resource_dir):
     locale_dir = os.path.join(CONFIG_DIR, 'messages')

@@ -23,7 +23,15 @@ class Keyboard(StenotypeBase):
 
     """
 
-    KEYS_LAYOUT = KeyboardCapture.SUPPORTED_KEYS_LAYOUT
+    KEYS_LAYOUT = '''
+    Escape  F1 F2 F3 F4  F5 F6 F7 F8  F9 F10 F11 F12
+
+      `  1  2  3  4  5  6  7  8  9  0  -  =  \\ BackSpace  Insert Home Page_Up
+     Tab  q  w  e  r  t  y  u  i  o  p  [  ]               Delete End  Page_Down
+           a  s  d  f  g  h  j  k  l  ;  '      Return
+            z  x  c  v  b  n  m  ,  .  /                          Up
+                     space                                   Left Down Right
+    '''
     ACTIONS = ('arpeggiate',)
 
     def __init__(self, params):
@@ -40,11 +48,11 @@ class Keyboard(StenotypeBase):
         self._stroke_key_down_count = 0
         self._update_bindings()
 
-    def _suppress(self):
+    def _update_suppression(self):
         if self._keyboard_capture is None:
             return
         suppressed_keys = self._bindings.keys() if self._is_suppressed else ()
-        self._keyboard_capture.suppress_keyboard(suppressed_keys)
+        self._keyboard_capture.suppress(suppressed_keys)
 
     def _update_bindings(self):
         self._arpeggiate_key = None
@@ -59,7 +67,7 @@ class Keyboard(StenotypeBase):
                 else:
                     # Don't suppress arpeggiate key if it's not used.
                     del self._bindings[key]
-        self._suppress()
+        self._update_suppression()
 
     def set_keymap(self, keymap):
         super().set_keymap(keymap)
@@ -72,8 +80,8 @@ class Keyboard(StenotypeBase):
             self._keyboard_capture = KeyboardCapture()
             self._keyboard_capture.key_down = self._key_down
             self._keyboard_capture.key_up = self._key_up
-            self._suppress()
             self._keyboard_capture.start()
+            self._update_suppression()
         except:
             self._error()
             raise
@@ -83,14 +91,14 @@ class Keyboard(StenotypeBase):
         """Stop listening for output from the stenotype machine."""
         if self._keyboard_capture is not None:
             self._is_suppressed = False
-            self._suppress()
+            self._update_suppression()
             self._keyboard_capture.cancel()
             self._keyboard_capture = None
         self._stopped()
 
     def set_suppression(self, enabled):
         self._is_suppressed = enabled
-        self._suppress()
+        self._update_suppression()
 
     def suppress_last_stroke(self, send_backspaces):
         send_backspaces(self._last_stroke_key_down_count)
