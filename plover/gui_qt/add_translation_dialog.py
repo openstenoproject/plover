@@ -19,9 +19,9 @@ class AddTranslationDialog(Tool, Ui_AddTranslationDialog):
     def __init__(self, engine, dictionary_path=None):
         super().__init__(engine)
         self.setupUi(self)
-        self.buttonBox.button(QDialogButtonBox.Ok).setEnabled(False)
         self.add_translation.select_dictionary(dictionary_path)
         self.add_translation.mappingValid.connect(self.on_mapping_valid)
+        self.on_mapping_valid(self.add_translation.mapping_is_valid)
         engine.signal_connect('config_changed', self.on_config_changed)
         self.on_config_changed(engine.config)
         self.installEventFilter(self)
