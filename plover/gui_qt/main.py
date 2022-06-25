@@ -7,7 +7,11 @@ from PyQt5.QtCore import (
     QTimer,
     QTranslator,
     Qt,
+    QtDebugMsg,
+    QtInfoMsg,
+    QtWarningMsg,
     pyqtRemoveInputHook,
+    qInstallMessageHandler,
 )
 from PyQt5.QtWidgets import QApplication, QMessageBox
 
@@ -88,6 +92,23 @@ def show_error(title, message):
 def default_excepthook(*exc_info):
     log.error('Qt GUI error', exc_info=exc_info)
 
+def default_message_handler(msg_type, msg_log_context, msg_string):
+    log_fn = {
+        QtDebugMsg: log.debug,
+        QtInfoMsg: log.info,
+        QtWarningMsg: log.warning,
+    }.get(msg_type, log.error)
+    details = []
+    if msg_log_context.file is not None:
+        details.append('%s:%u' % (msg_log_context.file, msg_log_context.line))
+    if msg_log_context.function is not None:
+        details.append(msg_log_context.function)
+    if details:
+        details = ' [%s]' % ', '.join(details)
+    else:
+        details = ''
+    log_fn('Qt: %s%s', msg_string, details)
+
 
 def main(config, controller):
     # Setup internationalization support.
@@ -95,6 +116,8 @@ def main(config, controller):
     # Log GUI exceptions that make it back to the event loop.
     if sys.excepthook is sys.__excepthook__:
         sys.excepthook = default_excepthook
+    # Capture and log Qt messages.
+    qInstallMessageHandler(default_message_handler)
     app = Application(config, controller, use_qt_notifications)
     code = app.run()
     del app
