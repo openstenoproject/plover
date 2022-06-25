@@ -1,6 +1,5 @@
 from PyQt5.QtCore import (
     QThread,
-    QVariant,
     pyqtSignal,
 )
 
@@ -11,12 +10,12 @@ from plover.oslayer.config import PLATFORM
 class Engine(StenoEngine, QThread):
 
     # Signals.
-    signal_stroked = pyqtSignal(QVariant)
-    signal_translated = pyqtSignal(QVariant, QVariant)
+    signal_stroked = pyqtSignal(object)
+    signal_translated = pyqtSignal(object, object)
     signal_machine_state_changed = pyqtSignal(str, str)
     signal_output_changed = pyqtSignal(bool)
-    signal_config_changed = pyqtSignal(QVariant)
-    signal_dictionaries_loaded = pyqtSignal(QVariant)
+    signal_config_changed = pyqtSignal(object)
+    signal_dictionaries_loaded = pyqtSignal(object)
     signal_send_string = pyqtSignal(str)
     signal_send_backspaces = pyqtSignal(int)
     signal_send_key_combination = pyqtSignal(str)

@@ -5,7 +5,6 @@ from functools import partial
 
 from PyQt5.QtCore import (
     Qt,
-    QVariant,
     pyqtSignal,
 )
 from PyQt5.QtWidgets import (
@@ -149,7 +148,7 @@ class TableOption(QTableWidget):
 
 class KeymapOption(TableOption):
 
-    valueChanged = pyqtSignal(QVariant)
+    valueChanged = pyqtSignal(object)
 
     class ItemDelegate(QStyledItemDelegate):
 
@@ -216,7 +215,7 @@ class KeymapOption(TableOption):
 
 class MultipleChoicesOption(TableOption):
 
-    valueChanged = pyqtSignal(QVariant)
+    valueChanged = pyqtSignal(object)
 
     LABELS = (
         # i18n: Widget: “MultipleChoicesOption”.
