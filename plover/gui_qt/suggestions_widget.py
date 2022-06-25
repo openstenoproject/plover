@@ -1,16 +1,16 @@
-from PyQt5.QtCore import (
+from qtpy.QtCore import (
     QAbstractListModel,
     QModelIndex,
     Qt,
 )
-from PyQt5.QtGui import (
+from qtpy.QtGui import (
     QFont,
     QFontMetrics,
     QTextCharFormat,
     QTextCursor,
     QTextDocument,
 )
-from PyQt5.QtWidgets import (
+from qtpy.QtWidgets import (
     QListView,
     QStyle,
     QStyledItemDelegate,

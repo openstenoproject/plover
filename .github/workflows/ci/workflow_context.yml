@@ -69,7 +69,7 @@ jobs:
   - <<: *test
     type: test_gui_qt
     variant: Qt GUI
-    reqs: ['dist', 'dist_extra_gui_qt', 'test']
+    reqs: ['dist', 'dist_extra_gui_qt', 'dist_pyqt5', 'setup', 'test']
     skiplists: ['job_test_gui_qt']
     test_args: test/gui_qt
 
@@ -87,15 +87,15 @@ jobs:
     type: build
     needs: [test_linux]
     reqs: ['build', 'setup']
-    cache_extra_deps: ['reqs/dist_*.txt', 'linux/appimage/deps.sh']
+    cache_extra_deps: ['reqs/dist_extra*.txt', 'reqs/dist_plugins.txt', 'reqs/dist_pyqt5', 'linux/appimage/deps.sh']
     skiplists: ['job_build', 'os_linux']
   - <<: *build
     <<: *dist_macos
     needs: [test_macos]
-    cache_extra_deps: ['reqs/dist_*.txt', 'osx/deps.sh']
+    cache_extra_deps: ['reqs/dist_extra*.txt', 'reqs/dist_plugins.txt', 'reqs/dist_pyqt5', 'osx/deps.sh']
     skiplists: ['job_build', 'os_macos']
   - <<: *build
     <<: *dist_win
     needs: [test_windows]
-    cache_extra_deps: ['reqs/dist_*.txt', 'windows/dist_deps.sh']
+    cache_extra_deps: ['reqs/dist_extra*.txt', 'reqs/dist_plugins.txt', 'reqs/dist_pyqt5', 'windows/dist_deps.sh']
     skiplists: ['job_build', 'os_windows']

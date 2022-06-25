@@ -1,6 +1,6 @@
-from PyQt5.QtCore import QObject, pyqtSignal
-from PyQt5.QtGui import QIcon
-from PyQt5.QtWidgets import QMessageBox, QSystemTrayIcon
+from qtpy.QtCore import QObject, Signal
+from qtpy.QtGui import QIcon
+from qtpy.QtWidgets import QMessageBox, QSystemTrayIcon
 
 from plover import _, __name__ as __software_name__
 from plover import log
@@ -107,7 +107,7 @@ class TrayIcon(QObject):
         self._is_running = enabled
         self._update_state()
 
-    clicked = pyqtSignal()
+    clicked = Signal()
 
     def _update_state(self):
         if self._machine_state not in (STATE_INITIALIZING, STATE_RUNNING):

@@ -4,7 +4,7 @@ from textwrap import dedent
 from types import SimpleNamespace
 import operator
 
-from PyQt5.QtCore import (
+from qtpy.QtCore import (
     QAbstractListModel,
     QItemSelectionModel,
     QModelIndex,

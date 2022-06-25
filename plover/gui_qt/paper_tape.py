@@ -1,12 +1,12 @@
 import time
 
-from PyQt5.QtCore import (
+from qtpy.QtCore import (
     QAbstractListModel,
     QModelIndex,
     Qt,
 )
-from PyQt5.QtGui import QFont
-from PyQt5.QtWidgets import (
+from qtpy.QtGui import QFont
+from qtpy.QtWidgets import (
     QFileDialog,
     QFontDialog,
     QMessageBox,

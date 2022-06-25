@@ -2,7 +2,7 @@ from pathlib import Path
 import signal
 import sys
 
-from PyQt5.QtCore import (
+from qtpy.QtCore import (
     QCoreApplication,
     QDir,
     QLibraryInfo,
@@ -11,7 +11,8 @@ from PyQt5.QtCore import (
     Qt,
     pyqtRemoveInputHook,
 )
-from PyQt5.QtWidgets import QApplication, QMessageBox
+from qtpy.QtWidgets import QApplication, QMessageBox
+from qtpy import API as QT_API
 
 from plover import _, __name__ as __software_name__, __version__, log
 from plover.oslayer.keyboardcontrol import KeyboardEmulation
@@ -96,6 +97,7 @@ def default_excepthook(*exc_info):
 
 
 def main(config, controller):
+    log.info('using the `%s` API', QT_API)
     # Setup internationalization support.
     use_qt_notifications = not log.has_platform_handler()
     # Log GUI exceptions that make it back to the event loop.

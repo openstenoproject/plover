@@ -1,14 +1,14 @@
 
 import logging
 
-from PyQt5.QtCore import QObject, pyqtSignal
+from qtpy.QtCore import QObject, Signal
 
 from plover import log
 
 
 class NotificationHandler(QObject, logging.Handler):
 
-    emitSignal = pyqtSignal(int, str)
+    emitSignal = Signal(int, str)
 
     def __init__(self):
         super().__init__()

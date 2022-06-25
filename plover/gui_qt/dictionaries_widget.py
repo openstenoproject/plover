@@ -1,14 +1,14 @@
 from contextlib import contextmanager
 import os
 
-from PyQt5.QtCore import (
+from qtpy.QtCore import (
     QAbstractListModel,
     QModelIndex,
     Qt,
-    pyqtSignal,
+    Signal,
 )
-from PyQt5.QtGui import QCursor, QIcon
-from PyQt5.QtWidgets import (
+from qtpy.QtGui import QCursor, QIcon
+from qtpy.QtWidgets import (
     QFileDialog,
     QGroupBox,
     QMenu,
@@ -102,7 +102,7 @@ class DictionariesModel(QAbstractListModel):
 
     FLAGS = Qt.ItemFlag.ItemIsEnabled | Qt.ItemFlag.ItemIsSelectable | Qt.ItemFlag.ItemIsUserCheckable
 
-    has_undo_changed = pyqtSignal(bool)
+    has_undo_changed = Signal(bool)
 
     def __init__(self, engine, icons, max_undo=20):
         super().__init__()
@@ -427,7 +427,7 @@ class DictionariesModel(QAbstractListModel):
 
 class DictionariesWidget(QGroupBox, Ui_DictionariesWidget):
 
-    add_translation = pyqtSignal(str)
+    add_translation = Signal(str)
 
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)

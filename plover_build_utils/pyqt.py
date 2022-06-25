@@ -82,20 +82,32 @@ def gettext(contents):
             comment += ", {field}".format(field=field)
         comment += '.'
         gd['pre2'] = gd['pre2'] or ''
-        return '{comment}\n{ws}{pre1}{pre2}_('.format(comment=comment, **gd)
+        return '{comment}\n{ws}{pre1}{pre2}_({str})'.format(comment=comment, **gd)
     contents = re.sub((r'(?P<ws> *)(?P<pre1>.*?)(?P<pre2>\.set(?P<field>\w+)\()?'
-                       r'\b_translate\("(?P<widget>.*)",\s'), repl, contents)
-    assert re.search(r'\b_translate\(', contents) is None
+                       r'\bQCoreApplication\.translate\("(?P<widget>[^"]+)", (?P<str>.+), None\)'), repl, contents)
+    contents = re.sub((r'(?P<ws> *)(?P<pre1>.*?)(?P<pre2>\.set(?P<field>\w+)\()?'
+                       r'\b_translate\("(?P<widget>[^"]+)", (?P<str>.+)\)'), repl, contents)
+    assert re.search(r'\b(QCoreApplication\.|_)translate\(', contents) is None
     return contents
 
 def no_autoconnection(contents):
     # remove calls to ``QtCore.QMetaObject.connectSlotsByName``
     contents = re.sub(
-        r'\n\s+QtCore\.QMetaObject\.connectSlotsByName\(\w+\)\n',
+        r'\n\s+(:?QtCore\.)?QMetaObject\.connectSlotsByName\(\w+\)\n',
         '\n',
         contents
     )
     return contents
+
+def use_qtpy(contents):
+    # replace ``from PyQt5 import QtCore, QtGui, QtWidgets``
+    # by ``from qtpy import QtCore, QtGui, QtWidgets`
+    lines = contents.split('\n')
+    for n, l in enumerate(lines):
+        if re.search(r'\bimport\b', l) is None:
+            continue
+        lines[n] = re.sub(r'\b(PyQt5|PySide2)\b', 'qtpy', l)
+    return '\n'.join(lines)
 
 def use_scoped_enums(contents):
     # replace ``QtWidgets.QSizePolicy.MinimumExpanding``

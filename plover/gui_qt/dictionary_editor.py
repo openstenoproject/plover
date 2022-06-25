@@ -3,13 +3,13 @@ from operator import attrgetter, itemgetter
 from collections import namedtuple
 from itertools import chain
 
-from PyQt5.QtCore import (
+from qtpy.QtCore import (
     QAbstractTableModel,
     QModelIndex,
     Qt,
 )
-from PyQt5.QtGui import QIcon
-from PyQt5.QtWidgets import (
+from qtpy.QtGui import QIcon
+from qtpy.QtWidgets import (
     QComboBox,
     QDialog,
     QStyledItemDelegate,

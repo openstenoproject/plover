@@ -157,6 +157,7 @@ bootstrap_dist()
     -r reqs/dist_extra_gui_qt.txt \
     -r reqs/dist_extra_log.txt \
     -r reqs/dist_plugins.txt \
+    -r reqs/dist_pyqt5.txt \
     "$@" || die
   # Avoid caching Plover's wheel.
   run rm "$wheels_cache/$(basename "$wheel")"

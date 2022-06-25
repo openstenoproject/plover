@@ -92,6 +92,7 @@ class BuildUi(Command):
     plover_build_utils.pyqt:fix_icons
     plover_build_utils.pyqt:fix_resources
     plover_build_utils.pyqt:no_autoconnection
+    plover_build_utils.pyqt:use_qtpy
     plover_build_utils.pyqt:use_scoped_enums
     '''.split()
 

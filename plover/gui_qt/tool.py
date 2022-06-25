@@ -1,5 +1,5 @@
 
-from PyQt5.QtWidgets import QDialog
+from qtpy.QtWidgets import QDialog
 
 from plover.gui_qt.utils import WindowState
 

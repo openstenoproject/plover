@@ -1,12 +1,12 @@
 
 import re
 
-from PyQt5.QtCore import Qt
-from PyQt5.QtGui import (
+from qtpy.QtCore import Qt
+from qtpy.QtGui import (
     QCursor,
     QFont,
 )
-from PyQt5.QtWidgets import (
+from qtpy.QtWidgets import (
     QAction,
     QFontDialog,
     QMenu,

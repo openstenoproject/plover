@@ -2,8 +2,8 @@ from collections import namedtuple
 from html import escape as html_escape
 from os.path import split as os_path_split
 
-from PyQt5.QtCore import QEvent, pyqtSignal
-from PyQt5.QtWidgets import QApplication, QWidget
+from qtpy.QtCore import QEvent, Signal
+from qtpy.QtWidgets import QApplication, QWidget
 
 from plover import _
 from plover.misc import shorten_path
@@ -24,7 +24,7 @@ class AddTranslationWidget(QWidget, Ui_AddTranslationWidget):
 
     EngineState = namedtuple('EngineState', 'dictionary_filter translator starting_stroke')
 
-    mappingValid = pyqtSignal(bool)
+    mappingValid = Signal(bool)
 
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)

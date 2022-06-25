@@ -1,5 +1,5 @@
 Babel
-PyQt5>=5.8.2
+PyQt5>=5.14
 setuptools>=38.2.4
 wheel
 
