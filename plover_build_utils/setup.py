@@ -91,6 +91,7 @@ class BuildUi(Command):
     hooks = '''
     plover_build_utils.pyqt:fix_icons
     plover_build_utils.pyqt:no_autoconnection
+    plover_build_utils.pyqt:use_scoped_enums
     '''.split()
 
     def initialize_options(self):

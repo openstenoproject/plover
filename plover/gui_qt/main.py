@@ -41,12 +41,12 @@ class Application:
         QCoreApplication.setOrganizationDomain('openstenoproject.org')
 
         self._app = QApplication([sys.argv[0], '-name', 'plover'])
-        self._app.setAttribute(Qt.AA_UseHighDpiPixmaps)
+        self._app.setAttribute(Qt.ApplicationAttribute.AA_UseHighDpiPixmaps)
 
         # Enable localization of standard Qt controls.
         log.info('setting language to: %s', _.lang)
         self._translator = QTranslator()
-        translations_dir = QLibraryInfo.location(QLibraryInfo.TranslationsPath)
+        translations_dir = QLibraryInfo.location(QLibraryInfo.LibraryLocation.TranslationsPath)
         self._translator.load('qtbase_' + _.lang, translations_dir)
         self._app.installTranslator(self._translator)
 

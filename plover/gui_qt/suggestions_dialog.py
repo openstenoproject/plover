@@ -95,7 +95,7 @@ class SuggestionsDialog(Tool, Ui_SuggestionsDialog):
             font = self._get_font(name)
             font_string = font.toString()
             settings.setValue(name, font_string)
-        ontop = bool(self.windowFlags() & Qt.WindowStaysOnTopHint)
+        ontop = bool(self.windowFlags() & Qt.WindowType.WindowStaysOnTopHint)
         settings.setValue('ontop', ontop)
 
     def _show_suggestions(self, suggestion_list):
@@ -151,7 +151,7 @@ class SuggestionsDialog(Tool, Ui_SuggestionsDialog):
             font_options = ()
         elif action == self._font_menu_strokes:
             name = 'strokes_font'
-            font_options = (QFontDialog.MonospacedFonts,)
+            font_options = (QFontDialog.FontDialogOption.MonospacedFonts,)
         font = self._get_font(name)
         font, ok = QFontDialog.getFont(font, self, '', *font_options)
         if ok:
@@ -160,9 +160,9 @@ class SuggestionsDialog(Tool, Ui_SuggestionsDialog):
     def on_toggle_ontop(self, ontop):
         flags = self.windowFlags()
         if ontop:
-            flags |= Qt.WindowStaysOnTopHint
+            flags |= Qt.WindowType.WindowStaysOnTopHint
         else:
-            flags &= ~Qt.WindowStaysOnTopHint
+            flags &= ~Qt.WindowType.WindowStaysOnTopHint
         self.setWindowFlags(flags)
         self.show()
 

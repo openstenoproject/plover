@@ -42,7 +42,7 @@ class TrayIcon(QObject):
             self._trayicon.setContextMenu(menu)
 
     def show_message(self, message,
-                     icon=QSystemTrayIcon.Information,
+                     icon=QSystemTrayIcon.MessageIcon.Information,
                      timeout=10000):
         self._trayicon.showMessage(__software_name__.capitalize(),
                                    message, icon, timeout)
@@ -50,22 +50,22 @@ class TrayIcon(QObject):
     def log(self, level, message):
         if self._enabled:
             if level <= log.INFO:
-                icon = QSystemTrayIcon.Information
+                icon = QSystemTrayIcon.MessageIcon.Information
                 timeout = 10
             elif level <= log.WARNING:
-                icon = QSystemTrayIcon.Warning
+                icon = QSystemTrayIcon.MessageIcon.Warning
                 timeout = 15
             else:
-                icon = QSystemTrayIcon.Critical
+                icon = QSystemTrayIcon.MessageIcon.Critical
                 timeout = 25
             self.show_message(message, icon, timeout * 1000)
         else:
             if level <= log.INFO:
-                icon = QMessageBox.Information
+                icon = QMessageBox.Icon.Information
             elif level <= log.WARNING:
-                icon = QMessageBox.Warning
+                icon = QMessageBox.Icon.Warning
             else:
-                icon = QMessageBox.Critical
+                icon = QMessageBox.Icon.Critical
             msgbox = QMessageBox()
             msgbox.setText(message)
             msgbox.setIcon(icon)
@@ -134,5 +134,5 @@ class TrayIcon(QObject):
         )
 
     def _on_activated(self, reason):
-        if reason == QSystemTrayIcon.Trigger:
+        if reason == QSystemTrayIcon.ActivationReason.Trigger:
             self.clicked.emit()

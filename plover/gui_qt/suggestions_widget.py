@@ -32,7 +32,7 @@ class SuggestionsDelegate(QStyledItemDelegate):
         self._doc = QTextDocument()
         self._translation_char_format = QTextCharFormat()
         self._strokes_char_format = QTextCharFormat()
-        self._strokes_char_format.font().setStyleHint(QFont.Monospace)
+        self._strokes_char_format.font().setStyleHint(QFont.StyleHint.Monospace)
         self._size_hint_cache = {}
 
     def clear_size_hint_cache(self):
@@ -57,7 +57,7 @@ class SuggestionsDelegate(QStyledItemDelegate):
         self.clear_size_hint_cache()
 
     def _format_suggestion(self, index):
-        suggestion = index.data(Qt.DisplayRole)
+        suggestion = index.data(Qt.ItemDataRole.DisplayRole)
         translation = escape_translation(suggestion.text) + ':'
         if not suggestion.steno_list:
             translation += ' ' + NO_SUGGESTIONS_STRING
@@ -76,7 +76,7 @@ class SuggestionsDelegate(QStyledItemDelegate):
 
     def paint(self, painter, option, index):
         painter.save()
-        if option.state & QStyle.State_Selected:
+        if option.state & QStyle.StateFlag.State_Selected:
             painter.fillRect(option.rect, option.palette.highlight())
             text_color = option.palette.highlightedText()
         else:
@@ -115,9 +115,9 @@ class SuggestionsModel(QAbstractListModel):
         if not index.isValid():
             return None
         suggestion = self._suggestion_list[index.row()]
-        if role == Qt.DisplayRole:
+        if role == Qt.ItemDataRole.DisplayRole:
             return suggestion
-        if role == Qt.AccessibleTextRole:
+        if role == Qt.ItemDataRole.AccessibleTextRole:
             translation = escape_translation(suggestion.text)
             if suggestion.steno_list:
                 steno = ', '.join('/'.join(strokes_list) for strokes_list in
@@ -143,7 +143,7 @@ class SuggestionsWidget(QListView):
 
     def __init__(self, parent=None):
         super().__init__(parent=parent)
-        self.setResizeMode(self.Adjust)
+        self.setResizeMode(QListView.ResizeMode.Adjust)
         self._model = SuggestionsModel()
         self._delegate = SuggestionsDelegate(self)
         self.setModel(self._model)

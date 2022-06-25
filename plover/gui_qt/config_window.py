@@ -122,9 +122,9 @@ class TableOption(QTableWidget):
     def __init__(self):
         super().__init__()
         self.horizontalHeader().setStretchLastSection(True)
-        self.setSelectionMode(self.SingleSelection)
+        self.setSelectionMode(self.SelectionMode.SingleSelection)
         self.setTabKeyNavigation(False)
-        self.setVerticalScrollBarPolicy(Qt.ScrollBarAlwaysOff)
+        self.setVerticalScrollBarPolicy(Qt.ScrollBarPolicy.ScrollBarAlwaysOff)
         self.verticalHeader().hide()
         self.currentItemChanged.connect(self._on_current_item_changed)
 
@@ -190,7 +190,7 @@ class KeymapOption(TableOption):
                 row += 1
                 self.insertRow(row)
                 item = QTableWidgetItem(key)
-                item.setFlags(item.flags() & ~Qt.ItemIsEditable)
+                item.setFlags(item.flags() & ~Qt.ItemFlag.ItemIsEditable)
                 self.setItem(row, 0, item)
                 item = QTableWidgetItem(action)
                 self.setItem(row, 1, item)
@@ -202,8 +202,8 @@ class KeymapOption(TableOption):
     def _on_cell_changed(self, row, column):
         if self._updating:
             return
-        key = self.item(row, 0).data(Qt.DisplayRole)
-        action = self.item(row, 1).data(Qt.DisplayRole)
+        key = self.item(row, 0).data(Qt.ItemDataRole.DisplayRole)
+        action = self.item(row, 1).data(Qt.ItemDataRole.DisplayRole)
         bindings = self._value.get_bindings()
         if action:
             bindings[key] = action
@@ -256,11 +256,11 @@ class MultipleChoicesOption(TableOption):
             row += 1
             self.insertRow(row)
             item = QTableWidgetItem(self._choices[choice])
-            item.setFlags(item.flags() & ~Qt.ItemIsEditable)
+            item.setFlags(item.flags() & ~Qt.ItemFlag.ItemIsEditable)
             self.setItem(row, 0, item)
             item = QTableWidgetItem()
-            item.setFlags((item.flags() & ~Qt.ItemIsEditable) | Qt.ItemIsUserCheckable)
-            item.setCheckState(Qt.Checked if choice in value else Qt.Unchecked)
+            item.setFlags((item.flags() & ~Qt.ItemFlag.ItemIsEditable) | Qt.ItemFlag.ItemIsUserCheckable)
+            item.setCheckState(Qt.CheckState.Checked if choice in value else Qt.CheckState.Unchecked)
             self.setItem(row, 1, item)
         self.resizeColumnsToContents()
         self.setMinimumSize(self.viewportSizeHint())
@@ -270,7 +270,7 @@ class MultipleChoicesOption(TableOption):
         if self._updating:
             return
         assert column == 1
-        choice = self._reversed_choices[self.item(row, 0).data(Qt.DisplayRole)]
+        choice = self._reversed_choices[self.item(row, 0).data(Qt.ItemDataRole.DisplayRole)]
         if self.item(row, 1).checkState():
             self._value.add(choice)
         else:
@@ -436,8 +436,8 @@ class ConfigWindow(QDialog, Ui_ConfigWindow, WindowState):
                 (option_by_name[option_name], update_fn)
                 for option_name, update_fn in option.dependents
             ]
-        self.buttons.button(QDialogButtonBox.Ok).clicked.connect(self.on_apply)
-        self.buttons.button(QDialogButtonBox.Apply).clicked.connect(self.on_apply)
+        self.buttons.button(QDialogButtonBox.StandardButton.Ok).clicked.connect(self.on_apply)
+        self.buttons.button(QDialogButtonBox.StandardButton.Apply).clicked.connect(self.on_apply)
         self.tabs.currentWidget().setFocus()
         self.restore_state()
         self.finished.connect(self.save_state)
@@ -490,7 +490,7 @@ class ConfigWindow(QDialog, Ui_ConfigWindow, WindowState):
 
     def keyPressEvent(self, event):
         # Disable Enter/Return key to trigger "OK".
-        if event.key() in (Qt.Key_Enter, Qt.Key_Return):
+        if event.key() in (Qt.Key.Key_Enter, Qt.Key.Key_Return):
             return
         super().keyPressEvent(event)
 

@@ -28,8 +28,8 @@ class LookupDialog(Tool, Ui_LookupDialog):
         self.finished.connect(self.save_state)
 
     def eventFilter(self, watched, event):
-        if event.type() == QEvent.KeyPress and \
-           event.key() in (Qt.Key_Enter, Qt.Key_Return):
+        if event.type() == QEvent.Type.KeyPress and \
+           event.key() in (Qt.Key.Key_Enter, Qt.Key.Key_Return):
             return True
         return False
 
@@ -44,6 +44,6 @@ class LookupDialog(Tool, Ui_LookupDialog):
 
     def changeEvent(self, event):
         super().changeEvent(event)
-        if event.type() == QEvent.ActivationChange and self.isActiveWindow():
+        if event.type() == QEvent.Type.ActivationChange and self.isActiveWindow():
             self.pattern.setFocus()
             self.pattern.selectAll()

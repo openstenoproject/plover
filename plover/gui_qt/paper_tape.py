@@ -71,12 +71,12 @@ class TapeModel(QAbstractListModel):
         if not index.isValid():
             return None
         stroke = self._stroke_list[index.row()]
-        if role == Qt.DisplayRole:
+        if role == Qt.ItemDataRole.DisplayRole:
             if self._style == STYLE_PAPER:
                 return self._paper_format(stroke)
             if self._style == STYLE_RAW:
                 return self._raw_format(stroke)
-        if role == Qt.AccessibleTextRole:
+        if role == Qt.ItemDataRole.AccessibleTextRole:
             return stroke.rtfcre
         return None
 
@@ -152,7 +152,7 @@ class PaperTape(Tool, Ui_PaperTape):
     def _save_state(self, settings):
         settings.setValue('style', TAPE_STYLES.index(self._style))
         settings.setValue('font', self.tape.font().toString())
-        ontop = bool(self.windowFlags() & Qt.WindowStaysOnTopHint)
+        ontop = bool(self.windowFlags() & Qt.WindowType.WindowStaysOnTopHint)
         settings.setValue('ontop', ontop)
 
     def on_config_changed(self, config):
@@ -187,7 +187,7 @@ class PaperTape(Tool, Ui_PaperTape):
 
     def on_select_font(self):
         font, ok = QFontDialog.getFont(self.tape.font(), self, '',
-                                       QFontDialog.MonospacedFonts)
+                                       QFontDialog.FontDialogOption.MonospacedFonts)
         if ok:
             self.header.setFont(font)
             self.tape.setFont(font)
@@ -195,9 +195,9 @@ class PaperTape(Tool, Ui_PaperTape):
     def on_toggle_ontop(self, ontop):
         flags = self.windowFlags()
         if ontop:
-            flags |= Qt.WindowStaysOnTopHint
+            flags |= Qt.WindowType.WindowStaysOnTopHint
         else:
-            flags &= ~Qt.WindowStaysOnTopHint
+            flags &= ~Qt.WindowType.WindowStaysOnTopHint
         self.setWindowFlags(flags)
         self.show()
 
@@ -205,10 +205,10 @@ class PaperTape(Tool, Ui_PaperTape):
         flags = self.windowFlags()
         msgbox = QMessageBox()
         msgbox.setText(_('Do you want to clear the paper tape?'))
-        msgbox.setStandardButtons(QMessageBox.Yes | QMessageBox.No)
+        msgbox.setStandardButtons(QMessageBox.StandardButton.Yes | QMessageBox.StandardButton.No)
         # Make sure the message box ends up above the paper tape!
-        msgbox.setWindowFlags(msgbox.windowFlags() | (flags & Qt.WindowStaysOnTopHint))
-        if QMessageBox.Yes != msgbox.exec_():
+        msgbox.setWindowFlags(msgbox.windowFlags() | (flags & Qt.WindowType.WindowStaysOnTopHint))
+        if QMessageBox.StandardButton.Yes != msgbox.exec_():
             return
         self._strokes = []
         self.action_Clear.setEnabled(False)
@@ -226,4 +226,4 @@ class PaperTape(Tool, Ui_PaperTape):
             return
         with open(filename, 'w') as fp:
             for row in range(self._model.rowCount(self._model.index(-1, -1))):
-                print(self._model.data(self._model.index(row, 0), Qt.DisplayRole), file=fp)
+                print(self._model.data(self._model.index(row, 0), Qt.ItemDataRole.DisplayRole), file=fp)

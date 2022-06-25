@@ -1,4 +1,39 @@
+from collections import defaultdict
+from inspect import isclass
 import re
+
+
+def _qt_scoped_enums_replacements():
+    from PyQt5 import QtCore, QtGui, QtWidgets
+    enumtype = QtCore.Qt.DropAction.__class__
+    scoped_enums = defaultdict(list)
+    for mod in (QtCore, QtGui, QtWidgets):
+        for attr in dir(mod):
+            if not attr.startswith('Q'):
+                continue
+            obj = getattr(mod, attr)
+            if not isclass(obj):
+                continue
+            scope = (mod.__name__.split('.', 1)[1], attr)
+            scope_obj = obj
+            for attr in dir(scope_obj):
+                obj = getattr(scope_obj, attr, None)
+                if obj is None:
+                    continue
+                if not isinstance(obj.__class__, enumtype):
+                    continue
+                enum = '.'.join(scope + (obj.__class__.__name__,))
+                scoped_enums[enum].append(attr)
+    scoped_enums_replacements = {}
+    for scope, attr_list in scoped_enums.items():
+        *scope, enum = scope.split('.')
+        for attr in attr_list:
+            for namespace in (scope, scope[1:]):
+                pattern = '.'.join(namespace + [attr])
+                replacement = '.'.join(namespace + [enum, attr])
+                assert pattern not in scoped_enums_replacements
+                scoped_enums_replacements[pattern] = replacement
+    return scoped_enums_replacements
 
 
 def fix_icons(contents):
@@ -49,3 +84,15 @@ def no_autoconnection(contents):
         contents
     )
     return contents
+
+def use_scoped_enums(contents):
+    # replace ``QtWidgets.QSizePolicy.MinimumExpanding``
+    # by ``QtWidgets.QSizePolicy.Policy.MinimumExpanding``
+    scoped_enums_replacements = getattr(use_scoped_enums, 'scoped_enums_replacements', None)
+    if scoped_enums_replacements is None:
+        scoped_enums_replacements = _qt_scoped_enums_replacements()
+        use_scoped_enums.scoped_enums_replacements = scoped_enums_replacements
+    def replace(m):
+        match = m.group(0)
+        return scoped_enums_replacements.get(match, match)
+    return re.sub(r'\b((?:Qt\w+\.)?Q\w+)\.(\w+)\b', replace, contents)
