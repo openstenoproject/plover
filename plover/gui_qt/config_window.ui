@@ -15,7 +15,7 @@
   </property>
   <property name="windowIcon">
    <iconset resource="resources/resources.qrc">
-    <normaloff>:/plover.png</normaloff>:/plover.png</iconset>
+    <normaloff>:/plover/plover.png</normaloff>:/plover/plover.png</iconset>
   </property>
   <property name="sizeGripEnabled">
    <bool>true</bool>

@@ -1,8 +1,10 @@
+from pathlib import Path
 import signal
 import sys
 
 from PyQt5.QtCore import (
     QCoreApplication,
+    QDir,
     QLibraryInfo,
     QTimer,
     QTranslator,
@@ -20,6 +22,10 @@ from plover.gui_qt.engine import Engine
 # Disable pyqtRemoveInputHook to avoid getting
 # spammed when using the debugger.
 pyqtRemoveInputHook()
+
+
+# Setup access to resources.
+QDir.addSearchPath('plover', str(Path(__file__).parent / 'resources'))
 
 
 class Application:

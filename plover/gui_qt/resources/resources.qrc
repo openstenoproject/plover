@@ -1,5 +1,5 @@
 <RCC>
-  <qresource prefix="/">
+  <qresource prefix="plover">
     <file>folder.svg</file>
     <file>up.svg</file>
     <file>down.svg</file>

@@ -24,7 +24,7 @@
   </property>
   <property name="windowIcon">
    <iconset resource="resources/resources.qrc">
-    <normaloff>:/plover.png</normaloff>:/plover.png</iconset>
+    <normaloff>:/plover/plover.png</normaloff>:/plover/plover.png</iconset>
   </property>
   <widget class="QWidget" name="centralwidget">
    <property name="sizePolicy">
@@ -87,7 +87,7 @@
          </property>
          <property name="icon">
           <iconset resource="resources/resources.qrc">
-           <normaloff>:/reconnect.svg</normaloff>:/reconnect.svg</iconset>
+           <normaloff>:/plover/reconnect.svg</normaloff>:/plover/reconnect.svg</iconset>
          </property>
         </widget>
        </item>
@@ -226,7 +226,7 @@
   <action name="action_Configure">
    <property name="icon">
     <iconset resource="resources/resources.qrc">
-     <normaloff>:/settings.svg</normaloff>:/settings.svg</iconset>
+     <normaloff>:/plover/settings.svg</normaloff>:/plover/settings.svg</iconset>
    </property>
    <property name="text">
     <string>&amp;Configure</string>
@@ -241,7 +241,7 @@
   <action name="action_OpenConfigFolder">
    <property name="icon">
     <iconset resource="resources/resources.qrc">
-     <normaloff>:/folder.svg</normaloff>:/folder.svg</iconset>
+     <normaloff>:/plover/folder.svg</normaloff>:/plover/folder.svg</iconset>
    </property>
    <property name="text">
     <string>Open config &amp;folder</string>
@@ -261,7 +261,7 @@
   <action name="action_Reconnect">
    <property name="icon">
     <iconset resource="resources/resources.qrc">
-     <normaloff>:/reconnect.svg</normaloff>:/reconnect.svg</iconset>
+     <normaloff>:/plover/reconnect.svg</normaloff>:/plover/reconnect.svg</iconset>
    </property>
    <property name="text">
     <string>&amp;Reconnect machine</string>

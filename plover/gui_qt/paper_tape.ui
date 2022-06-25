@@ -91,7 +91,7 @@
   <action name="action_Clear">
    <property name="icon">
     <iconset resource="resources/resources.qrc">
-     <normaloff>:/trash.svg</normaloff>:/trash.svg</iconset>
+     <normaloff>:/plover/trash.svg</normaloff>:/plover/plover/trash.svg</iconset>
    </property>
    <property name="text">
     <string>&amp;Clear</string>
@@ -106,7 +106,7 @@
   <action name="action_Save">
    <property name="icon">
     <iconset resource="resources/resources.qrc">
-     <normaloff>:/save.svg</normaloff>:/save.svg</iconset>
+     <normaloff>:/plover/save.svg</normaloff>:/plover/plover/save.svg</iconset>
    </property>
    <property name="text">
     <string>&amp;Save</string>
@@ -124,7 +124,7 @@
    </property>
    <property name="icon">
     <iconset resource="resources/resources.qrc">
-     <normaloff>:/pin.svg</normaloff>:/pin.svg</iconset>
+     <normaloff>:/plover/pin.svg</normaloff>:/plover/pin.svg</iconset>
    </property>
    <property name="text">
     <string>&amp;Toggle &quot;always on top&quot;</string>
@@ -139,7 +139,7 @@
   <action name="action_SelectFont">
    <property name="icon">
     <iconset resource="resources/resources.qrc">
-     <normaloff>:/font_selector.svg</normaloff>:/font_selector.svg</iconset>
+     <normaloff>:/plover/font_selector.svg</normaloff>:/plover/font_selector.svg</iconset>
    </property>
    <property name="text">
     <string>Select &amp;font</string>

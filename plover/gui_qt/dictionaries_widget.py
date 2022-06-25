@@ -496,7 +496,7 @@ class DictionariesWidget(QGroupBox, Ui_DictionariesWidget):
         assert not self._setup
         self._engine = engine
         self._model = DictionariesModel(engine, {
-            name: QIcon(':/dictionary_%s.svg' % name)
+            name: QIcon('plover:dictionary_%s.svg' % name)
             for name in 'favorite loading error readonly normal'.split()
         })
         self._model.has_undo_changed.connect(self.on_has_undo)

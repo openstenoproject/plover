@@ -46,6 +46,18 @@ def fix_icons(contents):
     )
     return contents
 
+def fix_resources(contents):
+    # remove ``from . import resources_rc``,
+    # and replace ``addFile(":/prefix/font_selector.svg",``
+    # by ``addFile(":/prefix/font_selector.svg",``
+    contents = contents.replace('\nfrom . import resources_rc\n', '')
+    contents = re.sub(
+        r'\baddFile\(":/([^/]+)/([^"]+)",',
+        r'addFile("\1:\2",',
+        contents
+    )
+    return contents
+
 def gettext(contents):
     # replace ``_translate("context", `` by ``_(``
     contents = re.sub(r'\n', (

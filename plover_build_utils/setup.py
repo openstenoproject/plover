@@ -90,6 +90,7 @@ class BuildUi(Command):
 
     hooks = '''
     plover_build_utils.pyqt:fix_icons
+    plover_build_utils.pyqt:fix_resources
     plover_build_utils.pyqt:no_autoconnection
     plover_build_utils.pyqt:use_scoped_enums
     '''.split()
@@ -112,6 +113,8 @@ class BuildUi(Command):
         if self.verbose:
             print('generating', dst)
         contents = subprocess.check_output(cmd).decode('utf-8')
+        # Windows…
+        contents = contents.replace('\r\n', '\n')
         for hook in self.hooks:
             mod_name, attr_name = hook.split(':')
             mod = importlib.import_module(mod_name)
@@ -119,19 +122,6 @@ class BuildUi(Command):
             contents = hook_fn(contents)
         with open(dst, 'w') as fp:
             fp.write(contents)
-
-    def _build_resources(self, src):
-        dst = os.path.join(
-            os.path.dirname(os.path.dirname(src)),
-            os.path.splitext(os.path.basename(src))[0]
-        ) + '_rc.py'
-        cmd = (
-            sys.executable, '-m', 'PyQt5.pyrcc_main',
-            src, '-o', dst,
-        )
-        if self.verbose:
-            print('generating', dst)
-        subprocess.check_call(cmd)
 
     def run(self):
         self.run_command('egg_info')
@@ -144,8 +134,6 @@ class BuildUi(Command):
             print('generating UI using hooks:', ', '.join(hooks_info))
         ei_cmd = self.get_finalized_command('egg_info')
         for src in ei_cmd.filelist.files:
-            if src.endswith('.qrc'):
-                self._build_resources(src)
             if src.endswith('.ui'):
                 self._build_ui(src)
 

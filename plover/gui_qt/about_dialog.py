@@ -34,7 +34,7 @@ class AboutDialog(QDialog, Ui_AboutDialog):
             <h2>Credits:</h2>
             <p>%(credits)s</p>
             ''' % {
-                'icon'       : ':/plover.png',
+                'icon'       : 'plover:plover.png',
                 'name'       : plover.__name__.capitalize(),
                 'version'    : plover.__version__,
                 'description': plover.__long_description__,

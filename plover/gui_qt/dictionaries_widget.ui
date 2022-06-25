@@ -82,7 +82,7 @@
   <action name="action_EditDictionaries">
    <property name="icon">
     <iconset resource="resources/resources.qrc">
-     <normaloff>:/pencil.svg</normaloff>:/pencil.svg</iconset>
+     <normaloff>:/plover/pencil.svg</normaloff>:/plover/pencil.svg</iconset>
    </property>
    <property name="text">
     <string>&amp;Edit dictionaries</string>
@@ -97,7 +97,7 @@
   <action name="action_SaveDictionaries">
    <property name="icon">
     <iconset resource="resources/resources.qrc">
-     <normaloff>:/save.svg</normaloff>:/save.svg</iconset>
+     <normaloff>:/plover/save.svg</normaloff>:/plover/save.svg</iconset>
    </property>
    <property name="text">
     <string>&amp;Save dictionaries as...</string>
@@ -112,7 +112,7 @@
   <action name="action_RemoveDictionaries">
    <property name="icon">
     <iconset resource="resources/resources.qrc">
-     <normaloff>:/remove.svg</normaloff>:/remove.svg</iconset>
+     <normaloff>:/plover/remove.svg</normaloff>:/plover/remove.svg</iconset>
    </property>
    <property name="text">
     <string>&amp;Remove dictionaries</string>
@@ -127,7 +127,7 @@
   <action name="action_Undo">
    <property name="icon">
     <iconset resource="resources/resources.qrc">
-     <normaloff>:/undo.svg</normaloff>:/undo.svg</iconset>
+     <normaloff>:/plover/undo.svg</normaloff>:/plover/undo.svg</iconset>
    </property>
    <property name="text">
     <string>&amp;Undo</string>
@@ -142,7 +142,7 @@
   <action name="action_AddDictionaries">
    <property name="icon">
     <iconset resource="resources/resources.qrc">
-     <normaloff>:/add.svg</normaloff>:/add.svg</iconset>
+     <normaloff>:/plover/add.svg</normaloff>:/plover/add.svg</iconset>
    </property>
    <property name="text">
     <string>&amp;Add dictionaries</string>
@@ -157,7 +157,7 @@
   <action name="action_AddTranslation">
    <property name="icon">
     <iconset resource="resources/resources.qrc">
-     <normaloff>:/translation_add.svg</normaloff>:/translation_add.svg</iconset>
+     <normaloff>:/plover/translation_add.svg</normaloff>:/plover/translation_add.svg</iconset>
    </property>
    <property name="text">
     <string>Add &amp;translation</string>
@@ -172,7 +172,7 @@
   <action name="action_MoveDictionariesUp">
    <property name="icon">
     <iconset resource="resources/resources.qrc">
-     <normaloff>:/up.svg</normaloff>:/up.svg</iconset>
+     <normaloff>:/plover/up.svg</normaloff>:/plover/up.svg</iconset>
    </property>
    <property name="text">
     <string>Move dictionaries &amp;up</string>
@@ -184,7 +184,7 @@
   <action name="action_MoveDictionariesDown">
    <property name="icon">
     <iconset resource="resources/resources.qrc">
-     <normaloff>:/down.svg</normaloff>:/down.svg</iconset>
+     <normaloff>:/plover/down.svg</normaloff>:/plover/down.svg</iconset>
    </property>
    <property name="text">
     <string>Move dictionaries &amp;down</string>

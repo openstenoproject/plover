@@ -151,7 +151,7 @@
   <action name="action_Delete">
    <property name="icon">
     <iconset resource="resources/resources.qrc">
-     <normaloff>:/remove.svg</normaloff>:/remove.svg</iconset>
+     <normaloff>:/plover/remove.svg</normaloff>:/plover/remove.svg</iconset>
    </property>
    <property name="text">
     <string>&amp;Delete</string>
@@ -166,7 +166,7 @@
   <action name="action_Undo">
    <property name="icon">
     <iconset resource="resources/resources.qrc">
-     <normaloff>:/undo.svg</normaloff>:/undo.svg</iconset>
+     <normaloff>:/plover/undo.svg</normaloff>:/plover/undo.svg</iconset>
    </property>
    <property name="text">
     <string>&amp;Undo</string>
@@ -181,7 +181,7 @@
   <action name="action_New">
    <property name="icon">
     <iconset resource="resources/resources.qrc">
-     <normaloff>:/add.svg</normaloff>:/add.svg</iconset>
+     <normaloff>:/plover/add.svg</normaloff>:/plover/add.svg</iconset>
    </property>
    <property name="text">
     <string>&amp;New translation</string>

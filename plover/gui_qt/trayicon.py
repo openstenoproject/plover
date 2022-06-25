@@ -27,7 +27,7 @@ class TrayIcon(QObject):
             'disabled',
             'enabled',
         ):
-            icon = QIcon(':/state-%s.svg' % state)
+            icon = QIcon('plover:state-%s.svg' % state)
             if hasattr(icon, 'setIsMask'):
                 icon.setIsMask(True)
             self._state_icons[state] = icon
