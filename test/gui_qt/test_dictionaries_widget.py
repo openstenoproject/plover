@@ -4,6 +4,8 @@ from textwrap import dedent
 from types import SimpleNamespace
 import operator
 
+from qtpy import API as QT_API
+from qtpy.QtGui import QIcon
 from qtpy.QtCore import (
     QAbstractListModel,
     QItemSelectionModel,
@@ -26,14 +28,19 @@ from plover_build_utils.testing import parametrize
 
 INVALID_EXCEPTION = Exception('loading error')
 
-ICON_TO_CHAR = {
+ICON_FROM_STATE = {
+    name: QIcon(name)
+    for name in 'favorite loading error readonly normal'.split()
+}
+ICON_TO_STATE = {i.cacheKey(): s for s, i in ICON_FROM_STATE.items()}
+STATE_TO_CHAR = {
     'error': '!',
     'favorite': '★',
     'loading': '🗘',
     'normal': '⎕',
     'readonly': '🛇',
 }
-ICON_FROM_CHAR = {c: i for i, c in ICON_TO_CHAR.items()}
+STATE_FROM_CHAR = {c: s for s, c in STATE_TO_CHAR.items()}
 
 ENABLED_TO_CHAR = {
     False: '☐',
@@ -46,8 +53,12 @@ CHECKED_TO_BOOL = {
     Qt.CheckState.Unchecked: False,
 }
 
-MODEL_ROLES = sorted([Qt.ItemDataRole.AccessibleTextRole, Qt.ItemDataRole.CheckStateRole,
-                      Qt.ItemDataRole.DecorationRole, Qt.ItemDataRole.DisplayRole, Qt.ItemDataRole.ToolTipRole])
+if QT_API.startswith('pyqt'):
+    LAYOUT_ABOUT_TO_BE_CHANGED_CALL = mock.call.layoutAboutToBeChanged([], QAbstractListModel.LayoutChangeHint.NoLayoutChangeHint)
+    LAYOUT_CHANGED_CALL = mock.call.layoutChanged([], QAbstractListModel.LayoutChangeHint.NoLayoutChangeHint)
+else:
+    LAYOUT_ABOUT_TO_BE_CHANGED_CALL = mock.call.layoutAboutToBeChanged()
+    LAYOUT_CHANGED_CALL = mock.call.layoutChanged()
 
 
 def parse_state(state_str):
@@ -55,8 +66,8 @@ def parse_state(state_str):
     if not state_str:
         return
     for line in state_str.split('\n'):
-        enabled, icon, path = line.split()
-        yield ENABLED_FROM_CHAR[enabled], ICON_FROM_CHAR[icon], path
+        enabled, state, path = line.split()
+        yield ENABLED_FROM_CHAR[enabled], STATE_FROM_CHAR[state], path
 
 def config_dictionaries_from_state(state_str):
     return [
@@ -129,7 +140,7 @@ class ModelTest(namedtuple('ModelTest', '''
             path = index.data(Qt.ItemDataRole.DisplayRole)
             actual_state.append('%s %s %s' % (
                 ENABLED_TO_CHAR.get(enabled, '?'),
-                ICON_TO_CHAR.get(icon, '?'),
+                STATE_TO_CHAR.get(ICON_TO_STATE.get(icon.cacheKey(), '?'), '?'),
                 path))
         assert actual_state == expected_state
         assert not self.engine.mock_calls, 'unexpected engine call'
@@ -153,10 +164,9 @@ class ModelTest(namedtuple('ModelTest', '''
                 index = self.model.index(row)
                 call = signal_calls.pop(0)
                 call.args[2].sort()
-                assert call == mock.call.dataChanged(index, index, MODEL_ROLES)
+                assert call == mock.call.dataChanged(index, index, DictionariesModel.SUPPORTED_ROLES)
         if layout_change:
-            assert signal_calls[0:2] == [mock.call.layoutAboutToBeChanged([], QAbstractListModel.LayoutChangeHint.NoLayoutChangeHint),
-                                         mock.call.layoutChanged([], QAbstractListModel.LayoutChangeHint.NoLayoutChangeHint)]
+            assert signal_calls[0:2] == [LAYOUT_ABOUT_TO_BE_CHANGED_CALL, LAYOUT_CHANGED_CALL]
             del signal_calls[0:2]
         assert not signal_calls
         self.signals.reset_mock()
@@ -194,7 +204,7 @@ def model_test(monkeypatch, request):
         'classic_dictionaries_display_order': False,
     }
     # Setup model.
-    model = DictionariesModel(engine, {name: name for name in ICON_TO_CHAR}, max_undo=5)
+    model = DictionariesModel(engine, ICON_FROM_STATE, max_undo=5)
     for slot in '''
     dataChanged
     layoutAboutToBeChanged
@@ -210,7 +220,7 @@ def model_test(monkeypatch, request):
     test = ModelTest(config, dictionaries, engine, model, signals, connections, state)
     if state and any(icon != 'loading' for enabled, icon, path in parse_state(state)):
         test.load_dictionaries(state)
-        test.reset_mocks()
+    test.reset_mocks()
     return test
 
 
@@ -620,17 +630,17 @@ def test_model_persistent_index(model_test):
     persistent_index = QPersistentModelIndex(model_test.model.index(1))
     assert persistent_index.row() == 1
     assert persistent_index.data(Qt.ItemDataRole.CheckStateRole) == Qt.CheckState.Checked
-    assert persistent_index.data(Qt.ItemDataRole.DecorationRole) == 'favorite'
+    assert persistent_index.data(Qt.ItemDataRole.DecorationRole).cacheKey() == ICON_FROM_STATE['favorite'].cacheKey()
     assert persistent_index.data(Qt.ItemDataRole.DisplayRole) == 'user.json'
     model_test.configure(classic_dictionaries_display_order=True)
     assert persistent_index.row() == 2
     assert persistent_index.data(Qt.ItemDataRole.CheckStateRole) == Qt.CheckState.Checked
-    assert persistent_index.data(Qt.ItemDataRole.DecorationRole) == 'favorite'
+    assert persistent_index.data(Qt.ItemDataRole.DecorationRole).cacheKey() == ICON_FROM_STATE['favorite'].cacheKey()
     assert persistent_index.data(Qt.ItemDataRole.DisplayRole) == 'user.json'
     model_test.model.setData(persistent_index, Qt.CheckState.Unchecked, Qt.ItemDataRole.CheckStateRole)
     assert persistent_index.row() == 2
     assert persistent_index.data(Qt.ItemDataRole.CheckStateRole) == Qt.CheckState.Unchecked
-    assert persistent_index.data(Qt.ItemDataRole.DecorationRole) == 'normal'
+    assert persistent_index.data(Qt.ItemDataRole.DecorationRole).cacheKey() == ICON_FROM_STATE['normal'].cacheKey()
     assert persistent_index.data(Qt.ItemDataRole.DisplayRole) == 'user.json'
 
 def test_model_qtmodeltester(model_test, qtmodeltester):

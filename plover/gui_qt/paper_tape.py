@@ -17,7 +17,7 @@ from wcwidth import wcwidth
 from plover import _, system
 
 from plover.gui_qt.paper_tape_ui import Ui_PaperTape
-from plover.gui_qt.utils import ToolBar
+from plover.gui_qt.utils import ToolBar, select_font
 from plover.gui_qt.tool import Tool
 
 
@@ -186,8 +186,8 @@ class PaperTape(Tool, Ui_PaperTape):
             self.tape.scrollToBottom()
 
     def on_select_font(self):
-        font, ok = QFontDialog.getFont(self.tape.font(), self, '',
-                                       QFontDialog.FontDialogOption.MonospacedFonts)
+        font, ok = select_font(self.tape.font(), self, '',
+                               QFontDialog.FontDialogOption.MonospacedFonts)
         if ok:
             self.header.setFont(font)
             self.tape.setFont(font)

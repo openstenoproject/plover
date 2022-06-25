@@ -9,7 +9,6 @@ from qtpy.QtCore import (
     QTimer,
     QTranslator,
     Qt,
-    pyqtRemoveInputHook,
 )
 from qtpy.QtWidgets import QApplication, QMessageBox
 from qtpy import API as QT_API
@@ -22,7 +21,9 @@ from plover.gui_qt.engine import Engine
 
 # Disable pyqtRemoveInputHook to avoid getting
 # spammed when using the debugger.
-pyqtRemoveInputHook()
+if QT_API.startswith('pyqt'):
+    from qtpy.QtCore import pyqtRemoveInputHook
+    pyqtRemoveInputHook()
 
 
 # Setup access to resources.

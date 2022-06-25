@@ -17,7 +17,7 @@ from plover.suggestions import Suggestion
 from plover.formatting import RetroFormatter
 
 from plover.gui_qt.suggestions_dialog_ui import Ui_SuggestionsDialog
-from plover.gui_qt.utils import ToolBar
+from plover.gui_qt.utils import ToolBar, select_font
 from plover.gui_qt.tool import Tool
 
 
@@ -153,7 +153,7 @@ class SuggestionsDialog(Tool, Ui_SuggestionsDialog):
             name = 'strokes_font'
             font_options = (QFontDialog.FontDialogOption.MonospacedFonts,)
         font = self._get_font(name)
-        font, ok = QFontDialog.getFont(font, self, '', *font_options)
+        font, ok = select_font(font, self, '', *font_options)
         if ok:
             self._set_font(name, font)
 

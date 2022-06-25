@@ -7,6 +7,7 @@ from qtpy.QtWidgets import (
     QToolButton,
     QWidget,
 )
+from qtpy import API as QT_API
 
 
 def ToolButton(action):
@@ -75,3 +76,15 @@ def find_menu_actions(menu):
         assert name not in actions_dict
         actions_dict[name] = action
     return actions_dict
+
+
+if QT_API.startswith('pyside'):
+
+    def select_font(*args, **kwargs):
+        ok, font = QFontDialog.getFont(*args, **kwargs)
+        return font, ok
+
+else:
+
+    def select_font(*args, **kwargs):
+        return QFontDialog.getFont(*args, **kwargs)
