@@ -1,8 +1,9 @@
 
-from qtpy.QtCore import QSettings
+from qtpy.QtCore import QSettings, Qt
 from qtpy.QtWidgets import (
     QFontDialog,
     QMainWindow,
+    QMenu,
     QToolBar,
     QToolButton,
     QWidget,
@@ -67,14 +68,18 @@ def find_menu_actions(menu):
     for action in menu.actions():
         name = action.objectName()
         if not name:
-            sub_menu = action.menu()
-            if sub_menu is None:
-                continue
-            actions_dict.update(find_menu_actions(sub_menu))
-            name = sub_menu.objectName()
-        assert name
+            continue
         assert name not in actions_dict
-        actions_dict[name] = action
+        actions_dict[name] = (action, None)
+    for child in menu.children():
+        if not isinstance(child, QMenu):
+            continue
+        name = child.objectName()
+        if not name:
+            continue
+        assert name not in actions_dict
+        actions_dict[name] = (child.menuAction(), child)
+        actions_dict.update(find_menu_actions(child))
     return actions_dict
 
 
@@ -84,7 +89,30 @@ if QT_API.startswith('pyside'):
         ok, font = QFontDialog.getFont(*args, **kwargs)
         return font, ok
 
+    def obj_exec(obj, *args, **kwargs):
+        return obj.exec_(*args, **kwargs)
+
 else:
 
     def select_font(*args, **kwargs):
         return QFontDialog.getFont(*args, **kwargs)
+
+    def obj_exec(obj, *args, **kwargs):
+        return obj.exec(*args, **kwargs)
+
+
+if QT_API == 'pyqt6':
+
+    BOOL_TO_CHECKED = {
+        True: Qt.CheckState.Checked.value,
+        False: Qt.CheckState.Unchecked.value,
+    }
+
+else:
+
+    BOOL_TO_CHECKED = {
+        True: Qt.CheckState.Checked,
+        False: Qt.CheckState.Unchecked,
+    }
+
+CHECKED_TO_BOOL = {v: k for k, v in BOOL_TO_CHECKED.items()}

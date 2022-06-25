@@ -12,6 +12,8 @@ from plover.machine.base import (
     STATE_ERROR,
 )
 
+from plover.gui_qt.utils import obj_exec
+
 
 class TrayIcon(QObject):
 
@@ -69,7 +71,7 @@ class TrayIcon(QObject):
             msgbox = QMessageBox()
             msgbox.setText(message)
             msgbox.setIcon(icon)
-            msgbox.exec_()
+            obj_exec(msgbox)
 
     def is_supported(self):
         return self._supported

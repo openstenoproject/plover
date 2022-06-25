@@ -45,7 +45,7 @@ class MainWindow(QMainWindow, Ui_MainWindow, WindowState):
         self.dictionaries.add_translation.connect(self._add_translation)
         self.dictionaries.setup(engine)
         # Populate edit menu from dictionaries' own.
-        edit_menu = all_actions['menu_Edit'].menu()
+        __, edit_menu = all_actions['menu_Edit']
         for action in self.dictionaries.edit_menu.actions():
             edit_menu.addAction(action)
         # Tray icon.
@@ -72,7 +72,8 @@ class MainWindow(QMainWindow, Ui_MainWindow, WindowState):
             'action_Quit',
         ):
             if action_name:
-                popup_menu.addAction(all_actions[action_name])
+                action, __ = all_actions[action_name]
+                popup_menu.addAction(action)
             else:
                 popup_menu.addSeparator()
         self._trayicon.set_menu(popup_menu)
@@ -86,7 +87,7 @@ class MainWindow(QMainWindow, Ui_MainWindow, WindowState):
             lambda: self.toolbar_menu.popup(QCursor.pos())
         )
         # Populate tools bar/menu.
-        tools_menu = all_actions['menu_Tools'].menu()
+        __, tools_menu = all_actions['menu_Tools']
         for tool_plugin in registry.list_plugins('gui.qt.tool'):
             tool = tool_plugin.obj
             menu_action = tools_menu.addAction(tool.TITLE)

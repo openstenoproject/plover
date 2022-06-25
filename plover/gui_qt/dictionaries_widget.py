@@ -24,7 +24,12 @@ from plover.registry import registry
 
 from plover.gui_qt.dictionaries_widget_ui import Ui_DictionariesWidget
 from plover.gui_qt.dictionary_editor import DictionaryEditor
-from plover.gui_qt.utils import ToolBar
+from plover.gui_qt.utils import (
+    BOOL_TO_CHECKED,
+    CHECKED_TO_BOOL,
+    ToolBar,
+    obj_exec,
+)
 
 
 def _dictionary_formats(include_readonly=True):
@@ -367,7 +372,7 @@ class DictionariesModel(QAbstractListModel):
         if role == Qt.ItemDataRole.DisplayRole:
             return d.short_path
         if role == Qt.ItemDataRole.CheckStateRole:
-            return Qt.CheckState.Checked if d.enabled else Qt.CheckState.Unchecked
+            return BOOL_TO_CHECKED[d.enabled]
         if role == Qt.ItemDataRole.AccessibleTextRole:
             accessible_text = [d.short_path]
             if not d.enabled:
@@ -411,11 +416,8 @@ class DictionariesModel(QAbstractListModel):
     def setData(self, index, value, role):
         if not index.isValid() or role != Qt.ItemDataRole.CheckStateRole:
             return False
-        if value == Qt.CheckState.Checked:
-            enabled = True
-        elif value == Qt.CheckState.Unchecked:
-            enabled = False
-        else:
+        enabled = CHECKED_TO_BOOL.get(value)
+        if enabled is None:
             return False
         d = self._from_row[index.row()]
         if d.enabled == enabled:
@@ -468,7 +470,9 @@ class DictionariesWidget(QGroupBox, Ui_DictionariesWidget):
         self.menu_AddDictionaries.setIcon(self.action_AddDictionaries.icon())
         self.menu_AddDictionaries.addAction(self.action_OpenDictionaries)
         self.menu_AddDictionaries.addAction(self.action_CreateDictionary)
-        self.action_AddDictionaries.setMenu(self.menu_AddDictionaries)
+        # Not available on Qt6.
+        if hasattr(self.action_AddDictionaries, 'setMenu'):
+            self.action_AddDictionaries.setMenu(self.menu_AddDictionaries)
         # Save menu.
         self.menu_SaveDictionaries = QMenu(self.action_SaveDictionaries.text())
         self.menu_SaveDictionaries.setIcon(self.action_SaveDictionaries.icon())
@@ -491,7 +495,7 @@ class DictionariesWidget(QGroupBox, Ui_DictionariesWidget):
         edit_menu.addAction(self.action_MoveDictionariesDown)
         self.view.setContextMenuPolicy(Qt.ContextMenuPolicy.CustomContextMenu)
         self.view.customContextMenuRequested.connect(
-            lambda p: edit_menu.exec_(self.view.mapToGlobal(p)))
+            lambda p: obj_exec(edit_menu, self.view.mapToGlobal(p)))
         self.edit_menu = edit_menu
 
     def setup(self, engine):
@@ -579,7 +583,7 @@ class DictionariesWidget(QGroupBox, Ui_DictionariesWidget):
         if not path_list:
             return
         editor = DictionaryEditor(self._engine, path_list)
-        editor.exec_()
+        obj_exec(editor)
 
     def _copy_dictionaries(self, dictionaries):
         need_reload = False
@@ -662,7 +666,7 @@ class DictionariesWidget(QGroupBox, Ui_DictionariesWidget):
         self._edit_dictionaries([index])
 
     def on_add_dictionaries(self):
-        self.menu_AddDictionaries.exec_(QCursor.pos())
+        obj_exec(self.menu_AddDictionaries, QCursor.pos())
 
     def on_add_translation(self):
         dictionary = next(self._model.iter_loaded([self.view.currentIndex()]), None)

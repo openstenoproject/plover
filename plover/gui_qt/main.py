@@ -17,6 +17,7 @@ from plover import _, __name__ as __software_name__, __version__, log
 from plover.oslayer.keyboardcontrol import KeyboardEmulation
 
 from plover.gui_qt.engine import Engine
+from plover.gui_qt.utils import obj_exec
 
 
 # Disable pyqtRemoveInputHook to avoid getting
@@ -49,12 +50,20 @@ class Application:
         QCoreApplication.setOrganizationDomain('openstenoproject.org')
 
         self._app = QApplication([sys.argv[0], '-name', 'plover'])
-        self._app.setAttribute(Qt.ApplicationAttribute.AA_UseHighDpiPixmaps)
+        # Not available on Qt6.
+        attr = getattr(Qt.ApplicationAttribute, 'AA_UseHighDpiPixmaps', None)
+        if attr is not None:
+            self._app.setAttribute(attr)
 
         # Enable localization of standard Qt controls.
         log.info('setting language to: %s', _.lang)
         self._translator = QTranslator()
-        translations_dir = QLibraryInfo.location(QLibraryInfo.LibraryLocation.TranslationsPath)
+        if hasattr(QLibraryInfo, 'LibraryPath'):
+            # Qt6.
+            translations_dir = QLibraryInfo.path(QLibraryInfo.LibraryPath.TranslationsPath)
+        else:
+            # Qt5.
+            translations_dir = QLibraryInfo.location(QLibraryInfo.LibraryLocation.TranslationsPath)
         self._translator.load('qtbase_' + _.lang, translations_dir)
         self._app.installTranslator(self._translator)
 
@@ -82,7 +91,7 @@ class Application:
         del self._translator
 
     def run(self):
-        self._app.exec_()
+        obj_exec(self._app)
         return self._engine.join()
 
 

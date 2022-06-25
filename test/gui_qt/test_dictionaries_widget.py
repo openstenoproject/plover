@@ -20,6 +20,7 @@ import pytest
 from plover.config import DictionaryConfig
 from plover.engine import ErroredDictionary
 from plover.gui_qt.dictionaries_widget import DictionariesModel, DictionariesWidget
+from plover.gui_qt.utils import BOOL_TO_CHECKED, CHECKED_TO_BOOL
 from plover.steno_dictionary import StenoDictionary, StenoDictionaryCollection
 from plover.misc import expand_path
 
@@ -47,11 +48,6 @@ ENABLED_TO_CHAR = {
     True: '☑',
 }
 ENABLED_FROM_CHAR = {c: e for e, c in ENABLED_TO_CHAR.items()}
-
-CHECKED_TO_BOOL = {
-    Qt.CheckState.Checked: True,
-    Qt.CheckState.Unchecked: False,
-}
 
 if QT_API.startswith('pyqt'):
     LAYOUT_ABOUT_TO_BE_CHANGED_CALL = mock.call.layoutAboutToBeChanged([], QAbstractListModel.LayoutChangeHint.NoLayoutChangeHint)
@@ -439,7 +435,7 @@ def test_model_favorite(model_test):
     ☐ 🛇 asset:plover:assets/main.json
     '''
     # New favorite.
-    model_test.model.setData(model_test.model.index(1), Qt.CheckState.Unchecked, Qt.ItemDataRole.CheckStateRole)
+    model_test.model.setData(model_test.model.index(1), BOOL_TO_CHECKED[False], Qt.ItemDataRole.CheckStateRole)
     model_test.check(
         '''
         ☑ 🛇 read-only.ro
@@ -453,7 +449,7 @@ def test_model_favorite(model_test):
         undo_change=True,
     )
     # No favorite.
-    model_test.model.setData(model_test.model.index(3), Qt.CheckState.Unchecked, Qt.ItemDataRole.CheckStateRole)
+    model_test.model.setData(model_test.model.index(3), BOOL_TO_CHECKED[False], Qt.ItemDataRole.CheckStateRole)
     model_test.check(
         '''
         ☑ 🛇 read-only.ro
@@ -629,17 +625,17 @@ def test_model_persistent_index(model_test):
     '''
     persistent_index = QPersistentModelIndex(model_test.model.index(1))
     assert persistent_index.row() == 1
-    assert persistent_index.data(Qt.ItemDataRole.CheckStateRole) == Qt.CheckState.Checked
+    assert persistent_index.data(Qt.ItemDataRole.CheckStateRole) == BOOL_TO_CHECKED[True]
     assert persistent_index.data(Qt.ItemDataRole.DecorationRole).cacheKey() == ICON_FROM_STATE['favorite'].cacheKey()
     assert persistent_index.data(Qt.ItemDataRole.DisplayRole) == 'user.json'
     model_test.configure(classic_dictionaries_display_order=True)
     assert persistent_index.row() == 2
-    assert persistent_index.data(Qt.ItemDataRole.CheckStateRole) == Qt.CheckState.Checked
+    assert persistent_index.data(Qt.ItemDataRole.CheckStateRole) == BOOL_TO_CHECKED[True]
     assert persistent_index.data(Qt.ItemDataRole.DecorationRole).cacheKey() == ICON_FROM_STATE['favorite'].cacheKey()
     assert persistent_index.data(Qt.ItemDataRole.DisplayRole) == 'user.json'
-    model_test.model.setData(persistent_index, Qt.CheckState.Unchecked, Qt.ItemDataRole.CheckStateRole)
+    model_test.model.setData(persistent_index, BOOL_TO_CHECKED[False], Qt.ItemDataRole.CheckStateRole)
     assert persistent_index.row() == 2
-    assert persistent_index.data(Qt.ItemDataRole.CheckStateRole) == Qt.CheckState.Unchecked
+    assert persistent_index.data(Qt.ItemDataRole.CheckStateRole) == BOOL_TO_CHECKED[False]
     assert persistent_index.data(Qt.ItemDataRole.DecorationRole).cacheKey() == ICON_FROM_STATE['normal'].cacheKey()
     assert persistent_index.data(Qt.ItemDataRole.DisplayRole) == 'user.json'
 
@@ -701,16 +697,16 @@ def test_model_set_checked(model_test):
     first_index = model_test.model.index(0)
     for index, value, ret, state in (
         # Invalid index.
-        (QModelIndex(), Qt.CheckState.Unchecked, False, on_state),
+        (QModelIndex(), BOOL_TO_CHECKED[False], False, on_state),
         # Invalid values.
         (first_index, 'pouet', False, on_state),
         (first_index, Qt.CheckState.PartiallyChecked, False, on_state),
         # Already checked.
-        (first_index, Qt.CheckState.Checked, False, on_state),
+        (first_index, BOOL_TO_CHECKED[True], False, on_state),
         # Uncheck.
-        (first_index, Qt.CheckState.Unchecked, True, off_state),
+        (first_index, BOOL_TO_CHECKED[False], True, off_state),
         # Recheck.
-        (first_index, Qt.CheckState.Checked, True, on_state),
+        (first_index, BOOL_TO_CHECKED[True], True, on_state),
     ):
         assert model_test.model.setData(index, value, Qt.ItemDataRole.CheckStateRole) == ret
         model_test.check(state, config_change='update' if ret else None,
@@ -742,7 +738,7 @@ def test_model_undo_1(model_test):
         state = state.split('\n')
         state[n] = '☑' + state[n][1:]
         state = '\n'.join(state)
-        model_test.model.setData(model_test.model.index(n), Qt.CheckState.Checked, Qt.ItemDataRole.CheckStateRole)
+        model_test.model.setData(model_test.model.index(n), BOOL_TO_CHECKED[True], Qt.ItemDataRole.CheckStateRole)
         model_test.check(state, config_change='update', data_change=[n],
                          undo_change=(True if n == 0 else None))
     for n in range(5):

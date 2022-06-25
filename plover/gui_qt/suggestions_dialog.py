@@ -17,7 +17,7 @@ from plover.suggestions import Suggestion
 from plover.formatting import RetroFormatter
 
 from plover.gui_qt.suggestions_dialog_ui import Ui_SuggestionsDialog
-from plover.gui_qt.utils import ToolBar, select_font
+from plover.gui_qt.utils import ToolBar, obj_exec, select_font
 from plover.gui_qt.tool import Tool
 
 
@@ -143,7 +143,7 @@ class SuggestionsDialog(Tool, Ui_SuggestionsDialog):
             self._show_suggestions(suggestion_list)
 
     def on_select_font(self):
-        action = self._font_menu.exec_(QCursor.pos())
+        action = obj_exec(self._font_menu, QCursor.pos())
         if action is None:
             return
         if action == self._font_menu_text:

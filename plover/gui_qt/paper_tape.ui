@@ -155,7 +155,7 @@
  <connections>
   <connection>
    <sender>styles</sender>
-   <signal>activated(QString)</signal>
+   <signal>textActivated(QString)</signal>
    <receiver>PaperTape</receiver>
    <slot>on_style_changed()</slot>
    <hints>

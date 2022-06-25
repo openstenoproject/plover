@@ -17,7 +17,7 @@ from wcwidth import wcwidth
 from plover import _, system
 
 from plover.gui_qt.paper_tape_ui import Ui_PaperTape
-from plover.gui_qt.utils import ToolBar, select_font
+from plover.gui_qt.utils import ToolBar, obj_exec, select_font
 from plover.gui_qt.tool import Tool
 
 
@@ -208,7 +208,7 @@ class PaperTape(Tool, Ui_PaperTape):
         msgbox.setStandardButtons(QMessageBox.StandardButton.Yes | QMessageBox.StandardButton.No)
         # Make sure the message box ends up above the paper tape!
         msgbox.setWindowFlags(msgbox.windowFlags() | (flags & Qt.WindowType.WindowStaysOnTopHint))
-        if QMessageBox.StandardButton.Yes != msgbox.exec_():
+        if QMessageBox.StandardButton.Yes != obj_exec(msgbox):
             return
         self._strokes = []
         self.action_Clear.setEnabled(False)
