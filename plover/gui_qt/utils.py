@@ -1,6 +1,7 @@
 
 from qtpy.QtCore import QSettings, Qt
 from qtpy.QtWidgets import (
+    QFileDialog,
     QFontDialog,
     QMainWindow,
     QMenu,
@@ -108,6 +109,13 @@ if QT_API == 'pyqt6':
         False: Qt.CheckState.Unchecked.value,
     }
 
+elif QT_API == 'pyside6':
+
+    BOOL_TO_CHECKED = {
+        True: int(Qt.CheckState.Checked),
+        False: int(Qt.CheckState.Unchecked),
+    }
+
 else:
 
     BOOL_TO_CHECKED = {
@@ -116,3 +124,20 @@ else:
     }
 
 CHECKED_TO_BOOL = {v: k for k, v in BOOL_TO_CHECKED.items()}
+
+
+if QT_API == 'pyside6':
+
+    def select_open_filenames(*args, directory=None, **kwargs):
+        return QFileDialog.getOpenFileNames(*args, dir=directory, **kwargs)
+
+    def select_save_filename(*args, directory=None, **kwargs):
+        return QFileDialog.getSaveFileName(*args, dir=directory, **kwargs)
+
+else:
+
+    def select_open_filenames(*args, **kwargs):
+        return QFileDialog.getOpenFileNames(*args, **kwargs)
+
+    def select_save_filename(*args, **kwargs):
+        return QFileDialog.getSaveFileName(*args, **kwargs)

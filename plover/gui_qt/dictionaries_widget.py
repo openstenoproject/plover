@@ -29,6 +29,8 @@ from plover.gui_qt.utils import (
     CHECKED_TO_BOOL,
     ToolBar,
     obj_exec,
+    select_open_filenames,
+    select_save_filename,
 )
 
 
@@ -566,7 +568,7 @@ class DictionariesWidget(QGroupBox, Ui_DictionariesWidget):
             default_name = os.path.join(self._file_dialogs_directory, default_name)
         else:
             default_name = self._file_dialogs_directory
-        new_filename = QFileDialog.getSaveFileName(
+        new_filename = select_save_filename(
             parent=self, caption=title, directory=default_name,
             filter=_dictionary_filters(include_readonly=False),
         )[0]
@@ -636,7 +638,7 @@ class DictionariesWidget(QGroupBox, Ui_DictionariesWidget):
             self._engine.config = {}
 
     def on_open_dictionaries(self):
-        new_filenames = QFileDialog.getOpenFileNames(
+        new_filenames = select_open_filenames(
             # i18n: Widget: “DictionariesWidget”, “add” file picker.
             parent=self, caption=_('Load dictionaries'),
             directory=self._file_dialogs_directory,

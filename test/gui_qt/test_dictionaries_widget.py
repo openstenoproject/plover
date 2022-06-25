@@ -803,12 +803,13 @@ def widget_test(model_test, monkeypatch, qtbot):
     registry = mock.MagicMock(spec=['list_plugins'])
     registry.list_plugins.side_effect = list_plugins
     monkeypatch.setattr('plover.gui_qt.dictionaries_widget.registry', registry)
-    # Fake file dialog.
+    # Fake calls to file dialog.
     file_dialog = mock.MagicMock(spec='''
-                                 getOpenFileNames
-                                 getSaveFileName
+                                 select_open_filenames
+                                 select_save_filename
                                  '''.split())
-    monkeypatch.setattr('plover.gui_qt.dictionaries_widget.QFileDialog', file_dialog)
+    monkeypatch.setattr('plover.gui_qt.dictionaries_widget.select_open_filenames', file_dialog.select_open_filenames)
+    monkeypatch.setattr('plover.gui_qt.dictionaries_widget.select_save_filename', file_dialog.select_save_filename)
     # Fake `create_dictionary`.
     def create_dictionary(filename, threaded_save=True):
         pass
@@ -900,7 +901,7 @@ def test_widget_save_copy_1(widget_test):
         '',
         expand_path('read-only_copy.json'),
     )
-    widget_test.file_dialog.getSaveFileName.side_effect = [
+    widget_test.file_dialog.select_save_filename.side_effect = [
         [name]
         for name in copy_names
     ]
@@ -914,7 +915,7 @@ def test_widget_save_copy_1(widget_test):
     widget_test.widget.action_CopyDictionaries.trigger()
     # Check.
     assert widget_test.file_dialog.mock_calls == [
-        mock.call.getSaveFileName(
+        mock.call.select_save_filename(
             parent=widget_test.widget,
             caption='Save a copy of %s as...' % name,
             directory=expand_path('%s - Copy.json' % Path(name).stem),
@@ -945,12 +946,12 @@ def test_widget_save_merge_1(widget_test):
     '''
     # Setup.
     merge_name = 'favorite + normal + read-only'
-    widget_test.file_dialog.getSaveFileName.return_value = [expand_path('merge.json')]
+    widget_test.file_dialog.select_save_filename.return_value = [expand_path('merge.json')]
     # Execution.
     widget_test.select(range(5))
     widget_test.widget.action_MergeDictionaries.trigger()
     # Check.
-    assert widget_test.file_dialog.mock_calls == [mock.call.getSaveFileName(
+    assert widget_test.file_dialog.mock_calls == [mock.call.select_save_filename(
         parent=widget_test.widget,
         caption='Merge %s as...' % merge_name,
         directory=expand_path(merge_name + '.json'),
@@ -975,12 +976,12 @@ def test_widget_save_merge_2(widget_test):
     '''
     # Setup.
     merge_name = 'favorite + normal'
-    widget_test.file_dialog.getSaveFileName.return_value = ['']
+    widget_test.file_dialog.select_save_filename.return_value = ['']
     # Execution.
     widget_test.select([0, 2])
     widget_test.widget.action_MergeDictionaries.trigger()
     # Check.
-    assert widget_test.file_dialog.mock_calls == [mock.call.getSaveFileName(
+    assert widget_test.file_dialog.mock_calls == [mock.call.select_save_filename(
         parent=widget_test.widget,
         caption='Merge %s as...' % merge_name,
         directory=expand_path(merge_name + '.json'),
