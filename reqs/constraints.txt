@@ -47,7 +47,14 @@ pyparsing==3.0.3
 PyQt5==5.15.6
 PyQt5-Qt5==5.15.2
 PyQt5-sip==12.9.0
+PyQt6==6.3.1
+PyQt6-Qt6==6.3.1
+PyQt6-sip==13.4.0
 pyserial==3.5
+PySide2==5.15.2.1
+PySide6==6.3.1
+PySide6-Addons==6.3.1
+PySide6-Essentials==6.3.1
 pytest==6.2.5
 pytest-qt==4.0.2
 python-xlib==0.31
@@ -63,6 +70,8 @@ rfc3986==1.5.0
 rtf-tokenize==1.0.0
 SecretStorage==3.3.1
 setuptools==58.3.0
+shiboken2==5.15.2.1
+shiboken6==6.3.1
 six==1.16.0
 toml==0.10.2
 tomli==1.2.2

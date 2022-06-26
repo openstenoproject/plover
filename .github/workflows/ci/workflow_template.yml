@@ -127,9 +127,9 @@ jobs:
         run: setup_osx_python '<@ j.python @>'
 
       <% endif %>
-      <% if j.type == 'build' and j.os == 'Linux' %>
+      <% if j.os == 'Linux' and j.system_deps %>
       - name: Install system dependencies
-        run: apt_get_install libdbus-1-dev libdbus-glib-1-dev libudev-dev libusb-1.0-0-dev
+        run: apt_get_install <@ j.system_deps @>
 
       <% endif %>
       - name: Setup Python environment
@@ -154,6 +154,10 @@ jobs:
       # Test {{{
 
       - name: Run tests
+        <% if j.type == 'test_gui_qt' %>
+        env:
+          QT_API: <@ j.qt_api @>
+        <% endif %>
         run: run_tests <@ j.test_args @>
 
 

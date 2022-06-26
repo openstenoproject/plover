@@ -14,6 +14,7 @@ vars:
     python: '3.9'
     os: Linux
     platform: ubuntu-18.04
+    system_deps:
 
   - &dist_macos
     variant: macOS
@@ -66,12 +67,30 @@ jobs:
     python: '3.10'
 
   # Qt GUI tests.
-  - <<: *test
+  - &test_gui
+    <<: *test
     type: test_gui_qt
-    variant: Qt GUI
+    variant: PyQt5 GUI
+    qt_api: PyQt5
     reqs: ['dist', 'dist_extra_gui_qt', 'dist_pyqt5', 'setup', 'test']
     skiplists: ['job_test_gui_qt']
     test_args: test/gui_qt
+  - <<: *test_gui
+    platform: ubuntu-20.04
+    variant: PyQt6 GUI
+    qt_api: PyQt6
+    reqs: ['dist', 'dist_extra_gui_qt', 'dist_pyqt6', 'setup', 'test']
+    system_deps: libegl1
+  - <<: *test_gui
+    variant: PySide2 GUI
+    qt_api: PySide2
+    reqs: ['dist', 'dist_extra_gui_qt', 'dist_pyside2', 'setup', 'test']
+  - <<: *test_gui
+    platform: ubuntu-20.04
+    variant: PySide6 GUI
+    qt_api: PySide6
+    reqs: ['dist', 'dist_extra_gui_qt', 'dist_pyside6', 'setup', 'test']
+    system_deps: libegl1
 
   # Packaging tests.
   - <<: *dist_other
@@ -89,6 +108,7 @@ jobs:
     reqs: ['build', 'setup']
     cache_extra_deps: ['reqs/dist_extra*.txt', 'reqs/dist_plugins.txt', 'reqs/dist_pyqt5', 'linux/appimage/deps.sh']
     skiplists: ['job_build', 'os_linux']
+    system_deps: libdbus-1-dev libdbus-glib-1-dev libudev-dev libusb-1.0-0-dev
   - <<: *build
     <<: *dist_macos
     needs: [test_macos]
