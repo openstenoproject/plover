@@ -1,5 +1,6 @@
 from PyQt5.QtCore import (
     QAbstractListModel,
+    QMimeData,
     QModelIndex,
     Qt,
 )
@@ -18,6 +19,8 @@ from PyQt5.QtWidgets import (
 
 from plover import _
 from plover.translation import escape_translation
+
+from .utils import ActionCopyViewSelectionToClipboard
 
 
 # i18n: Widget: “SuggestionsWidget”.
@@ -138,12 +141,26 @@ class SuggestionsModel(QAbstractListModel):
         self._suggestion_list.extend(suggestion_list)
         self.endInsertRows()
 
+    def mimeTypes(self):
+        return ['text/plain']
+
+    def mimeData(self, indexes):
+        data = QMimeData()
+        data.setText('\n'.join(filter(None, (
+            self.data(index, Qt.AccessibleTextRole)
+            for index in indexes
+        ))))
+        return data
+
 
 class SuggestionsWidget(QListView):
 
     def __init__(self, parent=None):
         super().__init__(parent=parent)
         self.setResizeMode(self.Adjust)
+        self.setSelectionMode(self.ExtendedSelection)
+        self._copy_action = ActionCopyViewSelectionToClipboard(self)
+        self.addAction(self._copy_action)
         self._model = SuggestionsModel()
         self._delegate = SuggestionsDelegate(self)
         self.setModel(self._model)
