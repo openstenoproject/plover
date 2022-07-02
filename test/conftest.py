@@ -2,6 +2,9 @@ import os
 
 import pytest
 
+# Ensure i18n support does not mess us up.
+os.environ['LANGUAGE'] = 'C'
+
 from plover import system
 from plover.config import DEFAULT_SYSTEM_NAME
 from plover.registry import registry
