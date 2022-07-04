@@ -2,7 +2,6 @@ from functools import partial
 import os
 import tempfile
 
-from mock import MagicMock
 import pytest
 
 from plover import system
@@ -21,6 +20,8 @@ from plover.registry import Registry
 from plover.steno_dictionary import StenoDictionaryCollection
 
 from plover_build_utils.testing import make_dict
+
+from .py37compat import mock
 
 
 class FakeMachine(StenotypeBase):
@@ -88,7 +89,7 @@ def engine(monkeypatch):
     registry.register_plugin('machine', 'Fake', FakeMachine)
     monkeypatch.setattr('plover.config.registry', registry)
     monkeypatch.setattr('plover.engine.registry', registry)
-    ctrl = MagicMock(spec=Controller)
+    ctrl = mock.MagicMock(spec=Controller)
     kbd = FakeKeyboardEmulation()
     cfg_file = tempfile.NamedTemporaryFile(prefix='plover',
                                            suffix='config',
