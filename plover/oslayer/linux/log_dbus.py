@@ -41,7 +41,7 @@ def ctypes_func(library, signature):
     return func
 
 
-class DbusNotificationHandler(logging.Handler):
+class DBusNotificationHandler(logging.Handler):
     """ Handler using DBus notifications to show messages. """
 
     def __init__(self):
