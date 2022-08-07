@@ -104,6 +104,9 @@ class DBusNotificationHandler(logging.Handler):
             raise FileNotFoundError('dbus-1 library')
         library = ctypes.cdll.LoadLibrary(libname)
 
+        error_free = ctypes_func(library, 'void dbus_error_free error_p')
+        error_init = ctypes_func(library, 'void dbus_error_init error_p')
+        error_is_set = ctypes_func(library, 'bool dbus_error_is_set error_p')
         bus_get = ctypes_func(library, 'connection_p dbus_bus_get uint error_p')
         message_new = ctypes_func(library, 'message_p dbus_message_new_method_call char_p char_p char_p char_p')
         message_unref = ctypes_func(library, 'void dbus_message_unref message_p')
@@ -135,7 +138,14 @@ class DBusNotificationHandler(logging.Handler):
             if not iter_append_basic(self._iter_stack[self._iter_stack_index], kind, ctypes.byref(value)):
                 raise MemoryError
 
-        bus = bus_get(DBUS_BUS_SESSION, None)
+        error = DBusError()
+        error_init(error)
+        bus = bus_get(DBUS_BUS_SESSION, ctypes.byref(error))
+        if error_is_set(error):
+            e = ConnectionError('%s: %s' % (error.name.decode(), error.message.decode()))
+            error_free(error)
+            raise e
+        assert bus is not None
 
         actions_signature = ctypes.c_char_p(b's')
         hints_signature = ctypes.c_char_p(b'{sv}')
