@@ -1,6 +1,6 @@
 # Environment setup
 
-You need Python >= 3.6 installed, and you need [tox](https://pypi.org/project/tox/) >= 3.10.
+You need Python >= 3.7 installed, and you need [tox](https://pypi.org/project/tox/) >= 3.10.
 
 Using tox takes care of all the details of creating and managing an isolated
 virtual environment, installing the necessary dependencies, and isolating

@@ -19,10 +19,9 @@ from plover.suggestions import Suggestions
 from plover.translation import Translator
 
 
-class StartingStrokeState(namedtuple('StartingStrokeState', 'attach capitalize space_char')):
-
-    def __new__(cls, attach=False, capitalize=False, space_char=' '):
-        return super().__new__(cls, attach, capitalize, space_char)
+StartingStrokeState = namedtuple('StartingStrokeState',
+                                 'attach capitalize space_char',
+                                 defaults=(False, False, ' '))
 
 
 MachineParams = namedtuple('MachineParams', 'type options keymap')
