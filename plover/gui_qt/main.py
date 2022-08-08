@@ -1,3 +1,4 @@
+from pathlib import Path
 import signal
 import sys
 
@@ -16,6 +17,7 @@ from PyQt5.QtCore import (
 from PyQt5.QtWidgets import QApplication, QMessageBox
 
 from plover import _, __name__ as __software_name__, __version__, log
+from plover.oslayer.config import CONFIG_DIR
 from plover.oslayer.keyboardcontrol import KeyboardEmulation
 
 from plover.gui_qt.engine import Engine
@@ -46,6 +48,12 @@ class Application:
 
         self._app = QApplication([sys.argv[0], '-name', 'plover'])
         self._app.setAttribute(Qt.AA_UseHighDpiPixmaps)
+
+        # Apply custom stylesheet if present.
+        stylesheet_path = Path(CONFIG_DIR) / 'plover.qss'
+        if stylesheet_path.exists():
+            log.info('using stylesheet at: %s', stylesheet_path)
+            self._app.setStyleSheet(stylesheet_path.read_text())
 
         # Enable localization of standard Qt controls.
         log.info('setting language to: %s', _.lang)
