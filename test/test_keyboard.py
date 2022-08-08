@@ -1,10 +1,11 @@
-from mock import MagicMock, call, patch
 import pytest
 
 from plover import system
 from plover.machine.keyboard import Keyboard
 from plover.machine.keymap import Keymap
 from plover.oslayer.keyboardcontrol import KeyboardCapture
+
+from .py37compat import mock
 
 
 def send_input(capture, key_events):
@@ -20,8 +21,8 @@ def send_input(capture, key_events):
 
 @pytest.fixture
 def capture():
-    capture = MagicMock(spec=KeyboardCapture)
-    with patch('plover.machine.keyboard.KeyboardCapture', new=lambda: capture):
+    capture = mock.MagicMock(spec=KeyboardCapture)
+    with mock.patch('plover.machine.keyboard.KeyboardCapture', new=lambda: capture):
         yield capture
 
 @pytest.fixture(params=[False])
@@ -47,8 +48,8 @@ def test_lifecycle(capture, machine, strokes):
     # Start machine.
     machine.start_capture()
     assert capture.mock_calls == [
-        call.start(),
-        call.suppress(()),
+        mock.call.start(),
+        mock.call.suppress(()),
     ]
     capture.reset_mock()
     machine.set_suppression(True)
@@ -56,7 +57,7 @@ def test_lifecycle(capture, machine, strokes):
     del suppressed_keys['space']
     assert strokes == []
     assert capture.mock_calls == [
-        call.suppress(suppressed_keys.keys()),
+        mock.call.suppress(suppressed_keys.keys()),
     ]
     # Trigger some strokes.
     capture.reset_mock()
@@ -71,8 +72,8 @@ def test_lifecycle(capture, machine, strokes):
     machine.stop_capture()
     assert strokes == []
     assert capture.mock_calls == [
-        call.suppress(()),
-        call.cancel(),
+        mock.call.suppress(()),
+        mock.call.cancel(),
     ]
 
 def test_unfinished_stroke_1(capture, machine, strokes):

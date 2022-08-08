@@ -6,7 +6,6 @@ import operator
 
 from PyQt5.QtCore import QModelIndex, QPersistentModelIndex, Qt
 
-import mock
 import pytest
 
 from plover.config import DictionaryConfig
@@ -16,6 +15,8 @@ from plover.steno_dictionary import StenoDictionary, StenoDictionaryCollection
 from plover.misc import expand_path
 
 from plover_build_utils.testing import parametrize
+
+from ..py37compat import mock
 
 
 INVALID_EXCEPTION = Exception('loading error')
