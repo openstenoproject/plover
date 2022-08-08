@@ -97,6 +97,10 @@ class AddTranslationWidget(QWidget, Ui_AddTranslationWidget):
         self._engine_state = self._original_state
         self._focus = None
 
+    @property
+    def mapping_is_valid(self):
+        return self._mapping_is_valid
+
     def select_dictionary(self, dictionary_path):
         self._selected_dictionary = dictionary_path
         self._update_items()
