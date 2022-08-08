@@ -1,3 +1,44 @@
+# v4.0.0.dev12 (2022-08-09)
+
+## Features
+
+### User Interface
+
+- Show detailed information about each available serial port in the machine configuration dialog. (#1510)
+- Add support for styling the Qt GUI: automatically load and apply a custom stylesheet from `plover.qss` (in the configuration directory) when present. (#1514)
+- Capture and log Qt messages. (#1534)
+- Change the paper tape / suggestions widget selection mode to "extended" (allow selecting multiple items, support shift/control), and allow copying the current selection to clipboard using the standard copy shortcut. (#1539)
+
+### Linux
+
+- Use `/dev/serial/by-id/xxxx` links for each available serial port in the machine configuration dialog. (#1510)
+
+## Bugfixes
+
+### Core
+
+- Fix possible exception when calling `Engine.clear_translator_state(undo=True)`. (#1547)
+
+### User Interface
+
+- Fix "add translation" dialog "Ok" button not being enabled when the strokes field is automatically populated from the latest untranslate. (#1527)
+- Fix `{PLOVER:ADD_TRANSLATION}` implementation when using the headless GUI (`-g none`). (#1546)
+
+### Linux
+
+- Fix fallback to Qt if the D-Bus log handler cannot be initialized. (#1545)
+
+### Windows
+
+- Fix some key combinations being sent incorrectly. (#1274)
+
+## API
+
+### Breaking Changes
+
+- Drop support for Python 3.6. (#1538)
+
+
 # v4.0.0.dev11 (2022-05-15)
 
 ## Features
