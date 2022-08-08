@@ -264,3 +264,6 @@ def test_engine_running_state(engine):
     # Running state is kept throughout.
     engine.set_output(True)
     assert engine.translator_state == running_state
+
+def test_undo_and_clear_empty_translator_state(engine):
+    engine.clear_translator_state(undo=True)

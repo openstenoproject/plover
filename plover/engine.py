@@ -527,7 +527,8 @@ class StenoEngine:
     def clear_translator_state(self, undo=False):
         if undo:
             state = self._translator.get_state()
-            self._formatter.format(state.translations, (), None)
+            if state.translations:
+                self._formatter.format(state.translations, (), None)
         self._translator.clear_state()
 
     @property
