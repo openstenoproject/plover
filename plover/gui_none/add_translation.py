@@ -1,4 +1,3 @@
-
 from plover.engine import StartingStrokeState
 
 
@@ -28,9 +27,8 @@ class AddTranslation:
     def _push_state(self):
         self._translator_states.insert(0, self._get_state())
 
-    def _pop_state(self, undo=False):
-        if undo:
-            self._engine.clear_translator_state(True)
+    def _pop_state(self):
+        self._engine.clear_translator_state(True)
         self._set_state(*self._translator_states.pop(0))
 
     @staticmethod
@@ -52,29 +50,25 @@ class AddTranslation:
         elif self._status == 'strokes':
             self._engine.remove_dictionary_filter(self._stroke_filter)
             state = self._get_state()[0]
-            # Ignore add translation stroke.
-            state.translations = state.translations[1:]
-            strokes = []
-            for t in state.translations:
-                strokes.extend(t.strokes)
-            if not strokes:
+            assert state.translations
+            if len(state.translations) == 1:
                 # Abort add translation.
-                self._pop_state(undo=True)
+                self._pop_state()
                 self._status = None
                 return
-            self._strokes = tuple(s.rtfcre for s in strokes)
+            self._strokes = tuple(s.rtfcre
+                                  # Ignore add translation strokes.
+                                  for t in state.translations[:-1]
+                                  for s in t.strokes)
             self._clear_state(undo=True)
             self._translation = ''
-            self._status = 'translations'
             self._engine.hook_connect('send_string', self.send_string)
             self._engine.hook_connect('send_backspaces', self.send_backspaces)
+            self._status = 'translations'
         elif self._status == 'translations':
             state = self._get_state()[0]
-            # Ignore add translation stroke.
-            state.translations = state.translations[1:]
             self._engine.hook_disconnect('send_string', self.send_string)
             self._engine.hook_disconnect('send_backspaces', self.send_backspaces)
-            self._translation = self._translation.strip()
-            self._engine.add_translation(self._strokes, self._translation)
-            self._pop_state(undo=True)
+            self._engine.add_translation(self._strokes, self._translation.strip())
+            self._pop_state()
             self._status = None
