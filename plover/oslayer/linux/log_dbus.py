@@ -26,22 +26,72 @@ DBUS_TYPE_STRING     = ctypes.c_int(ord('s'))
 DBUS_TYPE_UINT32     = ctypes.c_int(ord('u'))
 DBUS_TYPE_VARIANT    = ctypes.c_int(ord('v'))
 
+class DBusConnection(ctypes.c_void_p):
+    pass
+
+class DBusError(ctypes.Structure):
+    _fields_ = (
+        ('name'    , ctypes.c_char_p),
+        ('message' , ctypes.c_char_p),
+        ('dummy1'  , ctypes.c_uint),
+        ('dummy2'  , ctypes.c_uint),
+        ('dummy3'  , ctypes.c_uint),
+        ('dummy4'  , ctypes.c_uint),
+        ('dummy5'  , ctypes.c_uint),
+        ('padding1', ctypes.c_void_p),
+    )
+
+class DBusMessage(ctypes.c_void_p):
+    pass
+
+class DBusMessageIter(ctypes.Structure):
+    _fields_ = (
+        ('dummy1' , ctypes.c_void_p),
+        ('dummy2' , ctypes.c_void_p),
+        ('dummy3' , ctypes.c_uint32),
+        ('dummy4' , ctypes.c_int),
+        ('dummy5' , ctypes.c_int),
+        ('dummy6' , ctypes.c_int),
+        ('dummy7' , ctypes.c_int),
+        ('dummy8' , ctypes.c_int),
+        ('dummy9' , ctypes.c_int),
+        ('dummy10', ctypes.c_int),
+        ('dummy11', ctypes.c_int),
+        ('pad1'   , ctypes.c_int),
+        ('pad2'   , ctypes.c_void_p),
+        ('pad3'   , ctypes.c_void_p),
+    )
+
+def ctypes_type(signature):
+    if signature == 'void':
+        return None
+    ct = {
+        'connection_p'  : DBusConnection,
+        'error_p'       : DBusError,
+        'message_p'     : DBusMessage,
+        'message_iter_p': DBusMessageIter,
+    }.get(signature)
+    if ct is not None:
+        return ctypes.POINTER(ct)
+    ct = getattr(ctypes, 'c_' + signature, None)
+    if ct is not None:
+        return ct
+    if not signature.endswith('_p'):
+        raise ValueError(signature)
+    ct = getattr(ctypes, 'c_' + signature[:-2])
+    if ct is None:
+        raise ValueError(signature)
+    return ctypes.POINTER(ct)
 
 def ctypes_func(library, signature):
     restype, func_name, *argtypes = signature.split()
     func = getattr(library, func_name)
-    setattr(func, 'argtypes', [
-        ctypes.POINTER(getattr(ctypes, 'c_' + t[1:]))
-        if t.startswith('&') else getattr(ctypes, 'c_' + t)
-        for t in argtypes
-    ])
-    setattr(func, 'restype',
-            None if restype == 'void' else
-            getattr(ctypes, 'c_' + restype))
+    func.argtypes = tuple(map(ctypes_type, argtypes))
+    func.restype = ctypes_type(restype)
     return func
 
 
-class DbusNotificationHandler(logging.Handler):
+class DBusNotificationHandler(logging.Handler):
     """ Handler using DBus notifications to show messages. """
 
     def __init__(self):
@@ -54,17 +104,20 @@ class DbusNotificationHandler(logging.Handler):
             raise FileNotFoundError('dbus-1 library')
         library = ctypes.cdll.LoadLibrary(libname)
 
-        bus_get = ctypes_func(library, 'void_p dbus_bus_get uint void_p')
-        message_new = ctypes_func(library, 'void_p dbus_message_new_method_call char_p char_p char_p char_p')
-        message_unref = ctypes_func(library, 'void dbus_message_unref void_p')
-        iter_init_append = ctypes_func(library, 'void dbus_message_iter_init_append void_p void_p')
-        iter_append_basic = ctypes_func(library, 'bool dbus_message_iter_append_basic void_p int void_p')
-        iter_open_container = ctypes_func(library, 'bool dbus_message_iter_open_container void_p int char_p void_p')
-        iter_close_container = ctypes_func(library, 'bool dbus_message_iter_close_container void_p void_p')
-        connection_send = ctypes_func(library, 'bool dbus_connection_send void_p void_p &uint32')
+        error_free = ctypes_func(library, 'void dbus_error_free error_p')
+        error_init = ctypes_func(library, 'void dbus_error_init error_p')
+        error_is_set = ctypes_func(library, 'bool dbus_error_is_set error_p')
+        bus_get = ctypes_func(library, 'connection_p dbus_bus_get uint error_p')
+        message_new = ctypes_func(library, 'message_p dbus_message_new_method_call char_p char_p char_p char_p')
+        message_unref = ctypes_func(library, 'void dbus_message_unref message_p')
+        iter_init_append = ctypes_func(library, 'void dbus_message_iter_init_append message_p message_iter_p')
+        iter_append_basic = ctypes_func(library, 'bool dbus_message_iter_append_basic message_iter_p int void_p')
+        iter_open_container = ctypes_func(library, 'bool dbus_message_iter_open_container message_iter_p int char_p message_iter_p')
+        iter_close_container = ctypes_func(library, 'bool dbus_message_iter_close_container message_iter_p message_iter_p')
+        connection_send = ctypes_func(library, 'bool dbus_connection_send connection_p message_p uint32_p')
 
         # Need message + container + dict_entry + variant = 4 iterators.
-        self._iter_stack = [ctypes.create_string_buffer(128) for __ in range(4)]
+        self._iter_stack = [DBusMessageIter() for __ in range(4)]
         self._iter_stack_index = 0
 
         @contextmanager
@@ -85,7 +138,14 @@ class DbusNotificationHandler(logging.Handler):
             if not iter_append_basic(self._iter_stack[self._iter_stack_index], kind, ctypes.byref(value)):
                 raise MemoryError
 
-        bus = bus_get(DBUS_BUS_SESSION, None)
+        error = DBusError()
+        error_init(error)
+        bus = bus_get(DBUS_BUS_SESSION, ctypes.byref(error))
+        if error_is_set(error):
+            e = ConnectionError('%s: %s' % (error.name.decode(), error.message.decode()))
+            error_free(error)
+            raise e
+        assert bus is not None
 
         actions_signature = ctypes.c_char_p(b's')
         hints_signature = ctypes.c_char_p(b'{sv}')
