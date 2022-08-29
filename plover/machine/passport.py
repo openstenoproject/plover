@@ -42,9 +42,7 @@ class Passport(SerialStenotypeBase):
             shadow = int(shadow, base=16)
             if shadow >= 8:
                 steno_keys.append(key)
-        steno_keys = self.keymap.keys_to_actions(steno_keys)
-        if steno_keys:
-            self._notify(steno_keys)
+        self._notify_keys(steno_keys)
 
     def run(self):
         """Overrides base class run method. Do not call directly."""
