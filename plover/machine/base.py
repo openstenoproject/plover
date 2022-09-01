@@ -149,9 +149,17 @@ class ThreadedStenotypeBase(StenotypeBase, threading.Thread):
     """
     def __init__(self):
         threading.Thread.__init__(self)
+        self._on_unhandled_exception(self._error)
         self.name += '-machine'
         StenotypeBase.__init__(self)
         self.finished = threading.Event()
+
+    def _on_unhandled_exception(self, action):
+        super_invoke_excepthook = self._invoke_excepthook
+        def invoke_excepthook(self):
+            action()
+            super_invoke_excepthook(self)
+        self._invoke_excepthook = invoke_excepthook
 
     def run(self):
         """This method should be overridden by a subclass."""
