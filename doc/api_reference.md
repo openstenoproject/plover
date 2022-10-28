@@ -13,7 +13,9 @@ api/key_combo
 api/log
 api/machine
 api/machine_keymap
+api/oslayer_controller
 api/oslayer_keyboardcontrol
+api/oslayer_wmctrl
 api/orthography
 api/registry
 api/resource
@@ -25,8 +27,6 @@ api/system
 api/translation
 api/qt
 api/i18n
-api/oslayer_controller
-api/oslayer_wmctrl
 api/misc
 api/plover_stroke
 api/dictionary_lib
