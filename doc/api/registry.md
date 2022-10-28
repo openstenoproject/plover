@@ -1,6 +1,7 @@
 # `plover.registry` -- Plugin registry
 
 ```{py:module} plover.registry
+
 ```
 
 The Plover registry collects plugins from the local Python environment via
@@ -36,6 +37,9 @@ a plugin could not be found.
 ```{method} update()
 Re-scans the Python environment to look for plugins, and registers any
 that were previously not loaded.
+
+This method does not get called automatically upon instantiating a Registry
+object, so make sure to call it before using any plugins.
 ```
 
 ```{method} register_plugin_from_entrypoint(plugin_type: str, entrypoint: pkg_resources.EntryPoint)
@@ -87,7 +91,7 @@ function, class, or module.
 A [`Distribution`](https://setuptools.readthedocs.io/en/latest/pkg_resources.html#distribution-objects)
 providing information on a single package either
 bundled with Plover, or installed from the plugins manager, for
-example, the main Plover package `plover 4.0.0-dev10`. Each
+example, the main Plover package `plover 4.0.0-dev12`. Each
 distribution may contain multiple plugins.
 ```
 
