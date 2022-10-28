@@ -5,18 +5,17 @@
 
 api/plover
 api/config
-api/oslayer_config
 api/engine
 api/exception
 api/formatting
 api/key_combo
 api/log
 api/machine
+api/machine_keyboard_capture
 api/machine_keymap
-api/oslayer_controller
-api/oslayer_keyboardcontrol
-api/oslayer_wmctrl
+api/oslayer
 api/orthography
+api/output
 api/registry
 api/resource
 api/steno
