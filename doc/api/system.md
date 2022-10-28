@@ -8,6 +8,7 @@ you access all installed systems, `system` itself always refers to the one
 that is currently active.
 
 ```{py:module} plover.system
+
 ```
 
 ```{function} setup(name: str)
@@ -90,6 +91,14 @@ strokes that include numbers. For example, if `S-` is mapped to `1-`
 as `1-`.
 
 If the system does *not* support numbers, this dictionary may be left empty.
+```
+
+```{data} FERAL_NUMBER_KEY
+:type: bool | None
+
+If `True`, steno notation with a number key anywhere outside the standard
+steno order will still be considered valid, for example `1-8#` in the English
+Stenotype layout. `False` if not defined.
 ```
 
 ```{data} UNDO_STROKE_STENO
