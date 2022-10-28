@@ -1,7 +1,10 @@
 @import url(https://fonts.googleapis.com/css?family=Patua+One);
 @import url(https://fonts.googleapis.com/css?family=JetBrains+Mono);
 
-h1, h2, h3, .sidebar-brand-text {
+h1,
+h2,
+h3,
+.sidebar-brand-text {
   font-family: var(--font-stack--header);
 }
 
@@ -23,4 +26,14 @@ h1, h2, h3, .sidebar-brand-text {
 
 .toctree-l2 {
   margin: 4px;
+}
+
+a.headerlink {
+  font-family: var(--font-stack);
+  font-size: 75%;
+}
+
+.rst-versions .rst-current-version,
+#furo-readthedocs-versions .rst-current-version .fa-book {
+  color: var(--color-sidebar-link-text--top-level);
 }
