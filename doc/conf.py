@@ -6,7 +6,7 @@ project = "Plover"
 copyright = "Open Steno Project"
 author = copyright
 
-release = "4.0.0-dev10"
+release = "4.0.0-dev12"
 version = release
 
 # -- General configuration ---------------------------------------------------
@@ -68,6 +68,7 @@ from pygments.lexer import RegexLexer, bygroups
 from pygments import token as t
 from sphinx.highlighting import lexers
 
+
 class RTFLexer(RegexLexer):
   name = "rtf"
 
@@ -75,8 +76,10 @@ class RTFLexer(RegexLexer):
     "root": [
       (r"(\\[a-z*\\_~\{\}]+)(-?\d+)?", bygroups(t.Keyword, t.Number.Integer)),
       (r"{\\\*\\cxcomment\s+", t.Comment.Multiline, "comment"),
-      (r"({)(\\\*\\cxs)(\s+)([A-Z#0-9\-/#!,]+)(})",
-        bygroups(t.Operator, t.Keyword, t.Text, t.String, t.Operator)),
+      (
+        r"({)(\\\*\\cxs)(\s+)([A-Z#0-9\-/#!,]+)(})",
+        bygroups(t.Operator, t.Keyword, t.Text, t.String, t.Operator),
+      ),
       (r"{", t.Operator),
       (r"}", t.Operator),
       (r".+?", t.Text),
@@ -85,7 +88,8 @@ class RTFLexer(RegexLexer):
       (r"{", t.Comment.Multiline, "#push"),
       (r"}", t.Comment.Multiline, "#pop"),
       (r".+", t.Comment.Multiline),
-    ]
+    ],
   }
+
 
 lexers["rtf"] = RTFLexer(startinline=True)

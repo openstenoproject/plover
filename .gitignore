@@ -26,4 +26,7 @@ __pycache__/
 # VSCode
 /.vscode/
 
+# macOS
+.DS_Store
+
 # vim: ft=cfg
