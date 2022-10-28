@@ -210,7 +210,7 @@ So the entire rule is written as:
 :type: str | None
 
 The path to the default dictionaries for this system. This may be written
-either as a relative path, or using an :ref:`asset path<asset-paths>`.
+either as a relative path, or using an {ref}`asset path<asset-paths>`.
 Typically you would want this directory to be included in your plugin code.
 
 If there are no dictionaries to include, set this to `None`.
