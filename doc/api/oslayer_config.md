@@ -4,6 +4,20 @@ This module provides platform-specific information like paths to configuration
 files and asset directories.
 
 ```{py:module} plover.oslayer.config
+
+```
+
+```{data} PLATFORM
+:type: str
+
+The platform Plover is running on; one of `win`, `mac`, `bsd` or
+`linux`.
+```
+
+```{data} PLUGINS_PLATFORM
+:type: str
+
+Same as {data}`PLATFORM`.
 ```
 
 ```{data} PROGRAM_DIR
@@ -40,13 +54,6 @@ Otherwise, the location of this directory depends on the platform:
 :type: str
 
 The full path name of the Plover configuration file.
-```
-
-```{data} PLUGINS_PLATFORM
-:type: str
-
-The platform Plover is running on; one of `win`, `mac`, `bsd` or
-`linux`.
 ```
 
 ```{data} ASSETS_DIR
