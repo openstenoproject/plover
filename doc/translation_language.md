@@ -125,7 +125,19 @@ Sends a newline character. Equivalent of pressing Enter, but undoable.
 Sends a tab character. Equivalent of pressing Tab, but undoable.
 :::
 
-% TODO: {mode}
+### Spacing Modes
+
+In addition to outputting the space character between words, Plover can also
+output other characters, or none at all.
+
+:::{plover:operator} {mode:set_space:[char]}
+Set the space character to `char`, which may be a string of multiple characters.
+To remove spaces altogether, set this to an empty string: `{mode:set_space:}`.
+:::
+
+:::{plover:operator} {mode:reset_space}
+Reset the space character.
+:::
 
 ## Casing and Capitalization
 
@@ -190,7 +202,34 @@ Carries the capitalization from before the `text` over to after it.
 For example, an opening quotation mark can be implemented as `{~|"^}`.
 :::
 
-% TODO: {mode}
+### Casing Modes
+
+In addition to altering casing for individual words, you can use operators to
+set a long-running casing mode, such as writing in all-caps or in title case:
+
+:::{plover:operator} {mode:caps}
+SETS OUTPUT TO ALL CAPS.
+:::
+
+:::{plover:operator} {mode:title}
+Sets Output To Title Case.
+:::
+
+:::{plover:operator} {mode:lower}
+sets output to lower case.
+:::
+
+:::{plover:operator} {mode:camel}
+SetsOutputToCamelCase.
+:::
+
+:::{plover:operator} {mode:snake}
+Sets_output_to_snake_case.
+:::
+
+:::{plover:operator} {mode:reset_case}
+Resets output to the normal casing mode.
+:::
 
 ## Punctuation
 
@@ -369,7 +408,27 @@ formatting, doesn't output anything, and cannot be undone with the asterisk key.
 It effectively does nothing but show up in logs.
 :::
 
-% TODO: /prefix
+## Word Boundaries
+
+It's possible to select a different translation for an outline depending on
+whether the previous word was finished.
+
+Given the dictionary:
+
+```json
+{
+  "S": "word",
+  "/S": "{prefix^}"
+}
+```
+
+with an initial stroke `S`, the translation `"/S": "{prefix^}"` is chosen;
+unless the previous word is not finished (for example if the previous
+translation is `{con^}`), then the translation `"S": "word"` is chosen.
+
+:::{plover:operator} {$}; {:word_end}
+Explicitly marks a translation as finished.
+:::
 
 ## Control Commands
 
