@@ -1,6 +1,7 @@
 # `plover.config` -- Configuration
 
 ```{py:module} plover.config
+
 ```
 
 This modules handles reading and writing Plover's configuration files, as well
@@ -85,6 +86,8 @@ Returns the `dict` representation of the dictionary configuration.
 Replaces the values of {attr}`path` and {attr}`enabled` with those in `kwargs`.
 ```
 ````
+
+(config-keys)=
 
 ## Configuration Options
 

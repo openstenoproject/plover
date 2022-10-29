@@ -1,6 +1,7 @@
 # `plover.engine` -- Steno engine
 
 ```{py:module} plover.engine
+
 ```
 
 The steno engine is the core of Plover; it handles communication between the
@@ -293,27 +294,27 @@ calling {meth}`engine.hook_connect<StenoEngine.hook_connect>` and passing the
 name of one of the hooks below and a function, you can write handlers that are
 called when Plover hooks get triggered.
 
-```{js:function} stroked(stroke: plover.steno.Stroke)
+```{plover:hook} stroked(stroke: plover.steno.Stroke)
 The user just sent a stroke.
 ```
 
-```{js:function} translated(old, new)
+```{plover:hook} translated(old, new)
 % TODO
 ```
 
-```{js:function} machine_state_changed(machine_type: str, machine_state: str)
+```{plover:hook} machine_state_changed(machine_type: str, machine_state: str)
 Either the machine type was changed by the user, or the connection state
 of the machine changed. `machine_type` is the name of the machine
 (e.g. `Gemini PR`), and `machine_state` is one of `stopped`,
 `initializing`, `connected` or `disconnected`.
 ```
 
-```{js:function} output_changed(enabled: bool)
+```{plover:hook} output_changed(enabled: bool)
 The user requested to either enable or disable steno output. `enabled` is
 `True` if output is enabled, `False` otherwise.
 ```
 
-```{js:function} config_changed(config: Dict[str, any])
+```{plover:hook} config_changed(config: Dict[str, any])
 The configuration was changed, or it was loaded for the first time.
 `config` is a dictionary containing *only* the changed fields. Call the
 hook function with the
@@ -321,46 +322,46 @@ hook function with the
 to initialize your plugin based on the full configuration.
 ```
 
-```{js:function} dictionaries_loaded(dictionaries: plover.steno_dictionary.StenoDictionaryCollection)
+```{plover:hook} dictionaries_loaded(dictionaries: plover.steno_dictionary.StenoDictionaryCollection)
 The dictionaries were loaded, either when Plover starts up or the system
 is changed or when the engine is reset.
 ```
 
-```{js:function} send_string(s: str)
+```{plover:hook} send_string(s: str)
 Plover just sent the string `s` over keyboard output.
 ```
 
-```{js:function} send_backspaces(b: int)
+```{plover:hook} send_backspaces(b: int)
 Plover just sent backspaces over keyboard output. `b` is the number of
 backspaces sent.
 ```
 
-```{js:function} send_key_combination(c: str)
+```{plover:hook} send_key_combination(c: str)
 Plover just sent a keyboard combination over keyboard output. `c` is a
 string representing the keyboard combination, for example `Alt_L(Tab)`.
 ```
 
-```{js:function} add_translation()
+```{plover:hook} add_translation()
 The Add Translation command was activated -- open the Add Translation tool.
 ```
 
-```{js:function} focus()
+```{plover:hook} focus()
 The Show command was activated -- reopen Plover's main window and bring it
 to the front.
 ```
 
-```{js:function} configure()
+```{plover:hook} configure()
 The Configure command was activated -- open the configuration window.
 ```
 
-```{js:function} lookup()
+```{plover:hook} lookup()
 The Lookup command was activated -- open the Lookup tool.
 ```
 
-```{js:function} suggestions()
+```{plover:hook} suggestions()
 The Suggestions command was activated -- open the Suggestions tool.
 ```
 
-```{js:function} quit()
+```{plover:hook} quit()
 The Quit command was activated -- wrap up any pending tasks and quit Plover.
 ```

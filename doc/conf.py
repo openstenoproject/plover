@@ -12,9 +12,12 @@ version = release
 # -- General configuration ---------------------------------------------------
 
 extensions = [
+  "sphinx_plover",
   "sphinxcontrib.yt",
   "myst_parser",
 ]
+
+myst_enable_extensions = ["colon_fence"]
 
 templates_path = ["_templates"]
 

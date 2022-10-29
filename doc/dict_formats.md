@@ -93,6 +93,8 @@ This attribute is **required**.
 ```
 
 ```{function} lookup(outline: Tuple[str]) -> str
+:noindex:
+
 Given an outline which is a tuple of steno strokes, returns the translation for
 this outline, or raises a `KeyError` when no translation is available. The
 translation should be in Plover's [translation language](translation_language).
@@ -101,6 +103,8 @@ This function is **required**.
 ```
 
 ```{function} reverse_lookup(translation: str) -> List[Tuple[str]]
+:noindex:
+
 Given a translation in Plover's [translation language](translation_language),
 returns the list of possible outlines that translate to it. The list may be
 empty if there are no possible outlines in this dictionary.
