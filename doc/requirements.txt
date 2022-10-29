@@ -1,4 +1,4 @@
 sphinxcontrib.yt==0.2.2
-sphinx-plover==0.1.2
+sphinx-plover==0.3
 furo==2022.09.29
 myst-parser==0.15.1
