@@ -33,6 +33,11 @@ a.headerlink {
   font-size: 75%;
 }
 
+#furo-readthedocs-versions,
+.rst-versions {
+  font-family: var(--font-stack);
+}
+
 .rst-versions .rst-current-version,
 #furo-readthedocs-versions .rst-current-version .fa-book {
   color: var(--color-sidebar-link-text--top-level);
