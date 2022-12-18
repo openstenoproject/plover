@@ -24,6 +24,7 @@ http://tronche.com/gui/x/xlib/input/keyboard-encoding.html
 import os
 import select
 import threading
+from time import sleep
 
 from Xlib import X, XK
 from Xlib.display import Display
@@ -1157,6 +1158,7 @@ class KeyboardEmulation(Output):
         super().__init__()
         self._display = Display()
         self._update_keymap()
+        self._key_press_delay = 0
 
     def _update_keymap(self):
         '''Analyse keymap, build a mapping of keysym to (keycode + modifiers),
@@ -1216,11 +1218,17 @@ class KeyboardEmulation(Output):
         # Get modifier mapping.
         self.modifier_mapping = self._display.get_modifier_mapping()
 
+    def set_key_press_delay(self, delay_ms):
+        self._key_press_delay = delay_ms
+
     def send_backspaces(self, count):
         for x in range(count):
             self._send_keycode(self._backspace_mapping.keycode,
                                self._backspace_mapping.modifiers)
-        self._display.sync()
+            self._display.sync()
+
+            if self._key_press_delay > 0:
+                sleep(self._key_press_delay / 1000)
 
     def send_string(self, string):
         for char in string:
@@ -1230,7 +1238,10 @@ class KeyboardEmulation(Output):
                 continue
             self._send_keycode(mapping.keycode,
                                mapping.modifiers)
-        self._display.sync()
+            self._display.sync()
+
+            if self._key_press_delay > 0:
+                sleep(self._key_press_delay / 1000)
 
     def send_key_combination(self, combo):
         # Parse and validate combo.
@@ -1241,7 +1252,10 @@ class KeyboardEmulation(Output):
         # Emulate the key combination by sending key events.
         for keycode, event_type in key_events:
             xtest.fake_input(self._display, event_type, keycode)
-        self._display.sync()
+            self._display.sync()
+
+            if self._key_press_delay > 0:
+                sleep(self._key_press_delay / 1000)
 
     def _send_keycode(self, keycode, modifiers=0):
         """Emulate a key press and release.
