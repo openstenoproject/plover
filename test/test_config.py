@@ -394,6 +394,17 @@ CONFIG_TESTS = (
      None,
     ),
 
+    ('invalid_options_3',
+     '''
+     [Output Configuration]
+     undo_levels = foobar
+     ''',
+     DEFAULTS,
+     {},
+     {},
+     None,
+    ),
+
     ('invalid_update_1',
      '''
      [Translation Frame]
@@ -503,6 +514,51 @@ def test_config(original_contents, original_config,
     if resulting_contents is None:
         resulting_contents = original_contents
     assert config_file.read_text(encoding='utf-8').strip() == dedent_strip(resulting_contents)
+
+
+CONFIG_MISSING_INTS_TESTS = (
+    ('int_option',
+    config.OUTPUT_CONFIG_SECTION,
+    'undo_levels',
+    config.DEFAULT_UNDO_LEVELS,
+    ),
+
+    ('opacity_option',
+    'Translation Frame',
+    'translation_frame_opacity',
+    100,
+    ),
+)
+
+
+@pytest.mark.parametrize(('which_section', 'which_option', 'fixed_value'),
+                         [t[1:] for t in CONFIG_MISSING_INTS_TESTS],
+                         ids=[t[0] for t in CONFIG_MISSING_INTS_TESTS])
+def test_config_missing_ints(which_section, which_option, fixed_value,
+                               monkeypatch, tmpdir, caplog):
+    registry = Registry()
+    registry.register_plugin('machine', 'Keyboard', Keyboard)
+    registry.register_plugin('system', 'English Stenotype', english_stenotype)
+    monkeypatch.setattr('plover.config.registry', registry)
+    config_file = tmpdir / 'config.cfg'
+
+    # Make config with the appropriate empty section
+    contents = f'''
+    [{which_section}]
+    '''
+    config_file.write_text(contents, encoding='utf-8')
+    cfg = config.Config(config_file.strpath)
+    cfg.load()
+
+    # Try to access an option under that section
+    # (should trigger validation)
+    assert cfg[which_option] == fixed_value
+
+    # Ensure that missing options are handled
+    assert 'InvalidConfigOption: None' not in caplog.text
+    # ... or any that there aren't any unhandled errors
+    for record in caplog.records:
+        assert record.levelname != 'ERROR'
 
 
 CONFIG_DIR_TESTS = (
