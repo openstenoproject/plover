@@ -14,6 +14,7 @@ emulate keyboard input.
 """
 
 from ctypes import windll, wintypes
+from time import sleep
 import atexit
 import ctypes
 import multiprocessing
