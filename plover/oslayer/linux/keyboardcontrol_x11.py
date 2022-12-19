@@ -1233,15 +1233,28 @@ class KeyboardEmulation(Output):
     def send_string(self, string):
         for char in string:
             keysym = uchr_to_keysym(char)
-            mapping = self._get_mapping(keysym)
+            # TODO: can we find mappings for multiple keys at a time?
+            mapping = self._get_mapping(keysym, automatically_map=False)
+            mapping_changed = False
             if mapping is None:
-                continue
+                mapping = self._get_mapping(keysym, automatically_map=True)
+                if mapping is None:
+                    continue
+                if self._key_press_delay > 0:
+                    self._display.sync()
+                    sleep(self._key_press_delay / 2000)
+                mapping_changed = True
+
             self._send_keycode(mapping.keycode,
                                mapping.modifiers)
+
             self._display.sync()
 
             if self._key_press_delay > 0:
-                sleep(self._key_press_delay / 1000)
+                if mapping_changed:
+                    sleep(self._key_press_delay / 2000)
+                else:
+                    sleep(self._key_press_delay / 1000)
 
     def send_key_combination(self, combo):
         # Parse and validate combo.
