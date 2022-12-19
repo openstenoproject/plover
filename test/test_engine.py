@@ -16,6 +16,7 @@ from plover.machine.base import (
 from plover.machine.keymap import Keymap
 from plover.misc import normalize_path
 from plover.oslayer.controller import Controller
+from plover.output import Output
 from plover.registry import Registry
 from plover.steno_dictionary import StenoDictionaryCollection
 
@@ -50,7 +51,7 @@ class FakeMachine(StenotypeBase):
     def set_suppression(self, enabled):
         self.is_suppressed = enabled
 
-class FakeKeyboardEmulation:
+class FakeKeyboardEmulation(Output):
 
     def send_backspaces(self, b):
         pass
@@ -59,6 +60,9 @@ class FakeKeyboardEmulation:
         pass
 
     def send_key_combination(self, c):
+        pass
+
+    def set_key_press_delay(self, delay_ms):
         pass
 
 class FakeEngine(StenoEngine):
