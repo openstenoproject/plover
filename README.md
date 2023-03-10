@@ -18,6 +18,8 @@
 
 ## About
 
+Hello world.
+
 Plover (rhymes with "lover") is a desktop application that allows anyone
 to use stenography to write on their computer, up to speeds of 200WPM
 and beyond.
