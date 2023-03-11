@@ -35,15 +35,15 @@ jobs:
       - name: Calculate skip cache keys
         id: set_cache
         run: |
-          job_cache_extra_deps=(); job_id=test_linux; job_name='Test (Linux)'; job_needs=(); job_os=Linux; job_platform=ubuntu-18.04; job_python=3.9; job_reqs=(reqs/dist.txt reqs/test.txt); job_skip_cache_name=skip_test_linux_py-3.9_ubuntu-18.04; job_skip_cache_path=.skip_cache_test_linux; job_skiplists=(job_test os_linux); job_test_args='-p no:pytest-qt --ignore=test/gui_qt'; job_type=test; job_variant=Linux; analyze_set_job_skip_cache_key
+          job_cache_extra_deps=(); job_id=test_linux; job_name='Test (Linux)'; job_needs=(); job_os=Linux; job_platform=ubuntu-22.04; job_python=3.9; job_reqs=(reqs/dist.txt reqs/test.txt); job_skip_cache_name=skip_test_linux_py-3.9_ubuntu-22.04; job_skip_cache_path=.skip_cache_test_linux; job_skiplists=(job_test os_linux); job_test_args='-p no:pytest-qt --ignore=test/gui_qt'; job_type=test; job_variant=Linux; analyze_set_job_skip_cache_key
           job_cache_extra_deps=(osx/deps.sh); job_id=test_macos; job_name='Test (macOS)'; job_needs=(); job_os=macOS; job_platform=macos-10.15; job_python=3.9; job_reqs=(reqs/dist.txt reqs/test.txt); job_skip_cache_name=skip_test_macos_py-3.9_macos-10.15; job_skip_cache_path=.skip_cache_test_macos; job_skiplists=(job_test os_macos); job_test_args='-p no:pytest-qt --ignore=test/gui_qt'; job_type=test; job_variant=macOS; analyze_set_job_skip_cache_key
           job_cache_extra_deps=(); job_id=test_windows; job_name='Test (Windows)'; job_needs=(); job_os=Windows; job_platform=windows-2019; job_python=3.9; job_reqs=(reqs/dist.txt reqs/test.txt); job_skip_cache_name=skip_test_windows_py-3.9_windows-2019; job_skip_cache_path=.skip_cache_test_windows; job_skiplists=(job_test os_windows); job_test_args='-p no:pytest-qt --ignore=test/gui_qt'; job_type=test; job_variant=Windows; analyze_set_job_skip_cache_key
           job_cache_extra_deps=(); job_id=test_python_37; job_name='Test (Python 3.7)'; job_needs=(); job_os=Linux; job_platform=ubuntu-latest; job_python=3.7; job_reqs=(reqs/dist.txt reqs/test.txt); job_skip_cache_name=skip_test_python_37_py-3.7_ubuntu-latest; job_skip_cache_path=.skip_cache_test_python_37; job_skiplists=(job_test os_linux os_macos os_windows); job_test_args='-p no:pytest-qt --ignore=test/gui_qt'; job_type=test; job_variant='Python 3.7'; analyze_set_job_skip_cache_key
           job_cache_extra_deps=(); job_id=test_python_38; job_name='Test (Python 3.8)'; job_needs=(); job_os=Linux; job_platform=ubuntu-latest; job_python=3.8; job_reqs=(reqs/dist.txt reqs/test.txt); job_skip_cache_name=skip_test_python_38_py-3.8_ubuntu-latest; job_skip_cache_path=.skip_cache_test_python_38; job_skiplists=(job_test os_linux os_macos os_windows); job_test_args='-p no:pytest-qt --ignore=test/gui_qt'; job_type=test; job_variant='Python 3.8'; analyze_set_job_skip_cache_key
           job_cache_extra_deps=(); job_id=test_python_310; job_name='Test (Python 3.10)'; job_needs=(); job_os=Linux; job_platform=ubuntu-latest; job_python=3.10; job_reqs=(reqs/dist.txt reqs/test.txt); job_skip_cache_name=skip_test_python_310_py-3.10_ubuntu-latest; job_skip_cache_path=.skip_cache_test_python_310; job_skiplists=(job_test os_linux os_macos os_windows); job_test_args='-p no:pytest-qt --ignore=test/gui_qt'; job_type=test; job_variant='Python 3.10'; analyze_set_job_skip_cache_key
-          job_cache_extra_deps=(); job_id=test_qt_gui; job_name='Test (Qt GUI)'; job_needs=(); job_os=Linux; job_platform=ubuntu-18.04; job_python=3.9; job_reqs=(reqs/dist.txt reqs/dist_extra_gui_qt.txt reqs/test.txt); job_skip_cache_name=skip_test_qt_gui_py-3.9_ubuntu-18.04; job_skip_cache_path=.skip_cache_test_qt_gui; job_skiplists=(job_test_gui_qt); job_test_args=test/gui_qt; job_type=test_gui_qt; job_variant='Qt GUI'; analyze_set_job_skip_cache_key
+          job_cache_extra_deps=(); job_id=test_qt_gui; job_name='Test (Qt GUI)'; job_needs=(); job_os=Linux; job_platform=ubuntu-22.04; job_python=3.9; job_reqs=(reqs/dist.txt reqs/dist_extra_gui_qt.txt reqs/test.txt); job_skip_cache_name=skip_test_qt_gui_py-3.9_ubuntu-22.04; job_skip_cache_path=.skip_cache_test_qt_gui; job_skiplists=(job_test_gui_qt); job_test_args=test/gui_qt; job_type=test_gui_qt; job_variant='Qt GUI'; analyze_set_job_skip_cache_key
           job_cache_extra_deps=(); job_id=test_packaging; job_name='Test (Packaging)'; job_needs=(); job_os=Linux; job_platform=ubuntu-latest; job_python=3.9; job_reqs=(reqs/packaging.txt reqs/setup.txt); job_skip_cache_name=skip_test_packaging_py-3.9_ubuntu-latest; job_skip_cache_path=.skip_cache_test_packaging; job_skiplists=(job_test_packaging); job_type=test_packaging; job_variant=Packaging; analyze_set_job_skip_cache_key
-          job_cache_extra_deps=('reqs/dist_*.txt' linux/appimage/deps.sh); job_id=build_linux; job_name='Build (Linux)'; job_needs=(test_linux); job_os=Linux; job_platform=ubuntu-18.04; job_python=3.9; job_reqs=(reqs/build.txt reqs/setup.txt); job_skip_cache_name=skip_build_linux_py-3.9_ubuntu-18.04; job_skip_cache_path=.skip_cache_build_linux; job_skiplists=(job_build os_linux); job_type=build; job_variant=Linux; analyze_set_job_skip_cache_key
+          job_cache_extra_deps=('reqs/dist_*.txt' linux/appimage/deps.sh); job_id=build_linux; job_name='Build (Linux)'; job_needs=(test_linux); job_os=Linux; job_platform=ubuntu-22.04; job_python=3.9; job_reqs=(reqs/build.txt reqs/setup.txt); job_skip_cache_name=skip_build_linux_py-3.9_ubuntu-22.04; job_skip_cache_path=.skip_cache_build_linux; job_skiplists=(job_build os_linux); job_type=build; job_variant=Linux; analyze_set_job_skip_cache_key
           job_cache_extra_deps=('reqs/dist_*.txt' osx/deps.sh); job_id=build_macos; job_name='Build (macOS)'; job_needs=(test_macos); job_os=macOS; job_platform=macos-10.15; job_python=3.9; job_reqs=(reqs/build.txt reqs/setup.txt); job_skip_cache_name=skip_build_macos_py-3.9_macos-10.15; job_skip_cache_path=.skip_cache_build_macos; job_skiplists=(job_build os_macos); job_type=build; job_variant=macOS; analyze_set_job_skip_cache_key
           job_cache_extra_deps=('reqs/dist_*.txt' windows/dist_deps.sh); job_id=build_windows; job_name='Build (Windows)'; job_needs=(test_windows); job_os=Windows; job_platform=windows-2019; job_python=3.9; job_reqs=(reqs/build.txt reqs/setup.txt); job_skip_cache_name=skip_build_windows_py-3.9_windows-2019; job_skip_cache_path=.skip_cache_build_windows; job_skiplists=(job_build os_windows); job_type=build; job_variant=Windows; analyze_set_job_skip_cache_key
 
@@ -141,15 +141,15 @@ jobs:
           CONTINUOUS_RELEASE_BRANCH: ${{ secrets.CONTINUOUS_RELEASE_BRANCH }}
         run: |
           analyze_set_release_info
-          job_cache_extra_deps=(); job_id=test_linux; job_name='Test (Linux)'; job_needs=(); job_os=Linux; job_platform=ubuntu-18.04; job_python=3.9; job_reqs=(reqs/dist.txt reqs/test.txt); job_skip_cache_name=skip_test_linux_py-3.9_ubuntu-18.04; job_skip_cache_path=.skip_cache_test_linux; job_skiplists=(job_test os_linux); job_test_args='-p no:pytest-qt --ignore=test/gui_qt'; job_type=test; job_variant=Linux; analyze_set_job_skip_job
+          job_cache_extra_deps=(); job_id=test_linux; job_name='Test (Linux)'; job_needs=(); job_os=Linux; job_platform=ubuntu-22.04; job_python=3.9; job_reqs=(reqs/dist.txt reqs/test.txt); job_skip_cache_name=skip_test_linux_py-3.9_ubuntu-22.04; job_skip_cache_path=.skip_cache_test_linux; job_skiplists=(job_test os_linux); job_test_args='-p no:pytest-qt --ignore=test/gui_qt'; job_type=test; job_variant=Linux; analyze_set_job_skip_job
           job_cache_extra_deps=(osx/deps.sh); job_id=test_macos; job_name='Test (macOS)'; job_needs=(); job_os=macOS; job_platform=macos-10.15; job_python=3.9; job_reqs=(reqs/dist.txt reqs/test.txt); job_skip_cache_name=skip_test_macos_py-3.9_macos-10.15; job_skip_cache_path=.skip_cache_test_macos; job_skiplists=(job_test os_macos); job_test_args='-p no:pytest-qt --ignore=test/gui_qt'; job_type=test; job_variant=macOS; analyze_set_job_skip_job
           job_cache_extra_deps=(); job_id=test_windows; job_name='Test (Windows)'; job_needs=(); job_os=Windows; job_platform=windows-2019; job_python=3.9; job_reqs=(reqs/dist.txt reqs/test.txt); job_skip_cache_name=skip_test_windows_py-3.9_windows-2019; job_skip_cache_path=.skip_cache_test_windows; job_skiplists=(job_test os_windows); job_test_args='-p no:pytest-qt --ignore=test/gui_qt'; job_type=test; job_variant=Windows; analyze_set_job_skip_job
           job_cache_extra_deps=(); job_id=test_python_37; job_name='Test (Python 3.7)'; job_needs=(); job_os=Linux; job_platform=ubuntu-latest; job_python=3.7; job_reqs=(reqs/dist.txt reqs/test.txt); job_skip_cache_name=skip_test_python_37_py-3.7_ubuntu-latest; job_skip_cache_path=.skip_cache_test_python_37; job_skiplists=(job_test os_linux os_macos os_windows); job_test_args='-p no:pytest-qt --ignore=test/gui_qt'; job_type=test; job_variant='Python 3.7'; analyze_set_job_skip_job
           job_cache_extra_deps=(); job_id=test_python_38; job_name='Test (Python 3.8)'; job_needs=(); job_os=Linux; job_platform=ubuntu-latest; job_python=3.8; job_reqs=(reqs/dist.txt reqs/test.txt); job_skip_cache_name=skip_test_python_38_py-3.8_ubuntu-latest; job_skip_cache_path=.skip_cache_test_python_38; job_skiplists=(job_test os_linux os_macos os_windows); job_test_args='-p no:pytest-qt --ignore=test/gui_qt'; job_type=test; job_variant='Python 3.8'; analyze_set_job_skip_job
           job_cache_extra_deps=(); job_id=test_python_310; job_name='Test (Python 3.10)'; job_needs=(); job_os=Linux; job_platform=ubuntu-latest; job_python=3.10; job_reqs=(reqs/dist.txt reqs/test.txt); job_skip_cache_name=skip_test_python_310_py-3.10_ubuntu-latest; job_skip_cache_path=.skip_cache_test_python_310; job_skiplists=(job_test os_linux os_macos os_windows); job_test_args='-p no:pytest-qt --ignore=test/gui_qt'; job_type=test; job_variant='Python 3.10'; analyze_set_job_skip_job
-          job_cache_extra_deps=(); job_id=test_qt_gui; job_name='Test (Qt GUI)'; job_needs=(); job_os=Linux; job_platform=ubuntu-18.04; job_python=3.9; job_reqs=(reqs/dist.txt reqs/dist_extra_gui_qt.txt reqs/test.txt); job_skip_cache_name=skip_test_qt_gui_py-3.9_ubuntu-18.04; job_skip_cache_path=.skip_cache_test_qt_gui; job_skiplists=(job_test_gui_qt); job_test_args=test/gui_qt; job_type=test_gui_qt; job_variant='Qt GUI'; analyze_set_job_skip_job
+          job_cache_extra_deps=(); job_id=test_qt_gui; job_name='Test (Qt GUI)'; job_needs=(); job_os=Linux; job_platform=ubuntu-22.04; job_python=3.9; job_reqs=(reqs/dist.txt reqs/dist_extra_gui_qt.txt reqs/test.txt); job_skip_cache_name=skip_test_qt_gui_py-3.9_ubuntu-22.04; job_skip_cache_path=.skip_cache_test_qt_gui; job_skiplists=(job_test_gui_qt); job_test_args=test/gui_qt; job_type=test_gui_qt; job_variant='Qt GUI'; analyze_set_job_skip_job
           job_cache_extra_deps=(); job_id=test_packaging; job_name='Test (Packaging)'; job_needs=(); job_os=Linux; job_platform=ubuntu-latest; job_python=3.9; job_reqs=(reqs/packaging.txt reqs/setup.txt); job_skip_cache_name=skip_test_packaging_py-3.9_ubuntu-latest; job_skip_cache_path=.skip_cache_test_packaging; job_skiplists=(job_test_packaging); job_type=test_packaging; job_variant=Packaging; analyze_set_job_skip_job
-          job_cache_extra_deps=('reqs/dist_*.txt' linux/appimage/deps.sh); job_id=build_linux; job_name='Build (Linux)'; job_needs=(test_linux); job_os=Linux; job_platform=ubuntu-18.04; job_python=3.9; job_reqs=(reqs/build.txt reqs/setup.txt); job_skip_cache_name=skip_build_linux_py-3.9_ubuntu-18.04; job_skip_cache_path=.skip_cache_build_linux; job_skiplists=(job_build os_linux); job_type=build; job_variant=Linux; analyze_set_job_skip_job
+          job_cache_extra_deps=('reqs/dist_*.txt' linux/appimage/deps.sh); job_id=build_linux; job_name='Build (Linux)'; job_needs=(test_linux); job_os=Linux; job_platform=ubuntu-22.04; job_python=3.9; job_reqs=(reqs/build.txt reqs/setup.txt); job_skip_cache_name=skip_build_linux_py-3.9_ubuntu-22.04; job_skip_cache_path=.skip_cache_build_linux; job_skiplists=(job_build os_linux); job_type=build; job_variant=Linux; analyze_set_job_skip_job
           job_cache_extra_deps=('reqs/dist_*.txt' osx/deps.sh); job_id=build_macos; job_name='Build (macOS)'; job_needs=(test_macos); job_os=macOS; job_platform=macos-10.15; job_python=3.9; job_reqs=(reqs/build.txt reqs/setup.txt); job_skip_cache_name=skip_build_macos_py-3.9_macos-10.15; job_skip_cache_path=.skip_cache_build_macos; job_skiplists=(job_build os_macos); job_type=build; job_variant=macOS; analyze_set_job_skip_job
           job_cache_extra_deps=('reqs/dist_*.txt' windows/dist_deps.sh); job_id=build_windows; job_name='Build (Windows)'; job_needs=(test_windows); job_os=Windows; job_platform=windows-2019; job_python=3.9; job_reqs=(reqs/build.txt reqs/setup.txt); job_skip_cache_name=skip_build_windows_py-3.9_windows-2019; job_skip_cache_path=.skip_cache_build_windows; job_skiplists=(job_build os_windows); job_type=build; job_variant=Windows; analyze_set_job_skip_job
 
@@ -185,7 +185,7 @@ jobs:
   test_linux:
 
     name: Test (Linux)
-    runs-on: ubuntu-18.04
+    runs-on: ubuntu-22.04
     needs: [analyze, ]
     if: >-
       !cancelled()
@@ -203,7 +203,7 @@ jobs:
 
       - name: Set cache name
         id: set_cache
-        run: setup_cache_name '3.9' 'ubuntu-18.04'
+        run: setup_cache_name '3.9' 'ubuntu-22.04'
 
       - name: Setup cache
         uses: actions/cache@v2
@@ -525,7 +525,7 @@ jobs:
   test_qt_gui:
 
     name: Test (Qt GUI)
-    runs-on: ubuntu-18.04
+    runs-on: ubuntu-22.04
     needs: [analyze, ]
     if: >-
       !cancelled()
@@ -543,7 +543,7 @@ jobs:
 
       - name: Set cache name
         id: set_cache
-        run: setup_cache_name '3.9' 'ubuntu-18.04'
+        run: setup_cache_name '3.9' 'ubuntu-22.04'
 
       - name: Setup cache
         uses: actions/cache@v2
@@ -676,7 +676,7 @@ jobs:
   build_linux:
 
     name: Build (Linux)
-    runs-on: ubuntu-18.04
+    runs-on: ubuntu-22.04
     needs: [analyze, test_linux]
     if: >-
       !cancelled()
@@ -698,7 +698,7 @@ jobs:
 
       - name: Set cache name
         id: set_cache
-        run: setup_cache_name '3.9' 'ubuntu-18.04'
+        run: setup_cache_name '3.9' 'ubuntu-22.04'
 
       - name: Setup cache
         uses: actions/cache@v2
