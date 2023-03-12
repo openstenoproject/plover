@@ -13,7 +13,7 @@ vars:
     variant: Linux
     python: '3.9'
     os: Linux
-    platform: ubuntu-18.04
+    platform: ubuntu-22.04
 
   - &dist_macos
     variant: macOS
