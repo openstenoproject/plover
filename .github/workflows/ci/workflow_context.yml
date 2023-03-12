@@ -19,13 +19,13 @@ vars:
     variant: macOS
     python: '3.9'
     os: macOS
-    platform: macos-10.15
+    platform: macos-12
 
   - &dist_win
     variant: Windows
     python: '3.9'
     os: Windows
-    platform: windows-2019
+    platform: windows-2022
 
   - &dist_other
     os: Linux
