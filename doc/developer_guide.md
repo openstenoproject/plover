@@ -1,28 +1,28 @@
 # Environment setup
 
-You need Python >= 3.7 installed, and you need [tox](https://pypi.org/project/tox/) >= 3.10.
+You need Python >= 3.7 installed, and you need [tox](https://pypi.org/project/tox/) >= 4.0.
 
 Using tox takes care of all the details of creating and managing an isolated
 virtual environment, installing the necessary dependencies, and isolating
 testsuite runs.
 
-The command for using tox is: `tox {-e envlist} {-- arguments}`. Use `tox -a
+The command for using tox is: `tox r {-e envlist} {-- arguments}`. Use `tox -a
 -v` to get a list of available environments.
 
 The same virtual environment is reused by the following tox environments:
-- `tox -e test -- ARGS`: run the testsuite. This is the default environment
+- `tox r -e test -- ARGS`: run the testsuite. This is the default environment
   when not provided.
-- `tox -e launch -- ARGS`: run Plover from source.
-- `tox -e setup -- COMMAND`: run `./setup.py COMMAND`.
-- `tox -e packaging_checks`: run the same packaging checks as the CI (add `--
+- `tox r -e launch -- ARGS`: run Plover from source.
+- `tox r -e setup -- COMMAND`: run `./setup.py COMMAND`.
+- `tox r -e packaging_checks`: run the same packaging checks as the CI (add `--
   -n` to see a dry-run of the exact checks).
-- `tox -e plugins_install`: install the distribution plugins (or the specified
+- `tox r -e plugins_install`: install the distribution plugins (or the specified
   plugins when run with `tox -e plugins_install -- REQS`). Note that this does
   not use the plugins manager for installing.
-- `tox -e release_prepare -- NEW_VERSION`: execute all the steps necessary for
+- `tox r -e release_prepare -- NEW_VERSION`: execute all the steps necessary for
   preparing a new release: patch the version to `NEW_VERSION` and update
   `NEWS.md`, staging all the changes for review.
-- `tox -e release_finalize`: finalize the release: commit the staged changes,
+- `tox r -e release_finalize`: finalize the release: commit the staged changes,
   create an annotated tag, and print the git command necessary for pushing the
   release to GitHub.
 
@@ -31,7 +31,7 @@ any other virtual environment](https://virtualenv.pypa.io/en/latest/user_guide.h
 
 The configuration also provides support for lightweight tests only environment:
 `pyX`, where `X` is the version of the Python interpreter to use.  E.g. running
-`tox -e 'py3{6,7,8,9}` will execute the testsuite for each version of Python we
+`tox r -e 'py3,py36,py37,py38,py39` will execute the testsuite for each version of Python we
 support.
 
 
