@@ -80,7 +80,7 @@ class SerialOption(QGroupBox, Ui_SerialWidget):
             cursor.setCharFormat(self._device_format)
             port_info = index.data(Qt.UserRole)
             if port_info is None:
-                cursor.insertText(index.data(Qt.DisplayRole))
+                cursor.insertText(index.data(Qt.ItemDataRole.DisplayRole))
                 return
             cursor.insertText(port_info.device)
             details = serial_port_details(port_info)
@@ -95,7 +95,7 @@ class SerialOption(QGroupBox, Ui_SerialWidget):
 
         def paint(self, painter, option, index):
             painter.save()
-            if option.state & QStyle.State_Selected:
+            if option.state & QStyle.StateFlag.State_Selected:
                 painter.fillRect(option.rect, option.palette.highlight())
                 text_color = option.palette.highlightedText()
             else:

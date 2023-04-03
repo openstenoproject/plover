@@ -106,12 +106,12 @@ class AddTranslationWidget(QWidget, Ui_AddTranslationWidget):
         self._update_items()
 
     def eventFilter(self, watched, event):
-        if event.type() == QEvent.FocusIn:
+        if event.type() == QEvent.Type.FocusIn:
             if watched == self.strokes:
                 self._focus_strokes()
             elif watched == self.translation:
                 self._focus_translation()
-        elif event.type() == QEvent.FocusOut:
+        elif event.type() == QEvent.Type.FocusOut:
             if watched in (self.strokes, self.translation):
                 self._unfocus()
         return False

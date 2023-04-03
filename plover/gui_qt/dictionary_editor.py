@@ -168,7 +168,7 @@ class DictionaryItemModel(QAbstractTableModel):
         return _COL_COUNT
 
     def headerData(self, section, orientation, role):
-        if orientation != Qt.Horizontal or role != Qt.DisplayRole:
+        if orientation != Qt.Orientation.Horizontal or role != Qt.ItemDataRole.DisplayRole:
             return None
         if section == _COL_STENO:
             # i18n: Widget: “DictionaryEditor”.
@@ -181,11 +181,15 @@ class DictionaryItemModel(QAbstractTableModel):
             return _('Dictionary')
 
     def data(self, index, role):
-        if not index.isValid() or role not in (Qt.EditRole, Qt.DisplayRole, Qt.DecorationRole):
+        if not index.isValid() or role not in (
+                Qt.ItemDataRole.EditRole,
+                Qt.ItemDataRole.DisplayRole,
+                Qt.ItemDataRole.DecorationRole
+            ):
             return None
         item = self._entries[index.row()]
         column = index.column()
-        if role == Qt.DecorationRole:
+        if role == Qt.ItemDataRole.DecorationRole:
             if column == _COL_STENO:
                 try:
                     normalize_steno(item.steno)
@@ -202,10 +206,10 @@ class DictionaryItemModel(QAbstractTableModel):
     def flags(self, index):
         if not index.isValid():
             return Qt.NoItemFlags
-        f = Qt.ItemIsEnabled | Qt.ItemIsSelectable
+        f = Qt.ItemFlag.ItemIsEnabled | Qt.ItemFlag.ItemIsSelectable
         item = self._entries[index.row()]
         if not item.dictionary.readonly:
-            f |= Qt.ItemIsEditable
+            f |= Qt.ItemFlag.ItemIsEditable
         return f
 
     def filter(self, strokes_filter=None, translation_filter=None):
@@ -226,13 +230,13 @@ class DictionaryItemModel(QAbstractTableModel):
         else:
             key = itemgetter(column)
         self._entries.sort(key=key,
-                           reverse=(order == Qt.DescendingOrder))
+                           reverse=(order == Qt.SortOrder.DescendingOrder))
         self._sort_column = column
         self._sort_order = order
         self.layoutChanged.emit()
 
-    def setData(self, index, value, role=Qt.EditRole, record=True):
-        assert role == Qt.EditRole
+    def setData(self, index, value, role=Qt.ItemDataRole.EditRole, record=True):
+        assert role == Qt.ItemDataRole.EditRole
         row = index.row()
         column = index.column()
         old_item = self._entries[row]
@@ -315,7 +319,7 @@ class DictionaryEditor(QDialog, Ui_DictionaryEditor, WindowState):
                 for dictionary in engine.dictionaries.dicts
                 if dictionary.path in dictionary_paths
             ]
-        sort_column, sort_order = _COL_STENO, Qt.AscendingOrder
+        sort_column, sort_order = _COL_STENO, Qt.SortOrder.AscendingOrder
         self._model = DictionaryItemModel(dictionary_list,
                                           sort_column,
                                           sort_order)

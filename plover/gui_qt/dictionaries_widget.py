@@ -96,11 +96,13 @@ class DictionariesModel(QAbstractListModel):
             return self.state not in {'loading', 'error'}
 
     SUPPORTED_ROLES = {
-        Qt.AccessibleTextRole, Qt.CheckStateRole,
-        Qt.DecorationRole, Qt.DisplayRole, Qt.ToolTipRole
+        Qt.ItemDataRole.AccessibleTextRole, Qt.ItemDataRole.CheckStateRole,
+        Qt.ItemDataRole.DecorationRole, Qt.ItemDataRole.DisplayRole,
+        Qt.ItemDataRole.ToolTipRole
     }
 
-    FLAGS = Qt.ItemIsEnabled | Qt.ItemIsSelectable | Qt.ItemIsUserCheckable
+    FLAGS = Qt.ItemFlag.ItemIsEnabled | Qt.ItemFlag.ItemIsSelectable \
+        | Qt.ItemFlag.ItemIsUserCheckable
 
     has_undo_changed = pyqtSignal(bool)
 
@@ -356,17 +358,17 @@ class DictionariesModel(QAbstractListModel):
 
     @classmethod
     def flags(cls, index):
-        return cls.FLAGS if index.isValid() else Qt.NoItemFlags
+        return cls.FLAGS if index.isValid() else Qt.ItemFlag.NoItemFlags
 
     def data(self, index, role):
         if not index.isValid() or role not in self.SUPPORTED_ROLES:
             return None
         d = self._from_row[index.row()]
-        if role == Qt.DisplayRole:
+        if role == Qt.ItemDataRole.DisplayRole:
             return d.short_path
-        if role == Qt.CheckStateRole:
-            return Qt.Checked if d.enabled else Qt.Unchecked
-        if role == Qt.AccessibleTextRole:
+        if role == Qt.ItemDataRole.CheckStateRole:
+            return Qt.CheckState.Checked if d.enabled else Qt.CheckState.Unchecked
+        if role == Qt.ItemDataRole.AccessibleTextRole:
             accessible_text = [d.short_path]
             if not d.enabled:
                 # i18n: Widget: “DictionariesWidget”, accessible text.
@@ -385,9 +387,9 @@ class DictionariesModel(QAbstractListModel):
                 # i18n: Widget: “DictionariesWidget”, accessible text.
                 accessible_text.append(_('read-only'))
             return ', '.join(accessible_text)
-        if role == Qt.DecorationRole:
+        if role == Qt.ItemDataRole.DecorationRole:
             return self._icons.get('favorite' if d is self._favorite else d.state)
-        if role == Qt.ToolTipRole:
+        if role == Qt.ItemDataRole.ToolTipRole:
             # i18n: Widget: “DictionariesWidget”, tooltip.
             tooltip = [_('Full path: {path}.').format(path=d.config.path)]
             if d is self._favorite:
@@ -407,11 +409,11 @@ class DictionariesModel(QAbstractListModel):
         return None
 
     def setData(self, index, value, role):
-        if not index.isValid() or role != Qt.CheckStateRole:
+        if not index.isValid() or role != Qt.ItemDataRole.CheckStateRole:
             return False
-        if value == Qt.Checked:
+        if value == Qt.CheckState.Checked:
             enabled = True
-        elif value == Qt.Unchecked:
+        elif value == Qt.CheckState.Unchecked:
             enabled = False
         else:
             return False
@@ -487,9 +489,9 @@ class DictionariesWidget(QGroupBox, Ui_DictionariesWidget):
         edit_menu.addSeparator()
         edit_menu.addAction(self.action_MoveDictionariesUp)
         edit_menu.addAction(self.action_MoveDictionariesDown)
-        self.view.setContextMenuPolicy(Qt.CustomContextMenu)
+        self.view.setContextMenuPolicy(Qt.ContextMenuPolicy.CustomContextMenu)
         self.view.customContextMenuRequested.connect(
-            lambda p: edit_menu.exec_(self.view.mapToGlobal(p)))
+            lambda p: edit_menu.exec(self.view.mapToGlobal(p)))
         self.edit_menu = edit_menu
 
     def setup(self, engine):
@@ -577,7 +579,7 @@ class DictionariesWidget(QGroupBox, Ui_DictionariesWidget):
         if not path_list:
             return
         editor = DictionaryEditor(self._engine, path_list)
-        editor.exec_()
+        editor.exec()
 
     def _copy_dictionaries(self, dictionaries):
         need_reload = False
@@ -660,7 +662,7 @@ class DictionariesWidget(QGroupBox, Ui_DictionariesWidget):
         self._edit_dictionaries([index])
 
     def on_add_dictionaries(self):
-        self.menu_AddDictionaries.exec_(QCursor.pos())
+        self.menu_AddDictionaries.exec(QCursor.pos())
 
     def on_add_translation(self):
         dictionary = next(self._model.iter_loaded([self.view.currentIndex()]), None)

@@ -20,7 +20,7 @@ def ActionCopyViewSelectionToClipboard(view):
         data = view.model().mimeData(indexes)
         QGuiApplication.clipboard().setMimeData(data)
     action = QAction(_('Copy selection to clipboard'))
-    action.setShortcut(QKeySequence(QKeySequence.Copy))
+    action.setShortcut(QKeySequence(QKeySequence.StandardKey.Copy))
     action.triggered.connect(copy_selection_to_clipboard)
     return action
 

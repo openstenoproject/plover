@@ -81,7 +81,7 @@ class MainWindow(QMainWindow, Ui_MainWindow, WindowState):
         self.action_Quit.triggered.connect(engine.quit)
         # Toolbar popup menu for selecting which tools are shown.
         self.toolbar_menu = QMenu()
-        self.toolbar.setContextMenuPolicy(Qt.CustomContextMenu)
+        self.toolbar.setContextMenuPolicy(Qt.ContextMenuPolicy.CustomContextMenu)
         self.toolbar.customContextMenuRequested.connect(
             lambda: self.toolbar_menu.popup(QCursor.pos())
         )

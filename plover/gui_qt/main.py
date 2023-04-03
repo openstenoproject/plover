@@ -8,9 +8,7 @@ from PyQt6.QtCore import (
     QTimer,
     QTranslator,
     Qt,
-    QtDebugMsg,
-    QtInfoMsg,
-    QtWarningMsg,
+    QtMsgType,
     pyqtRemoveInputHook,
     qInstallMessageHandler,
 )
@@ -47,7 +45,6 @@ class Application:
         QCoreApplication.setOrganizationDomain('openstenoproject.org')
 
         self._app = QApplication([sys.argv[0], '-name', 'plover'])
-        self._app.setAttribute(Qt.AA_UseHighDpiPixmaps)
 
         # Apply custom stylesheet if present.
         stylesheet_path = Path(CONFIG_DIR) / 'plover.qss'
@@ -58,7 +55,7 @@ class Application:
         # Enable localization of standard Qt controls.
         log.info('setting language to: %s', _.lang)
         self._translator = QTranslator()
-        translations_dir = QLibraryInfo.location(QLibraryInfo.TranslationsPath)
+        translations_dir = QLibraryInfo.path(QLibraryInfo.LibraryPath.TranslationsPath)
         self._translator.load('qtbase_' + _.lang, translations_dir)
         self._app.installTranslator(self._translator)
 
@@ -86,7 +83,7 @@ class Application:
         del self._translator
 
     def run(self):
-        self._app.exec_()
+        self._app.exec()
         return self._engine.join()
 
 
@@ -102,9 +99,9 @@ def default_excepthook(*exc_info):
 
 def default_message_handler(msg_type, msg_log_context, msg_string):
     log_fn = {
-        QtDebugMsg: log.debug,
-        QtInfoMsg: log.info,
-        QtWarningMsg: log.warning,
+        QtMsgType.QtDebugMsg: log.debug,
+        QtMsgType.QtInfoMsg: log.info,
+        QtMsgType.QtWarningMsg: log.warning,
     }.get(msg_type, log.error)
     details = []
     if msg_log_context.file is not None:

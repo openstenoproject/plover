@@ -105,8 +105,7 @@ class BuildUi(Command):
            os.path.getmtime(dst) >= os.path.getmtime(src):
             return
         cmd = (
-            sys.executable, '-m', 'PyQt5.uic.pyuic',
-            '--from-import', src,
+            sys.executable, '-m', 'PyQt6.uic.pyuic', src,
         )
         if self.verbose:
             print('generating', dst)
