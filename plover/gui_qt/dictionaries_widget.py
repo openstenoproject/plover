@@ -1,14 +1,14 @@
 from contextlib import contextmanager
 import os
 
-from PyQt5.QtCore import (
+from PyQt6.QtCore import (
     QAbstractListModel,
     QModelIndex,
     Qt,
     pyqtSignal,
 )
-from PyQt5.QtGui import QCursor, QIcon
-from PyQt5.QtWidgets import (
+from PyQt6.QtGui import QCursor, QIcon
+from PyQt6.QtWidgets import (
     QFileDialog,
     QGroupBox,
     QMenu,

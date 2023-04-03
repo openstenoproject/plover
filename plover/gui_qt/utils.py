@@ -1,7 +1,10 @@
-from PyQt5.QtCore import QSettings
-from PyQt5.QtGui import QGuiApplication, QKeySequence
-from PyQt5.QtWidgets import (
+from PyQt6.QtCore import QSettings
+from PyQt6.QtGui import (
     QAction,
+    QGuiApplication,
+    QKeySequence
+)
+from PyQt6.QtWidgets import (
     QMainWindow,
     QToolBar,
     QToolButton,

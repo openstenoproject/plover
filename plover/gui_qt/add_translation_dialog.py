@@ -1,4 +1,4 @@
-from PyQt5.QtWidgets import QDialogButtonBox
+from PyQt6.QtWidgets import QDialogButtonBox
 
 from plover import _
 

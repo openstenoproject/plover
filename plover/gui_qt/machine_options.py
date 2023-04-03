@@ -1,15 +1,15 @@
 from copy import copy
 from pathlib import Path
 
-from PyQt5.QtCore import Qt, QVariant, pyqtSignal
-from PyQt5.QtGui import (
+from PyQt6.QtCore import Qt, QVariant, pyqtSignal
+from PyQt6.QtGui import (
     QTextCharFormat,
     QTextFrameFormat,
     QTextListFormat,
     QTextCursor,
     QTextDocument,
 )
-from PyQt5.QtWidgets import (
+from PyQt6.QtWidgets import (
     QGroupBox,
     QStyledItemDelegate,
     QStyle,

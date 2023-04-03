@@ -3,12 +3,12 @@ from collections import ChainMap
 from copy import copy
 from functools import partial
 
-from PyQt5.QtCore import (
+from PyQt6.QtCore import (
     Qt,
     QVariant,
     pyqtSignal,
 )
-from PyQt5.QtWidgets import (
+from PyQt6.QtWidgets import (
     QCheckBox,
     QComboBox,
     QDialog,

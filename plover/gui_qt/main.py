@@ -2,7 +2,7 @@ from pathlib import Path
 import signal
 import sys
 
-from PyQt5.QtCore import (
+from PyQt6.QtCore import (
     QCoreApplication,
     QLibraryInfo,
     QTimer,
@@ -14,7 +14,7 @@ from PyQt5.QtCore import (
     pyqtRemoveInputHook,
     qInstallMessageHandler,
 )
-from PyQt5.QtWidgets import QApplication, QMessageBox
+from PyQt6.QtWidgets import QApplication, QMessageBox
 
 from plover import _, __name__ as __software_name__, __version__, log
 from plover.oslayer.config import CONFIG_DIR

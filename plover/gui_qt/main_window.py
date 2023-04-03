@@ -4,9 +4,9 @@ import json
 import os
 import subprocess
 
-from PyQt5.QtCore import QCoreApplication, Qt
-from PyQt5.QtGui import QCursor, QIcon, QKeySequence
-from PyQt5.QtWidgets import (
+from PyQt6.QtCore import QCoreApplication, Qt
+from PyQt6.QtGui import QCursor, QIcon, QKeySequence
+from PyQt6.QtWidgets import (
     QMainWindow,
     QMenu,
 )
