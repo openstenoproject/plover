@@ -122,19 +122,6 @@ class BuildUi(Command):
         with open(dst, 'w') as fp:
             fp.write(contents)
 
-    def _build_resources(self, src):
-        dst = os.path.join(
-            os.path.dirname(os.path.dirname(src)),
-            os.path.splitext(os.path.basename(src))[0]
-        ) + '_rc.py'
-        cmd = (
-            sys.executable, '-m', 'PyQt5.pyrcc_main',
-            src, '-o', dst,
-        )
-        if self.verbose:
-            print('generating', dst)
-        subprocess.check_call(cmd)
-
     def run(self):
         self.run_command('egg_info')
         std_hook_prefix = __package__ + '.pyqt:'
@@ -146,8 +133,6 @@ class BuildUi(Command):
             print('generating UI using hooks:', ', '.join(hooks_info))
         ei_cmd = self.get_finalized_command('egg_info')
         for src in ei_cmd.filelist.files:
-            if src.endswith('.qrc'):
-                self._build_resources(src)
             if src.endswith('.ui'):
                 self._build_ui(src)
 
