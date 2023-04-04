@@ -95,7 +95,7 @@ class SuggestionsDialog(Tool, Ui_SuggestionsDialog):
             font = self._get_font(name)
             font_string = font.toString()
             settings.setValue(name, font_string)
-        ontop = bool(self.windowFlags() & Qt.WindowStaysOnTopHint)
+        ontop = bool(self.windowFlags() & Qt.WindowType.WindowStaysOnTopHint)
         settings.setValue('ontop', ontop)
 
     def _show_suggestions(self, suggestion_list):

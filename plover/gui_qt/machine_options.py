@@ -68,11 +68,11 @@ class SerialOption(QGroupBox, Ui_SerialWidget):
             self._details_frame_format.setForeground(foreground)
             self._details_frame_format.setTopMargin(doc_margin)
             self._details_frame_format.setBottomMargin(-3 * doc_margin)
-            self._details_frame_format.setBorderStyle(QTextFrameFormat.BorderStyle_Solid)
+            self._details_frame_format.setBorderStyle(QTextFrameFormat.BorderStyle.BorderStyle_Solid)
             self._details_frame_format.setBorder(doc_margin / 2)
             self._details_frame_format.setPadding(doc_margin)
             self._details_list_format = QTextListFormat()
-            self._details_list_format.setStyle(QTextListFormat.ListSquare)
+            self._details_list_format.setStyle(QTextListFormat.Style.ListSquare)
 
         def _format_port(self, index):
             self._doc.clear()
