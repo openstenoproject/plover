@@ -2,7 +2,9 @@ from PyQt6.QtCore import QSettings
 from PyQt6.QtGui import (
     QAction,
     QGuiApplication,
-    QKeySequence
+    QIcon,
+    QKeySequence,
+    QPixmap
 )
 from PyQt6.QtWidgets import (
     QMainWindow,
@@ -10,6 +12,7 @@ from PyQt6.QtWidgets import (
     QToolButton,
     QWidget,
 )
+import importlib.resources
 
 from plover import _
 
@@ -39,6 +42,19 @@ def ToolBar(*action_list):
         else:
             toolbar.addWidget(ToolButton(action))
     return toolbar
+
+
+def Icon(resource: str):
+    icon = QIcon()
+
+    if resource.startswith(":/"):
+        resource = resource[2:]
+        with importlib.resources.path("plover.gui_qt.resources", resource) as f_path:
+            icon.addPixmap(QPixmap(str(f_path)))
+    else:
+        icon.addPixmap(QPixmap(resource))
+
+    return icon
 
 
 class WindowState(QWidget):

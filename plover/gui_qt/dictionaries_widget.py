@@ -24,7 +24,7 @@ from plover.registry import registry
 
 from plover.gui_qt.dictionaries_widget_ui import Ui_DictionariesWidget
 from plover.gui_qt.dictionary_editor import DictionaryEditor
-from plover.gui_qt.utils import ToolBar
+from plover.gui_qt.utils import ToolBar, Icon
 
 
 def _dictionary_formats(include_readonly=True):
@@ -498,7 +498,7 @@ class DictionariesWidget(QGroupBox, Ui_DictionariesWidget):
         assert not self._setup
         self._engine = engine
         self._model = DictionariesModel(engine, {
-            name: QIcon(':/dictionary_%s.svg' % name)
+            name: Icon(':/dictionary_%s.svg' % name)
             for name in 'favorite loading error readonly normal'.split()
         })
         self._model.has_undo_changed.connect(self.on_has_undo)

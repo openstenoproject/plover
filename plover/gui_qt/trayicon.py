@@ -1,5 +1,4 @@
 from PyQt6.QtCore import QObject, pyqtSignal
-from PyQt6.QtGui import QIcon
 from PyQt6.QtWidgets import QMessageBox, QSystemTrayIcon
 
 from plover import _, __name__ as __software_name__
@@ -11,6 +10,7 @@ from plover.machine.base import (
     STATE_RUNNING,
     STATE_ERROR,
 )
+from plover.gui_qt.utils import Icon
 
 
 class TrayIcon(QObject):
@@ -27,7 +27,7 @@ class TrayIcon(QObject):
             'disabled',
             'enabled',
         ):
-            icon = QIcon(':/state-%s.svg' % state)
+            icon = Icon(':/state-%s.svg' % state)
             if hasattr(icon, 'setIsMask'):
                 icon.setIsMask(True)
             self._state_icons[state] = icon
