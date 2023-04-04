@@ -47,6 +47,8 @@ pyparsing==3.0.3
 PyQt5==5.15.6
 PyQt5-Qt5==5.15.2
 PyQt5-sip==12.9.0
+PyQt6==6.4.2
+pyqt6rc==0.5.2
 pyserial==3.5
 pytest==6.2.5
 pytest-qt==4.0.2

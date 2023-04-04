@@ -100,16 +100,20 @@ class BuildUi(Command):
         pass
 
     def _build_ui(self, src):
+        from pyqt6rc import convert_tools
         dst = os.path.splitext(src)[0] + '_ui.py'
         if not self.force and os.path.exists(dst) and \
            os.path.getmtime(dst) >= os.path.getmtime(src):
             return
-        cmd = (
-            sys.executable, '-m', 'PyQt6.uic.pyuic', src,
-        )
         if self.verbose:
             print('generating', dst)
-        contents = subprocess.check_output(cmd).decode('utf-8')
+
+        resources = {}
+        resources_found = convert_tools.update_resources(src, resources)
+        contents = convert_tools.ui_to_py(src)
+        if resources_found is not None:
+            contents = convert_tools.modify_py(contents, resources)
+
         for hook in self.hooks:
             mod_name, attr_name = hook.split(':')
             mod = importlib.import_module(mod_name)
