@@ -12,7 +12,7 @@ charset-normalizer==2.0.7
 check-manifest==0.47
 click==8.0.3
 click-default-group==1.2.2
-cmarkgfm==0.6.0
+cmarkgfm>=1.2.0
 colorama==0.4.4
 cryptography==35.0.0
 dmgbuild==1.5.2
@@ -40,9 +40,9 @@ pluggy==1.0.0
 py==1.10.0
 pycparser==2.20
 Pygments==2.10.0
-pyobjc-core==7.3
-pyobjc-framework-Cocoa==7.3
-pyobjc-framework-Quartz==7.3
+pyobjc-core==9.0
+pyobjc-framework-Cocoa==9.0
+pyobjc-framework-Quartz==9.0
 pyparsing==3.0.3
 PyQt6==6.4.2
 pyqt6rc==0.5.2
@@ -52,7 +52,7 @@ pytest-qt==4.0.2
 python-xlib==0.31
 pytz==2021.3
 PyYAML==6.0
-readme-renderer==30.0
+readme-renderer==37.3
 requests==2.26.0
 requests-cache==0.9.1
 requests-futures==1.0.0
