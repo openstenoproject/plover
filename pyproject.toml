@@ -2,6 +2,7 @@
 requires = [
 	"Babel",
 	"PyQt6>=6.4.2",
+	"pyqt6rc>=0.5.2",
 	"setuptools>=38.2.4",
 	"wheel",
 ]

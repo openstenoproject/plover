@@ -1,3 +1,4 @@
 PyQt6>=6.4
+pyqt6rc>=0.5.2
 
 # vim: ft=cfg commentstring=#\ %s list

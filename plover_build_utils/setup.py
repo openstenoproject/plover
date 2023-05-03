@@ -110,7 +110,7 @@ class BuildUi(Command):
 
         resources = {}
         resources_found = convert_tools.update_resources(src, resources)
-        contents = convert_tools.ui_to_py(src)
+        contents = os.popen(f"python -m PyQt6.uic.pyuic {src}").read()
         if resources_found is not None:
             contents = convert_tools.modify_py(contents, resources)
 
