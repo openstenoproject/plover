@@ -1,4 +1,4 @@
-plover-plugins-manager
+plover-plugins-manager @ https://github.com/greghope667/plover_plugins_manager/archive/pyqt6-migration.zip
 plover-treal
 
 # vim: ft=cfg commentstring=#\ %s list
