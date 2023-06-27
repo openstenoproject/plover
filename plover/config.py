@@ -7,6 +7,7 @@ from collections import ChainMap, namedtuple, OrderedDict
 import configparser
 import json
 import re
+import os
 
 from plover.exception import InvalidConfigurationError
 from plover.machine.keymap import Keymap
@@ -41,6 +42,10 @@ class DictionaryConfig(namedtuple('DictionaryConfig', 'path enabled')):
     @property
     def short_path(self):
         return shorten_path(self.path)
+
+    @property
+    def basename(self):
+        return os.path.basename(self.path)
 
     def to_dict(self):
         # Note: do not use _asdict because of
@@ -343,6 +348,7 @@ class Config:
         boolean_option('show_suggestions_display', False, 'Suggestions Display', 'show'),
         opacity_option('translation_frame_opacity', 'Translation Frame', 'opacity'),
         boolean_option('classic_dictionaries_display_order', False, 'GUI'),
+        boolean_option('show_dictionary_basename_only', False, 'GUI'),
         # Plugins.
         enabled_extensions_option(),
         # Machine.
