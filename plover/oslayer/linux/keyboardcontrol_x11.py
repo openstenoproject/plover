@@ -1155,8 +1155,34 @@ class KeyboardEmulation(Output):
 
     def __init__(self):
         super().__init__()
+        self._lock = threading.Lock()
         self._display = Display()
         self._update_keymap()
+        self._update_modifiers()
+        self._event_loop = XEventLoop(self._on_event, name='KeyboardEmulation')
+        self._event_loop.start()
+
+    def __enter__(self):
+        self._lock.__enter__()
+        return self._display
+
+    def __exit__(self, exc_type, exc_value, traceback):
+        if exc_type is None and self._display is not None:
+            self._display.sync()
+        self._lock.__exit__(exc_type, exc_value, traceback)
+
+    def _on_event(self, event):
+        if event.type == X.MappingNotify:
+            if event.request == X.MappingKeyboard:
+                log.info('Updating keymap')
+                with self._lock:
+                    self._update_keymap()
+
+            elif event.request == X.MappingModifier:
+                log.info('Updating modifier mapping')
+                with self._lock:
+                    self._update_modifiers()
+
 
     def _update_keymap(self):
         '''Analyse keymap, build a mapping of keysym to (keycode + modifiers),
@@ -1210,38 +1236,40 @@ class KeyboardEmulation(Output):
         log.info('%u custom mappings(s)', len(self._custom_mappings_queue))
         # Determine the backspace mapping.
         backspace_keysym = XK.string_to_keysym('BackSpace')
-        self._backspace_mapping = self._get_mapping(backspace_keysym)
+        self._backspace_mapping = self._get_mapping(backspace_keysym, automatically_map=False)
         assert self._backspace_mapping is not None
         assert self._backspace_mapping.custom_mapping is None
+
+    def _update_modifiers(self):
         # Get modifier mapping.
         self.modifier_mapping = self._display.get_modifier_mapping()
 
     def send_backspaces(self, count):
-        for x in range(count):
-            self._send_keycode(self._backspace_mapping.keycode,
-                               self._backspace_mapping.modifiers)
-        self._display.sync()
+        with self:
+            for x in range(count):
+                self._send_keycode(self._backspace_mapping.keycode,
+                                   self._backspace_mapping.modifiers)
 
     def send_string(self, string):
-        for char in string:
-            keysym = uchr_to_keysym(char)
-            mapping = self._get_mapping(keysym)
-            if mapping is None:
-                continue
-            self._send_keycode(mapping.keycode,
-                               mapping.modifiers)
-        self._display.sync()
+        with self:
+            for char in string:
+                keysym = uchr_to_keysym(char)
+                mapping = self._get_mapping(keysym)
+                if mapping is None:
+                    continue
+                self._send_keycode(mapping.keycode,
+                                   mapping.modifiers)
 
     def send_key_combination(self, combo):
-        # Parse and validate combo.
-        key_events = [
-            (keycode, X.KeyPress if pressed else X.KeyRelease) for keycode, pressed
-            in parse_key_combo(combo, self._get_keycode_from_keystring)
-        ]
-        # Emulate the key combination by sending key events.
-        for keycode, event_type in key_events:
-            xtest.fake_input(self._display, event_type, keycode)
-        self._display.sync()
+        with self:
+            # Parse and validate combo.
+            key_events = [
+                (keycode, X.KeyPress if pressed else X.KeyRelease) for keycode, pressed
+                in parse_key_combo(combo, self._get_keycode_from_keystring)
+            ]
+            # Emulate the key combination by sending key events.
+            for keycode, event_type in key_events:
+                xtest.fake_input(self._display, event_type, keycode)
 
     def _send_keycode(self, keycode, modifiers=0):
         """Emulate a key press and release.
