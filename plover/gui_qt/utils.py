@@ -44,15 +44,20 @@ def ToolBar(*action_list):
     return toolbar
 
 
-def Icon(resource: str):
+def Icon(resource):
     icon = QIcon()
+    package = "plover.gui_qt.resources"
 
-    if resource.startswith(":/"):
-        resource = resource[2:]
-        with importlib.resources.path("plover.gui_qt.resources", resource) as f_path:
-            icon.addPixmap(QPixmap(str(f_path)))
-    else:
-        icon.addPixmap(QPixmap(resource))
+    if type(resource) is tuple:
+        package = resource[0]
+        resource = resource[1]
+
+    if type(resource) is str:
+        if resource.startswith(":/"):
+            resource = resource[2:]
+
+    with importlib.resources.path(package, resource) as f_path:
+        icon.addPixmap(QPixmap(str(f_path)))
 
     return icon
 
