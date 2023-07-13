@@ -78,7 +78,7 @@ class SerialOption(QGroupBox, Ui_SerialWidget):
             self._doc.clear()
             cursor = QTextCursor(self._doc)
             cursor.setCharFormat(self._device_format)
-            port_info = index.data(Qt.UserRole)
+            port_info = index.data(Qt.ItemDataRole.UserRole)
             if port_info is None:
                 cursor.insertText(index.data(Qt.ItemDataRole.DisplayRole))
                 return
