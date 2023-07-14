@@ -1,10 +1,10 @@
 cache_epoch: 0 # <- increase number to clear cache.
 
-action_cache: actions/cache@v2
-action_checkout: actions/checkout@v2
-action_setup_python: actions/setup-python@v2
-action_upload_artifact: actions/upload-artifact@v2
-action_download_artifact: actions/download-artifact@v2
+action_cache: actions/cache@v3
+action_checkout: actions/checkout@v3
+action_setup_python: actions/setup-python@v4
+action_upload_artifact: actions/upload-artifact@v3
+action_download_artifact: actions/download-artifact@v3
 
 skippy_enabled: true
 
@@ -19,13 +19,13 @@ vars:
     variant: macOS
     python: '3.9'
     os: macOS
-    platform: macos-10.15
+    platform: macos-12
 
   - &dist_win
     variant: Windows
     python: '3.9'
     os: Windows
-    platform: windows-2019
+    platform: windows-2022
 
   - &dist_other
     os: Linux

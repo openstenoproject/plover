@@ -40,7 +40,7 @@ setup_cache_name()
     [ "$target_python" = "${py_installer_version%.*}" ] || die 1 "versions mismatch: target=$target_python, installer=$py_installer_version"
     target_python="$py_installer_version"
   fi
-  "$python" - "$GITHUB_JOB" "$target_python" "$platform_name" <<\EOF
+  cache_name=$("$python" - "$GITHUB_JOB" "$target_python" "$platform_name" <<\EOF
 import platform
 import re
 import sys
@@ -57,9 +57,9 @@ else:
   assert parts == python_version.split('.')[:len(parts)], \
     'versions mismatch: expected=%s, actual=%s' % (target_python, python_version)
 
-cache_name = '%s_py-%s_%s' % (name, python_version, platform_name)
-print('::set-output name=cache_name::' + cache_name)
-EOF
+print(f'{name}_py-{python_version}_{platform_name}')
+EOF)
+  echo "cache_name=$cache_name" >> $GITHUB_OUTPUT
 }
 
 setup_osx_python()
@@ -246,9 +246,9 @@ analyze_set_release_info()
     skip_release='yes'
   fi
   info "Skip Release? $skip_release ($release_type)"
-  echo "::set-output name=is_release::$is_release"
-  echo "::set-output name=release_type::$release_type"
-  echo "::set-output name=release_skip_job::$skip_release"
+  echo "is_release=$is_release" >> $GITHUB_OUTPUT
+  echo "release_type=$release_type" >> $GITHUB_OUTPUT
+  echo "release_skip_job=$skip_release" >> $GITHUB_OUTPUT
 }
 
 analyze_set_job_skip_cache_key()
@@ -260,7 +260,7 @@ analyze_set_job_skip_cache_key()
     skiplists+=(".github/workflows/ci/skiplist_$list.txt")
   done
   sha1="$(git_tree_sha1 -d '@' "${skiplists[@]}")" || die
-  echo "::set-output name=${job_id}_skip_cache_key::${job_skip_cache_name}_$sha1"
+  echo "${job_id}_skip_cache_key=${job_skip_cache_name}_$sha1" >> $GITHUB_OUTPUT
   echo '::endgroup::' 1>&2
 }
 
@@ -275,7 +275,7 @@ analyze_set_job_skip_job()
     skip_job='no'
   fi
   info "Skip $job_name? $skip_job"
-  echo "::set-output name=${job_id}_skip_job::$skip_job"
+  echo "${job_id}_skip_job=$skip_job" >> $GITHUB_OUTPUT
 }
 
 python='python3'
