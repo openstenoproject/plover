@@ -4,6 +4,7 @@ This module provides functionality for interacting with steno machines and
 keyboards.
 
 ```{py:module} plover.machine.base
+
 ```
 
 `````{class} StenotypeBase
@@ -96,8 +97,18 @@ Removes `callback` from the list of functions called when a stroke is sent.
 
 The following API is provided for machine implementors:
 
+```{method} _notify_keys(steno_keys: List[str])
+Notifies the engine that a stroke was sent by the machine. `steno_keys` is a
+list of the *physical* steno keys that were pressed on the machine; this
+function automatically handles translating the keys to actions using the
+active keymap.
+```
+
 ```{method} _notify(steno_keys: List[str])
-Notifies the engine that a stroke was sent by the machine.
+Notifies the engine that a stroke was sent by the machine. `steno_keys` is a
+list of actions and/or *logical* steno keys that exist on the steno system.
+
+*Deprecated*: Use {meth}`_notify_keys` instead.
 ```
 
 ```{method} _stopped()
