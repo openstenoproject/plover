@@ -1,9 +1,10 @@
 # `plover.steno_dictionary` -- Steno dictionary
 
 ```{py:module} plover.steno_dictionary
+
 ```
 
-This module handles *dictionaries*, which Plover uses to look up translations
+This module handles _dictionaries_, which Plover uses to look up translations
 for input steno strokes. Plover's steno engine uses a {class}`StenoDictionaryCollection`
 to look up possible translations across multiple dictionaries, which can be
 configured by the user.
@@ -71,9 +72,6 @@ Adds the entries provided in `args` and `kwargs` to the dictionary.
 Each item in `args` is an iterable containing steno entries (perhaps
 batch-loaded from other dictionaries); each key-value pair in `kwargs`
 corresponds to one steno entry.
-
-:type args: 
-:type kwargs: 
 ```
 
 The following methods are available to perform various lookup functionality:
@@ -123,25 +121,10 @@ Returns the list of steno outlines that translate to `value`.
 Like {meth}`reverse_lookup`, but performs a case-insensitive lookup.
 ```
 
-The dictionary provides the following interface to access the longest key
-in the dictionary, to be used to automatically filter out some dictionaries
-to speed up lookups.
-
 ```{attribute} longest_key
 :type: int
-The number of strokes in the longest key in this dictionary.
-```
-
-```{method} add_longest_key_listener(callback: Function[(int), any])
-Adds a `callback` that gets called when the {attr}`longest_key` in a
-dictionary changes, such as when entries are added or removed.
-`callback` is called with the new longest key as a parameter.
-```
-
-```{method} remove_longest_key_listener(callback: Function[(int), any])
-Removes `callback` if it has been registered as a callback for
-changes to {attr}`longest_key`. `callback` is called with the new
-longest key as a parameter.
+The number of strokes in the longest key in this dictionary. This can be used
+to automatically filter out some dictionaries to speed up lookups.
 ```
 
 In addition, dictionary implementors *should* implement the following
@@ -264,3 +247,4 @@ You can also access the longest key across all dictionaries:
 
 The longest key across all dictionaries.
 ```
+````
