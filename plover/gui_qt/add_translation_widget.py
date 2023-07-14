@@ -42,14 +42,12 @@ class AddTranslationWidget(QWidget, Ui_AddTranslationWidget):
 
         self._special_fmt = (
             '<span style="' +
-            'background-color:' + self.palette().base().color().name() +';' +
             'font-family:monospace;' +
             '">%s</span>'
         )
 
         self._special_fmt_bold = (
             '<span style="' +
-            'background-color:' + self.palette().base().color().name() +';' +
             'font-family:monospace;' +
             'font-weight:bold;' +
             '">%s</span>'
