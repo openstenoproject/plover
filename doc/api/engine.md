@@ -187,7 +187,7 @@ all the filters.
 ```
 
 ```{method} raw_lookup(translation: Tuple[str]) -> str
-Like :meth:`lookup`, but without any of the filters.
+Like {meth}`lookup`, but without any of the filters.
 ```
 
 ```{method} lookup_from_all(translation: Tuple[str]) -> List[str]
@@ -196,7 +196,7 @@ all the filters.
 ```
 
 ```{method} raw_lookup_from_all(translation: Tuple[str]) -> List[str]
-Like :meth:`lookup_from_all`, but without any of the filters.
+Like {meth}`lookup_from_all`, but without any of the filters.
 ```
 
 ```{method} reverse_lookup(translation: str) -> List[Tuple[str]]
@@ -204,7 +204,7 @@ Returns the list of steno outlines that translate to `translation`.
 ```
 
 ```{method} casereverse_lookup(translation: str) -> List[Tuple[str]]
-Like :meth:`reverse_lookup`, but performs a case-insensitive lookup.
+Like {meth}`reverse_lookup`, but performs a case-insensitive lookup.
 ```
 
 ```{method} add_dictionary_filter(dictionary_filter: Function[(Tuple[str], str), bool])
