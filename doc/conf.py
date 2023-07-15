@@ -14,6 +14,7 @@ version = release
 extensions = [
   "sphinx_plover",
   "myst_parser",
+  "sphinx.ext.todo",
 ]
 
 myst_enable_extensions = ["colon_fence"]
@@ -26,6 +27,8 @@ pygments_style = "manni"
 pygments_dark_style = "monokai"
 
 source_suffix = [".rst", ".md"]
+
+todo_include_todos = True
 
 # -- Options for HTML output -------------------------------------------------
 

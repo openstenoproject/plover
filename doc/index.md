@@ -11,18 +11,28 @@ open up stenography to the general public. The Open Steno Project has
 manifested as efforts for free software, free learning resources, and open
 source hardware options.
 
+## User Guide
+
 ```{toctree}
 :maxdepth: 2
+:caption: User Guide
 
-quick_start
-advanced_usage
+installation
+hardware_setup
+basic_usage
+dictionaries
+plugins
+configuration
 cli_reference
 ```
 
+## Developer Guide
+
 ```{toctree}
 :maxdepth: 2
-:caption: Developers
+:caption: Developer Guide
 
+internals
 system_dev
 plugin_dev
 api_reference
