@@ -13,7 +13,6 @@ version = release
 
 extensions = [
   "sphinx_plover",
-  "sphinxcontrib.yt",
   "myst_parser",
 ]
 
