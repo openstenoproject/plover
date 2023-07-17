@@ -7,14 +7,20 @@ import threading
 import time
 
 from plover.dictionary.base import load_dictionary
-from plover.exception import DictionaryLoaderException
 from plover.resource import resource_timestamp
 from plover import log
 
 
 class DictionaryLoadingManager:
 
-    def __init__(self):
+    def __init__(self, state_change_callback):
+        """
+        Parameters:
+        state_change_callback -- A function that will be called when any dictionary is loaded
+            with two parameters: the filename and the loaded StenoDictionary object
+            (or an instance of ErroredDictionary if the load fails).
+        """
+        self._state_change_callback = state_change_callback
         self.dictionaries = {}
 
     def __len__(self):
@@ -31,7 +37,7 @@ class DictionaryLoadingManager:
         if op is not None and not op.needs_reloading():
             return op
         log.info('%s dictionary: %s', 'loading' if op is None else 'reloading', filename)
-        op = DictionaryLoadingOperation(filename)
+        op = DictionaryLoadingOperation(filename, self._state_change_callback)
         self.dictionaries[filename] = op
         return op
 
@@ -54,7 +60,14 @@ class DictionaryLoadingManager:
 
 class DictionaryLoadingOperation:
 
-    def __init__(self, filename):
+    def __init__(self, filename, state_change_callback):
+        """
+        Parameters:
+        state_change_callback -- A function that will be called when the load is finished
+            with two parameters: the filename and the loaded StenoDictionary object
+            (or an instance of ErroredDictionary if the load fails).
+        """
+        self._state_change_callback = state_change_callback
         self.loading_thread = threading.Thread(target=self.load)
         self.filename = filename
         self.result = None
@@ -89,8 +102,9 @@ class DictionaryLoadingOperation:
             self.result = load_dictionary(self.filename)
         except Exception as e:
             log.debug('loading dictionary %s failed', self.filename, exc_info=True)
-            self.result = DictionaryLoaderException(self.filename, e)
+            self.result = ErroredDictionary(self.filename, e)
             self.result.timestamp = timestamp
+        self._state_change_callback(self.filename, self.result)
 
     def get(self):
         self.loading_thread.join()
