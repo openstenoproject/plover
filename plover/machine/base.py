@@ -90,6 +90,11 @@ class StenotypeBase:
         for callback in self.stroke_subscribers:
             callback(steno_keys)
 
+    def _notify_keys(self, steno_keys):
+        steno_keys = self.keymap.keys_to_actions(steno_keys)
+        if steno_keys:
+            self._notify(steno_keys)
+
     def set_suppression(self, enabled):
         '''Enable keyboard suppression.
 
