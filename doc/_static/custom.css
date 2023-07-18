@@ -4,8 +4,10 @@
 h1,
 h2,
 h3,
+h4,
 .sidebar-brand-text {
   font-family: var(--font-stack--header);
+  font-weight: normal;
 }
 
 .sidebar-brand {
@@ -28,6 +30,10 @@ h3,
   margin: 4px;
 }
 
+h3 {
+  margin-top: 12px;
+}
+
 a.headerlink {
   font-family: var(--font-stack);
   font-size: 75%;
@@ -41,4 +47,8 @@ a.headerlink {
 .rst-versions .rst-current-version,
 #furo-readthedocs-versions .rst-current-version .fa-book {
   color: var(--color-sidebar-link-text--top-level);
+}
+
+figcaption .caption-text {
+  font-style: italic;
 }
