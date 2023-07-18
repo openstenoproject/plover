@@ -1,7 +1,7 @@
 # `plover.steno` -- Steno data model
 
-This module deals with the fundamental concept in stenography: the `stroke`.
-A stroke is a combination of keys all pressed at once; an `outline` is a series
+This module deals with the fundamental concept in stenography: the _stroke_.
+A stroke is a combination of keys all pressed at once; an _outline_ is a series
 of strokes performed in succession.
 
 Many Plover actions deal with steno strokes, and this will be especially useful
@@ -15,11 +15,11 @@ Steno notation refers to the way steno strokes are written textually, such as
 on the paper tape or in dictionaries. Each stroke is written as a concatenation
 of several keys, sometimes with a hyphen.
 
-Steno notation is also sometimes referred to as *RTF/CRE* (Rich Text Format
-with Court Reporting Extensions) *notation*, named after the dictionary format
+Steno notation is also sometimes referred to as _RTF/CRE_ (Rich Text Format
+with Court Reporting Extensions) _notation_, named after the dictionary format
 that popularized it.
 
-Each steno system has a *steno order*, or a canonical ordering of all the keys
+Each steno system has a _steno order_, or a canonical ordering of all the keys
 on the layout. For most systems, this is the ordering of the keys from left to
 right, starting with the left bank, then the thumb keys, then the right bank,
 but others may use a different order. Well-formed steno notation **must** have
@@ -39,7 +39,7 @@ omitted completely if a stroke includes certain keys, such as the `-E` in
 
 Strokes are often written with a hyphen, because without one it may not be
 fully clear which side each key is on. For example, the `P` in `KPT` may
-refer to *either* left-hand `P-` *or* right-hand `-P`; writing `KP-T` or
+refer to _either_ left-hand `P-` _or_ right-hand `-P`; writing `KP-T` or
 `K-PT` respectively is unambiguous. Strokes that consist entirely of left
 bank keys may be written without a hyphen, e.g. `KW-` can be written `KW`.
 
@@ -56,7 +56,7 @@ For example, to express the stroke represented by pressing the `S-` and
 `T-` keys together with the number bar (`#`) in steno notation, we write
 `12-`, since `S-` represents the number `1-` and `T-` represents `2-`.
 
-If a stroke consists *only* of a number key, or none of the other pressed keys
+If a stroke consists _only_ of a number key, or none of the other pressed keys
 represent numbers, we still write the number key. For example, `#` and `#-R`
 are both valid steno notation, since `-R` does not represent a number, but
 `#P-` is not (write `3-` instead).
@@ -75,6 +75,7 @@ the `/` indicates that they are written in sequence.
 ## Steno Stroke API
 
 ```{py:module} plover.steno
+
 ```
 
 ````{class} Stroke
