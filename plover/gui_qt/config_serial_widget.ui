@@ -341,7 +341,7 @@
   </connection>
   <connection>
    <sender>baudrate</sender>
-   <signal>activated(QString)</signal>
+   <signal>textActivated(QString)</signal>
    <receiver>SerialWidget</receiver>
    <slot>on_baudrate_changed(QString)</slot>
    <hints>
@@ -357,7 +357,7 @@
   </connection>
   <connection>
    <sender>bytesize</sender>
-   <signal>activated(QString)</signal>
+   <signal>textActivated(QString)</signal>
    <receiver>SerialWidget</receiver>
    <slot>on_bytesize_changed(QString)</slot>
    <hints>
@@ -373,7 +373,7 @@
   </connection>
   <connection>
    <sender>parity</sender>
-   <signal>activated(QString)</signal>
+   <signal>textActivated(QString)</signal>
    <receiver>SerialWidget</receiver>
    <slot>on_parity_changed(QString)</slot>
    <hints>
@@ -405,7 +405,7 @@
   </connection>
   <connection>
    <sender>stopbits</sender>
-   <signal>activated(QString)</signal>
+   <signal>textActivated(QString)</signal>
    <receiver>SerialWidget</receiver>
    <slot>on_stopbits_changed(QString)</slot>
    <hints>

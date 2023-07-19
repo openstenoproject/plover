@@ -100,17 +100,20 @@ class BuildUi(Command):
         pass
 
     def _build_ui(self, src):
+        from pyqt6rc import convert_tools
         dst = os.path.splitext(src)[0] + '_ui.py'
         if not self.force and os.path.exists(dst) and \
            os.path.getmtime(dst) >= os.path.getmtime(src):
             return
-        cmd = (
-            sys.executable, '-m', 'PyQt5.uic.pyuic',
-            '--from-import', src,
-        )
         if self.verbose:
             print('generating', dst)
-        contents = subprocess.check_output(cmd).decode('utf-8')
+
+        resources = {}
+        resources_found = convert_tools.update_resources(src, resources)
+        contents = os.popen(f"python -m PyQt6.uic.pyuic {src}").read()
+        if resources_found is not None:
+            contents = convert_tools.modify_py(contents, resources)
+
         for hook in self.hooks:
             mod_name, attr_name = hook.split(':')
             mod = importlib.import_module(mod_name)
@@ -118,19 +121,6 @@ class BuildUi(Command):
             contents = hook_fn(contents)
         with open(dst, 'w') as fp:
             fp.write(contents)
-
-    def _build_resources(self, src):
-        dst = os.path.join(
-            os.path.dirname(os.path.dirname(src)),
-            os.path.splitext(os.path.basename(src))[0]
-        ) + '_rc.py'
-        cmd = (
-            sys.executable, '-m', 'PyQt5.pyrcc_main',
-            src, '-o', dst,
-        )
-        if self.verbose:
-            print('generating', dst)
-        subprocess.check_call(cmd)
 
     def run(self):
         self.run_command('egg_info')
@@ -143,8 +133,6 @@ class BuildUi(Command):
             print('generating UI using hooks:', ', '.join(hooks_info))
         ei_cmd = self.get_finalized_command('egg_info')
         for src in ei_cmd.filelist.files:
-            if src.endswith('.qrc'):
-                self._build_resources(src)
             if src.endswith('.ui'):
                 self._build_ui(src)
 

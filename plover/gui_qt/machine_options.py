@@ -1,15 +1,15 @@
 from copy import copy
 from pathlib import Path
 
-from PyQt5.QtCore import Qt, QVariant, pyqtSignal
-from PyQt5.QtGui import (
+from PyQt6.QtCore import Qt, QVariant, pyqtSignal
+from PyQt6.QtGui import (
     QTextCharFormat,
     QTextFrameFormat,
     QTextListFormat,
     QTextCursor,
     QTextDocument,
 )
-from PyQt5.QtWidgets import (
+from PyQt6.QtWidgets import (
     QGroupBox,
     QStyledItemDelegate,
     QStyle,
@@ -68,19 +68,19 @@ class SerialOption(QGroupBox, Ui_SerialWidget):
             self._details_frame_format.setForeground(foreground)
             self._details_frame_format.setTopMargin(doc_margin)
             self._details_frame_format.setBottomMargin(-3 * doc_margin)
-            self._details_frame_format.setBorderStyle(QTextFrameFormat.BorderStyle_Solid)
+            self._details_frame_format.setBorderStyle(QTextFrameFormat.BorderStyle.BorderStyle_Solid)
             self._details_frame_format.setBorder(doc_margin / 2)
             self._details_frame_format.setPadding(doc_margin)
             self._details_list_format = QTextListFormat()
-            self._details_list_format.setStyle(QTextListFormat.ListSquare)
+            self._details_list_format.setStyle(QTextListFormat.Style.ListSquare)
 
         def _format_port(self, index):
             self._doc.clear()
             cursor = QTextCursor(self._doc)
             cursor.setCharFormat(self._device_format)
-            port_info = index.data(Qt.UserRole)
+            port_info = index.data(Qt.ItemDataRole.UserRole)
             if port_info is None:
-                cursor.insertText(index.data(Qt.DisplayRole))
+                cursor.insertText(index.data(Qt.ItemDataRole.DisplayRole))
                 return
             cursor.insertText(port_info.device)
             details = serial_port_details(port_info)
@@ -95,7 +95,7 @@ class SerialOption(QGroupBox, Ui_SerialWidget):
 
         def paint(self, painter, option, index):
             painter.save()
-            if option.state & QStyle.State_Selected:
+            if option.state & QStyle.StateFlag.State_Selected:
                 painter.fillRect(option.rect, option.palette.highlight())
                 text_color = option.palette.highlightedText()
             else:

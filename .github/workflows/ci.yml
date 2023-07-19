@@ -554,6 +554,9 @@ jobs:
       - name: Setup pip options
         run: setup_pip_options
 
+      - name: Install system dependencies
+        run: apt_get_install libdbus-1-dev libdbus-glib-1-dev libudev-dev libusb-1.0-0-dev libegl-dev
+
       - name: Setup Python environment
         run: setup_python_env -c reqs/constraints.txt -r reqs/dist.txt -r reqs/dist_extra_gui_qt.txt -r reqs/test.txt
       - name: Build UI
@@ -667,7 +670,7 @@ jobs:
 
       - name: List cache contents
         run: list_cache
-  
+
     outputs:
       version: ${{ steps.set_version.outputs.version }}
   # }}}
@@ -710,7 +713,7 @@ jobs:
         run: setup_pip_options
 
       - name: Install system dependencies
-        run: apt_get_install libdbus-1-dev libdbus-glib-1-dev libudev-dev libusb-1.0-0-dev
+        run: apt_get_install libdbus-1-dev libdbus-glib-1-dev libudev-dev libusb-1.0-0-dev libegl-dev
 
       - name: Setup Python environment
         run: setup_python_env -c reqs/constraints.txt -r reqs/build.txt -r reqs/setup.txt
