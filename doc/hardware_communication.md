@@ -70,8 +70,24 @@ class MyKeyboardEmulation(Output):
 
 ## Serial Protocols
 
-```{todo}
-Complete this section.
+Plover supports communicating with hobbyist, student, and professional steno
+writers through a serial interface. The most common protocols are Gemini PR
+for hobbyist writers and Stentura for Stenograph writers, but custom protocols
+may be implemented.
+
+The {class}`SerialStenotypeBase<plover.machine.base.SerialStenotypeBase>` class
+handles all of the connection establishment and configuration; when
+implementing a new serial interface, you only need to define your key layout
+and implement a way to parse each packet.
+
+```python
+class MySerialMachine(SerialStenotypeBase):
+  KEYS_LAYOUT = """
+    ...
+  """
+
+  def run(self):
+    ...
 ```
 
 ## USB-based Protocols
