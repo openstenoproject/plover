@@ -163,9 +163,9 @@
  <tabstops>
   <tabstop>strokes</tabstop>
   <tabstop>translation</tabstop>
+  <tabstop>dictionary</tabstop>
   <tabstop>strokes_info</tabstop>
   <tabstop>translation_info</tabstop>
-  <tabstop>dictionary</tabstop>
  </tabstops>
  <resources/>
  <connections>
