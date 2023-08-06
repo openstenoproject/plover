@@ -102,6 +102,7 @@ class DictionaryLoadingOperation:
             self.result = load_dictionary(self.filename)
         except Exception as e:
             log.debug('loading dictionary %s failed', self.filename, exc_info=True)
+            from plover.engine import ErroredDictionary
             self.result = ErroredDictionary(self.filename, e)
             self.result.timestamp = timestamp
         self._state_change_callback(self.filename, self.result)
