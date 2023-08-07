@@ -234,9 +234,9 @@ class DictionariesModel(QAbstractListModel):
                 continue
             item.loaded = loaded
             updated_rows.add(item.row)
+        updated_rows.update(self._update_favorite())
         if not updated_rows:
             return
-        updated_rows.update(self._update_favorite())
         self._updated_rows(updated_rows)
 
     def _on_dictionary_state_changed(self, filename, d):
