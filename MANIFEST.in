@@ -1,9 +1,10 @@
-# Include: pretty much everything normally versioned,
-# and not already automatically included by setuptools.
 include CONTRIBUTING.md
 include LICENSE.txt
 include NEWS.md
 include doc/*
+include doc/api/*
+include launch.bat
+include launch.sh
 include linux/*
 include linux/appimage/*
 include news.d/api/*
