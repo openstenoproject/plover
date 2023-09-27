@@ -46,7 +46,7 @@ from Quartz import (
 from plover import log
 from plover.key_combo import add_modifiers_aliases, parse_key_combo, KEYNAME_TO_CHAR
 from plover.machine.keyboard_capture import Capture
-from plover.output import Output
+from plover.output.keyboard import GenericKeyboardEmulation
 
 from .keyboardlayout import KeyboardLayout
 
@@ -302,7 +302,7 @@ class KeyboardCapture(Capture):
                 self.key_down(key)
 
 
-class KeyboardEmulation(Output):
+class KeyboardEmulation(GenericKeyboardEmulation):
 
     RAW_PRESS, STRING_PRESS = range(2)
 
@@ -310,9 +310,8 @@ class KeyboardEmulation(Output):
         super().__init__()
         self._layout = KeyboardLayout()
 
-    @staticmethod
-    def send_backspaces(count):
-        for _ in range(count):
+    def send_backspaces(self, count):
+        for _ in self.with_delay(range(count)):
             backspace_down = CGEventCreateKeyboardEvent(
                 OUTPUT_SOURCE, BACK_SPACE, True)
             backspace_up = CGEventCreateKeyboardEvent(
@@ -361,7 +360,7 @@ class KeyboardEmulation(Output):
         apply_raw()
 
         # We have a key plan for the whole string, grouping modifiers.
-        for press_type, sequence in key_plan:
+        for press_type, sequence in self.with_delay(key_plan):
             if press_type is self.STRING_PRESS:
                 self._send_string_press(sequence)
             elif press_type is self.RAW_PRESS:
@@ -435,8 +434,7 @@ class KeyboardEmulation(Output):
             -1
         ).CGEvent()
 
-    @staticmethod
-    def _send_sequence(sequence):
+    def _send_sequence(self, sequence):
         # There is a bug in the event system that seems to cause inconsistent
         # modifiers on key events:
         # http://stackoverflow.com/questions/2008126/cgeventpost-possible-bug-when-simulating-keyboard-events
@@ -445,7 +443,7 @@ class KeyboardEmulation(Output):
         # If mods_flags is not zero at the end then bad things might happen.
         mods_flags = 0
 
-        for keycode, key_down in sequence:
+        for keycode, key_down in self.with_delay(sequence):
             if keycode >= NX_KEY_OFFSET:
                 # Handle media (NX) key.
                 event = KeyboardEmulation._get_media_event(

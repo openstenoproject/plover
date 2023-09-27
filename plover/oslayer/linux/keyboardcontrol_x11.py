@@ -24,6 +24,7 @@ http://tronche.com/gui/x/xlib/input/keyboard-encoding.html
 import os
 import select
 import threading
+from time import sleep
 
 from Xlib import X, XK
 from Xlib.display import Display
@@ -33,7 +34,7 @@ from Xlib.ext.ge import GenericEventCode
 from plover import log
 from plover.key_combo import add_modifiers_aliases, parse_key_combo
 from plover.machine.keyboard_capture import Capture
-from plover.output import Output
+from plover.output.keyboard import GenericKeyboardEmulation
 
 
 # Enable support for media keys.
@@ -1127,7 +1128,7 @@ def keysym_to_string(keysym):
     return chr(code)
 
 
-class KeyboardEmulation(Output):
+class KeyboardEmulation(GenericKeyboardEmulation):
 
     class Mapping:
 
@@ -1217,20 +1218,33 @@ class KeyboardEmulation(Output):
         self.modifier_mapping = self._display.get_modifier_mapping()
 
     def send_backspaces(self, count):
-        for x in range(count):
+        for x in self.with_delay(range(count)):
             self._send_keycode(self._backspace_mapping.keycode,
                                self._backspace_mapping.modifiers)
-        self._display.sync()
+            self._display.sync()
 
     def send_string(self, string):
         for char in string:
             keysym = uchr_to_keysym(char)
-            mapping = self._get_mapping(keysym)
+            # TODO: can we find mappings for multiple keys at a time?
+            mapping = self._get_mapping(keysym, automatically_map=False)
+            mapping_changed = False
             if mapping is None:
-                continue
+                mapping = self._get_mapping(keysym, automatically_map=True)
+                if mapping is None:
+                    continue
+                self._display.sync()
+                self.half_delay()
+                mapping_changed = True
+
             self._send_keycode(mapping.keycode,
                                mapping.modifiers)
-        self._display.sync()
+
+            self._display.sync()
+            if mapping_changed:
+                self.half_delay()
+            else:
+                self.delay()
 
     def send_key_combination(self, combo):
         # Parse and validate combo.
@@ -1239,9 +1253,9 @@ class KeyboardEmulation(Output):
             in parse_key_combo(combo, self._get_keycode_from_keystring)
         ]
         # Emulate the key combination by sending key events.
-        for keycode, event_type in key_events:
+        for keycode, event_type in self.with_delay(key_events):
             xtest.fake_input(self._display, event_type, keycode)
-        self._display.sync()
+            self._display.sync()
 
     def _send_keycode(self, keycode, modifiers=0):
         """Emulate a key press and release.

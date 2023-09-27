@@ -26,7 +26,7 @@ from plover import log
 from plover.key_combo import parse_key_combo
 from plover.machine.keyboard_capture import Capture
 from plover.misc import to_surrogate_pair
-from plover.output import Output
+from plover.output.keyboard import GenericKeyboardEmulation
 
 from .keyboardlayout import KeyboardLayout
 
@@ -425,7 +425,7 @@ class KeyboardCapture(Capture):
         self._proc.suppress(self._suppressed_keys)
 
 
-class KeyboardEmulation(Output):
+class KeyboardEmulation(GenericKeyboardEmulation):
 
     def __init__(self):
         super().__init__()
@@ -498,12 +498,12 @@ class KeyboardEmulation(Output):
         self._send_input(*inputs)
 
     def send_backspaces(self, count):
-        for _ in range(count):
+        for _ in self.with_delay(range(count)):
             self._key_press('\x08')
 
     def send_string(self, string):
         self._refresh_keyboard_layout()
-        for char in string:
+        for char in self.with_delay(string):
             if char in self.keyboard_layout.char_to_vk_ss:
                 # We know how to simulate the character.
                 self._key_press(char)
@@ -517,5 +517,5 @@ class KeyboardEmulation(Output):
         # Parse and validate combo.
         key_events = parse_key_combo(combo, self.keyboard_layout.keyname_to_vk.get)
         # Send events...
-        for keycode, pressed in key_events:
+        for keycode, pressed in self.with_delay(key_events):
             self._key_event(keycode, pressed)
