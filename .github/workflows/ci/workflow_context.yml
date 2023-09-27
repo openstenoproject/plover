@@ -11,19 +11,19 @@ skippy_enabled: true
 vars:
   - &dist_linux
     variant: Linux
-    python: '3.9'
+    python: "3.9"
     os: Linux
     platform: ubuntu-22.04
 
   - &dist_macos
     variant: macOS
-    python: '3.9'
+    python: "3.9"
     os: macOS
     platform: macos-12
 
   - &dist_win
     variant: Windows
-    python: '3.9'
+    python: "3.9"
     os: Windows
     platform: windows-2022
 
@@ -32,67 +32,63 @@ vars:
     platform: ubuntu-latest
 
 jobs:
-
   # Platform tests.
   - &test
     <<: *dist_linux
     type: test
-    reqs: ['dist', 'test']
-    skiplists: ['job_test', 'os_linux']
+    reqs: ["dist", "test"]
+    skiplists: ["job_test", "os_linux"]
     test_args: -p no:pytest-qt --ignore=test/gui_qt
   - <<: *test
     <<: *dist_macos
-    cache_extra_deps: ['osx/deps.sh']
-    skiplists: ['job_test', 'os_macos']
+    cache_extra_deps: ["osx/deps.sh"]
+    skiplists: ["job_test", "os_macos"]
   - <<: *test
     <<: *dist_win
-    skiplists: ['job_test', 'os_windows']
+    skiplists: ["job_test", "os_windows"]
 
   # Python tests.
   - &python_test
     <<: *test
     <<: *dist_other
-    variant: Python 3.7
-    python: '3.7'
-    skiplists: ['job_test', 'os_linux', 'os_macos', 'os_windows']
-  - <<: *python_test
     variant: Python 3.8
-    python: '3.8'
+    python: "3.8"
+    skiplists: ["job_test", "os_linux", "os_macos", "os_windows"]
   - <<: *python_test
     variant: Python 3.10
-    python: '3.10'
+    python: "3.10"
 
   # Qt GUI tests.
   - <<: *test
     type: test_gui_qt
     variant: Qt GUI
-    reqs: ['dist', 'dist_extra_gui_qt', 'test']
-    skiplists: ['job_test_gui_qt']
+    reqs: ["dist", "dist_extra_gui_qt", "test"]
+    skiplists: ["job_test_gui_qt"]
     test_args: test/gui_qt
 
   # Packaging tests.
   - <<: *dist_other
     type: test_packaging
     variant: Packaging
-    python: '3.9'
-    reqs: ['packaging', 'setup']
-    skiplists: ['job_test_packaging']
+    python: "3.9"
+    reqs: ["packaging", "setup"]
+    skiplists: ["job_test_packaging"]
 
   # Platform builds.
   - &build
     <<: *dist_linux
     type: build
     needs: [test_linux]
-    reqs: ['build', 'setup']
-    cache_extra_deps: ['reqs/dist_*.txt', 'linux/appimage/deps.sh']
-    skiplists: ['job_build', 'os_linux']
+    reqs: ["build", "setup"]
+    cache_extra_deps: ["reqs/dist_*.txt", "linux/appimage/deps.sh"]
+    skiplists: ["job_build", "os_linux"]
   - <<: *build
     <<: *dist_macos
     needs: [test_macos]
-    cache_extra_deps: ['reqs/dist_*.txt', 'osx/deps.sh']
-    skiplists: ['job_build', 'os_macos']
+    cache_extra_deps: ["reqs/dist_*.txt", "osx/deps.sh"]
+    skiplists: ["job_build", "os_macos"]
   - <<: *build
     <<: *dist_win
     needs: [test_windows]
-    cache_extra_deps: ['reqs/dist_*.txt', 'windows/dist_deps.sh']
-    skiplists: ['job_build', 'os_windows']
+    cache_extra_deps: ["reqs/dist_*.txt", "windows/dist_deps.sh"]
+    skiplists: ["job_build", "os_windows"]
