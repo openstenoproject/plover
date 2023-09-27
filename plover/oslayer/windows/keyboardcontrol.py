@@ -14,7 +14,6 @@ emulate keyboard input.
 """
 
 from ctypes import windll, wintypes
-from time import sleep
 import atexit
 import ctypes
 import multiprocessing
@@ -27,7 +26,7 @@ from plover import log
 from plover.key_combo import parse_key_combo
 from plover.machine.keyboard_capture import Capture
 from plover.misc import to_surrogate_pair
-from plover.output import Output
+from plover.output.keyboard import GenericKeyboardEmulation
 
 from .keyboardlayout import KeyboardLayout
 
@@ -426,12 +425,11 @@ class KeyboardCapture(Capture):
         self._proc.suppress(self._suppressed_keys)
 
 
-class KeyboardEmulation(Output):
+class KeyboardEmulation(GenericKeyboardEmulation):
 
     def __init__(self):
         super().__init__()
         self.keyboard_layout = KeyboardLayout()
-        self._key_press_delay = 0
 
     # Sends input types to buffer
     @staticmethod
@@ -499,19 +497,13 @@ class KeyboardEmulation(Output):
                   for code in pairs]
         self._send_input(*inputs)
 
-    def set_key_press_delay(self, delay_ms):
-        self._key_press_delay = delay_ms
-
     def send_backspaces(self, count):
-        for _ in range(count):
+        for _ in self.with_delay(range(count)):
             self._key_press('\x08')
-
-            if self._key_press_delay > 0:
-                sleep(self._key_press_delay / 1000)
 
     def send_string(self, string):
         self._refresh_keyboard_layout()
-        for char in string:
+        for char in self.with_delay(string):
             if char in self.keyboard_layout.char_to_vk_ss:
                 # We know how to simulate the character.
                 self._key_press(char)
@@ -519,17 +511,11 @@ class KeyboardEmulation(Output):
                 # Otherwise, we send it as a Unicode string.
                 self._key_unicode(char)
 
-            if self._key_press_delay > 0:
-                sleep(self._key_press_delay / 1000)
-
     def send_key_combination(self, combo):
         # Make sure keyboard layout is up-to-date.
         self._refresh_keyboard_layout()
         # Parse and validate combo.
         key_events = parse_key_combo(combo, self.keyboard_layout.keyname_to_vk.get)
         # Send events...
-        for keycode, pressed in key_events:
+        for keycode, pressed in self.with_delay(key_events):
             self._key_event(keycode, pressed)
-
-            if self._key_press_delay > 0:
-                sleep(self._key_press_delay / 1000)

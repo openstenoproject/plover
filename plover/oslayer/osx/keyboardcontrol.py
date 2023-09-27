@@ -46,7 +46,7 @@ from Quartz import (
 from plover import log
 from plover.key_combo import add_modifiers_aliases, parse_key_combo, KEYNAME_TO_CHAR
 from plover.machine.keyboard_capture import Capture
-from plover.output import Output
+from plover.output.keyboard import GenericKeyboardEmulation
 
 from .keyboardlayout import KeyboardLayout
 
@@ -302,28 +302,25 @@ class KeyboardCapture(Capture):
                 self.key_down(key)
 
 
-class KeyboardEmulation(Output):
+class KeyboardEmulation(GenericKeyboardEmulation):
 
     RAW_PRESS, STRING_PRESS = range(2)
 
     def __init__(self):
         super().__init__()
         self._layout = KeyboardLayout()
-        self._key_press_delay = 0
 
     def set_key_press_delay(self, delay_ms):
         self._key_press_delay = delay_ms
 
     def send_backspaces(self, count):
-        for _ in range(count):
+        for _ in self.with_delay(range(count)):
             backspace_down = CGEventCreateKeyboardEvent(
                 OUTPUT_SOURCE, BACK_SPACE, True)
             backspace_up = CGEventCreateKeyboardEvent(
                 OUTPUT_SOURCE, BACK_SPACE, False)
             CGEventPost(kCGSessionEventTap, backspace_down)
             CGEventPost(kCGSessionEventTap, backspace_up)
-            if self._key_press_delay > 0:
-                sleep(self._key_press_delay / 1000)
 
     def send_string(self, string):
         # Key plan will store the type of output
@@ -366,14 +363,11 @@ class KeyboardEmulation(Output):
         apply_raw()
 
         # We have a key plan for the whole string, grouping modifiers.
-        for press_type, sequence in key_plan:
+        for press_type, sequence in self.with_delay(key_plan):
             if press_type is self.STRING_PRESS:
                 self._send_string_press(sequence)
             elif press_type is self.RAW_PRESS:
                 self._send_sequence(sequence)
-
-            if self._key_press_delay > 0:
-                sleep(self._key_press_delay / 1000)
 
     @staticmethod
     def _send_string_press(c):
@@ -404,9 +398,6 @@ class KeyboardEmulation(Output):
         key_events = parse_key_combo(combo, name_to_code)
         # Send events...
         self._send_sequence(key_events)
-
-        if self._key_press_delay > 0:
-            sleep(self._key_press_delay / 1000)
 
     @staticmethod
     def _modifier_to_keycodes(modifier):
@@ -456,7 +447,7 @@ class KeyboardEmulation(Output):
         # If mods_flags is not zero at the end then bad things might happen.
         mods_flags = 0
 
-        for keycode, key_down in sequence:
+        for keycode, key_down in self.with_delay(sequence):
             if keycode >= NX_KEY_OFFSET:
                 # Handle media (NX) key.
                 event = KeyboardEmulation._get_media_event(
