@@ -310,9 +310,6 @@ class KeyboardEmulation(GenericKeyboardEmulation):
         super().__init__()
         self._layout = KeyboardLayout()
 
-    def set_key_press_delay(self, delay_ms):
-        self._key_press_delay = delay_ms
-
     def send_backspaces(self, count):
         for _ in self.with_delay(range(count)):
             backspace_down = CGEventCreateKeyboardEvent(
