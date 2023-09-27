@@ -330,7 +330,7 @@ class KeyboardEmulation(GenericKeyboardEmulation):
         # and add the sequence to the key plan when called as a function.
         def apply_raw():
             if hasattr(apply_raw, 'sequence') \
-                    and len(apply_raw.sequence) is not 0:
+                    and len(apply_raw.sequence) != 0:
                 apply_raw.sequence.extend(apply_raw.release_modifiers)
                 key_plan.append((self.RAW_PRESS, apply_raw.sequence))
             apply_raw.sequence = []
