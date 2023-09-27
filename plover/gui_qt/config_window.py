@@ -381,7 +381,7 @@ class ConfigWindow(QDialog, Ui_ConfigWindow, WindowState):
                                '\n'
                                'Note: the effective value will take into account the\n'
                                'dictionaries entry with the maximum number of strokes.')),
-                ConfigOption(_('Time between key presses:'), 'time_between_key_presses',
+                ConfigOption(_('Key press delay (ms):'), 'time_between_key_presses',
                              partial(IntOption,
                                      maximum=100000,
                                      minimum=MINIMUM_TIME_BETWEEN_KEY_PRESSES),
