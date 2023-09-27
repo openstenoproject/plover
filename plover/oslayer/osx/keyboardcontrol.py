@@ -309,9 +309,12 @@ class KeyboardEmulation(Output):
     def __init__(self):
         super().__init__()
         self._layout = KeyboardLayout()
+        self._key_press_delay = 0
 
-    @staticmethod
-    def send_backspaces(count):
+    def set_key_press_delay(self, delay_ms):
+        self._key_press_delay = delay_ms
+
+    def send_backspaces(self, count):
         for _ in range(count):
             backspace_down = CGEventCreateKeyboardEvent(
                 OUTPUT_SOURCE, BACK_SPACE, True)
@@ -319,6 +322,8 @@ class KeyboardEmulation(Output):
                 OUTPUT_SOURCE, BACK_SPACE, False)
             CGEventPost(kCGSessionEventTap, backspace_down)
             CGEventPost(kCGSessionEventTap, backspace_up)
+            if self._key_press_delay > 0:
+                sleep(self._key_press_delay / 1000)
 
     def send_string(self, string):
         # Key plan will store the type of output
@@ -367,6 +372,9 @@ class KeyboardEmulation(Output):
             elif press_type is self.RAW_PRESS:
                 self._send_sequence(sequence)
 
+            if self._key_press_delay > 0:
+                sleep(self._key_press_delay / 1000)
+
     @staticmethod
     def _send_string_press(c):
         event = CGEventCreateKeyboardEvent(OUTPUT_SOURCE, 0, True)
@@ -396,6 +404,9 @@ class KeyboardEmulation(Output):
         key_events = parse_key_combo(combo, name_to_code)
         # Send events...
         self._send_sequence(key_events)
+
+        if self._key_press_delay > 0:
+            sleep(self._key_press_delay / 1000)
 
     @staticmethod
     def _modifier_to_keycodes(modifier):

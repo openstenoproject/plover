@@ -14,6 +14,7 @@ emulate keyboard input.
 """
 
 from ctypes import windll, wintypes
+from time import sleep
 import atexit
 import ctypes
 import multiprocessing
@@ -430,6 +431,7 @@ class KeyboardEmulation(Output):
     def __init__(self):
         super().__init__()
         self.keyboard_layout = KeyboardLayout()
+        self._key_press_delay = 0
 
     # Sends input types to buffer
     @staticmethod
@@ -497,9 +499,15 @@ class KeyboardEmulation(Output):
                   for code in pairs]
         self._send_input(*inputs)
 
+    def set_key_press_delay(self, delay_ms):
+        self._key_press_delay = delay_ms
+
     def send_backspaces(self, count):
         for _ in range(count):
             self._key_press('\x08')
+
+            if self._key_press_delay > 0:
+                sleep(self._key_press_delay / 1000)
 
     def send_string(self, string):
         self._refresh_keyboard_layout()
@@ -511,6 +519,9 @@ class KeyboardEmulation(Output):
                 # Otherwise, we send it as a Unicode string.
                 self._key_unicode(char)
 
+            if self._key_press_delay > 0:
+                sleep(self._key_press_delay / 1000)
+
     def send_key_combination(self, combo):
         # Make sure keyboard layout is up-to-date.
         self._refresh_keyboard_layout()
@@ -519,3 +530,6 @@ class KeyboardEmulation(Output):
         # Send events...
         for keycode, pressed in key_events:
             self._key_event(keycode, pressed)
+
+            if self._key_press_delay > 0:
+                sleep(self._key_press_delay / 1000)
