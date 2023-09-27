@@ -15,6 +15,10 @@ class GenericKeyboardEmulation(Output):
     if self._key_press_delay_ms > 0:
       sleep(self._key_press_delay_ms / 1000)
 
+  def half_delay(self):
+    if self._key_press_delay_ms > 0:
+      sleep(self._key_press_delay_ms / 2000)
+
   def with_delay(self, iterable):
     for item in iterable:
       yield item

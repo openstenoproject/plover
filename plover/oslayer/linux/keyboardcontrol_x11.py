@@ -24,6 +24,7 @@ http://tronche.com/gui/x/xlib/input/keyboard-encoding.html
 import os
 import select
 import threading
+from time import sleep
 
 from Xlib import X, XK
 from Xlib.display import Display
@@ -1223,7 +1224,7 @@ class KeyboardEmulation(GenericKeyboardEmulation):
             self._display.sync()
 
     def send_string(self, string):
-        for char in self.with_delay(string):
+        for char in string:
             keysym = uchr_to_keysym(char)
             # TODO: can we find mappings for multiple keys at a time?
             mapping = self._get_mapping(keysym, automatically_map=False)
@@ -1232,12 +1233,18 @@ class KeyboardEmulation(GenericKeyboardEmulation):
                 mapping = self._get_mapping(keysym, automatically_map=True)
                 if mapping is None:
                     continue
+                self._display.sync()
+                self.half_delay()
                 mapping_changed = True
 
             self._send_keycode(mapping.keycode,
                                mapping.modifiers)
 
             self._display.sync()
+            if mapping_changed:
+                self.half_delay()
+            else:
+                self.delay()
 
     def send_key_combination(self, combo):
         # Parse and validate combo.
