@@ -437,8 +437,7 @@ class KeyboardEmulation(GenericKeyboardEmulation):
             -1
         ).CGEvent()
 
-    @staticmethod
-    def _send_sequence(sequence):
+    def _send_sequence(self, sequence):
         # There is a bug in the event system that seems to cause inconsistent
         # modifiers on key events:
         # http://stackoverflow.com/questions/2008126/cgeventpost-possible-bug-when-simulating-keyboard-events
