@@ -1,3 +1,34 @@
+# v4.0.0rc2 (2023-09-28)
+
+
+
+## Features
+
+### Core
+
+- Added a configurable delay between key presses, to accommodate applications that can't handle fast keyboard emulation. (#1633)
+
+## Bugfixes
+
+### Core
+
+- Closes serial ports upon disconnection to ensure clean reconnections. (#1636)
+
+### User Interface
+
+- Update the tray icon to "disconnected" when a serial-over-USB machine is unplugged. (#1560)
+
+## API
+
+### Breaking Changes
+
+- Dropped support for Python 3.7. (#1634)
+
+### New
+
+- Introduces the `GenericKeyboardEmulation` interface which automatically handles output delay. (#1633)
+
+
 # v4.0.0rc1 (2023-09-26)
 
 
