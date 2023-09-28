@@ -212,6 +212,7 @@ class SerialStenotypeBase(ThreadedStenotypeBase):
 
         """
         ThreadedStenotypeBase.__init__(self)
+        self._on_unhandled_exception(self._handle_disconnect)
         self.serial_port = None
         self.serial_params = serial_params
 
@@ -220,6 +221,10 @@ class SerialStenotypeBase(ThreadedStenotypeBase):
             return
         self.serial_port.close()
         self.serial_port = None
+
+    def _handle_disconnect(self):
+        self._close_port()
+        self._error()
 
     def start_capture(self):
         self._close_port()
