@@ -92,21 +92,22 @@ Glues the text.
 The operators below add or remove spaces between your last stroke and the one
 before that.
 
-The names of the operators should say "retroactive", but have remained
-"retrospective" for backward compatibility.
-
-:::{plover:operator} {\*?}; =retrospective_insert_space
+:::{plover:operator} {*?}; =retro_insert_space; =retrospective_insert_space
 Adds a space between the last two strokes. For example, if your dictionary
 contained `PER` for 'perfect', `SWAEUGS` for 'situation' and `PER/SWAEUGS` for
 'persuasion', you can force Plover to output 'perfect situation' by writing
 `{*?}`.
 
+The name `=retrospective_insert_space` is _deprecated_; prefer `=retro_insert_space` instead.
+
 _Suggested outline_: `AFPS` ("**A**dd **SP**a**C**e")
 :::
 
-:::{plover:operator} {\*!}; =retrospective_delete_space
+:::{plover:operator} {*!}; =retro_delete_space; =retrospective_delete_space
 Delete the space between the last two strokes. For example, if you wrote
 'basket ball', you could force them together into 'basketball' by writing `{*!}`.
+
+The name `=retrospective_delete_space` is _deprecated_; prefer `=retro_delete_space` instead.
 
 _Suggested outline_: `TK-FPS` ("**D**elete **SP**a**C**e")
 :::
@@ -153,7 +154,7 @@ _Default outline_: `KPA*`
 :::
 ::::
 
-:::{plover:operator} {\*-|}; {:retro_case:cap_first_word}
+:::{plover:operator} {*-|}; {:retro_case:cap_first_word}
 Capitalizes the first letter of the previous word. This is useful in case you
 realize that a word should be capitalized after you've written it. For example,
 `cat` + `{*-|}{^ville}` = `Catville`.
@@ -167,7 +168,7 @@ Forces the next letter to be lowercase, for example `{>}Plover` = `plover`.
 _Suggested outline_: `HRO*ER` ("lower")
 :::
 
-:::{plover:operator} {\*>}; {:retro_case:lower_first_char}
+:::{plover:operator} {*>}; {:retro_case:lower_first_char}
 Rewrites the previous word to start with a lowercase letter, for example
 `Plover{*>}` = `plover`.
 
@@ -180,7 +181,7 @@ Outputs the next word in all capital letters, for example `{<}cat` = `CAT`.
 _Suggested outline_: `KPA*L` ("cap all")
 :::
 
-:::{plover:operator} {\*<}; {:retro_case:upper_first_word}
+:::{plover:operator} {*<}; {:retro_case:upper_first_word}
 Rewrites the previous word in all capital letters, for example `cat{*<}` = `CAT`.
 
 _Suggested outline_: `*UPD`
@@ -281,7 +282,7 @@ Plover has an operator to format the last written number as a currency amount.
 The amount is written with either no decimal places or two, and commas are
 added every 3 digits.
 
-:::{plover:operator} {\*([prefix]c[suffix])}; {:retro_currency:[prefix]c[suffix]}
+:::{plover:operator} {*([prefix]c[suffix])}; {:retro_currency:[prefix]c[suffix]}
 Retroactively converts the previously written number into a currency amount.
 The number takes the place of the `c` in the format specification.
 
@@ -377,7 +378,7 @@ Undoes the last stroke.
 _Default outline_: `*`
 :::
 
-:::{plover:operator} {\*+}; =repeat_last_stroke
+:::{plover:operator} {*+}; =repeat_last_stroke
 Sends the last stroke entered. For example, `KAT{*+}{*+}` translates to
 `cat cat cat`. Especially useful for repeated keys, such as navigating around
 a document.
@@ -385,9 +386,11 @@ a document.
 _Suggested outline_: `#`
 :::
 
-:::{plover:operator} {\*}; =toggle_asterisk
+:::{plover:operator} {*}; =retro_toggle_asterisk; =retrospective_toggle_asterisk
 Toggles the asterisk key on the last stroke entered. For example, `KAT{*}` will
-translate as if you wrote `KA*T`.
+translate as if you wrote `KA*T`, and `KA*T{*}` will translate as if you wrote `KAT`.
+
+The name `=retrospective_toggle_asterisk` is _deprecated_; prefer `=retro_toggle_asterisk` instead.
 
 _Suggested outline_: `#*`
 :::

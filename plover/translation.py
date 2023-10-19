@@ -53,9 +53,9 @@ def unescape_translation(translation):
 
 
 _LEGACY_MACROS_ALIASES = {
-    '{*}': 'retrospective_toggle_asterisk',
-    '{*!}': 'retrospective_delete_space',
-    '{*?}': 'retrospective_insert_space',
+    '{*}': 'retro_toggle_asterisk',
+    '{*!}': 'retro_delete_space',
+    '{*?}': 'retro_insert_space',
     '{*+}': 'repeat_last_stroke',
 }
 
