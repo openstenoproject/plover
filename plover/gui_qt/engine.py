@@ -11,12 +11,14 @@ from plover.oslayer.config import PLATFORM
 class Engine(StenoEngine, QThread):
 
     # Signals.
+    # Each signal is emitted when the correspondingly-named hook in the engine is triggered.
     signal_stroked = pyqtSignal(QVariant)
     signal_translated = pyqtSignal(QVariant, QVariant)
     signal_machine_state_changed = pyqtSignal(str, str)
     signal_output_changed = pyqtSignal(bool)
     signal_config_changed = pyqtSignal(QVariant)
-    signal_dictionaries_loaded = pyqtSignal(QVariant)
+    signal_dictionary_state_changed = pyqtSignal(str, QVariant)  # Some dictionary has finished loading. Refer to class DictionaryLoadingManager for argument description.
+    signal_dictionaries_loaded = pyqtSignal(QVariant)  # All dictionaries are loaded. Argument is a StenoDictionaryCollection instance.
     signal_send_string = pyqtSignal(str)
     signal_send_backspaces = pyqtSignal(int)
     signal_send_key_combination = pyqtSignal(str)
