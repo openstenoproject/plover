@@ -179,6 +179,12 @@ class StenoDictionaryCollection:
         self.dicts = dicts[:]
 
     def _lookup_keep_deleted(self, key, dicts=None, filters=()):
+        """
+        Lookup a key in the given dicts.
+        If key appears in none of the dicts, return None.
+        If key appears in some dicts but with "{plover:deleted}" as value,
+        return "{plover:deleted}".
+        """
         if dicts is None:
             dicts = self.dicts
         key_len = len(key)
@@ -195,6 +201,11 @@ class StenoDictionaryCollection:
                     return value
 
     def _lookup(self, key, dicts=None, filters=()):
+        """
+        Same as _lookup_keep_deleted, but if key appears in some dicts
+        but with "{plover:deleted}" as value (case-insensitive),
+        return None instead.
+        """
         result = self._lookup_keep_deleted(key, dicts, filters)
         if result is None or result.lower() == "{plover:deleted}":
             return None
@@ -203,7 +214,8 @@ class StenoDictionaryCollection:
     def _lookup_from_all(self, key, dicts=None, filters=()):
         ''' Key lookup from all dictionaries
 
-        Returns list of (value, dictionary) tuples
+        Returns list of (value, dictionary) tuples.
+        Entries with value "{plover:deleted}" are kept.
         '''
         if dicts is None:
             dicts = self.dicts
