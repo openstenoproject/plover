@@ -40,11 +40,9 @@ class ProCAT(SerialStenotypeBase):
                 log.error('discarding invalid packet: %s',
                           binascii.hexlify(packet))
                 continue
-            steno_keys = self.keymap.keys_to_actions(
+            self._notify_keys(
                 self.process_steno_packet(packet)
             )
-            if steno_keys:
-                self._notify(steno_keys)
 
     @staticmethod
     def process_steno_packet(raw):

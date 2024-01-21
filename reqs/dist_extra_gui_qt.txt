@@ -1,0 +1,3 @@
+PyQt5>=5.5
+
+# vim: ft=cfg commentstring=#\ %s list

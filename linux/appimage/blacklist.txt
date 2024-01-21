@@ -11,7 +11,7 @@
   !python
   *
 :usr/lib/python${pyversion}
-  config-${pyversion}m*/libpython${pyversion}m.a
+  config-*/libpython*.a
   ctypes/test
   distutils/command/*.exe
   distutils/tests
@@ -31,9 +31,9 @@
 # Plover.
 :usr/lib/python${pyversion}/site-packages/plover
   gui_qt/*.ui
-  gui_qt/messages/**/*.po
-  gui_qt/messages/plover.pot
   gui_qt/resources
+  messages/**/*.po
+  messages/plover.pot
 
 # PyQt5.
 :usr/bin
@@ -49,17 +49,17 @@
   **/*[Ww]ayland*
   **/*[Ww]eb[Ee]ngine*
   bindings
-  Qt/plugins/egldeviceintegrations
-  Qt/plugins/platforms/libqeglfs.so
-  Qt/plugins/platforms/libqlinuxfb.so
-  Qt/plugins/platforms/libqminimal.so
-  Qt/plugins/platforms/libqminimalegl.so
-  Qt/plugins/platforms/libqoffscreen.so
-  Qt/plugins/platforms/libqvnc.so
-  Qt/plugins/platforms/libqwebgl.so
-  Qt/plugins/geoservices
-  Qt/plugins/sceneparsers
-  Qt/plugins/webview
+  Qt5/plugins/egldeviceintegrations
+  Qt5/plugins/geoservices
+  Qt5/plugins/platforms/libqeglfs.so
+  Qt5/plugins/platforms/libqlinuxfb.so
+  Qt5/plugins/platforms/libqminimal.so
+  Qt5/plugins/platforms/libqminimalegl.so
+  Qt5/plugins/platforms/libqoffscreen.so
+  Qt5/plugins/platforms/libqvnc.so
+  Qt5/plugins/platforms/libqwebgl.so
+  Qt5/plugins/sceneparsers
+  Qt5/plugins/webview
   pylupdate*
   pyrcc*
   uic

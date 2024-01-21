@@ -2,7 +2,6 @@
 from functools import partial
 import json
 import os
-import sys
 import subprocess
 
 from PyQt5.QtCore import QCoreApplication, Qt
@@ -12,9 +11,9 @@ from PyQt5.QtWidgets import (
     QMenu,
 )
 
-from plover import log
+from plover import _, log
 from plover.oslayer import wmctrl
-from plover.oslayer.config import CONFIG_DIR
+from plover.oslayer.config import CONFIG_DIR, PLATFORM
 from plover.registry import registry
 from plover.resource import resource_filename
 
@@ -43,18 +42,12 @@ class MainWindow(QMainWindow, Ui_MainWindow, WindowState):
         }
         all_actions = find_menu_actions(self.menubar)
         # Dictionaries.
-        self.dictionaries = self.scroll_area.widget()
         self.dictionaries.add_translation.connect(self._add_translation)
-        self.dictionaries.setFocus()
+        self.dictionaries.setup(engine)
+        # Populate edit menu from dictionaries' own.
         edit_menu = all_actions['menu_Edit'].menu()
-        edit_menu.addAction(self.dictionaries.action_Undo)
-        edit_menu.addSeparator()
-        edit_menu.addMenu(self.dictionaries.menu_AddDictionaries)
-        edit_menu.addAction(self.dictionaries.action_EditDictionaries)
-        edit_menu.addAction(self.dictionaries.action_RemoveDictionaries)
-        edit_menu.addSeparator()
-        edit_menu.addAction(self.dictionaries.action_MoveDictionariesUp)
-        edit_menu.addAction(self.dictionaries.action_MoveDictionariesDown)
+        for action in self.dictionaries.edit_menu.actions():
+            edit_menu.addAction(action)
         # Tray icon.
         self._trayicon = TrayIcon()
         self._trayicon.enable()
@@ -86,14 +79,14 @@ class MainWindow(QMainWindow, Ui_MainWindow, WindowState):
         engine.signal_connect('machine_state_changed', self._trayicon.update_machine_state)
         engine.signal_connect('quit', self.on_quit)
         self.action_Quit.triggered.connect(engine.quit)
-        # Populate tools bar/menu.
-        tools_menu = all_actions['menu_Tools'].menu()
         # Toolbar popup menu for selecting which tools are shown.
         self.toolbar_menu = QMenu()
         self.toolbar.setContextMenuPolicy(Qt.CustomContextMenu)
         self.toolbar.customContextMenuRequested.connect(
             lambda: self.toolbar_menu.popup(QCursor.pos())
         )
+        # Populate tools bar/menu.
+        tools_menu = all_actions['menu_Tools'].menu()
         for tool_plugin in registry.list_plugins('gui.qt.tool'):
             tool = tool_plugin.obj
             menu_action = tools_menu.addAction(tool.TITLE)
@@ -123,7 +116,7 @@ class MainWindow(QMainWindow, Ui_MainWindow, WindowState):
         engine.signal_connect('config_changed', self.on_config_changed)
         engine.signal_connect('machine_state_changed',
             lambda machine, state:
-            self.machine_state.setText(_(state.capitalize()))
+            self.machine_state.setText(state.capitalize())
         )
         self.restore_state()
         # Commands.
@@ -132,15 +125,20 @@ class MainWindow(QMainWindow, Ui_MainWindow, WindowState):
         engine.signal_connect('configure', partial(self._configure, manage_windows=True))
         engine.signal_connect('lookup', partial(self._activate_dialog, 'lookup',
                                                 manage_windows=True))
+        engine.signal_connect('suggestions', partial(self._activate_dialog, 'suggestions',
+                                                     manage_windows=True))
         # Load the configuration (but do not start the engine yet).
         if not engine.load_config():
             self.on_configure()
         # Apply configuration settings.
         config = self._engine.config
+        self._warn_on_hide_to_tray = not config['start_minimized']
         self._update_machine(config['machine_type'])
         self._configured = False
-        self.dictionaries.on_config_changed(config)
         self.set_visible(not config['start_minimized'])
+        # Process events before starting the engine
+        # (to avoid display lag at window creation).
+        QCoreApplication.processEvents()
         # Start the engine.
         engine.start()
 
@@ -167,7 +165,7 @@ class MainWindow(QMainWindow, Ui_MainWindow, WindowState):
                 if manage_windows and previous_window is not None:
                     wmctrl.SetForegroundWindow(previous_window)
             dialog.finished.connect(on_finished)
-        dialog.show()
+        dialog.showNormal()
         dialog.activateWindow()
         dialog.raise_()
 
@@ -178,7 +176,7 @@ class MainWindow(QMainWindow, Ui_MainWindow, WindowState):
                               manage_windows=manage_windows)
 
     def _focus(self):
-        self.set_visible(True)
+        self.showNormal()
         self.activateWindow()
         self.raise_()
 
@@ -237,11 +235,11 @@ class MainWindow(QMainWindow, Ui_MainWindow, WindowState):
         self._configure()
 
     def on_open_config_folder(self):
-        if sys.platform.startswith('win'):
+        if PLATFORM == 'win':
             os.startfile(CONFIG_DIR)
-        elif sys.platform.startswith('linux'):
+        elif PLATFORM == 'linux':
             subprocess.call(['xdg-open', CONFIG_DIR])
-        elif sys.platform.startswith('darwin'):
+        elif PLATFORM == 'mac':
             subprocess.call(['open', CONFIG_DIR])
 
     def on_reconnect(self):
@@ -265,7 +263,12 @@ class MainWindow(QMainWindow, Ui_MainWindow, WindowState):
         self._focus()
 
     def closeEvent(self, event):
+        event.ignore()
         self.hide()
         if not self._trayicon.is_enabled():
             self._engine.quit()
-        event.ignore()
+            return
+        if not self._warn_on_hide_to_tray:
+            return
+        self._trayicon.show_message(_('Application is still running.'))
+        self._warn_on_hide_to_tray = False

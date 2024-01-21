@@ -1,0 +1,3 @@
+dmgbuild; "darwin" in sys_platform
+
+# vim: ft=cfg commentstring=#\ %s list

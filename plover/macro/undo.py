@@ -1,10 +1,8 @@
-
-import sys
-
 from plover.translation import Translation
+from plover.oslayer.config import PLATFORM
 
 
-if sys.platform.startswith('darwin'):
+if PLATFORM == 'mac':
     BACK_STRING = '{#Alt_L(BackSpace)}{^}'
 else:
     BACK_STRING = '{#Control_L(BackSpace)}{^}'

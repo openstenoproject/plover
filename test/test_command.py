@@ -6,9 +6,10 @@ import pytest
 
 from plover.command.set_config import set_config
 from plover.config import Config, DictionaryConfig
-from test.test_config import DEFAULTS, DEFAULT_KEYMAP
 
-from . import parametrize
+from plover_build_utils.testing import parametrize
+
+from .test_config import DEFAULTS, DEFAULT_KEYMAP
 
 
 class FakeEngine:
@@ -31,7 +32,7 @@ SET_CONFIG_TESTS = (
     lambda: ('"log_file_name":"c:/whatever/morestrokes.log"',  "c:/whatever/morestrokes.log"),
     lambda: ('"enabled_extensions":[]',                        set()),
     lambda: ('"machine_type":"Keyboard"',                      "Keyboard"),
-    lambda: ('"machine_specific_options":{"arpeggiate":True}', {"arpeggiate": True}),
+    lambda: ('"machine_specific_options":{"arpeggiate":True}', {"arpeggiate": True, "first_up_chord_send": False}),
     lambda: ('"system_keymap":'+str(DEFAULT_KEYMAP),           DEFAULT_KEYMAP),
     lambda: ('"dictionaries":("user.json","main.json")',       list(map(DictionaryConfig, ("user.json", "main.json")))),
 )

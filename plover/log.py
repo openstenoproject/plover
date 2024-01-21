@@ -11,7 +11,7 @@ import traceback
 from logging.handlers import RotatingFileHandler
 from logging import DEBUG, INFO, WARNING, ERROR
 
-from plover.oslayer.config import CONFIG_DIR
+from plover.oslayer.config import CONFIG_DIR, PLATFORM
 
 
 LOG_FORMAT = '%(asctime)s [%(threadName)s] %(levelname)s: %(message)s'
@@ -82,28 +82,19 @@ class Logger:
     def setup_platform_handler(self):
         if self.has_platform_handler():
             return
-        handler_class = None
+        NotificationHandler = None
         try:
-            if sys.platform.startswith('linux'):
-                from plover.oslayer.log_dbus import DbusNotificationHandler
-                handler_class = DbusNotificationHandler
-            elif sys.platform.startswith('darwin'):
-                from plover.oslayer.log_osx import OSXNotificationHandler
-                handler_class = OSXNotificationHandler
-            elif sys.platform.startswith('win32'):
-                from plover.oslayer.log_plyer import PlyerNotificationHandler
-                handler_class = PlyerNotificationHandler
+            from plover.oslayer.log import NotificationHandler
         except Exception:
             self.info('could not import platform gui log', exc_info=True)
-        if handler_class is None:
             return
         try:
-            handler = handler_class()
+            handler = NotificationHandler()
+            self.addHandler(handler)
         except Exception:
             self.info('could not initialize platform gui log', exc_info=True)
-        else:
-            self.addHandler(handler)
-            self._platform_handler = handler
+            return
+        self._platform_handler = handler
 
     def set_level(self, level):
         self._print_handler.setLevel(level)

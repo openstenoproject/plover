@@ -7,12 +7,22 @@ import pytest
 from plover import system
 from plover.config import Config, DictionaryConfig
 from plover.engine import ErroredDictionary, StenoEngine
-from plover.machine.base import StenotypeBase
+from plover.machine.base import (
+    STATE_INITIALIZING,
+    STATE_RUNNING,
+    STATE_STOPPED,
+    StenotypeBase,
+)
 from plover.machine.keymap import Keymap
+from plover.misc import normalize_path
+from plover.oslayer.controller import Controller
+from plover.output import Output
 from plover.registry import Registry
 from plover.steno_dictionary import StenoDictionaryCollection
 
-from .utils import make_dict
+from plover_build_utils.testing import make_dict
+
+from .py37compat import mock
 
 
 class FakeMachine(StenotypeBase):
@@ -41,7 +51,7 @@ class FakeMachine(StenotypeBase):
     def set_suppression(self, enabled):
         self.is_suppressed = enabled
 
-class FakeKeyboardEmulation:
+class FakeKeyboardEmulation(Output):
 
     def send_backspaces(self, b):
         pass
@@ -50,6 +60,9 @@ class FakeKeyboardEmulation:
         pass
 
     def send_key_combination(self, c):
+        pass
+
+    def set_key_press_delay(self, delay_ms):
         pass
 
 class FakeEngine(StenoEngine):
@@ -80,6 +93,7 @@ def engine(monkeypatch):
     registry.register_plugin('machine', 'Fake', FakeMachine)
     monkeypatch.setattr('plover.config.registry', registry)
     monkeypatch.setattr('plover.engine.registry', registry)
+    ctrl = mock.MagicMock(spec=Controller)
     kbd = FakeKeyboardEmulation()
     cfg_file = tempfile.NamedTemporaryFile(prefix='plover',
                                            suffix='config',
@@ -91,12 +105,12 @@ def engine(monkeypatch):
         cfg['machine_type'] = 'Fake'
         cfg['system_keymap'] = [(k, k) for k in system.KEYS]
         cfg.save()
-        yield FakeEngine(cfg, kbd)
+        yield FakeEngine(cfg, ctrl, kbd)
     finally:
         os.unlink(cfg_file.name)
 
 
-def test_engine(engine):
+def test_engine_lifecycle(engine):
     # Config load.
     assert engine.load_config()
     assert engine.events == []
@@ -109,6 +123,9 @@ def test_engine(engine):
     ]
     assert FakeMachine.instance is not None
     assert not FakeMachine.instance.is_suppressed
+    assert len(engine._controller.mock_calls) == 1
+    engine._controller.start.assert_called_once()
+    engine._controller.reset_mock()
     # Output enabled.
     engine.events.clear()
     engine.output = True
@@ -120,9 +137,9 @@ def test_engine(engine):
     engine.events.clear()
     engine.reset_machine()
     assert engine.events == [
-        ('machine_state_changed', ('Fake', 'stopped'), {}),
-        ('machine_state_changed', ('Fake', 'initializing'), {}),
-        ('machine_state_changed', ('Fake', 'connected'), {}),
+        ('machine_state_changed', ('Fake', STATE_STOPPED), {}),
+        ('machine_state_changed', ('Fake', STATE_INITIALIZING), {}),
+        ('machine_state_changed', ('Fake', STATE_RUNNING), {}),
     ]
     assert FakeMachine.instance is not None
     assert FakeMachine.instance.is_suppressed
@@ -149,12 +166,14 @@ def test_engine(engine):
     engine.quit(42)
     assert engine.join() == 42
     assert engine.events == [
-        ('machine_state_changed', ('Fake', 'stopped'), {}),
+        ('machine_state_changed', ('Fake', STATE_STOPPED), {}),
         ('quit', (), {}),
     ]
     assert FakeMachine.instance is None
+    assert len(engine._controller.mock_calls) == 1
+    engine._controller.stop.assert_called_once()
 
-def test_loading_dictionaries(engine):
+def test_loading_dictionaries(tmp_path, engine):
     def check_loaded_events(actual_events, expected_events):
         assert len(actual_events) == len(expected_events)
         for n, event in enumerate(actual_events):
@@ -169,10 +188,14 @@ def test_loading_dictionaries(engine):
                 for d in event_args[0].dicts
             ] == expected_events[n], msg
     with \
-            make_dict(b'{}', 'json', 'valid1') as valid_dict_1, \
-            make_dict(b'{}', 'json', 'valid2') as valid_dict_2, \
-            make_dict(b'', 'json', 'invalid1') as invalid_dict_1, \
-            make_dict(b'', 'json', 'invalid2') as invalid_dict_2:
+            make_dict(tmp_path, b'{}', 'json', 'valid1') as valid_dict_1, \
+            make_dict(tmp_path, b'{}', 'json', 'valid2') as valid_dict_2, \
+            make_dict(tmp_path, b'', 'json', 'invalid1') as invalid_dict_1, \
+            make_dict(tmp_path, b'', 'json', 'invalid2') as invalid_dict_2:
+        valid_dict_1 = normalize_path(str(valid_dict_1))
+        valid_dict_2 = normalize_path(str(valid_dict_2))
+        invalid_dict_1 = normalize_path(str(invalid_dict_1))
+        invalid_dict_2 = normalize_path(str(invalid_dict_2))
         engine.start()
         for new_dictionaries, *expected_events in (
             # Load one valid dictionary.
@@ -228,3 +251,24 @@ def test_loading_dictionaries(engine):
             (valid_dict_1, False, False),
             (invalid_dict_2, True, True),
         ]])
+
+def test_engine_running_state(engine):
+    # Running state must be different
+    # from initial (disabled state).
+    initial_state = engine.translator_state
+    assert engine.load_config()
+    engine.set_output(True)
+    running_state = engine.translator_state
+    assert running_state != initial_state
+    # Disabled state is reset every time
+    # output is disabled.
+    engine.set_output(False)
+    disabled_state = engine.translator_state
+    assert disabled_state != running_state
+    assert disabled_state != initial_state
+    # Running state is kept throughout.
+    engine.set_output(True)
+    assert engine.translator_state == running_state
+
+def test_undo_and_clear_empty_translator_state(engine):
+    engine.clear_translator_state(undo=True)

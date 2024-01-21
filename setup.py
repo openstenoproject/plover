@@ -2,40 +2,36 @@
 # Copyright (c) 2010 Joshua Harlan Lifton.
 # See LICENSE.txt for details.
 
-from distutils import log
 import os
 import re
-import shutil
 import subprocess
 import sys
-import textwrap
-import zipfile
 
 from setuptools import setup
+try:
+    from setuptools.extern.packaging.version import Version
+except ImportError:
+    # Handle broken unvendored version of setuptools...
+    from packaging.version import Version
 
 sys.path.insert(0, os.path.dirname(__file__))
 
-from plover import (
-    __name__ as __software_name__,
-    __version__,
-    __description__,
-    __long_description__,
-    __url__,
-    __download_url__,
-    __license__,
-    __copyright__,
-)
+__software_name__ = 'plover'
+
+with open(os.path.join(__software_name__, '__init__.py')) as fp:
+    exec(fp.read())
 
 from plover_build_utils.setup import (
-    BuildPy, BuildUi, Command, Test,
+    BuildPy, BuildUi, Command, Develop, babel_options
 )
 
 
 BuildPy.build_dependencies.append('build_ui')
+Develop.build_dependencies.append('build_py')
 cmdclass = {
     'build_py': BuildPy,
     'build_ui': BuildUi,
-    'test': Test,
+    'develop': Develop,
 }
 options = {}
 
@@ -50,7 +46,7 @@ def get_version():
     if not os.path.exists('.git'):
         return None
     version = subprocess.check_output('git describe --tags --match=v[0-9]*'.split()).strip().decode()
-    m = re.match(r'^v(\d[\d.]*(?:\.dev\d+)?)(-\d+-g[a-f0-9]*)?$', version)
+    m = re.match(r'^v(\d[\d.]*(?:(?:\.dev|rc)\d+)?)(-\d+-g[a-f0-9]*)?$', version)
     assert m is not None, version
     version = m.group(1)
     if m.group(2) is not None:
@@ -71,11 +67,14 @@ class BinaryDistWin(Command):
          'create a zip of the resulting directory'),
         ('installer', 'i',
          'create an executable installer for the resulting distribution'),
+        ('bash=', None,
+         'bash executable to use for running the build script'),
     ]
     boolean_options = ['installer', 'trim', 'zipdir']
     extra_args = []
 
     def initialize_options(self):
+        self.bash = None
         self.installer = False
         self.trim = False
         self.zipdir = False
@@ -84,126 +83,17 @@ class BinaryDistWin(Command):
         pass
 
     def run(self):
-        from plover_build_utils.install_wheels import WHEELS_CACHE
-        # Download helper.
-        from plover_build_utils.download import download
-        # First things first: create Plover wheel.
-        plover_wheel = self.bdist_wheel()
-        # Setup embedded Python distribution.
-        # Note: python36.zip is decompressed to prevent errors when 2to3
-        # is used (including indirectly by setuptools `build_py` command).
-        py_embedded = download('https://www.python.org/ftp/python/3.6.8/python-3.6.8-embed-amd64.zip',
-                               'f9d16a818e06ce2552076a9839039dbabb8baf1c')
-        dist_dir = os.path.join(os.path.dirname(plover_wheel), PACKAGE + '-win64')
-        dist_data = os.path.join(dist_dir, 'data')
-        dist_py = os.path.join(dist_data, 'python.exe')
-        dist_stdlib = os.path.join(dist_data, 'python36.zip')
-        if os.path.exists(dist_dir):
-            shutil.rmtree(dist_dir)
-        os.makedirs(dist_data)
-        for path in (py_embedded, dist_stdlib):
-            with zipfile.ZipFile(path) as zip:
-                zip.extractall(dist_data)
-        os.unlink(dist_stdlib)
-        # We don't want a completely isolated Python when using
-        # python.exe/pythonw.exe directly, we need a working site
-        # directory and for the current directory to be prepended
-        # to `sys.path` so `plover_build_utils` can be used and
-        # plugins can be installed from source.
-        dist_pth = os.path.join(dist_data, 'python36._pth')
-        with open(dist_pth, 'r+') as fp:
-            pth = fp.read() + 'import site\n'
-            fp.seek(0)
-            fp.write(pth)
-        dist_site_packages = os.path.join(dist_data, 'Lib', 'site-packages')
-        os.makedirs(dist_site_packages)
-        with open(os.path.join(dist_site_packages, 'sitecustomize.py'), 'w') as fp:
-            fp.write(textwrap.dedent(
-                '''
-                import os, sys
-                sys.path.insert(0, os.getcwd())
-                '''
-            ).lstrip())
-        # Use standard site.py so user site packages are enabled.
-        site_py = download('https://github.com/python/cpython/raw/v3.6.8/Lib/site.py',
-                           '46d88612c34b1ed0098f1fbf655454b46afde049')
-        shutil.copyfile(site_py, os.path.join(dist_site_packages, 'site.py'))
-        # Run command helper.
-        def run(*args):
-            if self.verbose:
-                log.info('running %s', ' '.join(args))
-            subprocess.check_call(args)
-        def pyrun(*args):
-            run(dist_py, '-E', '-s', *args)
-        # Install pip/wheel.
-        pyrun('-m', 'plover_build_utils.get_pip')
-        # Install Plover + standard plugins and dependencies.
-        # Note: do not use the embedded Python executable with `setup.py
-        # install` to prevent setuptools from installing extra development
-        # dependencies...
-        pyrun('-m', 'plover_build_utils.install_wheels',
-              '-r', 'requirements_distribution.txt')
-        pyrun('-m', 'plover_build_utils.install_wheels',
-              '--ignore-installed', '--no-deps', plover_wheel)
-        pyrun('-m', 'plover_build_utils.install_wheels',
-              '-r', 'requirements_plugins.txt')
-        os.unlink(os.path.join(WHEELS_CACHE, os.path.basename(plover_wheel)))
-        # Trim the fat...
-        if self.trim:
-            from plover_build_utils.trim import trim
-            trim(dist_data, 'windows/dist_blacklist.txt', verbose=self.verbose)
-        # Add miscellaneous files: icon, license, ...
-        for src, target_dir in (
-            ('LICENSE.txt'             , '.'   ),
-            ('plover/assets/plover.ico', 'data')
-        ):
-            dst = os.path.join(dist_dir, target_dir, os.path.basename(src))
-            shutil.copyfile(src, dst)
-        # Create launchers.
-        for entrypoint, gui in (
-            ('plover         = plover.dist_main:main', True ),
-            ('plover_console = plover.dist_main:main', False),
-        ):
-            pyrun('-c', textwrap.dedent(
-                '''
-                from pip._vendor.distlib.scripts import ScriptMaker
-                sm = ScriptMaker(source_dir='{dist_dir}', target_dir='{dist_dir}')
-                sm.executable = 'data\\python.exe'
-                sm.variants = set(('',))
-                sm.make('{entrypoint}', options={{'gui': {gui}}})
-                '''.rstrip()).format(dist_dir=dist_dir,
-                                     entrypoint=entrypoint,
-                                     gui=gui))
-        # Fix Visual C++ Redistributable DLL location.
-        os.rename(os.path.join(dist_dir, 'data', 'vcruntime140.dll'),
-                  os.path.join(dist_dir, 'vcruntime140.dll'))
-        # Make distribution source-less.
-        pyrun('-m', 'plover_build_utils.source_less',
-              # Don't touch pip._vendor.distlib sources,
-              # or `pip install` will not be usable...
-              dist_data, '*/pip/_vendor/distlib/*',
-             )
-        # Check requirements.
-        pyrun('-I', '-m', 'plover_build_utils.check_requirements')
-        # Zip results.
-        if self.zipdir:
-            from plover_build_utils.zipdir import zipdir
-            if self.verbose:
-                log.info('zipping %s', dist_dir)
-            zipdir(dist_dir)
-        # Create an installer.
+        cmd = [self.bash or 'bash', 'windows/dist_build.sh']
         if self.installer:
-            installer_exe = '%s.setup.exe' % dist_dir
-            # Compute install size for "Add/Remove Programs" entry.
-            install_size = sum(os.path.getsize(os.path.join(dirpath, f))
-                               for dirpath, dirnames, filenames
-                               in os.walk(dist_dir) for f in filenames)
-            run('makensis.exe', '/NOCD',
-                '/Dsrcdir=' + dist_dir,
-                '/Dversion=' + __version__,
-                '/Dinstall_size=' + str(install_size // 1024),
-                'windows/installer.nsi',
-                '/XOutFile ' + installer_exe)
+            cmd.append('--installer')
+        if self.trim:
+            cmd.append('--trim')
+        if self.zipdir:
+            cmd.append('--zipdir')
+        cmd.extend((__software_name__, __version__, self.bdist_wheel()))
+        if self.verbose:
+            print('running', ' '.join(cmd))
+        subprocess.check_call(cmd)
 
 if sys.platform.startswith('win32'):
     cmdclass['bdist_win'] = BinaryDistWin
@@ -229,7 +119,12 @@ class Launch(Command):
             python_path = os.environ.get('PYTHONPATH', '').split(os.pathsep)
             python_path.insert(0, sys.path[0])
             os.environ['PYTHONPATH'] = os.pathsep.join(python_path)
-            os.execv(sys.executable, [sys.executable, '-m', 'plover.main'] + self.args)
+            cmd = [sys.executable, '-m', 'plover.scripts.main'] + self.args
+            if sys.platform.startswith('win32'):
+                # Workaround https://bugs.python.org/issue19066
+                subprocess.Popen(cmd, cwd=os.getcwd())
+                sys.exit(0)
+            os.execv(cmd[0], cmd)
 
 cmdclass['launch'] = Launch
 
@@ -240,19 +135,26 @@ cmdclass['launch'] = Launch
 class PatchVersion(Command):
 
     description = 'patch package version from VCS'
+    command_consumes_arguments = True
     user_options = []
 
     def initialize_options(self):
-        pass
+        self.args = []
 
     def finalize_options(self):
-        pass
+        assert 0 <= len(self.args) <= 1
 
     def run(self):
-        version = get_version()
-        if version is None:
-            sys.exit(1)
-        log.info('patching version to %s', version)
+        if self.args:
+            version = self.args[0]
+            # Ensure it's valid.
+            Version(version)
+        else:
+            version = get_version()
+            if version is None:
+                sys.exit(1)
+        if self.verbose:
+            print('patching version to', version)
         version_file = os.path.join('plover', '__init__.py')
         with open(version_file, 'r') as fp:
             contents = fp.read().split('\n')
@@ -262,32 +164,6 @@ class PatchVersion(Command):
             fp.write('\n'.join(contents))
 
 cmdclass['patch_version'] = PatchVersion
-
-# }}}
-
-# `tag_weekly` command. {{{
-
-class TagWeekly(Command):
-
-    description = 'tag weekly version'
-    user_options = []
-
-    def initialize_options(self):
-        pass
-
-    def finalize_options(self):
-        pass
-
-    def run(self):
-        version = get_version()
-        if version is None:
-            sys.exit(1)
-        weekly_version = 'weekly-v%s' % version
-        log.info('tagging as %s', weekly_version)
-        subprocess.check_call('git tag -f -m'.split()
-                              + [weekly_version, weekly_version])
-
-cmdclass['tag_weekly'] = TagWeekly
 
 # }}}
 
@@ -305,9 +181,10 @@ class BinaryDistApp(Command):
         pass
 
     def run(self):
-        cmd = 'bash osx/make_app.sh %s %s' % (self.bdist_wheel(), PACKAGE)
-        log.info('running %s', ' '.join(cmd))
-        subprocess.check_call(cmd.split())
+        cmd = ['bash', 'osx/make_app.sh', self.bdist_wheel()]
+        if self.verbose:
+            print('running', ' '.join(cmd))
+        subprocess.check_call(cmd)
 
 class BinaryDistDmg(Command):
 
@@ -322,19 +199,20 @@ class BinaryDistDmg(Command):
 
     def run(self):
         self.run_command('bdist_app')
-        subprocess.check_call((sys.executable, '-c', textwrap.dedent(
-            '''
-            __import__('dmgbuild').build_dmg(
-                {output!r}, {name!r},
-                {settings!r}, **{options!r},
-            )
-            '''
-        ).format(
-            output='dist/%s.dmg' % PACKAGE,
+        # Encode targeted macOS plaftorm in the filename.
+        from wheel.bdist_wheel import get_platform
+        platform = get_platform('dist/Plover.app')
+        args = '{out!r}, {name!r}, {settings!r}, lookForHiDPI=True'.format(
+            out='dist/%s-%s.dmg' % (PACKAGE, platform),
             name=__software_name__.capitalize(),
             settings='osx/dmg_resources/settings.py',
-            options=dict(lookForHiDPI=True),
-        )))
+        )
+        if self.verbose:
+            print('running dmgbuild(%s)' % args)
+        script = "__import__('dmgbuild').build_dmg(" + args + ')'
+        subprocess.check_call((sys.executable, '-u', '-c', script))
+
+
 
 if sys.platform.startswith('darwin'):
     cmdclass['bdist_app'] = BinaryDistApp
@@ -347,19 +225,32 @@ if sys.platform.startswith('darwin'):
 class BinaryDistAppImage(Command):
 
     description = 'create AppImage distribution for Linux'
-    user_options = []
+    user_options = [
+        ('docker', None,
+         'use docker to run the build script'),
+        ('no-update-tools', None,
+         'don\'t try to update AppImage tools, only fetch missing ones'),
+    ]
+    boolean_options = ['docker', 'no-update-tools']
 
     def initialize_options(self):
-        pass
+        self.docker = False
+        self.no_update_tools = False
 
     def finalize_options(self):
         pass
 
     def run(self):
-        cmd = ['./linux/appimage/build.sh',
-               '--python', sys.executable,
-               '--wheel', self.bdist_wheel()]
-        log.info('running %s', ' '.join(cmd))
+        cmd = ['./linux/appimage/build.sh']
+        if self.docker:
+            cmd.append('--docker')
+        else:
+            cmd.extend(('--python', sys.executable))
+        if self.no_update_tools:
+            cmd.append('--no-update-tools')
+        cmd.extend(('--wheel', self.bdist_wheel()))
+        if self.verbose:
+            print('running', ' '.join(cmd))
         subprocess.check_call(cmd)
 
 if sys.platform.startswith('linux'):
@@ -367,48 +258,34 @@ if sys.platform.startswith('linux'):
 
 # }}}
 
-# Translations support. {{{
+# i18n support. {{{
 
-from babel.messages import frontend as babel
+options.update(babel_options(__software_name__))
 
-cmdclass.update({
-    'compile_catalog': babel.compile_catalog,
-    'extract_messages': babel.extract_messages,
-    'init_catalog': babel.init_catalog,
-    'update_catalog': babel.update_catalog
-})
-locale_dir = 'plover/gui_qt/messages'
-template = '%s/%s.pot' % (locale_dir, __software_name__)
-options['compile_catalog'] = {
-    'domain': __software_name__,
-    'directory': locale_dir,
-}
-options['extract_messages'] = {
-    'output_file': template,
-}
-options['init_catalog'] = {
-    'domain': __software_name__,
-    'input_file': template,
-    'output_dir': locale_dir,
-}
-options['update_catalog'] = {
-    'domain': __software_name__,
-    'output_dir': locale_dir,
-}
 BuildPy.build_dependencies.append('compile_catalog')
+BuildUi.hooks.append('plover_build_utils.pyqt:gettext')
 
 # }}}
+
+def reqs(name):
+    with open(os.path.join('reqs', name + '.txt')) as fp:
+        return fp.read()
 
 setup(
     name=__software_name__,
     version=__version__,
     description=__description__,
-    long_description=__long_description__,
     url=__url__,
     download_url=__download_url__,
     license=__license__,
     options=options,
     cmdclass=cmdclass,
+    install_requires=reqs('dist'),
+    extras_require={
+        'gui_qt': reqs('dist_extra_gui_qt'),
+        'log': reqs('dist_extra_log'),
+    },
+    tests_require=reqs('test'),
 )
 
 # vim: foldmethod=marker

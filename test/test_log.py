@@ -61,7 +61,7 @@ def test_stroke():
     log.stroke(Stroke(('#', 'S-', '-T')))
     assert FakeHandler.outputs == {
         sf: ["Stroke(ST-T : ['S-', 'T-', '-T'])",
-             "Stroke(1-9 : ['1-', '-9'])"],
+             "Stroke(1-9 : ['#', 'S-', '-T'])"],
     }
 
 def test_log_translation():

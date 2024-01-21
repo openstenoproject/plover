@@ -1,0 +1,7 @@
+.github/workflows/ci/skiplist_job_test*.txt
+.gitignore
+pyproject.toml
+reqs/packaging.txt
+reqs/test.txt
+test/*
+{EOF}

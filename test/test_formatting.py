@@ -9,9 +9,8 @@ import pytest
 
 from plover import formatting
 from plover.formatting import Case
-from plover_build_utils.testing import CaptureOutput
 
-from . import parametrize
+from plover_build_utils.testing import CaptureOutput, parametrize
 
 
 def action(**kwargs):

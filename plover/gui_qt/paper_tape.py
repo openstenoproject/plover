@@ -1,7 +1,11 @@
-
 import time
 
-from PyQt5.QtCore import Qt
+from PyQt5.QtCore import (
+    QAbstractListModel,
+    QMimeData,
+    QModelIndex,
+    Qt,
+)
 from PyQt5.QtGui import QFont
 from PyQt5.QtWidgets import (
     QFileDialog,
@@ -11,38 +15,122 @@ from PyQt5.QtWidgets import (
 
 from wcwidth import wcwidth
 
-from plover import system
+from plover import _, system
 
-from plover.gui_qt.paper_tape_ui import Ui_PaperTape
-from plover.gui_qt.i18n import get_gettext
-from plover.gui_qt.utils import ToolBar
-from plover.gui_qt.tool import Tool
+from .paper_tape_ui import Ui_PaperTape
+from .utils import ActionCopyViewSelectionToClipboard, ToolBar
+from .tool import Tool
 
 
-_ = get_gettext()
+STYLE_PAPER, STYLE_RAW = (
+    # i18n: Paper tape style.
+    _('Paper'),
+    # i18n: Paper tape style.
+    _('Raw'),
+)
+TAPE_STYLES = (STYLE_PAPER, STYLE_RAW)
+
+
+class TapeModel(QAbstractListModel):
+
+    def __init__(self):
+        super().__init__()
+        self._stroke_list = []
+        self._style = None
+        self._all_keys = None
+        self._numbers = None
+
+    def rowCount(self, parent):
+        return 0 if parent.isValid() else len(self._stroke_list)
+
+    @property
+    def style(self):
+        return self._style
+
+    @style.setter
+    def style(self, style):
+        assert style in TAPE_STYLES
+        self.layoutAboutToBeChanged.emit()
+        self._style = style
+        self.layoutChanged.emit()
+
+    def _paper_format(self, stroke):
+        text = self._all_keys_filler * 1
+        keys = stroke.steno_keys[:]
+        if any(key in self._numbers for key in keys):
+            keys.append('#')
+        for key in keys:
+            index = system.KEY_ORDER[key]
+            text[index] = self._all_keys[index]
+        return ''.join(text)
+
+    @staticmethod
+    def _raw_format(stroke):
+        return stroke.rtfcre
+
+    def data(self, index, role):
+        if not index.isValid():
+            return None
+        stroke = self._stroke_list[index.row()]
+        if role == Qt.DisplayRole:
+            if self._style == STYLE_PAPER:
+                return self._paper_format(stroke)
+            if self._style == STYLE_RAW:
+                return self._raw_format(stroke)
+        if role == Qt.AccessibleTextRole:
+            return stroke.rtfcre
+        return None
+
+    def reset(self):
+        self.modelAboutToBeReset.emit()
+        self._all_keys = ''.join(key.strip('-') for key in system.KEYS)
+        self._all_keys_filler = [
+            ' ' * wcwidth(k)
+            for k in self._all_keys
+        ]
+        self._numbers = set(system.NUMBERS.values())
+        self._stroke_list.clear()
+        self.modelReset.emit()
+        return self._all_keys
+
+    def append(self, stroke):
+        row = len(self._stroke_list)
+        self.beginInsertRows(QModelIndex(), row, row)
+        self._stroke_list.append(stroke)
+        self.endInsertRows()
+
+    def mimeTypes(self):
+        return ['text/plain']
+
+    def mimeData(self, indexes):
+        data = QMimeData()
+        data.setText('\n'.join(filter(None, (
+            self.data(index, Qt.DisplayRole)
+            for index in indexes
+        ))))
+        return data
 
 
 class PaperTape(Tool, Ui_PaperTape):
 
-    ''' Paper tape display of strokes. '''
+    # i18n: Widget: “PaperTape”, tooltip.
+    __doc__ = _('Paper tape display of strokes.')
 
     TITLE = _('Paper Tape')
     ICON = ':/tape.svg'
     ROLE = 'paper_tape'
     SHORTCUT = 'Ctrl+T'
 
-    STYLE_PAPER, STYLE_RAW = (_('Paper'), _('Raw'))
-    STYLES = (STYLE_PAPER, STYLE_RAW)
-
     def __init__(self, engine):
         super().__init__(engine)
         self.setupUi(self)
-        self._strokes = []
-        self._all_keys = None
-        self._all_keys_filler = None
-        self._formatter = None
-        self._history_size = 2000000
-        self.styles.addItems(self.STYLES)
+        self._model = TapeModel()
+        self.header.setContentsMargins(4, 0, 0, 0)
+        self.styles.addItems(TAPE_STYLES)
+        self.tape.setModel(self._model)
+        self.tape.setSelectionMode(self.tape.ExtendedSelection)
+        self._copy_action = ActionCopyViewSelectionToClipboard(self.tape)
+        self.tape.addAction(self._copy_action)
         # Toolbar.
         self.layout().addWidget(ToolBar(
             self.action_ToggleOnTop,
@@ -62,8 +150,9 @@ class PaperTape(Tool, Ui_PaperTape):
     def _restore_state(self, settings):
         style = settings.value('style', None, int)
         if style is not None:
-            self.styles.setCurrentText(self.STYLES[style])
-            self.on_style_changed(self.STYLES[style])
+            style = TAPE_STYLES[style]
+            self.styles.setCurrentText(style)
+            self.on_style_changed(style)
         font_string = settings.value('font')
         if font_string is not None:
             font = QFont()
@@ -76,67 +165,43 @@ class PaperTape(Tool, Ui_PaperTape):
             self.on_toggle_ontop(ontop)
 
     def _save_state(self, settings):
-        settings.setValue('style', self.STYLES.index(self._style))
-        settings.setValue('font', self.header.font().toString())
+        settings.setValue('style', TAPE_STYLES.index(self._style))
+        settings.setValue('font', self.tape.font().toString())
         ontop = bool(self.windowFlags() & Qt.WindowStaysOnTopHint)
         settings.setValue('ontop', ontop)
 
     def on_config_changed(self, config):
         if 'system_name' in config:
-            self._strokes = []
-            self._all_keys = ''.join(key.strip('-') for key in system.KEYS)
-            self._all_keys_filler = [
-                ' ' * wcwidth(k)
-                for k in self._all_keys
-            ]
-            self._numbers = set(system.NUMBERS.values())
-            self.header.setText(self._all_keys)
-            self.on_style_changed(self._style)
+            all_keys = self._model.reset()
+            self.header.setText(all_keys)
+
+    @property
+    def _scroll_at_end(self):
+        scrollbar = self.tape.verticalScrollBar()
+        return scrollbar.value() == scrollbar.maximum()
 
     @property
     def _style(self):
         return self.styles.currentText()
 
-    def _paper_format(self, stroke):
-        text = self._all_keys_filler * 1
-        keys = stroke.steno_keys[:]
-        if any(key in self._numbers for key in keys):
-            keys.append('#')
-        for key in keys:
-            index = system.KEY_ORDER[key]
-            text[index] = self._all_keys[index]
-        return ''.join(text)
-
-    def _raw_format(self, stroke):
-        return stroke.rtfcre
-
-    def _show_stroke(self, stroke):
-        text = self._formatter(stroke)
-        self.tape.appendPlainText(text)
-
     def on_stroke(self, stroke):
-        assert len(self._strokes) <= self._history_size
-        if len(self._strokes) == self._history_size:
-            self._strokes.pop(0)
-        self._strokes.append(stroke)
-        self._show_stroke(stroke)
+        scroll_at_end = self._scroll_at_end
+        self._model.append(stroke)
+        if scroll_at_end:
+            self.tape.scrollToBottom()
         self.action_Clear.setEnabled(True)
         self.action_Save.setEnabled(True)
 
     def on_style_changed(self, style):
-        assert style in self.STYLES
-        if style == self.STYLE_PAPER:
-            self.header.show()
-            self._formatter = self._paper_format
-        elif style == self.STYLE_RAW:
-            self.header.hide()
-            self._formatter = self._raw_format
-        self.tape.clear()
-        for stroke in self._strokes:
-            self._show_stroke(stroke)
+        assert style in TAPE_STYLES
+        scroll_at_end = self._scroll_at_end
+        self._model.style = style
+        self.header.setVisible(style == STYLE_PAPER)
+        if scroll_at_end:
+            self.tape.scrollToBottom()
 
     def on_select_font(self):
-        font, ok = QFontDialog.getFont(self.header.font(), self, '',
+        font, ok = QFontDialog.getFont(self.tape.font(), self, '',
                                        QFontDialog.MonospacedFonts)
         if ok:
             self.header.setFont(font)
@@ -154,7 +219,7 @@ class PaperTape(Tool, Ui_PaperTape):
     def on_clear(self):
         flags = self.windowFlags()
         msgbox = QMessageBox()
-        msgbox.setText(_("Do you want to clear the paper tape?"))
+        msgbox.setText(_('Do you want to clear the paper tape?'))
         msgbox.setStandardButtons(QMessageBox.Yes | QMessageBox.No)
         # Make sure the message box ends up above the paper tape!
         msgbox.setWindowFlags(msgbox.windowFlags() | (flags & Qt.WindowStaysOnTopHint))
@@ -163,15 +228,17 @@ class PaperTape(Tool, Ui_PaperTape):
         self._strokes = []
         self.action_Clear.setEnabled(False)
         self.action_Save.setEnabled(False)
-        self.tape.clear()
+        self._model.reset()
 
     def on_save(self):
         filename_suggestion = 'steno-notes-%s.txt' % time.strftime('%Y-%m-%d-%H-%M')
         filename = QFileDialog.getSaveFileName(
             self, _('Save Paper Tape'), filename_suggestion,
-            _('Text files') + ' (*.txt)',
+            # i18n: Paper tape, "save" file picker.
+            _('Text files (*.txt)'),
         )[0]
         if not filename:
             return
         with open(filename, 'w') as fp:
-            fp.write(self.tape.toPlainText())
+            for row in range(self._model.rowCount(self._model.index(-1, -1))):
+                print(self._model.data(self._model.index(row, 0), Qt.DisplayRole), file=fp)

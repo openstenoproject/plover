@@ -1,11 +1,20 @@
 # Python.
-:Versions/$python_version
-  bin
+:
+  _CodeSignature
   share
-  bin
   Resources
-  lib/pkgconfig
-:Versions/$python_version/lib/$target_python
+:bin
+  !python
+  !python3*
+  !Info.plist
+  *
+:lib
+  **/*.tcl
+  itcl*
+  pkgconfig
+  tcl*
+  [Tt]k*
+:lib/python$python_base_version
   pkgconfig
   tkinter
   idlelib
@@ -15,7 +24,7 @@
   **/*.exe
   */test*
 # PyQt5.
-:Versions/$python_version/lib/$target_python/site-packages/PyQt5
+:lib/python$python_base_version/site-packages/PyQt5
   **/*AxContainer*
   **/*Bluetooth*
   **/*CLucene*
@@ -26,35 +35,35 @@
   **/*Serial*
   **/*Sql*
   **/*Test*
-  Qt/plugins/audio
-  Qt/plugins/bearer
-  Qt/plugins/generic
-  Qt/plugins/geoservices
-  Qt/plugins/mediaservice
-  Qt/plugins/playlistformats
-  Qt/plugins/position
-  Qt/plugins/printsupport
-  Qt/plugins/sceneparsers
-  Qt/plugins/sensor*
-  Qt/plugins/sqldrivers
-  Qt/qml
-  Qt/resources
-  Qt/translations/qt_help_*
-  Qt/translations/qtconnectivity_*
-  Qt/translations/qtdeclarative_*
-  Qt/translations/qtlocation_*
-  Qt/translations/qtmultimedia_*
-  Qt/translations/qtquick*
-  Qt/translations/qtserialport_*
-  Qt/translations/qtwebsockets_*
+  Qt5/plugins/audio
+  Qt5/plugins/bearer
+  Qt5/plugins/generic
+  Qt5/plugins/geoservices
+  Qt5/plugins/mediaservice
+  Qt5/plugins/playlistformats
+  Qt5/plugins/position
+  Qt5/plugins/printsupport
+  Qt5/plugins/sceneparsers
+  Qt5/plugins/sensor*
+  Qt5/plugins/sqldrivers
+  Qt5/qml
+  Qt5/resources
+  Qt5/translations/qt_help_*
+  Qt5/translations/qtconnectivity_*
+  Qt5/translations/qtdeclarative_*
+  Qt5/translations/qtlocation_*
+  Qt5/translations/qtmultimedia_*
+  Qt5/translations/qtquick*
+  Qt5/translations/qtserialport_*
+  Qt5/translations/qtwebsockets_*
   pylupdate*
   pyrcc*
   uic
 # Plover.
-:Versions/$python_version/lib/$target_python/site-packages/plover
+:lib/python$python_base_version/site-packages/plover
   gui_qt/*.ui
-  gui_qt/messages/**/*.po
-  gui_qt/messages/plover.pot
   gui_qt/resources
+  messages/**/*.po
+  messages/plover.pot
 
 # vim: ft=config

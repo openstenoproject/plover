@@ -42,6 +42,7 @@ _PIP_OPTS = _split_opts(
     -c 1 --constraint 1
     -r 1 --requirement 1
     --no-deps 0
+    --use-pep517 0
     '''
     # Package Index.
     '''
@@ -65,33 +66,13 @@ _PIP_INSTALL_OPTS = _split_opts(
     --root 1
     --prefix 1
     --require-hashes 0
+    --no-warn-script-location 0
     '''
 )
 
-_PIP_SCRIPT = '''
-import sys
-
-from pkg_resources import load_entry_point
-
-# Work around isatty attribute being read-only with Python 2.
-class NoTTY:
-    def __init__(self, fp):
-        self._fp = fp
-    def isatty(self):
-        return False
-    def __getattr__(self, name):
-        return getattr(self._fp, name)
-
-if len(sys.argv) > 1 and sys.argv[1] == '--no-tty':
-    sys.stdout = NoTTY(sys.stdout)
-    del sys.argv[1]
-sys.exit(load_entry_point('pip', 'console_scripts', 'pip')())
-'''
-
-def _pip(args, verbose=True, no_progress=True):
-    if verbose:
-        print('running pip %s' % ' '.join(a for a in args))
-        sys.stdout.flush()
+def _pip(args, pip_install=None, verbose=True, no_progress=True):
+    if no_progress:
+        args.append('--progress-bar=off')
     cmd = [sys.executable]
     if sys.flags.no_site:
         cmd.append('-S')
@@ -99,17 +80,19 @@ def _pip(args, verbose=True, no_progress=True):
         cmd.append('-s')
     if sys.flags.ignore_environment:
         cmd.append('-E')
-    cmd.extend(('-c', _PIP_SCRIPT))
-    if no_progress:
-        cmd.append('--no-tty')
+    if pip_install is not None:
+        cmd.append(pip_install)
+    else:
+        cmd.extend(('-m', 'pip'))
     cmd.extend(args)
+    if verbose:
+        print('running', ' '.join(cmd), flush=True)
     return subprocess.call(cmd)
 
-def install_wheels(args, verbose=True, no_install=False, no_progress=True):
+def install_wheels(args, pip_install=None, verbose=True, no_install=False, no_progress=True):
     wheels_cache = WHEELS_CACHE
     wheel_args = []
     install_args = []
-    constraint_args = []
     while len(args) > 0:
         a = args.pop(0)
         if not a.startswith('-'):
@@ -143,28 +126,15 @@ def install_wheels(args, verbose=True, no_install=False, no_progress=True):
             raise ValueError('unsupported option: %s' % opt)
         a = [opt] + args[:nb_args]
         del args[:nb_args]
-        if opt in ('-c', '--constraint'):
-            constraint_args.extend(a)
-            continue
         if not install_only:
             wheel_args.extend(a)
         install_args.extend(a)
     wheel_args[0:0] = ['wheel', '-f', wheels_cache, '-w', wheels_cache]
-    install_args[0:0] = ['install', '-f', wheels_cache]
-    if constraint_args:
-        # Since pip will not build and cache wheels for VCS links, we do it ourselves:
-        # - first, update the cache (without VCS links), and try to install from it
-        code = _pip(wheel_args, no_progress=no_progress)
-        if code == 0 and not no_install:
-            code = _pip(install_args, no_progress=no_progress)
-    else:
-        code = 1
-    if code != 0:
-      # - if it failed, try to update the cache again, this time with VCS links
-      code = _pip(wheel_args + constraint_args, no_progress=no_progress)
-      if code == 0 and not no_install:
-          # - and try again
-          code = _pip(install_args, no_progress=no_progress)
+    install_args[0:0] = ['install', '--no-index', '--no-cache-dir', '-f', wheels_cache]
+    pip_kwargs = dict(pip_install=pip_install, no_progress=no_progress)
+    code = _pip(wheel_args, **pip_kwargs)
+    if code == 0 and not no_install:
+        code = _pip(install_args, **pip_kwargs)
     if code != 0:
         raise Exception('wheels installation failed: pip execution returned %u' % code)
 

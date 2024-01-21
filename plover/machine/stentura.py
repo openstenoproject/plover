@@ -658,15 +658,10 @@ class Stentura(plover.machine.base.SerialStenotypeBase):
         ^
     '''
 
-    def _on_stroke(self, keys):
-        steno_keys = self.keymap.keys_to_actions(keys)
-        if steno_keys:
-            self._notify(steno_keys)
-
     def run(self):
         """Overrides base class run method. Do not call directly."""
         try:
-            _loop(self.serial_port, self.finished, self._on_stroke, self._ready)
+            _loop(self.serial_port, self.finished, self._notify_keys, self._ready)
         except _StopException:
             pass
         except Exception:

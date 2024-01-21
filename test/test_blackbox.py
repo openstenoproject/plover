@@ -1,19 +1,102 @@
 # -*- coding: utf-8 -*-
 
+import pytest
+
+from plover import system
 from plover.registry import Registry
+from plover.system import english_stenotype
 
 from plover_build_utils.testing import blackbox_test
+
+
+@pytest.fixture
+def with_melani_system(monkeypatch, request):
+    class Melani:
+        KEYS = (
+            '#',
+            'S-', 'P-', 'C-', 'T-', 'H-', 'V-', 'R-',
+            'I-', 'A-',
+            '-E', '-O',
+            '-c', '-s', '-t', '-h', '-p', '-r',
+            '*',
+            '-i', '-e', '-a', '-o',
+        )
+        IMPLICIT_HYPHEN_KEYS = KEYS
+        SUFFIX_KEYS = ()
+        NUMBER_KEY = '#'
+        NUMBERS = {
+            'S-': '1-',
+            'P-': '2-',
+            'T-': '3-',
+            'V-': '4-',
+            'I-': '5-',
+            '-O': '0-',
+            '-c': '-6',
+            '-t': '-7',
+            '-p': '-8',
+            '-i': '-9',
+        }
+        UNDO_STROKE_STENO = '*'
+        ORTHOGRAPHY_RULES = []
+        ORTHOGRAPHY_RULES_ALIASES = {}
+        ORTHOGRAPHY_WORDLIST = None
+        KEYMAPS = {}
+        DICTIONARIES_ROOT = None
+        DEFAULT_DICTIONARIES = ()
+    registry = Registry()
+    registry.register_plugin('system', 'English Stenotype', english_stenotype)
+    registry.register_plugin('system', 'Melani', Melani)
+    old_system_name = system.NAME
+    with monkeypatch.context() as mp:
+        mp.setattr('plover.system.registry', registry)
+        yield
+    system.setup(old_system_name)
+
+@pytest.fixture
+def with_korean_system(monkeypatch, request):
+    class KoreanCAS:
+        KEYS = (
+            '1-', '2-', '3-', '4-', '5-',
+            'ㅎ-', 'ㅁ-', 'ㄱ-', 'ㅈ-', 'ㄴ-',
+            'ㄷ-', 'ㅇ-', 'ㅅ-', 'ㅂ-', 'ㄹ-',
+            'ㅗ-', 'ㅏ-', 'ㅜ-',
+            '-*', '-ㅓ', '-ㅣ',
+            '-6', '-7', '-8', '-9', '-0',
+            '-ㅎ', '-ㅇ', '-ㄹ', '-ㄱ', '-ㄷ',
+            '-ㅂ', '-ㄴ', '-ㅅ', '-ㅈ', '-ㅁ',
+        )
+        IMPLICIT_HYPHEN_KEYS = (
+            'ㅗ-', 'ㅏ-', 'ㅜ-',
+            '-*', '-ㅓ', '-ㅣ',
+        )
+        SUFFIX_KEYS = ()
+        NUMBER_KEY = None
+        NUMBERS = {}
+        UNDO_STROKE_STENO = '-ㅂㄴ'
+        ORTHOGRAPHY_RULES = []
+        ORTHOGRAPHY_RULES_ALIASES = {}
+        ORTHOGRAPHY_WORDLIST = None
+        KEYMAPS = {}
+        DICTIONARIES_ROOT = None
+        DEFAULT_DICTIONARIES = ()
+    registry = Registry()
+    registry.register_plugin('system', 'English Stenotype', english_stenotype)
+    registry.register_plugin('system', 'Korean Modern C', KoreanCAS)
+    old_system_name = system.NAME
+    with monkeypatch.context() as mp:
+        mp.setattr('plover.system.registry', registry)
+        yield
+    system.setup(old_system_name)
 
 
 @blackbox_test
 class TestsBlackbox:
 
     def test_translator_state_handling(self):
-        r'''
         # Check if the translator curtailing the list of last translations
         # according to its dictionary longest key does no affect things
         # like the restrospective repeat-last-stroke command.
-
+        r'''
         "TEFT": "test",
         "R*S": "{*+}",
 
@@ -29,20 +112,18 @@ class TestsBlackbox:
         '''
 
     def test_bug471(self):
-        r'''
         # Repeat-last-stroke after typing two numbers outputs the numbers
         # reversed for some combos.
-
+        r'''
         "R*S": "{*+}",
 
         12/R*S  " 1212"
         '''
 
     def test_bug535(self):
-        r'''
         # Currency formatting a number with a decimal fails by not erasing
         # the previous output.
-
+        r'''
         "P-P": "{^.^}",
         "KR*UR": "{*($c)}",
 
@@ -60,10 +141,9 @@ class TestsBlackbox:
         '''
 
     def test_bug535_spaces_after(self):
-        r'''
         # Currency formatting a number with a decimal fails by not erasing
         # the previous output.
-
+        r'''
         "P-P": "{^.^}",
         "KR*UR": "{*($c)}",
 
@@ -157,11 +237,10 @@ class TestsBlackbox:
         '''
 
     def test_bug557(self):
-        r'''
         # Using the asterisk key to delete letters in fingerspelled words
         # occasionally causes problems when the space placement is set to
         # "After Output".
-
+        r'''
         "EU": "I",
         "HRAOEUBG": "like",
         "T*": "{>}{&t}",
@@ -175,11 +254,10 @@ class TestsBlackbox:
         '''
 
     def test_bug557_resumed(self):
-        r'''
         # Using the asterisk key to delete letters in fingerspelled words
         # occasionally causes problems when the space placement is set to
         # "After Output".
-
+        r'''
         "EU": "I",
         "HRAOEUBG": "like",
         "T*": "{>}{&t}",
@@ -193,11 +271,10 @@ class TestsBlackbox:
         '''
 
     def test_bug557_capitalized(self):
-        r'''
         # Using the asterisk key to delete letters in fingerspelled words
         # occasionally causes problems when the space placement is set to
         # "After Output".
-
+        r'''
         "EU": "I",
         "HRAOEUBG": "like",
         "T*": "{-|}{&t}",
@@ -242,9 +319,8 @@ class TestsBlackbox:
         '''
 
     def test_bug719(self):
-        r'''
         # Glue (&) does not work with "Spaces After".
-
+        r'''
         "P*": "{&P}"
 
         :spaces_after
@@ -252,9 +328,8 @@ class TestsBlackbox:
         '''
 
     def test_bug741(self):
-        r'''
         # Uppercase last word also uppercases next word's prefix.
-
+        r'''
         "KPA*TS": "{*<}",
         "TPAO": "foo",
         "KAUPB": "{con^}",
@@ -752,6 +827,32 @@ class TestsBlackbox:
         'R-BG': '{:retro_currency:$c}',
 
         0/R-BG  ' $0'
+        '''
+
+    def test_retro_currency6(self):
+        r'''
+        'R-BG': '{:retro_currency:$c}',
+        'THO*U': '{^},000'
+
+        23/THO*U/R-BG  ' $23,000'
+        '''
+
+    def test_retro_currency7(self):
+        r'''
+        'R-BG': '{:retro_currency:$c}',
+        'P-P': '{^}.{^}',
+        'THO*U': '{^},000'
+
+        23/THO*U/P-P/15/R-BG  ' $23,000.15'
+        '''
+
+    def test_retro_currency8(self):
+        r'''
+        'R-BG': '{:retro_currency:$c}',
+        'P-P': '{^}.{^}',
+        'TPR*UPBT': '{^},500,000'
+
+        4/3/1/TPR*UPBT/P-P/69/R-BG  ' $431,500,000.69'
         '''
 
     def test_retro_upper1(self):
@@ -1591,4 +1692,145 @@ class TestsBlackbox:
         'AT': '{:attach:^attach}',
 
         TEFT/AT/TEFT  ' testattach test'
+        '''
+
+    def test_prefix_strokes(self):
+        r'''
+        "/S": "{prefix^}",
+        "S": "{^suffix}",
+        "O": "{O'^}{$}",
+
+        S/S/O/S/S  " prefixsuffix O'prefixsuffix"
+        '''
+
+    def test_melani_implicit_hyphens(self, with_melani_system):
+        r'''
+        :system Melani
+        "15/SE/COhro": "XV secolo",
+        "16/SE/COhro": "XVI secolo",
+
+        15/SE/COhro/16/SE/COhro  " XV secolo XVI secolo"
+        '''
+
+    def test_conditionals_1(self):
+        r'''
+        "*": "=undo",
+        "S-": "{=(?i)t/true/false}",
+        "TP-": "FALSE",
+        "T-": "TRUE",
+
+        S-   ' false'
+        TP-  ' false FALSE'
+        *    ' false'
+        T-   ' true TRUE'
+        *    ' false'
+        S-   ' false false'
+        TP-  ' false false FALSE'
+        *    ' false false'
+        T-   ' true true TRUE'
+        '''
+
+    def test_conditionals_2(self):
+        r'''
+        "1": "{=(?i)([8aeiouxy]|11|dei|gn|ps|s[bcdfglmnpqrtv]|z)/agli/ai}",
+        "2": "oc{^}chi",
+        "3": "dei",
+        "4": "sti{^}vali",
+
+        1  ' ai'
+        2  ' agli occhi'
+        1  ' agli occhi ai'
+        3  ' agli occhi agli dei'
+        1  ' agli occhi agli dei ai'
+        4  ' agli occhi agli dei agli stivali'
+        '''
+
+    def test_conditionals_3(self):
+        r'''
+        "1": "{:if_next_matches:(?i)([8aeiouxy]|11|dei|gn|ps|s[bcdfglmnpqrtv]|z)/agli/ai}",
+        "2": "chi",
+        "3": "oc{^}chi",
+        "4": "dei",
+        "5": "sti{^}vali",
+
+        :spaces_after
+        2  'chi '
+        1  'chi ai '
+        3  'chi agli occhi '
+        1  'chi agli occhi ai '
+        4  'chi agli occhi agli dei '
+        1  'chi agli occhi agli dei ai '
+        5  'chi agli occhi agli dei agli stivali '
+        '''
+
+    def test_conditionals_4(self):
+        r'''
+        "1": "{=(?i)([8aeiouxy]|11|dei|gn|ps|s[bcdfglmnpqrtv]|z)/agli/ai}",
+        "2": "{=(?i)([8aeiouxy]|11|dei|gn|ps|s[bcdfglmnpqrtv]|z)/cogli/coi}",
+        "3": "ci",
+
+        1/2/1/3  ' ai cogli ai ci'
+        '''
+
+    def test_conditionals_5(self):
+        r'''
+        "1": "{=(?i)([8aeiouxy]|11|dei|gn|ps|s[bcdfglmnpqrtv]|z)/agli/ai}",
+        "2": "{=(?i)([8aeiouxy]|11|dei|gn|ps|s[bcdfglmnpqrtv]|z)/cogli/coi}",
+        "3": "ci",
+
+        :spaces_after
+        1/2/1/3  'ai cogli ai ci '
+        '''
+
+    def test_conditionals_6(self):
+        r'''
+        "*": "=undo",
+        "S-": r'{=(?i)tr\/ue/tr\/ue/fa\\lse}',
+        "TP-": r'FA\LSE',
+        "T-": 'TR/UE',
+
+        S-   r' fa\lse'
+        TP-  r' fa\lse FA\LSE'
+        *    r' fa\lse'
+        T-   r' tr/ue TR/UE'
+        *    r' fa\lse'
+        S-   r' fa\lse fa\lse'
+        TP-  r' fa\lse fa\lse FA\LSE'
+        *    r' fa\lse fa\lse'
+        T-   r' tr/ue tr/ue TR/UE'
+        '''
+
+    def test_bug_1448_1(self, with_korean_system):
+        # Translator tries to represent a previous stroke
+        # from a different system using the current one.
+        #
+        # This test would throw a `ValueError` exception
+        # (invalid keys mask) in the translator when
+        # trying to represent the `ㅎㅁㄱㅈㄴ-ㄴㅅㅈㅁ`
+        # stroke with the `English Stenotype` system.
+        r'''
+        'TEFT': 'test'
+        'TEFT/-G': 'testing'
+
+        :system 'Korean Modern C'
+        ㅎㅁㄱㅈㄴ-ㄴㅅㅈㅁ  ' ㅎㅁㄱㅈㄴ-ㄴㅅㅈㅁ'
+        :system 'English Stenotype'
+        TEFT  ' ㅎㅁㄱㅈㄴ-ㄴㅅㅈㅁ test'
+        '''
+
+    def test_bug_1448_2(self, with_korean_system):
+        # Translator tries to represent a previous stroke
+        # from a different system using the current one.
+        #
+        # This test would trigger a translator lookup for
+        # `#STKP/-G` because `#STKP` (English Stenotype)
+        # and `12345` (Korean Modern C) have the same keys
+        # mask.
+        r'''
+        '#STKP/-G': 'game over'
+
+        :system 'Korean Modern C'
+        12345  ' 12345'
+        :system 'English Stenotype'
+        -G  ' 12345 -G'
         '''

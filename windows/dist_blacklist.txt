@@ -9,12 +9,13 @@
   **/*[Qq]uick*
   **/*[Ww]eb[Ee]ngine*
   bindings
-  Qt/bin/libeay32.dll
-  Qt/bin/ssleay32.dll
-  Qt/plugins/platforms/qminimal.dll
-  Qt/plugins/platforms/qoffscreen.dll
-  Qt/plugins/platforms/qwebgl.dll
-  Qt/plugins/sceneparsers
+  Qt5/bin/libeay32.dll
+  Qt5/bin/ssleay32.dll
+  Qt5/plugins/platforms/qminimal.dll
+  Qt5/plugins/platforms/qoffscreen.dll
+  Qt5/plugins/platforms/qwebgl.dll
+  Qt5/plugins/sceneparsers
+  Qt5/qml
   pylupdate*
   pyrcc*
   uic
@@ -22,8 +23,8 @@
 :Lib/site-packages/plover
   gui_qt/*.ui
   gui_qt/*.ui
-  gui_qt/messages/**/*.po
-  gui_qt/messages/plover.pot
   gui_qt/resources
+  messages/**/*.po
+  messages/plover.pot
 
 # vim: ft=config

@@ -16,14 +16,18 @@
    </font>
   </property>
   <property name="windowTitle">
-   <string>Plover: Suggestions</string>
+   <string notr="true"/>
   </property>
   <property name="sizeGripEnabled">
    <bool>true</bool>
   </property>
   <layout class="QVBoxLayout" name="verticalLayout">
    <item>
-    <widget class="SuggestionsWidget" name="suggestions" native="true"/>
+    <widget class="SuggestionsWidget" name="suggestions" native="true">
+     <property name="accessibleName">
+      <string>Suggestions</string>
+     </property>
+    </widget>
    </item>
   </layout>
   <action name="action_Clear">
@@ -35,7 +39,7 @@
     <string>&amp;Clear</string>
    </property>
    <property name="toolTip">
-    <string>Clear paper tape</string>
+    <string>Clear the history.</string>
    </property>
    <property name="shortcut">
     <string>Ctrl+L</string>
@@ -53,7 +57,7 @@
     <string>&amp;Toggle &quot;always on top&quot;</string>
    </property>
    <property name="toolTip">
-    <string>Toggle &quot;always on top&quot;</string>
+    <string>Toggle &quot;always on top&quot;.</string>
    </property>
    <property name="shortcut">
     <string>Ctrl+T</string>
@@ -68,7 +72,7 @@
     <string>Select &amp;font</string>
    </property>
    <property name="toolTip">
-    <string>Open font selection dialog</string>
+    <string>Open font selection dialog.</string>
    </property>
   </action>
  </widget>
@@ -136,7 +140,6 @@
  <slots>
   <slot>on_save()</slot>
   <slot>on_clear()</slot>
-  <slot>on_style_changed()</slot>
   <slot>on_toggle_ontop(bool)</slot>
   <slot>on_select_font()</slot>
  </slots>

@@ -1,11 +1,11 @@
-
 from collections import namedtuple
 from html import escape as html_escape
 from os.path import split as os_path_split
 
-from PyQt5.QtCore import QEvent, QTimer
+from PyQt5.QtCore import QEvent, pyqtSignal
 from PyQt5.QtWidgets import QApplication, QWidget
 
+from plover import _
 from plover.misc import shorten_path
 from plover.steno import normalize_steno, sort_steno_strokes
 from plover.engine import StartingStrokeState
@@ -14,16 +14,17 @@ from plover.formatting import RetroFormatter
 from plover.resource import resource_filename
 
 from plover.gui_qt.add_translation_widget_ui import Ui_AddTranslationWidget
-from plover.gui_qt.i18n import get_gettext
-
-_ = get_gettext()
+from plover.gui_qt.steno_validator import StenoValidator
 
 
 class AddTranslationWidget(QWidget, Ui_AddTranslationWidget):
 
-    ''' Add a new translation to the dictionary. '''
+    # i18n: Widget: “AddTranslationWidget”, tooltip.
+    __doc__ = _('Add a new translation to the dictionary.')
 
     EngineState = namedtuple('EngineState', 'dictionary_filter translator starting_stroke')
+
+    mappingValid = pyqtSignal(bool)
 
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
@@ -33,6 +34,7 @@ class AddTranslationWidget(QWidget, Ui_AddTranslationWidget):
         self._dictionaries = []
         self._reverse_order = False
         self._selected_dictionary = None
+        self._mapping_is_valid = False
         engine.signal_connect('config_changed', self.on_config_changed)
         self.on_config_changed(engine.config)
         engine.signal_connect('dictionaries_loaded', self.on_dictionaries_loaded)
@@ -40,32 +42,20 @@ class AddTranslationWidget(QWidget, Ui_AddTranslationWidget):
 
         self._special_fmt = (
             '<span style="' +
-            'background-color:' + self.palette().base().color().name() +';' +
             'font-family:monospace;' +
             '">%s</span>'
         )
 
         self._special_fmt_bold = (
             '<span style="' +
-            'background-color:' + self.palette().base().color().name() +';' +
             'font-family:monospace;' +
             'font-weight:bold;' +
             '">%s</span>'
         )
 
+        self.strokes.setValidator(StenoValidator())
         self.strokes.installEventFilter(self)
         self.translation.installEventFilter(self)
-
-        # Prevent unnecessary lookups during user input by debouncing.
-        def get_debounce_timer(fn):
-            debounce_timer = QTimer()
-            debounce_timer.setInterval(50)
-            debounce_timer.setSingleShot(True)
-            debounce_timer.timeout.connect(fn)
-            return debounce_timer
-
-        self.stroke_debounce = get_debounce_timer(self._update_strokes)
-        self.translation_debounce = get_debounce_timer(self._update_translation)
 
         with engine:
 
@@ -97,13 +87,17 @@ class AddTranslationWidget(QWidget, Ui_AddTranslationWidget):
             engine.clear_translator_state()
             self._strokes_state = self.EngineState(self._dictionary_filter,
                                                    engine.translator_state,
-                                                   StartingStrokeState(True, False))
+                                                   StartingStrokeState(True, False, '/'))
             engine.clear_translator_state()
             self._translations_state = self.EngineState(None,
                                                         engine.translator_state,
-                                                        StartingStrokeState(True, False))
+                                                        StartingStrokeState(True, False, ' '))
         self._engine_state = self._original_state
         self._focus = None
+
+    @property
+    def mapping_is_valid(self):
+        return self._mapping_is_valid
 
     def select_dictionary(self, dictionary_path):
         self._selected_dictionary = dictionary_path
@@ -173,10 +167,13 @@ class AddTranslationWidget(QWidget, Ui_AddTranslationWidget):
         self._focus = None
 
     def _strokes(self):
-        strokes = self.strokes.text().replace('/', ' ').split()
-        if not strokes:
-            return ()
-        return normalize_steno('/'.join(strokes))
+        strokes = self.strokes.text().strip()
+        has_prefix = strokes.startswith('/')
+        strokes = '/'.join(strokes.replace('/', ' ').split())
+        if has_prefix:
+            strokes = '/' + strokes
+        strokes = normalize_steno(strokes)
+        return strokes
 
     def _translation(self):
         translation = self.translation.text().strip()
@@ -194,7 +191,8 @@ class AddTranslationWidget(QWidget, Ui_AddTranslationWidget):
         for d in iterable:
             item = shorten_path(d.path)
             if not d.enabled:
-                item += ' [' + _('disabled') + ']'
+                # i18n: Widget: “AddTranslationWidget”.
+                item = _('{dictionary} (disabled)').format(dictionary=item)
             self.dictionary.addItem(item)
         selected_index = 0
         if self._selected_dictionary is None:
@@ -245,13 +243,17 @@ class AddTranslationWidget(QWidget, Ui_AddTranslationWidget):
         return fmt.format(strokes=strokes, translation=translation, filename=filename)
 
     def on_strokes_edited(self):
-        self.stroke_debounce.start()
-
-    def _update_strokes(self):
+        mapping_is_valid = self.strokes.hasAcceptableInput()
+        if mapping_is_valid != self._mapping_is_valid:
+            self._mapping_is_valid = mapping_is_valid
+            self.mappingValid.emit(mapping_is_valid)
+        if not mapping_is_valid:
+            return
         strokes = self._strokes()
         if strokes:
             translations = self._engine.raw_lookup_from_all(strokes)
             if translations:
+                # i18n: Widget: “AddTranslationWidget”.
                 info = self._format_label(_('{strokes} maps to '), (strokes,))
                 entries = [
                     self._format_label(
@@ -262,10 +264,12 @@ class AddTranslationWidget(QWidget, Ui_AddTranslationWidget):
                     ) for i, (translation, dictionary) in enumerate(translations)
                 ]
                 if (len(entries) > 1):
-                    entries.insert(1, _('<br />Overwritten entries:'))
+                    # i18n: Widget: “AddTranslationWidget”.
+                    entries.insert(1, '<br />' + _('Overwritten entries:'))
                 info += '<br />'.join(entries)
             else:
                 info = self._format_label(
+                    # i18n: Widget: “AddTranslationWidget”.
                     _('{strokes} is not mapped in any dictionary'),
                     (strokes, )
                 )
@@ -274,15 +278,14 @@ class AddTranslationWidget(QWidget, Ui_AddTranslationWidget):
         self.strokes_info.setText(info)
 
     def on_translation_edited(self):
-        self.translation_debounce.start()
-
-    def _update_translation(self):
         translation = self._translation()
         if translation:
             strokes = self._engine.reverse_lookup(translation)
             if strokes:
+                # i18n: Widget: “AddTranslationWidget”.
                 fmt = _('{translation} is mapped to: {strokes}')
             else:
+                # i18n: Widget: “AddTranslationWidget”.
                 fmt = _('{translation} is not in the dictionary')
             info = self._format_label(fmt, strokes, translation)
         else:

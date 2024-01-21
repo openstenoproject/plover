@@ -11,6 +11,8 @@ appdir="$builddir/plover.AppDir"
 cachedir="$topdir/.cache/appimage"
 wheel=''
 python='python3'
+update_tools=1
+use_docker=0
 
 while [ $# -ne 0 ]
 do
@@ -23,6 +25,12 @@ do
       wheel="$2"
       shift
       ;;
+    --no-update-tools)
+      update_tools=0
+      ;;
+    --docker)
+      use_docker=1
+      ;;
     -*)
       err "invalid option: $1"
       exit 1
@@ -30,6 +38,17 @@ do
   esac
   shift
 done
+
+# Helper to make a copy of the current git checkout (sans ignored/others).
+copy_git_checkout()
+{(
+  src="$1"
+  dst="$2"
+  mkdir "$2" &&
+  cd "$1" &&
+  git ls-files -z |
+  xargs -0 cp -a --no-dereference --parents --target-directory="$2"
+)}
 
 # Helper to extract an AppImage so it can be used without needing fuse.
 extract_appimage()
@@ -46,35 +65,87 @@ extract_appimage()
   rmdir "$tmpdir"
 )}
 
-version="$("$python" -c 'from plover import __version__; print(__version__)')"
+run rm -rf "$builddir"
+run mkdir -p "$builddir" "$cachedir" "$distdir"
+
+version="$("$python" -c 'exec(open("plover/__init__.py").read()); print(__version__)')"
 appimage="$distdir/plover-$version-x86_64.AppImage"
 
-run rm -rf "$builddir"
-run mkdir -p "$appdir" "$cachedir" "$distdir"
+if [ $use_docker -eq 1 ]
+then
+  docker_image='plover:appimage'
+  docker_workdir="$topdir/build/appimage/docker"
+  docker_srcdir="$docker_workdir/src"
+  docker_cache="$cachedir/docker"
+  run mkdir -p "$docker_workdir" "$docker_cache"
+  if [ -n "$wheel" ]
+  then
+    run cp "$wheel" "$docker_workdir/${wheel##*/}"
+    docker_wheel="../${wheel##*/}"
+  else
+    docker_wheel=''
+  fi
+  # Build docker image.
+  docker build -t "$docker_image" linux/appimage
+  # Create a copy of the current checkout.
+  run copy_git_checkout "$topdir" "$docker_srcdir"
+  # Setup cache.
+  run ln -s /cache "$docker_srcdir/.cache"
+  # Create a dedicated user so there are no issues
+  # accessing the files generated during the docker
+  # run.
+  run tee "$docker_workdir/entrypoint.sh" <<EOF
+#!/bin/sh
+set -ex
+useradd -u $(id -u) '$USER'
+usermod -a -G sudo '$USER' 2>/dev/null || :
+usermod -a -G wheel '$USER' 2>/dev/null || :
+usermod -a -G adm '$USER' 2>/dev/null || :
+export HOME='/home/$USER'
+exec chroot --skip-chdir --userspec='$USER' / "\$@"
+EOF
+  run chmod a+x "$docker_workdir/entrypoint.sh"
+  docker run \
+    --entrypoint=/work/entrypoint.sh \
+    --network=host \
+    --rm=true \
+    --tty=true \
+    --volume "$docker_cache:/cache" \
+    --volume "$docker_workdir:/work" \
+    --workdir /work/src \
+    "$docker_image" \
+    bash "${0#$topdir}" --wheel "$docker_wheel" --python "$python"
+    mv "$docker_srcdir/dist/${appimage##*/}" "$appimage"
+    exit
+fi
 
 # Fetch some helpers.
 # Note:
-# - extract AppImages so fuse is not needed.
+# - extract AppImages so FUSE is not needed.
 # - we start with zsync2 and do two passes
 #   so it can update itself as needed.
-while read tool url sha1;
+. ./linux/appimage/deps.sh
+while read tool url;
 do
+  [ -n "$url" ] || die 1 "missing URL for $tool"
   if [ ! -r "$cachedir/$tool" ]
   then
+    # Initial fetch.
     run wget -O "$cachedir/$tool" "$url"
   else
-    if [ -n "$zsync2" ]
+    # Update using zsync2.
+    if [ "$update_tools" -eq 1 -a -n "$zsync2" ]
     then
       run_eval "(cd '$cachedir' && '$zsync2' -o '$cachedir/$tool' '$url.zsync')"
     fi
   fi
   run extract_appimage "$cachedir/$tool" "$builddir/$tool"
   run_eval "$tool='$builddir/$tool/AppRun'"
-done <<\EOF
-zsync2        https://github.com/AppImage/zsync2/releases/download/continuous/zsync2-156-10e85c0-x86_64.AppImage
-zsync2        https://github.com/AppImage/zsync2/releases/download/continuous/zsync2-156-10e85c0-x86_64.AppImage
-linuxdeploy   https://github.com/linuxdeploy/linuxdeploy/releases/download/continuous/linuxdeploy-x86_64.AppImage
-appimagetool  https://github.com/probonopd/AppImageKit/releases/download/continuous/appimagetool-x86_64.AppImage
+done <<EOF
+zsync2        $zsync2_url
+zsync2        $zsync2_url
+linuxdeploy   $linuxdeploy_url
+appimagetool  $appimagetool_url
 EOF
 
 # Generate Plover wheel.
@@ -86,7 +157,8 @@ fi
 
 # Setup Python distribution.
 pydist="$appdir/usr"
-run_eval "$("$python" linux/appimage/pyinfo.py)"
+metadata="$("$python" linux/appimage/pyinfo.py)"
+run_eval "$metadata"
 run mkdir -p "$pydist/"{bin,lib,"$pystdlib"/..,"$pyinclude"/..}
 run cp "$pyexe" "$pydist/bin/python"
 run cp -a "$pyprefix/$pyinclude" "$pydist/$pyinclude/../"
@@ -102,42 +174,36 @@ python='appdir_python'
 
 "$python" --version
 
-# Install Plover and dependencies.
-bootstrap_dist "$wheel"
+# Install boostrap requirements.
+get_base_devel
 
-# Trim the fat.
+# Copy log_dbus system dependencies.
+run cp -Lv /usr/lib/x86_64-linux-gnu/libdbus-1.so "$appdir/usr/lib"
+
+# Trim the fat, first pass.
 run cp linux/appimage/blacklist.txt "$builddir/blacklist.txt"
 run sed -e "s/\${pyversion}/$pyversion/g" -i "$builddir/blacklist.txt"
 run "$python" -m plover_build_utils.trim "$appdir" "$builddir/blacklist.txt"
 
-# Make distribution source-less.
-run "$python" -m plover_build_utils.source_less "$pydist/$purelib" "$pydist/$platlib" '*/pip/_vendor/distlib/*'
-
-# Avoid possible permission errors.
-run chmod u+w -R "$appdir"
-
-# Strip binaries.
-strip_binaries()
-{
-  {
-    printf '%s\0' "$appdir/usr/bin/python"
-    find "$appdir" -type f -regex '.*\.so\(\.[0-9.]+\)?$' -print0
-  } | xargs -0 --no-run-if-empty strip
-}
-run strip_binaries
-
-# Finalize the AppDir.
-# Note:
-# - use a custom launcher that does not change the working directory.
-# - temporarily move PyQt5 out of the way so linuxdeploy does not try
-#   to bundle its system dependencies.
-run mv "$pydist/$pypurelib/PyQt5" "$builddir"
+# Finalize the base AppDir.
+# Note: we use a custom launcher that does not change the working directory.
 run "$linuxdeploy" \
-  --desktop-file='application/plover.desktop' \
+  --desktop-file='linux/plover.desktop' \
   --icon-file='plover/assets/plover.png' \
   --appdir="$appdir" \
   --verbosity=2
-run mv "$builddir/PyQt5" "$pydist/$pypurelib/PyQt5"
+
+# Install Plover and dependencies.
+bootstrap_dist "$wheel"
+
+# Trim the fat, second pass.
+run "$python" -m plover_build_utils.trim "$appdir" "$builddir/blacklist.txt"
+
+# Make distribution source-less.
+run "$python" -m plover_build_utils.source_less "$pydist/$purelib" "$pydist/$platlib" '*/pip/_vendor/distlib/*' '*/pip/_vendor/pep517/*'
+
+# Avoid possible permission errors.
+run chmod u+w -R "$appdir"
 
 # Remove empty directories.
 remove_emptydirs()

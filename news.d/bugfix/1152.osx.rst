@@ -1,1 +1,0 @@
-Fix an issue where permissions had to be granted to "env" on macOS Catalina 10.15.

@@ -53,9 +53,9 @@ def unescape_translation(translation):
 
 
 _LEGACY_MACROS_ALIASES = {
-    '{*}': 'retrospective_toggle_asterisk',
-    '{*!}': 'retrospective_delete_space',
-    '{*?}': 'retrospective_insert_space',
+    '{*}': 'retro_toggle_asterisk',
+    '{*!}': 'retro_delete_space',
+    '{*?}': 'retro_insert_space',
     '{*+}': 'repeat_last_stroke',
 }
 
@@ -206,11 +206,7 @@ class Translator:
 
     def set_dictionary(self, d):
         """Set the dictionary."""
-        callback = self._dict_callback
-        if self._dictionary:
-            self._dictionary.remove_longest_key_listener(callback)
         self._dictionary = d
-        d.add_longest_key_listener(callback)
 
     def get_dictionary(self):
         return self._dictionary
@@ -273,9 +269,6 @@ class Translator:
         self._state.restrict_size(max(self._dictionary.longest_key,
                                       self._undo_length))
 
-    def _dict_callback(self, value):
-        self._resize_translations()
-
     def get_state(self):
         """Get the state of the translator."""
         return self._state
@@ -285,7 +278,7 @@ class Translator:
         self._state = state
 
     def clear_state(self):
-        """Reset the sate of the translator."""
+        """Reset the state of the translator."""
         self._state = _State()
 
     def translate_stroke(self, stroke):
@@ -299,15 +292,21 @@ class Translator:
         stroke -- The Stroke object to process.
 
         """
-        mapping = self.lookup([stroke])
+        max_len = self._dictionary.longest_key
+        mapping = self._lookup_with_prefix(max_len, self._state.translations, [stroke])
         macro = _mapping_to_macro(mapping, stroke)
         if macro is not None:
             self.translate_macro(macro)
             return
         t = (
-            self._find_translation_helper(stroke) or
-            self._find_translation_helper(stroke, system.SUFFIX_KEYS) or
-            Translation([stroke], mapping)
+            # No prefix lookups (note we avoid looking up [stroke] again).
+            self._find_longest_match(2, max_len, stroke) or
+            # Return [stroke] result if mapped.
+            (mapping is not None and Translation([stroke], mapping)) or
+            # No direct match, try with suffixes.
+            self._find_longest_match(1, max_len, stroke, system.SUFFIX_KEYS) or
+            # Fallback to untranslate.
+            Translation([stroke], None)
         )
         self.translate_translation(t)
 
@@ -335,14 +334,33 @@ class Translator:
         self._state.translations.extend(translations)
         self._to_do += len(translations)
 
-    def _find_translation_helper(self, stroke, suffixes=()):
+    def _find_longest_match(self, min_len, max_len, stroke, suffixes=()):
+        '''Find mapping with the longest series of strokes.
+
+        min_len  -- Minimum number of strokes involved.
+        max_len  -- Maximum number of strokes involved.
+        stroke   -- The latest stroke.
+        suffixes -- List of suffix keys to try.
+
+        Return the corresponding translation, or None if no match is found.
+
+        Note: the code either look for a direct match (empty suffix
+        list), or assume the last stroke contains an implicit suffix
+        and look for a corresponding match, but not both.
+        '''
+        if suffixes:
+            # Implicit suffix lookup, determine possible suffixes.
+            suffixes = self._lookup_involved_suffixes(stroke, suffixes)
+            if not suffixes:
+                # No suffix involved, abort.
+                return None
         # Figure out how much of the translation buffer can be involved in this
         # stroke and build the stroke list for translation.
         num_strokes = 1
         translation_count = 0
         for t in reversed(self._state.translations):
             num_strokes += len(t)
-            if num_strokes > self._dictionary.longest_key:
+            if num_strokes > max_len:
                 break
             translation_count += 1
         translation_index = len(self._state.translations) - translation_count
@@ -354,32 +372,87 @@ class Translator:
             replaced = translations[i:]
             strokes = [s for t in replaced for s in t.strokes]
             strokes.append(stroke)
-            mapping = self.lookup(strokes, suffixes)
+            if len(strokes) < min_len:
+                continue
+            mapping = self._lookup_with_prefix(max_len, translations[:i], strokes, suffixes)
             if mapping is not None:
                 t = Translation(strokes, mapping)
                 t.replaced = replaced
                 return t
+        return None
+
+    def _lookup_strokes(self, strokes):
+        '''Look for a matching translation.
+
+        strokes -- a list of Stroke instances.
+
+        Return the resulting mapping.
+        '''
+        return self._dictionary.lookup(tuple(s.rtfcre for s in strokes))
+
+    def _lookup_with_suffix(self, strokes, suffixes=()):
+        '''Look for a matching translation.
+
+        suffixes -- A list of (suffix stroke, suffix mapping) pairs to try.
+
+        If the suffix list is empty, look for a direct match.
+
+        Otherwise, assume the last stroke contains an implicit suffix,
+        and look for a corresponding match.
+        '''
+        if not suffixes:
+            # No suffix, do a regular lookup.
+            return self._lookup_strokes(strokes)
+        for suffix_stroke, suffix_mapping in suffixes:
+            assert suffix_stroke in strokes[-1]
+            main_mapping = self._lookup_strokes(strokes[:-1] + [strokes[-1] - suffix_stroke])
+            if main_mapping is not None:
+                return main_mapping + ' ' + suffix_mapping
+        return None
+
+    def _lookup_involved_suffixes(self, stroke, suffixes):
+        '''Find possible implicit suffixes for a stroke.
+
+        stroke   -- The stroke to check for implicit suffixes.
+        suffixes -- List of supported suffix keys.
+
+        Return a list of (suffix_stroke, suffix_mapping) pairs.
+        '''
+        possible_suffixes = []
+        for suffix_stroke in map(Stroke, suffixes):
+            if suffix_stroke not in stroke:
+                continue
+            suffix_mapping = self._lookup_strokes((suffix_stroke,))
+            if suffix_mapping is None:
+                continue
+            possible_suffixes.append((suffix_stroke, suffix_mapping))
+        return possible_suffixes
 
     def lookup(self, strokes, suffixes=()):
-        dict_key = tuple(s.rtfcre for s in strokes)
-        result = self._dictionary.lookup(dict_key)
+        result = self._lookup_strokes(strokes)
         if result is not None:
             return result
-        for key in suffixes:
-            if key in strokes[-1].steno_keys:
-                dict_key = (Stroke([key]).rtfcre,)
-                suffix_mapping = self._dictionary.lookup(dict_key)
-                if suffix_mapping is None:
-                    continue
-                keys = strokes[-1].steno_keys[:]
-                keys.remove(key)
-                copy = strokes[:]
-                copy[-1] = Stroke(keys)
-                dict_key = tuple(s.rtfcre for s in copy)
-                main_mapping = self._dictionary.lookup(dict_key)
-                if main_mapping is None:
-                    continue
-                return main_mapping + ' ' + suffix_mapping
+        suffixes = self._lookup_involved_suffixes(strokes[-1], suffixes)
+        if not suffixes:
+            return None
+        return self._lookup_with_suffix(strokes, suffixes)
+
+    @staticmethod
+    def _previous_word_is_finished(last_translations):
+        if not last_translations:
+            return True
+        formatting = last_translations[-1].formatting
+        if not formatting:
+            return True
+        return formatting[-1].word_is_finished
+
+    def _lookup_with_prefix(self, max_len, last_translations, strokes, suffixes=()):
+        if len(strokes) < max_len and self._previous_word_is_finished(last_translations):
+            mapping = self._lookup_with_suffix([Stroke.PREFIX_STROKE] + strokes, suffixes)
+            if mapping is not None:
+                return mapping
+        if len(strokes) <= max_len:
+            return self._lookup_with_suffix(strokes, suffixes)
         return None
 
 

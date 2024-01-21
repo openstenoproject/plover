@@ -1,13 +1,14 @@
-# Include: pretty much everything normally versioned,
-# and not already automatically included by setuptools.
 include CONTRIBUTING.md
 include LICENSE.txt
-include NEWS.rst
-include application/*
-include archlinux/*
-include debian/*
-include debian/source/*
-include doc/*
+include NEWS.md
+recursive-include doc *.css
+recursive-include doc *.html
+recursive-include doc *.ico
+recursive-include doc *.md
+recursive-include doc *.png
+recursive-include doc *.svg
+recursive-include doc *.py
+recursive-include doc *.txt
 include launch.bat
 include launch.sh
 include linux/*
@@ -15,35 +16,30 @@ include linux/appimage/*
 include news.d/api/*
 include news.d/bugfix/*
 include news.d/feature/*
-include news.d/template.rst
+include news.d/template.md
 include osx/*
 include osx/app_resources/*
 include osx/dmg_resources/*
 include plover/assets/*
 include plover/gui_qt/*.ui
-include plover/gui_qt/messages/*/LC_MESSAGES/*.po
-include plover/gui_qt/messages/plover.pot
 include plover/gui_qt/resources/*.png
 include plover/gui_qt/resources/*.qrc
 include plover/gui_qt/resources/*.svg
+include plover/messages/*/LC_MESSAGES/*.po
+include plover/messages/plover.pot
 include plover_build_utils/*.sh
 include pyproject.toml
-include requirements*.txt
-include rpm/*.spec
-include test.bat
-include test.sh
-include test/__init__.py
-include test/utils.py
+include pytest.ini
+include reqs/*.txt
+include test/*.py
+include test/gui_qt/*.py
 include tox.ini
 include windows/*
 # Exclude: CI/Git/GitHub specific files,
 # as well as generated Python files (UI).
-exclude *.yml
 exclude .gitignore
-exclude archlinux/.gitignore
+exclude .readthedocs.yml
 exclude plover/gui_qt/*_rc.py
 exclude plover/gui_qt/*_ui.py
 exclude plover/gui_qt/.gitignore
-prune .circleci
 prune .github
-prune ci

@@ -5,13 +5,16 @@ requires = [
 	"setuptools>=38.2.4",
 	"wheel",
 ]
+build-backend = "setuptools.build_meta"
 
 [tool.towncrier]
-package = "plover"
-filename = "NEWS.rst"
+name = ""
+version = ""
+filename = "NEWS.md"
 directory = "news.d"
-template = "news.d/template.rst"
-title_format = "v{version} ({project_date})"
+template = "news.d/template.md"
+title_format = "# v{version} ({project_date})\n\n"
+underlines = ["", ""]
 
 [[tool.towncrier.section]]
 path = "feature"

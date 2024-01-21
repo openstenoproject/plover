@@ -1,0 +1,7 @@
+.github/workflows/ci/skiplist_os_Windows.txt
+.github/workflows/ci/skiplist_os_macOS.txt
+osx/*
+plover/oslayer/osx/*
+plover/oslayer/windows/*
+windows/*
+{EOF}

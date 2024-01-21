@@ -3,7 +3,7 @@ import sys
 
 print("; ".join("py%s=%r" % (k, v) for k, v in sorted({
     'exe'    : sys.executable,
-    'prefix' : sys.prefix,
+    'prefix' : getattr(sys, "base_prefix", sys.prefix),
     'version': sysconfig.get_python_version(),
     'include': sysconfig.get_python_inc(prefix=''),
     'ldlib'  : sysconfig.get_config_var('LDLIBRARY'),

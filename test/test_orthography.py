@@ -3,7 +3,7 @@
 
 from plover.orthography import add_suffix
 
-from . import parametrize
+from plover_build_utils.testing import parametrize
 
 
 ADD_SUFFIX_TESTS = (
@@ -104,6 +104,41 @@ ADD_SUFFIX_TESTS = (
     lambda: ('free', 'ed', 'freed'),
     lambda: ('free', 'er', 'freer'),
     lambda: ('regulate', 'ry', 'regulatory'),
+    lambda: ('humble', 'ly', 'humbly'),
+    lambda: ('questionable', 'ly', 'questionably'),
+    lambda: ('triple', 'ly', 'triply'),
+    lambda: ('statute', 'ry', 'statutory'),
+    lambda: ('statute', 'ary', 'statutory'),
+    lambda: ('confirm', 'tory', 'confirmatory'),
+    lambda: ('supervise', 'ary', 'supervisory'),
+    lambda: ('Minessota', 'en', 'Minessotan'),
+    lambda: ('ceremony', 'ial', 'ceremonial'),
+    lambda: ('editor', 'ial', 'editorial'),
+    lambda: ('editor', 'ially', 'editorially'),
+    lambda: ('spaghetti', 'ification', 'spaghettification'),
+    lambda: ('fantastic', 'ical', 'fantastical'),
+    lambda: ('epistomology', 'ical', 'epistomological'),
+    lambda: ('oratory', 'ical', 'oratorical'),
+    lambda: ('radical', 'ist', 'radicalist'),
+    lambda: ('complementary', 'ity', 'complementarity'),
+    lambda: ('disproportional', 'ity', 'disproportionality'),
+    lambda: ('perform', 'tive', 'performative'),
+    lambda: ('restore', 'tive', 'restorative'),
+    lambda: ('token', 'ize', 'tokenize'),
+    lambda: ('token', 'ise', 'tokenise'),
+    lambda: ('conditional', 'ize', 'conditionalize'),
+    lambda: ('conditional', 'isation', 'conditionalisation'),
+    lambda: ('spectacular', 'ization', 'spectacularization'),
+    lambda: ('spectacular', 'ism', 'spectacularism'),
+    lambda: ('category', 'ize', 'categorize'),
+    lambda: ('category', 'ise', 'categorise'),
+    lambda: ('custom', 'izable', 'customizable'),
+    lambda: ('custom', 'isable', 'customisable'),
+    lambda: ('fantasy', 'ize', 'fantasize'),
+    lambda: ('criminal', 'ology', 'criminology'),
+    lambda: ('criminal', 'ologist', 'criminologist'),
+    lambda: ('dermatology', 'ist', 'dermatologist'),
+    lambda: ('similar', 'ish', 'similarish'),
 )
 
 @parametrize(ADD_SUFFIX_TESTS)

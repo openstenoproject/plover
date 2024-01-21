@@ -6,7 +6,6 @@
 
 import inspect
 import os
-import sys
 
 import pytest
 
@@ -14,7 +13,7 @@ import plover.misc as misc
 import plover.oslayer.config as conf
 from plover.resource import ASSET_SCHEME
 
-from . import parametrize
+from plover_build_utils.testing import parametrize
 
 
 def test_popcount_8():
@@ -26,7 +25,7 @@ def test_popcount_8():
         misc.popcount_8(-1)
 
 
-if sys.platform.startswith('win32'):
+if conf.PLATFORM == 'win':
     ABS_PATH = os.path.normcase(r'c:\foo\bar')
 else:
     ABS_PATH = '/foo/bar'

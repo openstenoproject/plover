@@ -15,11 +15,9 @@ class AboutDialog(QDialog, Ui_AboutDialog):
     def __init__(self, engine):
         super().__init__()
         self.setupUi(self)
-        credits = []
-        for c in plover.__credits__:
-            c = re.sub(r'<([^>]*)>', r'<a href="\1">\1</a>', c)
-            c = c.replace('\n', '<br/>')
-            credits.append(c)
+        credits = plover.__credits__
+        credits = re.sub(r'<([^>]*)>', r'<a href="\1">\1</a>', credits)
+        credits = credits.replace('\n', '<br/>')
         self.text.setHtml(
             '''
             <style>
@@ -44,5 +42,5 @@ class AboutDialog(QDialog, Ui_AboutDialog):
                 'license'    : plover.__license__,
                 'license_url': 'https://www.gnu.org/licenses/gpl-2.0-standalone.html',
                 'url'        : plover.__download_url__,
-                'credits'    : '<br/>'.join(credits),
+                'credits'    : credits,
             })

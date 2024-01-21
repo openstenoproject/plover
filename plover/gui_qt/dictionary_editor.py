@@ -8,24 +8,31 @@ from PyQt5.QtCore import (
     QModelIndex,
     Qt,
 )
+from PyQt5.QtGui import QIcon
 from PyQt5.QtWidgets import (
     QComboBox,
     QDialog,
     QStyledItemDelegate,
 )
 
+from plover import _
 from plover.translation import escape_translation, unescape_translation
 from plover.misc import expand_path, shorten_path
-from plover.steno import normalize_steno
+from plover.steno import normalize_steno, steno_to_sort_key
 
 from plover.gui_qt.dictionary_editor_ui import Ui_DictionaryEditor
+from plover.gui_qt.steno_validator import StenoValidator
 from plover.gui_qt.utils import ToolBar, WindowState
 
 
 _COL_STENO, _COL_TRANS, _COL_DICT, _COL_COUNT = range(3 + 1)
 
 
-class DictionaryItem(namedtuple('DictionaryItem', 'strokes translation dictionary')):
+class DictionaryItem(namedtuple('DictionaryItem', 'steno translation dictionary')):
+
+    @property
+    def strokes(self):
+        return normalize_steno(self.steno, strict=False)
 
     @property
     def dictionary_path(self):
@@ -48,13 +55,17 @@ class DictionaryItemDelegate(QStyledItemDelegate):
             combo = QComboBox(parent)
             combo.addItems(dictionary_paths)
             return combo
-        return super().createEditor(parent, option, index)
+        widget = super().createEditor(parent, option, index)
+        if index.column() == _COL_STENO:
+            widget.setValidator(StenoValidator())
+        return widget
 
 
 class DictionaryItemModel(QAbstractTableModel):
 
     def __init__(self, dictionary_list, sort_column, sort_order):
         super().__init__()
+        self._error_icon = QIcon(':/dictionary_error.svg')
         self._dictionary_list = dictionary_list
         self._operations = []
         self._entries = []
@@ -66,13 +77,14 @@ class DictionaryItemModel(QAbstractTableModel):
         self._entries = []
         for dictionary in self._dictionary_list:
             for strokes, translation in dictionary.items():
+                steno = '/'.join(strokes)
                 if strokes_filter is not None and \
-                   not '/'.join(strokes).startswith(strokes_filter):
+                   not steno.startswith(strokes_filter):
                     continue
                 if translation_filter is not None and \
                    not translation.startswith(translation_filter):
                     continue
-                item = DictionaryItem(strokes, translation, dictionary)
+                item = DictionaryItem(steno, translation, dictionary)
                 self._entries.append(item)
         self.sort(self._sort_column, self._sort_order)
 
@@ -159,19 +171,29 @@ class DictionaryItemModel(QAbstractTableModel):
         if orientation != Qt.Horizontal or role != Qt.DisplayRole:
             return None
         if section == _COL_STENO:
+            # i18n: Widget: “DictionaryEditor”.
             return _('Strokes')
         if section == _COL_TRANS:
+            # i18n: Widget: “DictionaryEditor”.
             return _('Translation')
         if section == _COL_DICT:
+            # i18n: Widget: “DictionaryEditor”.
             return _('Dictionary')
 
     def data(self, index, role):
-        if not index.isValid() or role not in (Qt.EditRole, Qt.DisplayRole):
+        if not index.isValid() or role not in (Qt.EditRole, Qt.DisplayRole, Qt.DecorationRole):
             return None
         item = self._entries[index.row()]
         column = index.column()
+        if role == Qt.DecorationRole:
+            if column == _COL_STENO:
+                try:
+                    normalize_steno(item.steno)
+                except ValueError:
+                    return self._error_icon
+            return None
         if column == _COL_STENO:
-            return '/'.join(item.strokes)
+            return item.steno
         if column == _COL_TRANS:
             return escape_translation(item.translation)
         if column == _COL_DICT:
@@ -191,10 +213,16 @@ class DictionaryItemModel(QAbstractTableModel):
         self._update_entries(strokes_filter, translation_filter)
         self.modelReset.emit()
 
+    @staticmethod
+    def _item_steno_sort_key(item):
+        return steno_to_sort_key(item[_COL_STENO], strict=False)
+
     def sort(self, column, order):
         self.layoutAboutToBeChanged.emit()
         if column == _COL_DICT:
             key = attrgetter('dictionary_path')
+        elif column == _COL_STENO:
+            key = self._item_steno_sort_key
         else:
             key = itemgetter(column)
         self._entries.sort(key=key,
@@ -208,10 +236,12 @@ class DictionaryItemModel(QAbstractTableModel):
         row = index.row()
         column = index.column()
         old_item = self._entries[row]
-        strokes, translation, dictionary = old_item
+        strokes = old_item.strokes
+        steno, translation, dictionary = old_item
         if column == _COL_STENO:
-            strokes = normalize_steno(value.strip())
-            if not strokes or strokes == old_item.strokes:
+            strokes = normalize_steno(value.strip(), strict=False)
+            steno = '/'.join(strokes)
+            if not steno or steno == old_item.steno:
                 return False
         elif column == _COL_TRANS:
             translation = unescape_translation(value.strip())
@@ -233,7 +263,7 @@ class DictionaryItemModel(QAbstractTableModel):
             if self._operations and self._operations[-1] == [(None, old_item)]:
                 self._operations.pop()
                 old_item = None
-        new_item = DictionaryItem(strokes, translation, dictionary)
+        new_item = DictionaryItem(steno, translation, dictionary)
         self._entries[row] = new_item
         dictionary[strokes] = translation
         if record:
@@ -247,7 +277,7 @@ class DictionaryItemModel(QAbstractTableModel):
                 dictionary = self._dictionary_list[0]
             else:
                 dictionary = self._entries[row].dictionary
-            item = DictionaryItem((), '', dictionary)
+            item = DictionaryItem('', '', dictionary)
         self.beginInsertRows(QModelIndex(), row, row)
         self._entries.insert(row, item)
         if record:
@@ -291,8 +321,8 @@ class DictionaryEditor(QDialog, Ui_DictionaryEditor, WindowState):
                                           sort_order)
         self._model.dataChanged.connect(self.on_data_changed)
         self.table.sortByColumn(sort_column, sort_order)
-        self.table.setModel(self._model)
         self.table.setSortingEnabled(True)
+        self.table.setModel(self._model)
         self.table.resizeColumnsToContents()
         self.table.setItemDelegate(DictionaryItemDelegate(dictionary_list))
         self.table.selectionModel().selectionChanged.connect(self.on_selection_changed)
@@ -315,6 +345,7 @@ class DictionaryEditor(QDialog, Ui_DictionaryEditor, WindowState):
             self.action_Delete,
             self.action_New,
         ))
+        self.strokes_filter.setValidator(StenoValidator())
         self.restore_state()
         self.finished.connect(self.save_state)
 

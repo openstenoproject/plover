@@ -1,12 +1,11 @@
-
 from collections.abc import Sequence
-from io import open
 import os
 import re
 
 from plover.oslayer.config import CONFIG_DIR
 from plover.resource import resource_filename
 from plover.registry import registry
+from plover.steno import Stroke
 
 
 def _load_wordlist(filename, assets_dir):
@@ -21,11 +20,12 @@ def _load_wordlist(filename, assets_dir):
             break
     else:
         return {}
-    words = {}
     with open(path, encoding='utf-8') as f:
-        pairs = [word.strip().rsplit(' ', 1) for word in f]
-        pairs.sort(reverse=True, key=lambda x: int(x[1]))
-        words = {p[0]: int(p[1]) for p in pairs}
+        text = f.read()
+    fields = text.split()
+    it = iter(fields)
+    words = dict(zip(it, map(int, it)))
+    assert len(fields) == 2 * len(words), path + ' contains duplicate words.'
     return words
 
 def _key_order(keys, numbers):
@@ -46,6 +46,7 @@ _EXPORTS = {
     'KEY_ORDER'                : lambda mod: _key_order(mod.KEYS, mod.NUMBERS),
     'NUMBER_KEY'               : lambda mod: mod.NUMBER_KEY,
     'NUMBERS'                  : lambda mod: dict(mod.NUMBERS),
+    'FERAL_NUMBER_KEY'         : lambda mod: getattr(mod, 'FERAL_NUMBER_KEY', False),
     'SUFFIX_KEYS'              : lambda mod: _suffix_keys(mod.SUFFIX_KEYS),
     'UNDO_STROKE_STENO'        : lambda mod: mod.UNDO_STROKE_STENO,
     'IMPLICIT_HYPHEN_KEYS'     : lambda mod: set(mod.IMPLICIT_HYPHEN_KEYS),
@@ -62,10 +63,12 @@ _EXPORTS = {
 
 def setup(system_name):
     system_symbols = {}
-    mod = registry.get_plugin('system', system_name).obj
+    system_mod = registry.get_plugin('system', system_name).obj
     for symbol, init in _EXPORTS.items():
-        system_symbols[symbol] = init(mod)
+        system_symbols[symbol] = init(system_mod)
     system_symbols['NAME'] = system_name
     globals().update(system_symbols)
+    Stroke.setup(KEYS, IMPLICIT_HYPHEN_KEYS, NUMBER_KEY, NUMBERS,
+                 FERAL_NUMBER_KEY, UNDO_STROKE_STENO)
 
 NAME = None

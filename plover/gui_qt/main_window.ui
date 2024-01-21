@@ -54,6 +54,12 @@
       <layout class="QGridLayout" name="gridLayout_2">
        <item row="2" column="0">
         <widget class="QLabel" name="machine_state">
+         <property name="accessibleName">
+          <string>State</string>
+         </property>
+         <property name="accessibleDescription">
+          <string>Connection state for the current machine.</string>
+         </property>
          <property name="text">
           <string/>
          </property>
@@ -68,6 +74,12 @@
           </sizepolicy>
          </property>
          <property name="toolTip">
+          <string>Disconnect and reconnect the machine.</string>
+         </property>
+         <property name="accessibleName">
+          <string>Reconnect</string>
+         </property>
+         <property name="accessibleDescription">
           <string>Disconnect and reconnect the machine.</string>
          </property>
          <property name="text">
@@ -87,30 +99,19 @@
            <verstretch>0</verstretch>
           </sizepolicy>
          </property>
+         <property name="accessibleName">
+          <string>Type</string>
+         </property>
+         <property name="accessibleDescription">
+          <string>Change the current machine type.</string>
+         </property>
         </widget>
        </item>
       </layout>
      </widget>
     </item>
     <item row="2" column="0" colspan="3">
-     <widget class="QScrollArea" name="scroll_area">
-      <property name="frameShape">
-       <enum>QFrame::Panel</enum>
-      </property>
-      <property name="widgetResizable">
-       <bool>true</bool>
-      </property>
-      <widget class="DictionariesWidget" name="dictionaries">
-       <property name="geometry">
-        <rect>
-         <x>0</x>
-         <y>0</y>
-         <width>311</width>
-         <height>233</height>
-        </rect>
-       </property>
-      </widget>
-     </widget>
+     <widget class="DictionariesWidget" name="dictionaries" native="true"/>
     </item>
     <item row="0" column="1">
      <widget class="QGroupBox" name="groupBox">
@@ -127,14 +128,14 @@
        <item row="0" column="0">
         <widget class="QRadioButton" name="output_enable">
          <property name="text">
-          <string>Enable</string>
+          <string>Enabled</string>
          </property>
         </widget>
        </item>
        <item row="1" column="0">
         <widget class="QRadioButton" name="output_disable">
          <property name="text">
-          <string>Disable</string>
+          <string>Disabled</string>
          </property>
          <property name="checked">
           <bool>true</bool>
@@ -304,7 +305,7 @@
   </customwidget>
  </customwidgets>
  <tabstops>
-  <tabstop>scroll_area</tabstop>
+  <tabstop>dictionaries</tabstop>
   <tabstop>machine_type</tabstop>
   <tabstop>reconnect</tabstop>
   <tabstop>output_enable</tabstop>
@@ -483,7 +484,6 @@
   <slot>on_quit()</slot>
   <slot>on_toggle_output(bool)</slot>
   <slot>on_about()</slot>
-  <slot>on_show_hide()</slot>
   <slot>on_machine_changed(int)</slot>
   <slot>on_enable_output()</slot>
   <slot>on_disable_output()</slot>

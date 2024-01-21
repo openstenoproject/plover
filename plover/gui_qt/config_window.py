@@ -16,16 +16,17 @@ from PyQt5.QtWidgets import (
     QFileDialog,
     QFormLayout,
     QFrame,
+    QGroupBox,
     QLabel,
     QScrollArea,
     QSpinBox,
     QStyledItemDelegate,
     QTableWidget,
     QTableWidgetItem,
-    QWidget,
 )
 
-from plover.config import MINIMUM_UNDO_LEVELS
+from plover import _
+from plover.config import MINIMUM_UNDO_LEVELS, MINIMUM_TIME_BETWEEN_KEY_PRESSES
 from plover.misc import expand_path, shorten_path
 from plover.registry import registry
 
@@ -40,6 +41,8 @@ class NopeOption(QLabel):
 
     def __init__(self):
         super().__init__()
+        # i18n: Widget: “NopeOption” (empty config option message,
+        # e.g. the machine option when selecting the Treal machine).
         self.setText(_('Nothing to see here!'))
 
     def setValue(self, value):
@@ -86,7 +89,7 @@ class ChoiceOption(QComboBox):
         self.valueChanged.emit(self.itemData(index))
 
 
-class FileOption(QWidget, Ui_FileWidget):
+class FileOption(QGroupBox, Ui_FileWidget):
 
     valueChanged = pyqtSignal(str)
 
@@ -115,7 +118,36 @@ class FileOption(QWidget, Ui_FileWidget):
         self.valueChanged.emit(expand_path(self.path.text()))
 
 
-class KeymapOption(QTableWidget):
+class TableOption(QTableWidget):
+
+    def __init__(self):
+        super().__init__()
+        self.horizontalHeader().setStretchLastSection(True)
+        self.setSelectionMode(self.SingleSelection)
+        self.setTabKeyNavigation(False)
+        self.setVerticalScrollBarPolicy(Qt.ScrollBarAlwaysOff)
+        self.verticalHeader().hide()
+        self.currentItemChanged.connect(self._on_current_item_changed)
+
+    def _on_current_item_changed(self, current, previous):
+        # Ensure current item is visible.
+        parent = self.parent()
+        while parent is not None:
+            if isinstance(parent, QScrollArea):
+                row = current.row()
+                pos = self.pos()
+                x = pos.x()
+                y = (
+                    + pos.y()
+                    + self.rowViewportPosition(row)
+                    + self.rowHeight(row)
+                )
+                parent.ensureVisible(x, y)
+                return
+            parent = parent.parent()
+
+
+class KeymapOption(TableOption):
 
     valueChanged = pyqtSignal(QVariant)
 
@@ -138,10 +170,12 @@ class KeymapOption(QTableWidget):
         self._value = []
         self._updating = False
         self.setColumnCount(2)
-        self.setHorizontalHeaderLabels((_('Key'), _('Action')))
-        self.horizontalHeader().setStretchLastSection(True)
-        self.verticalHeader().hide()
-        self.setVerticalScrollBarPolicy(Qt.ScrollBarAlwaysOff)
+        self.setHorizontalHeaderLabels((
+            # i18n: Widget: “KeymapOption”.
+            _('Key'),
+            # i18n: Widget: “KeymapOption”.
+            _('Action'),
+        ))
         self.cellChanged.connect(self._on_cell_changed)
 
     def setValue(self, value):
@@ -180,12 +214,22 @@ class KeymapOption(QTableWidget):
         self.valueChanged.emit(self._value)
 
 
-class MultipleChoicesOption(QTableWidget):
+class MultipleChoicesOption(TableOption):
 
     valueChanged = pyqtSignal(QVariant)
 
-    def __init__(self, choices=None, labels=(_('Choice'), _('Selected'))):
+    LABELS = (
+        # i18n: Widget: “MultipleChoicesOption”.
+        _('Choice'),
+        # i18n: Widget: “MultipleChoicesOption”.
+        _('Selected'),
+    )
+
+    # i18n: Widget: “MultipleChoicesOption”.
+    def __init__(self, choices=None, labels=None):
         super().__init__()
+        if labels is None:
+            labels = self.LABELS
         self._value = {}
         self._updating = False
         self._choices = {} if choices is None else choices
@@ -195,9 +239,6 @@ class MultipleChoicesOption(QTableWidget):
         }
         self.setColumnCount(2)
         self.setHorizontalHeaderLabels(labels)
-        self.horizontalHeader().setStretchLastSection(True)
-        self.verticalHeader().hide()
-        self.setVerticalScrollBarPolicy(Qt.ScrollBarAlwaysOff)
         self.cellChanged.connect(self._on_cell_changed)
 
     def setValue(self, value):
@@ -207,6 +248,9 @@ class MultipleChoicesOption(QTableWidget):
         self.setRowCount(0)
         if value is None:
             value = set()
+        else:
+            # Don't mutate the original value.
+            value = set(value)
         self._value = value
         row = -1
         for choice in sorted(self._reversed_choices):
@@ -226,7 +270,7 @@ class MultipleChoicesOption(QTableWidget):
     def _on_cell_changed(self, row, column):
         if self._updating:
             return
-        assert (row, column) == (0, 1)
+        assert column == 1
         choice = self._reversed_choices[self.item(row, 0).data(Qt.DisplayRole)]
         if self.item(row, 1).checkState():
             self._value.add(choice)
@@ -255,6 +299,7 @@ class ConfigOption:
         self.dependents = dependents
         self.layout = None
         self.widget = None
+        self.label = None
 
 
 class ConfigWindow(QDialog, Ui_ConfigWindow, WindowState):
@@ -270,6 +315,7 @@ class ConfigWindow(QDialog, Ui_ConfigWindow, WindowState):
             for plugin in registry.list_plugins('machine')
         }
         mappings = (
+            # i18n: Widget: “ConfigWindow”.
             (_('Interface'), (
                 ConfigOption(_('Start minimized:'), 'start_minimized', BooleanOption,
                              _('Minimize the main window to systray on startup.')),
@@ -289,17 +335,19 @@ class ConfigWindow(QDialog, Ui_ConfigWindow, WindowState):
                                '- top-down: match the search order; highest priority first\n'
                                '- bottom-up: reverse search order; lowest priority first\n')),
             )),
+            # i18n: Widget: “ConfigWindow”.
             (_('Logging'), (
                 ConfigOption(_('Log file:'), 'log_file_name',
                              partial(FileOption,
                                      _('Select a log file'),
-                                     _('Log files') + ' (*.log)'),
+                                     _('Log files (*.log)')),
                              _('File to use for logging strokes/translations.')),
                 ConfigOption(_('Log strokes:'), 'enable_stroke_logging', BooleanOption,
                              _('Save strokes to the logfile.')),
                 ConfigOption(_('Log translations:'), 'enable_translation_logging', BooleanOption,
                              _('Save translations to the logfile.')),
             )),
+            # i18n: Widget: “ConfigWindow”.
             (_('Machine'), (
                 ConfigOption(_('Machine:'), 'machine_type', partial(ChoiceOption, choices=machines),
                              dependents=(
@@ -309,6 +357,7 @@ class ConfigWindow(QDialog, Ui_ConfigWindow, WindowState):
                 ConfigOption(_('Options:'), 'machine_specific_options', self._machine_option),
                 ConfigOption(_('Keymap:'), 'system_keymap', KeymapOption),
             )),
+            # i18n: Widget: “ConfigWindow”.
             (_('Output'), (
                 ConfigOption(_('Enable at start:'), 'auto_start', BooleanOption,
                              _('Enable output on startup.')),
@@ -332,7 +381,19 @@ class ConfigWindow(QDialog, Ui_ConfigWindow, WindowState):
                                '\n'
                                'Note: the effective value will take into account the\n'
                                'dictionaries entry with the maximum number of strokes.')),
+                ConfigOption(_('Key press delay (ms):'), 'time_between_key_presses',
+                             partial(IntOption,
+                                     maximum=100000,
+                                     minimum=MINIMUM_TIME_BETWEEN_KEY_PRESSES),
+                             _('Set the delay between emulated key presses (in milliseconds).\n'
+                               '\n'
+                               'Some programs may drop key presses if too many are sent\n'
+                               'within a short period of time. Increasing the delay gives\n'
+                               'programs time to process each key press.\n'
+                               'Setting the delay too high will negatively impact the\n'
+                               'performance of key stroke output.')),
             )),
+            # i18n: Widget: “ConfigWindow”.
             (_('Plugins'), (
                 ConfigOption(_('Extension:'), 'enabled_extensions',
                              partial(MultipleChoicesOption, choices={
@@ -341,6 +402,7 @@ class ConfigWindow(QDialog, Ui_ConfigWindow, WindowState):
                              }, labels=(_('Name'), _('Enabled'))),
                              _('Configure enabled plugin extensions.')),
             )),
+            # i18n: Widget: “ConfigWindow”.
             (_('System'), (
                 ConfigOption(_('System:'), 'system_name',
                              partial(ChoiceOption, choices={
@@ -360,33 +422,35 @@ class ConfigWindow(QDialog, Ui_ConfigWindow, WindowState):
             self._supported_options.update(option.option_name for option in option_list)
         self._update_config()
         # Create and fill tabs.
-        options = {}
+        option_by_name = {}
         for section, option_list in mappings:
             layout = QFormLayout()
             for option in option_list:
-                widget = self._create_option_widget(option)
-                options[option.option_name] = option
-                option.tab_index = self.tabs.count()
+                option_by_name[option.option_name] = option
                 option.layout = layout
-                option.widget = widget
-                label = QLabel(option.display_name)
-                label.setToolTip(option.help_text)
-                layout.addRow(label, widget)
+                option.widget = self._create_option_widget(option)
+                option.label = QLabel(option.display_name)
+                option.label.setToolTip(option.help_text)
+                option.label.setBuddy(option.widget)
+                layout.addRow(option.label, option.widget)
             frame = QFrame()
             frame.setLayout(layout)
+            frame.setAccessibleName(section)
+            frame.setFocusProxy(option_list[0].widget)
             scroll_area = QScrollArea()
             scroll_area.setWidgetResizable(True)
             scroll_area.setWidget(frame)
+            scroll_area.setFocusProxy(frame)
             self.tabs.addTab(scroll_area, section)
         # Update dependents.
-        for option in options.values():
+        for option in option_by_name.values():
             option.dependents = [
-                (options[option_name], update_fn)
+                (option_by_name[option_name], update_fn)
                 for option_name, update_fn in option.dependents
             ]
-        buttons = self.findChild(QWidget, 'buttons')
-        buttons.button(QDialogButtonBox.Ok).clicked.connect(self.on_apply)
-        buttons.button(QDialogButtonBox.Apply).clicked.connect(self.on_apply)
+        self.buttons.button(QDialogButtonBox.Ok).clicked.connect(self.on_apply)
+        self.buttons.button(QDialogButtonBox.Apply).clicked.connect(self.on_apply)
+        self.tabs.currentWidget().setFocus()
         self.restore_state()
         self.finished.connect(self.save_state)
 
@@ -430,6 +494,8 @@ class ConfigWindow(QDialog, Ui_ConfigWindow, WindowState):
     def _create_option_widget(self, option):
         widget = option.widget_class()
         widget.setToolTip(option.help_text)
+        widget.setAccessibleName(option.display_name)
+        widget.setAccessibleDescription(option.help_text)
         widget.valueChanged.connect(partial(self.on_option_changed, option))
         widget.setValue(self._config[option.option_name])
         return widget
@@ -449,6 +515,7 @@ class ConfigWindow(QDialog, Ui_ConfigWindow, WindowState):
             self._config.maps[1][dependent.option_name] = update_fn(value)
             widget = self._create_option_widget(dependent)
             dependent.layout.replaceWidget(dependent.widget, widget)
+            dependent.label.setBuddy(widget)
             dependent.widget.deleteLater()
             dependent.widget = widget
 

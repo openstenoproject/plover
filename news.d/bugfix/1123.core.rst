@@ -1,1 +1,0 @@
-Configuration save operations are now atomic.

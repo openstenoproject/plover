@@ -1,0 +1,318 @@
+name: CI
+
+on:
+  push:
+    branches:
+      - '*'
+    tags-ignore:
+      # Ignore continuous releases' tag.
+      - 'continuous'
+  pull_request:
+
+defaults:
+  run:
+    # Powershell on Windows? No thank you...
+    shell: bash --noprofile --norc -eo pipefail .github/workflows/ci/helpers.sh . {0}
+
+jobs:
+
+  # Job: Analyze {{{
+  analyze:
+
+    name: Analyze
+    runs-on: ubuntu-latest
+
+    steps:
+
+      - name: Checkout
+        uses: <@ action_checkout @>
+
+    <% if skippy_enabled %>
+      - name: Calculate skip cache keys
+        id: set_cache
+        run: |
+          <% for j in jobs %>
+          <@ j.shell_definition @>; analyze_set_job_skip_cache_key
+          <% endfor %>
+
+      <% for j in jobs %>
+      - name: Check skip cache for <@ j.name @>
+        uses: actions/cache@v3
+        with:
+          path: <@ j.skip_cache_path @>
+          key: <@ cache_epoch @>_check_${{ steps.set_cache.outputs.<@ j.id @>_skip_cache_key }}_${{ github.run_id }}
+          restore-keys:
+            <@ cache_epoch @>_${{ steps.set_cache.outputs.<@ j.id @>_skip_cache_key }}
+
+      <% endfor %>
+      <% endif %>
+      - name: Set outputs
+        id: set_ouputs
+        env:
+          CONTINUOUS_RELEASE_BRANCH: ${{ secrets.CONTINUOUS_RELEASE_BRANCH }}
+        run: |
+          analyze_set_release_info
+          <% for j in jobs %>
+          <% if skippy_enabled %>
+          <@ j.shell_definition @>; analyze_set_job_skip_job
+          <% else %>
+          echo "<@ j.id @>_skip_job=no" >> $GITHUB_OUTPUT
+          <% endif %>
+          <% endfor %>
+
+    outputs:
+      is_release: ${{ steps.set_ouputs.outputs.is_release }}
+      release_type: ${{ steps.set_ouputs.outputs.release_type }}
+      <% for j in jobs %>
+      <@ j.id @>_skip_job: ${{ steps.set_ouputs.outputs.<@ j.id @>_skip_job }}
+      <@ j.id @>_skip_cache_key: ${{ steps.set_cache.outputs.<@ j.id @>_skip_cache_key }}
+      <% endfor %>
+      release_skip_job: ${{ steps.set_ouputs.outputs.release_skip_job }}
+  # }}}
+
+  <% for j in jobs %>
+  # Job: <@ j.name @> {{{
+  <@ j.id @>:
+
+    name: <@ j.name @>
+    runs-on: <@ j.platform @>
+    needs: [analyze, <@ j.needs|join(', ') @>]
+    if: >-
+      !cancelled()
+      <% for need_id in j.needs %>
+      && (needs.<@ need_id @>.result == 'success' || needs.<@ need_id @>.result == 'skipped')
+      <% endfor %>
+      && needs.analyze.outputs.<@ j.id @>_skip_job == 'no'
+
+    steps:
+
+      - name: Checkout
+        uses: <@ action_checkout @>
+      <% if j.type in ['build', 'test_packaging'] %>
+        with:
+          # We need the whole history for patching the version.
+          fetch-depth: 0
+      <% endif %>
+
+      <% if j.os != 'macOS' %>
+      - name: Setup Python
+        uses: <@ action_setup_python @>
+        with:
+          python-version: '<@ j.python @>'
+
+      <% endif %>
+      <% if skippy_enabled and j.os == 'Windows' %>
+      # On Windows, ensure we use a tar compatible
+      # with the one used in the analyze job.
+      - name: Fix tar
+        run: rm C:/Windows/System32/tar
+
+      <% endif %>
+      - name: Set cache name
+        id: set_cache
+        run: setup_cache_name '<@ j.python @>' '<@ j.platform @>'
+
+      - name: Setup cache
+        uses: <@ action_cache @>
+        with:
+          path: .cache
+          key: <@ cache_epoch @>_${{ steps.set_cache.outputs.cache_name }}_${{ hashFiles('reqs/constraints.txt'<% for d in (j.reqs + j.cache_extra_deps) %><@ ', %r' % d @><% endfor %>) }}
+
+      - name: Setup pip options
+        run: setup_pip_options
+
+      <% if j.os == 'macOS' %>
+      # To support older macOS versions, setup Python from an official installer.
+      - name: Setup Python
+        run: setup_osx_python '<@ j.python @>'
+
+      <% endif %>
+      <% if j.type == 'build' and j.os == 'Linux' %>
+      - name: Install system dependencies
+        run: apt_get_install libdbus-1-dev libdbus-glib-1-dev libudev-dev libusb-1.0-0-dev
+
+      <% endif %>
+      - name: Setup Python environment
+        run: setup_python_env -c reqs/constraints.txt<% for r in j.reqs %> -r <@ r @><% endfor %>
+
+      <% if j.type in ['build', 'test_packaging'] %>
+      - name: Patch version
+        id: set_version
+        run: |
+          python setup.py patch_version
+          <% if j.type == 'test_packaging' %>
+          echo "version=$(python setup.py --version)" >> $GITHUB_OUTPUT
+          <% endif %>
+
+      <% endif %>
+      <% if j.type == 'test_gui_qt' %>
+      - name: Build UI
+        run: python setup.py build_ui
+
+      <% endif %>
+      <% if j.type in ['test', 'test_gui_qt'] %>
+      # Test {{{
+
+      - name: Run tests
+        run: run_tests <@ j.test_args @>
+
+
+      # }}}
+
+      <% endif %>
+      <% if j.type == 'test_packaging' %>
+      # Test packaging {{{
+
+      - name: Run packaging sanity checks
+        run: packaging_checks
+
+      - name: Archive artifact (sdist)
+        if: needs.analyze.outputs.is_release == 'yes'
+        uses: <@ action_upload_artifact @>
+        with:
+          name: Source
+          path: dist/*.tar.gz
+
+      - name: Archive artifact (wheel)
+        if: needs.analyze.outputs.is_release == 'yes'
+        uses: <@ action_upload_artifact @>
+        with:
+          name: Wheel
+          path: dist/*.whl
+
+      - name: Generate translations catalogs archive
+        if: needs.analyze.outputs.is_release == 'yes'
+        run: generate_translations_catalogs_archive
+
+      - name: Archive artifact (translations catalogs)
+        if: needs.analyze.outputs.is_release == 'yes'
+        uses: <@ action_upload_artifact @>
+        with:
+          name: Translations Catalogs
+          path: dist/*-messages.zip
+
+      # }}}
+
+      <% endif %>
+      <% if j.type == 'build' %>
+      # Build {{{
+
+      <% if j.os == 'Linux' %>
+      - name: Build distribution (Linux AppImage)
+        run: python setup.py -q bdist_appimage --no-update-tools
+
+      - name: Archive artifact (Linux AppImage)
+        uses: <@ action_upload_artifact @>
+        with:
+          name: Linux AppImage
+          path: dist/*.AppImage
+
+      <% endif %>
+      <% if j.os == 'macOS' %>
+      - name: Build distribution (macOS DMG)
+        run: python setup.py -q bdist_dmg
+
+      - name: Archive artifact (macOS DMG)
+        uses: <@ action_upload_artifact @>
+        with:
+          name: macOS DMG
+          path: dist/*.dmg
+
+      <% endif %>
+      <% if j.os == 'Windows' %>
+      - name: Build distributions (Windows)
+        run: |
+          # Note: we avoid using the WSL bash (which does not work).
+          bash="$(cygpath -w -a "$(which bash)")"
+          python setup.py -q bdist_win -t -z -i --bash="$bash"
+
+      - name: Archive artifact (Windows Installer)
+        uses: <@ action_upload_artifact @>
+        with:
+          name: Windows Installer
+          path: dist/*.exe
+
+      - name: Archive artifact (Windows ZIP)
+        uses: <@ action_upload_artifact @>
+        with:
+          name: Windows ZIP
+          path: dist/*.zip
+
+      <% endif %>
+      # }}}
+
+      <% endif %>
+      <% if skippy_enabled %>
+      - name: Update skip cache 1
+        uses: <@ action_cache @>
+        with:
+          path: <@ j.skip_cache_path @>
+          key: <@ cache_epoch @>_${{ needs.analyze.outputs.<@ j.id @>_skip_cache_key }}
+
+      - name: Update skip cache 2
+        run: run_eval "echo 'https://github.com/$GITHUB_REPOSITORY/actions/runs/$GITHUB_RUN_ID' >'<@ j.skip_cache_path @>'"
+
+      <% endif %>
+      - name: List cache contents
+        run: list_cache
+    <% if j.type == 'test_packaging' %>
+  
+    outputs:
+      version: ${{ steps.set_version.outputs.version }}
+    <% endif %>
+  # }}}
+
+  <% endfor %>
+  # Job: Release {{{
+  release:
+
+    name: Release
+    environment: release
+    runs-on: ubuntu-latest
+    needs: [analyze, <@ jobs|join(', ', attribute='id') @>]
+    if: >-
+      !cancelled()
+      <% for j in jobs %>
+      && needs.<@ j.id @>.result == 'success'
+      <% endfor %>
+      && needs.analyze.outputs.release_skip_job == 'no'
+
+    steps:
+
+      - name: Checkout
+        uses: <@ action_checkout @>
+
+      - name: Setup Python
+        uses: <@ action_setup_python @>
+        with:
+          python-version: 3.x
+
+      - name: Install dependencies
+        run: |
+          run apt_get_install -qq pandoc
+          run "$python" -m pip install -c reqs/constraints.txt -r reqs/release.txt
+
+      - name: Download artifacts
+        uses: <@ action_download_artifact @>
+        with:
+          path: dist
+
+      - name: Publish PyPI release
+        if: needs.analyze.outputs.release_type == 'tagged'
+        env:
+          TWINE_NON_INTERACTIVE: 1
+          TWINE_USERNAME: __token__
+          TWINE_PASSWORD: ${{ secrets.PYPI_TOKEN }}
+          # Optional: twine will fallback to default if empty.
+          TWINE_REPOSITORY_URL: ${{ secrets.PYPI_URL }}
+        run: publish_pypi_release
+
+      - name: Publish GitHub release (${{ needs.analyze.outputs.release_type }})
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          RELEASE_TYPE: ${{ needs.analyze.outputs.release_type }}
+          RELEASE_VERSION: ${{ needs.test_packaging.outputs.version }}
+        run: publish_github_release
+  # }}}
+
+# vim: foldmethod=marker foldlevel=0

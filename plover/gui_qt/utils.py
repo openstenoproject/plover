@@ -1,11 +1,25 @@
-
 from PyQt5.QtCore import QSettings
+from PyQt5.QtGui import QGuiApplication, QKeySequence
 from PyQt5.QtWidgets import (
+    QAction,
     QMainWindow,
     QToolBar,
     QToolButton,
     QWidget,
 )
+
+from plover import _
+
+
+def ActionCopyViewSelectionToClipboard(view):
+    def copy_selection_to_clipboard():
+        indexes = view.selectedIndexes()
+        data = view.model().mimeData(indexes)
+        QGuiApplication.clipboard().setMimeData(data)
+    action = QAction(_('Copy selection to clipboard'))
+    action.setShortcut(QKeySequence(QKeySequence.Copy))
+    action.triggered.connect(copy_selection_to_clipboard)
+    return action
 
 
 def ToolButton(action):

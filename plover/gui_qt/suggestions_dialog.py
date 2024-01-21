@@ -12,21 +12,19 @@ from PyQt5.QtWidgets import (
     QMenu,
 )
 
+from plover import _
 from plover.suggestions import Suggestion
 from plover.formatting import RetroFormatter
 
 from plover.gui_qt.suggestions_dialog_ui import Ui_SuggestionsDialog
-from plover.gui_qt.i18n import get_gettext
 from plover.gui_qt.utils import ToolBar
 from plover.gui_qt.tool import Tool
 
 
-_ = get_gettext()
-
-
 class SuggestionsDialog(Tool, Ui_SuggestionsDialog):
 
-    ''' Suggest possible strokes for the last written words. '''
+    # i18n: Widget: “SuggestionsDialog”, tooltip.
+    __doc__ = _('Suggest possible strokes for the last written words.')
 
     TITLE = _('Suggestions')
     ICON = ':/lightbulb.svg'
@@ -56,7 +54,9 @@ class SuggestionsDialog(Tool, Ui_SuggestionsDialog):
         self.action_Clear.setEnabled(False)
         # Font popup menu.
         self._font_menu = QMenu()
+        # i18n: Widget: “SuggestionsDialog”, “font” menu.
         self._font_menu_text = QAction(_('&Text'), self._font_menu)
+        # i18n: Widget: “SuggestionsDialog”, “font” menu.
         self._font_menu_strokes = QAction(_('&Strokes'), self._font_menu)
         self._font_menu.addActions([self._font_menu_text, self._font_menu_strokes])
         engine.signal_connect('translated', self.on_translation)

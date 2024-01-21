@@ -1,0 +1,4 @@
+pytest
+pytest-qt
+
+# vim: ft=cfg commentstring=#\ %s list

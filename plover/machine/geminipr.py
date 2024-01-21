@@ -53,6 +53,4 @@ class GeminiPr(SerialStenotypeBase):
                 for j in range(1, 8):
                     if (b & (0x80 >> j)):
                         steno_keys.append(STENO_KEY_CHART[i * 7 + j - 1])
-            steno_keys = self.keymap.keys_to_actions(steno_keys)
-            if steno_keys:
-                self._notify(steno_keys)
+            self._notify_keys(steno_keys)

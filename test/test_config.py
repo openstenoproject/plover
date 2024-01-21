@@ -20,6 +20,7 @@ import pytest
 
 from plover import config
 from plover.config import DictionaryConfig
+from plover.oslayer.config import PLATFORM
 from plover.machine.keyboard import Keyboard
 from plover.machine.keymap import Keymap
 from plover.misc import expand_path
@@ -102,7 +103,7 @@ def test_config_dict():
             DictionaryConfig(short_path, False)
 
 
-if sys.platform.startswith('win32'):
+if PLATFORM == 'win':
     ABS_PATH = os.path.normcase(r'c:/foo/bar')
 else:
     ABS_PATH = '/foo/bar'
@@ -126,7 +127,7 @@ DEFAULTS = {
     'enabled_extensions': set(),
     'auto_start': False,
     'machine_type': 'Keyboard',
-    'machine_specific_options': { 'arpeggiate': False },
+    'machine_specific_options': { 'arpeggiate': False, 'first_up_chord_send': False },
     'system_name': config.DEFAULT_SYSTEM_NAME,
     'system_keymap': DEFAULT_KEYMAP,
     'dictionaries': [DictionaryConfig(p) for p in english_stenotype.DEFAULT_DICTIONARIES]
@@ -248,11 +249,13 @@ CONFIG_TESTS = (
      {
          'machine_specific_options': {
              'arpeggiate': True,
+             'first_up_chord_send': False,
          }
      },
      '''
      [Keyboard]
      arpeggiate = True
+     first_up_chord_send = False
      '''
     ),
 
@@ -393,6 +396,17 @@ CONFIG_TESTS = (
      None,
     ),
 
+    ('invalid_options_3',
+     '''
+     [Output Configuration]
+     undo_levels = foobar
+     ''',
+     DEFAULTS,
+     {},
+     {},
+     None,
+    ),
+
     ('invalid_update_1',
      '''
      [Translation Frame]
@@ -504,6 +518,51 @@ def test_config(original_contents, original_config,
     assert config_file.read_text(encoding='utf-8').strip() == dedent_strip(resulting_contents)
 
 
+CONFIG_MISSING_INTS_TESTS = (
+    ('int_option',
+    config.OUTPUT_CONFIG_SECTION,
+    'undo_levels',
+    config.DEFAULT_UNDO_LEVELS,
+    ),
+
+    ('opacity_option',
+    'Translation Frame',
+    'translation_frame_opacity',
+    100,
+    ),
+)
+
+
+@pytest.mark.parametrize(('which_section', 'which_option', 'fixed_value'),
+                         [t[1:] for t in CONFIG_MISSING_INTS_TESTS],
+                         ids=[t[0] for t in CONFIG_MISSING_INTS_TESTS])
+def test_config_missing_ints(which_section, which_option, fixed_value,
+                               monkeypatch, tmpdir, caplog):
+    registry = Registry()
+    registry.register_plugin('machine', 'Keyboard', Keyboard)
+    registry.register_plugin('system', 'English Stenotype', english_stenotype)
+    monkeypatch.setattr('plover.config.registry', registry)
+    config_file = tmpdir / 'config.cfg'
+
+    # Make config with the appropriate empty section
+    contents = f'''
+    [{which_section}]
+    '''
+    config_file.write_text(contents, encoding='utf-8')
+    cfg = config.Config(config_file.strpath)
+    cfg.load()
+
+    # Try to access an option under that section
+    # (should trigger validation)
+    assert cfg[which_option] == fixed_value
+
+    # Ensure that missing options are handled
+    assert 'InvalidConfigOption: None' not in caplog.text
+    # ... or any that there aren't any unhandled errors
+    for record in caplog.records:
+        assert record.levelname != 'ERROR'
+
+
 CONFIG_DIR_TESTS = (
     # Default to `user_config_dir`.
     ('''
@@ -554,8 +613,15 @@ def test_config_dir(tree, expected_config_dir, tmpdir):
     }
     # Setup environment.
     env = dict(os.environ)
-    env['HOME'] = str(home)
+    if PLATFORM == 'win':
+        env['USERPROFILE'] = str(home)
+    else:
+        env['HOME'] = str(home)
     env['PYTHONUSERBASE'] = USER_BASE
+    # Ensure XDG_xxx environment variables don't screw up our isolation.
+    for k in list(env):
+        if k.startswith('XDG_'):
+            del env[k]
     # Helpers.
     def pyeval(script):
         return literal_eval(subprocess.check_output(

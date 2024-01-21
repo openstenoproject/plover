@@ -7,7 +7,7 @@ import threading
 
 from plover.machine.passport import Passport
 
-from . import parametrize
+from plover_build_utils.testing import parametrize
 
 
 class MockSerial:

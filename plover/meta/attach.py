@@ -24,6 +24,7 @@ def meta_attach(ctx, meta):
     if end:
         meta = meta[:-len(META_ATTACH_FLAG)]
         action.next_attach = True
+        action.word_is_finished = False
     last_word = ctx.last_action.word or ''
     if not meta:
         # We use an empty connection to indicate a "break" in the
@@ -62,6 +63,7 @@ def meta_carry_capitalize(ctx, meta):
     if end:
         meta = meta[:-len(META_ATTACH_FLAG)]
         action.next_attach = True
+        action.word_is_finished = False
     if meta or begin or end:
         action.text = meta
     return action

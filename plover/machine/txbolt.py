@@ -66,7 +66,7 @@ class TxBolt(plover.machine.base.SerialStenotypeBase):
         settings['timeout'] = 0.1 # seconds
         self.serial_port.applySettingsDict(settings)
         self._ready()
-        while not self.finished.isSet():
+        while not self.finished.is_set():
             # Grab data from the serial port, or wait for timeout if none available.
             raw = self.serial_port.read(max(1, self.serial_port.inWaiting()))
 

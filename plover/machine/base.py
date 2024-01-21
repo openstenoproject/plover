@@ -11,15 +11,19 @@ import threading
 
 import serial
 
-from plover import log
+from plover import _, log
 from plover.machine.keymap import Keymap
 from plover.misc import boolean
 
 
-STATE_STOPPED = 'stopped'
-STATE_INITIALIZING = 'initializing'
-STATE_RUNNING = 'connected'
-STATE_ERROR = 'disconnected'
+# i18n: Machine state.
+STATE_STOPPED = _('stopped')
+# i18n: Machine state.
+STATE_INITIALIZING = _('initializing')
+# i18n: Machine state.
+STATE_RUNNING = _('connected')
+# i18n: Machine state.
+STATE_ERROR = _('disconnected')
 
 
 class StenotypeBase:
@@ -86,6 +90,11 @@ class StenotypeBase:
         for callback in self.stroke_subscribers:
             callback(steno_keys)
 
+    def _notify_keys(self, steno_keys):
+        steno_keys = self.keymap.keys_to_actions(steno_keys)
+        if steno_keys:
+            self._notify(steno_keys)
+
     def set_suppression(self, enabled):
         '''Enable keyboard suppression.
 
@@ -145,9 +154,17 @@ class ThreadedStenotypeBase(StenotypeBase, threading.Thread):
     """
     def __init__(self):
         threading.Thread.__init__(self)
+        self._on_unhandled_exception(self._error)
         self.name += '-machine'
         StenotypeBase.__init__(self)
         self.finished = threading.Event()
+
+    def _on_unhandled_exception(self, action):
+        super_invoke_excepthook = self._invoke_excepthook
+        def invoke_excepthook(self):
+            action()
+            super_invoke_excepthook(self)
+        self._invoke_excepthook = invoke_excepthook
 
     def run(self):
         """This method should be overridden by a subclass."""
@@ -190,11 +207,12 @@ class SerialStenotypeBase(ThreadedStenotypeBase):
     def __init__(self, serial_params):
         """Monitor the stenotype over a serial port.
 
-        Keyword arguments are the same as the keyword arguments for a
-        serial.Serial object.
+        The key-value pairs in the <serial_params> dict are the same
+        as the keyword arguments for a serial.Serial object.
 
         """
         ThreadedStenotypeBase.__init__(self)
+        self._on_unhandled_exception(self._handle_disconnect)
         self.serial_port = None
         self.serial_params = serial_params
 
@@ -203,6 +221,10 @@ class SerialStenotypeBase(ThreadedStenotypeBase):
             return
         self.serial_port.close()
         self.serial_port = None
+
+    def _handle_disconnect(self):
+        self._close_port()
+        self._error()
 
     def start_capture(self):
         self._close_port()
@@ -261,7 +283,7 @@ class SerialStenotypeBase(ThreadedStenotypeBase):
             0.01,
         )
         packet = b''
-        while not self.finished.isSet():
+        while not self.finished.is_set():
             raw = self.serial_port.read(packet_size - len(packet))
             if not raw:
                 if packet:

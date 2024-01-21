@@ -64,7 +64,7 @@ appimage_python()
 
 appimage_launch()
 {
-  appimage_python -s -m plover.dist_main "$@"
+  appimage_python -s -m plover.scripts.dist_main "$@"
 }
 
 set -e

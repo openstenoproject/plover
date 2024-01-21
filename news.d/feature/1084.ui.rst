@@ -1,1 +1,0 @@
-The "Add translation" stroke lookup now returns entries for all enabled dictionaries and is debounced to improve performance.

@@ -16,7 +16,7 @@
    </font>
   </property>
   <property name="windowTitle">
-   <string>Plover: Paper Tape</string>
+   <string notr="true"/>
   </property>
   <property name="sizeGripEnabled">
    <bool>true</bool>
@@ -27,7 +27,10 @@
      <item row="0" column="0">
       <widget class="QLabel" name="label">
        <property name="text">
-        <string>Mode</string>
+        <string>Mode:</string>
+       </property>
+       <property name="buddy">
+        <cstring>styles</cstring>
        </property>
       </widget>
      </item>
@@ -38,6 +41,12 @@
          <horstretch>0</horstretch>
          <verstretch>0</verstretch>
         </sizepolicy>
+       </property>
+       <property name="accessibleName">
+        <string>Mode</string>
+       </property>
+       <property name="accessibleDescription">
+        <string>Select paper tape display mode.</string>
        </property>
       </widget>
      </item>
@@ -52,22 +61,28 @@
       </sizepolicy>
      </property>
      <property name="text">
-      <string>#STKPWHRAO*EUFRPBLGTSDZ</string>
+      <string notr="true">#STKPWHRAO*EUFRPBLGTSDZ</string>
      </property>
     </widget>
    </item>
    <item>
-    <widget class="QPlainTextEdit" name="tape">
+    <widget class="QListView" name="tape">
+     <property name="accessibleName">
+      <string>Tape</string>
+     </property>
      <property name="frameShape">
       <enum>QFrame::Panel</enum>
      </property>
-     <property name="undoRedoEnabled">
+     <property name="tabKeyNavigation">
       <bool>false</bool>
      </property>
-     <property name="lineWrapMode">
-      <enum>QPlainTextEdit::NoWrap</enum>
+     <property name="selectionMode">
+      <enum>QAbstractItemView::SingleSelection</enum>
      </property>
-     <property name="readOnly">
+     <property name="selectionBehavior">
+      <enum>QAbstractItemView::SelectRows</enum>
+     </property>
+     <property name="uniformItemSizes">
       <bool>true</bool>
      </property>
     </widget>
@@ -82,7 +97,7 @@
     <string>&amp;Clear</string>
    </property>
    <property name="toolTip">
-    <string>Clear paper tape</string>
+    <string>Clear paper tape.</string>
    </property>
    <property name="shortcut">
     <string>Ctrl+L</string>
@@ -97,7 +112,7 @@
     <string>&amp;Save</string>
    </property>
    <property name="toolTip">
-    <string>Save paper tape to file</string>
+    <string>Save paper tape to file.</string>
    </property>
    <property name="shortcut">
     <string>Ctrl+S</string>
@@ -115,7 +130,7 @@
     <string>&amp;Toggle &quot;always on top&quot;</string>
    </property>
    <property name="toolTip">
-    <string>Toggle &quot;always on top&quot;</string>
+    <string>Toggle &quot;always on top&quot;.</string>
    </property>
    <property name="shortcut">
     <string>Ctrl+T</string>
@@ -130,7 +145,7 @@
     <string>Select &amp;font</string>
    </property>
    <property name="toolTip">
-    <string>Open font selection dialog</string>
+    <string>Open font selection dialog.</string>
    </property>
   </action>
  </widget>
