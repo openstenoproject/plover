@@ -317,3 +317,6 @@ KEYMAPS = {
 
 DICTIONARIES_ROOT = 'asset:plover:assets'
 DEFAULT_DICTIONARIES = ('user.json', 'commands.json', 'main.json')
+
+def display(strokes):
+    return "/".join(strokes)

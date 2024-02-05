@@ -59,6 +59,7 @@ _EXPORTS = {
     'KEYMAPS'                  : lambda mod: mod.KEYMAPS,
     'DICTIONARIES_ROOT'        : lambda mod: mod.DICTIONARIES_ROOT,
     'DEFAULT_DICTIONARIES'     : lambda mod: mod.DEFAULT_DICTIONARIES,
+    'display'                  : lambda mod: getattr(mod, 'display', '/'.join),
 }
 
 def setup(system_name):
@@ -69,6 +70,6 @@ def setup(system_name):
     system_symbols['NAME'] = system_name
     globals().update(system_symbols)
     Stroke.setup(KEYS, IMPLICIT_HYPHEN_KEYS, NUMBER_KEY, NUMBERS,
-                 FERAL_NUMBER_KEY, UNDO_STROKE_STENO)
+                 FERAL_NUMBER_KEY, UNDO_STROKE_STENO, display)
 
 NAME = None

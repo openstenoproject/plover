@@ -31,7 +31,7 @@ class Stroke(BaseStroke):
 
     @classmethod
     def setup(cls, keys, implicit_hyphen_keys, number_key,
-              numbers, feral_number_key, undo_stroke):
+              numbers, feral_number_key, undo_stroke, display):
         if number_key is None:
             assert not numbers
             numbers = None
@@ -40,6 +40,7 @@ class Stroke(BaseStroke):
         cls._class._class = cls._class
         cls._class.PREFIX_STROKE = cls.PREFIX_STROKE = cls.from_integer(0)
         cls._class.UNDO_STROKE = cls.UNDO_STROKE = cls.from_steno(undo_stroke)
+        cls._class.display = cls.display = display
 
     @classmethod
     def from_steno(cls, steno):
@@ -70,6 +71,11 @@ class Stroke(BaseStroke):
             if strict:
                 raise
             return tuple(steno.split('/'))
+
+    @classmethod
+    def display_steno(cls, steno):
+        normalized = cls.normalize_steno(steno, strict=False)
+        return cls.display(normalized)
 
     @classmethod
     def steno_to_sort_key(cls, steno, strict=True):
@@ -104,6 +110,7 @@ class Stroke(BaseStroke):
 
 normalize_stroke = Stroke.normalize_stroke
 normalize_steno = Stroke.normalize_steno
+display_steno = Stroke.display_steno
 steno_to_sort_key = Stroke.steno_to_sort_key
 
 def sort_steno_strokes(strokes_list):
