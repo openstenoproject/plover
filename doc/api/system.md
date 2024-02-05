@@ -254,6 +254,17 @@ Each line in this word list consists of a word and a number, separated by
 a space. See {data}`ORTHOGRAPHY_WORDS` for more information.
 ```
 
+```{data} display
+:type: Callable[[Tuple[str, ...]], str]
+
+A function called to display a steno outline in this system. The input is a
+tuple of normalized strokes. The output is a string shown to the user when
+making stroke suggestions or browsing a dictionary.
+
+If not defined, the default is `"/".join`, i.e. simply join the normalized
+strokes by slashes.
+```
+
 ## Computed Fields
 
 The fields below are automatically calculated from the values defined by

@@ -18,6 +18,7 @@ from PyQt5.QtWidgets import (
 )
 
 from plover import _
+from plover.steno import display_steno
 from plover.translation import escape_translation
 
 from .utils import ActionCopyViewSelectionToClipboard
@@ -67,7 +68,7 @@ class SuggestionsDelegate(QStyledItemDelegate):
             return translation, None
         strokes = ''
         for strokes_list in suggestion.steno_list[:MAX_SUGGESTIONS_COUNT]:
-            strokes += '\n    ' + '/'.join(strokes_list)
+            strokes += '\n    ' + display_steno('/'.join(strokes_list))
         return translation, strokes
 
     def _suggestion_size_hint(self, index):
