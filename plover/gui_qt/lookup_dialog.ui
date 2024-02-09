@@ -23,16 +23,6 @@
    <bool>true</bool>
   </property>
   <layout class="QGridLayout" name="gridLayout">
-   <item row="2" column="0">
-    <widget class="QDialogButtonBox" name="buttonBox">
-     <property name="orientation">
-      <enum>Qt::Horizontal</enum>
-     </property>
-     <property name="standardButtons">
-      <set>QDialogButtonBox::NoButton</set>
-     </property>
-    </widget>
-   </item>
    <item row="0" column="0">
     <widget class="QLineEdit" name="pattern">
      <property name="sizePolicy">
@@ -63,6 +53,18 @@
     </widget>
    </item>
   </layout>
+  <action name="action_SelectFont">
+   <property name="icon">
+    <iconset resource="resources/resources.qrc">
+     <normaloff>:/font_selector.svg</normaloff>:/font_selector.svg</iconset>
+   </property>
+   <property name="text">
+    <string>Select &amp;font</string>
+   </property>
+   <property name="toolTip">
+    <string>Open font selection dialog.</string>
+   </property>
+  </action>
  </widget>
  <customwidgets>
   <customwidget>
@@ -74,38 +76,6 @@
  </customwidgets>
  <resources/>
  <connections>
-  <connection>
-   <sender>buttonBox</sender>
-   <signal>accepted()</signal>
-   <receiver>LookupDialog</receiver>
-   <slot>accept()</slot>
-   <hints>
-    <hint type="sourcelabel">
-     <x>248</x>
-     <y>254</y>
-    </hint>
-    <hint type="destinationlabel">
-     <x>157</x>
-     <y>274</y>
-    </hint>
-   </hints>
-  </connection>
-  <connection>
-   <sender>buttonBox</sender>
-   <signal>rejected()</signal>
-   <receiver>LookupDialog</receiver>
-   <slot>reject()</slot>
-   <hints>
-    <hint type="sourcelabel">
-     <x>316</x>
-     <y>260</y>
-    </hint>
-    <hint type="destinationlabel">
-     <x>286</x>
-     <y>274</y>
-    </hint>
-   </hints>
-  </connection>
   <connection>
    <sender>pattern</sender>
    <signal>textEdited(QString)</signal>
@@ -122,8 +92,25 @@
     </hint>
    </hints>
   </connection>
+  <connection>
+   <sender>action_SelectFont</sender>
+   <signal>triggered()</signal>
+   <receiver>LookupDialog</receiver>
+   <slot>on_select_font()</slot>
+   <hints>
+    <hint type="sourcelabel">
+     <x>-1</x>
+     <y>-1</y>
+    </hint>
+    <hint type="destinationlabel">
+     <x>123</x>
+     <y>214</y>
+    </hint>
+   </hints>
+  </connection>
  </connections>
  <slots>
   <slot>on_lookup(QString)</slot>
+  <slot>on_select_font()</slot>
  </slots>
 </ui>
