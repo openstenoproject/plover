@@ -241,6 +241,8 @@ class StenoEngine:
             self._machine_params = machine_params
             update_keymap = True
             start_machine = True
+            # initialize keyboard emulation again to force update of keymap
+            self._keyboard_emulation.__init__()
         elif self._machine is not None:
             update_keymap = 'system_keymap' in config_update
         if update_keymap:
