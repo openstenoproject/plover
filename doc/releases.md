@@ -6,7 +6,7 @@ Version numbers:
 - pre-release: `{major}.{minor}.{patch}.{dev|rc}{devel}` (e.g. `4.0.0.dev7`, `4.0.0rc1`, ...)
 
 
-Steps to cut a new release (from a clean checkout of `master`):
+Steps to cut a new release (from a clean checkout of `main`):
 
 1. Run `tox -e release_prepare {NEW_VERSION_NUMBER}`.
 2. Review the staged changes, check all news fragments in `news.d` were
