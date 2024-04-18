@@ -136,7 +136,7 @@ Please follow through for your system:
 [Supported Hardware]: https://github.com/openstenoproject/plover/wiki/Supported-Hardware
 [Troubleshooting Common Issues]: https://github.com/openstenoproject/plover/wiki/Troubleshooting:-Common-Issues
 [Wiki]: https://github.com/openstenoproject/plover/wiki
-[installation guide]: https://github.com/openstenoproject/plover/wiki/Installation-Guide
+[installation guide]: https://plover.wiki/index.php/Installation_Guide
 [morinted/plover\_icons]: https://github.com/morinted/plover_icons
 [Windows README]: https://github.com/openstenoproject/plover/blob/master/windows/README.md
 [Linux README]: https://github.com/openstenoproject/plover/blob/master/linux/README.md
