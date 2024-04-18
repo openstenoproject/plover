@@ -119,7 +119,7 @@ Please follow through for your system:
 -   [Linux][Linux README]
 -   [Mac][macOS README]
 
-[Beginner's Guide]: https://github.com/openstenoproject/plover/wiki/Beginner's-Guide:-Get-Started-with-Plover
+[Beginner's Guide]: https://plover.wiki/index.php/Beginner%27s_Guide
 [Blog]: http://plover.stenoknight.com
 [Contributing]: https://github.com/openstenoproject/plover/blob/master/CONTRIBUTING.md
 [Donate]: http://www.openstenoproject.org/donate
@@ -133,9 +133,9 @@ Please follow through for your system:
 [Mascot]: http://plover.stenoknight.com/2010/10/new-logo.html
 [StenoJig]: https://github.com/JoshuaGrams/steno-jig
 [StenoTray]: https://github.com/SmackleFunky/StenoTray
-[Supported Hardware]: https://github.com/openstenoproject/plover/wiki/Supported-Hardware
-[Troubleshooting Common Issues]: https://github.com/openstenoproject/plover/wiki/Troubleshooting:-Common-Issues
-[Wiki]: https://github.com/openstenoproject/plover/wiki
+[Supported Hardware]: https://plover.wiki/index.php/Supported_Hardware
+[Troubleshooting Common Issues]: https://plover.wiki/index.php/Troubleshooting_Issues
+[Wiki]: https://plover.wiki/
 [installation guide]: https://plover.wiki/index.php/Installation_Guide
 [morinted/plover\_icons]: https://github.com/morinted/plover_icons
 [Windows README]: https://github.com/openstenoproject/plover/blob/master/windows/README.md
