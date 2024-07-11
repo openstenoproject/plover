@@ -1,12 +1,14 @@
+# TODO: add some logging
+
 # TODO: get a stop() function to run, calling `self._ui.close()`
 # TODO: figure out a better way to do this:
 import os  # To read the layout variable
 
-# TODO: find out how to add evdev as a dependency
 # TODO: somehow get the requires udev rule installed
-from evdev import UInput, ecodes as e, util
+from evdev import UInput, ecodes as e, util, InputDevice, list_devices
+import threading
+from select import select
 
-# TODO: add xkbcommon as a dependency, *or* figure out how to do it using xlib instead, as it is already a dependency for the x11 keyboard emulation
 from .xkb_symbols import generate_symbols
 
 from plover.output.keyboard import GenericKeyboardEmulation
@@ -166,7 +168,7 @@ keys = {
     "kbdbrightnessup": e.KEY_KBDILLUMUP,
     "kbdbrightnessdown": e.KEY_KBDILLUMDOWN,
 }
-
+KEYCODE_TO_KEY = dict(zip(keys.values(), keys.keys()))
 
 class KeyboardEmulation(GenericKeyboardEmulation):
     def __init__(self):
@@ -257,4 +259,66 @@ class KeyboardEmulation(GenericKeyboardEmulation):
 
 class KeyboardCapture(Capture):
     def __init__(self):
-        raise NotImplementedError() # TODO
+        super().__init__()
+        # This is based on the example from the python-evdev documentation, using the first of the three alternative methods: https://python-evdev.readthedocs.io/en/latest/tutorial.html#reading-events-from-multiple-devices-using-select
+        self._devices = self._get_devices()
+        self._running = False
+        self._thread = None
+
+    def _get_devices(self):
+        input_devices = [InputDevice(path) for path in list_devices()]
+        keyboard_devices = [dev for dev in input_devices if self._filter_devices(dev)]
+        return {dev.fd: dev for dev in keyboard_devices}
+
+    def _filter_devices(self, device):
+        is_uinput = device.name == "py-evdev-uinput" or device.phys == "py-evdev-uinput"
+        capabilities = device.capabilities()
+        is_mouse =  e.EV_REL in capabilities or e.EV_ABS in capabilities
+        return not is_uinput and not is_mouse
+
+    def start(self):
+        self._running = True
+        self._thread = threading.Thread(target=self._run)
+        self._thread.start()
+
+    def cancel(self):
+        self._running = False
+        [dev.ungrab() for dev in self._devices.values()]
+        if self._thread is not None:
+            self._thread.join()
+
+    def suppress(self, suppressed_keys=()):
+        """
+        TODO: instead of grabbing the entire keyboard, only select keys should be suppressed
+        Unfortunately, that is not possible using python-evdev. To circumvent this, i think
+        i have to emulate the keyboard and send the keys through KeyboardEmulation if they
+        are not present in the list of suppressed keys
+        """
+        pass
+
+    def _run(self):
+        [dev.grab() for dev in self._devices.values()]
+        while self._running:
+            """
+            The select() call blocks the loop until it gets an input, which meant that the keyboard
+            had to be pressed once after executing `cancel()`. Now, there is a 1 second delay instead
+            FIXME: maybe use one of the other options to avoid the timeout
+            https://python-evdev.readthedocs.io/en/latest/tutorial.html#reading-events-from-multiple-devices-using-select
+            """
+            r, _, _ = select(self._devices, [], [], 1)
+            for fd in r:
+                for event in self._devices[fd].read():
+                    if event.type == e.EV_KEY:
+                        try:
+                            key_code = event.code
+                            # TODO: support different layouts through the xkb_symbols thing
+                            if key_code in KEYCODE_TO_KEY:
+                                key_name = KEYCODE_TO_KEY[key_code]
+                                pressed = event.value == 1
+                                if pressed:
+                                    log.info(f"Key {key_name} pressed")
+                                else:
+                                    log.info(f"Key {key_name} released")
+                                (self.key_down if pressed else self.key_up)(key_name)
+                        except KeyError:
+                            pass
