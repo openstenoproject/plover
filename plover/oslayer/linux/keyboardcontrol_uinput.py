@@ -1,6 +1,6 @@
 # TODO: add some logging
 
-# TODO: get a stop() function to run, calling `self._ui.close()`
+# TODO: get a stop() function to run when KeyboardEmulation stops, calling `self._ui.close()`
 # TODO: figure out a better way to do this:
 import os  # To read the layout variable
 
@@ -168,7 +168,8 @@ keys = {
     "kbdbrightnessup": e.KEY_KBDILLUMUP,
     "kbdbrightnessdown": e.KEY_KBDILLUMDOWN,
 }
-KEYCODE_TO_KEY = dict(zip(keys.values(), keys.keys()))
+KEY_TO_KEYCODE = {**keys, **modifiers}
+KEYCODE_TO_KEY = dict(zip(KEY_TO_KEYCODE.values(), KEY_TO_KEYCODE.keys()))
 
 class KeyboardEmulation(GenericKeyboardEmulation):
     def __init__(self):
@@ -189,7 +190,7 @@ class KeyboardEmulation(GenericKeyboardEmulation):
         syms_to_remove = []
         for sym in symbols:
             (base, _) = symbols[sym]
-            if base not in keys:
+            if base not in KEY_TO_KEYCODE:
                 syms_to_remove.append(sym)
         for sym in syms_to_remove:
             symbols.pop(sym)
@@ -204,32 +205,35 @@ class KeyboardEmulation(GenericKeyboardEmulation):
         self._press_key(key, False)
         self._ui.syn()
 
-    # Send unicode character (through an IME such as iBus or fcitx5)
-    # This assumes you are using the default keybinding to input unicode hex chanracters
-    # TODO: avoid hard-coded keys and delays here?
+    """
+    Send a unicode character.
+    This depends on an IME such as iBus or fcitx5. iBus is used by GNOME, and fcitx5 by KDE.
+    It assumes the default keybinding ctrl-shift-u, enter hex, enter is used, which is the default in both.
+    """
+    # TODO: avoid hard-coded keys and delays here, maybe call the send key combination function?
     # TODO: at least for the "u" key, as it can vary with different keyboard layouts - maybe use the already existing generated symbols table?
     def _send_unicode(self, hex):
-        self._press_key(modifiers["control_l"], True)
-        self._press_key(modifiers["shift_r"], True)
+        self._press_key(KEY_TO_KEYCODE["control_l"], True)
+        self._press_key(KEY_TO_KEYCODE["shift_r"], True)
         self.delay()
-        self._send_key(keys["u"])
+        self._send_key(KEY_TO_KEYCODE["u"])
         self.delay()
-        self._press_key(modifiers["control_l"], False)
-        self._press_key(modifiers["shift_r"], False)
+        self._press_key(KEY_TO_KEYCODE["control_l"], False)
+        self._press_key(KEY_TO_KEYCODE["shift_r"], False)
         self.delay()
         self.send_string(hex)
-        self._send_key(keys["\n"])
+        self._send_key(KEY_TO_KEYCODE["\n"])
 
     def _send_char(self, char):
         # Key can be sent with a key combination
         if char in self._symbols:
             (base, mods) = self._symbols[char]
             for mod in mods:
-                self._press_key(modifiers[mod], True)
+                self._press_key(KEY_TO_KEYCODE[mod], True)
             self.delay()
-            self._send_key(keys[base])
+            self._send_key(KEY_TO_KEYCODE[base])
             for mod in mods:
-                self._press_key(modifiers[mod], False)
+                self._press_key(KEY_TO_KEYCODE[mod], False)
 
         # Key press can not be emulated - send unicode symbol instead
         else:
@@ -243,17 +247,13 @@ class KeyboardEmulation(GenericKeyboardEmulation):
 
     def send_backspaces(self, count):
         for _ in range(count):
-            self._send_key(keys["\b"])
+            self._send_key(KEY_TO_KEYCODE["\b"])
 
     def send_key_combination(self, combo):
         key_events = parse_key_combo(combo)
 
         for key, pressed in self.with_delay(key_events):
-            k = (
-                modifiers[key.lower()]
-                if key.lower() in modifiers
-                else keys[key.lower()]
-            )
+            k = KEY_TO_KEYCODE[key.lower()]
             self._press_key(k, pressed)
 
 
@@ -264,6 +264,9 @@ class KeyboardCapture(Capture):
         self._devices = self._get_devices()
         self._running = False
         self._thread = None
+        self._res = util.find_ecodes_by_regex(r"KEY_.*")
+        self._ui = UInput(self._res)
+        self._suppressed_keys = []
 
     def _get_devices(self):
         input_devices = [InputDevice(path) for path in list_devices()]
@@ -286,15 +289,15 @@ class KeyboardCapture(Capture):
         [dev.ungrab() for dev in self._devices.values()]
         if self._thread is not None:
             self._thread.join()
+        self._ui.close()
 
     def suppress(self, suppressed_keys=()):
         """
-        TODO: instead of grabbing the entire keyboard, only select keys should be suppressed
-        Unfortunately, that is not possible using python-evdev. To circumvent this, i think
-        i have to emulate the keyboard and send the keys through KeyboardEmulation if they
-        are not present in the list of suppressed keys
+        UInput is not capable of suppressing only specific keys. To get around this, non-suppressed keys
+        are passed through to a UInput device and emulated, while keys in this list get sent to plover.
+        It does add a little bit of delay, but that is not noticeable.
         """
-        pass
+        self._suppressed_keys = suppressed_keys
 
     def _run(self):
         [dev.grab() for dev in self._devices.values()]
@@ -310,15 +313,23 @@ class KeyboardCapture(Capture):
                 for event in self._devices[fd].read():
                     if event.type == e.EV_KEY:
                         try:
-                            key_code = event.code
-                            # TODO: support different layouts through the xkb_symbols thing
-                            if key_code in KEYCODE_TO_KEY:
-                                key_name = KEYCODE_TO_KEY[key_code]
-                                pressed = event.value == 1
-                                if pressed:
-                                    log.info(f"Key {key_name} pressed")
-                                else:
-                                    log.info(f"Key {key_name} released")
-                                (self.key_down if pressed else self.key_up)(key_name)
+                            """
+                            It could be possible to support different layouts through the xkb_symbols script
+                            , however, i think having it like this is actually better, because the keys
+                            are supposed to be in these locations, and reduces the amount of work done
+                            configuring it afterwards.
+                            """
+                            if event.code in KEYCODE_TO_KEY:
+                                key_name = KEYCODE_TO_KEY[event.code]
+                                if key_name in self._suppressed_keys:
+                                    pressed = event.value == 1
+                                    if pressed:
+                                        log.info(f"Key {key_name} pressed")
+                                    else:
+                                        log.info(f"Key {key_name} released")
+                                    (self.key_down if pressed else self.key_up)(key_name)
+                                    continue # Go to the next iteration, skipping the below code:
+                            self._ui.write(e.EV_KEY, event.code, event.value)
+                            self._ui.syn()
                         except KeyError:
                             pass
