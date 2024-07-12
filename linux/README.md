@@ -8,5 +8,6 @@ distribution corresponding packages):
 - Treal support: `libusb` (1.0) and `libudev` are needed by
   the [`hidapi` package](https://pypi.org/project/hidapi/).
 - log / notifications support: `libdbus` is needed.
+- Uinput support: `libxkbcommon` are needed by the [`xkbcommon` package](https://pypi.org/project/xkbcommon)
 
 For the rest of the steps, follow the [developer guide](../doc/developer_guide.md).
