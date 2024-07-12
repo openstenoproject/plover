@@ -174,6 +174,7 @@ KEYCODE_TO_KEY = dict(zip(KEY_TO_KEYCODE.values(), KEY_TO_KEYCODE.keys()))
 class KeyboardEmulation(GenericKeyboardEmulation):
     def __init__(self):
         super().__init__()
+        # Initialize UInput with all keys available
         self._res = util.find_ecodes_by_regex(r"KEY_.*")
         self._ui = UInput(self._res)
         # Set the keyboard layout from an environment variable
@@ -182,6 +183,7 @@ class KeyboardEmulation(GenericKeyboardEmulation):
         self._set_layout(kb_layout)
 
     def _set_layout(self, layout):
+        # Get the system keyboard layout so that emulation works on different layouts
         log.info("Using keyboard layout " + layout + " for keyboard emulation.")
         symbols = generate_symbols(layout)
         # Remove unwanted symbols from the table
@@ -246,6 +248,7 @@ class KeyboardEmulation(GenericKeyboardEmulation):
             self._send_key(KEY_TO_KEYCODE["\b"])
 
     def send_key_combination(self, combo):
+        # https://plover.readthedocs.io/en/latest/api/key_combo.html#module-plover.key_combo
         key_events = parse_key_combo(combo)
 
         for key, pressed in self.with_delay(key_events):
