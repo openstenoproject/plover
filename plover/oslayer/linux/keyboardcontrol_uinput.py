@@ -1,5 +1,3 @@
-# TODO: add some logging
-
 # TODO: get a stop() function to run when KeyboardEmulation stops, calling `self._ui.close()`
 # TODO: figure out a better way to do this:
 import os  # To read the layout variable
@@ -21,6 +19,9 @@ modifiers = {
     "alt_l": e.KEY_LEFTALT,
     "alt_r": e.KEY_RIGHTALT,
     "alt": e.KEY_LEFTALT,
+    "ctrl_l": e.KEY_LEFTCTRL,
+    "ctrl_r": e.KEY_RIGHTCTRL,
+    "ctrl": e.KEY_LEFTCTRL,
     "control_l": e.KEY_LEFTCTRL,
     "control_r": e.KEY_RIGHTCTRL,
     "control": e.KEY_LEFTCTRL,
@@ -87,7 +88,6 @@ keys = {
     "/": e.KEY_SLASH,
     "\b": e.KEY_BACKSPACE,
     "\n": e.KEY_ENTER,
-    # Other keys (for send_key_combination())
     # https://github.com/openstenoproject/plover/blob/9b5a357f1fb57cb0a9a8596ae12cd1e84fcff6c4/plover/oslayer/osx/keyboardcontrol.py#L75
     # https://gist.github.com/jfortin42/68a1fcbf7738a1819eb4b2eef298f4f8
     "return": e.KEY_ENTER,
@@ -209,20 +209,16 @@ class KeyboardEmulation(GenericKeyboardEmulation):
     Send a unicode character.
     This depends on an IME such as iBus or fcitx5. iBus is used by GNOME, and fcitx5 by KDE.
     It assumes the default keybinding ctrl-shift-u, enter hex, enter is used, which is the default in both.
+    From my testing, it works fine in using iBus and fcitx5, but in kitty terminal emulator, which uses
+    the same keybinding, it's too fast for it to handle and ends up writing random stuff. I don't
+    think there is a way to fix that other than increasing the delay.
     """
-    # TODO: avoid hard-coded keys and delays here, maybe call the send key combination function?
-    # TODO: at least for the "u" key, as it can vary with different keyboard layouts - maybe use the already existing generated symbols table?
     def _send_unicode(self, hex):
-        self._press_key(KEY_TO_KEYCODE["control_l"], True)
-        self._press_key(KEY_TO_KEYCODE["shift_r"], True)
-        self.delay()
-        self._send_key(KEY_TO_KEYCODE["u"])
-        self.delay()
-        self._press_key(KEY_TO_KEYCODE["control_l"], False)
-        self._press_key(KEY_TO_KEYCODE["shift_r"], False)
+        self.send_key_combination("ctrl_l(shift(u))")
         self.delay()
         self.send_string(hex)
-        self._send_key(KEY_TO_KEYCODE["\n"])
+        self.delay()
+        self._send_char("\n")
 
     def _send_char(self, char):
         # Key can be sent with a key combination
@@ -253,8 +249,16 @@ class KeyboardEmulation(GenericKeyboardEmulation):
         key_events = parse_key_combo(combo)
 
         for key, pressed in self.with_delay(key_events):
-            k = KEY_TO_KEYCODE[key.lower()]
-            self._press_key(k, pressed)
+            try:
+                if key.lower() in self._symbols:
+                    # Ignore modifier layers for this one, there may be better ways to do this logic
+                    (base, _) = self._symbols[key.lower()]
+                    k = KEY_TO_KEYCODE[base]
+                else:
+                    k = KEY_TO_KEYCODE[key.lower()]
+                self._press_key(k, pressed)
+            except KeyError: # In case the key does not exist
+                log.warning("Key " + key + " is not valid!")
 
 
 class KeyboardCapture(Capture):
@@ -274,6 +278,9 @@ class KeyboardCapture(Capture):
         return {dev.fd: dev for dev in keyboard_devices}
 
     def _filter_devices(self, device):
+        """
+        Filter out devices that should not be grabbed and suppressed, to avoid output feeding into itself.
+        """
         is_uinput = device.name == "py-evdev-uinput" or device.phys == "py-evdev-uinput"
         capabilities = device.capabilities()
         is_mouse =  e.EV_REL in capabilities or e.EV_ABS in capabilities
@@ -312,24 +319,17 @@ class KeyboardCapture(Capture):
             for fd in r:
                 for event in self._devices[fd].read():
                     if event.type == e.EV_KEY:
-                        try:
-                            """
-                            It could be possible to support different layouts through the xkb_symbols script
-                            , however, i think having it like this is actually better, because the keys
-                            are supposed to be in these locations, and reduces the amount of work done
-                            configuring it afterwards.
-                            """
-                            if event.code in KEYCODE_TO_KEY:
-                                key_name = KEYCODE_TO_KEY[event.code]
-                                if key_name in self._suppressed_keys:
-                                    pressed = event.value == 1
-                                    if pressed:
-                                        log.info(f"Key {key_name} pressed")
-                                    else:
-                                        log.info(f"Key {key_name} released")
-                                    (self.key_down if pressed else self.key_up)(key_name)
-                                    continue # Go to the next iteration, skipping the below code:
-                            self._ui.write(e.EV_KEY, event.code, event.value)
-                            self._ui.syn()
-                        except KeyError:
-                            pass
+                        """
+                        It could be possible to support different layouts through the xkb_symbols script
+                        , however, i think having it like this is actually better, because the keys
+                        are supposed to be in these locations, and reduces the amount of work done
+                        configuring it afterwards.
+                        """
+                        if event.code in KEYCODE_TO_KEY:
+                            key_name = KEYCODE_TO_KEY[event.code]
+                            if key_name in self._suppressed_keys:
+                                pressed = event.value == 1
+                                (self.key_down if pressed else self.key_up)(key_name)
+                                continue # Go to the next iteration, skipping the below code:
+                    self._ui.write(e.EV_KEY, event.code, event.value)
+                    self._ui.syn()
