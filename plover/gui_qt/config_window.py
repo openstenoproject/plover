@@ -20,6 +20,7 @@ from PyQt5.QtWidgets import (
     QLabel,
     QScrollArea,
     QSpinBox,
+    QLineEdit,
     QStyledItemDelegate,
     QTableWidget,
     QTableWidgetItem,
@@ -70,6 +71,17 @@ class IntOption(QSpinBox):
         if minimum is not None:
             self.setMinimum(minimum)
 
+
+class StrOption(QLineEdit):
+
+    valueChanged = pyqtSignal(str)
+
+    def __init__(self):
+        super().__init__()
+        self.textChanged.connect(self.valueChanged.emit)
+
+    def setValue(self, value):
+        self.setText(value)
 
 class ChoiceOption(QComboBox):
 
@@ -392,6 +404,16 @@ class ConfigWindow(QDialog, Ui_ConfigWindow, WindowState):
                                'programs time to process each key press.\n'
                                'Setting the delay too high will negatively impact the\n'
                                'performance of key stroke output.')),
+                ConfigOption(_('Keyboard Layout:'), 'xkb_layout', StrOption,
+                             _('Set the keyboard layout configured in your system.\n'
+                               'Examples: "us", "gb", "fr", "no"\n'
+                               '\n'
+                               'This only applies when using Linux/BSD and not using X11.\n'
+                               'If you\'re unsure, you probably don\'t need to change it.\n'
+                               'If you need to configure more options about your layout,\n'
+                               'such as setting the variant to a different layout like colemak,\n'
+                               'you can set environment variables starting with XKB_DEFAULT_\n'
+                               'for the RULES, MODEL, VARIANT and OPTIONS')),
             )),
             # i18n: Widget: “ConfigWindow”.
             (_('Plugins'), (

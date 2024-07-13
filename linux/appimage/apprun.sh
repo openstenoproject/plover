@@ -109,7 +109,6 @@ APPDIR="$(dirname "$(readlink -e "$0")")"
 
 appimage_setenv
 
-
 # Handle AppImage specific options.
 [ -n "$APPIMAGE" ] && case "$1" in
   --install|--uninstall)

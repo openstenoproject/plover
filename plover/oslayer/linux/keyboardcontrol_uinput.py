@@ -1,8 +1,3 @@
-# TODO: get a stop() function to run when KeyboardEmulation stops, calling `self._ui.close()`
-# TODO: figure out a better way to do this:
-import os  # To read the layout variable
-
-# TODO: somehow get the requires udev rule installed
 from evdev import UInput, ecodes as e, util, InputDevice, list_devices
 import threading
 from select import select
@@ -163,7 +158,7 @@ keys = {
     "eject": e.KEY_EJECTCD,
     "audiopause": e.KEY_PAUSE,
     "audioplay": e.KEY_PLAY,
-    "audionext": e.KEY_NEXT,  # Maybe VIDEO_NEXT or NEXTSONG
+    "audionext": e.KEY_NEXT,
     "audiorewind": e.KEY_REWIND,
     "kbdbrightnessup": e.KEY_KBDILLUMUP,
     "kbdbrightnessdown": e.KEY_KBDILLUMDOWN,
@@ -177,18 +172,11 @@ class KeyboardEmulation(GenericKeyboardEmulation):
         # Initialize UInput with all keys available
         self._res = util.find_ecodes_by_regex(r"KEY_.*")
         self._ui = UInput(self._res)
-        # Set the keyboard layout from an environment variable
-        kb_env = "PLOVER_UINPUT_LAYOUT"
-        kb_layout = os.environ[kb_env] if kb_env in os.environ else "us"
-        self._set_layout(kb_layout)
 
-    def _set_layout(self, layout):
-        # Get the system keyboard layout so that emulation works on different layouts
+    def _update_layout(self, layout):
         log.info("Using keyboard layout " + layout + " for keyboard emulation.")
         symbols = generate_symbols(layout)
-        # Remove unwanted symbols from the table
-        # Includes symbols such as numpad-star - use unicode instead
-        # There has to be a cleaner way to do this
+        # Remove symbols not in KEY_TO_KEYCODE
         syms_to_remove = []
         for sym in symbols:
             (base, _) = symbols[sym]
