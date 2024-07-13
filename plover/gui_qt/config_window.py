@@ -410,10 +410,8 @@ class ConfigWindow(QDialog, Ui_ConfigWindow, WindowState):
                                '\n'
                                'This only applies when using Linux/BSD and not using X11.\n'
                                'If you\'re unsure, you probably don\'t need to change it.\n'
-                               'If you need to configure more options about your layout,\n'
-                               'such as setting the variant to a different layout like colemak,\n'
-                               'you can set environment variables starting with XKB_DEFAULT_\n'
-                               'for the RULES, MODEL, VARIANT and OPTIONS')),
+                                'If you use a different layout variant, format it as\n'
+                               '"language:layout", for example "us:colemak"')),
             )),
             # i18n: Widget: “ConfigWindow”.
             (_('Plugins'), (

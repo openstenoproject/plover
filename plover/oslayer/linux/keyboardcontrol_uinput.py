@@ -173,9 +173,13 @@ class KeyboardEmulation(GenericKeyboardEmulation):
         self._res = util.find_ecodes_by_regex(r"KEY_.*")
         self._ui = UInput(self._res)
 
-    def _update_layout(self, layout):
-        log.info("Using keyboard layout " + layout + " for keyboard emulation.")
-        symbols = generate_symbols(layout)
+    def _update_layout(self, _layout):
+        log.info("Using keyboard layout " +
+                 _layout + " for keyboard emulation.")
+        _layout_options = _layout.split(":")
+        layout = _layout_options[0]
+        variant = _layout_options[1] if len(_layout_options) > 1 else ""
+        symbols = generate_symbols(layout, variant)
         # Remove symbols not in KEY_TO_KEYCODE
         syms_to_remove = []
         for sym in symbols:

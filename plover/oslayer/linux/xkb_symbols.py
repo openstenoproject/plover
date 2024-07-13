@@ -8,9 +8,9 @@ from xkbcommon import xkb
 
 
 # layout can be "no", "us", "gb", "fr" or any other xkb layout
-def generate_symbols(layout="us"):
+def generate_symbols(layout="us", variant = ""):
     ctx = xkb.Context()
-    keymap = ctx.keymap_new_from_names(layout=layout)
+    keymap = ctx.keymap_new_from_names(layout=layout, variant=variant)
     # The keymaps have to be "translated" to a US layout keyboard for evdev
     keymap_us = ctx.keymap_new_from_names(layout="us")
 
