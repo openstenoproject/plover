@@ -41,6 +41,7 @@ ADD_SUFFIX_TESTS = (
     lambda: ('hobby', 'ist', 'hobbyist'),
     lambda: ('copy', 'ist', 'copyist'),
     lambda: ('beauty', 'ful', 'beautiful'),
+    lambda: ('pretty', 'ify', 'prettify'),
     lambda: ('weary', 'ness', 'weariness'),
     lambda: ('weary', 'some', 'wearisome'),
     lambda: ('lonely', 'ness', 'loneliness'),
