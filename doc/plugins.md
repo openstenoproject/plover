@@ -40,6 +40,7 @@ There are two ways to install plugins:
   Plover comes with the following machine plugins installed:
 
   - Keyboard
+  - HID
   - Gemini PR
   - TX Bolt
   - Passport
