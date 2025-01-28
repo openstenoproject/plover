@@ -1,10 +1,10 @@
 cache_epoch: 0 # <- increase number to clear cache.
 
-action_cache: actions/cache@v3
-action_checkout: actions/checkout@v3
-action_setup_python: actions/setup-python@v4
-action_upload_artifact: actions/upload-artifact@v3
-action_download_artifact: actions/download-artifact@v3
+action_cache: actions/cache@v4
+action_checkout: actions/checkout@v4
+action_setup_python: actions/setup-python@v5
+action_upload_artifact: actions/upload-artifact@v4
+action_download_artifact: actions/download-artifact@v4
 
 skippy_enabled: true
 
