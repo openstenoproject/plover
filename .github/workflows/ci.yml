@@ -8,11 +8,15 @@ name: CI
 on:
   push:
     branches:
-      - '*'
+      - 'main'
     tags-ignore:
       # Ignore continuous releases' tag.
       - 'continuous'
   pull_request:
+    types:
+        - opened
+        - reopened
+        - synchronize
 
 defaults:
   run:
