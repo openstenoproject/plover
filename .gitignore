@@ -16,6 +16,7 @@
 
 # Plover: build artifacts.
 news_draft.md
+notes.md
 
 # Pytest.
 /.pytest_cache/
