@@ -65,7 +65,7 @@ setuptools==58.3.0
 six==1.16.0
 toml==0.10.2
 tomli==1.2.2
-towncrier==21.3.0
+towncrier==24.8.0
 tqdm==4.62.3
 twine==3.7.0
 url-normalize==1.4.3
