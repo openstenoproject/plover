@@ -340,7 +340,7 @@ Press the individual number keys.
 Press accented letter keys on international layouts.
 :::
 
-All possible keys are defined in the [Plover codebase](https://github.com/openstenoproject/plover/blob/master/plover/key_combo.py#L21).
+All possible keys are defined in the [Plover codebase](https://github.com/openstenoproject/plover/blob/main/plover/key_combo.py#L21).
 
 :::{note}
 When specifying a key by the name of a symbol that would normally be produced
