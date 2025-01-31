@@ -22,8 +22,8 @@
     </a>
 </p>
 
-| [Homepage][] | [Wiki][] | [Blog][] | [Google Group][] |
-| ------------ | -------- | -------- | ---------------- |
+| [Homepage][] | [Wiki][] | [Blog][] | [Google Group][] | [Discord](https://discord.com/invite/H5HnRE6) |
+| ------------ | -------- | -------- | ---------------- | --------------------------------------------- |
 
 -   [About](#about)
 -   [Installation](#installation)
