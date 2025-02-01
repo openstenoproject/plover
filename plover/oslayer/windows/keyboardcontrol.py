@@ -42,9 +42,9 @@ SCANCODE_TO_KEY = {
     30: 'a', 31: 's', 32: 'd', 33: 'f', 34: 'g', 35: 'h', 36: 'j',
     37: 'k', 38: 'l', 39: ';', 40: '\'', 44: 'z', 45: 'x',
     46: 'c', 47: 'v', 48: 'b', 49: 'n', 50: 'm', 51: ',',
-    52: '.', 53: '/', 57: 'space', 58: "BackSpace", 83: "Delete",
+    52: '.', 53: '/', 57: 'space', 14: "BackSpace", 83: "Delete",
     80: "Down", 79: "End", 1: "Escape", 71: "Home", 82: "Insert",
-    75: "Left", 73: "Page_Down", 81: "Page_Up", 28 : "Return",
+    75: "Left", 73: "Page_Up", 81: "Page_Down", 28 : "Return",
     77: "Right", 15: "Tab", 72: "Up",
 }
 
