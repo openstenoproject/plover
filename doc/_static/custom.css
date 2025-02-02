@@ -1,0 +1,53 @@
+@import url(https://fonts.googleapis.com/css2?family=Patua+One&family=JetBrains+Mono:wght@400;700&display=swap);
+
+h1,
+h2,
+h3,
+h4,
+.sidebar-brand-text {
+  font-family: var(--font-stack--header);
+  font-weight: normal;
+}
+
+.sidebar-brand {
+  text-align: center;
+}
+
+.sidebar-brand:hover {
+  color: var(--color-sidebar-brand-text--hover);
+}
+
+.toctree-wrapper.compound > p.caption {
+  display: none;
+}
+
+.toctree-l1 {
+  margin: 12px;
+}
+
+.toctree-l2 {
+  margin: 4px;
+}
+
+h3 {
+  margin-top: 12px;
+}
+
+a.headerlink {
+  font-family: var(--font-stack);
+  font-size: 75%;
+}
+
+#furo-readthedocs-versions,
+.rst-versions {
+  font-family: var(--font-stack);
+}
+
+.rst-versions .rst-current-version,
+#furo-readthedocs-versions .rst-current-version .fa-book {
+  color: var(--color-sidebar-link-text--top-level);
+}
+
+figcaption .caption-text {
+  font-style: italic;
+}

@@ -214,7 +214,12 @@ class KeyboardOption(QGroupBox, Ui_KeyboardWidget):
     def setValue(self, value):
         self._value = copy(value)
         self.arpeggiate.setChecked(value['arpeggiate'])
+        self.first_up_chord_send.setChecked(value['first_up_chord_send'])
 
     def on_arpeggiate_changed(self, value):
         self._value['arpeggiate'] = value
+        self.valueChanged.emit(self._value)
+
+    def on_first_up_chord_send_changed(self, value):
+        self._value['first_up_chord_send'] = value
         self.valueChanged.emit(self._value)

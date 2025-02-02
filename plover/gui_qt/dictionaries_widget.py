@@ -102,7 +102,7 @@ class DictionariesModel(QAbstractListModel):
     }
 
     FLAGS = Qt.ItemFlag.ItemIsEnabled | Qt.ItemFlag.ItemIsSelectable \
-        | Qt.ItemFlag.ItemIsUserCheckable
+        | Qt.ItemFlag.ItemIsUserCheckable | Qt.ItemFlag.ItemIsDragEnabled
 
     has_undo_changed = pyqtSignal(bool)
 

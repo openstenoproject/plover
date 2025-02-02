@@ -6,14 +6,25 @@
    <rect>
     <x>0</x>
     <y>0</y>
-    <width>117</width>
-    <height>38</height>
+    <width>159</width>
+    <height>66</height>
    </rect>
   </property>
   <property name="windowTitle">
    <string notr="true"/>
   </property>
-  <layout class="QGridLayout" name="gridLayout">
+  <layout class="QGridLayout">
+   <item row="1" column="0">
+    <widget class="QCheckBox" name="first_up_chord_send">
+     <property name="toolTip">
+      <string>When the first key in a chord is released, the chord is sent.
+If the key is pressed and released again, another chord is sent.</string>
+     </property>
+     <property name="text">
+      <string>First-up chord send</string>
+     </property>
+    </widget>
+   </item>
    <item row="0" column="0">
     <widget class="QCheckBox" name="arpeggiate">
      <property name="sizePolicy">
@@ -47,8 +58,25 @@
     </hint>
    </hints>
   </connection>
+  <connection>
+   <sender>first_up_chord_send</sender>
+   <signal>clicked(bool)</signal>
+   <receiver>KeyboardWidget</receiver>
+   <slot>on_first_up_chord_send_changed(bool)</slot>
+   <hints>
+    <hint type="sourcelabel">
+     <x>79</x>
+     <y>46</y>
+    </hint>
+    <hint type="destinationlabel">
+     <x>79</x>
+     <y>32</y>
+    </hint>
+   </hints>
+  </connection>
  </connections>
  <slots>
   <slot>on_arpeggiate_changed(bool)</slot>
+  <slot>on_first_up_chord_send_changed(bool)</slot>
  </slots>
 </ui>

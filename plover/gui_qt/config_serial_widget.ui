@@ -82,10 +82,10 @@
          </size>
         </property>
         <property name="accessibleDescription">
-         <string>Scan for available serial ports.</string>
+         <string>Reload all available serial ports.</string>
         </property>
         <property name="text">
-         <string>Scan</string>
+         <string>Refresh</string>
         </property>
        </widget>
       </item>
