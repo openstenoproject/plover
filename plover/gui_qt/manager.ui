@@ -1,0 +1,250 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<ui version="4.0">
+ <class>PluginsManager</class>
+ <widget class="QDialog" name="PluginsManager">
+  <property name="geometry">
+   <rect>
+    <x>0</x>
+    <y>0</y>
+    <width>800</width>
+    <height>600</height>
+   </rect>
+  </property>
+  <property name="windowTitle">
+   <string>Dialog</string>
+  </property>
+  <layout class="QVBoxLayout" name="verticalLayout">
+   <item>
+    <widget class="QSplitter" name="splitter">
+     <property name="orientation">
+      <enum>Qt::Vertical</enum>
+     </property>
+     <widget class="QFrame" name="frame">
+      <property name="frameShape">
+       <enum>QFrame::StyledPanel</enum>
+      </property>
+      <property name="frameShadow">
+       <enum>QFrame::Raised</enum>
+      </property>
+      <layout class="QVBoxLayout" name="verticalLayout_2">
+       <item>
+        <widget class="QTableWidget" name="table">
+         <property name="editTriggers">
+          <set>QAbstractItemView::NoEditTriggers</set>
+         </property>
+         <property name="selectionBehavior">
+          <enum>QAbstractItemView::SelectRows</enum>
+         </property>
+         <property name="sortingEnabled">
+          <bool>true</bool>
+         </property>
+         <attribute name="horizontalHeaderStretchLastSection">
+          <bool>true</bool>
+         </attribute>
+         <column>
+          <property name="text">
+           <string>State</string>
+          </property>
+         </column>
+         <column>
+          <property name="text">
+           <string>Name</string>
+          </property>
+         </column>
+         <column>
+          <property name="text">
+           <string>Version</string>
+          </property>
+         </column>
+         <column>
+          <property name="text">
+           <string>Summary</string>
+          </property>
+         </column>
+        </widget>
+       </item>
+      </layout>
+     </widget>
+     <widget class="QFrame" name="info_frame">
+      <property name="frameShape">
+       <enum>QFrame::StyledPanel</enum>
+      </property>
+      <property name="frameShadow">
+       <enum>QFrame::Raised</enum>
+      </property>
+      <layout class="QVBoxLayout" name="verticalLayout_3">
+       <item>
+        <layout class="QHBoxLayout" name="horizontalLayout">
+         <item>
+          <widget class="QPushButton" name="restart_button">
+           <property name="text">
+            <string>Restart</string>
+           </property>
+          </widget>
+         </item>
+         <item>
+          <widget class="QProgressBar" name="progress">
+           <property name="sizePolicy">
+            <sizepolicy hsizetype="Minimum" vsizetype="Fixed">
+             <horstretch>0</horstretch>
+             <verstretch>0</verstretch>
+            </sizepolicy>
+           </property>
+           <property name="maximum">
+            <number>0</number>
+           </property>
+           <property name="value">
+            <number>-1</number>
+           </property>
+          </widget>
+         </item>
+         <item>
+          <widget class="QPushButton" name="refresh_button">
+           <property name="text">
+            <string>Refresh</string>
+           </property>
+          </widget>
+         </item>
+         <item>
+          <widget class="QPushButton" name="uninstall_button">
+           <property name="text">
+            <string>Uninstall</string>
+           </property>
+          </widget>
+         </item>
+         <item>
+          <widget class="QPushButton" name="install_button">
+           <property name="text">
+            <string>Install/Update</string>
+           </property>
+          </widget>
+         </item>
+         <item>
+          <widget class="QToolButton" name="install_git">
+           <property name="text">
+            <string>...</string>
+           </property>
+           <property name="icon">
+            <iconset resource="resources/resources.qrc">
+             <normaloff>:/plugins_manager/git.png</normaloff>:/plugins_manager/git.png</iconset>
+           </property>
+          </widget>
+         </item>
+        </layout>
+       </item>
+      </layout>
+     </widget>
+    </widget>
+   </item>
+  </layout>
+ </widget>
+ <resources>
+  <include location="resources/resources.qrc"/>
+ </resources>
+ <connections>
+  <connection>
+   <sender>table</sender>
+   <signal>itemSelectionChanged()</signal>
+   <receiver>PluginsManager</receiver>
+   <slot>on_selection_changed()</slot>
+   <hints>
+    <hint type="sourcelabel">
+     <x>381</x>
+     <y>70</y>
+    </hint>
+    <hint type="destinationlabel">
+     <x>319</x>
+     <y>239</y>
+    </hint>
+   </hints>
+  </connection>
+  <connection>
+   <sender>install_button</sender>
+   <signal>clicked()</signal>
+   <receiver>PluginsManager</receiver>
+   <slot>on_install()</slot>
+   <hints>
+    <hint type="sourcelabel">
+     <x>522</x>
+     <y>266</y>
+    </hint>
+    <hint type="destinationlabel">
+     <x>319</x>
+     <y>239</y>
+    </hint>
+   </hints>
+  </connection>
+  <connection>
+   <sender>restart_button</sender>
+   <signal>clicked()</signal>
+   <receiver>PluginsManager</receiver>
+   <slot>on_restart()</slot>
+   <hints>
+    <hint type="sourcelabel">
+     <x>116</x>
+     <y>266</y>
+    </hint>
+    <hint type="destinationlabel">
+     <x>319</x>
+     <y>239</y>
+    </hint>
+   </hints>
+  </connection>
+  <connection>
+   <sender>uninstall_button</sender>
+   <signal>clicked()</signal>
+   <receiver>PluginsManager</receiver>
+   <slot>on_uninstall()</slot>
+   <hints>
+    <hint type="sourcelabel">
+     <x>319</x>
+     <y>266</y>
+    </hint>
+    <hint type="destinationlabel">
+     <x>319</x>
+     <y>239</y>
+    </hint>
+   </hints>
+  </connection>
+  <connection>
+   <sender>refresh_button</sender>
+   <signal>clicked()</signal>
+   <receiver>PluginsManager</receiver>
+   <slot>on_refresh()</slot>
+   <hints>
+    <hint type="sourcelabel">
+     <x>150</x>
+     <y>501</y>
+    </hint>
+    <hint type="destinationlabel">
+     <x>399</x>
+     <y>299</y>
+    </hint>
+   </hints>
+  </connection>
+  <connection>
+   <sender>install_git</sender>
+   <signal>clicked()</signal>
+   <receiver>PluginsManager</receiver>
+   <slot>on_install_git()</slot>
+   <hints>
+    <hint type="sourcelabel">
+     <x>768</x>
+     <y>539</y>
+    </hint>
+    <hint type="destinationlabel">
+     <x>399</x>
+     <y>299</y>
+    </hint>
+   </hints>
+  </connection>
+ </connections>
+ <slots>
+  <slot>on_selection_changed()</slot>
+  <slot>on_install()</slot>
+  <slot>on_restart()</slot>
+  <slot>on_uninstall()</slot>
+  <slot>on_refresh()</slot>
+  <slot>on_install_git()</slot>
+ </slots>
+</ui>
