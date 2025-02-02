@@ -9,8 +9,9 @@ from plover.machine.keyboard_capture import Capture
 from plover.key_combo import parse_key_combo
 from plover import log
 
-
-modifiers = {
+# Shared keys between all layouts
+BASE_LAYOUT = {
+    # Modifiers
     "alt_l": e.KEY_LEFTALT,
     "alt_r": e.KEY_RIGHTALT,
     "alt": e.KEY_LEFTALT,
@@ -26,37 +27,6 @@ modifiers = {
     "super_l": e.KEY_LEFTMETA,
     "super_r": e.KEY_RIGHTMETA,
     "super": e.KEY_LEFTMETA,
-}
-
-
-keys = {
-    # Lowercase
-    "a": e.KEY_A,
-    "b": e.KEY_B,
-    "c": e.KEY_C,
-    "d": e.KEY_D,
-    "e": e.KEY_E,
-    "f": e.KEY_F,
-    "g": e.KEY_G,
-    "h": e.KEY_H,
-    "i": e.KEY_I,
-    "j": e.KEY_J,
-    "k": e.KEY_K,
-    "l": e.KEY_L,
-    "m": e.KEY_M,
-    "n": e.KEY_N,
-    "o": e.KEY_O,
-    "p": e.KEY_P,
-    "q": e.KEY_Q,
-    "r": e.KEY_R,
-    "s": e.KEY_S,
-    "t": e.KEY_T,
-    "u": e.KEY_U,
-    "v": e.KEY_V,
-    "w": e.KEY_W,
-    "x": e.KEY_X,
-    "y": e.KEY_Y,
-    "z": e.KEY_Z,
     # Numbers
     "1": e.KEY_1,
     "2": e.KEY_2,
@@ -69,18 +39,9 @@ keys = {
     "9": e.KEY_9,
     "0": e.KEY_0,
     # Symbols
-    "-": e.KEY_MINUS,
-    "=": e.KEY_EQUAL,
     " ": e.KEY_SPACE,
-    "[": e.KEY_LEFTBRACE,
-    "]": e.KEY_RIGHTBRACE,
-    ";": e.KEY_SEMICOLON,
-    "'": e.KEY_APOSTROPHE,
-    "`": e.KEY_GRAVE,
-    "\\": e.KEY_BACKSLASH,
     ".": e.KEY_DOT,
     ",": e.KEY_COMMA,
-    "/": e.KEY_SLASH,
     "\b": e.KEY_BACKSPACE,
     "\n": e.KEY_ENTER,
     # https://github.com/openstenoproject/plover/blob/9b5a357f1fb57cb0a9a8596ae12cd1e84fcff6c4/plover/oslayer/osx/keyboardcontrol.py#L75
@@ -163,8 +124,140 @@ keys = {
     "kbdbrightnessup": e.KEY_KBDILLUMUP,
     "kbdbrightnessdown": e.KEY_KBDILLUMDOWN,
 }
-KEY_TO_KEYCODE = {**keys, **modifiers}
-KEYCODE_TO_KEY = dict(zip(KEY_TO_KEYCODE.values(), KEY_TO_KEYCODE.keys()))
+
+DEFAULT_LAYOUT = "qwerty"
+LAYOUTS = {
+    # Only specify keys that differ from qwerty
+    "qwerty": {
+        **BASE_LAYOUT,
+        # Top row
+        "q": e.KEY_Q,
+        "w": e.KEY_W,
+        "e": e.KEY_E,
+        "r": e.KEY_R,
+        "t": e.KEY_T,
+        "y": e.KEY_Y,
+        "u": e.KEY_U,
+        "i": e.KEY_I,
+        "o": e.KEY_O,
+        "p": e.KEY_P,
+        # Middle row
+        "a": e.KEY_A,
+        "s": e.KEY_S,
+        "d": e.KEY_D,
+        "f": e.KEY_F,
+        "g": e.KEY_G,
+        "h": e.KEY_H,
+        "j": e.KEY_J,
+        "k": e.KEY_K,
+        "l": e.KEY_L,
+        # Bottom row
+        "z": e.KEY_Z,
+        "x": e.KEY_X,
+        "c": e.KEY_C,
+        "v": e.KEY_V,
+        "b": e.KEY_B,
+        "n": e.KEY_N,
+        "m": e.KEY_M,
+    },
+    "qwertz": {
+        **BASE_LAYOUT,
+        # Top row
+        "q": e.KEY_Q,
+        "w": e.KEY_W,
+        "e": e.KEY_E,
+        "r": e.KEY_R,
+        "t": e.KEY_T,
+        "z": e.KEY_Y,
+        "u": e.KEY_U,
+        "i": e.KEY_I,
+        "o": e.KEY_O,
+        "p": e.KEY_P,
+        # Middle row
+        "a": e.KEY_A,
+        "s": e.KEY_S,
+        "d": e.KEY_D,
+        "f": e.KEY_F,
+        "g": e.KEY_G,
+        "h": e.KEY_H,
+        "j": e.KEY_J,
+        "k": e.KEY_K,
+        "l": e.KEY_L,
+        # Bottom row
+        "y": e.KEY_Z,
+        "x": e.KEY_X,
+        "c": e.KEY_C,
+        "v": e.KEY_V,
+        "b": e.KEY_B,
+        "n": e.KEY_N,
+        "m": e.KEY_M,
+    },
+    "colemak": {
+        **BASE_LAYOUT,
+        # Top row
+        "q": e.KEY_Q,
+        "w": e.KEY_W,
+        "f": e.KEY_E,
+        "p": e.KEY_R,
+        "g": e.KEY_T,
+        "j": e.KEY_Y,
+        "l": e.KEY_U,
+        "u": e.KEY_I,
+        "y": e.KEY_O,
+        # Middle row
+        "a": e.KEY_A,
+        "r": e.KEY_S,
+        "s": e.KEY_D,
+        "t": e.KEY_F,
+        "d": e.KEY_G,
+        "h": e.KEY_H,
+        "n": e.KEY_J,
+        "e": e.KEY_K,
+        "i": e.KEY_L,
+        "o": e.KEY_SEMICOLON,
+        # Bottom row
+        "z": e.KEY_Z,
+        "x": e.KEY_X,
+        "c": e.KEY_C,
+        "v": e.KEY_V,
+        "b": e.KEY_B,
+        "k": e.KEY_N,
+        "m": e.KEY_M,
+    },
+    "colemak-dh": {
+        **BASE_LAYOUT,
+        # Top row
+        "q": e.KEY_Q,
+        "w": e.KEY_W,
+        "f": e.KEY_E,
+        "p": e.KEY_R,
+        "b": e.KEY_T,
+        "j": e.KEY_Y,
+        "l": e.KEY_U,
+        "u": e.KEY_I,
+        "y": e.KEY_O,
+        # Middle row
+        "a": e.KEY_A,
+        "r": e.KEY_S,
+        "s": e.KEY_D,
+        "t": e.KEY_F,
+        "g": e.KEY_G,
+        "m": e.KEY_H,
+        "n": e.KEY_J,
+        "e": e.KEY_K,
+        "i": e.KEY_L,
+        "o": e.KEY_SEMICOLON,
+        # Bottom row
+        "z": e.KEY_BACKSLASH,  # less than-key
+        "x": e.KEY_Z,
+        "c": e.KEY_X,
+        "d": e.KEY_C,
+        "v": e.KEY_V,
+        "k": e.KEY_N,
+        "h": e.KEY_M,
+    },
+}
+
 
 class KeyboardEmulation(GenericKeyboardEmulation):
     def __init__(self):
@@ -173,30 +266,22 @@ class KeyboardEmulation(GenericKeyboardEmulation):
         self._res = util.find_ecodes_by_regex(r"KEY_.*")
         self._ui = UInput(self._res)
 
-    def _update_layout(self, _layout):
-        log.info("Using keyboard layout " +
-                 _layout + " for keyboard emulation.")
-        _layout_options = _layout.split(":")
-        layout = _layout_options[0]
-        variant = _layout_options[1] if len(_layout_options) > 1 else ""
-        symbols = generate_symbols(layout, variant)
-        # Remove symbols not in KEY_TO_KEYCODE
-        syms_to_remove = []
-        for sym in symbols:
-            (base, _) = symbols[sym]
-            if base not in KEY_TO_KEYCODE:
-                syms_to_remove.append(sym)
-        for sym in syms_to_remove:
-            symbols.pop(sym)
-        self._symbols = symbols
+    def _update_layout(self, layout):
+        if not layout in LAYOUTS:
+            log.warning(f"Layout {layout} not supported. Falling back to qwerty.")
+        self._KEY_TO_KEYCODE = LAYOUTS.get(layout, LAYOUTS[DEFAULT_LAYOUT])
+
+    def _get_key(self, key):
+        """Helper function to get the keycode and potential shift key for uppercase."""
+        if key in self._KEY_TO_KEYCODE:
+            return (self._KEY_TO_KEYCODE[key], [])
+        elif key.lower() in self._KEY_TO_KEYCODE:
+            # mods is a list for the potential of expanding it in the future to include altgr
+            return (self._KEY_TO_KEYCODE[key.lower()], [self._KEY_TO_KEYCODE["shift_l"]])
+        return (None, [])
 
     def _press_key(self, key, state):
         self._ui.write(e.EV_KEY, key, 1 if state else 0)
-        self._ui.syn()
-
-    def _send_key(self, key):
-        self._press_key(key, True)
-        self._press_key(key, False)
         self._ui.syn()
 
     """
@@ -207,6 +292,7 @@ class KeyboardEmulation(GenericKeyboardEmulation):
     the same keybinding, it's too fast for it to handle and ends up writing random stuff. I don't
     think there is a way to fix that other than increasing the delay.
     """
+
     def _send_unicode(self, hex):
         self.send_key_combination("ctrl_l(shift(u))")
         self.delay()
@@ -215,15 +301,17 @@ class KeyboardEmulation(GenericKeyboardEmulation):
         self._send_char("\n")
 
     def _send_char(self, char):
+        (base, mods) = self._get_key(char)
+
         # Key can be sent with a key combination
-        if char in self._symbols:
-            (base, mods) = self._symbols[char]
+        if base is not None:
             for mod in mods:
-                self._press_key(KEY_TO_KEYCODE[mod], True)
+                self._press_key(mod, True)
             self.delay()
-            self._send_key(KEY_TO_KEYCODE[base])
+            self._press_key(base, True)
+            self._press_key(base, False)
             for mod in mods:
-                self._press_key(KEY_TO_KEYCODE[mod], False)
+                self._press_key(mod, False)
 
         # Key press can not be emulated - send unicode symbol instead
         else:
@@ -237,22 +325,18 @@ class KeyboardEmulation(GenericKeyboardEmulation):
 
     def send_backspaces(self, count):
         for _ in range(count):
-            self._send_key(KEY_TO_KEYCODE["\b"])
+            self._send_char("\b")
 
     def send_key_combination(self, combo):
         # https://plover.readthedocs.io/en/latest/api/key_combo.html#module-plover.key_combo
         key_events = parse_key_combo(combo)
 
         for key, pressed in self.with_delay(key_events):
-            try:
-                if key.lower() in self._symbols:
-                    # Ignore modifier layers for this one, there may be better ways to do this logic
-                    (base, _) = self._symbols[key.lower()]
-                    k = KEY_TO_KEYCODE[base]
-                else:
-                    k = KEY_TO_KEYCODE[key.lower()]
-                self._press_key(k, pressed)
-            except KeyError: # In case the key does not exist
+            (base, _) = self._get_key(key)
+
+            if base is not None:
+                self._press_key(base, pressed)
+            else:
                 log.warning("Key " + key + " is not valid!")
 
 
@@ -266,6 +350,9 @@ class KeyboardCapture(Capture):
         self._res = util.find_ecodes_by_regex(r"KEY_.*")
         self._ui = UInput(self._res)
         self._suppressed_keys = []
+        # The keycodes from evdev, e.g. e.KEY_A refers to the *physical* a, which corresponds with the qwerty layout.
+        KEY_TO_KEYCODE = LAYOUTS[DEFAULT_LAYOUT]
+        self._KEYCODE_TO_KEY = dict(zip(KEY_TO_KEYCODE.values(), KEY_TO_KEYCODE.keys()))
 
     def _get_devices(self):
         input_devices = [InputDevice(path) for path in list_devices()]
@@ -278,7 +365,7 @@ class KeyboardCapture(Capture):
         """
         is_uinput = device.name == "py-evdev-uinput" or device.phys == "py-evdev-uinput"
         capabilities = device.capabilities()
-        is_mouse =  e.EV_REL in capabilities or e.EV_ABS in capabilities
+        is_mouse = e.EV_REL in capabilities or e.EV_ABS in capabilities
         return not is_uinput and not is_mouse
 
     def start(self):
@@ -320,11 +407,11 @@ class KeyboardCapture(Capture):
                         are supposed to be in these locations, and reduces the amount of work done
                         configuring it afterwards.
                         """
-                        if event.code in KEYCODE_TO_KEY:
-                            key_name = KEYCODE_TO_KEY[event.code]
+                        if event.code in self._KEYCODE_TO_KEY:
+                            key_name = self._KEYCODE_TO_KEY[event.code]
                             if key_name in self._suppressed_keys:
                                 pressed = event.value == 1
                                 (self.key_down if pressed else self.key_up)(key_name)
-                                continue # Go to the next iteration, skipping the below code:
+                                continue  # Go to the next iteration, skipping the below code:
                     self._ui.write(e.EV_KEY, event.code, event.value)
                     self._ui.syn()
