@@ -122,20 +122,6 @@ def int_option(name, default, minimum, maximum, section, option=None):
         return value
     return ConfigOption(name, lambda c, k: default, getter, setter, validate, None)
 
-def str_option(name, default, section, option=None):
-    option = option or name
-    def getter(config, key):
-       return config._config[section][option]
-    def setter(config, key, value):
-        config._set(section, option, str(value))
-    def validate(config, key, value):
-        try:
-            value = str(value)
-        except ValueError as e:
-            raise InvalidConfigOption(value, default) from e
-        return value
-    return ConfigOption(name, lambda c, k: default, getter, setter, validate, None)
-
 def boolean_option(name, default, section, option=None):
     option = option or name
     def getter(config, key):
@@ -352,7 +338,7 @@ class Config:
         boolean_option('start_capitalized', False, OUTPUT_CONFIG_SECTION),
         int_option('undo_levels', DEFAULT_UNDO_LEVELS, MINIMUM_UNDO_LEVELS, None, OUTPUT_CONFIG_SECTION),
         int_option('time_between_key_presses', DEFAULT_TIME_BETWEEN_KEY_PRESSES, MINIMUM_TIME_BETWEEN_KEY_PRESSES, None, OUTPUT_CONFIG_SECTION),
-        str_option('xkb_layout', "us", OUTPUT_CONFIG_SECTION),
+        choice_option("keyboard_layout", ("qwerty", "qwertz", "colemak", "colemak-dh"), OUTPUT_CONFIG_SECTION),
         # Logging.
         path_option('log_file_name', expand_path('strokes.log'), LOGGING_CONFIG_SECTION, 'log_file'),
         boolean_option('enable_stroke_logging', False, LOGGING_CONFIG_SECTION),

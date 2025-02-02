@@ -212,9 +212,9 @@ class StenoEngine:
         self._formatter.start_capitalized = config['start_capitalized']
         self._translator.set_min_undo_length(config['undo_levels'])
         self._keyboard_emulation.set_key_press_delay(config['time_between_key_presses'])
-        # This only applies to UInput, because it emulates a physical keyboard and follows the layout set in software. Because there is no standard of defining it, the user has to do so manually if not using an US keyboard if not using an US keyboard.
+        # This only applies to UInput, because it emulates a physical keyboard and follows the layout set in software. Because there is no standard of defining it, the user has to do so manually if not using a QWERTY keyboard.
         if hasattr(self._keyboard_emulation, '_update_layout'):
-            self._keyboard_emulation._update_layout("qwerty")
+            self._keyboard_emulation._update_layout(config["keyboard_layout"])
         # Update system.
         system_name = config['system_name']
         if system.NAME != system_name:

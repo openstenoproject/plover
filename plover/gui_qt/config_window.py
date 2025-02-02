@@ -20,7 +20,6 @@ from PyQt5.QtWidgets import (
     QLabel,
     QScrollArea,
     QSpinBox,
-    QLineEdit,
     QStyledItemDelegate,
     QTableWidget,
     QTableWidgetItem,
@@ -71,17 +70,6 @@ class IntOption(QSpinBox):
         if minimum is not None:
             self.setMinimum(minimum)
 
-
-class StrOption(QLineEdit):
-
-    valueChanged = pyqtSignal(str)
-
-    def __init__(self):
-        super().__init__()
-        self.textChanged.connect(self.valueChanged.emit)
-
-    def setValue(self, value):
-        self.setText(value)
 
 class ChoiceOption(QComboBox):
 
@@ -404,14 +392,15 @@ class ConfigWindow(QDialog, Ui_ConfigWindow, WindowState):
                                'programs time to process each key press.\n'
                                'Setting the delay too high will negatively impact the\n'
                                'performance of key stroke output.')),
-                ConfigOption(_('Keyboard Layout:'), 'xkb_layout', StrOption,
-                             _('Set the keyboard layout configured in your system.\n'
-                               'Examples: "us", "gb", "fr", "no"\n'
-                               '\n'
-                               'This only applies when using Linux/BSD and not using X11.\n'
-                               'If you\'re unsure, you probably don\'t need to change it.\n'
-                                'If you use a different layout variant, format it as\n'
-                               '"language:layout", for example "us:colemak"')),
+                ConfigOption(_("Keyboard Layout:"), "keyboard_layout",
+                             partial(ChoiceOption, choices={
+                                "qwerty": "qwerty",
+                                "qwertz": "qwertz",
+                                "colemak": "colemak",
+                                "colemak-dh": "colemak-dh",
+                            }),
+                            _("Set the keyboard layout configurad in your system.\n"
+                              "This only applies when using Linux/BSD and not using X11."))
             )),
             # i18n: Widget: “ConfigWindow”.
             (_('Plugins'), (

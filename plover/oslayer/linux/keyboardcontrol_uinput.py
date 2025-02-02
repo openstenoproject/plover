@@ -2,8 +2,6 @@ from evdev import UInput, ecodes as e, util, InputDevice, list_devices
 import threading
 from select import select
 
-from .xkb_symbols import generate_symbols
-
 from plover.output.keyboard import GenericKeyboardEmulation
 from plover.machine.keyboard_capture import Capture
 from plover.key_combo import parse_key_combo
@@ -401,12 +399,6 @@ class KeyboardCapture(Capture):
             for fd in r:
                 for event in self._devices[fd].read():
                     if event.type == e.EV_KEY:
-                        """
-                        It could be possible to support different layouts through the xkb_symbols script
-                        , however, i think having it like this is actually better, because the keys
-                        are supposed to be in these locations, and reduces the amount of work done
-                        configuring it afterwards.
-                        """
                         if event.code in self._KEYCODE_TO_KEY:
                             key_name = self._KEYCODE_TO_KEY[event.code]
                             if key_name in self._suppressed_keys:
