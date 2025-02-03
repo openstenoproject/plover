@@ -12,7 +12,7 @@ from PyQt6.QtCore import (
 from PyQt6.QtGui import QFontDatabase, QFontMetrics
 from PyQt6.QtWidgets import QWidget
 
-from plover.plugins_manager.gui_qt.console_widget_ui import Ui_ConsoleWidget
+from plover.gui_qt.console_widget_ui import Ui_ConsoleWidget
 
 
 NULL = open(os.devnull, 'r+b')

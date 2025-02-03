@@ -1,8 +1,8 @@
 
 from PyQt6.QtWidgets import QDialogButtonBox, QDialog
 
-from plover.plugins_manager.gui_qt.console_widget import ConsoleWidget
-from plover.plugins_manager.gui_qt.run_dialog_ui import Ui_RunDialog
+from plover.gui_qt.console_widget import ConsoleWidget
+from plover.gui_qt.run_dialog_ui import Ui_RunDialog
 
 
 class RunDialog(QDialog, Ui_RunDialog):

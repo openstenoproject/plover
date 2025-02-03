@@ -126,7 +126,7 @@
            </property>
            <property name="icon">
             <iconset resource="resources/resources.qrc">
-             <normaloff>:/plugins_manager/git.png</normaloff>:/plugins_manager/git.png</iconset>
+             <normaloff>:/git.png</normaloff>:/git.png</iconset>
            </property>
           </widget>
          </item>
