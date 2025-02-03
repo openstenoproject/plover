@@ -1,12 +1,15 @@
 appdirs>=1.3.0
 appnope>=0.1.0; "darwin" in sys_platform
+pkginfo
 plover-stroke>=1.1.0
+Pygments
 pyobjc-core>=9.0; "darwin" in sys_platform
 pyobjc-framework-Cocoa>=9.0; "darwin" in sys_platform
 pyobjc-framework-Quartz>=9.0; "darwin" in sys_platform
 pyserial>=2.7
 python-xlib>=0.16; ("linux" in sys_platform or "bsd" in sys_platform) and python_version < "3.9"
 python-xlib>=0.29; ("linux" in sys_platform or "bsd" in sys_platform) and python_version >= "3.9"
+readme-renderer[md]
 requests-cache>=0.9.1
 requests-futures>=1.0.0
 rtf_tokenize
