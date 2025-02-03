@@ -256,6 +256,14 @@ LAYOUTS = {
     },
 }
 
+us_qwerty = {
+    **LAYOUTS[DEFAULT_LAYOUT],
+    ";": e.KEY_SEMICOLON,
+    "'": e.KEY_APOSTROPHE,
+    "[": e.KEY_LEFTBRACE,
+}
+KEYCODE_TO_KEY = dict(zip(us_qwerty.values(), us_qwerty.keys()))
+
 
 class KeyboardEmulation(GenericKeyboardEmulation):
     def __init__(self):
@@ -275,7 +283,10 @@ class KeyboardEmulation(GenericKeyboardEmulation):
             return (self._KEY_TO_KEYCODE[key], [])
         elif key.lower() in self._KEY_TO_KEYCODE:
             # mods is a list for the potential of expanding it in the future to include altgr
-            return (self._KEY_TO_KEYCODE[key.lower()], [self._KEY_TO_KEYCODE["shift_l"]])
+            return (
+                self._KEY_TO_KEYCODE[key.lower()],
+                [self._KEY_TO_KEYCODE["shift_l"]],
+            )
         return (None, [])
 
     def _press_key(self, key, state):
@@ -349,8 +360,6 @@ class KeyboardCapture(Capture):
         self._ui = UInput(self._res)
         self._suppressed_keys = []
         # The keycodes from evdev, e.g. e.KEY_A refers to the *physical* a, which corresponds with the qwerty layout.
-        KEY_TO_KEYCODE = LAYOUTS[DEFAULT_LAYOUT]
-        self._KEYCODE_TO_KEY = dict(zip(KEY_TO_KEYCODE.values(), KEY_TO_KEYCODE.keys()))
 
     def _get_devices(self):
         input_devices = [InputDevice(path) for path in list_devices()]
@@ -399,8 +408,8 @@ class KeyboardCapture(Capture):
             for fd in r:
                 for event in self._devices[fd].read():
                     if event.type == e.EV_KEY:
-                        if event.code in self._KEYCODE_TO_KEY:
-                            key_name = self._KEYCODE_TO_KEY[event.code]
+                        if event.code in KEYCODE_TO_KEY:
+                            key_name = KEYCODE_TO_KEY[event.code]
                             if key_name in self._suppressed_keys:
                                 pressed = event.value == 1
                                 (self.key_down if pressed else self.key_up)(key_name)
