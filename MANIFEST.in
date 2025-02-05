@@ -9,8 +9,6 @@ recursive-include doc *.png
 recursive-include doc *.svg
 recursive-include doc *.py
 recursive-include doc *.txt
-include launch.bat
-include launch.sh
 include linux/*
 include linux/appimage/*
 include news.d/api/*
@@ -35,11 +33,4 @@ include test/*.py
 include test/gui_qt/*.py
 include tox.ini
 include windows/*
-# Exclude: CI/Git/GitHub specific files,
-# as well as generated Python files (UI).
-exclude .gitignore
-exclude .readthedocs.yml
-exclude plover/gui_qt/*_rc.py
 exclude plover/gui_qt/*_ui.py
-exclude plover/gui_qt/.gitignore
-prune .github
