@@ -33,4 +33,5 @@ include test/*.py
 include test/gui_qt/*.py
 include tox.ini
 include windows/*
+exclude .readthedocs.yml
 exclude plover/gui_qt/*_ui.py
