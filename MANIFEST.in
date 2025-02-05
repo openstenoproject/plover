@@ -33,5 +33,7 @@ include test/*.py
 include test/gui_qt/*.py
 include tox.ini
 include windows/*
+# without first including it, exluding .readthedocs.yml results in a warning when running locally
+include .readthedocs.yml
 exclude .readthedocs.yml
 exclude plover/gui_qt/*_ui.py

@@ -284,8 +284,7 @@ setup(
     extras_require={
         'gui_qt': reqs('dist_extra_gui_qt'),
         'log': reqs('dist_extra_log'),
-    },
-    tests_require=reqs('test'),
+    }
 )
 
 # vim: foldmethod=marker
