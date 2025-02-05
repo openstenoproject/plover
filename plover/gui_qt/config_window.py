@@ -392,7 +392,7 @@ class ConfigWindow(QDialog, Ui_ConfigWindow, WindowState):
                                'programs time to process each key press.\n'
                                'Setting the delay too high will negatively impact the\n'
                                'performance of key stroke output.')),
-                ConfigOption(_("Keyboard Layout:"), "keyboard_layout",
+                ConfigOption(_("Linux keyboard layout:"), "keyboard_layout",
                              partial(ChoiceOption, choices={
                                 "qwerty": "qwerty",
                                 "qwertz": "qwertz",
