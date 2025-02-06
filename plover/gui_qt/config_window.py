@@ -392,6 +392,15 @@ class ConfigWindow(QDialog, Ui_ConfigWindow, WindowState):
                                'programs time to process each key press.\n'
                                'Setting the delay too high will negatively impact the\n'
                                'performance of key stroke output.')),
+                ConfigOption(_("Linux keyboard layout:"), "keyboard_layout",
+                             partial(ChoiceOption, choices={
+                                "qwerty": "qwerty",
+                                "qwertz": "qwertz",
+                                "colemak": "colemak",
+                                "colemak-dh": "colemak-dh",
+                            }),
+                            _("Set the keyboard layout configurad in your system.\n"
+                              "This only applies when using Linux/BSD and not using X11."))
             )),
             # i18n: Widget: “ConfigWindow”.
             (_('Plugins'), (
