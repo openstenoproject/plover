@@ -153,11 +153,6 @@ class MainWindow(QMainWindow, Ui_MainWindow, WindowState):
                 self.showMinimized()
 
     def _is_wayland(self):
-        """
-        Calling .activateWindow() on a window results in this error:
-            Qt: Wayland does not support QWindow::requestActivate()
-        This function returns a boolean used to determine whether to run activateWindow()
-        """
         return "wayland" in QApplication.platformName().lower()
 
     def _activate_dialog(self, name, args=(), manage_windows=False):
@@ -176,6 +171,8 @@ class MainWindow(QMainWindow, Ui_MainWindow, WindowState):
             dialog.finished.connect(on_finished)
         dialog.showNormal()
         if not self._is_wayland():
+            # Otherwise gives this warning:
+            # Qt: Wayland does not support QWindow::requestActivate()
             dialog.activateWindow()
         dialog.raise_()
 
