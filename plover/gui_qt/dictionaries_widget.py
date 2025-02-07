@@ -71,6 +71,10 @@ class DictionariesModel(QAbstractListModel):
             self.loaded = loaded
 
         @property
+        def basename(self):
+            return os.path.basename(self.path)
+
+        @property
         def loaded(self):
             return self._loaded
 
@@ -114,6 +118,7 @@ class DictionariesModel(QAbstractListModel):
         self._undo_stack = []
         self._max_undo = max_undo
         self._icons = icons
+        self._show_basename_only = False
         with engine:
             config = engine.config
             engine.signal_connect('config_changed', self._on_config_changed)
@@ -163,11 +168,13 @@ class DictionariesModel(QAbstractListModel):
             filter(None, (old, new))
         }
 
-    def _reset_items(self, config, reverse_order=None, backup=True, publish=True):
+    def _reset_items(self, config, reverse_order=None, show_basename_only=None, backup=True, publish=True):
         if backup:
             self._backup_config()
         if reverse_order is None:
             reverse_order = self._reverse_order
+        if show_basename_only is None:
+            show_basename_only = self._show_basename_only
         self.layoutAboutToBeChanged.emit()
         old_persistent_indexes = self.persistentIndexList()
         assert all(index.isValid() for index in old_persistent_indexes)
@@ -187,6 +194,7 @@ class DictionariesModel(QAbstractListModel):
             assert d.path not in from_path
             from_path[d.path] = item
             from_row.append(item)
+        self._show_basename_only = show_basename_only
         self._reverse_order = reverse_order
         self._from_path = from_path
         self._from_row = from_row
@@ -208,9 +216,12 @@ class DictionariesModel(QAbstractListModel):
     def _on_config_changed(self, config_update):
         config = config_update.get('dictionaries')
         reverse_order = config_update.get('classic_dictionaries_display_order')
+        show_basename_only = config_update.get('show_dictionary_basename_only')
         noop = True
         if reverse_order is not None:
             noop = reverse_order == self._reverse_order
+        if show_basename_only is not None:
+            noop = show_basename_only == self._show_basename_only
         if config is not None:
             noop = noop and config == self._config
         if noop:
@@ -221,7 +232,7 @@ class DictionariesModel(QAbstractListModel):
             if self._undo_stack:
                 self.has_undo_changed.emit(False)
             self._undo_stack.clear()
-        self._reset_items(config, reverse_order,
+        self._reset_items(config, reverse_order, show_basename_only=show_basename_only,
                           backup=False, publish=False)
 
     def _on_dictionaries_loaded(self, loaded_dictionaries):
@@ -363,7 +374,7 @@ class DictionariesModel(QAbstractListModel):
             return None
         d = self._from_row[index.row()]
         if role == Qt.DisplayRole:
-            return d.short_path
+            return d.basename if self._show_basename_only else d.short_path
         if role == Qt.CheckStateRole:
             return Qt.Checked if d.enabled else Qt.Unchecked
         if role == Qt.AccessibleTextRole:
