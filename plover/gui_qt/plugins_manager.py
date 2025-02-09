@@ -4,9 +4,6 @@ import atexit
 import html
 import os
 import sys
-import itertools
-import subprocess
-import site
 
 from PyQt6.QtCore import Qt, pyqtSignal
 from PyQt6.QtWidgets import QDialog, QMessageBox, QTableWidgetItem, QInputDialog
@@ -17,8 +14,7 @@ from plover.gui_qt.plugins_manager_ui import Ui_PluginsManager
 from plover.gui_qt.run_dialog import RunDialog
 from plover.plugins_manager.registry import Registry
 from plover.plugins_manager.utils import description_to_html
-from plover.plugins_manager import local_registry, global_registry
-from plover.plugins_manager.utils import running_under_virtualenv
+from plover.plugins_manager.__main__ import pip
 
 
 class PluginsManager(Tool, Ui_PluginsManager):
