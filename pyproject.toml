@@ -1,8 +1,8 @@
 [build-system]
 requires = [
 	"Babel",
-	"PyQt6>=6.4.2",
-	"pyqt6rc>=0.5.2",
+	"PyQt6>=6.5.0",
+	"pyqt6rc>=0.6.0",
 	"setuptools>=38.2.4",
 	"wheel",
 ]
