@@ -262,7 +262,7 @@ release_finalize()
 {
   [ $# -eq 0 ] || die 1 'expecting no argument'
   version="$("$python" setup.py --version)"
-  message="release $version"
+  message="Release version $version"
   tag="v$version"
   run git commit -m "$message"
   run git tag -m "$message" "$tag"

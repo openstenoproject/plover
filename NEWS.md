@@ -1,4 +1,4 @@
-# v4.0.0rc3 (2025-02-09)
+# v4.0.0rc4 (2025-02-09)
 
 
 ## Features
@@ -23,6 +23,12 @@
 ### New
 
 - Renamed the `=retrospective_*` macros to simply `=retro_*`. The previous names are retained for backwards compatibility, but are now deprecated. (#1639)
+
+# v4.0.0rc3 (2025-02-09)
+
+
+## *Skipped for technical reasons.*
+
 
 # v4.0.0rc2 (2023-09-28)
 
