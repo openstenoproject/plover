@@ -9,6 +9,7 @@ from PyQt6.QtGui import QCursor, QKeySequence
 from PyQt6.QtWidgets import (
     QMainWindow,
     QMenu,
+    QApplication,
 )
 
 from plover import _, log
@@ -147,6 +148,9 @@ class MainWindow(QMainWindow, Ui_MainWindow, WindowState):
             else:
                 self.showMinimized()
 
+    def _is_wayland(self):
+        return "wayland" in QApplication.platformName().lower()
+
     def _activate_dialog(self, name, args=(), manage_windows=False):
         if manage_windows:
             previous_window = wmctrl.GetForegroundWindow()
@@ -162,7 +166,10 @@ class MainWindow(QMainWindow, Ui_MainWindow, WindowState):
                     wmctrl.SetForegroundWindow(previous_window)
             dialog.finished.connect(on_finished)
         dialog.showNormal()
-        dialog.activateWindow()
+        if not self._is_wayland():
+            # Otherwise gives this warning:
+            # Qt: Wayland does not support QWindow::requestActivate()
+            dialog.activateWindow()
         dialog.raise_()
 
     def _add_translation(self, dictionary=None, manage_windows=False):
@@ -173,7 +180,8 @@ class MainWindow(QMainWindow, Ui_MainWindow, WindowState):
 
     def _focus(self):
         self.showNormal()
-        self.activateWindow()
+        if not self._is_wayland():
+            self.activateWindow()
         self.raise_()
 
     def _configure(self, manage_windows=False):
