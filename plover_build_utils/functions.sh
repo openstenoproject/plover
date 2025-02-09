@@ -255,7 +255,7 @@ release_prepare()
   [ $# -eq 1 ] || die 1 'expecting one argument: the new version'
   run "$python" setup.py patch_version "$1"
   run git add plover/__init__.py
-  run towncrier --version="$1" --yes
+  run towncrier build --version "$1" --yes
 }
 
 release_finalize()

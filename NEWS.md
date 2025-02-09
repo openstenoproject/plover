@@ -1,3 +1,29 @@
+# v4.0.0rc3 (2025-02-09)
+
+
+## Features
+
+### User Interface
+
+- Renamed the 'Scan' button in the serial port configuration window to 'Refresh', to (hopefully) more accurately convey that it simply lists all available serial ports. (#1640)
+- Added a button to the Plugins Manager for installing plugins via Git URL. (#1700)
+
+### Linux
+
+- Added keyboard emulation and capture using uinput, compatible with X11, Wayland and anything else on linux and bsd. (#1679)
+
+## Bugfixes
+
+### Windows
+
+- Fixed backspace scancode and swapped page up/down. (#1697)
+
+## API
+
+### New
+
+- Renamed the `=retrospective_*` macros to simply `=retro_*`. The previous names are retained for backwards compatibility, but are now deprecated. (#1639)
+
 # v4.0.0rc2 (2023-09-28)
 
 

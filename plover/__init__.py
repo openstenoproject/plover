@@ -12,7 +12,7 @@ else:
     # want to translate anyway.
     _ = lambda s: s
 
-__version__ = '4.0.0rc2'
+__version__ = '4.0.0rc3'
 __copyright__ = '(C) Open Steno Project'
 __url__ = 'http://www.openstenoproject.org/'
 __download_url__ = 'http://www.openstenoproject.org/plover'
