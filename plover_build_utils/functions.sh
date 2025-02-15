@@ -254,14 +254,14 @@ release_prepare()
   [ $# -eq 1 ] || die 1 'expecting one argument: the new version'
   run "$python" setup.py patch_version "$1"
   run git add plover/__init__.py
-  run towncrier --version="$1" --yes
+  run towncrier build --version "$1" --yes
 }
 
 release_finalize()
 {
   [ $# -eq 0 ] || die 1 'expecting no argument'
   version="$("$python" setup.py --version)"
-  message="release $version"
+  message="Release version $version"
   tag="v$version"
   run git commit -m "$message"
   run git tag -m "$message" "$tag"

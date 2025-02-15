@@ -286,10 +286,11 @@ jobs:
       - name: Checkout
         uses: <@ action_checkout @>
 
+      # FIXME pass python version via workflow_context
       - name: Setup Python
         uses: <@ action_setup_python @>
         with:
-          python-version: 3.x
+          python-version: 3.9
 
       - name: Install dependencies
         run: |
@@ -301,6 +302,13 @@ jobs:
         with:
           path: dist
 
+      - name: Publish GitHub release (${{ needs.analyze.outputs.release_type }})
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          RELEASE_TYPE: ${{ needs.analyze.outputs.release_type }}
+          RELEASE_VERSION: ${{ needs.test_packaging.outputs.version }}
+        run: publish_github_release
+
       - name: Publish PyPI release
         if: needs.analyze.outputs.release_type == 'tagged'
         env:
@@ -310,13 +318,6 @@ jobs:
           # Optional: twine will fallback to default if empty.
           TWINE_REPOSITORY_URL: ${{ secrets.PYPI_URL }}
         run: publish_pypi_release
-
-      - name: Publish GitHub release (${{ needs.analyze.outputs.release_type }})
-        env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-          RELEASE_TYPE: ${{ needs.analyze.outputs.release_type }}
-          RELEASE_VERSION: ${{ needs.test_packaging.outputs.version }}
-        run: publish_github_release
   # }}}
 
 # vim: foldmethod=marker foldlevel=0

@@ -143,6 +143,14 @@ class PatchVersion(Command):
 
     def finalize_options(self):
         assert 0 <= len(self.args) <= 1
+    
+    def patch_version(self, version_file_path, regex_pattern, regex_replacement, version):
+        with open(version_file_path, 'r') as fp:
+            contents = fp.read().split('\n')
+        contents = [re.sub(regex_pattern,regex_replacement % version, line)
+                    for line in contents]
+        with open(version_file_path, 'w') as fp:
+            fp.write('\n'.join(contents))
 
     def run(self):
         if self.args:
@@ -155,13 +163,12 @@ class PatchVersion(Command):
                 sys.exit(1)
         if self.verbose:
             print('patching version to', version)
-        version_file = os.path.join('plover', '__init__.py')
-        with open(version_file, 'r') as fp:
-            contents = fp.read().split('\n')
-        contents = [re.sub(r'^__version__ = .*$', "__version__ = '%s'" % version, line)
-                    for line in contents]
-        with open(version_file, 'w') as fp:
-            fp.write('\n'.join(contents))
+        
+        plover_init_file_path = os.path.join('plover', '__init__.py')
+        self.patch_version(plover_init_file_path, r'^__version__ = .*$', "__version__ = '%s'", version)
+
+        doc_conf_file_path = os.path.join('doc', 'conf.py')
+        self.patch_version(doc_conf_file_path, r'^release = .*$', 'release = "%s"', version)
 
 cmdclass['patch_version'] = PatchVersion
 
