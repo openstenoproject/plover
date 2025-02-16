@@ -120,7 +120,7 @@
           </widget>
          </item>
          <item>
-          <widget class="QToolButton" name="install_git">
+          <widget class="QToolButton" name="install_git_button">
            <property name="text">
             <string>...</string>
            </property>
@@ -223,7 +223,7 @@
    </hints>
   </connection>
   <connection>
-   <sender>install_git</sender>
+   <sender>install_git_button</sender>
    <signal>clicked()</signal>
    <receiver>PluginsManager</receiver>
    <slot>on_install_git()</slot>
