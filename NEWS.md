@@ -1,3 +1,11 @@
+# v4.0.0 (2025-02-18)
+
+
+## Features
+
+- Same as `v4.0.0rc5`
+- See [NEWS.md](https://github.com/openstenoproject/plover/blob/main/NEWS.md) for the features included in the `v4.0.0.dev` and `v4.0.0rc` versions.
+
 # v4.0.0rc5 (2025-02-10)
 
 
