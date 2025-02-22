@@ -1,5 +1,5 @@
 
-from plover import log
+from plover import log, __version__
 
 from plover.plugins_manager import global_registry, local_registry
 
@@ -72,6 +72,35 @@ class Registry:
 
     def items(self):
         return self._packages.items()
+    
+
+    # TODO add tests for this method
+    def parse_unsupported_plover_version(self, unsupported_plover_version)->int:
+        """
+        Handling different formats in case the unsupported_plover_version format changes in future Plover versions.
+        """
+        if isinstance(unsupported_plover_version,int):
+            return unsupported_plover_version
+        elif isinstance(unsupported_plover_version,str):
+            try:
+                return int(unsupported_plover_version.split('.')[0])
+            except Exception as e:
+                raise ValueError(
+                    f'Failed to parse unsupported plover version "{unsupported_plover_version}" from plugin metadata'
+                ) from e
+        else:
+            raise ValueError(
+                f'Unknown format for unsupported_plover_version "{unsupported_plover_version}" from plugin metadata'
+            )
+
+
+    def is_plugin_supported(self, unsupported_plover_version):
+        if unsupported_plover_version:
+            parsed_unsupported_plover_version = self.parse_unsupported_plover_version(unsupported_plover_version)
+            current_major_plover_version = int(__version__.split('.')[0])
+            return current_major_plover_version < parsed_unsupported_plover_version
+        else:
+            return True
 
     def update(self):
         try:
@@ -89,3 +118,10 @@ class Registry:
                 pkg.available = metadata
                 if pkg.current and pkg.current.parsed_version < pkg.latest.parsed_version:
                     pkg.status = 'outdated'
+            try:
+                is_plugin_supported = self.is_plugin_supported(pkg.unsupported_plover_version)
+            except:
+                log.warning(f'Failed to parse unsupported plover version "{pkg.unsupported_plover_version}" for plugin {pkg.name}, assuming plugin is supported',exc_info=True)
+                is_plugin_supported = True
+            if not is_plugin_supported:
+                pkg.status = 'unsupported'

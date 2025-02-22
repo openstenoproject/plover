@@ -41,7 +41,6 @@ class PluginsManager(Tool, Ui_PluginsManager):
         self._packages_updated.connect(self._on_packages_updated)
         if self._packages is None:
             PluginsManager._packages = Registry()
-        print(PluginsManager._packages)
         self._on_packages_updated()
         self.on_refresh()
 
@@ -86,7 +85,7 @@ class PluginsManager(Tool, Ui_PluginsManager):
             elif state.status in ('outdated',):
                 can_uninstall.append(state.name)
                 can_install.append(state.name)
-            elif state.latest:
+            elif state.status != 'unsupported' and state.latest:
                 can_install.append(state.name)
         return can_install, can_uninstall
 

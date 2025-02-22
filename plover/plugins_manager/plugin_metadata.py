@@ -17,6 +17,7 @@ class PluginMetadata(namedtuple('PluginMetadata', '''
                                 name
                                 summary
                                 version
+                                unsupported_plover_version
                                 ''')):
 
     @property
