@@ -1,24 +1,3 @@
-# v5.0.0-alpha.1 (2025-02-22)
-
-
-## Features
-
-### Core
-
-- Integrate Plugins Manager and remove distribution plugins to simplify distribution of Plover. (#1601)
-
-## Bugfixes
-
-### macOS
-
-- Fix notifications for newer macOS versions. (#1601)
-
-## API
-
-### Breaking Changes
-
-- Update UI from PyQt5 to PyQt6. (#1601)
-
 # v4.0.0 (2025-02-18)
 
 
