@@ -3,6 +3,8 @@ from plover import log, __version__
 
 from plover.plugins_manager import global_registry, local_registry
 
+from plover.plugins_manager.requests import CachedFuturesSession
+
 
 class PackageState:
 
@@ -45,6 +47,9 @@ class PackageState:
 
     def __repr__(self):
         return str(self)
+
+#TODO update with proper URL
+UNSUPPORTED_PLUGINS_URL = 'https://raw.githubusercontent.com/mkrnr/plover_plugins_registry/registry_plover_v5/unsupported.json'
 
 
 class Registry:
@@ -90,14 +95,23 @@ class Registry:
                 ) from e
         else:
             raise ValueError(
-                f'Unknown format for unsupported_plover_version "{unsupported_plover_version}" from plugin metadata'
+                f'Unknown format for unsupported plover version "{unsupported_plover_version}" from plugin metadata'
             )
 
 
-    def is_plugin_supported(self, unsupported_plover_version):
-        if unsupported_plover_version:
-            parsed_unsupported_plover_version = self.parse_unsupported_plover_version(unsupported_plover_version)
+    def is_plugin_supported(self,pkg, unsupported_plugins_dict):
+        if not unsupported_plugins_dict:
+            return True
+        if pkg.name in unsupported_plugins_dict:
+            unsupported_plover_version= unsupported_plugins_dict[pkg.name]
+            try:
+                parsed_unsupported_plover_version = self.parse_unsupported_plover_version(unsupported_plover_version)
+            except:
+                log.warning(f'Failed to parse unsupported plover version "{pkg.unsupported_plover_version}" for plugin {pkg.name}, assuming plugin is supported',exc_info=True)
+                return True
             current_major_plover_version = int(__version__.split('.')[0])
+            #TODO remove this overwrite after PR-1601 is merged and 5.0.0-alpha.1 released
+            current_major_plover_version = 5
             return current_major_plover_version < parsed_unsupported_plover_version
         else:
             return True
@@ -106,9 +120,17 @@ class Registry:
         try:
             available_plugins = global_registry.list_plugins()
         except:
-            log.error("failed to fetch list of available plugins from PyPI",
+            log.error("Failed to fetch list of available plugins from PyPI",
                       exc_info=True)
             return
+
+        session = CachedFuturesSession()
+        try:
+            unsupported_plugins_dict=session.get(UNSUPPORTED_PLUGINS_URL).result().json()
+        except:
+            log.warning("Failed to fetch list of unsupported plugins, assuming all plugins are supported",
+                      exc_info=True)
+
         for name, metadata in available_plugins.items():
             pkg = self._packages.get(name)
             if pkg is None:
@@ -118,10 +140,5 @@ class Registry:
                 pkg.available = metadata
                 if pkg.current and pkg.current.parsed_version < pkg.latest.parsed_version:
                     pkg.status = 'outdated'
-            try:
-                is_plugin_supported = self.is_plugin_supported(pkg.unsupported_plover_version)
-            except:
-                log.warning(f'Failed to parse unsupported plover version "{pkg.unsupported_plover_version}" for plugin {pkg.name}, assuming plugin is supported',exc_info=True)
-                is_plugin_supported = True
-            if not is_plugin_supported:
+            if not self.is_plugin_supported(pkg, unsupported_plugins_dict):
                 pkg.status = 'unsupported'

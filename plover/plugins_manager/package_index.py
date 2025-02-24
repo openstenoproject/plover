@@ -7,20 +7,15 @@ from plover.plugins_manager.requests import CachedFuturesSession
 
 PYPI_URL = 'https://pypi.org/pypi'
 REGISTRY_URL = 'https://github.com/openstenoproject/plover_plugins_registry/raw/master/registry.json'
-#TODO update with proper URL
-UNSUPPORTED_PLUGINS_URL = 'https://raw.githubusercontent.com/mkrnr/plover_plugins_registry/registry_plover_v5/unsupported.json'
 
 
-def find_plover_plugins_releases(pypi_url=None, registry_url=None, unsupported_plugins_url=None, capture=None):
+def find_plover_plugins_releases(pypi_url=None, registry_url=None, capture=None):
 
     if pypi_url is None:
         pypi_url = os.environ.get('PYPI_URL', PYPI_URL)
 
     if registry_url is None:
         registry_url = os.environ.get('REGISTRY_URL', REGISTRY_URL)
-
-    if unsupported_plugins_url is None:
-        unsupported_plugins_url = os.environ.get('UNSUPPORTED_PLUGINS_URL', UNSUPPORTED_PLUGINS_URL)
 
     session = CachedFuturesSession()
 
@@ -42,8 +37,6 @@ def find_plover_plugins_releases(pypi_url=None, registry_url=None, unsupported_p
         for name in session.get(registry_url).result().json():
             fetch_release(name)
         
-        unsupported_plugins_dict=session.get(unsupported_plugins_url).result().json()
-
         while in_progress:
             for future in as_completed(list(in_progress)):
                 in_progress.remove(future)
@@ -60,8 +53,6 @@ def find_plover_plugins_releases(pypi_url=None, registry_url=None, unsupported_p
                     continue
                 name, version = info['name'], info['version']
                 all_releases[(name, version)] = release
-                if name in unsupported_plugins_dict:
-                    info['unsupported_plover_version'] = unsupported_plugins_dict[name]
 
     all_releases = [
         release
