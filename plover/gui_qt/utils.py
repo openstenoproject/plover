@@ -1,12 +1,18 @@
-from PyQt5.QtCore import QSettings
-from PyQt5.QtGui import QGuiApplication, QKeySequence
-from PyQt5.QtWidgets import (
+from PyQt6.QtCore import QSettings
+from PyQt6.QtGui import (
     QAction,
+    QGuiApplication,
+    QIcon,
+    QKeySequence,
+    QPixmap
+)
+from PyQt6.QtWidgets import (
     QMainWindow,
     QToolBar,
     QToolButton,
     QWidget,
 )
+import importlib.resources
 
 from plover import _
 
@@ -17,7 +23,7 @@ def ActionCopyViewSelectionToClipboard(view):
         data = view.model().mimeData(indexes)
         QGuiApplication.clipboard().setMimeData(data)
     action = QAction(_('Copy selection to clipboard'))
-    action.setShortcut(QKeySequence(QKeySequence.Copy))
+    action.setShortcut(QKeySequence(QKeySequence.StandardKey.Copy))
     action.triggered.connect(copy_selection_to_clipboard)
     return action
 
@@ -36,6 +42,24 @@ def ToolBar(*action_list):
         else:
             toolbar.addWidget(ToolButton(action))
     return toolbar
+
+
+def Icon(resource):
+    icon = QIcon()
+    package = "plover.gui_qt.resources"
+
+    if type(resource) is tuple:
+        package = resource[0]
+        resource = resource[1]
+
+    if type(resource) is str:
+        if resource.startswith(":/"):
+            resource = resource[2:]
+
+    with importlib.resources.path(package, resource) as f_path:
+        icon.addPixmap(QPixmap(str(f_path)))
+
+    return icon
 
 
 class WindowState(QWidget):

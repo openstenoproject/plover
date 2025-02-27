@@ -4,9 +4,9 @@ import json
 import os
 import subprocess
 
-from PyQt5.QtCore import QCoreApplication, Qt
-from PyQt5.QtGui import QCursor, QIcon, QKeySequence
-from PyQt5.QtWidgets import (
+from PyQt6.QtCore import QCoreApplication, Qt
+from PyQt6.QtGui import QCursor, QKeySequence
+from PyQt6.QtWidgets import (
     QMainWindow,
     QMenu,
     QApplication,
@@ -23,7 +23,7 @@ from plover.gui_qt.main_window_ui import Ui_MainWindow
 from plover.gui_qt.config_window import ConfigWindow
 from plover.gui_qt.about_dialog import AboutDialog
 from plover.gui_qt.trayicon import TrayIcon
-from plover.gui_qt.utils import WindowState, find_menu_actions
+from plover.gui_qt.utils import Icon, WindowState, find_menu_actions
 
 
 class MainWindow(QMainWindow, Ui_MainWindow, WindowState):
@@ -82,7 +82,7 @@ class MainWindow(QMainWindow, Ui_MainWindow, WindowState):
         self.action_Quit.triggered.connect(engine.quit)
         # Toolbar popup menu for selecting which tools are shown.
         self.toolbar_menu = QMenu()
-        self.toolbar.setContextMenuPolicy(Qt.CustomContextMenu)
+        self.toolbar.setContextMenuPolicy(Qt.ContextMenuPolicy.CustomContextMenu)
         self.toolbar.customContextMenuRequested.connect(
             lambda: self.toolbar_menu.popup(QCursor.pos())
         )
@@ -94,11 +94,7 @@ class MainWindow(QMainWindow, Ui_MainWindow, WindowState):
             if tool.SHORTCUT is not None:
                 menu_action.setShortcut(QKeySequence.fromString(tool.SHORTCUT))
             if tool.ICON is not None:
-                icon = tool.ICON
-                # Internal QT resources start with a `:`.
-                if not icon.startswith(':'):
-                    icon = resource_filename(icon)
-                menu_action.setIcon(QIcon(icon))
+                menu_action.setIcon(Icon(tool.ICON))
             menu_action.triggered.connect(partial(self._activate_dialog, tool_plugin.name, args=()))
             toolbar_action = self.toolbar.addAction(menu_action.icon(), menu_action.text())
             if tool.__doc__ is not None:

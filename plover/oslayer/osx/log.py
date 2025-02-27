@@ -1,6 +1,8 @@
 import objc
-NSUserNotification = objc.lookUpClass('NSUserNotification')
-NSUserNotificationCenter = objc.lookUpClass('NSUserNotificationCenter')
+UNUserNotificationCenter = objc.lookUpClass('UNUserNotificationCenter')
+UNMutableNotificationContent = objc.lookUpClass('UNMutableNotificationContent')
+UNNotificationRequest = objc.lookUpClass('UNNotificationRequest')
+
 NSObject = objc.lookUpClass('NSObject')
 
 from plover import log, __name__ as __software_name__
@@ -16,15 +18,15 @@ class NotificationHandler(logging.Handler):
         self.setFormatter(log.NoExceptionTracebackFormatter('%(message)s'))
 
     def emit(self, record):
-        # Notification Center has no levels or timeouts.
-        notification = NSUserNotification.alloc().init()
+        content = UNMutableNotificationContent.alloc().init()
+        content.setTitle_(record.levelname.title())
+        content.setBody_(self.format(record))
 
-        notification.setTitle_(record.levelname.title())
-        notification.setInformativeText_(self.format(record))
+        request = UNNotificationRequest.requestWithIdentifier_content_trigger_("notification", content, None)
 
-        ns = NSUserNotificationCenter.defaultUserNotificationCenter()
-        ns.setDelegate_(always_present_delegator)
-        ns.deliverNotification_(notification)
+        center = UNUserNotificationCenter.currentNotificationCenter()
+        center.requestAuthorizationWithOptions_completionHandler_(3, lambda granted, error: None)
+        center.addNotificationRequest_withCompletionHandler_(request, None)
 
 
 class AlwaysPresentNSDelegator(NSObject):
