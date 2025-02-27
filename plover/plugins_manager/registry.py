@@ -110,7 +110,7 @@ class Registry:
                 log.warning(f'Failed to parse unsupported plover version "{pkg.unsupported_plover_version}" for plugin {pkg.name}, assuming plugin is supported',exc_info=True)
                 return True
             current_major_plover_version = int(__version__.split('.')[0])
-            #TODO remove this overwrite after PR-1601 is merged and 5.0.0-alpha.1 released
+            #TODO remove this overwrite after PR-1601 is merged and 5.0.0.dev1 released
             current_major_plover_version = 5
             return current_major_plover_version < parsed_unsupported_plover_version
         else:
