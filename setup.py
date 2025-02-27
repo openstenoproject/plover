@@ -45,12 +45,16 @@ PACKAGE = '%s-%s' % (
 def get_version():
     if not os.path.exists('.git'):
         return None
-    version = subprocess.check_output('git describe --tags --match=v[0-9]*'.split()).strip().decode()
-    m = re.match(r'^v(\d[\d.]*(?:(?:\.dev|rc)\d+)?)(-\d+-g[a-f0-9]*)?$', version)
-    assert m is not None, version
-    version = m.group(1)
+
+    version = __version__
+
+    # extend version with git revision if no tag is available - used for builds during development
+    git_version = subprocess.check_output('git describe --tags --match=v[0-9]*'.split()).strip().decode()
+    m = re.match(r'^v(\d[\d.]*(?:(?:\.dev|rc)\d+)?)(-\d+-g[a-f0-9]*)?$', git_version)
+    assert m is not None, git_version
     if m.group(2) is not None:
         version += '+' + m.group(2)[1:].replace('-', '.')
+
     return version
 
 # }}}
