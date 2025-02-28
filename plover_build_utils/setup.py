@@ -8,6 +8,7 @@ from setuptools.command.build_py import build_py
 from setuptools.command.develop import develop
 import pkg_resources
 import setuptools
+from PyQt6 import uic
 
 
 class Command(setuptools.Command):
@@ -100,7 +101,6 @@ class BuildUi(Command):
         pass
 
     def _build_ui(self, src):
-        from pyqt6rc import convert_tools
         dst = os.path.splitext(src)[0] + '_ui.py'
         if not self.force and os.path.exists(dst) and \
            os.path.getmtime(dst) >= os.path.getmtime(src):
@@ -108,19 +108,18 @@ class BuildUi(Command):
         if self.verbose:
             print('generating', dst)
 
-        resources = {}
-        resources_found = convert_tools.update_resources(src, resources)
-        contents = os.popen(f"python -m PyQt6.uic.pyuic {src}").read()
-        if resources_found is not None:
-            contents = convert_tools.modify_py(contents, resources)
+        with open(dst, 'w') as fp:
+            uic.compileUi(src, fp)
 
         for hook in self.hooks:
             mod_name, attr_name = hook.split(':')
             mod = importlib.import_module(mod_name)
             hook_fn = getattr(mod, attr_name)
+            with open(dst, 'r') as fp:
+                contents = fp.read()
             contents = hook_fn(contents)
-        with open(dst, 'w') as fp:
-            fp.write(contents)
+            with open(dst, 'w') as fp:
+                fp.write(contents)
 
     def run(self):
         self.run_command('egg_info')
