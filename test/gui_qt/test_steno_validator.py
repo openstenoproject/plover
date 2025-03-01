@@ -1,4 +1,4 @@
-from PyQt6.QtGui import QValidator
+from PySide6.QtGui import QValidator
 
 import pytest
 

@@ -1,6 +1,7 @@
 import contextlib
 import importlib
 import os
+import re
 import subprocess
 import sys
 
@@ -8,7 +9,6 @@ from setuptools.command.build_py import build_py
 from setuptools.command.develop import develop
 import pkg_resources
 import setuptools
-from PyQt6 import uic
 
 
 class Command(setuptools.Command):
@@ -90,7 +90,6 @@ class BuildUi(Command):
     ]
 
     hooks = '''
-    plover_build_utils.pyqt:fix_icons
     plover_build_utils.pyqt:no_autoconnection
     '''.split()
 
@@ -100,6 +99,19 @@ class BuildUi(Command):
     def finalize_options(self):
         pass
 
+    def _fix_imports(self, ui_py_file_path):
+        with open(ui_py_file_path, 'r') as f:
+            content = f.read()
+        # pyside6-uic assumes resources_rc at the top level
+        # TODO either remodel the project structure or find way to make pyside6-uic use the correct path 
+        content = re.sub(
+            r'import resources_rc',
+            r'import plover.gui_qt.resources.resources_rc',
+            content
+        )
+        with open(ui_py_file_path, 'w') as f:
+            f.write(content)
+
     def _build_ui(self, src):
         dst = os.path.splitext(src)[0] + '_ui.py'
         if not self.force and os.path.exists(dst) and \
@@ -108,8 +120,9 @@ class BuildUi(Command):
         if self.verbose:
             print('generating', dst)
 
-        with open(dst, 'w') as fp:
-            uic.compileUi(src, fp)
+        subprocess.check_call(['pyside6-uic', src, '-o', dst])
+
+        self._fix_imports(dst)
 
         for hook in self.hooks:
             mod_name, attr_name = hook.split(':')
@@ -137,11 +150,36 @@ class BuildUi(Command):
 
 # }}}
 
+# Resource compilation. {{{
+
+class BuildResources(Command):
+
+    description = 'build resource files'
+    user_options = []
+
+    def initialize_options(self):
+        pass
+
+    def finalize_options(self):
+        pass
+
+    def run(self):
+        resource_files = [
+            'plover/gui_qt/resources/resources.qrc',
+        ]
+        for resource_file in resource_files:
+            output_file = os.path.splitext(resource_file)[0] + '_rc.py'
+            if self.verbose:
+                print(f'compiling {resource_file} to {output_file}')
+            subprocess.check_call(['pyside6-rcc', '-o', output_file, resource_file])
+
+# }}}
+
 # Patched `build_py` command. {{{
 
 class BuildPy(build_py):
 
-    build_dependencies = []
+    build_dependencies = ['build_resources']
 
     def run(self):
         for command in self.build_dependencies:
@@ -154,7 +192,7 @@ class BuildPy(build_py):
 
 class Develop(develop):
 
-    build_dependencies = []
+    build_dependencies = ['build_resources']
 
     def run(self):
         for command in self.build_dependencies:

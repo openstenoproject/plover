@@ -2,17 +2,16 @@ from pathlib import Path
 import signal
 import sys
 
-from PyQt6.QtCore import (
+from PySide6.QtCore import (
     QCoreApplication,
     QLibraryInfo,
     QTimer,
     QTranslator,
     Qt,
     QtMsgType,
-    pyqtRemoveInputHook,
     qInstallMessageHandler,
 )
-from PyQt6.QtWidgets import QApplication, QMessageBox
+from PySide6.QtWidgets import QApplication, QMessageBox
 
 from plover import _, __name__ as __software_name__, __version__, log
 from plover.oslayer.config import CONFIG_DIR
@@ -21,9 +20,9 @@ from plover.oslayer.keyboardcontrol import KeyboardEmulation
 from plover.gui_qt.engine import Engine
 
 
-# Disable pyqtRemoveInputHook to avoid getting
-# spammed when using the debugger.
-pyqtRemoveInputHook()
+# Disable input hook to avoid getting spammed when using the debugger.
+#import pdb
+#pdb.set_trace()
 
 
 class Application:

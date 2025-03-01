@@ -1,14 +1,13 @@
-
 import logging
 
-from PyQt6.QtCore import QObject, pyqtSignal
+from PySide6.QtCore import QObject, Signal
 
 from plover import log
 
 
 class NotificationHandler(QObject, logging.Handler):
 
-    emitSignal = pyqtSignal(int, str)
+    emitSignal = Signal(int, str)
 
     def __init__(self):
         super().__init__()
@@ -18,4 +17,6 @@ class NotificationHandler(QObject, logging.Handler):
     def emit(self, record):
         level = record.levelno
         message = self.format(record)
-        self.emitSignal.emit(level, message)
+        print(message)
+        #TODO fix this...
+        #self.emitSignal.emit(level, message)

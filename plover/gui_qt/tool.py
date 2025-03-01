@@ -1,5 +1,5 @@
 
-from PyQt6.QtWidgets import QDialog
+from PySide6.QtWidgets import QDialog
 
 from plover.gui_qt.utils import WindowState
 
@@ -15,7 +15,7 @@ class Tool(QDialog, WindowState):
     # Note: the class documentation is automatically used as tooltip.
 
     def __init__(self, engine):
-        super().__init__()
+        super(QDialog,self).__init__()
         self._update_title()
         self._engine = engine
 

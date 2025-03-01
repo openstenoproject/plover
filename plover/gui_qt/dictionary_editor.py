@@ -2,13 +2,13 @@
 from operator import attrgetter, itemgetter
 from collections import namedtuple
 from itertools import chain
-
-from PyQt6.QtCore import (
+from PySide6.QtCore import (
     QAbstractTableModel,
     QModelIndex,
     Qt,
 )
-from PyQt6.QtWidgets import (
+from PySide6.QtGui import QIcon
+from PySide6.QtWidgets import (
     QComboBox,
     QDialog,
     QStyledItemDelegate,
@@ -21,7 +21,7 @@ from plover.steno import normalize_steno, steno_to_sort_key
 
 from plover.gui_qt.dictionary_editor_ui import Ui_DictionaryEditor
 from plover.gui_qt.steno_validator import StenoValidator
-from plover.gui_qt.utils import ToolBar, WindowState, Icon
+from plover.gui_qt.utils import ToolBar, WindowState
 
 
 _COL_STENO, _COL_TRANS, _COL_DICT, _COL_COUNT = range(3 + 1)
@@ -64,7 +64,7 @@ class DictionaryItemModel(QAbstractTableModel):
 
     def __init__(self, dictionary_list, sort_column, sort_order):
         super().__init__()
-        self._error_icon = Icon(':/dictionary_error.svg')
+        self._error_icon = QIcon(':/dictionary_error.svg')
         self._dictionary_list = dictionary_list
         self._operations = []
         self._entries = []

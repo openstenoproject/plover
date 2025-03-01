@@ -5,12 +5,11 @@ import subprocess
 import sys
 import threading
 
-from PyQt6.QtCore import (
-    QVariant,
-    pyqtSignal,
+from PySide6.QtCore import (
+    Signal,
 )
-from PyQt6.QtGui import QFontDatabase, QFontMetrics
-from PyQt6.QtWidgets import QWidget
+from PySide6.QtGui import QFontDatabase, QFontMetrics
+from PySide6.QtWidgets import QWidget
 
 from plover.gui_qt.console_widget_ui import Ui_ConsoleWidget
 
@@ -20,8 +19,8 @@ NULL = open(os.devnull, 'r+b')
 
 class ConsoleWidget(QWidget, Ui_ConsoleWidget):
 
-    textOutput = pyqtSignal(str)
-    processFinished = pyqtSignal(QVariant)
+    textOutput = Signal(str)
+    processFinished = Signal(object)
 
     def __init__(self, popen=None):
         super().__init__()

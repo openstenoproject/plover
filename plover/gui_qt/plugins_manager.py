@@ -5,8 +5,8 @@ import html
 import os
 import sys
 
-from PyQt6.QtCore import Qt, pyqtSignal
-from PyQt6.QtWidgets import QDialog, QMessageBox, QTableWidgetItem, QInputDialog,QWidget
+from PySide6.QtCore import Qt, Signal
+from PySide6.QtWidgets import QDialog, QMessageBox, QTableWidgetItem, QInputDialog,QWidget
 
 from plover.gui_qt.tool import Tool
 from plover.gui_qt.info_browser import InfoBrowser
@@ -27,7 +27,7 @@ class PluginsManager(Tool, Ui_PluginsManager):
     # accross different executions of the dialog when
     # the user does not restart.
     _packages = None
-    _packages_updated = pyqtSignal()
+    _packages_updated = Signal()
 
     def __init__(self, engine):
         super().__init__(engine)
@@ -211,7 +211,7 @@ class PluginsManager(Tool, Ui_PluginsManager):
 
 
 if __name__ == '__main__':
-    from PyQt6.QtWidgets import QApplication
+    from PySide6.QtWidgets import QApplication
     app = QApplication([])
     dlg = PluginsManager(None)
     dlg.show()

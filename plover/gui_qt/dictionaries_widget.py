@@ -1,14 +1,17 @@
 from contextlib import contextmanager
 import os
 
-from PyQt6.QtCore import (
+from PySide6.QtCore import (
     QAbstractListModel,
     QModelIndex,
     Qt,
-    pyqtSignal,
+    Signal,
 )
-from PyQt6.QtGui import QCursor
-from PyQt6.QtWidgets import (
+from PySide6.QtGui import (
+    QCursor,
+    QIcon,
+)
+from PySide6.QtWidgets import (
     QFileDialog,
     QGroupBox,
     QMenu,
@@ -24,7 +27,7 @@ from plover.registry import registry
 
 from plover.gui_qt.dictionaries_widget_ui import Ui_DictionariesWidget
 from plover.gui_qt.dictionary_editor import DictionaryEditor
-from plover.gui_qt.utils import ToolBar, Icon
+from plover.gui_qt.utils import ToolBar
 
 
 def _dictionary_formats(include_readonly=True):
@@ -104,7 +107,7 @@ class DictionariesModel(QAbstractListModel):
     FLAGS = Qt.ItemFlag.ItemIsEnabled | Qt.ItemFlag.ItemIsSelectable \
         | Qt.ItemFlag.ItemIsUserCheckable | Qt.ItemFlag.ItemIsDragEnabled
 
-    has_undo_changed = pyqtSignal(bool)
+    has_undo_changed = Signal(bool)
 
     def __init__(self, engine, icons, max_undo=20):
         super().__init__()
@@ -429,10 +432,11 @@ class DictionariesModel(QAbstractListModel):
 
 class DictionariesWidget(QGroupBox, Ui_DictionariesWidget):
 
-    add_translation = pyqtSignal(str)
+    add_translation = Signal(str)
 
-    def __init__(self, *args, **kwargs):
-        super().__init__(*args, **kwargs)
+    #TODO what to do with parent?
+    def __init__(self,parent=None):
+        super().__init__()
         self.setupUi(self)
         self._setup = False
         self._engine = None
@@ -498,7 +502,7 @@ class DictionariesWidget(QGroupBox, Ui_DictionariesWidget):
         assert not self._setup
         self._engine = engine
         self._model = DictionariesModel(engine, {
-            name: Icon(':/dictionary_%s.svg' % name)
+            name: QIcon(':/dictionary_%s.svg' % name)
             for name in 'favorite loading error readonly normal'.split()
         })
         self._model.has_undo_changed.connect(self.on_has_undo)

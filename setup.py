@@ -22,7 +22,7 @@ with open(os.path.join(__software_name__, '__init__.py')) as fp:
     exec(fp.read())
 
 from plover_build_utils.setup import (
-    BuildPy, BuildUi, Command, Develop, babel_options
+    BuildPy, BuildResources, BuildUi, Command, Develop, babel_options
 )
 
 
@@ -31,6 +31,7 @@ Develop.build_dependencies.append('build_py')
 cmdclass = {
     'build_py': BuildPy,
     'build_ui': BuildUi,
+    'build_resources': BuildResources,
     'develop': Develop,
 }
 options = {}

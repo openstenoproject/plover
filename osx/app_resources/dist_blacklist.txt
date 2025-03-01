@@ -23,8 +23,8 @@
   turtle*
   **/*.exe
   */test*
-# PyQt6.
-:lib/python$python_base_version/site-packages/PyQt6
+# PySide6.
+:lib/python$python_base_version/site-packages/PySide6
   **/*AxContainer*
   **/*Bluetooth*
   **/*CLucene*

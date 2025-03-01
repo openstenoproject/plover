@@ -37,3 +37,4 @@ include windows/*
 include .readthedocs.yml
 exclude .readthedocs.yml
 exclude plover/gui_qt/*_ui.py
+exclude plover/gui_qt/resources/*_rc.py

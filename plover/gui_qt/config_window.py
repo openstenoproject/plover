@@ -3,12 +3,11 @@ from collections import ChainMap
 from copy import copy
 from functools import partial
 
-from PyQt6.QtCore import (
+from PySide6.QtCore import (
     Qt,
-    QVariant,
-    pyqtSignal,
+    Signal,
 )
-from PyQt6.QtWidgets import (
+from PySide6.QtWidgets import (
     QCheckBox,
     QComboBox,
     QDialog,
@@ -37,7 +36,7 @@ from plover.gui_qt.utils import WindowState
 
 class NopeOption(QLabel):
 
-    valueChanged = pyqtSignal(bool)
+    valueChanged = Signal(bool)
 
     def __init__(self):
         super().__init__()
@@ -51,7 +50,7 @@ class NopeOption(QLabel):
 
 class BooleanOption(QCheckBox):
 
-    valueChanged = pyqtSignal(bool)
+    valueChanged = Signal(bool)
 
     def __init__(self):
         super().__init__()
@@ -73,7 +72,7 @@ class IntOption(QSpinBox):
 
 class ChoiceOption(QComboBox):
 
-    valueChanged = pyqtSignal(str)
+    valueChanged = Signal(str)
 
     def __init__(self, choices=None):
         super().__init__()
@@ -91,7 +90,7 @@ class ChoiceOption(QComboBox):
 
 class FileOption(QGroupBox, Ui_FileWidget):
 
-    valueChanged = pyqtSignal(str)
+    valueChanged = Signal(str)
 
     def __init__(self, dialog_title, dialog_filter):
         super().__init__()
@@ -149,7 +148,7 @@ class TableOption(QTableWidget):
 
 class KeymapOption(TableOption):
 
-    valueChanged = pyqtSignal(QVariant)
+    valueChanged = Signal(object)
 
     class ItemDelegate(QStyledItemDelegate):
 
@@ -216,7 +215,7 @@ class KeymapOption(TableOption):
 
 class MultipleChoicesOption(TableOption):
 
-    valueChanged = pyqtSignal(QVariant)
+    valueChanged = Signal(object)
 
     LABELS = (
         # i18n: Widget: “MultipleChoicesOption”.
@@ -281,7 +280,7 @@ class MultipleChoicesOption(TableOption):
 
 class BooleanAsDualChoiceOption(ChoiceOption):
 
-    valueChanged = pyqtSignal(bool)
+    valueChanged = Signal(bool)
 
     def __init__(self, choice_false, choice_true):
         choices = { False: choice_false, True: choice_true }

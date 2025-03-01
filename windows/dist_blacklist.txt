@@ -1,7 +1,7 @@
 # Python.
   Scripts
-# PyQt6.
-:Lib/site-packages/PyQt6
+# PySide6.
+:Lib/site-packages/PySide6
   **/*Designer*
   **/*[Hh]elp*
   **/*Test*

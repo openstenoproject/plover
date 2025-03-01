@@ -1,6 +1,6 @@
-from PyQt6.QtGui import QImage, QTextDocument
-from PyQt6.QtWidgets import QTextBrowser
-from PyQt6.QtCore import QUrl, pyqtSignal
+from PySide6.QtGui import QImage, QTextDocument
+from PySide6.QtWidgets import QTextBrowser
+from PySide6.QtCore import QUrl, Signal
 
 from plover.plugins_manager.requests import CachedSession, FuturesSession
 
@@ -8,7 +8,7 @@ from plover import log
 
 class InfoBrowser(QTextBrowser):
 
-    _resource_downloaded = pyqtSignal(str, bytes)
+    _resource_downloaded = Signal(str, bytes)
 
     def __init__(self, parent=None):
         super().__init__(parent=parent)

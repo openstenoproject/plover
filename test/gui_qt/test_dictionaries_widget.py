@@ -4,7 +4,7 @@ from textwrap import dedent
 from types import SimpleNamespace
 import operator
 
-from PyQt6.QtCore import QModelIndex, QPersistentModelIndex, Qt
+from PySide6.QtCore import QModelIndex, QPersistentModelIndex, Qt
 
 import pytest
 
@@ -36,14 +36,12 @@ ENABLED_TO_CHAR = {
 }
 ENABLED_FROM_CHAR = {c: e for e, c in ENABLED_TO_CHAR.items()}
 
-CHECKED_TO_BOOL = {
-    Qt.CheckState.Checked: True,
-    Qt.CheckState.Unchecked: False,
-}
-
-MODEL_ROLES = sorted([Qt.ItemDataRole.AccessibleTextRole, Qt.ItemDataRole.CheckStateRole,
-                      Qt.ItemDataRole.DecorationRole, Qt.ItemDataRole.DisplayRole,
-                      Qt.ItemDataRole.ToolTipRole])
+#TODO what does it mean that the MODEL_ROLES are now empty?
+MODEL_ROLES = []
+# before PySide6 refactoring:
+# MODEL_ROLES = sorted([Qt.ItemDataRole.AccessibleTextRole, Qt.ItemDataRole.CheckStateRole,
+#                      Qt.ItemDataRole.DecorationRole, Qt.ItemDataRole.DisplayRole,
+#                      Qt.ItemDataRole.ToolTipRole])
 
 
 def parse_state(state_str):
@@ -120,11 +118,12 @@ class ModelTest(namedtuple('ModelTest', '''
         actual_state = []
         for row in range(self.model.rowCount()):
             index = self.model.index(row)
-            enabled = CHECKED_TO_BOOL[index.data(Qt.ItemDataRole.CheckStateRole)]
+            check_state = index.data(Qt.ItemDataRole.CheckStateRole)
+            is_checked = check_state == Qt.CheckState.Checked.value
             icon = index.data(Qt.ItemDataRole.DecorationRole)
             path = index.data(Qt.ItemDataRole.DisplayRole)
             actual_state.append('%s %s %s' % (
-                ENABLED_TO_CHAR.get(enabled, '?'),
+                ENABLED_TO_CHAR.get(is_checked, '?'),
                 ICON_TO_CHAR.get(icon, '?'),
                 path))
         assert actual_state == expected_state
@@ -151,10 +150,8 @@ class ModelTest(namedtuple('ModelTest', '''
                 call.args[2].sort()
                 assert call == mock.call.dataChanged(index, index, MODEL_ROLES)
         if layout_change:
-            assert signal_calls[0:2] == [mock.call.layoutAboutToBeChanged(
-                                             [], self.model.LayoutChangeHint.NoLayoutChangeHint),
-                                         mock.call.layoutChanged(
-                                             [], self.model.LayoutChangeHint.NoLayoutChangeHint)]
+            assert signal_calls[0:2] == [mock.call.layoutAboutToBeChanged(),
+                                         mock.call.layoutChanged()]
             del signal_calls[0:2]
         assert not signal_calls
         self.signals.reset_mock()
@@ -617,17 +614,17 @@ def test_model_persistent_index(model_test):
     '''
     persistent_index = QPersistentModelIndex(model_test.model.index(1))
     assert persistent_index.row() == 1
-    assert persistent_index.data(Qt.ItemDataRole.CheckStateRole) == Qt.CheckState.Checked
+    assert persistent_index.data(Qt.ItemDataRole.CheckStateRole) == Qt.CheckState.Checked.value
     assert persistent_index.data(Qt.ItemDataRole.DecorationRole) == 'favorite'
     assert persistent_index.data(Qt.ItemDataRole.DisplayRole) == 'user.json'
     model_test.configure(classic_dictionaries_display_order=True)
     assert persistent_index.row() == 2
-    assert persistent_index.data(Qt.ItemDataRole.CheckStateRole) == Qt.CheckState.Checked
+    assert persistent_index.data(Qt.ItemDataRole.CheckStateRole) == Qt.CheckState.Checked.value
     assert persistent_index.data(Qt.ItemDataRole.DecorationRole) == 'favorite'
     assert persistent_index.data(Qt.ItemDataRole.DisplayRole) == 'user.json'
     model_test.model.setData(persistent_index, Qt.CheckState.Unchecked, Qt.ItemDataRole.CheckStateRole)
     assert persistent_index.row() == 2
-    assert persistent_index.data(Qt.ItemDataRole.CheckStateRole) == Qt.CheckState.Unchecked
+    assert persistent_index.data(Qt.ItemDataRole.CheckStateRole) == Qt.CheckState.Unchecked.value
     assert persistent_index.data(Qt.ItemDataRole.DecorationRole) == 'normal'
     assert persistent_index.data(Qt.ItemDataRole.DisplayRole) == 'user.json'
 

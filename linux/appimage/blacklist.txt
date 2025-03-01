@@ -34,11 +34,11 @@
   messages/**/*.po
   messages/plover.pot
 
-# PyQt6.
+# PySide6.
 :usr/bin
   pylupdate6
   pyuic6
-:usr/lib/python${pyversion}/site-packages/PyQt6
+:usr/lib/python${pyversion}/site-packages/PySide6
   **/*Designer*
   **/*[Hh]elp*
   **/*[Qq]ml*

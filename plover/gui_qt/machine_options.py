@@ -1,15 +1,15 @@
 from copy import copy
 from pathlib import Path
 
-from PyQt6.QtCore import Qt, QVariant, pyqtSignal
-from PyQt6.QtGui import (
+from PySide6.QtCore import Qt, Signal
+from PySide6.QtGui import (
     QTextCharFormat,
     QTextFrameFormat,
     QTextListFormat,
     QTextCursor,
     QTextDocument,
 )
-from PyQt6.QtWidgets import (
+from PySide6.QtWidgets import (
     QGroupBox,
     QStyledItemDelegate,
     QStyle,
@@ -112,7 +112,7 @@ class SerialOption(QGroupBox, Ui_SerialWidget):
             self._format_port(index)
             return self._doc.size().toSize()
 
-    valueChanged = pyqtSignal(QVariant)
+    valueChanged = Signal(object)
 
     def __init__(self):
         super().__init__()
@@ -198,7 +198,7 @@ class SerialOption(QGroupBox, Ui_SerialWidget):
 
 class KeyboardOption(QGroupBox, Ui_KeyboardWidget):
 
-    valueChanged = pyqtSignal(QVariant)
+    valueChanged = Signal(object)
 
     def __init__(self):
         super().__init__()

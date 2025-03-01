@@ -4,9 +4,9 @@ import json
 import os
 import subprocess
 
-from PyQt6.QtCore import QCoreApplication, Qt
-from PyQt6.QtGui import QCursor, QKeySequence
-from PyQt6.QtWidgets import (
+from PySide6.QtCore import QCoreApplication, Qt
+from PySide6.QtGui import QCursor, QIcon, QKeySequence
+from PySide6.QtWidgets import (
     QMainWindow,
     QMenu,
     QApplication,
@@ -16,14 +16,13 @@ from plover import _, log
 from plover.oslayer import wmctrl
 from plover.oslayer.config import CONFIG_DIR, PLATFORM
 from plover.registry import registry
-from plover.resource import resource_filename
 
 from plover.gui_qt.log_qt import NotificationHandler
 from plover.gui_qt.main_window_ui import Ui_MainWindow
 from plover.gui_qt.config_window import ConfigWindow
 from plover.gui_qt.about_dialog import AboutDialog
 from plover.gui_qt.trayicon import TrayIcon
-from plover.gui_qt.utils import Icon, WindowState, find_menu_actions
+from plover.gui_qt.utils import WindowState, find_menu_actions
 
 
 class MainWindow(QMainWindow, Ui_MainWindow, WindowState):
@@ -94,7 +93,7 @@ class MainWindow(QMainWindow, Ui_MainWindow, WindowState):
             if tool.SHORTCUT is not None:
                 menu_action.setShortcut(QKeySequence.fromString(tool.SHORTCUT))
             if tool.ICON is not None:
-                menu_action.setIcon(Icon(tool.ICON))
+                menu_action.setIcon(QIcon(tool.ICON))
             menu_action.triggered.connect(partial(self._activate_dialog, tool_plugin.name, args=()))
             toolbar_action = self.toolbar.addAction(menu_action.icon(), menu_action.text())
             if tool.__doc__ is not None:

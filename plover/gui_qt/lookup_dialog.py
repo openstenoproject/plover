@@ -1,5 +1,5 @@
 
-from PyQt6.QtCore import QEvent, Qt
+from PySide6.QtCore import QEvent, Qt
 
 from plover import _
 from plover.translation import unescape_translation
