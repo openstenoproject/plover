@@ -262,6 +262,11 @@ jobs:
       - name: Setup Python
         run: setup_osx_python '3.9'
 
+      - name: Ensure pip is installed
+        run: |
+          python3 -m ensurepip
+          python3 -m pip install --upgrade pip
+
       - name: Setup Python environment
         run: setup_python_env -c reqs/constraints.txt -r reqs/dist.txt -r reqs/test.txt        
 
@@ -574,6 +579,16 @@ jobs:
       - name: Setup pip options
         run: setup_pip_options
 
+      - name: Install Qt
+        uses: jurplel/install-qt-action@v4
+        with:
+          version: '6.5.0'
+          dir: '${{ github.workspace }}/gh-action-installs'
+          setup-python: false
+
+      - name: Add Qt libexec to PATH
+        run: echo "$QT_ROOT_DIR/libexec" >> $GITHUB_PATH
+
       - name: Setup Python environment
         run: setup_python_env -c reqs/constraints.txt -r reqs/packaging.txt -r reqs/setup.txt        
 
@@ -750,6 +765,11 @@ jobs:
       # To support older macOS versions, setup Python from an official installer.
       - name: Setup Python
         run: setup_osx_python '3.9'
+
+      - name: Ensure pip is installed
+        run: |
+          python3 -m ensurepip
+          python3 -m pip install --upgrade pip
 
       - name: Install Qt
         uses: jurplel/install-qt-action@v4

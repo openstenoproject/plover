@@ -130,13 +130,18 @@ jobs:
       - name: Setup Python
         run: setup_osx_python '<@ j.python @>'
 
+      - name: Ensure pip is installed
+        run: |
+          python3 -m ensurepip
+          python3 -m pip install --upgrade pip
+
       <% endif %>
       <% if j.type in ['build', 'test_gui_qt'] and j.os == 'Linux' %>
       - name: Install system dependencies
         run: apt_get_install libdbus-1-dev libdbus-glib-1-dev libudev-dev libusb-1.0-0-dev libegl-dev
 
       <% endif %>
-      <% if j.type in ['build', 'test_gui_qt'] %>
+      <% if j.type in ['build', 'test_gui_qt', 'test_packaging'] %>
       - name: Install Qt
         uses: jurplel/install-qt-action@v4
         with:
