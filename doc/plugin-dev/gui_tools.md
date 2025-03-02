@@ -8,6 +8,7 @@ from setuptools import setup
 from plover_build_utils.setup import BuildPy, BuildResources, BuildUi
 
 BuildPy.build_dependencies.append("build_ui")
+BuildPy.build_dependencies.append("build_resources")
 CMDCLASS = {
   "build_py": BuildPy,
   "build_resources": BuildResources,

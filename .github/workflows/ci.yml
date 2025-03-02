@@ -207,7 +207,8 @@ jobs:
         run: setup_pip_options
 
       - name: Setup Python environment
-        run: setup_python_env -c reqs/constraints.txt -r reqs/dist.txt -r reqs/test.txt
+        run: setup_python_env -c reqs/constraints.txt -r reqs/dist.txt -r reqs/test.txt        
+
       # Test {{{
 
       - name: Run tests
@@ -262,7 +263,8 @@ jobs:
         run: setup_osx_python '3.9'
 
       - name: Setup Python environment
-        run: setup_python_env -c reqs/constraints.txt -r reqs/dist.txt -r reqs/test.txt
+        run: setup_python_env -c reqs/constraints.txt -r reqs/dist.txt -r reqs/test.txt        
+
       # Test {{{
 
       - name: Run tests
@@ -323,7 +325,8 @@ jobs:
         run: setup_pip_options
 
       - name: Setup Python environment
-        run: setup_python_env -c reqs/constraints.txt -r reqs/dist.txt -r reqs/test.txt
+        run: setup_python_env -c reqs/constraints.txt -r reqs/dist.txt -r reqs/test.txt        
+
       # Test {{{
 
       - name: Run tests
@@ -379,7 +382,8 @@ jobs:
         run: setup_pip_options
 
       - name: Setup Python environment
-        run: setup_python_env -c reqs/constraints.txt -r reqs/dist.txt -r reqs/test.txt
+        run: setup_python_env -c reqs/constraints.txt -r reqs/dist.txt -r reqs/test.txt        
+
       # Test {{{
 
       - name: Run tests
@@ -435,7 +439,8 @@ jobs:
         run: setup_pip_options
 
       - name: Setup Python environment
-        run: setup_python_env -c reqs/constraints.txt -r reqs/dist.txt -r reqs/test.txt
+        run: setup_python_env -c reqs/constraints.txt -r reqs/dist.txt -r reqs/test.txt        
+
       # Test {{{
 
       - name: Run tests
@@ -493,8 +498,22 @@ jobs:
       - name: Install system dependencies
         run: apt_get_install libdbus-1-dev libdbus-glib-1-dev libudev-dev libusb-1.0-0-dev libegl-dev
 
+      - name: Install Qt
+        uses: jurplel/install-qt-action@v4
+        with:
+          version: '6.5.0'
+          dir: '${{ github.workspace }}/gh-action-installs'
+          setup-python: false
+
+      - name: Add Qt libexec to PATH
+        run: echo "$QT_ROOT_DIR/libexec" >> $GITHUB_PATH
+
       - name: Setup Python environment
-        run: setup_python_env -c reqs/constraints.txt -r reqs/dist.txt -r reqs/dist_extra_gui_qt.txt -r reqs/test.txt
+        run: setup_python_env -c reqs/constraints.txt -r reqs/dist.txt -r reqs/dist_extra_gui_qt.txt -r reqs/test.txt        
+
+      - name: Build Resources
+        run: python setup.py build_resources
+
       - name: Build UI
         run: python setup.py build_ui
 
@@ -556,7 +575,8 @@ jobs:
         run: setup_pip_options
 
       - name: Setup Python environment
-        run: setup_python_env -c reqs/constraints.txt -r reqs/packaging.txt -r reqs/setup.txt
+        run: setup_python_env -c reqs/constraints.txt -r reqs/packaging.txt -r reqs/setup.txt        
+
       - name: Patch version
         id: set_version
         run: |
@@ -651,8 +671,19 @@ jobs:
       - name: Install system dependencies
         run: apt_get_install libdbus-1-dev libdbus-glib-1-dev libudev-dev libusb-1.0-0-dev libegl-dev
 
+      - name: Install Qt
+        uses: jurplel/install-qt-action@v4
+        with:
+          version: '6.5.0'
+          dir: '${{ github.workspace }}/gh-action-installs'
+          setup-python: false
+
+      - name: Add Qt libexec to PATH
+        run: echo "$QT_ROOT_DIR/libexec" >> $GITHUB_PATH
+
       - name: Setup Python environment
-        run: setup_python_env -c reqs/constraints.txt -r reqs/build.txt -r reqs/setup.txt
+        run: setup_python_env -c reqs/constraints.txt -r reqs/build.txt -r reqs/setup.txt        
+
       - name: Patch version
         id: set_version
         run: |
@@ -720,8 +751,19 @@ jobs:
       - name: Setup Python
         run: setup_osx_python '3.9'
 
+      - name: Install Qt
+        uses: jurplel/install-qt-action@v4
+        with:
+          version: '6.5.0'
+          dir: '${{ github.workspace }}/gh-action-installs'
+          setup-python: false
+
+      - name: Add Qt libexec to PATH
+        run: echo "$QT_ROOT_DIR/libexec" >> $GITHUB_PATH
+
       - name: Setup Python environment
-        run: setup_python_env -c reqs/constraints.txt -r reqs/build.txt -r reqs/setup.txt
+        run: setup_python_env -c reqs/constraints.txt -r reqs/build.txt -r reqs/setup.txt        
+
       - name: Patch version
         id: set_version
         run: |
@@ -795,8 +837,19 @@ jobs:
       - name: Setup pip options
         run: setup_pip_options
 
+      - name: Install Qt
+        uses: jurplel/install-qt-action@v4
+        with:
+          version: '6.5.0'
+          dir: '${{ github.workspace }}/gh-action-installs'
+          setup-python: false
+
+      - name: Add Qt libexec to PATH
+        run: echo "$QT_ROOT_DIR/libexec" >> $GITHUB_PATH
+
       - name: Setup Python environment
-        run: setup_python_env -c reqs/constraints.txt -r reqs/build.txt -r reqs/setup.txt
+        run: setup_python_env -c reqs/constraints.txt -r reqs/build.txt -r reqs/setup.txt        
+
       - name: Patch version
         id: set_version
         run: |

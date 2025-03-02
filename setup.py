@@ -26,12 +26,13 @@ from plover_build_utils.setup import (
 )
 
 
-BuildPy.build_dependencies.append('build_ui')
 Develop.build_dependencies.append('build_py')
+BuildPy.build_dependencies.append('build_resources')
+BuildPy.build_dependencies.append('build_ui')
 cmdclass = {
     'build_py': BuildPy,
-    'build_ui': BuildUi,
     'build_resources': BuildResources,
+    'build_ui': BuildUi,
     'develop': Develop,
 }
 options = {}

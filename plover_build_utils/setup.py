@@ -120,7 +120,7 @@ class BuildUi(Command):
         if self.verbose:
             print('generating', dst)
 
-        subprocess.check_call(['pyside6-uic', src, '-o', dst])
+        subprocess.check_call(['uic', '-g', 'python', src, '-o', dst])
 
         self._fix_imports(dst)
 
@@ -171,7 +171,7 @@ class BuildResources(Command):
             output_file = os.path.splitext(resource_file)[0] + '_rc.py'
             if self.verbose:
                 print(f'compiling {resource_file} to {output_file}')
-            subprocess.check_call(['pyside6-rcc', '-o', output_file, resource_file])
+            subprocess.check_call(['rcc', '-g', 'python', '-o', output_file, resource_file])
 
 # }}}
 
@@ -179,7 +179,7 @@ class BuildResources(Command):
 
 class BuildPy(build_py):
 
-    build_dependencies = ['build_resources']
+    build_dependencies = []
 
     def run(self):
         for command in self.build_dependencies:
@@ -192,7 +192,7 @@ class BuildPy(build_py):
 
 class Develop(develop):
 
-    build_dependencies = ['build_resources']
+    build_dependencies = []
 
     def run(self):
         for command in self.build_dependencies:
