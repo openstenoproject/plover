@@ -262,11 +262,6 @@ jobs:
       - name: Setup Python
         run: setup_osx_python '3.9'
 
-      - name: Ensure pip is installed
-        run: |
-          python3 -m ensurepip
-          python3 -m pip install --upgrade pip
-
       - name: Setup Python environment
         run: setup_python_env -c reqs/constraints.txt -r reqs/dist.txt -r reqs/test.txt        
 
@@ -503,6 +498,11 @@ jobs:
       - name: Install system dependencies
         run: apt_get_install libdbus-1-dev libdbus-glib-1-dev libudev-dev libusb-1.0-0-dev libegl-dev
 
+      - name: Ensure pip is installed and updated
+        run: |
+          python3 -m ensurepip
+          python3 -m pip install --upgrade pip
+
       - name: Install Qt
         uses: jurplel/install-qt-action@v4
         with:
@@ -578,6 +578,11 @@ jobs:
 
       - name: Setup pip options
         run: setup_pip_options
+
+      - name: Ensure pip is installed and updated
+        run: |
+          python3 -m ensurepip
+          python3 -m pip install --upgrade pip
 
       - name: Install Qt
         uses: jurplel/install-qt-action@v4
@@ -686,6 +691,11 @@ jobs:
       - name: Install system dependencies
         run: apt_get_install libdbus-1-dev libdbus-glib-1-dev libudev-dev libusb-1.0-0-dev libegl-dev
 
+      - name: Ensure pip is installed and updated
+        run: |
+          python3 -m ensurepip
+          python3 -m pip install --upgrade pip
+
       - name: Install Qt
         uses: jurplel/install-qt-action@v4
         with:
@@ -766,7 +776,7 @@ jobs:
       - name: Setup Python
         run: setup_osx_python '3.9'
 
-      - name: Ensure pip is installed
+      - name: Ensure pip is installed and updated
         run: |
           python3 -m ensurepip
           python3 -m pip install --upgrade pip
@@ -856,6 +866,11 @@ jobs:
 
       - name: Setup pip options
         run: setup_pip_options
+
+      - name: Ensure pip is installed and updated
+        run: |
+          python3 -m ensurepip
+          python3 -m pip install --upgrade pip
 
       - name: Install Qt
         uses: jurplel/install-qt-action@v4
