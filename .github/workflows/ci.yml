@@ -506,7 +506,8 @@ jobs:
       - name: Install Qt
         uses: jurplel/install-qt-action@v4
         with:
-          version: '6.5.0'
+          version: '6.5.2'
+          aqtversion: '==3.2.*'
           dir: '${{ github.workspace }}/gh-action-installs'
           setup-python: false
 
@@ -587,7 +588,8 @@ jobs:
       - name: Install Qt
         uses: jurplel/install-qt-action@v4
         with:
-          version: '6.5.0'
+          version: '6.5.2'
+          aqtversion: '==3.2.*'
           dir: '${{ github.workspace }}/gh-action-installs'
           setup-python: false
 
@@ -699,7 +701,8 @@ jobs:
       - name: Install Qt
         uses: jurplel/install-qt-action@v4
         with:
-          version: '6.5.0'
+          version: '6.5.2'
+          aqtversion: '==3.2.*'
           dir: '${{ github.workspace }}/gh-action-installs'
           setup-python: false
 
@@ -784,7 +787,8 @@ jobs:
       - name: Install Qt
         uses: jurplel/install-qt-action@v4
         with:
-          version: '6.5.0'
+          version: '6.5.2'
+          aqtversion: '==3.2.*'
           dir: '${{ github.workspace }}/gh-action-installs'
           setup-python: false
 
@@ -875,7 +879,8 @@ jobs:
       - name: Install Qt
         uses: jurplel/install-qt-action@v4
         with:
-          version: '6.5.0'
+          version: '6.5.2'
+          aqtversion: '==3.2.*'
           dir: '${{ github.workspace }}/gh-action-installs'
           setup-python: false
 

@@ -43,8 +43,7 @@ pyobjc-core==11.0
 pyobjc-framework-Cocoa==11.0
 pyobjc-framework-Quartz==11.0
 pyparsing==3.0.3
-PySide6==6.5.0
-PySide6-Qt6==6.5.0
+PySide6==6.5.2
 pyserial==3.5
 pytest==6.2.5
 pytest-qt==4.0.2

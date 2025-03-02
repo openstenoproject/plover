@@ -119,7 +119,7 @@ class ModelTest(namedtuple('ModelTest', '''
         for row in range(self.model.rowCount()):
             index = self.model.index(row)
             check_state = index.data(Qt.ItemDataRole.CheckStateRole)
-            is_checked = check_state == Qt.CheckState.Checked.value
+            is_checked = check_state == Qt.CheckState.Checked
             icon = index.data(Qt.ItemDataRole.DecorationRole)
             path = index.data(Qt.ItemDataRole.DisplayRole)
             actual_state.append('%s %s %s' % (
@@ -614,17 +614,17 @@ def test_model_persistent_index(model_test):
     '''
     persistent_index = QPersistentModelIndex(model_test.model.index(1))
     assert persistent_index.row() == 1
-    assert persistent_index.data(Qt.ItemDataRole.CheckStateRole) == Qt.CheckState.Checked.value
+    assert persistent_index.data(Qt.ItemDataRole.CheckStateRole) == Qt.CheckState.Checked
     assert persistent_index.data(Qt.ItemDataRole.DecorationRole) == 'favorite'
     assert persistent_index.data(Qt.ItemDataRole.DisplayRole) == 'user.json'
     model_test.configure(classic_dictionaries_display_order=True)
     assert persistent_index.row() == 2
-    assert persistent_index.data(Qt.ItemDataRole.CheckStateRole) == Qt.CheckState.Checked.value
+    assert persistent_index.data(Qt.ItemDataRole.CheckStateRole) == Qt.CheckState.Checked
     assert persistent_index.data(Qt.ItemDataRole.DecorationRole) == 'favorite'
     assert persistent_index.data(Qt.ItemDataRole.DisplayRole) == 'user.json'
     model_test.model.setData(persistent_index, Qt.CheckState.Unchecked, Qt.ItemDataRole.CheckStateRole)
     assert persistent_index.row() == 2
-    assert persistent_index.data(Qt.ItemDataRole.CheckStateRole) == Qt.CheckState.Unchecked.value
+    assert persistent_index.data(Qt.ItemDataRole.CheckStateRole) == Qt.CheckState.Unchecked
     assert persistent_index.data(Qt.ItemDataRole.DecorationRole) == 'normal'
     assert persistent_index.data(Qt.ItemDataRole.DisplayRole) == 'user.json'
 
