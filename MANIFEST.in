@@ -19,9 +19,9 @@ include osx/*
 include osx/app_resources/*
 include osx/dmg_resources/*
 include plover/assets/*
+include plover/gui_qt/*.qrc
 include plover/gui_qt/*.ui
 include plover/gui_qt/resources/*.png
-include plover/gui_qt/resources/*.qrc
 include plover/gui_qt/resources/*.svg
 include plover/messages/*/LC_MESSAGES/*.po
 include plover/messages/plover.pot
@@ -36,5 +36,5 @@ include windows/*
 # without first including it, exluding .readthedocs.yml results in a warning when running locally
 include .readthedocs.yml
 exclude .readthedocs.yml
+exclude plover/gui_qt/*_rc.py
 exclude plover/gui_qt/*_ui.py
-exclude plover/gui_qt/resources/*_rc.py
