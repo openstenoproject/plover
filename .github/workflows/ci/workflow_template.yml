@@ -98,6 +98,24 @@ jobs:
           fetch-depth: 0
       <% endif %>
 
+      <% if j.type in ['build', 'test_gui_qt'] and j.os == 'Linux' %>
+      - name: Install system dependencies
+        run: apt_get_install libdbus-1-dev libdbus-glib-1-dev libudev-dev libusb-1.0-0-dev libegl-dev
+
+      <% endif %>
+      <% if j.type in ['build', 'test_gui_qt', 'test_packaging'] %>
+      # Installing Qt before Python since it installs its own Python.
+      - name: Install Qt
+        uses: jurplel/install-qt-action@v4
+        with:
+          version: '6.5.2'
+          aqtversion: '==3.2.*'
+          dir: '${{ github.workspace }}/gh-action-installs'
+
+      - name: Add Qt libexec to PATH
+        run: echo "$QT_ROOT_DIR/libexec" >> $GITHUB_PATH
+
+      <% endif %>
       <% if j.os != 'macOS' %>
       - name: Setup Python
         uses: <@ action_setup_python @>
@@ -129,28 +147,6 @@ jobs:
       # To support older macOS versions, setup Python from an official installer.
       - name: Setup Python
         run: setup_osx_python '<@ j.python @>'
-
-      <% endif %>
-      <% if j.type in ['build', 'test_gui_qt'] and j.os == 'Linux' %>
-      - name: Install system dependencies
-        run: apt_get_install libdbus-1-dev libdbus-glib-1-dev libudev-dev libusb-1.0-0-dev libegl-dev
-
-      <% endif %>
-      <% if j.type in ['build', 'test_gui_qt', 'test_packaging'] %>
-      - name: Ensure pip is installed and updated
-        run: |
-          python3 -m ensurepip
-          python3 -m pip install --upgrade pip
-
-      - name: Install Qt
-        uses: jurplel/install-qt-action@v4
-        with:
-          version: '6.5.2'
-          aqtversion: '==3.2.*'
-          dir: '${{ github.workspace }}/gh-action-installs'
-
-      - name: Add Qt libexec to PATH
-        run: echo "$QT_ROOT_DIR/libexec" >> $GITHUB_PATH
 
       <% endif %>
       - name: Setup Python environment
