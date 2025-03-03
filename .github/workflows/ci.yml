@@ -509,7 +509,6 @@ jobs:
           version: '6.5.2'
           aqtversion: '==3.2.*'
           dir: '${{ github.workspace }}/gh-action-installs'
-          setup-python: false
 
       - name: Add Qt libexec to PATH
         run: echo "$QT_ROOT_DIR/libexec" >> $GITHUB_PATH
@@ -591,7 +590,6 @@ jobs:
           version: '6.5.2'
           aqtversion: '==3.2.*'
           dir: '${{ github.workspace }}/gh-action-installs'
-          setup-python: false
 
       - name: Add Qt libexec to PATH
         run: echo "$QT_ROOT_DIR/libexec" >> $GITHUB_PATH
@@ -704,7 +702,6 @@ jobs:
           version: '6.5.2'
           aqtversion: '==3.2.*'
           dir: '${{ github.workspace }}/gh-action-installs'
-          setup-python: false
 
       - name: Add Qt libexec to PATH
         run: echo "$QT_ROOT_DIR/libexec" >> $GITHUB_PATH
@@ -790,7 +787,6 @@ jobs:
           version: '6.5.2'
           aqtversion: '==3.2.*'
           dir: '${{ github.workspace }}/gh-action-installs'
-          setup-python: false
 
       - name: Add Qt libexec to PATH
         run: echo "$QT_ROOT_DIR/libexec" >> $GITHUB_PATH
@@ -882,7 +878,6 @@ jobs:
           version: '6.5.2'
           aqtversion: '==3.2.*'
           dir: '${{ github.workspace }}/gh-action-installs'
-          setup-python: false
 
       - name: Add Qt libexec to PATH
         run: echo "$QT_ROOT_DIR/libexec" >> $GITHUB_PATH
