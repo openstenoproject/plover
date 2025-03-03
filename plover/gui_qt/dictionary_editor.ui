@@ -150,8 +150,8 @@
   </layout>
   <action name="action_Delete">
    <property name="icon">
-    <iconset resource="resources/resources.qrc">
-     <normaloff>:/remove.svg</normaloff>:/remove.svg</iconset>
+    <iconset resource="resources.qrc">
+     <normaloff>:/resources/remove.svg</normaloff>:/resources/remove.svg</iconset>
    </property>
    <property name="text">
     <string>&amp;Delete</string>
@@ -165,8 +165,8 @@
   </action>
   <action name="action_Undo">
    <property name="icon">
-    <iconset resource="resources/resources.qrc">
-     <normaloff>:/undo.svg</normaloff>:/undo.svg</iconset>
+    <iconset resource="resources.qrc">
+     <normaloff>:/resources/undo.svg</normaloff>:/resources/undo.svg</iconset>
    </property>
    <property name="text">
     <string>&amp;Undo</string>
@@ -180,8 +180,8 @@
   </action>
   <action name="action_New">
    <property name="icon">
-    <iconset resource="resources/resources.qrc">
-     <normaloff>:/add.svg</normaloff>:/add.svg</iconset>
+    <iconset resource="resources.qrc">
+     <normaloff>:/resources/add.svg</normaloff>:/resources/add.svg</iconset>
    </property>
    <property name="text">
     <string>&amp;New translation</string>
@@ -203,7 +203,7 @@
   <tabstop>pushButton_2</tabstop>
  </tabstops>
  <resources>
-  <include location="resources/resources.qrc"/>
+  <include location="resources.qrc"/>
  </resources>
  <connections>
   <connection>

@@ -14,7 +14,7 @@ class LookupDialog(Tool, Ui_LookupDialog):
     __doc__ = _('Search the dictionary for translations.')
 
     TITLE = _('Lookup')
-    ICON = ':/lookup.svg'
+    ICON = ':/resources/lookup.svg'
     ROLE = 'lookup'
     SHORTCUT = 'Ctrl+L'
 

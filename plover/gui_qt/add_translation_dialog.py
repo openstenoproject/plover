@@ -12,7 +12,7 @@ class AddTranslationDialog(Tool, Ui_AddTranslationDialog):
     __doc__ = _('Add a new translation to the dictionary.')
 
     TITLE = _('Add Translation')
-    ICON = ':/translation_add.svg'
+    ICON = ':/resources/translation_add.svg'
     ROLE = 'add_translation'
     SHORTCUT = 'Ctrl+N'
 

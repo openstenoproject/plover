@@ -27,7 +27,7 @@ class SuggestionsDialog(Tool, Ui_SuggestionsDialog):
     __doc__ = _('Suggest possible strokes for the last written words.')
 
     TITLE = _('Suggestions')
-    ICON = ':/lightbulb.svg'
+    ICON = ':/resources/lightbulb.svg'
     ROLE = 'suggestions'
     SHORTCUT = 'Ctrl+J'
 

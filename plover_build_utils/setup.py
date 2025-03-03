@@ -99,19 +99,6 @@ class BuildUi(Command):
     def finalize_options(self):
         pass
 
-    def _fix_imports(self, ui_py_file_path):
-        with open(ui_py_file_path, 'r') as f:
-            content = f.read()
-        # pyside6-uic assumes resources_rc at the top level
-        # TODO either remodel the project structure or find way to make pyside6-uic use the correct path 
-        content = re.sub(
-            r'import resources_rc',
-            r'import plover.gui_qt.resources.resources_rc',
-            content
-        )
-        with open(ui_py_file_path, 'w') as f:
-            f.write(content)
-
     def _build_ui(self, src):
         dst = os.path.splitext(src)[0] + '_ui.py'
         if not self.force and os.path.exists(dst) and \
@@ -120,9 +107,7 @@ class BuildUi(Command):
         if self.verbose:
             print('generating', dst)
 
-        subprocess.check_call(['uic', '-g', 'python', src, '-o', dst])
-
-        self._fix_imports(dst)
+        subprocess.check_call(['uic', '-g', 'python', '--from-imports', src, '-o', dst])
 
         for hook in self.hooks:
             mod_name, attr_name = hook.split(':')
@@ -165,7 +150,7 @@ class BuildResources(Command):
 
     def run(self):
         resource_files = [
-            'plover/gui_qt/resources/resources.qrc',
+            'plover/gui_qt/resources.qrc',
         ]
         for resource_file in resource_files:
             output_file = os.path.splitext(resource_file)[0] + '_rc.py'

@@ -117,7 +117,7 @@ class PaperTape(Tool, Ui_PaperTape):
     __doc__ = _('Paper tape display of strokes.')
 
     TITLE = _('Paper Tape')
-    ICON = ':/tape.svg'
+    ICON = ':/resources/tape.svg'
     ROLE = 'paper_tape'
     SHORTCUT = 'Ctrl+T'
 

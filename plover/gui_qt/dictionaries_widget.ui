@@ -81,8 +81,8 @@
   </layout>
   <action name="action_EditDictionaries">
    <property name="icon">
-    <iconset resource="resources/resources.qrc">
-     <normaloff>:/pencil.svg</normaloff>:/pencil.svg</iconset>
+    <iconset resource="resources.qrc">
+     <normaloff>:/resources/pencil.svg</normaloff>:/resources/pencil.svg</iconset>
    </property>
    <property name="text">
     <string>&amp;Edit dictionaries</string>
@@ -96,8 +96,8 @@
   </action>
   <action name="action_SaveDictionaries">
    <property name="icon">
-    <iconset resource="resources/resources.qrc">
-     <normaloff>:/save.svg</normaloff>:/save.svg</iconset>
+    <iconset resource="resources.qrc">
+     <normaloff>:/resources/save.svg</normaloff>:/resources/save.svg</iconset>
    </property>
    <property name="text">
     <string>&amp;Save dictionaries as...</string>
@@ -111,8 +111,8 @@
   </action>
   <action name="action_RemoveDictionaries">
    <property name="icon">
-    <iconset resource="resources/resources.qrc">
-     <normaloff>:/remove.svg</normaloff>:/remove.svg</iconset>
+    <iconset resource="resources.qrc">
+     <normaloff>:/resources/remove.svg</normaloff>:/resources/remove.svg</iconset>
    </property>
    <property name="text">
     <string>&amp;Remove dictionaries</string>
@@ -126,8 +126,8 @@
   </action>
   <action name="action_Undo">
    <property name="icon">
-    <iconset resource="resources/resources.qrc">
-     <normaloff>:/undo.svg</normaloff>:/undo.svg</iconset>
+    <iconset resource="resources.qrc">
+     <normaloff>:/resources/undo.svg</normaloff>:/resources/undo.svg</iconset>
    </property>
    <property name="text">
     <string>&amp;Undo</string>
@@ -141,8 +141,8 @@
   </action>
   <action name="action_AddDictionaries">
    <property name="icon">
-    <iconset resource="resources/resources.qrc">
-     <normaloff>:/add.svg</normaloff>:/add.svg</iconset>
+    <iconset resource="resources.qrc">
+     <normaloff>:/resources/add.svg</normaloff>:/resources/add.svg</iconset>
    </property>
    <property name="text">
     <string>&amp;Add dictionaries</string>
@@ -156,8 +156,8 @@
   </action>
   <action name="action_AddTranslation">
    <property name="icon">
-    <iconset resource="resources/resources.qrc">
-     <normaloff>:/translation_add.svg</normaloff>:/translation_add.svg</iconset>
+    <iconset resource="resources.qrc">
+     <normaloff>:/resources/translation_add.svg</normaloff>:/resources/translation_add.svg</iconset>
    </property>
    <property name="text">
     <string>Add &amp;translation</string>
@@ -171,8 +171,8 @@
   </action>
   <action name="action_MoveDictionariesUp">
    <property name="icon">
-    <iconset resource="resources/resources.qrc">
-     <normaloff>:/up.svg</normaloff>:/up.svg</iconset>
+    <iconset resource="resources.qrc">
+     <normaloff>:/resources/up.svg</normaloff>:/resources/up.svg</iconset>
    </property>
    <property name="text">
     <string>Move dictionaries &amp;up</string>
@@ -183,8 +183,8 @@
   </action>
   <action name="action_MoveDictionariesDown">
    <property name="icon">
-    <iconset resource="resources/resources.qrc">
-     <normaloff>:/down.svg</normaloff>:/down.svg</iconset>
+    <iconset resource="resources.qrc">
+     <normaloff>:/resources/down.svg</normaloff>:/resources/down.svg</iconset>
    </property>
    <property name="text">
     <string>Move dictionaries &amp;down</string>
@@ -216,7 +216,7 @@
  </widget>
  <layoutdefault spacing="5" margin="8"/>
  <resources>
-  <include location="resources/resources.qrc"/>
+  <include location="resources.qrc"/>
  </resources>
  <connections>
   <connection>

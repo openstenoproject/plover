@@ -23,8 +23,8 @@
    <string notr="true">Plover</string>
   </property>
   <property name="windowIcon">
-   <iconset resource="resources/resources.qrc">
-    <normaloff>:/plover.png</normaloff>:/plover.png</iconset>
+   <iconset resource="resources.qrc">
+    <normaloff>:/resources/plover.png</normaloff>:/resources/plover.png</iconset>
   </property>
   <widget class="QWidget" name="centralwidget">
    <property name="sizePolicy">
@@ -86,8 +86,8 @@
           <string/>
          </property>
          <property name="icon">
-          <iconset resource="resources/resources.qrc">
-           <normaloff>:/reconnect.svg</normaloff>:/reconnect.svg</iconset>
+          <iconset resource="resources.qrc">
+           <normaloff>:/resources/reconnect.svg</normaloff>:/resources/reconnect.svg</iconset>
          </property>
         </widget>
        </item>
@@ -225,8 +225,8 @@
   </action>
   <action name="action_Configure">
    <property name="icon">
-    <iconset resource="resources/resources.qrc">
-     <normaloff>:/settings.svg</normaloff>:/settings.svg</iconset>
+    <iconset resource="resources.qrc">
+     <normaloff>:/resources/settings.svg</normaloff>:/resources/settings.svg</iconset>
    </property>
    <property name="text">
     <string>&amp;Configure</string>
@@ -240,8 +240,8 @@
   </action>
   <action name="action_OpenConfigFolder">
    <property name="icon">
-    <iconset resource="resources/resources.qrc">
-     <normaloff>:/folder.svg</normaloff>:/folder.svg</iconset>
+    <iconset resource="resources.qrc">
+     <normaloff>:/resources/folder.svg</normaloff>:/resources/folder.svg</iconset>
    </property>
    <property name="text">
     <string>Open config &amp;folder</string>
@@ -260,8 +260,8 @@
   </action>
   <action name="action_Reconnect">
    <property name="icon">
-    <iconset resource="resources/resources.qrc">
-     <normaloff>:/reconnect.svg</normaloff>:/reconnect.svg</iconset>
+    <iconset resource="resources.qrc">
+     <normaloff>:/resources/reconnect.svg</normaloff>:/resources/reconnect.svg</iconset>
    </property>
    <property name="text">
     <string>&amp;Reconnect machine</string>
@@ -312,7 +312,7 @@
   <tabstop>output_disable</tabstop>
  </tabstops>
  <resources>
-  <include location="resources/resources.qrc"/>
+  <include location="resources.qrc"/>
  </resources>
  <connections>
   <connection>
