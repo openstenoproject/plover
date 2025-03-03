@@ -17,6 +17,4 @@ class NotificationHandler(QObject, logging.Handler):
     def emit(self, record):
         level = record.levelno
         message = self.format(record)
-        print(message)
-        #TODO fix this...
-        #self.emitSignal.emit(level, message)
+        self.emitSignal.emit(level, message)
