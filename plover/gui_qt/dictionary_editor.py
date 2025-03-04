@@ -64,7 +64,7 @@ class DictionaryItemModel(QAbstractTableModel):
 
     def __init__(self, dictionary_list, sort_column, sort_order):
         super().__init__()
-        self._error_icon = QIcon(':/dictionary_error.svg')
+        self._error_icon = QIcon(':resources/dictionary_error.svg')
         self._dictionary_list = dictionary_list
         self._operations = []
         self._entries = []
