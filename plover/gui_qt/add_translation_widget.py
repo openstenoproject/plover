@@ -242,6 +242,7 @@ class AddTranslationWidget(QWidget, Ui_AddTranslationWidget):
             filename = html_escape(filename)
 
         return fmt.format(strokes=strokes, translation=translation, filename=filename)
+
     @Slot()
     def handle_stroke_input_change(self):
         mapping_is_valid = self.strokes.hasAcceptableInput()
@@ -277,6 +278,7 @@ class AddTranslationWidget(QWidget, Ui_AddTranslationWidget):
         else:
             info = ''
         self.strokes_info.setText(info)
+        
     @Slot()
     def handle_translation_input_change(self):
         translation = self._translation()
