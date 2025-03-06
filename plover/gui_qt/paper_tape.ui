@@ -157,7 +157,7 @@
    <sender>styles</sender>
    <signal>textActivated(QString)</signal>
    <receiver>PaperTape</receiver>
-   <slot>on_style_changed()</slot>
+   <slot>change_style(QString)</slot>
    <hints>
     <hint type="sourcelabel">
      <x>199</x>
@@ -173,7 +173,7 @@
    <sender>action_Clear</sender>
    <signal>triggered()</signal>
    <receiver>PaperTape</receiver>
-   <slot>on_clear()</slot>
+   <slot>clear()</slot>
    <hints>
     <hint type="sourcelabel">
      <x>-1</x>
@@ -189,7 +189,7 @@
    <sender>action_Save</sender>
    <signal>triggered()</signal>
    <receiver>PaperTape</receiver>
-   <slot>on_save()</slot>
+   <slot>save()</slot>
    <hints>
     <hint type="sourcelabel">
      <x>-1</x>
@@ -205,7 +205,7 @@
    <sender>action_ToggleOnTop</sender>
    <signal>triggered(bool)</signal>
    <receiver>PaperTape</receiver>
-   <slot>on_toggle_ontop(bool)</slot>
+   <slot>toggle_ontop(bool)</slot>
    <hints>
     <hint type="sourcelabel">
      <x>-1</x>
@@ -221,7 +221,7 @@
    <sender>action_SelectFont</sender>
    <signal>triggered()</signal>
    <receiver>PaperTape</receiver>
-   <slot>on_select_font()</slot>
+   <slot>select_font()</slot>
    <hints>
     <hint type="sourcelabel">
      <x>-1</x>
@@ -235,10 +235,10 @@
   </connection>
  </connections>
  <slots>
-  <slot>on_save()</slot>
-  <slot>on_clear()</slot>
-  <slot>on_style_changed()</slot>
-  <slot>on_toggle_ontop(bool)</slot>
-  <slot>on_select_font()</slot>
+  <slot>save()</slot>
+  <slot>clear()</slot>
+  <slot>change_style(QString)</slot>
+  <slot>toggle_ontop(bool)</slot>
+  <slot>select_font()</slot>
  </slots>
 </ui>

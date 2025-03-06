@@ -146,7 +146,7 @@
    <sender>table</sender>
    <signal>itemSelectionChanged()</signal>
    <receiver>PluginsManager</receiver>
-   <slot>on_selection_changed()</slot>
+   <slot>handle_selection_change()</slot>
    <hints>
     <hint type="sourcelabel">
      <x>381</x>
@@ -162,7 +162,7 @@
    <sender>install_button</sender>
    <signal>clicked()</signal>
    <receiver>PluginsManager</receiver>
-   <slot>on_install()</slot>
+   <slot>install_selected_package()</slot>
    <hints>
     <hint type="sourcelabel">
      <x>522</x>
@@ -178,7 +178,7 @@
    <sender>restart_button</sender>
    <signal>clicked()</signal>
    <receiver>PluginsManager</receiver>
-   <slot>on_restart()</slot>
+   <slot>restart()</slot>
    <hints>
     <hint type="sourcelabel">
      <x>116</x>
@@ -194,7 +194,7 @@
    <sender>uninstall_button</sender>
    <signal>clicked()</signal>
    <receiver>PluginsManager</receiver>
-   <slot>on_uninstall()</slot>
+   <slot>uninstall_selected_package()</slot>
    <hints>
     <hint type="sourcelabel">
      <x>319</x>
@@ -210,7 +210,7 @@
    <sender>refresh_button</sender>
    <signal>clicked()</signal>
    <receiver>PluginsManager</receiver>
-   <slot>on_refresh()</slot>
+   <slot>refresh()</slot>
    <hints>
     <hint type="sourcelabel">
      <x>150</x>
@@ -226,7 +226,7 @@
    <sender>install_git_button</sender>
    <signal>clicked()</signal>
    <receiver>PluginsManager</receiver>
-   <slot>on_install_git()</slot>
+   <slot>install_from_git()</slot>
    <hints>
     <hint type="sourcelabel">
      <x>768</x>
@@ -240,11 +240,11 @@
   </connection>
  </connections>
  <slots>
-  <slot>on_selection_changed()</slot>
-  <slot>on_install()</slot>
-  <slot>on_restart()</slot>
-  <slot>on_uninstall()</slot>
-  <slot>on_refresh()</slot>
-  <slot>on_install_git()</slot>
+  <slot>handle_selection_change()</slot>
+  <slot>install_selected_package()</slot>
+  <slot>restart()</slot>
+  <slot>uninstall_selected_package()</slot>
+  <slot>refresh()</slot>
+  <slot>install_from_git()</slot>
  </slots>
 </ui>

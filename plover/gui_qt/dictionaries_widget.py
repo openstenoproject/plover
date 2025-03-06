@@ -6,6 +6,7 @@ from PySide6.QtCore import (
     QModelIndex,
     Qt,
     Signal,
+    Slot,
 )
 from PySide6.QtGui import (
     QCursor,
@@ -432,7 +433,7 @@ class DictionariesModel(QAbstractListModel):
 
 class DictionariesWidget(QGroupBox, Ui_DictionariesWidget):
 
-    add_translation = Signal(str)
+    signal_add_translation = Signal(str)
 
     #TODO what to do with parent?
     def __init__(self,parent=None):
@@ -505,9 +506,9 @@ class DictionariesWidget(QGroupBox, Ui_DictionariesWidget):
             name: QIcon(':resources/dictionary_%s.svg' % name)
             for name in 'favorite loading error readonly normal'.split()
         })
-        self._model.has_undo_changed.connect(self.on_has_undo)
+        self._model.has_undo_changed.connect(self.toggle_undo_action)
         self.view.setModel(self._model)
-        self.view.selectionModel().selectionChanged.connect(self.on_selection_changed)
+        self.view.selectionModel().selectionChanged.connect(self.handle_selection_change)
         for action in (
             self.action_AddDictionaries,
             self.action_AddTranslation,
@@ -636,7 +637,8 @@ class DictionariesWidget(QGroupBox, Ui_DictionariesWidget):
             # This will trigger a reload of any modified dictionary.
             self._engine.config = {}
 
-    def on_open_dictionaries(self):
+    @Slot()
+    def open_open_dictionaries_dialog(self):
         new_filenames = QFileDialog.getOpenFileNames(
             # i18n: Widget: “DictionariesWidget”, “add” file picker.
             parent=self, caption=_('Load dictionaries'),
@@ -648,7 +650,8 @@ class DictionariesWidget(QGroupBox, Ui_DictionariesWidget):
         self._file_dialogs_directory = os.path.dirname(new_filenames[-1])
         self._model.add(new_filenames)
 
-    def on_create_dictionary(self):
+    @Slot()
+    def open_create_new_dictionary_dialog(self):
         # i18n: Widget: “DictionariesWidget”, “new” file picker.
         new_filename = self._get_dictionary_save_name(_('Create dictionary'))
         if new_filename is None:
@@ -657,38 +660,49 @@ class DictionariesWidget(QGroupBox, Ui_DictionariesWidget):
             pass
         self._model.add([new_filename])
 
-    def on_copy_dictionaries(self):
+    @Slot()
+    def copy_selected_dictionaries(self):
         self._save_dictionaries()
 
-    def on_merge_dictionaries(self):
+    @Slot()
+    def merge_selected_dictionaries(self):
         self._save_dictionaries(merge=True)
 
-    def on_activate_dictionary(self, index):
+    @Slot(QModelIndex)
+    def activate_dictionary(self, index):
         self._edit_dictionaries([index])
 
-    def on_add_dictionaries(self):
+    @Slot()
+    def open_add_dictionaries_menu(self):
         self.menu_AddDictionaries.exec(QCursor.pos())
 
-    def on_add_translation(self):
+    @Slot()
+    def add_translation(self):
         dictionary = next(self._model.iter_loaded([self.view.currentIndex()]), None)
-        self.add_translation.emit(None if dictionary is None else dictionary.path)
+        self.signal_add_translation.emit(None if dictionary is None else dictionary.path)
 
-    def on_edit_dictionaries(self):
+    @Slot()
+    def edit_selected_dictionaries(self):
         self._edit_dictionaries(self._selected)
 
-    def on_has_undo(self, available):
+    @Slot(bool)
+    def toggle_undo_action(self, available):
         self.action_Undo.setEnabled(available)
 
-    def on_move_dictionaries_down(self):
+    @Slot()
+    def move_selected_dictionaries_down(self):
         self._model.move_down(self._selected)
 
-    def on_move_dictionaries_up(self):
+    @Slot()
+    def move_selected_dictionaries_up(self):
         self._model.move_up(self._selected)
 
-    def on_remove_dictionaries(self):
+    @Slot()
+    def remove_selected_dictionaries(self):
         self._model.remove(self._selected)
 
-    def on_selection_changed(self):
+    @Slot()
+    def handle_selection_change(self):
         selection = self._selected
         has_selection = bool(selection)
         for widget in (
@@ -705,5 +719,6 @@ class DictionariesWidget(QGroupBox, Ui_DictionariesWidget):
         ):
             widget.setEnabled(has_live_selection)
 
-    def on_undo(self):
+    @Slot()
+    def undo(self):
         self._model.undo()

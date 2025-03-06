@@ -1,7 +1,7 @@
 
 import re
 
-from PySide6.QtCore import Qt
+from PySide6.QtCore import Qt, Slot
 from PySide6.QtGui import (
     QAction,
     QCursor,
@@ -85,7 +85,7 @@ class SuggestionsDialog(Tool, Ui_SuggestionsDialog):
         ontop = settings.value('ontop', None, bool)
         if ontop is not None:
             self.action_ToggleOnTop.setChecked(ontop)
-            self.on_toggle_ontop(ontop)
+            self.toggle_ontop(ontop)
 
     def _save_state(self, settings):
         for name in (
@@ -142,7 +142,8 @@ class SuggestionsDialog(Tool, Ui_SuggestionsDialog):
             self._last_suggestions = suggestion_list
             self._show_suggestions(suggestion_list)
 
-    def on_select_font(self):
+    @Slot()
+    def select_font(self):
         action = self._font_menu.exec(QCursor.pos())
         if action is None:
             return
@@ -157,7 +158,8 @@ class SuggestionsDialog(Tool, Ui_SuggestionsDialog):
         if ok:
             self._set_font(name, font)
 
-    def on_toggle_ontop(self, ontop):
+    @Slot(bool)
+    def toggle_ontop(self, ontop):
         flags = self.windowFlags()
         if ontop:
             flags |= Qt.WindowType.WindowStaysOnTopHint
@@ -166,7 +168,8 @@ class SuggestionsDialog(Tool, Ui_SuggestionsDialog):
         self.setWindowFlags(flags)
         self.show()
 
-    def on_clear(self):
+    @Slot()
+    def clear(self):
         self.action_Clear.setEnabled(False)
         self._last_suggestions = None
         self.suggestions.clear()

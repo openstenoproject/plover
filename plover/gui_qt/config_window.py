@@ -6,6 +6,7 @@ from functools import partial
 from PySide6.QtCore import (
     Qt,
     Signal,
+    Slot,
 )
 from PySide6.QtWidgets import (
     QCheckBox,
@@ -101,7 +102,8 @@ class FileOption(QGroupBox, Ui_FileWidget):
     def setValue(self, value):
         self.path.setText(shorten_path(value))
 
-    def on_browse(self):
+    @Slot()
+    def open_file_dialog(self):
         filename_suggestion = self.path.text()
         filename = QFileDialog.getSaveFileName(
             self, self._dialog_title,
@@ -113,7 +115,8 @@ class FileOption(QGroupBox, Ui_FileWidget):
         self.path.setText(shorten_path(filename))
         self.valueChanged.emit(filename)
 
-    def on_path_edited(self):
+    @Slot()
+    def handle_edited_path(self):
         self.valueChanged.emit(expand_path(self.path.text()))
 
 

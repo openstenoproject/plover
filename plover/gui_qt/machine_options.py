@@ -1,7 +1,7 @@
 from copy import copy
 from pathlib import Path
 
-from PySide6.QtCore import Qt, Signal
+from PySide6.QtCore import Qt, Signal, Slot
 from PySide6.QtGui import (
     QTextCharFormat,
     QTextFrameFormat,
@@ -122,7 +122,7 @@ class SerialOption(QGroupBox, Ui_SerialWidget):
 
     def setValue(self, value):
         self._value = copy(value)
-        self.on_scan()
+        self.scan()
         port = value['port']
         if port is not None and port != 'None':
             port_index = self.port.findText(port)
@@ -158,30 +158,36 @@ class SerialOption(QGroupBox, Ui_SerialWidget):
         self._value[field] = value
         self.valueChanged.emit(self._value)
 
-    def on_scan(self):
+    def scan(self):
         self.port.clear()
         for port_info in sorted(patch_ports_info(comports())):
             self.port.addItem(port_info.device, port_info)
 
-    def on_port_changed(self, value):
+    @Slot(str)
+    def update_port(self, value):
         self._update('port', value)
 
-    def on_baudrate_changed(self, value):
+    @Slot(str)
+    def update_baudrate(self, value):
         self._update('baudrate', int(value))
 
-    def on_bytesize_changed(self, value):
+    @Slot(str)
+    def update_bytesize(self, value):
         self._update('baudrate', int(value))
 
-    def on_parity_changed(self, value):
+    @Slot(str)
+    def update_parity(self, value):
         self._update('parity', value)
 
-    def on_stopbits_changed(self, value):
+    def update_stopbits(self, value):
         self._update('stopbits', float(value))
 
-    def on_timeout_changed(self, value):
+    @Slot(float)
+    def update_timeout(self, value):
         self._update('timeout', value)
 
-    def on_use_timeout_changed(self, value):
+    @Slot(bool)
+    def update_use_timeout(self, value):
         if value:
             timeout = self.timeout.value()
         else:
@@ -189,10 +195,12 @@ class SerialOption(QGroupBox, Ui_SerialWidget):
         self.timeout.setEnabled(value)
         self._update('timeout', timeout)
 
-    def on_xonxoff_changed(self, value):
+    @Slot(bool)
+    def update_xonxoff(self, value):
         self._update('xonxoff', value)
 
-    def on_rtscts_changed(self, value):
+    @Slot(bool)
+    def update_rtscts(self, value):
         self._update('rtscts', value)
 
 
@@ -216,10 +224,12 @@ class KeyboardOption(QGroupBox, Ui_KeyboardWidget):
         self.arpeggiate.setChecked(value['arpeggiate'])
         self.first_up_chord_send.setChecked(value['first_up_chord_send'])
 
-    def on_arpeggiate_changed(self, value):
+    @Slot(bool)
+    def update_arpeggiate(self, value):
         self._value['arpeggiate'] = value
         self.valueChanged.emit(self._value)
 
-    def on_first_up_chord_send_changed(self, value):
+    @Slot(bool)
+    def update_first_up_chord_send(self, value):
         self._value['first_up_chord_send'] = value
         self.valueChanged.emit(self._value)

@@ -1,5 +1,5 @@
 
-from PySide6.QtCore import QEvent, Qt
+from PySide6.QtCore import QEvent, Qt, Slot
 
 from plover import _
 from plover.translation import unescape_translation
@@ -37,7 +37,8 @@ class LookupDialog(Tool, Ui_LookupDialog):
         self.suggestions.clear()
         self.suggestions.append(suggestion_list)
 
-    def on_lookup(self, pattern):
+    @Slot(str)
+    def lookup(self, pattern):
         translation = unescape_translation(pattern.strip())
         suggestion_list = self._engine.get_suggestions(translation)
         self._update_suggestions(suggestion_list)

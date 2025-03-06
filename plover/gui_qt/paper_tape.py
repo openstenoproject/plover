@@ -5,6 +5,7 @@ from PySide6.QtCore import (
     QMimeData,
     QModelIndex,
     Qt,
+    Slot,
 )
 from PySide6.QtGui import QFont
 from PySide6.QtWidgets import (
@@ -16,6 +17,7 @@ from PySide6.QtWidgets import (
 from wcwidth import wcwidth
 
 from plover import _, system
+from plover.steno import Stroke
 
 from .paper_tape_ui import Ui_PaperTape
 from .utils import ActionCopyViewSelectionToClipboard, ToolBar
@@ -142,7 +144,7 @@ class PaperTape(Tool, Ui_PaperTape):
         self.action_Save.setEnabled(False)
         engine.signal_connect('config_changed', self.on_config_changed)
         self.on_config_changed(engine.config)
-        engine.signal_connect('stroked', self.on_stroke)
+        engine.signal_connect('stroked', self.handle_stroke)
         self.tape.setFocus()
         self.restore_state()
         self.finished.connect(self.save_state)
@@ -152,7 +154,7 @@ class PaperTape(Tool, Ui_PaperTape):
         if style is not None:
             style = TAPE_STYLES[style]
             self.styles.setCurrentText(style)
-            self.on_style_changed(style)
+            self.change_style(style)
         font_string = settings.value('font')
         if font_string is not None:
             font = QFont()
@@ -162,7 +164,7 @@ class PaperTape(Tool, Ui_PaperTape):
         ontop = settings.value('ontop', None, bool)
         if ontop is not None:
             self.action_ToggleOnTop.setChecked(ontop)
-            self.on_toggle_ontop(ontop)
+            self.toggle_ontop(ontop)
 
     def _save_state(self, settings):
         settings.setValue('style', TAPE_STYLES.index(self._style))
@@ -184,7 +186,8 @@ class PaperTape(Tool, Ui_PaperTape):
     def _style(self):
         return self.styles.currentText()
 
-    def on_stroke(self, stroke):
+    @Slot(Stroke)
+    def handle_stroke(self, stroke):
         scroll_at_end = self._scroll_at_end
         self._model.append(stroke)
         if scroll_at_end:
@@ -192,7 +195,8 @@ class PaperTape(Tool, Ui_PaperTape):
         self.action_Clear.setEnabled(True)
         self.action_Save.setEnabled(True)
 
-    def on_style_changed(self, style):
+    @Slot(str)
+    def change_style(self, style):
         assert style in TAPE_STYLES
         scroll_at_end = self._scroll_at_end
         self._model.style = style
@@ -200,14 +204,16 @@ class PaperTape(Tool, Ui_PaperTape):
         if scroll_at_end:
             self.tape.scrollToBottom()
 
-    def on_select_font(self):
+    @Slot()
+    def select_font(self):
         font, ok = QFontDialog.getFont(self.tape.font(), self, '',
                                        QFontDialog.FontDialogOption.MonospacedFonts)
         if ok:
             self.header.setFont(font)
             self.tape.setFont(font)
 
-    def on_toggle_ontop(self, ontop):
+    @Slot(bool)
+    def toggle_ontop(self, ontop):
         flags = self.windowFlags()
         if ontop:
             flags |= Qt.WindowType.WindowStaysOnTopHint
@@ -216,7 +222,8 @@ class PaperTape(Tool, Ui_PaperTape):
         self.setWindowFlags(flags)
         self.show()
 
-    def on_clear(self):
+    @Slot()
+    def clear(self):
         flags = self.windowFlags()
         msgbox = QMessageBox()
         msgbox.setText(_('Do you want to clear the paper tape?'))
@@ -230,7 +237,8 @@ class PaperTape(Tool, Ui_PaperTape):
         self.action_Save.setEnabled(False)
         self._model.reset()
 
-    def on_save(self):
+    @Slot()
+    def save(self):
         filename_suggestion = 'steno-notes-%s.txt' % time.strftime('%Y-%m-%d-%H-%M')
         filename = QFileDialog.getSaveFileName(
             self, _('Save Paper Tape'), filename_suggestion,

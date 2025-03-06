@@ -5,7 +5,7 @@ import html
 import os
 import sys
 
-from PySide6.QtCore import Qt, Signal
+from PySide6.QtCore import Qt, Signal, Slot
 from PySide6.QtWidgets import QDialog, QMessageBox, QTableWidgetItem, QInputDialog,QWidget
 
 from plover.gui_qt.tool import Tool
@@ -42,7 +42,7 @@ class PluginsManager(Tool, Ui_PluginsManager):
         if self._packages is None:
             PluginsManager._packages = Registry()
         self._on_packages_updated()
-        self.on_refresh()
+        self.refresh()
 
     def _need_restart(self):
         for state in self._packages:
@@ -96,7 +96,8 @@ class PluginsManager(Tool, Ui_PluginsManager):
         # dialog.destroy()
         return code
 
-    def on_selection_changed(self):
+    @Slot()
+    def handle_selection_change(self):
         can_install, can_uninstall = self._get_selection()
         self.uninstall_button.setEnabled(bool(can_uninstall))
         self.install_button.setEnabled(bool(can_install))
@@ -131,7 +132,8 @@ class PluginsManager(Tool, Ui_PluginsManager):
         css, description = description_to_html(description, description_content_type)
         self.info.setHtml(css + prologue + description)
 
-    def on_restart(self):
+    @Slot()
+    def restart(self):
         if self._engine is not None:
             self._engine.restart()
         else:
@@ -146,14 +148,16 @@ class PluginsManager(Tool, Ui_PluginsManager):
     def _clear_info(self):
         self.info.setHtml('')
 
-    def on_refresh(self):
+    @Slot()
+    def refresh(self):
         Thread(target=self._update_packages).start()
         self._clear_info()
         self.setEnabled(False)
         self.refresh_button.hide()
         self.progress.show()
 
-    def on_install_git(self):
+    @Slot()
+    def install_from_git(self):
         url, ok = QInputDialog.getText(
             self, "Install from Git repo", 
             '<b>WARNING: Installing plugins is a security risk.<br>'
@@ -174,7 +178,8 @@ class PluginsManager(Tool, Ui_PluginsManager):
             self._update_table()
             self.restart_button.setEnabled(True)
            
-    def on_install(self):
+    @Slot()
+    def install_selected_package(self):
         packages = self._get_selection()[0]
         if QMessageBox.warning(
             self, 'Install ' + ', '.join(packages),
@@ -199,7 +204,8 @@ class PluginsManager(Tool, Ui_PluginsManager):
             self._update_table()
             self.restart_button.setEnabled(True)
 
-    def on_uninstall(self):
+    @Slot()
+    def uninstall_selected_package(self):
         packages = self._get_selection()[1]
         code = self._run(['uninstall', '-y'] + packages)
         if code == QDialog.DialogCode.Accepted:

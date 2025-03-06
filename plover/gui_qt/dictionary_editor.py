@@ -6,6 +6,7 @@ from PySide6.QtCore import (
     QAbstractTableModel,
     QModelIndex,
     Qt,
+    Slot
 )
 from PySide6.QtGui import QIcon
 from PySide6.QtWidgets import (
@@ -322,13 +323,13 @@ class DictionaryEditor(QDialog, Ui_DictionaryEditor, WindowState):
         self._model = DictionaryItemModel(dictionary_list,
                                           sort_column,
                                           sort_order)
-        self._model.dataChanged.connect(self.on_data_changed)
+        self._model.dataChanged.connect(self.update_after_data_change)
         self.table.sortByColumn(sort_column, sort_order)
         self.table.setSortingEnabled(True)
         self.table.setModel(self._model)
         self.table.resizeColumnsToContents()
         self.table.setItemDelegate(DictionaryItemDelegate(dictionary_list))
-        self.table.selectionModel().selectionChanged.connect(self.on_selection_changed)
+        self.table.selectionModel().selectionChanged.connect(self.handle_selection_change)
         background = self.table.palette().highlightedText().color().name()
         text_color = self.table.palette().highlight().color().name()
         self.table.setStyleSheet('''
@@ -366,30 +367,35 @@ class DictionaryEditor(QDialog, Ui_DictionaryEditor, WindowState):
         if edit:
             self.table.edit(index)
 
-    def on_data_changed(self, top_left, bottom_right):
+    @Slot(QModelIndex, QModelIndex)
+    def update_after_data_change(self, top_left, bottom_right):
         self.table.setCurrentIndex(top_left)
         self.action_Undo.setEnabled(self._model.has_undo)
 
-    def on_selection_changed(self):
+    @Slot()
+    def handle_selection_change(self):
         enabled = bool(self._selection)
         for action in (
             self.action_Delete,
         ):
             action.setEnabled(enabled)
 
-    def on_undo(self):
+    @Slot()
+    def undo(self):
         assert self._model.has_undo
         self._model.undo()
         self.action_Undo.setEnabled(self._model.has_undo)
 
-    def on_delete(self):
+    @Slot()
+    def delete_selected_row(self):
         selection = self._selection
         assert selection
         self._model.remove_rows(selection)
         self._select(selection[0])
         self.action_Undo.setEnabled(self._model.has_undo)
 
-    def on_new(self):
+    @Slot()
+    def add_new_row(self):
         selection = self._selection
         if selection:
             row = self._selection[0]
@@ -400,19 +406,21 @@ class DictionaryEditor(QDialog, Ui_DictionaryEditor, WindowState):
         self._select(row, edit=True)
         self.action_Undo.setEnabled(self._model.has_undo)
 
-    def on_apply_filter(self):
+    @Slot()
+    def apply_filter(self):
         self.table.selectionModel().clear()
         strokes_filter = '/'.join(normalize_steno(self.strokes_filter.text().strip()))
         translation_filter = unescape_translation(self.translation_filter.text().strip())
         self._model.filter(strokes_filter=strokes_filter,
                            translation_filter=translation_filter)
-
-    def on_clear_filter(self):
+    @Slot()
+    def clear_filter(self):
         self.strokes_filter.setText('')
         self.translation_filter.setText('')
         self._model.filter(strokes_filter=None, translation_filter=None)
 
-    def on_finished(self, result):
+    @Slot(int)
+    def save_modified_dictionaries(self, result):
         with self._engine:
             self._engine.dictionaries.save(dictionary.path
                                            for dictionary
