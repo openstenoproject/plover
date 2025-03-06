@@ -25,6 +25,8 @@ Joshua Lifton
 Hesky Fisher
 Ted Morin
 Benoit Pierre
+Sammi Ta
+Martin Koerner
 
 and many more on GitHub:
 <https://github.com/openstenoproject/plover>""")
