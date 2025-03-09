@@ -1,17 +1,17 @@
-from PyQt5.QtCore import (
+from PySide6.QtCore import (
     QAbstractListModel,
     QMimeData,
     QModelIndex,
     Qt,
 )
-from PyQt5.QtGui import (
+from PySide6.QtGui import (
     QFont,
     QFontMetrics,
     QTextCharFormat,
     QTextCursor,
     QTextDocument,
 )
-from PyQt5.QtWidgets import (
+from PySide6.QtWidgets import (
     QListView,
     QStyle,
     QStyledItemDelegate,
@@ -35,7 +35,7 @@ class SuggestionsDelegate(QStyledItemDelegate):
         self._doc = QTextDocument()
         self._translation_char_format = QTextCharFormat()
         self._strokes_char_format = QTextCharFormat()
-        self._strokes_char_format.font().setStyleHint(QFont.Monospace)
+        self._strokes_char_format.font().setStyleHint(QFont.StyleHint.Monospace)
         self._size_hint_cache = {}
 
     def clear_size_hint_cache(self):
@@ -60,7 +60,7 @@ class SuggestionsDelegate(QStyledItemDelegate):
         self.clear_size_hint_cache()
 
     def _format_suggestion(self, index):
-        suggestion = index.data(Qt.DisplayRole)
+        suggestion = index.data(Qt.ItemDataRole.DisplayRole)
         translation = escape_translation(suggestion.text) + ':'
         if not suggestion.steno_list:
             translation += ' ' + NO_SUGGESTIONS_STRING
@@ -79,7 +79,7 @@ class SuggestionsDelegate(QStyledItemDelegate):
 
     def paint(self, painter, option, index):
         painter.save()
-        if option.state & QStyle.State_Selected:
+        if option.state & QStyle.StateFlag.State_Selected:
             painter.fillRect(option.rect, option.palette.highlight())
             text_color = option.palette.highlightedText()
         else:
@@ -118,9 +118,9 @@ class SuggestionsModel(QAbstractListModel):
         if not index.isValid():
             return None
         suggestion = self._suggestion_list[index.row()]
-        if role == Qt.DisplayRole:
+        if role == Qt.ItemDataRole.DisplayRole:
             return suggestion
-        if role == Qt.AccessibleTextRole:
+        if role == Qt.ItemDataRole.AccessibleTextRole:
             translation = escape_translation(suggestion.text)
             if suggestion.steno_list:
                 steno = ', '.join('/'.join(strokes_list) for strokes_list in
@@ -147,7 +147,7 @@ class SuggestionsModel(QAbstractListModel):
     def mimeData(self, indexes):
         data = QMimeData()
         data.setText('\n'.join(filter(None, (
-            self.data(index, Qt.AccessibleTextRole)
+            self.data(index, Qt.ItemDataRole.AccessibleTextRole)
             for index in indexes
         ))))
         return data
@@ -157,8 +157,8 @@ class SuggestionsWidget(QListView):
 
     def __init__(self, parent=None):
         super().__init__(parent=parent)
-        self.setResizeMode(self.Adjust)
-        self.setSelectionMode(self.ExtendedSelection)
+        self.setResizeMode(self.ResizeMode.Adjust)
+        self.setSelectionMode(self.SelectionMode.ExtendedSelection)
         self._copy_action = ActionCopyViewSelectionToClipboard(self)
         self.addAction(self._copy_action)
         self._model = SuggestionsModel()

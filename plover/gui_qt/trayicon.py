@@ -1,6 +1,6 @@
-from PyQt5.QtCore import QObject, pyqtSignal
-from PyQt5.QtGui import QIcon
-from PyQt5.QtWidgets import QMessageBox, QSystemTrayIcon
+from PySide6.QtCore import QObject, Signal
+from PySide6.QtGui import QIcon
+from PySide6.QtWidgets import QMessageBox, QSystemTrayIcon
 
 from plover import _, __name__ as __software_name__
 from plover import log
@@ -27,7 +27,7 @@ class TrayIcon(QObject):
             'disabled',
             'enabled',
         ):
-            icon = QIcon(':/state-%s.svg' % state)
+            icon = QIcon(':resources/state-%s.svg' % state)
             if hasattr(icon, 'setIsMask'):
                 icon.setIsMask(True)
             self._state_icons[state] = icon
@@ -42,7 +42,7 @@ class TrayIcon(QObject):
             self._trayicon.setContextMenu(menu)
 
     def show_message(self, message,
-                     icon=QSystemTrayIcon.Information,
+                     icon=QSystemTrayIcon.MessageIcon.Information,
                      timeout=10000):
         self._trayicon.showMessage(__software_name__.capitalize(),
                                    message, icon, timeout)
@@ -50,13 +50,13 @@ class TrayIcon(QObject):
     def log(self, level, message):
         if self._enabled:
             if level <= log.INFO:
-                icon = QSystemTrayIcon.Information
+                icon = QSystemTrayIcon.MessageIcon.Information
                 timeout = 10
             elif level <= log.WARNING:
-                icon = QSystemTrayIcon.Warning
+                icon = QSystemTrayIcon.MessageIcon.Warning
                 timeout = 15
             else:
-                icon = QSystemTrayIcon.Critical
+                icon = QSystemTrayIcon.MessageIcon.Critical
                 timeout = 25
             self.show_message(message, icon, timeout * 1000)
         else:
@@ -69,7 +69,7 @@ class TrayIcon(QObject):
             msgbox = QMessageBox()
             msgbox.setText(message)
             msgbox.setIcon(icon)
-            msgbox.exec_()
+            msgbox.exec()
 
     def is_supported(self):
         return self._supported
@@ -107,7 +107,7 @@ class TrayIcon(QObject):
         self._is_running = enabled
         self._update_state()
 
-    clicked = pyqtSignal()
+    clicked = Signal()
 
     def _update_state(self):
         if self._machine_state not in (STATE_INITIALIZING, STATE_RUNNING):
@@ -134,5 +134,5 @@ class TrayIcon(QObject):
         )
 
     def _on_activated(self, reason):
-        if reason == QSystemTrayIcon.Trigger:
+        if reason == QSystemTrayIcon.ActivationReason.Trigger:
             self.clicked.emit()

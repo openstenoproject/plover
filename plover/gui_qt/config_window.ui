@@ -14,8 +14,8 @@
    <string>Plover: Configuration</string>
   </property>
   <property name="windowIcon">
-   <iconset resource="resources/resources.qrc">
-    <normaloff>:/plover.png</normaloff>:/plover.png</iconset>
+   <iconset resource="resources.qrc">
+    <normaloff>:/resources/plover.png</normaloff>:/resources/plover.png</iconset>
   </property>
   <property name="sizeGripEnabled">
    <bool>true</bool>
@@ -42,7 +42,7 @@
  </widget>
  <layoutdefault spacing="5" margin="8"/>
  <resources>
-  <include location="resources/resources.qrc"/>
+  <include location="resources.qrc"/>
  </resources>
  <connections>
   <connection>

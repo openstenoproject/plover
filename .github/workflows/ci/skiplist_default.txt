@@ -9,8 +9,6 @@ CONTRIBUTING.md
 NEWS.md
 README.md
 doc/*
-launch.bat
-launch.sh
 linux/README.md
 linux/packpack.mk
 linux/packpack.sh

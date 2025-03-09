@@ -1,7 +1,7 @@
 
 import re
 
-from PyQt5.QtWidgets import QDialog
+from PySide6.QtWidgets import QDialog
 
 import plover
 

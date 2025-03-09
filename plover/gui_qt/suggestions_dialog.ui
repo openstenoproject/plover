@@ -32,8 +32,8 @@
   </layout>
   <action name="action_Clear">
    <property name="icon">
-    <iconset resource="resources/resources.qrc">
-     <normaloff>:/trash.svg</normaloff>:/trash.svg</iconset>
+    <iconset resource="resources.qrc">
+     <normaloff>:/resources/trash.svg</normaloff>:/resources/trash.svg</iconset>
    </property>
    <property name="text">
     <string>&amp;Clear</string>
@@ -50,8 +50,8 @@
     <bool>true</bool>
    </property>
    <property name="icon">
-    <iconset resource="resources/resources.qrc">
-     <normaloff>:/pin.svg</normaloff>:/pin.svg</iconset>
+    <iconset resource="resources.qrc">
+     <normaloff>:/resources/pin.svg</normaloff>:/resources/pin.svg</iconset>
    </property>
    <property name="text">
     <string>&amp;Toggle &quot;always on top&quot;</string>
@@ -65,8 +65,8 @@
   </action>
   <action name="action_SelectFont">
    <property name="icon">
-    <iconset resource="resources/resources.qrc">
-     <normaloff>:/font_selector.svg</normaloff>:/font_selector.svg</iconset>
+    <iconset resource="resources.qrc">
+     <normaloff>:/resources/font_selector.svg</normaloff>:/resources/font_selector.svg</iconset>
    </property>
    <property name="text">
     <string>Select &amp;font</string>
@@ -85,14 +85,14 @@
   </customwidget>
  </customwidgets>
  <resources>
-  <include location="resources/resources.qrc"/>
+  <include location="resources.qrc"/>
  </resources>
  <connections>
   <connection>
    <sender>action_Clear</sender>
    <signal>triggered()</signal>
    <receiver>SuggestionsDialog</receiver>
-   <slot>on_clear()</slot>
+   <slot>clear()</slot>
    <hints>
     <hint type="sourcelabel">
      <x>-1</x>
@@ -108,7 +108,7 @@
    <sender>action_ToggleOnTop</sender>
    <signal>triggered(bool)</signal>
    <receiver>SuggestionsDialog</receiver>
-   <slot>on_toggle_ontop(bool)</slot>
+   <slot>toggle_ontop(bool)</slot>
    <hints>
     <hint type="sourcelabel">
      <x>-1</x>
@@ -124,7 +124,7 @@
    <sender>action_SelectFont</sender>
    <signal>triggered()</signal>
    <receiver>SuggestionsDialog</receiver>
-   <slot>on_select_font()</slot>
+   <slot>select_font()</slot>
    <hints>
     <hint type="sourcelabel">
      <x>-1</x>
@@ -138,9 +138,9 @@
   </connection>
  </connections>
  <slots>
-  <slot>on_save()</slot>
-  <slot>on_clear()</slot>
-  <slot>on_toggle_ontop(bool)</slot>
-  <slot>on_select_font()</slot>
+  <slot>save()</slot>
+  <slot>clear()</slot>
+  <slot>toggle_ontop(bool)</slot>
+  <slot>select_font()</slot>
  </slots>
 </ui>

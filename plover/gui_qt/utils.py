@@ -1,12 +1,16 @@
-from PyQt5.QtCore import QSettings
-from PyQt5.QtGui import QGuiApplication, QKeySequence
-from PyQt5.QtWidgets import (
+from PySide6.QtCore import QSettings
+from PySide6.QtGui import (
     QAction,
+    QGuiApplication,
+    QKeySequence,
+)
+from PySide6.QtWidgets import (
     QMainWindow,
     QToolBar,
     QToolButton,
     QWidget,
 )
+import importlib.resources
 
 from plover import _
 
@@ -17,7 +21,7 @@ def ActionCopyViewSelectionToClipboard(view):
         data = view.model().mimeData(indexes)
         QGuiApplication.clipboard().setMimeData(data)
     action = QAction(_('Copy selection to clipboard'))
-    action.setShortcut(QKeySequence(QKeySequence.Copy))
+    action.setShortcut(QKeySequence(QKeySequence.StandardKey.Copy))
     action.triggered.connect(copy_selection_to_clipboard)
     return action
 
@@ -38,15 +42,30 @@ def ToolBar(*action_list):
     return toolbar
 
 
-class WindowState(QWidget):
+class WindowStateMixin:
+    """
+    Mixin class for saving and restoring window state using QSettings.
+
+    This class is used as a mixin alongside a class that inherits from QWidget.
+    It does NOT inherit from QWidget to avoid multiple inheritance issues.
+    
+    Usage:
+        class MyDialog(QDialog, WindowStateMixin):
+            ...
+    """
 
     ROLE = None
 
     def _save_state(self, settings):
+        """
+        To be overwritten by subclasses to save additional state.
+        """
         pass
 
     def save_state(self):
         assert self.ROLE
+        assert isinstance(self, QWidget), "WindowStateMixin must be used with a QWidget subclass"
+
         settings = QSettings()
         settings.beginGroup(self.ROLE)
         settings.setValue('geometry', self.saveGeometry())
@@ -56,10 +75,15 @@ class WindowState(QWidget):
         settings.endGroup()
 
     def _restore_state(self, settings):
+        """
+        To be overwritten by subclasses to restore additional state.
+        """
         pass
 
     def restore_state(self):
         assert self.ROLE
+        assert isinstance(self, QWidget), "WindowStateMixin must be used with a QWidget subclass"
+
         settings = QSettings()
         settings.beginGroup(self.ROLE)
         geometry = settings.value('geometry')

@@ -57,7 +57,7 @@
    <sender>pushButton</sender>
    <signal>clicked()</signal>
    <receiver>FileWidget</receiver>
-   <slot>on_browse()</slot>
+   <slot>open_file_dialog()</slot>
    <hints>
     <hint type="sourcelabel">
      <x>293</x>
@@ -73,7 +73,7 @@
    <sender>path</sender>
    <signal>editingFinished()</signal>
    <receiver>FileWidget</receiver>
-   <slot>on_path_edited()</slot>
+   <slot>handle_edited_path()</slot>
    <hints>
     <hint type="sourcelabel">
      <x>126</x>
@@ -87,7 +87,7 @@
   </connection>
  </connections>
  <slots>
-  <slot>on_browse()</slot>
-  <slot>on_path_edited()</slot>
+  <slot>open_file_dialog()</slot>
+  <slot>handle_edited_path()</slot>
  </slots>
 </ui>
