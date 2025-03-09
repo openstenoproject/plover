@@ -22,7 +22,7 @@ from plover.steno import normalize_steno, steno_to_sort_key
 
 from plover.gui_qt.dictionary_editor_ui import Ui_DictionaryEditor
 from plover.gui_qt.steno_validator import StenoValidator
-from plover.gui_qt.utils import ToolBar, WindowState
+from plover.gui_qt.utils import ToolBar, WindowStateMixin
 
 
 _COL_STENO, _COL_TRANS, _COL_DICT, _COL_COUNT = range(3 + 1)
@@ -305,7 +305,7 @@ class DictionaryItemModel(QAbstractTableModel):
             self._operations.append(operations)
 
 
-class DictionaryEditor(QDialog, Ui_DictionaryEditor, WindowState):
+class DictionaryEditor(QDialog, Ui_DictionaryEditor, WindowStateMixin):
 
     ROLE = 'dictionary_editor'
 

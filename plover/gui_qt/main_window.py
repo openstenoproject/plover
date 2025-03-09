@@ -22,10 +22,10 @@ from plover.gui_qt.main_window_ui import Ui_MainWindow
 from plover.gui_qt.config_window import ConfigWindow
 from plover.gui_qt.about_dialog import AboutDialog
 from plover.gui_qt.trayicon import TrayIcon
-from plover.gui_qt.utils import WindowState, find_menu_actions
+from plover.gui_qt.utils import WindowStateMixin, find_menu_actions
 
 
-class MainWindow(QMainWindow, Ui_MainWindow, WindowState):
+class MainWindow(QMainWindow, Ui_MainWindow, WindowStateMixin):
 
     ROLE = 'main'
 

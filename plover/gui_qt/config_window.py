@@ -32,7 +32,7 @@ from plover.registry import registry
 
 from plover.gui_qt.config_window_ui import Ui_ConfigWindow
 from plover.gui_qt.config_file_widget_ui import Ui_FileWidget
-from plover.gui_qt.utils import WindowState
+from plover.gui_qt.utils import WindowStateMixin
 
 
 class NopeOption(QLabel):
@@ -304,7 +304,7 @@ class ConfigOption:
         self.label = None
 
 
-class ConfigWindow(QDialog, Ui_ConfigWindow, WindowState):
+class ConfigWindow(QDialog, Ui_ConfigWindow, WindowStateMixin):
 
     ROLE = 'configuration'
 
