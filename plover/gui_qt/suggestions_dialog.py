@@ -154,7 +154,7 @@ class SuggestionsDialog(Tool, Ui_SuggestionsDialog):
             name = 'strokes_font'
             font_options = (QFontDialog.FontDialogOption.MonospacedFonts,)
         font = self._get_font(name)
-        font, ok = QFontDialog.getFont(font, self, '', *font_options)
+        ok, font = QFontDialog.getFont(font, self, '', *font_options)
         if ok:
             self._set_font(name, font)
 
