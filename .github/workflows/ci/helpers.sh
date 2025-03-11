@@ -114,8 +114,8 @@ setup_python_env()
   run_eval "echo PYTHONUSERBASE='$PYTHONUSERBASE' >>\$GITHUB_ENV"
   if [ ! -e "$python_userbase" ]
   then
-    get_base_devel --no-warn-script-location --user || die
-    install_wheels --no-warn-script-location --user "$@" || die
+    get_base_devel --no-warn-script-location || die
+    install_wheels --no-warn-script-location "$@" || die
     if [ "$RUNNER_OS" = 'Windows' ]
     then
       run rm -rf "$python_userbase"/Python*/Scripts

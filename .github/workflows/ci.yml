@@ -477,20 +477,6 @@ jobs:
       - name: Checkout
         uses: actions/checkout@v4
 
-      - name: Install system dependencies
-        run: apt_get_install libdbus-1-dev libdbus-glib-1-dev libudev-dev libusb-1.0-0-dev libegl-dev
-
-      # Installing Qt before Python since it installs its own Python.
-      - name: Install Qt
-        uses: jurplel/install-qt-action@v4
-        with:
-          version: '6.5.2'
-          aqtversion: '==3.2.*'
-          dir: '${{ github.workspace }}/gh-action-installs'
-
-      - name: Add Qt libexec to PATH
-        run: echo "$QT_ROOT_DIR/libexec" >> $GITHUB_PATH
-
       - name: Setup Python
         uses: actions/setup-python@v5
         with:
@@ -508,6 +494,9 @@ jobs:
 
       - name: Setup pip options
         run: setup_pip_options
+
+      - name: Install system dependencies
+        run: apt_get_install libdbus-1-dev libdbus-glib-1-dev libudev-dev libusb-1.0-0-dev libegl-dev libxkbcommon-x11-0
 
       - name: Setup Python environment
         run: setup_python_env -c reqs/constraints.txt -r reqs/dist.txt -r reqs/dist_extra_gui_qt.txt -r reqs/test.txt        
@@ -556,17 +545,6 @@ jobs:
         with:
           # We need the whole history for patching the version.
           fetch-depth: 0
-
-      # Installing Qt before Python since it installs its own Python.
-      - name: Install Qt
-        uses: jurplel/install-qt-action@v4
-        with:
-          version: '6.5.2'
-          aqtversion: '==3.2.*'
-          dir: '${{ github.workspace }}/gh-action-installs'
-
-      - name: Add Qt libexec to PATH
-        run: echo "$QT_ROOT_DIR/libexec" >> $GITHUB_PATH
 
       - name: Setup Python
         uses: actions/setup-python@v5
@@ -662,20 +640,6 @@ jobs:
           # We need the whole history for patching the version.
           fetch-depth: 0
 
-      - name: Install system dependencies
-        run: apt_get_install libdbus-1-dev libdbus-glib-1-dev libudev-dev libusb-1.0-0-dev libegl-dev
-
-      # Installing Qt before Python since it installs its own Python.
-      - name: Install Qt
-        uses: jurplel/install-qt-action@v4
-        with:
-          version: '6.5.2'
-          aqtversion: '==3.2.*'
-          dir: '${{ github.workspace }}/gh-action-installs'
-
-      - name: Add Qt libexec to PATH
-        run: echo "$QT_ROOT_DIR/libexec" >> $GITHUB_PATH
-
       - name: Setup Python
         uses: actions/setup-python@v5
         with:
@@ -693,6 +657,9 @@ jobs:
 
       - name: Setup pip options
         run: setup_pip_options
+
+      - name: Install system dependencies
+        run: apt_get_install libdbus-1-dev libdbus-glib-1-dev libudev-dev libusb-1.0-0-dev libegl-dev libxkbcommon-x11-0
 
       - name: Setup Python environment
         run: setup_python_env -c reqs/constraints.txt -r reqs/build.txt -r reqs/setup.txt        
@@ -746,17 +713,6 @@ jobs:
         with:
           # We need the whole history for patching the version.
           fetch-depth: 0
-
-      # Installing Qt before Python since it installs its own Python.
-      - name: Install Qt
-        uses: jurplel/install-qt-action@v4
-        with:
-          version: '6.5.2'
-          aqtversion: '==3.2.*'
-          dir: '${{ github.workspace }}/gh-action-installs'
-
-      - name: Add Qt libexec to PATH
-        run: echo "$QT_ROOT_DIR/libexec" >> $GITHUB_PATH
 
       - name: Set cache name
         id: set_cache
@@ -827,17 +783,6 @@ jobs:
         with:
           # We need the whole history for patching the version.
           fetch-depth: 0
-
-      # Installing Qt before Python since it installs its own Python.
-      - name: Install Qt
-        uses: jurplel/install-qt-action@v4
-        with:
-          version: '6.5.2'
-          aqtversion: '==3.2.*'
-          dir: '${{ github.workspace }}/gh-action-installs'
-
-      - name: Add Qt libexec to PATH
-        run: echo "$QT_ROOT_DIR/libexec" >> $GITHUB_PATH
 
       - name: Setup Python
         uses: actions/setup-python@v5

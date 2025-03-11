@@ -107,7 +107,7 @@ class BuildUi(Command):
         if self.verbose:
             print('generating', dst)
 
-        subprocess.check_call(['uic', '-g', 'python', '--from-imports', src, '-o', dst])
+        subprocess.check_call(['pyside6-uic', '--from-imports', src, '-o', dst])
 
         for hook in self.hooks:
             mod_name, attr_name = hook.split(':')
@@ -156,7 +156,7 @@ class BuildResources(Command):
             output_file = os.path.splitext(resource_file)[0] + '_rc.py'
             if self.verbose:
                 print(f'compiling {resource_file} to {output_file}')
-            subprocess.check_call(['rcc', '-g', 'python', '-o', output_file, resource_file])
+            subprocess.check_call(['pyside6-rcc', '-o', output_file, resource_file])
 
 # }}}
 
