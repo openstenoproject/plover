@@ -1,5 +1,5 @@
 Babel
-PySide6
+PySide6-Essentials
 setuptools>=38.2.4
 wheel
 
