@@ -569,7 +569,7 @@ class DictionariesWidget(QGroupBox, Ui_DictionariesWidget):
             default_name = self._file_dialogs_directory
         default_name = normalize_path(default_name)
         new_filename = QFileDialog.getSaveFileName(
-            parent=self, caption=title, directory=default_name,
+            parent=self, caption=title, dir=default_name,
             filter=_dictionary_filters(include_readonly=False),
         )[0]
         if not new_filename:
@@ -642,7 +642,7 @@ class DictionariesWidget(QGroupBox, Ui_DictionariesWidget):
         new_filenames = QFileDialog.getOpenFileNames(
             # i18n: Widget: “DictionariesWidget”, “add” file picker.
             parent=self, caption=_('Load dictionaries'),
-            directory=self._file_dialogs_directory,
+            dir=self._file_dialogs_directory,
             filter=_dictionary_filters(),
         )[0]
         if not new_filenames:

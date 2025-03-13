@@ -906,7 +906,7 @@ def test_widget_save_copy_1(widget_test):
         mock.call.getSaveFileName(
             parent=widget_test.widget,
             caption='Save a copy of %s as...' % name,
-            directory=expand_path('%s - Copy.json' % Path(name).stem),
+            dir=expand_path('%s - Copy.json' % Path(name).stem),
             filter=FILE_PICKER_SAVE_FILTER,
         )
         for name in ['favorite.json', 'normal.json', 'read-only.ro']
@@ -942,7 +942,7 @@ def test_widget_save_merge_1(widget_test):
     assert widget_test.file_dialog.mock_calls == [mock.call.getSaveFileName(
         parent=widget_test.widget,
         caption='Merge %s as...' % merge_name,
-        directory=expand_path(merge_name + '.json'),
+        dir=expand_path(merge_name + '.json'),
         filter=FILE_PICKER_SAVE_FILTER,
     )]
     assert widget_test.create_dictionary.mock_calls == [mock.call(expand_path('merge.json'), threaded_save=False)]
@@ -972,7 +972,7 @@ def test_widget_save_merge_2(widget_test):
     assert widget_test.file_dialog.mock_calls == [mock.call.getSaveFileName(
         parent=widget_test.widget,
         caption='Merge %s as...' % merge_name,
-        directory=expand_path(merge_name + '.json'),
+        dir=expand_path(merge_name + '.json'),
         filter=FILE_PICKER_SAVE_FILTER,
     )]
     assert widget_test.create_dictionary.mock_calls == []
