@@ -360,9 +360,8 @@ class DictionariesModel(QAbstractListModel):
     def rowCount(self, parent=QModelIndex()):
         return 0 if parent.isValid() else len(self._from_row)
 
-    @classmethod
-    def flags(cls, index):
-        return cls.FLAGS if index.isValid() else Qt.ItemFlag.NoItemFlags
+    def flags(self, index):
+        return self.FLAGS if index.isValid() else Qt.ItemFlag.NoItemFlags
 
     def data(self, index, role):
         if not index.isValid() or role not in self.SUPPORTED_ROLES:
