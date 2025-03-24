@@ -412,11 +412,11 @@ class DictionariesModel(QAbstractListModel):
         return None
 
     def setData(self, index, value, role):
-        if not index.isValid() or role != Qt.ItemDataRole.CheckStateRole:
+        if not index.isValid() or role != Qt.ItemDataRole.CheckStateRole.value:
             return False
-        if value == Qt.CheckState.Checked:
+        if value == Qt.CheckState.Checked.value:
             enabled = True
-        elif value == Qt.CheckState.Unchecked:
+        elif value == Qt.CheckState.Unchecked.value:
             enabled = False
         else:
             return False
