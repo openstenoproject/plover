@@ -424,7 +424,7 @@ def test_model_favorite(model_test):
     ☐ 🛇 asset:plover:assets/main.json
     '''
     # New favorite.
-    model_test.model.setData(model_test.model.index(1), Qt.CheckState.Unchecked, Qt.ItemDataRole.CheckStateRole)
+    model_test.model.setData(model_test.model.index(1), Qt.CheckState.Unchecked.value, Qt.ItemDataRole.CheckStateRole.value)
     model_test.check(
         '''
         ☑ 🛇 read-only.ro
@@ -438,7 +438,7 @@ def test_model_favorite(model_test):
         undo_change=True,
     )
     # No favorite.
-    model_test.model.setData(model_test.model.index(3), Qt.CheckState.Unchecked, Qt.ItemDataRole.CheckStateRole)
+    model_test.model.setData(model_test.model.index(3), Qt.CheckState.Unchecked.value, Qt.ItemDataRole.CheckStateRole.value)
     model_test.check(
         '''
         ☑ 🛇 read-only.ro
@@ -622,7 +622,7 @@ def test_model_persistent_index(model_test):
     assert persistent_index.data(Qt.ItemDataRole.CheckStateRole) == Qt.CheckState.Checked
     assert persistent_index.data(Qt.ItemDataRole.DecorationRole) == 'favorite'
     assert persistent_index.data(Qt.ItemDataRole.DisplayRole) == 'user.json'
-    model_test.model.setData(persistent_index, Qt.CheckState.Unchecked, Qt.ItemDataRole.CheckStateRole)
+    model_test.model.setData(persistent_index, Qt.CheckState.Unchecked.value, Qt.ItemDataRole.CheckStateRole.value)
     assert persistent_index.row() == 2
     assert persistent_index.data(Qt.ItemDataRole.CheckStateRole) == Qt.CheckState.Unchecked
     assert persistent_index.data(Qt.ItemDataRole.DecorationRole) == 'normal'
@@ -686,18 +686,18 @@ def test_model_set_checked(model_test):
     first_index = model_test.model.index(0)
     for index, value, ret, state in (
         # Invalid index.
-        (QModelIndex(), Qt.CheckState.Unchecked, False, on_state),
+        (QModelIndex(), Qt.CheckState.Unchecked.value, False, on_state),
         # Invalid values.
         (first_index, 'pouet', False, on_state),
-        (first_index, Qt.CheckState.PartiallyChecked, False, on_state),
+        (first_index, Qt.CheckState.PartiallyChecked.value, False, on_state),
         # Already checked.
-        (first_index, Qt.CheckState.Checked, False, on_state),
+        (first_index, Qt.CheckState.Checked.value, False, on_state),
         # Uncheck.
-        (first_index, Qt.CheckState.Unchecked, True, off_state),
+        (first_index, Qt.CheckState.Unchecked.value, True, off_state),
         # Recheck.
-        (first_index, Qt.CheckState.Checked, True, on_state),
+        (first_index, Qt.CheckState.Checked.value, True, on_state),
     ):
-        assert model_test.model.setData(index, value, Qt.ItemDataRole.CheckStateRole) == ret
+        assert model_test.model.setData(index, value, Qt.ItemDataRole.CheckStateRole.value) == ret
         model_test.check(state, config_change='update' if ret else None,
                          data_change=[index.row()] if ret else None)
 
@@ -727,7 +727,7 @@ def test_model_undo_1(model_test):
         state = state.split('\n')
         state[n] = '☑' + state[n][1:]
         state = '\n'.join(state)
-        model_test.model.setData(model_test.model.index(n), Qt.CheckState.Checked, Qt.ItemDataRole.CheckStateRole)
+        model_test.model.setData(model_test.model.index(n), Qt.CheckState.Checked.value, Qt.ItemDataRole.CheckStateRole.value)
         model_test.check(state, config_change='update', data_change=[n],
                          undo_change=(True if n == 0 else None))
     for n in range(5):
