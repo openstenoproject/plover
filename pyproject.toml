@@ -1,7 +1,7 @@
 [build-system]
 requires = [
 	"Babel",
-	"PySide6-Essentials>=6.5.3",
+	"PySide6-Essentials>=6.5.2",
 	"setuptools>=38.2.4",
 	"wheel",
 ]
