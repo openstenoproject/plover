@@ -1,14 +1,10 @@
 import objc
 import logging
-from plover import log, __name__ as __software_name__
+from plover import log
 
 NSUserNotification = objc.lookUpClass('NSUserNotification')
 NSUserNotificationCenter = objc.lookUpClass('NSUserNotificationCenter')
 NSObject = objc.lookUpClass('NSObject')
-
-from plover import log, __name__ as __software_name__
-import logging
-
 
 class NotificationHandler(logging.Handler):
     """ Handler using OS X Notification Center to show messages. """
@@ -26,7 +22,7 @@ class NotificationHandler(logging.Handler):
             self.always_present_delegator = AlwaysPresentNSDelegator.alloc().init()
 
 
-    def emit(self, record):
+    def handle(self, record):
         if self.notification_center is None:
             # not showing notifications
             return
@@ -51,4 +47,3 @@ class AlwaysPresentNSDelegator(NSObject):
     def userNotificationCenter_shouldPresentNotification_(self, ns, note):
         # Force notification, even if frontmost application.
         return True
-
