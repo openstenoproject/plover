@@ -2,6 +2,7 @@ appdirs
 appnope; "darwin" in sys_platform
 pkginfo
 plover-stroke
+plyer; "win32" in sys_platform
 Pygments
 pyobjc-core; "darwin" in sys_platform
 pyobjc-framework-Cocoa; "darwin" in sys_platform

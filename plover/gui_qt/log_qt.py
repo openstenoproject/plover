@@ -14,7 +14,7 @@ class NotificationHandler(QObject, logging.Handler):
         self.setLevel(log.WARNING)
         self.setFormatter(log.NoExceptionTracebackFormatter('%(levelname)s: %(message)s'))
 
-    def emit(self, record):
+    def handle(self, record):
         level = record.levelno
         message = self.format(record)
         self.emitSignal.emit(level, message)
