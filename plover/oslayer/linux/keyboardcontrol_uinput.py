@@ -1,6 +1,7 @@
 from evdev import UInput, ecodes as e, util, InputDevice, list_devices
 import threading
 from select import select
+import subprocess
 
 from plover.output.keyboard import GenericKeyboardEmulation
 from plover.machine.keyboard_capture import Capture
@@ -271,6 +272,14 @@ class KeyboardEmulation(GenericKeyboardEmulation):
         # Initialize UInput with all keys available
         self._res = util.find_ecodes_by_regex(r"KEY_.*")
         self._ui = UInput(self._res)
+
+        # Check that ibus or fcitx5 is running
+        processes = subprocess.run(["ps", "x"], capture_output=True)
+        for line in processes.stdout.decode().splitlines():
+            if line.endswith(("ibus", "fcitx5")):
+                break
+        else:
+            log.warning("It appears that an input method, such as ibus or fcitx5, is not running on your system. Without this, some text may not be output correctly.")
 
     def _update_layout(self, layout):
         if not layout in LAYOUTS:
