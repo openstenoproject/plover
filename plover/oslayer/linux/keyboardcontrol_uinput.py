@@ -274,9 +274,9 @@ class KeyboardEmulation(GenericKeyboardEmulation):
         self._ui = UInput(self._res)
 
         # Check that ibus or fcitx5 is running
-        processes = subprocess.run(["ps", "x"], capture_output=True)
+        processes = subprocess.run(["ps", "-e"], capture_output=True)
         for line in processes.stdout.decode().splitlines():
-            if line.endswith(("ibus", "fcitx5")):
+            if line.endswith(("ibus-daemon", "fcitx5")):
                 break
         else:
             log.warning("It appears that an input method, such as ibus or fcitx5, is not running on your system. Without this, some text may not be output correctly.")
