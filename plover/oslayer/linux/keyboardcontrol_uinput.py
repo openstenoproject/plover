@@ -274,12 +274,13 @@ class KeyboardEmulation(GenericKeyboardEmulation):
         self._ui = UInput(self._res)
 
         # Check that ibus or fcitx5 is running
-        processes = subprocess.run(["ps", "-e"], capture_output=True)
-        for line in processes.stdout.decode().splitlines():
-            if line.endswith(("ibus-daemon", "fcitx5")):
-                break
-        else:
-            log.warning("It appears that an input method, such as ibus or fcitx5, is not running on your system. Without this, some text may not be output correctly.")
+        try:
+            processes = subprocess.run(["ps", "-e", "-o", "comm", "--no-headers"], capture_output=True)
+            if processes.returncode == 0 and not any(line in ["ibus-daemon", "fcitx5"] for line in processes.stdout.decode().splitlines()):
+                log.warning("It appears that an input method, such as ibus or fcitx5, is not running on your system. Without this, some text may not be output correctly.")
+        except FileNotFoundError:
+            # in the extremely unlikely event that a system has uniput but not `ps`, don't crash the program
+            pass
 
     def _update_layout(self, layout):
         if not layout in LAYOUTS:
