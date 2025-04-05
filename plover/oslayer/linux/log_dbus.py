@@ -184,7 +184,7 @@ class DBusNotificationHandler(logging.Handler):
 
         self._notify = notify
 
-    def emit(self, record):
+    def handle(self, record):
         level = record.levelno
         message = self.format(record)
         if message.endswith('\n'):
