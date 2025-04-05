@@ -2,7 +2,7 @@
 requires = [
 	"Babel",
 	"PyQt5>=5.8.2",
-	"setuptools>=38.2.4",
+	"setuptools>=38.2.4,<77",
 	"wheel",
 ]
 build-backend = "setuptools.build_meta"
