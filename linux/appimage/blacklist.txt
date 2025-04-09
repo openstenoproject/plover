@@ -34,7 +34,7 @@
   messages/**/*.po
   messages/plover.pot
 
-# PySide6.
+  # PySide6.
 :usr/bin
   pylupdate6
   pyuic6
@@ -44,7 +44,6 @@
   **/*[Qq]ml*
   **/*[Qq]uick*
   **/*Test*
-  **/*[Ww]ayland*
   **/*[Ww]eb[Ee]ngine*
   bindings
   Qt6/plugins/egldeviceintegrations
