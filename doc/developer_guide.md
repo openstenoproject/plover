@@ -17,6 +17,10 @@ The same virtual environment is reused by the following tox environments:
 - `tox r -e setup -- COMMAND`: run `./setup.py COMMAND`.
 - `tox r -e packaging_checks`: run the same packaging checks as the CI (add `--
 -n` to see a dry-run of the exact checks).
+- `tox r -e plugins_install -- ARGS`: install the plugins secified in `ARGS`, where
+  plugins are separated by space. You can also specify plugin versions. Note that
+  this process uses pip directly for installation, not the plugins manager.
+  Example for `ARGS`: `some_plugin==1.0.0 another_plugin`
 - `tox r -e release_prepare -- NEW_VERSION`: execute all the steps necessary for
   preparing a new release: patch the version to `NEW_VERSION` and update
   `NEWS.md`, staging all the changes for review.
