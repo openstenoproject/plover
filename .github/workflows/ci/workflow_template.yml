@@ -7,17 +7,11 @@ on:
     tags-ignore:
       # Ignore continuous releases' tag.
       - 'continuous'
-    paths-ignore:
-      - 'doc/**'
-      - '**.md'
   pull_request:
     types:
         - opened
         - reopened
         - synchronize
-    paths-ignore:
-      - 'doc/**'
-      - '**.md'
 
 defaults:
   run:
