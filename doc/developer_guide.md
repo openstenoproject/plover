@@ -41,7 +41,7 @@ The same virtual environment is reused by the following tox environments:
   create an annotated tag, and print the git command necessary for pushing the
   release to GitHub.
 
-The virtual environment created by tox lives in `.tox/dev`, and can be ["activated" like
+The virtual environment created by tox lives in `.tox/dev`, and can be [activated like
 any other virtual environment](https://virtualenv.pypa.io/en/latest/user_guide.html#activators).
 
 The configuration also provides support for lightweight tests only environment:
