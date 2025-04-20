@@ -2,19 +2,16 @@ from pathlib import Path
 import signal
 import sys
 
-from PyQt5.QtCore import (
+from PySide6.QtCore import (
     QCoreApplication,
     QLibraryInfo,
     QTimer,
     QTranslator,
     Qt,
-    QtDebugMsg,
-    QtInfoMsg,
-    QtWarningMsg,
-    pyqtRemoveInputHook,
+    QtMsgType,
     qInstallMessageHandler,
 )
-from PyQt5.QtWidgets import QApplication, QMessageBox
+from PySide6.QtWidgets import QApplication, QMessageBox
 
 from plover import _, __name__ as __software_name__, __version__, log
 from plover.oslayer.config import CONFIG_DIR
@@ -23,9 +20,9 @@ from plover.oslayer.keyboardcontrol import KeyboardEmulation
 from plover.gui_qt.engine import Engine
 
 
-# Disable pyqtRemoveInputHook to avoid getting
-# spammed when using the debugger.
-pyqtRemoveInputHook()
+# Disable input hook to avoid getting spammed when using the debugger.
+#import pdb
+#pdb.set_trace()
 
 
 class Application:
@@ -47,7 +44,6 @@ class Application:
         QCoreApplication.setOrganizationDomain('openstenoproject.org')
 
         self._app = QApplication([sys.argv[0], '-name', 'plover'])
-        self._app.setAttribute(Qt.AA_UseHighDpiPixmaps)
 
         # Apply custom stylesheet if present.
         stylesheet_path = Path(CONFIG_DIR) / 'plover.qss'
@@ -58,7 +54,7 @@ class Application:
         # Enable localization of standard Qt controls.
         log.info('setting language to: %s', _.lang)
         self._translator = QTranslator()
-        translations_dir = QLibraryInfo.location(QLibraryInfo.TranslationsPath)
+        translations_dir = QLibraryInfo.path(QLibraryInfo.LibraryPath.TranslationsPath)
         self._translator.load('qtbase_' + _.lang, translations_dir)
         self._app.installTranslator(self._translator)
 
@@ -86,7 +82,7 @@ class Application:
         del self._translator
 
     def run(self):
-        self._app.exec_()
+        self._app.exec()
         return self._engine.join()
 
 
@@ -102,9 +98,9 @@ def default_excepthook(*exc_info):
 
 def default_message_handler(msg_type, msg_log_context, msg_string):
     log_fn = {
-        QtDebugMsg: log.debug,
-        QtInfoMsg: log.info,
-        QtWarningMsg: log.warning,
+        QtMsgType.QtDebugMsg: log.debug,
+        QtMsgType.QtInfoMsg: log.info,
+        QtMsgType.QtWarningMsg: log.warning,
     }.get(msg_type, log.error)
     details = []
     if msg_log_context.file is not None:

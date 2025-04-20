@@ -23,8 +23,8 @@
    <string notr="true">Plover</string>
   </property>
   <property name="windowIcon">
-   <iconset resource="resources/resources.qrc">
-    <normaloff>:/plover.png</normaloff>:/plover.png</iconset>
+   <iconset resource="resources.qrc">
+    <normaloff>:/resources/plover.png</normaloff>:/resources/plover.png</iconset>
   </property>
   <widget class="QWidget" name="centralwidget">
    <property name="sizePolicy">
@@ -66,7 +66,7 @@
         </widget>
        </item>
        <item row="2" column="1">
-        <widget class="QPushButton" name="reconnect">
+        <widget class="QPushButton" name="reconnect_button">
          <property name="sizePolicy">
           <sizepolicy hsizetype="Fixed" vsizetype="Fixed">
            <horstretch>0</horstretch>
@@ -86,8 +86,8 @@
           <string/>
          </property>
          <property name="icon">
-          <iconset resource="resources/resources.qrc">
-           <normaloff>:/reconnect.svg</normaloff>:/reconnect.svg</iconset>
+          <iconset resource="resources.qrc">
+           <normaloff>:/resources/reconnect.svg</normaloff>:/resources/reconnect.svg</iconset>
          </property>
         </widget>
        </item>
@@ -225,8 +225,8 @@
   </action>
   <action name="action_Configure">
    <property name="icon">
-    <iconset resource="resources/resources.qrc">
-     <normaloff>:/settings.svg</normaloff>:/settings.svg</iconset>
+    <iconset resource="resources.qrc">
+     <normaloff>:/resources/settings.svg</normaloff>:/resources/settings.svg</iconset>
    </property>
    <property name="text">
     <string>&amp;Configure</string>
@@ -240,8 +240,8 @@
   </action>
   <action name="action_OpenConfigFolder">
    <property name="icon">
-    <iconset resource="resources/resources.qrc">
-     <normaloff>:/folder.svg</normaloff>:/folder.svg</iconset>
+    <iconset resource="resources.qrc">
+     <normaloff>:/resources/folder.svg</normaloff>:/resources/folder.svg</iconset>
    </property>
    <property name="text">
     <string>Open config &amp;folder</string>
@@ -260,8 +260,8 @@
   </action>
   <action name="action_Reconnect">
    <property name="icon">
-    <iconset resource="resources/resources.qrc">
-     <normaloff>:/reconnect.svg</normaloff>:/reconnect.svg</iconset>
+    <iconset resource="resources.qrc">
+     <normaloff>:/resources/reconnect.svg</normaloff>:/resources/reconnect.svg</iconset>
    </property>
    <property name="text">
     <string>&amp;Reconnect machine</string>
@@ -312,14 +312,14 @@
   <tabstop>output_disable</tabstop>
  </tabstops>
  <resources>
-  <include location="resources/resources.qrc"/>
+  <include location="resources.qrc"/>
  </resources>
  <connections>
   <connection>
    <sender>action_Reconnect</sender>
    <signal>triggered()</signal>
    <receiver>MainWindow</receiver>
-   <slot>on_reconnect()</slot>
+   <slot>reconnect()</slot>
    <hints>
     <hint type="sourcelabel">
      <x>-1</x>
@@ -335,7 +335,7 @@
    <sender>action_Configure</sender>
    <signal>triggered()</signal>
    <receiver>MainWindow</receiver>
-   <slot>on_configure()</slot>
+   <slot>configure()</slot>
    <hints>
     <hint type="sourcelabel">
      <x>-1</x>
@@ -351,7 +351,7 @@
    <sender>action_OpenConfigFolder</sender>
    <signal>triggered()</signal>
    <receiver>MainWindow</receiver>
-   <slot>on_open_config_folder()</slot>
+   <slot>open_config_folder()</slot>
    <hints>
     <hint type="sourcelabel">
      <x>-1</x>
@@ -367,7 +367,7 @@
    <sender>action_Show</sender>
    <signal>triggered()</signal>
    <receiver>MainWindow</receiver>
-   <slot>on_show()</slot>
+   <slot>show_window()</slot>
    <hints>
     <hint type="sourcelabel">
      <x>-1</x>
@@ -383,7 +383,7 @@
    <sender>action_ToggleOutput</sender>
    <signal>triggered(bool)</signal>
    <receiver>MainWindow</receiver>
-   <slot>on_toggle_output(bool)</slot>
+   <slot>toggle_output(bool)</slot>
    <hints>
     <hint type="sourcelabel">
      <x>-1</x>
@@ -399,7 +399,7 @@
    <sender>action_About</sender>
    <signal>triggered()</signal>
    <receiver>MainWindow</receiver>
-   <slot>on_about()</slot>
+   <slot>open_about_dialog()</slot>
    <hints>
     <hint type="sourcelabel">
      <x>-1</x>
@@ -415,7 +415,7 @@
    <sender>machine_type</sender>
    <signal>activated(int)</signal>
    <receiver>MainWindow</receiver>
-   <slot>on_machine_changed(int)</slot>
+   <slot>update_machine_type(int)</slot>
    <hints>
     <hint type="sourcelabel">
      <x>86</x>
@@ -431,7 +431,7 @@
    <sender>output_disable</sender>
    <signal>clicked()</signal>
    <receiver>MainWindow</receiver>
-   <slot>on_disable_output()</slot>
+   <slot>disable_output()</slot>
    <hints>
     <hint type="sourcelabel">
      <x>248</x>
@@ -447,7 +447,7 @@
    <sender>output_enable</sender>
    <signal>clicked()</signal>
    <receiver>MainWindow</receiver>
-   <slot>on_enable_output()</slot>
+   <slot>enable_output()</slot>
    <hints>
     <hint type="sourcelabel">
      <x>248</x>
@@ -460,10 +460,10 @@
    </hints>
   </connection>
   <connection>
-   <sender>reconnect</sender>
+   <sender>reconnect_button</sender>
    <signal>clicked()</signal>
    <receiver>MainWindow</receiver>
-   <slot>on_reconnect()</slot>
+   <slot>reconnect()</slot>
    <hints>
     <hint type="sourcelabel">
      <x>171</x>
@@ -477,15 +477,14 @@
   </connection>
  </connections>
  <slots>
-  <slot>on_reconnect()</slot>
-  <slot>on_configure()</slot>
-  <slot>on_open_config_folder()</slot>
-  <slot>on_manage_dictionaries()</slot>
-  <slot>on_quit()</slot>
-  <slot>on_toggle_output(bool)</slot>
-  <slot>on_about()</slot>
-  <slot>on_machine_changed(int)</slot>
-  <slot>on_enable_output()</slot>
-  <slot>on_disable_output()</slot>
+  <slot>reconnect()</slot>
+  <slot>configure()</slot>
+  <slot>open_config_folder()</slot>
+  <slot>quit_application()</slot>
+  <slot>toggle_output(bool)</slot>
+  <slot>open_about_dialog()</slot>
+  <slot>update_machine_type(int)</slot>
+  <slot>enable_output()</slot>
+  <slot>disable_output()</slot>
  </slots>
 </ui>

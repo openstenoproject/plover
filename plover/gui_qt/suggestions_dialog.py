@@ -1,13 +1,13 @@
 
 import re
 
-from PyQt5.QtCore import Qt
-from PyQt5.QtGui import (
+from PySide6.QtCore import Qt, Slot
+from PySide6.QtGui import (
+    QAction,
     QCursor,
     QFont,
 )
-from PyQt5.QtWidgets import (
-    QAction,
+from PySide6.QtWidgets import (
     QFontDialog,
     QMenu,
 )
@@ -27,7 +27,7 @@ class SuggestionsDialog(Tool, Ui_SuggestionsDialog):
     __doc__ = _('Suggest possible strokes for the last written words.')
 
     TITLE = _('Suggestions')
-    ICON = ':/lightbulb.svg'
+    ICON = ':/resources/lightbulb.svg'
     ROLE = 'suggestions'
     SHORTCUT = 'Ctrl+J'
 
@@ -85,7 +85,7 @@ class SuggestionsDialog(Tool, Ui_SuggestionsDialog):
         ontop = settings.value('ontop', None, bool)
         if ontop is not None:
             self.action_ToggleOnTop.setChecked(ontop)
-            self.on_toggle_ontop(ontop)
+            self.toggle_ontop(ontop)
 
     def _save_state(self, settings):
         for name in (
@@ -95,7 +95,7 @@ class SuggestionsDialog(Tool, Ui_SuggestionsDialog):
             font = self._get_font(name)
             font_string = font.toString()
             settings.setValue(name, font_string)
-        ontop = bool(self.windowFlags() & Qt.WindowStaysOnTopHint)
+        ontop = bool(self.windowFlags() & Qt.WindowType.WindowStaysOnTopHint)
         settings.setValue('ontop', ontop)
 
     def _show_suggestions(self, suggestion_list):
@@ -142,8 +142,9 @@ class SuggestionsDialog(Tool, Ui_SuggestionsDialog):
             self._last_suggestions = suggestion_list
             self._show_suggestions(suggestion_list)
 
-    def on_select_font(self):
-        action = self._font_menu.exec_(QCursor.pos())
+    @Slot()
+    def select_font(self):
+        action = self._font_menu.exec(QCursor.pos())
         if action is None:
             return
         if action == self._font_menu_text:
@@ -151,22 +152,24 @@ class SuggestionsDialog(Tool, Ui_SuggestionsDialog):
             font_options = ()
         elif action == self._font_menu_strokes:
             name = 'strokes_font'
-            font_options = (QFontDialog.MonospacedFonts,)
+            font_options = (QFontDialog.FontDialogOption.MonospacedFonts,)
         font = self._get_font(name)
-        font, ok = QFontDialog.getFont(font, self, '', *font_options)
+        ok, font = QFontDialog.getFont(font, self, '', *font_options)
         if ok:
             self._set_font(name, font)
 
-    def on_toggle_ontop(self, ontop):
+    @Slot(bool)
+    def toggle_ontop(self, ontop):
         flags = self.windowFlags()
         if ontop:
-            flags |= Qt.WindowStaysOnTopHint
+            flags |= Qt.WindowType.WindowStaysOnTopHint
         else:
-            flags &= ~Qt.WindowStaysOnTopHint
+            flags &= ~Qt.WindowType.WindowStaysOnTopHint
         self.setWindowFlags(flags)
         self.show()
 
-    def on_clear(self):
+    @Slot()
+    def clear(self):
         self.action_Clear.setEnabled(False)
         self._last_suggestions = None
         self.suggestions.clear()

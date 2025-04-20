@@ -68,7 +68,7 @@
        </widget>
       </item>
       <item row="1" column="1">
-       <widget class="QPushButton" name="scan">
+       <widget class="QPushButton" name="scan_button">
         <property name="sizePolicy">
          <sizepolicy hsizetype="Minimum" vsizetype="Minimum">
           <horstretch>0</horstretch>
@@ -324,10 +324,10 @@
  <resources/>
  <connections>
   <connection>
-   <sender>scan</sender>
+   <sender>scan_button</sender>
    <signal>clicked()</signal>
    <receiver>SerialWidget</receiver>
-   <slot>on_scan()</slot>
+   <slot>scan()</slot>
    <hints>
     <hint type="sourcelabel">
      <x>223</x>
@@ -341,9 +341,9 @@
   </connection>
   <connection>
    <sender>baudrate</sender>
-   <signal>activated(QString)</signal>
+   <signal>textActivated(QString)</signal>
    <receiver>SerialWidget</receiver>
-   <slot>on_baudrate_changed(QString)</slot>
+   <slot>update_baudrate(QString)</slot>
    <hints>
     <hint type="sourcelabel">
      <x>132</x>
@@ -357,9 +357,9 @@
   </connection>
   <connection>
    <sender>bytesize</sender>
-   <signal>activated(QString)</signal>
+   <signal>textActivated(QString)</signal>
    <receiver>SerialWidget</receiver>
-   <slot>on_bytesize_changed(QString)</slot>
+   <slot>update_bytesize(QString)</slot>
    <hints>
     <hint type="sourcelabel">
      <x>206</x>
@@ -373,9 +373,9 @@
   </connection>
   <connection>
    <sender>parity</sender>
-   <signal>activated(QString)</signal>
+   <signal>textActivated(QString)</signal>
    <receiver>SerialWidget</receiver>
-   <slot>on_parity_changed(QString)</slot>
+   <slot>update_parity(QString)</slot>
    <hints>
     <hint type="sourcelabel">
      <x>206</x>
@@ -391,7 +391,7 @@
    <sender>port</sender>
    <signal>editTextChanged(QString)</signal>
    <receiver>SerialWidget</receiver>
-   <slot>on_port_changed(QString)</slot>
+   <slot>update_port(QString)</slot>
    <hints>
     <hint type="sourcelabel">
      <x>132</x>
@@ -405,9 +405,9 @@
   </connection>
   <connection>
    <sender>stopbits</sender>
-   <signal>activated(QString)</signal>
+   <signal>textActivated(QString)</signal>
    <receiver>SerialWidget</receiver>
-   <slot>on_stopbits_changed(QString)</slot>
+   <slot>update_stopbits(QString)</slot>
    <hints>
     <hint type="sourcelabel">
      <x>206</x>
@@ -423,7 +423,7 @@
    <sender>use_timeout</sender>
    <signal>clicked(bool)</signal>
    <receiver>SerialWidget</receiver>
-   <slot>on_use_timeout_changed(bool)</slot>
+   <slot>update_use_timeout(bool)</slot>
    <hints>
     <hint type="sourcelabel">
      <x>76</x>
@@ -439,7 +439,7 @@
    <sender>xonxoff</sender>
    <signal>clicked(bool)</signal>
    <receiver>SerialWidget</receiver>
-   <slot>on_xonxoff_changed(bool)</slot>
+   <slot>update_xonxoff(bool)</slot>
    <hints>
     <hint type="sourcelabel">
      <x>206</x>
@@ -455,7 +455,7 @@
    <sender>rtscts</sender>
    <signal>clicked(bool)</signal>
    <receiver>SerialWidget</receiver>
-   <slot>on_rtscts_changed(bool)</slot>
+   <slot>update_rtscts(bool)</slot>
    <hints>
     <hint type="sourcelabel">
      <x>83</x>
@@ -471,7 +471,7 @@
    <sender>timeout</sender>
    <signal>valueChanged(double)</signal>
    <receiver>SerialWidget</receiver>
-   <slot>on_timeout_changed(double)</slot>
+   <slot>update_timeout(double)</slot>
    <hints>
     <hint type="sourcelabel">
      <x>75</x>
@@ -485,15 +485,15 @@
   </connection>
  </connections>
  <slots>
-  <slot>on_scan()</slot>
-  <slot>on_port_changed(QString)</slot>
-  <slot>on_baudrate_changed(QString)</slot>
-  <slot>on_bytesize_changed(QString)</slot>
-  <slot>on_stopbits_changed(QString)</slot>
-  <slot>on_parity_changed(QString)</slot>
-  <slot>on_use_timeout_changed(bool)</slot>
-  <slot>on_rtscts_changed(bool)</slot>
-  <slot>on_timeout_changed(double)</slot>
-  <slot>on_xonxoff_changed(bool)</slot>
+  <slot>scan()</slot>
+  <slot>update_port(QString)</slot>
+  <slot>update_baudrate(QString)</slot>
+  <slot>update_bytesize(QString)</slot>
+  <slot>update_stopbits(QString)</slot>
+  <slot>update_parity(QString)</slot>
+  <slot>update_use_timeout(bool)</slot>
+  <slot>update_rtscts(bool)</slot>
+  <slot>update_timeout(double)</slot>
+  <slot>update_xonxoff(bool)</slot>
  </slots>
 </ui>

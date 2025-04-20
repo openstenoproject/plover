@@ -1,0 +1,32 @@
+<RCC>
+  <qresource>
+    <file>resources/add.svg</file>
+    <file>resources/dictionary_error.svg</file>
+    <file>resources/dictionary_favorite.svg</file>
+    <file>resources/dictionary_loading.svg</file>
+    <file>resources/dictionary_normal.svg</file>
+    <file>resources/dictionary_readonly.svg</file>
+    <file>resources/down.svg</file>
+    <file>resources/folder.svg</file>
+    <file>resources/font_selector.svg</file>
+    <file>resources/git.png</file>
+    <file>resources/lightbulb.svg</file>
+    <file>resources/lookup.svg</file>
+    <file>resources/pencil.svg</file>
+    <file>resources/pin.svg</file>
+    <file>resources/plover.png</file>
+    <file>resources/plugins_manager.svg</file>
+    <file>resources/reconnect.svg</file>
+    <file>resources/remove.svg</file>
+    <file>resources/save.svg</file>
+    <file>resources/settings.svg</file>
+    <file>resources/state-disabled.svg</file>
+    <file>resources/state-disconnected.svg</file>
+    <file>resources/state-enabled.svg</file>
+    <file>resources/tape.svg</file>
+    <file>resources/translation_add.svg</file>
+    <file>resources/trash.svg</file>
+    <file>resources/undo.svg</file>
+    <file>resources/up.svg</file>
+  </qresource>
+</RCC>

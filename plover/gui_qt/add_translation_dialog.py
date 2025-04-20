@@ -1,4 +1,4 @@
-from PyQt5.QtWidgets import QDialogButtonBox
+from PySide6.QtWidgets import QDialogButtonBox
 
 from plover import _
 
@@ -12,7 +12,7 @@ class AddTranslationDialog(Tool, Ui_AddTranslationDialog):
     __doc__ = _('Add a new translation to the dictionary.')
 
     TITLE = _('Add Translation')
-    ICON = ':/translation_add.svg'
+    ICON = ':/resources/translation_add.svg'
     ROLE = 'add_translation'
     SHORTCUT = 'Ctrl+N'
 
@@ -29,7 +29,7 @@ class AddTranslationDialog(Tool, Ui_AddTranslationDialog):
         self.finished.connect(self.save_state)
 
     def on_mapping_valid(self, valid):
-        self.buttonBox.button(QDialogButtonBox.Ok).setEnabled(valid)
+        self.buttonBox.button(QDialogButtonBox.StandardButton.Ok).setEnabled(valid)
 
     def on_config_changed(self, config_update):
         if 'translation_frame_opacity' in config_update:

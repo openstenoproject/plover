@@ -110,7 +110,7 @@
    <sender>pattern</sender>
    <signal>textEdited(QString)</signal>
    <receiver>LookupDialog</receiver>
-   <slot>on_lookup(QString)</slot>
+   <slot>lookup(QString)</slot>
    <hints>
     <hint type="sourcelabel">
      <x>190</x>
@@ -124,6 +124,6 @@
   </connection>
  </connections>
  <slots>
-  <slot>on_lookup(QString)</slot>
+  <slot>lookup(QString)</slot>
  </slots>
 </ui>

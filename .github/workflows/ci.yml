@@ -207,7 +207,8 @@ jobs:
         run: setup_pip_options
 
       - name: Setup Python environment
-        run: setup_python_env -c reqs/constraints.txt -r reqs/dist.txt -r reqs/test.txt
+        run: setup_python_env -c reqs/constraints.txt -r reqs/dist.txt -r reqs/test.txt        
+
       # Test {{{
 
       - name: Run tests
@@ -262,7 +263,8 @@ jobs:
         run: setup_osx_python '3.9'
 
       - name: Setup Python environment
-        run: setup_python_env -c reqs/constraints.txt -r reqs/dist.txt -r reqs/test.txt
+        run: setup_python_env -c reqs/constraints.txt -r reqs/dist.txt -r reqs/test.txt        
+
       # Test {{{
 
       - name: Run tests
@@ -323,7 +325,8 @@ jobs:
         run: setup_pip_options
 
       - name: Setup Python environment
-        run: setup_python_env -c reqs/constraints.txt -r reqs/dist.txt -r reqs/test.txt
+        run: setup_python_env -c reqs/constraints.txt -r reqs/dist.txt -r reqs/test.txt        
+
       # Test {{{
 
       - name: Run tests
@@ -379,7 +382,8 @@ jobs:
         run: setup_pip_options
 
       - name: Setup Python environment
-        run: setup_python_env -c reqs/constraints.txt -r reqs/dist.txt -r reqs/test.txt
+        run: setup_python_env -c reqs/constraints.txt -r reqs/dist.txt -r reqs/test.txt        
+
       # Test {{{
 
       - name: Run tests
@@ -435,7 +439,8 @@ jobs:
         run: setup_pip_options
 
       - name: Setup Python environment
-        run: setup_python_env -c reqs/constraints.txt -r reqs/dist.txt -r reqs/test.txt
+        run: setup_python_env -c reqs/constraints.txt -r reqs/dist.txt -r reqs/test.txt        
+
       # Test {{{
 
       - name: Run tests
@@ -490,8 +495,15 @@ jobs:
       - name: Setup pip options
         run: setup_pip_options
 
+      - name: Install system dependencies
+        run: apt_get_install libdbus-1-dev libdbus-glib-1-dev libudev-dev libusb-1.0-0-dev libegl-dev libxkbcommon-x11-0
+
       - name: Setup Python environment
-        run: setup_python_env -c reqs/constraints.txt -r reqs/dist.txt -r reqs/dist_extra_gui_qt.txt -r reqs/test.txt
+        run: setup_python_env -c reqs/constraints.txt -r reqs/dist.txt -r reqs/dist_extra_gui_qt.txt -r reqs/test.txt        
+
+      - name: Build Resources
+        run: python setup.py build_resources
+
       - name: Build UI
         run: python setup.py build_ui
 
@@ -553,7 +565,8 @@ jobs:
         run: setup_pip_options
 
       - name: Setup Python environment
-        run: setup_python_env -c reqs/constraints.txt -r reqs/packaging.txt -r reqs/setup.txt
+        run: setup_python_env -c reqs/constraints.txt -r reqs/packaging.txt -r reqs/setup.txt        
+
       - name: Patch version
         id: set_version
         run: |
@@ -603,7 +616,7 @@ jobs:
 
       - name: List cache contents
         run: list_cache
-  
+
     outputs:
       version: ${{ steps.set_version.outputs.version }}
   # }}}
@@ -646,10 +659,11 @@ jobs:
         run: setup_pip_options
 
       - name: Install system dependencies
-        run: apt_get_install libdbus-1-dev libdbus-glib-1-dev libudev-dev libusb-1.0-0-dev
+        run: apt_get_install libdbus-1-dev libdbus-glib-1-dev libudev-dev libusb-1.0-0-dev libegl-dev libxkbcommon-x11-0
 
       - name: Setup Python environment
-        run: setup_python_env -c reqs/constraints.txt -r reqs/build.txt -r reqs/setup.txt
+        run: setup_python_env -c reqs/constraints.txt -r reqs/build.txt -r reqs/setup.txt        
+
       - name: Patch version
         id: set_version
         run: |
@@ -718,7 +732,8 @@ jobs:
         run: setup_osx_python '3.9'
 
       - name: Setup Python environment
-        run: setup_python_env -c reqs/constraints.txt -r reqs/build.txt -r reqs/setup.txt
+        run: setup_python_env -c reqs/constraints.txt -r reqs/build.txt -r reqs/setup.txt        
+
       - name: Patch version
         id: set_version
         run: |
@@ -793,7 +808,8 @@ jobs:
         run: setup_pip_options
 
       - name: Setup Python environment
-        run: setup_python_env -c reqs/constraints.txt -r reqs/build.txt -r reqs/setup.txt
+        run: setup_python_env -c reqs/constraints.txt -r reqs/build.txt -r reqs/setup.txt        
+
       - name: Patch version
         id: set_version
         run: |
@@ -876,6 +892,13 @@ jobs:
         with:
           path: dist
 
+      - name: Publish GitHub release (${{ needs.analyze.outputs.release_type }})
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          RELEASE_TYPE: ${{ needs.analyze.outputs.release_type }}
+          RELEASE_VERSION: ${{ needs.test_packaging.outputs.version }}
+        run: publish_github_release
+
       - name: Publish PyPI release
         if: needs.analyze.outputs.release_type == 'tagged'
         env:
@@ -885,13 +908,6 @@ jobs:
           # Optional: twine will fallback to default if empty.
           TWINE_REPOSITORY_URL: ${{ secrets.PYPI_URL }}
         run: publish_pypi_release
-
-      - name: Publish GitHub release (${{ needs.analyze.outputs.release_type }})
-        env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-          RELEASE_TYPE: ${{ needs.analyze.outputs.release_type }}
-          RELEASE_VERSION: ${{ needs.test_packaging.outputs.version }}
-        run: publish_github_release
   # }}}
 
 # vim: foldmethod=marker foldlevel=0

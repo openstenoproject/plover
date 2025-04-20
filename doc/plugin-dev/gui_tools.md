@@ -5,12 +5,13 @@ as follows:
 
 ```python
 from setuptools import setup
-from plover_build_utils.setup import BuildPy, BuildUi
+from plover_build_utils.setup import BuildPy, BuildResources, BuildUi
 
 BuildPy.build_dependencies.append("build_ui")
-BuildUi.hooks = ["plover_build_utils.pyqt:fix_icons"]
+BuildPy.build_dependencies.append("build_resources")
 CMDCLASS = {
   "build_py": BuildPy,
+  "build_resources": BuildResources,
   "build_ui": BuildUi,
 }
 

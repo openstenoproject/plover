@@ -1,11 +1,10 @@
 import objc
+import logging
+from plover import log
+
 NSUserNotification = objc.lookUpClass('NSUserNotification')
 NSUserNotificationCenter = objc.lookUpClass('NSUserNotificationCenter')
 NSObject = objc.lookUpClass('NSObject')
-
-from plover import log, __name__ as __software_name__
-import logging
-
 
 class NotificationHandler(logging.Handler):
     """ Handler using OS X Notification Center to show messages. """
@@ -15,17 +14,27 @@ class NotificationHandler(logging.Handler):
         self.setLevel(log.WARNING)
         self.setFormatter(log.NoExceptionTracebackFormatter('%(message)s'))
 
-    def emit(self, record):
+        self.notification_center = NSUserNotificationCenter.defaultUserNotificationCenter()
+        if self.notification_center is None:
+            print("no notification center available (e.g. when running from source); not showing notifications")
+            self.always_present_delegator = None
+        else:
+            self.always_present_delegator = AlwaysPresentNSDelegator.alloc().init()
+
+
+    def handle(self, record):
+        if self.notification_center is None:
+            # not showing notifications
+            return
+
         # Notification Center has no levels or timeouts.
         notification = NSUserNotification.alloc().init()
 
         notification.setTitle_(record.levelname.title())
         notification.setInformativeText_(self.format(record))
 
-        ns = NSUserNotificationCenter.defaultUserNotificationCenter()
-        ns.setDelegate_(always_present_delegator)
-        ns.deliverNotification_(notification)
-
+        self.notification_center.setDelegate_(self.always_present_delegator)
+        self.notification_center.deliverNotification_(notification)
 
 class AlwaysPresentNSDelegator(NSObject):
     """
@@ -38,5 +47,3 @@ class AlwaysPresentNSDelegator(NSObject):
     def userNotificationCenter_shouldPresentNotification_(self, ns, note):
         # Force notification, even if frontmost application.
         return True
-
-always_present_delegator = AlwaysPresentNSDelegator.alloc().init()

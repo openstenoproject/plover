@@ -2,38 +2,52 @@
 
 You need Python >= 3.8 installed, and you need [tox](https://pypi.org/project/tox/) >= 4.0.
 
-Using tox takes care of all the details of creating and managing an isolated
-virtual environment, installing the necessary dependencies, and isolating
-testsuite runs.
+Tox simplifies the process of creating and managing isolated virtual environments,
+handling dependency installation, and running the test suite in isolation. This
+ensures a clean and consistent testing environment.
 
-The command for using tox is: `tox r {-e envlist} {-- arguments}`. Use `tox -a
+However, it is still recommended to install and run tox within a Python virtual
+environment created using tools like [venv](https://docs.python.org/3/library/venv.html).
+This helps keep your global Python environment clean, avoids project conflicts, and
+isolates tox and its dependencies.
+
+The command for using tox is: `tox {-e envlist} {-- arguments}`. Use `tox -a
 -v` to get a list of available environments.
 
 The same virtual environment is reused by the following tox environments:
 
-- `tox r -e test -- ARGS`: run the testsuite. This is the default environment
+- `tox -e test -- ARGS`: run the testsuite. This is the default environment
   when not provided.
-- `tox r -e launch -- ARGS`: run Plover from source.
-- `tox r -e setup -- COMMAND`: run `./setup.py COMMAND`.
-- `tox r -e packaging_checks`: run the same packaging checks as the CI (add `--
+  
+  Example: `tox -e test -- test/gui_qt`
+- `tox -e launch -- ARGS`: run Plover from source.
+
+  Example: `tox -e launch -- -l debug`
+- `tox -e setup -- COMMAND`: run `./setup.py COMMAND` to create a binary 
+  distribution. See also section below.
+
+  Example: `tox -e setup -- bdist_appimage`
+- `tox -e packaging_checks`: run the same packaging checks as the CI (add `--
 -n` to see a dry-run of the exact checks).
-- `tox r -e plugins_install`: install the distribution plugins (or the specified
-  plugins when run with `tox -e plugins_install -- REQS`). Note that this does
-  not use the plugins manager for installing.
-- `tox r -e release_prepare -- NEW_VERSION`: execute all the steps necessary for
+- `tox -e plugins_install -- ARGS`: install the plugins specified in `ARGS`, where
+  plugins are separated by space. You can also specify plugin versions. Note that
+  this process uses pip directly for installation, not the plugins manager.
+
+  Example: `tox -e plugins_install -- some_plugin==1.0.0 another_plugin`
+- `tox -e release_prepare -- NEW_VERSION`: execute all the steps necessary for
   preparing a new release: patch the version to `NEW_VERSION` and update
   `NEWS.md`, staging all the changes for review.
-- `tox r -e release_finalize`: finalize the release: commit the staged changes,
+- `tox -e release_finalize`: finalize the release: commit the staged changes,
   create an annotated tag, and print the git command necessary for pushing the
   release to GitHub.
 
-The actual virtual environment lives in `.tox/dev`, and can be ["activated" like
+The virtual environment created by tox lives in `.tox/dev`, and can be [activated like
 any other virtual environment](https://virtualenv.pypa.io/en/latest/user_guide.html#activators).
 
 The configuration also provides support for lightweight tests only environment:
 `pyX`, where `X` is the version of the Python interpreter to use. E.g. running
-`tox r -e 'py3,py36,py37,py38,py39` will execute the testsuite for each version of Python we
-support.
+`tox -e 'py3,py36,py37,py38,py39` will execute the testsuite for each version
+of Python we support.
 
 # Creating a binary distribution
 

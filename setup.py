@@ -22,14 +22,16 @@ with open(os.path.join(__software_name__, '__init__.py')) as fp:
     exec(fp.read())
 
 from plover_build_utils.setup import (
-    BuildPy, BuildUi, Command, Develop, babel_options
+    BuildPy, BuildResources, BuildUi, Command, Develop, babel_options
 )
 
 
-BuildPy.build_dependencies.append('build_ui')
 Develop.build_dependencies.append('build_py')
+BuildPy.build_dependencies.append('build_resources')
+BuildPy.build_dependencies.append('build_ui')
 cmdclass = {
     'build_py': BuildPy,
+    'build_resources': BuildResources,
     'build_ui': BuildUi,
     'develop': Develop,
 }
@@ -45,12 +47,16 @@ PACKAGE = '%s-%s' % (
 def get_version():
     if not os.path.exists('.git'):
         return None
-    version = subprocess.check_output('git describe --tags --match=v[0-9]*'.split()).strip().decode()
-    m = re.match(r'^v(\d[\d.]*(?:(?:\.dev|rc)\d+)?)(-\d+-g[a-f0-9]*)?$', version)
-    assert m is not None, version
-    version = m.group(1)
+
+    version = __version__
+
+    # extend version with git revision if no tag is available - used for builds during development
+    git_version = subprocess.check_output('git describe --tags --match=v[0-9]*'.split()).strip().decode()
+    m = re.match(r'^v(\d[\d.]*(?:(?:\.dev|rc)\d+)?)(-\d+-g[a-f0-9]*)?$', git_version)
+    assert m is not None, git_version
     if m.group(2) is not None:
         version += '+' + m.group(2)[1:].replace('-', '.')
+
     return version
 
 # }}}
@@ -291,8 +297,7 @@ setup(
     extras_require={
         'gui_qt': reqs('dist_extra_gui_qt'),
         'log': reqs('dist_extra_log'),
-    },
-    tests_require=reqs('test'),
+    }
 )
 
 # vim: foldmethod=marker

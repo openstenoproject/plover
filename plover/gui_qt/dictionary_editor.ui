@@ -150,8 +150,8 @@
   </layout>
   <action name="action_Delete">
    <property name="icon">
-    <iconset resource="resources/resources.qrc">
-     <normaloff>:/remove.svg</normaloff>:/remove.svg</iconset>
+    <iconset resource="resources.qrc">
+     <normaloff>:/resources/remove.svg</normaloff>:/resources/remove.svg</iconset>
    </property>
    <property name="text">
     <string>&amp;Delete</string>
@@ -165,8 +165,8 @@
   </action>
   <action name="action_Undo">
    <property name="icon">
-    <iconset resource="resources/resources.qrc">
-     <normaloff>:/undo.svg</normaloff>:/undo.svg</iconset>
+    <iconset resource="resources.qrc">
+     <normaloff>:/resources/undo.svg</normaloff>:/resources/undo.svg</iconset>
    </property>
    <property name="text">
     <string>&amp;Undo</string>
@@ -180,8 +180,8 @@
   </action>
   <action name="action_New">
    <property name="icon">
-    <iconset resource="resources/resources.qrc">
-     <normaloff>:/add.svg</normaloff>:/add.svg</iconset>
+    <iconset resource="resources.qrc">
+     <normaloff>:/resources/add.svg</normaloff>:/resources/add.svg</iconset>
    </property>
    <property name="text">
     <string>&amp;New translation</string>
@@ -203,14 +203,14 @@
   <tabstop>pushButton_2</tabstop>
  </tabstops>
  <resources>
-  <include location="resources/resources.qrc"/>
+  <include location="resources.qrc"/>
  </resources>
  <connections>
   <connection>
    <sender>action_Delete</sender>
    <signal>triggered()</signal>
    <receiver>DictionaryEditor</receiver>
-   <slot>on_delete()</slot>
+   <slot>delete_selected_row()</slot>
    <hints>
     <hint type="sourcelabel">
      <x>-1</x>
@@ -226,7 +226,7 @@
    <sender>action_Undo</sender>
    <signal>triggered()</signal>
    <receiver>DictionaryEditor</receiver>
-   <slot>on_undo()</slot>
+   <slot>undo()</slot>
    <hints>
     <hint type="sourcelabel">
      <x>-1</x>
@@ -242,7 +242,7 @@
    <sender>action_New</sender>
    <signal>triggered()</signal>
    <receiver>DictionaryEditor</receiver>
-   <slot>on_new()</slot>
+   <slot>add_new_row()</slot>
    <hints>
     <hint type="sourcelabel">
      <x>-1</x>
@@ -258,7 +258,7 @@
    <sender>DictionaryEditor</sender>
    <signal>finished(int)</signal>
    <receiver>DictionaryEditor</receiver>
-   <slot>on_finished(int)</slot>
+   <slot>save_modified_dictionaries(int)</slot>
    <hints>
     <hint type="sourcelabel">
      <x>199</x>
@@ -274,7 +274,7 @@
    <sender>pushButton</sender>
    <signal>clicked()</signal>
    <receiver>DictionaryEditor</receiver>
-   <slot>on_apply_filter()</slot>
+   <slot>apply_filter()</slot>
    <hints>
     <hint type="sourcelabel">
      <x>605</x>
@@ -290,7 +290,7 @@
    <sender>strokes_filter</sender>
    <signal>returnPressed()</signal>
    <receiver>DictionaryEditor</receiver>
-   <slot>on_apply_filter()</slot>
+   <slot>apply_filter()</slot>
    <hints>
     <hint type="sourcelabel">
      <x>352</x>
@@ -306,7 +306,7 @@
    <sender>translation_filter</sender>
    <signal>returnPressed()</signal>
    <receiver>DictionaryEditor</receiver>
-   <slot>on_apply_filter()</slot>
+   <slot>apply_filter()</slot>
    <hints>
     <hint type="sourcelabel">
      <x>352</x>
@@ -322,7 +322,7 @@
    <sender>pushButton_2</sender>
    <signal>clicked()</signal>
    <receiver>DictionaryEditor</receiver>
-   <slot>on_clear_filter()</slot>
+   <slot>clear_filter()</slot>
    <hints>
     <hint type="sourcelabel">
      <x>597</x>
@@ -336,12 +336,12 @@
   </connection>
  </connections>
  <slots>
-  <slot>on_selection_changed()</slot>
-  <slot>on_delete()</slot>
-  <slot>on_undo()</slot>
-  <slot>on_new()</slot>
-  <slot>on_finished(int)</slot>
-  <slot>on_apply_filter()</slot>
-  <slot>on_clear_filter()</slot>
+  <slot>handle_selection_change()</slot>
+  <slot>delete_selected_row()</slot>
+  <slot>undo()</slot>
+  <slot>add_new_row()</slot>
+  <slot>save_modified_dictionaries(int)</slot>
+  <slot>apply_filter()</slot>
+  <slot>clear_filter()</slot>
  </slots>
 </ui>
