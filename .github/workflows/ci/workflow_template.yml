@@ -4,6 +4,7 @@ on:
   push:
     branches:
       - 'main'
+      - 'maintenance/*'
   pull_request:
     types:
         - opened
