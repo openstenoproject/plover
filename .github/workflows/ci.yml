@@ -9,9 +9,6 @@ on:
   push:
     branches:
       - 'main'
-    tags-ignore:
-      # Ignore continuous releases' tag.
-      - 'continuous'
   pull_request:
     types:
         - opened
@@ -132,8 +129,6 @@ jobs:
 
       - name: Set outputs
         id: set_ouputs
-        env:
-          CONTINUOUS_RELEASE_BRANCH: ${{ secrets.CONTINUOUS_RELEASE_BRANCH }}
         run: |
           analyze_set_release_info
           job_cache_extra_deps=(); job_id=test_linux; job_name='Test (Linux)'; job_needs=(); job_os=Linux; job_platform=ubuntu-24.04; job_python=3.9; job_reqs=(reqs/dist.txt reqs/test.txt); job_skip_cache_name=skip_test_linux_py-3.9_ubuntu-24.04; job_skip_cache_path=.skip_cache_test_linux; job_skiplists=(job_test os_linux); job_test_args='-p no:pytest-qt --ignore=test/gui_qt'; job_type=test; job_variant=Linux; analyze_set_job_skip_job
