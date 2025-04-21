@@ -128,15 +128,6 @@ setup_python_env()
 publish_github_release()
 {
   case "$RELEASE_TYPE" in
-    continuous)
-      tag='continuous'
-      title='Continuous build'
-      is_draft=''
-      is_prerelease='yes'
-      overwrite='yes'
-      notes_body='news_draft.md'
-      run_eval "'$python' -m towncrier --draft >$notes_body" || die
-      ;;
     tagged)
       tag="${GITHUB_REF#refs/tags/}"
       title="$tag"
@@ -228,10 +219,6 @@ analyze_set_release_info()
   then
     # Tagged release.
     release_type='tagged'
-  elif [[ "$GITHUB_REF" == refs/heads/$CONTINUOUS_RELEASE_BRANCH ]]
-  then
-    # Continuous release.
-    release_type='continuous'
   else
     # Not a release.
     release_type=''
