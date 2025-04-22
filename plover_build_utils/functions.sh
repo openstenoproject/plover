@@ -267,9 +267,11 @@ release_finalize()
   run git commit -m "$message"
   run git tag -m "$message" "$tag"
   cat <<EOF
-# now all that's left is to push to GitHub,
-# assuming \`origin\` is the correct remote:
-git push origin HEAD "$tag"
+# now all that's left is to push to GitHub:
+# first push the release commit:
+git push
+# and once the build was successful, assuming \`origin\` is the correct remote, push the tag:
+git push origin "$tag"
 EOF
 }
 
