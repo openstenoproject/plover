@@ -1,3 +1,20 @@
+# v4.0.1 (2025-04-22)
+
+
+## Features
+
+No significant changes.
+
+## Bugfixes
+
+### Linux
+
+- Downgrade CI for building Linux AppImage to Ubuntu 22.04 to build against GLIBC 2.35. (#1717)
+
+## API
+
+No significant changes.
+
 # v4.0.0 (2025-02-18)
 
 
