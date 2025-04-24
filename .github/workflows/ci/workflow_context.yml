@@ -11,19 +11,19 @@ skippy_enabled: true
 vars:
   - &dist_linux
     variant: Linux
-    python: "3.9"
+    python: "3.13.3"
     os: Linux
     platform: ubuntu-22.04
 
   - &dist_macos
     variant: macOS
-    python: "3.9"
+    python: "3.13.3"
     os: macOS
     platform: macos-15
 
   - &dist_win
     variant: Windows
-    python: "3.9"
+    python: "3.13.3"
     os: Windows
     platform: windows-2022
 
