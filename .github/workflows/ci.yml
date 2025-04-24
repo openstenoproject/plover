@@ -10,6 +10,8 @@ on:
     branches:
       - 'main'
       - 'maintenance/*'
+    tags:
+      - 'v*'
   pull_request:
     types:
         - opened

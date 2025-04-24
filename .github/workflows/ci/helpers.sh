@@ -215,6 +215,8 @@ publish_pypi_release()
 
 analyze_set_release_info()
 {
+  info "GITHUB_REF: $GITHUB_REF"
+  info "GITHUB_EVENT_NAME: $GITHUB_EVENT_NAME"
   if [[ "$GITHUB_REF" == refs/tags/* ]]
   then
     # Tagged release.
