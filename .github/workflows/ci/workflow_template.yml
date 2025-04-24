@@ -290,7 +290,7 @@ jobs:
       - name: Setup Python
         uses: <@ action_setup_python @>
         with:
-          python-version: 3.9
+          python-version: 3.13.3
 
       - name: Install dependencies
         run: |
