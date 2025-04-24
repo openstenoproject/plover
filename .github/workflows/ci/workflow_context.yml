@@ -51,8 +51,8 @@ jobs:
   - &python_test
     <<: *test
     <<: *dist_other
-    variant: Python 3.8
-    python: "3.8"
+    variant: Python 3.13
+    python: "3.13.3"
     skiplists: ["job_test", "os_linux", "os_macos", "os_windows"]
   - <<: *python_test
     variant: Python 3.10
@@ -70,7 +70,7 @@ jobs:
   - <<: *dist_other
     type: test_packaging
     variant: Packaging
-    python: "3.9"
+    python: "3.13.3"
     reqs: ["packaging", "setup"]
     skiplists: ["job_test_packaging"]
 
