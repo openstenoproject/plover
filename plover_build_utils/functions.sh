@@ -182,7 +182,7 @@ osx_standalone_python()
   run unzip -d "$dest" "$reloc_py_zip"
   reloc_py_dir="$(echo -n "$dest"/relocatable-python-*/)"
   run "$python" "$reloc_py_dir/make_relocatable_python_framework.py" \
-    --baseurl="file://$PWD/$downloads_cache/%s/../python-%s-macosx%s.pkg" \
+    --baseurl="file://$PWD/$downloads_cache/%s/../python-%s-macos%s.pkg" \
     --python-version="$py_version" --os-version="$py_macos" \
     --destination="$dest" \
     --without-pip \
