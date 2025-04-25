@@ -37,7 +37,7 @@ setup_cache_name()
   if [ "$RUNNER_OS" = 'macOS' ]
   then
     . ./osx/deps.sh
-    [ "$target_python" = "${py_installer_version%.*}" ] || die 1 "versions mismatch: target=$target_python, installer=$py_installer_version"
+    [ "$target_python" = "$py_installer_version" ] || die 1 "versions mismatch: target=$target_python, installer=$py_installer_version"
     target_python="$py_installer_version"
   fi
   cache_name=$("$python" - "$GITHUB_JOB" "$target_python" "$platform_name" <<\EOF
