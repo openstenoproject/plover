@@ -66,7 +66,7 @@ setup_osx_python()
 {
   target_python="$1"
   . ./osx/deps.sh
-  [ "$target_python" = "${py_installer_version%.*}" ] || die 1 "versions mismatch: target=$target_python, installer=$py_installer_version"
+  [ "$target_python" = "$py_installer_version" ] || die 1 "versions mismatch: target=$target_python, installer=$py_installer_version"
   python='python3'
   python_dir="$cache_dir/python"
   if [ ! -e "$python_dir" ]
