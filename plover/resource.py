@@ -14,6 +14,11 @@ def _asset_filename(resource_name):
         raise ValueError(f'invalid asset: {resource_name}')
     if os.path.isabs(components[1]):
         raise ValueError(f'invalid asset: {resource_name}')
+    # Check for a leading (back)slash since os.path.isabs 
+    # returns False on Windows if the given path starts with
+    # exactly one (back)slash.
+    if components[1].startswith(('/', '\\')):
+        raise ValueError(f'invalid asset: {resource_name}')
     package_dir = os.path.dirname(find_spec(components[0]).origin)
     return os.path.join(package_dir, components[1])
 

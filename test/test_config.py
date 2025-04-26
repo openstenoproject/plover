@@ -639,10 +639,12 @@ def test_config_dir(tree, expected_config_dir, tmpdir):
         }))
         ''')))
     # Create initial tree.
+    created_files = []
     for filename_template in dedent_strip(tree).replace('/', os.sep).split('\n'):
         filename = Path(path_expand(filename_template))
-        filename.parent.mkdir(parents=True, exist_ok=True)
+        filename.parent.mkdir(exist_ok=True)
         filename.write_text('pouet')
+        created_files.append(filename)
     # Check plover.oslayer.config.CONFIG_DIR is correctly set.
     config_dir = pyeval(dedent_strip(
         '''
@@ -652,3 +654,14 @@ def test_config_dir(tree, expected_config_dir, tmpdir):
         ''' % str(Path(config.__file__).parent.parent)))
     expected_config_dir = path_expand(expected_config_dir)
     assert config_dir == expected_config_dir
+    # Cleanup created files and directories.
+    for file in created_files:
+        try:
+            file.unlink()  # Delete the file
+        except FileNotFoundError:
+            pass
+    for file in created_files:
+        try:
+            file.parent.rmdir()  # Attempt to remove empty directories
+        except OSError:
+            pass
