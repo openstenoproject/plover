@@ -642,7 +642,7 @@ def test_config_dir(tree, expected_config_dir, tmpdir):
     created_files = []
     for filename_template in dedent_strip(tree).replace('/', os.sep).split('\n'):
         filename = Path(path_expand(filename_template))
-        filename.parent.mkdir(exist_ok=True)
+        filename.parent.mkdir(parents=True, exist_ok=True)
         filename.write_text('pouet')
         created_files.append(filename)
     # Check plover.oslayer.config.CONFIG_DIR is correctly set.
