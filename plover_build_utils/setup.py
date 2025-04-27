@@ -1,6 +1,7 @@
 import contextlib
 import importlib
 import os
+import re
 import subprocess
 import sys
 
@@ -89,7 +90,6 @@ class BuildUi(Command):
     ]
 
     hooks = '''
-    plover_build_utils.pyqt:fix_icons
     plover_build_utils.pyqt:no_autoconnection
     '''.split()
 
@@ -104,33 +104,20 @@ class BuildUi(Command):
         if not self.force and os.path.exists(dst) and \
            os.path.getmtime(dst) >= os.path.getmtime(src):
             return
-        cmd = (
-            sys.executable, '-m', 'PyQt5.uic.pyuic',
-            '--from-import', src,
-        )
         if self.verbose:
             print('generating', dst)
-        contents = subprocess.check_output(cmd).decode('utf-8')
+
+        subprocess.check_call(['pyside6-uic', '--from-imports', src, '-o', dst])
+
         for hook in self.hooks:
             mod_name, attr_name = hook.split(':')
             mod = importlib.import_module(mod_name)
             hook_fn = getattr(mod, attr_name)
+            with open(dst, 'r') as fp:
+                contents = fp.read()
             contents = hook_fn(contents)
-        with open(dst, 'w') as fp:
-            fp.write(contents)
-
-    def _build_resources(self, src):
-        dst = os.path.join(
-            os.path.dirname(os.path.dirname(src)),
-            os.path.splitext(os.path.basename(src))[0]
-        ) + '_rc.py'
-        cmd = (
-            sys.executable, '-m', 'PyQt5.pyrcc_main',
-            src, '-o', dst,
-        )
-        if self.verbose:
-            print('generating', dst)
-        subprocess.check_call(cmd)
+            with open(dst, 'w') as fp:
+                fp.write(contents)
 
     def run(self):
         self.run_command('egg_info')
@@ -143,10 +130,33 @@ class BuildUi(Command):
             print('generating UI using hooks:', ', '.join(hooks_info))
         ei_cmd = self.get_finalized_command('egg_info')
         for src in ei_cmd.filelist.files:
-            if src.endswith('.qrc'):
-                self._build_resources(src)
             if src.endswith('.ui'):
                 self._build_ui(src)
+
+# }}}
+
+# Resource compilation. {{{
+
+class BuildResources(Command):
+
+    description = 'build resource files'
+    user_options = []
+
+    def initialize_options(self):
+        pass
+
+    def finalize_options(self):
+        pass
+
+    def run(self):
+        resource_files = [
+            'plover/gui_qt/resources.qrc',
+        ]
+        for resource_file in resource_files:
+            output_file = os.path.splitext(resource_file)[0] + '_rc.py'
+            if self.verbose:
+                print(f'compiling {resource_file} to {output_file}')
+            subprocess.check_call(['pyside6-rcc', '-o', output_file, resource_file])
 
 # }}}
 

@@ -14,11 +14,10 @@ Three implementations of keyboard capture and output are currently available:
   to listen for key presses, and [keyboard events](https://developer.apple.com/documentation/coregraphics/1456564-cgeventcreatekeyboardevent)
   to generate keystrokes.
 
-- **Linux** and **BSD** both use an implementation based on Xlib's `xinput` to
-  listen for key presses, and `xtest.fake_input` to generate keystrokes, both
-  of which require an X display server.
-
-  Wayland is not currently supported.
+- For **Linux** and **BSD**, there are two implementations. If the display server is `x11`, an implementation based on Xlib's `xinput` is used to
+  listen for key presses, and `xtest.fake_input` to generate keystrokes. For all other display servers, for example `wayland`, an implementation based
+  on `evdev` is used to listen for key presses, and `uinput` to generate keystrokes. The `uinput` implementation needs to know the keyboard layout of the
+  system, which can be configured in the Plover `Output` configuration tap.
 
 Before implementing new keyboard capture and output mechanisms for a new
 platform, make sure to set up the [platform layer](platform_layer) for your

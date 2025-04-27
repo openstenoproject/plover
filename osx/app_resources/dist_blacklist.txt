@@ -23,8 +23,8 @@
   turtle*
   **/*.exe
   */test*
-# PyQt5.
-:lib/python$python_base_version/site-packages/PyQt5
+# PySide6.
+:lib/python$python_base_version/site-packages/PySide6
   **/*AxContainer*
   **/*Bluetooth*
   **/*CLucene*
@@ -35,34 +35,32 @@
   **/*Serial*
   **/*Sql*
   **/*Test*
-  Qt5/plugins/audio
-  Qt5/plugins/bearer
-  Qt5/plugins/generic
-  Qt5/plugins/geoservices
-  Qt5/plugins/mediaservice
-  Qt5/plugins/playlistformats
-  Qt5/plugins/position
-  Qt5/plugins/printsupport
-  Qt5/plugins/sceneparsers
-  Qt5/plugins/sensor*
-  Qt5/plugins/sqldrivers
-  Qt5/qml
-  Qt5/resources
-  Qt5/translations/qt_help_*
-  Qt5/translations/qtconnectivity_*
-  Qt5/translations/qtdeclarative_*
-  Qt5/translations/qtlocation_*
-  Qt5/translations/qtmultimedia_*
-  Qt5/translations/qtquick*
-  Qt5/translations/qtserialport_*
-  Qt5/translations/qtwebsockets_*
+  Qt6/plugins/audio
+  Qt6/plugins/bearer
+  Qt6/plugins/generic
+  Qt6/plugins/geoservices
+  Qt6/plugins/mediaservice
+  Qt6/plugins/playlistformats
+  Qt6/plugins/position
+  Qt6/plugins/printsupport
+  Qt6/plugins/sceneparsers
+  Qt6/plugins/sensor*
+  Qt6/plugins/sqldrivers
+  Qt6/qml
+  Qt6/resources
+  Qt6/translations/qt_help_*
+  Qt6/translations/qtconnectivity_*
+  Qt6/translations/qtdeclarative_*
+  Qt6/translations/qtlocation_*
+  Qt6/translations/qtmultimedia_*
+  Qt6/translations/qtquick*
+  Qt6/translations/qtserialport_*
+  Qt6/translations/qtwebsockets_*
   pylupdate*
-  pyrcc*
   uic
 # Plover.
 :lib/python$python_base_version/site-packages/plover
   gui_qt/*.ui
-  gui_qt/resources
   messages/**/*.po
   messages/plover.pot
 

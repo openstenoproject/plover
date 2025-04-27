@@ -2,8 +2,8 @@ from collections import namedtuple
 from html import escape as html_escape
 from os.path import split as os_path_split
 
-from PyQt5.QtCore import QEvent, pyqtSignal
-from PyQt5.QtWidgets import QApplication, QWidget
+from PySide6.QtCore import QEvent, Signal, Slot
+from PySide6.QtWidgets import QApplication, QWidget
 
 from plover import _
 from plover.misc import shorten_path
@@ -24,7 +24,7 @@ class AddTranslationWidget(QWidget, Ui_AddTranslationWidget):
 
     EngineState = namedtuple('EngineState', 'dictionary_filter translator starting_stroke')
 
-    mappingValid = pyqtSignal(bool)
+    mappingValid = Signal(bool)
 
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
@@ -71,7 +71,7 @@ class AddTranslationWidget(QWidget, Ui_AddTranslationWidget):
             if translation is not None and not translation.english:
                 # Yes.
                 self.strokes.setText(translation.formatting[0].text)
-                self.on_strokes_edited()
+                self.handle_stroke_input_change()
                 self.strokes.selectAll()
             else:
                 # No, grab the last-formatted word.
@@ -79,7 +79,7 @@ class AddTranslationWidget(QWidget, Ui_AddTranslationWidget):
                 last_words = retro_formatter.last_words(strip=True)
                 if last_words:
                     self.translation.setText(last_words[0])
-                    self.on_translation_edited()
+                    self.handle_translation_input_change()
 
             self._original_state = self.EngineState(None,
                                                     engine.translator_state,
@@ -104,12 +104,12 @@ class AddTranslationWidget(QWidget, Ui_AddTranslationWidget):
         self._update_items()
 
     def eventFilter(self, watched, event):
-        if event.type() == QEvent.FocusIn:
+        if event.type() == QEvent.Type.FocusIn:
             if watched == self.strokes:
                 self._focus_strokes()
             elif watched == self.translation:
                 self._focus_translation()
-        elif event.type() == QEvent.FocusOut:
+        elif event.type() == QEvent.Type.FocusOut:
             if watched in (self.strokes, self.translation):
                 self._unfocus()
         return False
@@ -225,7 +225,8 @@ class AddTranslationWidget(QWidget, Ui_AddTranslationWidget):
         if 'classic_dictionaries_display_order' in config_update:
             self._update_items(reverse_order=config_update['classic_dictionaries_display_order'])
 
-    def on_dictionary_selected(self, index):
+    @Slot(int)
+    def update_selected_dictionary(self, index):
         if self._reverse_order:
             index = len(self._dictionaries) - index - 1
         self._selected_dictionary = self._dictionaries[index].path
@@ -242,7 +243,8 @@ class AddTranslationWidget(QWidget, Ui_AddTranslationWidget):
 
         return fmt.format(strokes=strokes, translation=translation, filename=filename)
 
-    def on_strokes_edited(self):
+    @Slot()
+    def handle_stroke_input_change(self):
         mapping_is_valid = self.strokes.hasAcceptableInput()
         if mapping_is_valid != self._mapping_is_valid:
             self._mapping_is_valid = mapping_is_valid
@@ -276,8 +278,9 @@ class AddTranslationWidget(QWidget, Ui_AddTranslationWidget):
         else:
             info = ''
         self.strokes_info.setText(info)
-
-    def on_translation_edited(self):
+        
+    @Slot()
+    def handle_translation_input_change(self):
         translation = self._translation()
         if translation:
             strokes = self._engine.reverse_lookup(translation)

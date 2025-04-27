@@ -80,10 +80,6 @@ run "$python" -m plover_build_utils.trim "$py_home" "$builddir/dist_blacklist.tx
 # Make distribution source-less.
 run "$python" -m plover_build_utils.source_less "$py_home/lib" "*/pip/_vendor/distlib/*" '*/pip/_vendor/pep517/*'
 
-# Strip 32-bit support
-run mv "$appdir"{,.fat}
-run ditto -v --arch x86_64 "$appdir"{.fat,}
-
 # Check requirements.
 run "$python" -I -m plover_build_utils.check_requirements
 

@@ -156,7 +156,6 @@ bootstrap_dist()
     -r reqs/dist.txt \
     -r reqs/dist_extra_gui_qt.txt \
     -r reqs/dist_extra_log.txt \
-    -r reqs/dist_plugins.txt \
     "$@" || die
   # Avoid caching Plover's wheel.
   run rm "$wheels_cache/$(basename "$wheel")"
@@ -255,21 +254,24 @@ release_prepare()
   [ $# -eq 1 ] || die 1 'expecting one argument: the new version'
   run "$python" setup.py patch_version "$1"
   run git add plover/__init__.py
-  run towncrier --version="$1" --yes
+  run git add doc/conf.py
+  run towncrier build --version "$1" --yes
 }
 
 release_finalize()
 {
   [ $# -eq 0 ] || die 1 'expecting no argument'
   version="$("$python" setup.py --version)"
-  message="release $version"
+  message="Release version $version"
   tag="v$version"
   run git commit -m "$message"
   run git tag -m "$message" "$tag"
   cat <<EOF
-# now all that's left is to push to GitHub,
-# assuming \`origin\` is the correct remote:
-git push origin HEAD "$tag"
+# now all that's left is to push to GitHub:
+# first push the release commit:
+git push
+# and once the build was successful, assuming \`origin\` is the correct remote, push the tag:
+git push origin "$tag"
 EOF
 }
 

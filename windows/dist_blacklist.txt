@@ -1,7 +1,7 @@
 # Python.
   Scripts
-# PyQt5.
-:Lib/site-packages/PyQt5
+# PySide6.
+:Lib/site-packages/PySide6
   **/*Designer*
   **/*[Hh]elp*
   **/*Test*
@@ -9,21 +9,18 @@
   **/*[Qq]uick*
   **/*[Ww]eb[Ee]ngine*
   bindings
-  Qt5/bin/libeay32.dll
-  Qt5/bin/ssleay32.dll
-  Qt5/plugins/platforms/qminimal.dll
-  Qt5/plugins/platforms/qoffscreen.dll
-  Qt5/plugins/platforms/qwebgl.dll
-  Qt5/plugins/sceneparsers
-  Qt5/qml
+  Qt6/bin/libeay32.dll
+  Qt6/bin/ssleay32.dll
+  Qt6/plugins/platforms/qminimal.dll
+  Qt6/plugins/platforms/qoffscreen.dll
+  Qt6/plugins/platforms/qwebgl.dll
+  Qt6/plugins/sceneparsers
+  Qt6/qml
   pylupdate*
-  pyrcc*
   uic
 # Plover.
 :Lib/site-packages/plover
   gui_qt/*.ui
-  gui_qt/*.ui
-  gui_qt/resources
   messages/**/*.po
   messages/plover.pot
 

@@ -10,13 +10,13 @@ return {
         release_count = release_count + 1
       end
       if elem.level < 3 or release_count > 1 then
-        return pandoc.Null()
+        return {}
       end
       return elem
     end,
     Block = function (elem)
       if release_count > 1 then
-        return pandoc.Null()
+        return {}
       end
       return elem
     end,

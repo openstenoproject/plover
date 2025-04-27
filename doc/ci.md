@@ -44,9 +44,8 @@ This job has 2 roles:
 
 ## Release conditions
 
-Two (exclusive) conditions can result in a release:
-- a tag build, and the tag name is not `continuous`
-- a branch build on `secrets.CONTINUOUS_RELEASE_BRANCH`
+A release is triggered if the `GITHUB_REF` environment variable starts with
+`refs/tags/`, which indicates that the workflow is triggered by a Git tag.
 
 
 ## Skipping Test/Build jobs
@@ -117,8 +116,8 @@ to the artifacts when a release is being created.
 
 ## Release job
 
-The final job, only run on release (*tagged* or *continuous*), and if
-all the other jobs completed successfully.
+The final job, only run on a tagged release, and if all the other
+jobs completed successfully.
 
 
 ### PyPI release
@@ -136,19 +135,10 @@ use another PyPI compatible index (e.g. Test PyPI).
 
 On *tagged* release, a new release draft is created on GitHub.
 
-On *continuous* release, the `continuous` release and corresponding tag
-are created / updated, but only if the existing release version is not
-newer, in order to:
-* prevent an old workflow re-run from overwriting the latest continuous release
-* reduce the likelihood that a flurry of merges to the continuous branch will
-  result in the continuous release not pointing to the most recent valid commit
-  (because multiple workflows were created in parallel).
-
 All the artifacts will be included as assets.
 
 The release notes are automatically generated from the last release section in
-`NEWS.md` (*tagged* release) or the existing `news.d` entries (*continuous*
-release), and the template in `.github/RELEASE_DRAFT_TEMPLATE.md`.
+`NEWS.md` (*tagged* release) and the template in `.github/RELEASE_DRAFT_TEMPLATE.md`.
 
 
 ## Limitations

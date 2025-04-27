@@ -46,7 +46,7 @@ If the key is pressed and released again, another chord is sent.</string>
    <sender>arpeggiate</sender>
    <signal>clicked(bool)</signal>
    <receiver>KeyboardWidget</receiver>
-   <slot>on_arpeggiate_changed(bool)</slot>
+   <slot>update_arpeggiate(bool)</slot>
    <hints>
     <hint type="sourcelabel">
      <x>56</x>
@@ -62,7 +62,7 @@ If the key is pressed and released again, another chord is sent.</string>
    <sender>first_up_chord_send</sender>
    <signal>clicked(bool)</signal>
    <receiver>KeyboardWidget</receiver>
-   <slot>on_first_up_chord_send_changed(bool)</slot>
+   <slot>update_first_up_chord_send(bool)</slot>
    <hints>
     <hint type="sourcelabel">
      <x>79</x>
@@ -76,7 +76,7 @@ If the key is pressed and released again, another chord is sent.</string>
   </connection>
  </connections>
  <slots>
-  <slot>on_arpeggiate_changed(bool)</slot>
-  <slot>on_first_up_chord_send_changed(bool)</slot>
+  <slot>update_arpeggiate(bool)</slot>
+  <slot>update_first_up_chord_send(bool)</slot>
  </slots>
 </ui>

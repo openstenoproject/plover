@@ -82,8 +82,8 @@
   </connection>
  </connections>
  <slots>
-  <slot>on_strokes_edited(QString)</slot>
-  <slot>on_translation_edited(QString)</slot>
-  <slot>on_dictionary_selected(int)</slot>
+  <slot>handle_stroke_input_change(QString)</slot>
+  <slot>handle_translation_input_change(QString)</slot>
+  <slot>update_selected_dictionary(int)</slot>
  </slots>
 </ui>

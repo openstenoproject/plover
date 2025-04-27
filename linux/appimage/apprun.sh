@@ -62,8 +62,44 @@ appimage_python()
   exec "${APPDIR}/usr/bin/python" "$@"
 }
 
+install_udev_rule()
+{
+  # Pass through variables because pkexec doesn't pass through env
+  local UDEV_RULE_FILE="$1"
+  local USER="$2"
+  if ! grep -q "^plover:" /etc/group; then
+    groupadd plover
+  fi
+  # NOTE: this requires a reboot!
+  if ! groups "$USER" | grep -qw "plover"; then
+    usermod -aG plover "$USER"
+  fi
+  if [ ! -f "$UDEV_RULE_FILE" ]; then
+    echo 'KERNEL=="uinput", GROUP="plover", MODE="0660", OPTIONS+="static_node=uinput"' > "$UDEV_RULE_FILE"
+    chmod 644 "$UDEV_RULE_FILE"
+    udevadm control --reload-rules
+    udevadm trigger
+    # Temporarily give the current user access
+    # This is done because the groupadd does not take effect until next reboot
+    # And this temporary solution works *until* the next reboot
+    # FIXME if someone can find a better solution
+    chown "${USER}:plover" /dev/uinput
+    chmod 660 /dev/uinput
+  fi
+}
+
 appimage_launch()
 {
+  # Install the udev rule required for uinput
+  UDEV_RULE_FILE="/etc/udev/rules.d/99-plover-uinput.rules"
+  # It's done like this to have the lowest possible number of pkexec calls
+  # Each time it's called, the user gets shown a new password input dialog
+  # FIXME if there is an easier way to do it
+  if [ ! -f "$UDEV_RULE_FILE" ] || ! grep -q "^plover:" /etc/group || ! groups | grep -qw "plover"; then
+    notify-send -t 10000 "Installing udev rules" "You will be prompted for your password"
+    pkexec bash -c "$(declare -f install_udev_rule); install_udev_rule '$UDEV_RULE_FILE' '$USER'"
+    notify-send -t 10000 "Successfully installed udev rules" "A reboot may be required for output to work"
+  fi
   appimage_python -s -m plover.scripts.dist_main "$@"
 }
 
