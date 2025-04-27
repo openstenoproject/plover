@@ -1,3 +1,123 @@
+# v4.0.0 (2025-02-18)
+
+
+## Features
+
+- Same as `v4.0.0rc5`
+- See [NEWS.md](https://github.com/openstenoproject/plover/blob/main/NEWS.md) for the features included in the `v4.0.0.dev` and `v4.0.0rc` versions.
+
+# v4.0.0rc5 (2025-02-10)
+
+
+## Features
+
+### User Interface
+
+- Renamed the 'Scan' button in the serial port configuration window to 'Refresh', to (hopefully) more accurately convey that it simply lists all available serial ports. (#1640)
+- Added a button to the Plugins Manager for installing plugins via Git URL. (#1700)
+
+### Linux
+
+- Added keyboard emulation and capture using uinput, compatible with X11, Wayland and anything else on linux and bsd. (#1679)
+
+## Bugfixes
+
+### Windows
+
+- Fixed backspace scancode and swapped page up/down. (#1697)
+
+## API
+
+### New
+
+- Renamed the `=retrospective_*` macros to simply `=retro_*`. The previous names are retained for backwards compatibility, but are now deprecated. (#1639)
+
+# v4.0.0rc4 (2025-02-09)
+
+
+- *Skipped for technical reasons.*
+
+
+# v4.0.0rc3 (2025-02-09)
+
+
+- *Skipped for technical reasons.*
+
+
+# v4.0.0rc2 (2023-09-28)
+
+
+
+## Features
+
+### Core
+
+- Added a configurable delay between key presses, to accommodate applications that can't handle fast keyboard emulation. (#1633)
+
+## Bugfixes
+
+### Core
+
+- Closes serial ports upon disconnection to ensure clean reconnections. (#1636)
+
+### User Interface
+
+- Update the tray icon to "disconnected" when a serial-over-USB machine is unplugged. (#1560)
+
+## API
+
+### Breaking Changes
+
+- Dropped support for Python 3.7. (#1634)
+
+### New
+
+- Introduces the `GenericKeyboardEmulation` interface which automatically handles output delay. (#1633)
+
+
+# v4.0.0rc1 (2023-09-26)
+
+
+
+## Features
+
+### Core
+
+- updated config to use tox4 (#1592)
+- Implement first-up chord send for keyboard machine. (#1611)
+
+### User Interface
+
+- Added Traditional Chinese (zh-TW) translation. (#1404)
+
+### Linux
+
+- Update GitHub Actions from Ubuntu 18.04 to 22.04. (#1597)
+
+### macOS
+
+- Update GitHub Actions from macOS 10.15 to 12. (#1598)
+- Changes the Plover icon on macOS to match Big Sur-style icons. (#1632)
+
+### Windows
+
+- Update GitHub Actions from Windows 2019 to 2022. (#1598)
+
+## Bugfixes
+
+### User Interface
+
+- Fix "add translation" dialog ignoring the stylesheet's background color for the translation and stroke text. (#1571)
+
+### Windows
+
+- Fixed an issue which caused tests to fail on windows due to case sensitive filepaths. (#1599)
+
+## API
+
+No significant changes.
+
+
 # v4.0.0.dev12 (2022-08-09)
 
 ## Features

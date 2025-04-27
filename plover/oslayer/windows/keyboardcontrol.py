@@ -26,7 +26,7 @@ from plover import log
 from plover.key_combo import parse_key_combo
 from plover.machine.keyboard_capture import Capture
 from plover.misc import to_surrogate_pair
-from plover.output import Output
+from plover.output.keyboard import GenericKeyboardEmulation
 
 from .keyboardlayout import KeyboardLayout
 
@@ -42,9 +42,9 @@ SCANCODE_TO_KEY = {
     30: 'a', 31: 's', 32: 'd', 33: 'f', 34: 'g', 35: 'h', 36: 'j',
     37: 'k', 38: 'l', 39: ';', 40: '\'', 44: 'z', 45: 'x',
     46: 'c', 47: 'v', 48: 'b', 49: 'n', 50: 'm', 51: ',',
-    52: '.', 53: '/', 57: 'space', 58: "BackSpace", 83: "Delete",
+    52: '.', 53: '/', 57: 'space', 14: "BackSpace", 83: "Delete",
     80: "Down", 79: "End", 1: "Escape", 71: "Home", 82: "Insert",
-    75: "Left", 73: "Page_Down", 81: "Page_Up", 28 : "Return",
+    75: "Left", 73: "Page_Up", 81: "Page_Down", 28 : "Return",
     77: "Right", 15: "Tab", 72: "Up",
 }
 
@@ -433,7 +433,7 @@ class KeyboardCapture(Capture):
         self._proc.suppress(self._suppressed_keys)
 
 
-class KeyboardEmulation(Output):
+class KeyboardEmulation(GenericKeyboardEmulation):
 
     def __init__(self):
         super().__init__()
@@ -506,12 +506,12 @@ class KeyboardEmulation(Output):
         self._send_input(*inputs)
 
     def send_backspaces(self, count):
-        for _ in range(count):
+        for _ in self.with_delay(range(count)):
             self._key_press('\x08')
 
     def send_string(self, string):
         self._refresh_keyboard_layout()
-        for char in string:
+        for char in self.with_delay(string):
             if char in self.keyboard_layout.char_to_vk_ss:
                 # We know how to simulate the character.
                 self._key_press(char)
@@ -525,5 +525,5 @@ class KeyboardEmulation(Output):
         # Parse and validate combo.
         key_events = parse_key_combo(combo, self.keyboard_layout.keyname_to_vk.get)
         # Send events...
-        for keycode, pressed in key_events:
+        for keycode, pressed in self.with_delay(key_events):
             self._key_event(keycode, pressed)

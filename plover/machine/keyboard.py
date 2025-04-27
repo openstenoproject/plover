@@ -38,11 +38,20 @@ class Keyboard(StenotypeBase):
         """Monitor the keyboard's events."""
         super().__init__()
         self._arpeggiate = params['arpeggiate']
+        self._first_up_chord_send = params['first_up_chord_send']
+        if self._arpeggiate and self._first_up_chord_send:
+            self._error()
+            raise RuntimeError("Arpeggiate and first-up chord send cannot both be enabled!")
         self._is_suppressed = False
         # Currently held keys.
         self._down_keys = set()
-        # All keys part of the stroke.
-        self._stroke_keys = set()
+        if self._first_up_chord_send:
+            # If this is True, the first key in a stroke has already been released
+            # and subsequent key-up events should not send more strokes
+            self._chord_already_sent = False
+        else:
+            # Collect the keys in the stroke, in case first_up_chord_send is False
+            self._stroke_keys = set()
         self._keyboard_capture = None
         self._last_stroke_key_down_count = 0
         self._stroke_key_down_count = 0
@@ -109,31 +118,46 @@ class Keyboard(StenotypeBase):
         assert key is not None
         self._stroke_key_down_count += 1
         self._down_keys.add(key)
-        self._stroke_keys.add(key)
+        if self._first_up_chord_send:
+            self._chord_already_sent = False
+        else:
+            self._stroke_keys.add(key)
 
     def _key_up(self, key):
         """Called when a key is released."""
         assert key is not None
+
         self._down_keys.discard(key)
-        # A stroke is complete if all pressed keys have been released,
-        # and — when arpeggiate mode is enabled — the arpeggiate key
-        # is part of it.
-        if (
-            self._down_keys or
-            not self._stroke_keys or
-            (self._arpeggiate and self._arpeggiate_key not in self._stroke_keys)
-        ):
-            return
+
+        if self._first_up_chord_send:
+            if self._chord_already_sent:
+                return
+        else:
+            # A stroke is complete if all pressed keys have been released,
+            # and — when arpeggiate mode is enabled — the arpeggiate key
+            # is part of it.
+            if (
+                self._down_keys or
+                not self._stroke_keys or
+                (self._arpeggiate and self._arpeggiate_key not in self._stroke_keys)
+            ):
+                return
+
         self._last_stroke_key_down_count = self._stroke_key_down_count
-        steno_keys = {self._bindings.get(k) for k in self._stroke_keys}
+        if self._first_up_chord_send:
+            steno_keys = {self._bindings.get(k) for k in self._down_keys | {key}}
+            self._chord_already_sent = True
+        else:
+            steno_keys = {self._bindings.get(k) for k in self._stroke_keys}
+            self._stroke_keys.clear()
         steno_keys -= {None}
         if steno_keys:
             self._notify(steno_keys)
-        self._stroke_keys.clear()
         self._stroke_key_down_count = 0
 
     @classmethod
     def get_option_info(cls):
         return {
             'arpeggiate': (False, boolean),
+            'first_up_chord_send': (False, boolean),
         }

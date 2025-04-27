@@ -8,11 +8,15 @@ name: CI
 on:
   push:
     branches:
-      - '*'
-    tags-ignore:
-      # Ignore continuous releases' tag.
-      - 'continuous'
+      - 'main'
+      - 'maintenance/*'
+    tags:
+      - 'v*'
   pull_request:
+    types:
+        - opened
+        - reopened
+        - synchronize
 
 defaults:
   run:
@@ -30,21 +34,20 @@ jobs:
     steps:
 
       - name: Checkout
-        uses: actions/checkout@v3
+        uses: actions/checkout@v4
 
       - name: Calculate skip cache keys
         id: set_cache
         run: |
           job_cache_extra_deps=(); job_id=test_linux; job_name='Test (Linux)'; job_needs=(); job_os=Linux; job_platform=ubuntu-22.04; job_python=3.9; job_reqs=(reqs/dist.txt reqs/test.txt); job_skip_cache_name=skip_test_linux_py-3.9_ubuntu-22.04; job_skip_cache_path=.skip_cache_test_linux; job_skiplists=(job_test os_linux); job_test_args='-p no:pytest-qt --ignore=test/gui_qt'; job_type=test; job_variant=Linux; analyze_set_job_skip_cache_key
-          job_cache_extra_deps=(osx/deps.sh); job_id=test_macos; job_name='Test (macOS)'; job_needs=(); job_os=macOS; job_platform=macos-12; job_python=3.9; job_reqs=(reqs/dist.txt reqs/test.txt); job_skip_cache_name=skip_test_macos_py-3.9_macos-12; job_skip_cache_path=.skip_cache_test_macos; job_skiplists=(job_test os_macos); job_test_args='-p no:pytest-qt --ignore=test/gui_qt'; job_type=test; job_variant=macOS; analyze_set_job_skip_cache_key
+          job_cache_extra_deps=(osx/deps.sh); job_id=test_macos; job_name='Test (macOS)'; job_needs=(); job_os=macOS; job_platform=macos-15; job_python=3.9; job_reqs=(reqs/dist.txt reqs/test.txt); job_skip_cache_name=skip_test_macos_py-3.9_macos-15; job_skip_cache_path=.skip_cache_test_macos; job_skiplists=(job_test os_macos); job_test_args='-p no:pytest-qt --ignore=test/gui_qt'; job_type=test; job_variant=macOS; analyze_set_job_skip_cache_key
           job_cache_extra_deps=(); job_id=test_windows; job_name='Test (Windows)'; job_needs=(); job_os=Windows; job_platform=windows-2022; job_python=3.9; job_reqs=(reqs/dist.txt reqs/test.txt); job_skip_cache_name=skip_test_windows_py-3.9_windows-2022; job_skip_cache_path=.skip_cache_test_windows; job_skiplists=(job_test os_windows); job_test_args='-p no:pytest-qt --ignore=test/gui_qt'; job_type=test; job_variant=Windows; analyze_set_job_skip_cache_key
-          job_cache_extra_deps=(); job_id=test_python_37; job_name='Test (Python 3.7)'; job_needs=(); job_os=Linux; job_platform=ubuntu-latest; job_python=3.7; job_reqs=(reqs/dist.txt reqs/test.txt); job_skip_cache_name=skip_test_python_37_py-3.7_ubuntu-latest; job_skip_cache_path=.skip_cache_test_python_37; job_skiplists=(job_test os_linux os_macos os_windows); job_test_args='-p no:pytest-qt --ignore=test/gui_qt'; job_type=test; job_variant='Python 3.7'; analyze_set_job_skip_cache_key
           job_cache_extra_deps=(); job_id=test_python_38; job_name='Test (Python 3.8)'; job_needs=(); job_os=Linux; job_platform=ubuntu-latest; job_python=3.8; job_reqs=(reqs/dist.txt reqs/test.txt); job_skip_cache_name=skip_test_python_38_py-3.8_ubuntu-latest; job_skip_cache_path=.skip_cache_test_python_38; job_skiplists=(job_test os_linux os_macos os_windows); job_test_args='-p no:pytest-qt --ignore=test/gui_qt'; job_type=test; job_variant='Python 3.8'; analyze_set_job_skip_cache_key
           job_cache_extra_deps=(); job_id=test_python_310; job_name='Test (Python 3.10)'; job_needs=(); job_os=Linux; job_platform=ubuntu-latest; job_python=3.10; job_reqs=(reqs/dist.txt reqs/test.txt); job_skip_cache_name=skip_test_python_310_py-3.10_ubuntu-latest; job_skip_cache_path=.skip_cache_test_python_310; job_skiplists=(job_test os_linux os_macos os_windows); job_test_args='-p no:pytest-qt --ignore=test/gui_qt'; job_type=test; job_variant='Python 3.10'; analyze_set_job_skip_cache_key
           job_cache_extra_deps=(); job_id=test_qt_gui; job_name='Test (Qt GUI)'; job_needs=(); job_os=Linux; job_platform=ubuntu-22.04; job_python=3.9; job_reqs=(reqs/dist.txt reqs/dist_extra_gui_qt.txt reqs/test.txt); job_skip_cache_name=skip_test_qt_gui_py-3.9_ubuntu-22.04; job_skip_cache_path=.skip_cache_test_qt_gui; job_skiplists=(job_test_gui_qt); job_test_args=test/gui_qt; job_type=test_gui_qt; job_variant='Qt GUI'; analyze_set_job_skip_cache_key
           job_cache_extra_deps=(); job_id=test_packaging; job_name='Test (Packaging)'; job_needs=(); job_os=Linux; job_platform=ubuntu-latest; job_python=3.9; job_reqs=(reqs/packaging.txt reqs/setup.txt); job_skip_cache_name=skip_test_packaging_py-3.9_ubuntu-latest; job_skip_cache_path=.skip_cache_test_packaging; job_skiplists=(job_test_packaging); job_type=test_packaging; job_variant=Packaging; analyze_set_job_skip_cache_key
           job_cache_extra_deps=('reqs/dist_*.txt' linux/appimage/deps.sh); job_id=build_linux; job_name='Build (Linux)'; job_needs=(test_linux); job_os=Linux; job_platform=ubuntu-22.04; job_python=3.9; job_reqs=(reqs/build.txt reqs/setup.txt); job_skip_cache_name=skip_build_linux_py-3.9_ubuntu-22.04; job_skip_cache_path=.skip_cache_build_linux; job_skiplists=(job_build os_linux); job_type=build; job_variant=Linux; analyze_set_job_skip_cache_key
-          job_cache_extra_deps=('reqs/dist_*.txt' osx/deps.sh); job_id=build_macos; job_name='Build (macOS)'; job_needs=(test_macos); job_os=macOS; job_platform=macos-12; job_python=3.9; job_reqs=(reqs/build.txt reqs/setup.txt); job_skip_cache_name=skip_build_macos_py-3.9_macos-12; job_skip_cache_path=.skip_cache_build_macos; job_skiplists=(job_build os_macos); job_type=build; job_variant=macOS; analyze_set_job_skip_cache_key
+          job_cache_extra_deps=('reqs/dist_*.txt' osx/deps.sh); job_id=build_macos; job_name='Build (macOS)'; job_needs=(test_macos); job_os=macOS; job_platform=macos-15; job_python=3.9; job_reqs=(reqs/build.txt reqs/setup.txt); job_skip_cache_name=skip_build_macos_py-3.9_macos-15; job_skip_cache_path=.skip_cache_build_macos; job_skiplists=(job_build os_macos); job_type=build; job_variant=macOS; analyze_set_job_skip_cache_key
           job_cache_extra_deps=('reqs/dist_*.txt' windows/dist_deps.sh); job_id=build_windows; job_name='Build (Windows)'; job_needs=(test_windows); job_os=Windows; job_platform=windows-2022; job_python=3.9; job_reqs=(reqs/build.txt reqs/setup.txt); job_skip_cache_name=skip_build_windows_py-3.9_windows-2022; job_skip_cache_path=.skip_cache_build_windows; job_skiplists=(job_build os_windows); job_type=build; job_variant=Windows; analyze_set_job_skip_cache_key
 
       - name: Check skip cache for Test (Linux)
@@ -70,14 +73,6 @@ jobs:
           key: 0_check_${{ steps.set_cache.outputs.test_windows_skip_cache_key }}_${{ github.run_id }}
           restore-keys:
             0_${{ steps.set_cache.outputs.test_windows_skip_cache_key }}
-
-      - name: Check skip cache for Test (Python 3.7)
-        uses: actions/cache@v3
-        with:
-          path: .skip_cache_test_python_37
-          key: 0_check_${{ steps.set_cache.outputs.test_python_37_skip_cache_key }}_${{ github.run_id }}
-          restore-keys:
-            0_${{ steps.set_cache.outputs.test_python_37_skip_cache_key }}
 
       - name: Check skip cache for Test (Python 3.8)
         uses: actions/cache@v3
@@ -137,20 +132,17 @@ jobs:
 
       - name: Set outputs
         id: set_ouputs
-        env:
-          CONTINUOUS_RELEASE_BRANCH: ${{ secrets.CONTINUOUS_RELEASE_BRANCH }}
         run: |
           analyze_set_release_info
           job_cache_extra_deps=(); job_id=test_linux; job_name='Test (Linux)'; job_needs=(); job_os=Linux; job_platform=ubuntu-22.04; job_python=3.9; job_reqs=(reqs/dist.txt reqs/test.txt); job_skip_cache_name=skip_test_linux_py-3.9_ubuntu-22.04; job_skip_cache_path=.skip_cache_test_linux; job_skiplists=(job_test os_linux); job_test_args='-p no:pytest-qt --ignore=test/gui_qt'; job_type=test; job_variant=Linux; analyze_set_job_skip_job
-          job_cache_extra_deps=(osx/deps.sh); job_id=test_macos; job_name='Test (macOS)'; job_needs=(); job_os=macOS; job_platform=macos-12; job_python=3.9; job_reqs=(reqs/dist.txt reqs/test.txt); job_skip_cache_name=skip_test_macos_py-3.9_macos-12; job_skip_cache_path=.skip_cache_test_macos; job_skiplists=(job_test os_macos); job_test_args='-p no:pytest-qt --ignore=test/gui_qt'; job_type=test; job_variant=macOS; analyze_set_job_skip_job
+          job_cache_extra_deps=(osx/deps.sh); job_id=test_macos; job_name='Test (macOS)'; job_needs=(); job_os=macOS; job_platform=macos-15; job_python=3.9; job_reqs=(reqs/dist.txt reqs/test.txt); job_skip_cache_name=skip_test_macos_py-3.9_macos-15; job_skip_cache_path=.skip_cache_test_macos; job_skiplists=(job_test os_macos); job_test_args='-p no:pytest-qt --ignore=test/gui_qt'; job_type=test; job_variant=macOS; analyze_set_job_skip_job
           job_cache_extra_deps=(); job_id=test_windows; job_name='Test (Windows)'; job_needs=(); job_os=Windows; job_platform=windows-2022; job_python=3.9; job_reqs=(reqs/dist.txt reqs/test.txt); job_skip_cache_name=skip_test_windows_py-3.9_windows-2022; job_skip_cache_path=.skip_cache_test_windows; job_skiplists=(job_test os_windows); job_test_args='-p no:pytest-qt --ignore=test/gui_qt'; job_type=test; job_variant=Windows; analyze_set_job_skip_job
-          job_cache_extra_deps=(); job_id=test_python_37; job_name='Test (Python 3.7)'; job_needs=(); job_os=Linux; job_platform=ubuntu-latest; job_python=3.7; job_reqs=(reqs/dist.txt reqs/test.txt); job_skip_cache_name=skip_test_python_37_py-3.7_ubuntu-latest; job_skip_cache_path=.skip_cache_test_python_37; job_skiplists=(job_test os_linux os_macos os_windows); job_test_args='-p no:pytest-qt --ignore=test/gui_qt'; job_type=test; job_variant='Python 3.7'; analyze_set_job_skip_job
           job_cache_extra_deps=(); job_id=test_python_38; job_name='Test (Python 3.8)'; job_needs=(); job_os=Linux; job_platform=ubuntu-latest; job_python=3.8; job_reqs=(reqs/dist.txt reqs/test.txt); job_skip_cache_name=skip_test_python_38_py-3.8_ubuntu-latest; job_skip_cache_path=.skip_cache_test_python_38; job_skiplists=(job_test os_linux os_macos os_windows); job_test_args='-p no:pytest-qt --ignore=test/gui_qt'; job_type=test; job_variant='Python 3.8'; analyze_set_job_skip_job
           job_cache_extra_deps=(); job_id=test_python_310; job_name='Test (Python 3.10)'; job_needs=(); job_os=Linux; job_platform=ubuntu-latest; job_python=3.10; job_reqs=(reqs/dist.txt reqs/test.txt); job_skip_cache_name=skip_test_python_310_py-3.10_ubuntu-latest; job_skip_cache_path=.skip_cache_test_python_310; job_skiplists=(job_test os_linux os_macos os_windows); job_test_args='-p no:pytest-qt --ignore=test/gui_qt'; job_type=test; job_variant='Python 3.10'; analyze_set_job_skip_job
           job_cache_extra_deps=(); job_id=test_qt_gui; job_name='Test (Qt GUI)'; job_needs=(); job_os=Linux; job_platform=ubuntu-22.04; job_python=3.9; job_reqs=(reqs/dist.txt reqs/dist_extra_gui_qt.txt reqs/test.txt); job_skip_cache_name=skip_test_qt_gui_py-3.9_ubuntu-22.04; job_skip_cache_path=.skip_cache_test_qt_gui; job_skiplists=(job_test_gui_qt); job_test_args=test/gui_qt; job_type=test_gui_qt; job_variant='Qt GUI'; analyze_set_job_skip_job
           job_cache_extra_deps=(); job_id=test_packaging; job_name='Test (Packaging)'; job_needs=(); job_os=Linux; job_platform=ubuntu-latest; job_python=3.9; job_reqs=(reqs/packaging.txt reqs/setup.txt); job_skip_cache_name=skip_test_packaging_py-3.9_ubuntu-latest; job_skip_cache_path=.skip_cache_test_packaging; job_skiplists=(job_test_packaging); job_type=test_packaging; job_variant=Packaging; analyze_set_job_skip_job
           job_cache_extra_deps=('reqs/dist_*.txt' linux/appimage/deps.sh); job_id=build_linux; job_name='Build (Linux)'; job_needs=(test_linux); job_os=Linux; job_platform=ubuntu-22.04; job_python=3.9; job_reqs=(reqs/build.txt reqs/setup.txt); job_skip_cache_name=skip_build_linux_py-3.9_ubuntu-22.04; job_skip_cache_path=.skip_cache_build_linux; job_skiplists=(job_build os_linux); job_type=build; job_variant=Linux; analyze_set_job_skip_job
-          job_cache_extra_deps=('reqs/dist_*.txt' osx/deps.sh); job_id=build_macos; job_name='Build (macOS)'; job_needs=(test_macos); job_os=macOS; job_platform=macos-12; job_python=3.9; job_reqs=(reqs/build.txt reqs/setup.txt); job_skip_cache_name=skip_build_macos_py-3.9_macos-12; job_skip_cache_path=.skip_cache_build_macos; job_skiplists=(job_build os_macos); job_type=build; job_variant=macOS; analyze_set_job_skip_job
+          job_cache_extra_deps=('reqs/dist_*.txt' osx/deps.sh); job_id=build_macos; job_name='Build (macOS)'; job_needs=(test_macos); job_os=macOS; job_platform=macos-15; job_python=3.9; job_reqs=(reqs/build.txt reqs/setup.txt); job_skip_cache_name=skip_build_macos_py-3.9_macos-15; job_skip_cache_path=.skip_cache_build_macos; job_skiplists=(job_build os_macos); job_type=build; job_variant=macOS; analyze_set_job_skip_job
           job_cache_extra_deps=('reqs/dist_*.txt' windows/dist_deps.sh); job_id=build_windows; job_name='Build (Windows)'; job_needs=(test_windows); job_os=Windows; job_platform=windows-2022; job_python=3.9; job_reqs=(reqs/build.txt reqs/setup.txt); job_skip_cache_name=skip_build_windows_py-3.9_windows-2022; job_skip_cache_path=.skip_cache_build_windows; job_skiplists=(job_build os_windows); job_type=build; job_variant=Windows; analyze_set_job_skip_job
 
     outputs:
@@ -162,8 +154,6 @@ jobs:
       test_macos_skip_cache_key: ${{ steps.set_cache.outputs.test_macos_skip_cache_key }}
       test_windows_skip_job: ${{ steps.set_ouputs.outputs.test_windows_skip_job }}
       test_windows_skip_cache_key: ${{ steps.set_cache.outputs.test_windows_skip_cache_key }}
-      test_python_37_skip_job: ${{ steps.set_ouputs.outputs.test_python_37_skip_job }}
-      test_python_37_skip_cache_key: ${{ steps.set_cache.outputs.test_python_37_skip_cache_key }}
       test_python_38_skip_job: ${{ steps.set_ouputs.outputs.test_python_38_skip_job }}
       test_python_38_skip_cache_key: ${{ steps.set_cache.outputs.test_python_38_skip_cache_key }}
       test_python_310_skip_job: ${{ steps.set_ouputs.outputs.test_python_310_skip_job }}
@@ -194,10 +184,10 @@ jobs:
     steps:
 
       - name: Checkout
-        uses: actions/checkout@v3
+        uses: actions/checkout@v4
 
       - name: Setup Python
-        uses: actions/setup-python@v4
+        uses: actions/setup-python@v5
         with:
           python-version: '3.9'
 
@@ -206,7 +196,7 @@ jobs:
         run: setup_cache_name '3.9' 'ubuntu-22.04'
 
       - name: Setup cache
-        uses: actions/cache@v3
+        uses: actions/cache@v4
         with:
           path: .cache
           key: 0_${{ steps.set_cache.outputs.cache_name }}_${{ hashFiles('reqs/constraints.txt', 'reqs/dist.txt', 'reqs/test.txt') }}
@@ -215,7 +205,8 @@ jobs:
         run: setup_pip_options
 
       - name: Setup Python environment
-        run: setup_python_env -c reqs/constraints.txt -r reqs/dist.txt -r reqs/test.txt
+        run: setup_python_env -c reqs/constraints.txt -r reqs/dist.txt -r reqs/test.txt        
+
       # Test {{{
 
       - name: Run tests
@@ -225,7 +216,7 @@ jobs:
       # }}}
 
       - name: Update skip cache 1
-        uses: actions/cache@v3
+        uses: actions/cache@v4
         with:
           path: .skip_cache_test_linux
           key: 0_${{ needs.analyze.outputs.test_linux_skip_cache_key }}
@@ -241,7 +232,7 @@ jobs:
   test_macos:
 
     name: Test (macOS)
-    runs-on: macos-12
+    runs-on: macos-15
     needs: [analyze, ]
     if: >-
       !cancelled()
@@ -250,14 +241,14 @@ jobs:
     steps:
 
       - name: Checkout
-        uses: actions/checkout@v3
+        uses: actions/checkout@v4
 
       - name: Set cache name
         id: set_cache
-        run: setup_cache_name '3.9' 'macos-12'
+        run: setup_cache_name '3.9' 'macos-15'
 
       - name: Setup cache
-        uses: actions/cache@v3
+        uses: actions/cache@v4
         with:
           path: .cache
           key: 0_${{ steps.set_cache.outputs.cache_name }}_${{ hashFiles('reqs/constraints.txt', 'reqs/dist.txt', 'reqs/test.txt', 'osx/deps.sh') }}
@@ -270,7 +261,8 @@ jobs:
         run: setup_osx_python '3.9'
 
       - name: Setup Python environment
-        run: setup_python_env -c reqs/constraints.txt -r reqs/dist.txt -r reqs/test.txt
+        run: setup_python_env -c reqs/constraints.txt -r reqs/dist.txt -r reqs/test.txt        
+
       # Test {{{
 
       - name: Run tests
@@ -280,7 +272,7 @@ jobs:
       # }}}
 
       - name: Update skip cache 1
-        uses: actions/cache@v3
+        uses: actions/cache@v4
         with:
           path: .skip_cache_test_macos
           key: 0_${{ needs.analyze.outputs.test_macos_skip_cache_key }}
@@ -305,10 +297,10 @@ jobs:
     steps:
 
       - name: Checkout
-        uses: actions/checkout@v3
+        uses: actions/checkout@v4
 
       - name: Setup Python
-        uses: actions/setup-python@v4
+        uses: actions/setup-python@v5
         with:
           python-version: '3.9'
 
@@ -322,7 +314,7 @@ jobs:
         run: setup_cache_name '3.9' 'windows-2022'
 
       - name: Setup cache
-        uses: actions/cache@v3
+        uses: actions/cache@v4
         with:
           path: .cache
           key: 0_${{ steps.set_cache.outputs.cache_name }}_${{ hashFiles('reqs/constraints.txt', 'reqs/dist.txt', 'reqs/test.txt') }}
@@ -331,7 +323,8 @@ jobs:
         run: setup_pip_options
 
       - name: Setup Python environment
-        run: setup_python_env -c reqs/constraints.txt -r reqs/dist.txt -r reqs/test.txt
+        run: setup_python_env -c reqs/constraints.txt -r reqs/dist.txt -r reqs/test.txt        
+
       # Test {{{
 
       - name: Run tests
@@ -341,69 +334,13 @@ jobs:
       # }}}
 
       - name: Update skip cache 1
-        uses: actions/cache@v3
+        uses: actions/cache@v4
         with:
           path: .skip_cache_test_windows
           key: 0_${{ needs.analyze.outputs.test_windows_skip_cache_key }}
 
       - name: Update skip cache 2
         run: run_eval "echo 'https://github.com/$GITHUB_REPOSITORY/actions/runs/$GITHUB_RUN_ID' >'.skip_cache_test_windows'"
-
-      - name: List cache contents
-        run: list_cache
-  # }}}
-
-  # Job: Test (Python 3.7) {{{
-  test_python_37:
-
-    name: Test (Python 3.7)
-    runs-on: ubuntu-latest
-    needs: [analyze, ]
-    if: >-
-      !cancelled()
-      && needs.analyze.outputs.test_python_37_skip_job == 'no'
-
-    steps:
-
-      - name: Checkout
-        uses: actions/checkout@v3
-
-      - name: Setup Python
-        uses: actions/setup-python@v4
-        with:
-          python-version: '3.7'
-
-      - name: Set cache name
-        id: set_cache
-        run: setup_cache_name '3.7' 'ubuntu-latest'
-
-      - name: Setup cache
-        uses: actions/cache@v3
-        with:
-          path: .cache
-          key: 0_${{ steps.set_cache.outputs.cache_name }}_${{ hashFiles('reqs/constraints.txt', 'reqs/dist.txt', 'reqs/test.txt') }}
-
-      - name: Setup pip options
-        run: setup_pip_options
-
-      - name: Setup Python environment
-        run: setup_python_env -c reqs/constraints.txt -r reqs/dist.txt -r reqs/test.txt
-      # Test {{{
-
-      - name: Run tests
-        run: run_tests -p no:pytest-qt --ignore=test/gui_qt
-
-
-      # }}}
-
-      - name: Update skip cache 1
-        uses: actions/cache@v3
-        with:
-          path: .skip_cache_test_python_37
-          key: 0_${{ needs.analyze.outputs.test_python_37_skip_cache_key }}
-
-      - name: Update skip cache 2
-        run: run_eval "echo 'https://github.com/$GITHUB_REPOSITORY/actions/runs/$GITHUB_RUN_ID' >'.skip_cache_test_python_37'"
 
       - name: List cache contents
         run: list_cache
@@ -422,10 +359,10 @@ jobs:
     steps:
 
       - name: Checkout
-        uses: actions/checkout@v3
+        uses: actions/checkout@v4
 
       - name: Setup Python
-        uses: actions/setup-python@v4
+        uses: actions/setup-python@v5
         with:
           python-version: '3.8'
 
@@ -434,7 +371,7 @@ jobs:
         run: setup_cache_name '3.8' 'ubuntu-latest'
 
       - name: Setup cache
-        uses: actions/cache@v3
+        uses: actions/cache@v4
         with:
           path: .cache
           key: 0_${{ steps.set_cache.outputs.cache_name }}_${{ hashFiles('reqs/constraints.txt', 'reqs/dist.txt', 'reqs/test.txt') }}
@@ -443,7 +380,8 @@ jobs:
         run: setup_pip_options
 
       - name: Setup Python environment
-        run: setup_python_env -c reqs/constraints.txt -r reqs/dist.txt -r reqs/test.txt
+        run: setup_python_env -c reqs/constraints.txt -r reqs/dist.txt -r reqs/test.txt        
+
       # Test {{{
 
       - name: Run tests
@@ -453,7 +391,7 @@ jobs:
       # }}}
 
       - name: Update skip cache 1
-        uses: actions/cache@v3
+        uses: actions/cache@v4
         with:
           path: .skip_cache_test_python_38
           key: 0_${{ needs.analyze.outputs.test_python_38_skip_cache_key }}
@@ -478,10 +416,10 @@ jobs:
     steps:
 
       - name: Checkout
-        uses: actions/checkout@v3
+        uses: actions/checkout@v4
 
       - name: Setup Python
-        uses: actions/setup-python@v4
+        uses: actions/setup-python@v5
         with:
           python-version: '3.10'
 
@@ -490,7 +428,7 @@ jobs:
         run: setup_cache_name '3.10' 'ubuntu-latest'
 
       - name: Setup cache
-        uses: actions/cache@v3
+        uses: actions/cache@v4
         with:
           path: .cache
           key: 0_${{ steps.set_cache.outputs.cache_name }}_${{ hashFiles('reqs/constraints.txt', 'reqs/dist.txt', 'reqs/test.txt') }}
@@ -499,7 +437,8 @@ jobs:
         run: setup_pip_options
 
       - name: Setup Python environment
-        run: setup_python_env -c reqs/constraints.txt -r reqs/dist.txt -r reqs/test.txt
+        run: setup_python_env -c reqs/constraints.txt -r reqs/dist.txt -r reqs/test.txt        
+
       # Test {{{
 
       - name: Run tests
@@ -509,7 +448,7 @@ jobs:
       # }}}
 
       - name: Update skip cache 1
-        uses: actions/cache@v3
+        uses: actions/cache@v4
         with:
           path: .skip_cache_test_python_310
           key: 0_${{ needs.analyze.outputs.test_python_310_skip_cache_key }}
@@ -534,10 +473,10 @@ jobs:
     steps:
 
       - name: Checkout
-        uses: actions/checkout@v3
+        uses: actions/checkout@v4
 
       - name: Setup Python
-        uses: actions/setup-python@v4
+        uses: actions/setup-python@v5
         with:
           python-version: '3.9'
 
@@ -546,7 +485,7 @@ jobs:
         run: setup_cache_name '3.9' 'ubuntu-22.04'
 
       - name: Setup cache
-        uses: actions/cache@v3
+        uses: actions/cache@v4
         with:
           path: .cache
           key: 0_${{ steps.set_cache.outputs.cache_name }}_${{ hashFiles('reqs/constraints.txt', 'reqs/dist.txt', 'reqs/dist_extra_gui_qt.txt', 'reqs/test.txt') }}
@@ -554,8 +493,15 @@ jobs:
       - name: Setup pip options
         run: setup_pip_options
 
+      - name: Install system dependencies
+        run: apt_get_install libdbus-1-dev libdbus-glib-1-dev libudev-dev libusb-1.0-0-dev libegl-dev libxkbcommon-x11-0
+
       - name: Setup Python environment
-        run: setup_python_env -c reqs/constraints.txt -r reqs/dist.txt -r reqs/dist_extra_gui_qt.txt -r reqs/test.txt
+        run: setup_python_env -c reqs/constraints.txt -r reqs/dist.txt -r reqs/dist_extra_gui_qt.txt -r reqs/test.txt        
+
+      - name: Build Resources
+        run: python setup.py build_resources
+
       - name: Build UI
         run: python setup.py build_ui
 
@@ -568,7 +514,7 @@ jobs:
       # }}}
 
       - name: Update skip cache 1
-        uses: actions/cache@v3
+        uses: actions/cache@v4
         with:
           path: .skip_cache_test_qt_gui
           key: 0_${{ needs.analyze.outputs.test_qt_gui_skip_cache_key }}
@@ -593,13 +539,13 @@ jobs:
     steps:
 
       - name: Checkout
-        uses: actions/checkout@v3
+        uses: actions/checkout@v4
         with:
           # We need the whole history for patching the version.
           fetch-depth: 0
 
       - name: Setup Python
-        uses: actions/setup-python@v4
+        uses: actions/setup-python@v5
         with:
           python-version: '3.9'
 
@@ -608,7 +554,7 @@ jobs:
         run: setup_cache_name '3.9' 'ubuntu-latest'
 
       - name: Setup cache
-        uses: actions/cache@v3
+        uses: actions/cache@v4
         with:
           path: .cache
           key: 0_${{ steps.set_cache.outputs.cache_name }}_${{ hashFiles('reqs/constraints.txt', 'reqs/packaging.txt', 'reqs/setup.txt') }}
@@ -617,7 +563,8 @@ jobs:
         run: setup_pip_options
 
       - name: Setup Python environment
-        run: setup_python_env -c reqs/constraints.txt -r reqs/packaging.txt -r reqs/setup.txt
+        run: setup_python_env -c reqs/constraints.txt -r reqs/packaging.txt -r reqs/setup.txt        
+
       - name: Patch version
         id: set_version
         run: |
@@ -631,14 +578,14 @@ jobs:
 
       - name: Archive artifact (sdist)
         if: needs.analyze.outputs.is_release == 'yes'
-        uses: actions/upload-artifact@v3
+        uses: actions/upload-artifact@v4
         with:
           name: Source
           path: dist/*.tar.gz
 
       - name: Archive artifact (wheel)
         if: needs.analyze.outputs.is_release == 'yes'
-        uses: actions/upload-artifact@v3
+        uses: actions/upload-artifact@v4
         with:
           name: Wheel
           path: dist/*.whl
@@ -649,7 +596,7 @@ jobs:
 
       - name: Archive artifact (translations catalogs)
         if: needs.analyze.outputs.is_release == 'yes'
-        uses: actions/upload-artifact@v3
+        uses: actions/upload-artifact@v4
         with:
           name: Translations Catalogs
           path: dist/*-messages.zip
@@ -657,7 +604,7 @@ jobs:
       # }}}
 
       - name: Update skip cache 1
-        uses: actions/cache@v3
+        uses: actions/cache@v4
         with:
           path: .skip_cache_test_packaging
           key: 0_${{ needs.analyze.outputs.test_packaging_skip_cache_key }}
@@ -667,7 +614,7 @@ jobs:
 
       - name: List cache contents
         run: list_cache
-  
+
     outputs:
       version: ${{ steps.set_version.outputs.version }}
   # }}}
@@ -686,13 +633,13 @@ jobs:
     steps:
 
       - name: Checkout
-        uses: actions/checkout@v3
+        uses: actions/checkout@v4
         with:
           # We need the whole history for patching the version.
           fetch-depth: 0
 
       - name: Setup Python
-        uses: actions/setup-python@v4
+        uses: actions/setup-python@v5
         with:
           python-version: '3.9'
 
@@ -701,7 +648,7 @@ jobs:
         run: setup_cache_name '3.9' 'ubuntu-22.04'
 
       - name: Setup cache
-        uses: actions/cache@v3
+        uses: actions/cache@v4
         with:
           path: .cache
           key: 0_${{ steps.set_cache.outputs.cache_name }}_${{ hashFiles('reqs/constraints.txt', 'reqs/build.txt', 'reqs/setup.txt', 'reqs/dist_*.txt', 'linux/appimage/deps.sh') }}
@@ -710,10 +657,11 @@ jobs:
         run: setup_pip_options
 
       - name: Install system dependencies
-        run: apt_get_install libdbus-1-dev libdbus-glib-1-dev libudev-dev libusb-1.0-0-dev
+        run: apt_get_install libdbus-1-dev libdbus-glib-1-dev libudev-dev libusb-1.0-0-dev libegl-dev libxkbcommon-x11-0
 
       - name: Setup Python environment
-        run: setup_python_env -c reqs/constraints.txt -r reqs/build.txt -r reqs/setup.txt
+        run: setup_python_env -c reqs/constraints.txt -r reqs/build.txt -r reqs/setup.txt        
+
       - name: Patch version
         id: set_version
         run: |
@@ -725,7 +673,7 @@ jobs:
         run: python setup.py -q bdist_appimage --no-update-tools
 
       - name: Archive artifact (Linux AppImage)
-        uses: actions/upload-artifact@v3
+        uses: actions/upload-artifact@v4
         with:
           name: Linux AppImage
           path: dist/*.AppImage
@@ -733,7 +681,7 @@ jobs:
       # }}}
 
       - name: Update skip cache 1
-        uses: actions/cache@v3
+        uses: actions/cache@v4
         with:
           path: .skip_cache_build_linux
           key: 0_${{ needs.analyze.outputs.build_linux_skip_cache_key }}
@@ -749,7 +697,7 @@ jobs:
   build_macos:
 
     name: Build (macOS)
-    runs-on: macos-12
+    runs-on: macos-15
     needs: [analyze, test_macos]
     if: >-
       !cancelled()
@@ -759,17 +707,17 @@ jobs:
     steps:
 
       - name: Checkout
-        uses: actions/checkout@v3
+        uses: actions/checkout@v4
         with:
           # We need the whole history for patching the version.
           fetch-depth: 0
 
       - name: Set cache name
         id: set_cache
-        run: setup_cache_name '3.9' 'macos-12'
+        run: setup_cache_name '3.9' 'macos-15'
 
       - name: Setup cache
-        uses: actions/cache@v3
+        uses: actions/cache@v4
         with:
           path: .cache
           key: 0_${{ steps.set_cache.outputs.cache_name }}_${{ hashFiles('reqs/constraints.txt', 'reqs/build.txt', 'reqs/setup.txt', 'reqs/dist_*.txt', 'osx/deps.sh') }}
@@ -782,7 +730,8 @@ jobs:
         run: setup_osx_python '3.9'
 
       - name: Setup Python environment
-        run: setup_python_env -c reqs/constraints.txt -r reqs/build.txt -r reqs/setup.txt
+        run: setup_python_env -c reqs/constraints.txt -r reqs/build.txt -r reqs/setup.txt        
+
       - name: Patch version
         id: set_version
         run: |
@@ -794,7 +743,7 @@ jobs:
         run: python setup.py -q bdist_dmg
 
       - name: Archive artifact (macOS DMG)
-        uses: actions/upload-artifact@v3
+        uses: actions/upload-artifact@v4
         with:
           name: macOS DMG
           path: dist/*.dmg
@@ -802,7 +751,7 @@ jobs:
       # }}}
 
       - name: Update skip cache 1
-        uses: actions/cache@v3
+        uses: actions/cache@v4
         with:
           path: .skip_cache_build_macos
           key: 0_${{ needs.analyze.outputs.build_macos_skip_cache_key }}
@@ -828,13 +777,13 @@ jobs:
     steps:
 
       - name: Checkout
-        uses: actions/checkout@v3
+        uses: actions/checkout@v4
         with:
           # We need the whole history for patching the version.
           fetch-depth: 0
 
       - name: Setup Python
-        uses: actions/setup-python@v4
+        uses: actions/setup-python@v5
         with:
           python-version: '3.9'
 
@@ -848,7 +797,7 @@ jobs:
         run: setup_cache_name '3.9' 'windows-2022'
 
       - name: Setup cache
-        uses: actions/cache@v3
+        uses: actions/cache@v4
         with:
           path: .cache
           key: 0_${{ steps.set_cache.outputs.cache_name }}_${{ hashFiles('reqs/constraints.txt', 'reqs/build.txt', 'reqs/setup.txt', 'reqs/dist_*.txt', 'windows/dist_deps.sh') }}
@@ -857,7 +806,8 @@ jobs:
         run: setup_pip_options
 
       - name: Setup Python environment
-        run: setup_python_env -c reqs/constraints.txt -r reqs/build.txt -r reqs/setup.txt
+        run: setup_python_env -c reqs/constraints.txt -r reqs/build.txt -r reqs/setup.txt        
+
       - name: Patch version
         id: set_version
         run: |
@@ -872,13 +822,13 @@ jobs:
           python setup.py -q bdist_win -t -z -i --bash="$bash"
 
       - name: Archive artifact (Windows Installer)
-        uses: actions/upload-artifact@v3
+        uses: actions/upload-artifact@v4
         with:
           name: Windows Installer
           path: dist/*.exe
 
       - name: Archive artifact (Windows ZIP)
-        uses: actions/upload-artifact@v3
+        uses: actions/upload-artifact@v4
         with:
           name: Windows ZIP
           path: dist/*.zip
@@ -886,7 +836,7 @@ jobs:
       # }}}
 
       - name: Update skip cache 1
-        uses: actions/cache@v3
+        uses: actions/cache@v4
         with:
           path: .skip_cache_build_windows
           key: 0_${{ needs.analyze.outputs.build_windows_skip_cache_key }}
@@ -904,13 +854,12 @@ jobs:
     name: Release
     environment: release
     runs-on: ubuntu-latest
-    needs: [analyze, test_linux, test_macos, test_windows, test_python_37, test_python_38, test_python_310, test_qt_gui, test_packaging, build_linux, build_macos, build_windows]
+    needs: [analyze, test_linux, test_macos, test_windows, test_python_38, test_python_310, test_qt_gui, test_packaging, build_linux, build_macos, build_windows]
     if: >-
       !cancelled()
       && needs.test_linux.result == 'success'
       && needs.test_macos.result == 'success'
       && needs.test_windows.result == 'success'
-      && needs.test_python_37.result == 'success'
       && needs.test_python_38.result == 'success'
       && needs.test_python_310.result == 'success'
       && needs.test_qt_gui.result == 'success'
@@ -923,12 +872,13 @@ jobs:
     steps:
 
       - name: Checkout
-        uses: actions/checkout@v3
+        uses: actions/checkout@v4
 
+      # FIXME pass python version via workflow_context
       - name: Setup Python
-        uses: actions/setup-python@v4
+        uses: actions/setup-python@v5
         with:
-          python-version: 3.x
+          python-version: 3.9
 
       - name: Install dependencies
         run: |
@@ -936,9 +886,16 @@ jobs:
           run "$python" -m pip install -c reqs/constraints.txt -r reqs/release.txt
 
       - name: Download artifacts
-        uses: actions/download-artifact@v3
+        uses: actions/download-artifact@v4
         with:
           path: dist
+
+      - name: Publish GitHub release (${{ needs.analyze.outputs.release_type }})
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          RELEASE_TYPE: ${{ needs.analyze.outputs.release_type }}
+          RELEASE_VERSION: ${{ needs.test_packaging.outputs.version }}
+        run: publish_github_release
 
       - name: Publish PyPI release
         if: needs.analyze.outputs.release_type == 'tagged'
@@ -949,13 +906,6 @@ jobs:
           # Optional: twine will fallback to default if empty.
           TWINE_REPOSITORY_URL: ${{ secrets.PYPI_URL }}
         run: publish_pypi_release
-
-      - name: Publish GitHub release (${{ needs.analyze.outputs.release_type }})
-        env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-          RELEASE_TYPE: ${{ needs.analyze.outputs.release_type }}
-          RELEASE_VERSION: ${{ needs.test_packaging.outputs.version }}
-        run: publish_github_release
   # }}}
 
 # vim: foldmethod=marker foldlevel=0

@@ -26,6 +26,8 @@ LOGGING_CONFIG_SECTION = 'Logging Configuration'
 OUTPUT_CONFIG_SECTION = 'Output Configuration'
 DEFAULT_UNDO_LEVELS = 100
 MINIMUM_UNDO_LEVELS = 1
+DEFAULT_TIME_BETWEEN_KEY_PRESSES = 0
+MINIMUM_TIME_BETWEEN_KEY_PRESSES = 0
 
 DEFAULT_SYSTEM_NAME = 'English Stenotype'
 
@@ -105,12 +107,14 @@ def json_option(name, default, section, option, validate):
 def int_option(name, default, minimum, maximum, section, option=None):
     option = option or name
     def getter(config, key):
-        return config._config[section].getint(option)
+        return config._config[section][option]
     def setter(config, key, value):
         config._set(section, option, str(value))
     def validate(config, key, value):
-        if not isinstance(value, int):
-            raise InvalidConfigOption(value, default)
+        try:
+            value = int(value)
+        except ValueError as e:
+            raise InvalidConfigOption(value, default) from e
         if (minimum is not None and value < minimum) or \
            (maximum is not None and value > maximum):
             message = '%s not in [%s, %s]' % (value, minimum or '-∞', maximum or '∞')
@@ -333,6 +337,8 @@ class Config:
         boolean_option('start_attached', False, OUTPUT_CONFIG_SECTION),
         boolean_option('start_capitalized', False, OUTPUT_CONFIG_SECTION),
         int_option('undo_levels', DEFAULT_UNDO_LEVELS, MINIMUM_UNDO_LEVELS, None, OUTPUT_CONFIG_SECTION),
+        int_option('time_between_key_presses', DEFAULT_TIME_BETWEEN_KEY_PRESSES, MINIMUM_TIME_BETWEEN_KEY_PRESSES, None, OUTPUT_CONFIG_SECTION),
+        choice_option("keyboard_layout", ("qwerty", "qwertz", "colemak", "colemak-dh"), OUTPUT_CONFIG_SECTION),
         # Logging.
         path_option('log_file_name', expand_path('strokes.log'), LOGGING_CONFIG_SECTION, 'log_file'),
         boolean_option('enable_stroke_logging', False, LOGGING_CONFIG_SECTION),

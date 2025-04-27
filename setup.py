@@ -22,14 +22,16 @@ with open(os.path.join(__software_name__, '__init__.py')) as fp:
     exec(fp.read())
 
 from plover_build_utils.setup import (
-    BuildPy, BuildUi, Command, Develop, babel_options
+    BuildPy, BuildResources, BuildUi, Command, Develop, babel_options
 )
 
 
-BuildPy.build_dependencies.append('build_ui')
 Develop.build_dependencies.append('build_py')
+BuildPy.build_dependencies.append('build_resources')
+BuildPy.build_dependencies.append('build_ui')
 cmdclass = {
     'build_py': BuildPy,
+    'build_resources': BuildResources,
     'build_ui': BuildUi,
     'develop': Develop,
 }
@@ -45,12 +47,16 @@ PACKAGE = '%s-%s' % (
 def get_version():
     if not os.path.exists('.git'):
         return None
-    version = subprocess.check_output('git describe --tags --match=v[0-9]*'.split()).strip().decode()
-    m = re.match(r'^v(\d[\d.]*(?:\.dev\d+)?)(-\d+-g[a-f0-9]*)?$', version)
-    assert m is not None, version
-    version = m.group(1)
+
+    version = __version__
+
+    # extend version with git revision if no tag is available - used for builds during development
+    git_version = subprocess.check_output('git describe --tags --match=v[0-9]*'.split()).strip().decode()
+    m = re.match(r'^v(\d[\d.]*(?:(?:\.dev|rc)\d+)?)(-\d+-g[a-f0-9]*)?$', git_version)
+    assert m is not None, git_version
     if m.group(2) is not None:
         version += '+' + m.group(2)[1:].replace('-', '.')
+
     return version
 
 # }}}
@@ -143,6 +149,14 @@ class PatchVersion(Command):
 
     def finalize_options(self):
         assert 0 <= len(self.args) <= 1
+    
+    def patch_version(self, version_file_path, regex_pattern, regex_replacement, version):
+        with open(version_file_path, 'r') as fp:
+            contents = fp.read().split('\n')
+        contents = [re.sub(regex_pattern,regex_replacement % version, line)
+                    for line in contents]
+        with open(version_file_path, 'w') as fp:
+            fp.write('\n'.join(contents))
 
     def run(self):
         if self.args:
@@ -155,13 +169,12 @@ class PatchVersion(Command):
                 sys.exit(1)
         if self.verbose:
             print('patching version to', version)
-        version_file = os.path.join('plover', '__init__.py')
-        with open(version_file, 'r') as fp:
-            contents = fp.read().split('\n')
-        contents = [re.sub(r'^__version__ = .*$', "__version__ = '%s'" % version, line)
-                    for line in contents]
-        with open(version_file, 'w') as fp:
-            fp.write('\n'.join(contents))
+        
+        plover_init_file_path = os.path.join('plover', '__init__.py')
+        self.patch_version(plover_init_file_path, r'^__version__ = .*$', "__version__ = '%s'", version)
+
+        doc_conf_file_path = os.path.join('doc', 'conf.py')
+        self.patch_version(doc_conf_file_path, r'^release = .*$', 'release = "%s"', version)
 
 cmdclass['patch_version'] = PatchVersion
 
@@ -284,8 +297,7 @@ setup(
     extras_require={
         'gui_qt': reqs('dist_extra_gui_qt'),
         'log': reqs('dist_extra_log'),
-    },
-    tests_require=reqs('test'),
+    }
 )
 
 # vim: foldmethod=marker

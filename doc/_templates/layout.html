@@ -1,0 +1,21 @@
+{% extends "!layout.html" %}
+{% block footer %} {{ super() }}
+  <style>
+    .wy-nav-top,
+    .wy-side-nav-search,
+    .wy-menu-vertical a:active {
+      background-color: #6da89e;
+    }
+
+    html.writer-html4 .rst-content dl:not(.docutils)>dt,
+    html.writer-html5 .rst-content dl[class]:not(.option-list):not(.field-list):not(.footnote):not(.glossary):not(.simple)>dt {
+      color: #6da89e;
+      border-top-color: #6da89e;
+      background-color: #dff2ef;
+    }
+
+    a {
+      color: #6da89e;
+    }
+  </style>
+{% endblock %}

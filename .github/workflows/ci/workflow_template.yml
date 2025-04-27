@@ -3,11 +3,15 @@ name: CI
 on:
   push:
     branches:
-      - '*'
-    tags-ignore:
-      # Ignore continuous releases' tag.
-      - 'continuous'
+      - 'main'
+      - 'maintenance/*'
+    tags:
+      - 'v*'
   pull_request:
+    types:
+        - opened
+        - reopened
+        - synchronize
 
 defaults:
   run:
@@ -48,8 +52,6 @@ jobs:
       <% endif %>
       - name: Set outputs
         id: set_ouputs
-        env:
-          CONTINUOUS_RELEASE_BRANCH: ${{ secrets.CONTINUOUS_RELEASE_BRANCH }}
         run: |
           analyze_set_release_info
           <% for j in jobs %>
@@ -127,13 +129,14 @@ jobs:
         run: setup_osx_python '<@ j.python @>'
 
       <% endif %>
-      <% if j.type == 'build' and j.os == 'Linux' %>
+      <% if j.type in ['build', 'test_gui_qt'] and j.os == 'Linux' %>
       - name: Install system dependencies
-        run: apt_get_install libdbus-1-dev libdbus-glib-1-dev libudev-dev libusb-1.0-0-dev
+        run: apt_get_install libdbus-1-dev libdbus-glib-1-dev libudev-dev libusb-1.0-0-dev libegl-dev libxkbcommon-x11-0
 
       <% endif %>
       - name: Setup Python environment
         run: setup_python_env -c reqs/constraints.txt<% for r in j.reqs %> -r <@ r @><% endfor %>
+        
 
       <% if j.type in ['build', 'test_packaging'] %>
       - name: Patch version
@@ -146,6 +149,9 @@ jobs:
 
       <% endif %>
       <% if j.type == 'test_gui_qt' %>
+      - name: Build Resources
+        run: python setup.py build_resources
+
       - name: Build UI
         run: python setup.py build_ui
 
@@ -256,7 +262,7 @@ jobs:
       - name: List cache contents
         run: list_cache
     <% if j.type == 'test_packaging' %>
-  
+
     outputs:
       version: ${{ steps.set_version.outputs.version }}
     <% endif %>
@@ -282,10 +288,11 @@ jobs:
       - name: Checkout
         uses: <@ action_checkout @>
 
+      # FIXME pass python version via workflow_context
       - name: Setup Python
         uses: <@ action_setup_python @>
         with:
-          python-version: 3.x
+          python-version: 3.9
 
       - name: Install dependencies
         run: |
@@ -297,6 +304,13 @@ jobs:
         with:
           path: dist
 
+      - name: Publish GitHub release (${{ needs.analyze.outputs.release_type }})
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          RELEASE_TYPE: ${{ needs.analyze.outputs.release_type }}
+          RELEASE_VERSION: ${{ needs.test_packaging.outputs.version }}
+        run: publish_github_release
+
       - name: Publish PyPI release
         if: needs.analyze.outputs.release_type == 'tagged'
         env:
@@ -306,13 +320,6 @@ jobs:
           # Optional: twine will fallback to default if empty.
           TWINE_REPOSITORY_URL: ${{ secrets.PYPI_URL }}
         run: publish_pypi_release
-
-      - name: Publish GitHub release (${{ needs.analyze.outputs.release_type }})
-        env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-          RELEASE_TYPE: ${{ needs.analyze.outputs.release_type }}
-          RELEASE_VERSION: ${{ needs.test_packaging.outputs.version }}
-        run: publish_github_release
   # }}}
 
 # vim: foldmethod=marker foldlevel=0
