@@ -38,8 +38,6 @@ BASE_LAYOUT = {
     "0": e.KEY_0,
     # Symbols
     " ": e.KEY_SPACE,
-    ".": e.KEY_DOT,
-    ",": e.KEY_COMMA,
     "\b": e.KEY_BACKSPACE,
     "\n": e.KEY_ENTER,
     # https://github.com/openstenoproject/plover/blob/9b5a357f1fb57cb0a9a8596ae12cd1e84fcff6c4/plover/oslayer/osx/keyboardcontrol.py#L75
@@ -50,6 +48,28 @@ BASE_LAYOUT = {
     "delete": e.KEY_DELETE,
     "escape": e.KEY_ESC,
     "clear": e.KEY_CLEAR,
+    "minus": e.KEY_MINUS,
+    "equal": e.KEY_EQUAL,
+    "bracketleft": e.KEY_LEFTBRACE,
+    "bracketright": e.KEY_RIGHTBRACE,
+    "backslash": e.KEY_BACKSLASH,
+    "semicolon": e.KEY_SEMICOLON,
+    "apostrophe": e.KEY_APOSTROPHE,
+    "comma": e.KEY_COMMA,
+    "dot": e.KEY_DOT,
+    "slash": e.KEY_SLASH,
+    "grave": e.KEY_GRAVE,
+    "-": e.KEY_MINUS,
+    "=": e.KEY_EQUAL,
+    "[": e.KEY_LEFTBRACE,
+    "]": e.KEY_RIGHTBRACE,
+    "\\": e.KEY_BACKSLASH,
+    ";": e.KEY_SEMICOLON,
+    "'": e.KEY_APOSTROPHE,
+    ",": e.KEY_COMMA,
+    ".": e.KEY_DOT,
+    "/": e.KEY_SLASH,
+    "`": e.KEY_GRAVE,
     # Navigation
     "up": e.KEY_UP,
     "down": e.KEY_DOWN,
@@ -256,13 +276,7 @@ LAYOUTS = {
     },
 }
 
-us_qwerty = {
-    **LAYOUTS[DEFAULT_LAYOUT],
-    ";": e.KEY_SEMICOLON,
-    "'": e.KEY_APOSTROPHE,
-    "[": e.KEY_LEFTBRACE,
-}
-KEYCODE_TO_KEY = dict(zip(us_qwerty.values(), us_qwerty.keys()))
+KEYCODE_TO_KEY = dict(zip(LAYOUTS[DEFAULT_LAYOUT].values(), LAYOUTS[DEFAULT_LAYOUT].keys()))
 
 
 class KeyboardEmulation(GenericKeyboardEmulation):
