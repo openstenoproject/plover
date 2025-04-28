@@ -158,7 +158,7 @@ bootstrap_dist()
     -r reqs/dist_extra_log.txt \
     "$@" || die
   # Avoid caching Plover's wheel.
-  run rm "$wheels_cache/$(basename "$wheel")"
+  #run rm "$wheels_cache/$(basename "$wheel")"
 }
 
 osx_standalone_python()
