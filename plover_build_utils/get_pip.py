@@ -1,14 +1,11 @@
 #!/usr/bin/env python3
 
+import os
 import sys
 import subprocess
 
-
-
-
-
 def get_pip(args=None):
-
+    os.makedirs("build", exist_ok=True)
 
     cmd = ["curl", "https://bootstrap.pypa.io/get-pip.py", "-o", "build/get-pip.py"]
     subprocess.call(cmd)
