@@ -31,7 +31,6 @@ MarkupSafe==3.0.2
 mock==5.2.0
 packaging==25.0
 pep517==0.13.1
-pip==25.1
 pkginfo==1.12.1.2
 plover-stroke==1.1.0
 pluggy==1.5.0

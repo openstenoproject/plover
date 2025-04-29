@@ -7,7 +7,8 @@ import subprocess
 def get_pip(args=None):
     os.makedirs("build", exist_ok=True)
 
-    cmd = ["curl", "https://bootstrap.pypa.io/get-pip.py", "-o", "build/get-pip.py"]
+    # can be downloaded from https://github.com/pypa/get-pip/tags by following the commit ID and opening the raw file
+    cmd = ["curl", "https://raw.githubusercontent.com/pypa/get-pip/c8048075753de535e6279e501940f41bc040c081/public/get-pip.py", "-o", "build/get-pip.py"]
     subprocess.call(cmd)
     cmd = [sys.executable,"build/get-pip.py","pip==25.1"]
     subprocess.call(cmd)
