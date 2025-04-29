@@ -120,9 +120,6 @@ jobs:
           path: .cache
           key: <@ cache_epoch @>_${{ steps.set_cache.outputs.cache_name }}_${{ hashFiles('reqs/constraints.txt'<% for d in (j.reqs + j.cache_extra_deps) %><@ ', %r' % d @><% endfor %>) }}
 
-      - name: Setup pip options
-        run: setup_pip_options
-
       <% if j.os == 'macOS' %>
       # To support older macOS versions, setup Python from an official installer.
       - name: Setup Python

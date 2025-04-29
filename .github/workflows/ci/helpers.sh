@@ -83,24 +83,6 @@ setup_osx_python()
   run_eval "echo SSL_CERT_FILE='$SSL_CERT_FILE' >>\$GITHUB_ENV"
 }
 
-setup_pip_options()
-{
-  # If the wheels cache is available, disable pip's index.
-  if [ -e "$wheels_cache" ]
-  then
-    run_eval "echo PIP_NO_INDEX=1 >>\$GITHUB_ENV"
-  else
-    run mkdir -p "$wheels_cache"
-  fi
-  if [ "$RUNNER_OS" = 'Windows' ]
-  then
-    PIP_FIND_LINKS="$(cygpath -a -w "$wheels_cache")" || die
-  else
-    PIP_FIND_LINKS="$PWD/$wheels_cache"
-  fi
-  run_eval "echo PIP_FIND_LINKS='$PIP_FIND_LINKS' >>\$GITHUB_ENV"
-}
-
 setup_python_env()
 {
   python_userbase="$cache_dir/python_userbase"
