@@ -76,8 +76,8 @@ setup_osx_python()
   fi
   # Update PATH.
   run_eval "echo \"\$PWD/$python_dir/Python.framework/Versions/Current/bin\" >>\$GITHUB_PATH"
-  # Target High Sierra.
-  run_eval "echo MACOSX_DEPLOYMENT_TARGET=10.13 >>\$GITHUB_ENV"
+  # Target macOS Monterey.
+  run_eval "echo MACOSX_DEPLOYMENT_TARGET=12.0 >>\$GITHUB_ENV"
   # Fix SSL certificates so plover_build_utils.download works.
   SSL_CERT_FILE="$("$python" -m pip._vendor.certifi)" || die
   run_eval "echo SSL_CERT_FILE='$SSL_CERT_FILE' >>\$GITHUB_ENV"
