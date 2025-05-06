@@ -371,9 +371,13 @@ class KeyboardCapture(Capture):
         Filter out devices that should not be grabbed and suppressed, to avoid output feeding into itself.
         """
         is_uinput = device.name == "py-evdev-uinput" or device.phys == "py-evdev-uinput"
-        capabilities = device.capabilities()
-        is_mouse = e.EV_REL in capabilities or e.EV_ABS in capabilities
-        return not is_uinput and not is_mouse
+        # Check for some common keys to make sure it's really a keyboard
+        keys = device.capabilities().get(e.EV_KEY, [])
+        keyboard_keys_present = any(
+            key in keys
+            for key in [e.KEY_ESC, e.KEY_SPACE, e.KEY_ENTER, e.KEY_LEFTSHIFT]
+        )
+        return not is_uinput and keyboard_keys_present
 
     def start(self):
         self._running = True
