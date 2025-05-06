@@ -1,22 +1,10 @@
-import os
-
 from requests_futures import sessions
 import requests_cache
-
-from plover.oslayer.config import CONFIG_DIR
-
-
-CACHE_NAME = os.path.join(CONFIG_DIR, '.cache', 'plugins')
-
 
 class CachedSession(requests_cache.CachedSession):
 
     def __init__(self):
-        dirname = os.path.dirname(CACHE_NAME)
-        if not os.path.exists(dirname):
-            os.makedirs(dirname)
-        super().__init__(cache_name=CACHE_NAME,
-                         backend='sqlite',
+        super().__init__(backend='memory',
                          expire_after=600)
         self.cache.delete(expired=True)
 
