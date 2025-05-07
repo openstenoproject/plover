@@ -91,8 +91,57 @@ class MySerialMachine(SerialStenotypeBase):
 
 ## USB-based Protocols
 
-```{todo}
-Complete this section.
+### Stenograph USB
+```
+Packet format:
+--------------
+Name:     Size:       Value Range:
+----------------------------------
+Sync          2 bytes "SG"
+Sequence #    4 bytes 0 - 0xFFFFFFFF (will wrap from 0xFFFFFFFF to 0x00000000)
+Packet ID     2 bytes As Defined (used as packet type)
+Data Length   4 bytes 0 - size (limited in most writers to 65536 bytes)
+Parameter 1   4 bytes As Defined
+Parameter 2   4 bytes As Defined
+Parameter 3   4 bytes As Defined
+Parameter 4   4 bytes As Defined
+Parameter 5   4 bytes As Defined
+
+Command 0x13 Read Bytes
+-----------------------
+
+Request (from PC)
+Description   Packet ID   Data Length       Param 1       Param 2     Param 3     Param 4     Param 5
+------------------------------------------------------------------------------------------------------
+Read Bytes   0x0013       00000000          File Offset   Byte Count  00000000    00000000    00000000
+
+-Parameter 1 contains the file offset from which the writer should start returning bytes (or stroke number * 8 since there are 8 bytes returned per stroke (see details of Response))
+-Parameter 2 contains the maximum number of bytes the Host wants the writer to send in response to this request
+-The writer will respond to this packet with a successful Read Bytes packet or an Error packet.
+
+Response (from writer)
+Description   Packet ID   Data Length       Param 1       Param 2     Param 3     Param 4     Param 5
+------------------------------------------------------------------------------------------------------
+Read Bytes    0x0013      Number of Bytes   File Offset   00000000    00000000    00000000    00000000
+
+-Parameter 1 contains the file offset from which the writer is returning bytes
+-For real-time the data is four bytes of steno and 4 bytes of timestamp - 8 bytes per stroke - repeating for the number of strokes returned.
+The format of the eight bytes will be:
+-Byte 0: 11^#STKP
+-Byte 1: 11WHRAO*
+-Byte 2: 11EUFRPB
+-Byte 3: 11LGTSDZ
+-Bytes 4-7: 'timestamp'
+-The steno is in the (very) old SmartWriter format where the top two bits of each of the four bytes are set to 1 and the bottom 6 bits as set according to the keys pressed.
+-If the Data Length is zero that indicates there are no more bytes available (real-time).
+-If the file has been closed (on the writer) an Error packet (error: FileClosed) will be sent in response to Read Bytes.
+
+Description   Packet ID   Data Length       Param 1       Param 2     Param 3     Param 4     Param 5
+------------------------------------------------------------------------------------------------------
+Open File     0x0012      Number of Bytes   Disk ID
+
+- Parameter 1 is the disk ID that the file you wish to open is on (disk A for all intents and purposes)
+- Data is the filename, probably 'REALTIME.000'
 ```
 
 ## Other Protocols
