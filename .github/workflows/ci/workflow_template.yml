@@ -285,11 +285,10 @@ jobs:
       - name: Checkout
         uses: <@ action_checkout @>
 
-      # FIXME pass python version via workflow_context
       - name: Setup Python
         uses: <@ action_setup_python @>
         with:
-          python-version: 3.13.3
+          python-version: <@ default_python @>
 
       - name: Install dependencies
         run: |

@@ -42,8 +42,11 @@ jobs:
           job_cache_extra_deps=(); job_id=test_linux; job_name='Test (Linux)'; job_needs=(); job_os=Linux; job_platform=ubuntu-22.04; job_python=3.13.3; job_reqs=(reqs/dist.txt reqs/test.txt); job_skip_cache_name=skip_test_linux_py-3.13.3_ubuntu-22.04; job_skip_cache_path=.skip_cache_test_linux; job_skiplists=(job_test os_linux); job_test_args='-p no:pytest-qt --ignore=test/gui_qt'; job_type=test; job_variant=Linux; analyze_set_job_skip_cache_key
           job_cache_extra_deps=(osx/deps.sh); job_id=test_macos; job_name='Test (macOS)'; job_needs=(); job_os=macOS; job_platform=macos-15; job_python=3.13.3; job_reqs=(reqs/dist.txt reqs/test.txt); job_skip_cache_name=skip_test_macos_py-3.13.3_macos-15; job_skip_cache_path=.skip_cache_test_macos; job_skiplists=(job_test os_macos); job_test_args='-p no:pytest-qt --ignore=test/gui_qt'; job_type=test; job_variant=macOS; analyze_set_job_skip_cache_key
           job_cache_extra_deps=(); job_id=test_windows; job_name='Test (Windows)'; job_needs=(); job_os=Windows; job_platform=windows-2022; job_python=3.13.3; job_reqs=(reqs/dist.txt reqs/test.txt); job_skip_cache_name=skip_test_windows_py-3.13.3_windows-2022; job_skip_cache_path=.skip_cache_test_windows; job_skiplists=(job_test os_windows); job_test_args='-p no:pytest-qt --ignore=test/gui_qt'; job_type=test; job_variant=Windows; analyze_set_job_skip_cache_key
-          job_cache_extra_deps=(); job_id=test_python_313; job_name='Test (Python 3.13)'; job_needs=(); job_os=Linux; job_platform=ubuntu-latest; job_python=3.13.3; job_reqs=(reqs/dist.txt reqs/test.txt); job_skip_cache_name=skip_test_python_313_py-3.13.3_ubuntu-latest; job_skip_cache_path=.skip_cache_test_python_313; job_skiplists=(job_test os_linux os_macos os_windows); job_test_args='-p no:pytest-qt --ignore=test/gui_qt'; job_type=test; job_variant='Python 3.13'; analyze_set_job_skip_cache_key
+          job_cache_extra_deps=(); job_id=test_python_latest_supported; job_name='Test (Python Latest Supported)'; job_needs=(); job_os=Linux; job_platform=ubuntu-latest; job_python=3.13.3; job_reqs=(reqs/dist.txt reqs/test.txt); job_skip_cache_name=skip_test_python_latest_supported_py-3.13.3_ubuntu-latest; job_skip_cache_path=.skip_cache_test_python_latest_supported; job_skiplists=(job_test os_linux os_macos os_windows); job_test_args='-p no:pytest-qt --ignore=test/gui_qt'; job_type=test; job_variant='Python Latest Supported'; analyze_set_job_skip_cache_key
+          job_cache_extra_deps=(); job_id=test_python_312; job_name='Test (Python 3.12)'; job_needs=(); job_os=Linux; job_platform=ubuntu-latest; job_python=3.12; job_reqs=(reqs/dist.txt reqs/test.txt); job_skip_cache_name=skip_test_python_312_py-3.12_ubuntu-latest; job_skip_cache_path=.skip_cache_test_python_312; job_skiplists=(job_test os_linux os_macos os_windows); job_test_args='-p no:pytest-qt --ignore=test/gui_qt'; job_type=test; job_variant='Python 3.12'; analyze_set_job_skip_cache_key
+          job_cache_extra_deps=(); job_id=test_python_311; job_name='Test (Python 3.11)'; job_needs=(); job_os=Linux; job_platform=ubuntu-latest; job_python=3.11; job_reqs=(reqs/dist.txt reqs/test.txt); job_skip_cache_name=skip_test_python_311_py-3.11_ubuntu-latest; job_skip_cache_path=.skip_cache_test_python_311; job_skiplists=(job_test os_linux os_macos os_windows); job_test_args='-p no:pytest-qt --ignore=test/gui_qt'; job_type=test; job_variant='Python 3.11'; analyze_set_job_skip_cache_key
           job_cache_extra_deps=(); job_id=test_python_310; job_name='Test (Python 3.10)'; job_needs=(); job_os=Linux; job_platform=ubuntu-latest; job_python=3.10; job_reqs=(reqs/dist.txt reqs/test.txt); job_skip_cache_name=skip_test_python_310_py-3.10_ubuntu-latest; job_skip_cache_path=.skip_cache_test_python_310; job_skiplists=(job_test os_linux os_macos os_windows); job_test_args='-p no:pytest-qt --ignore=test/gui_qt'; job_type=test; job_variant='Python 3.10'; analyze_set_job_skip_cache_key
+          job_cache_extra_deps=(); job_id=test_python_39; job_name='Test (Python 3.9)'; job_needs=(); job_os=Linux; job_platform=ubuntu-latest; job_python=3.9; job_reqs=(reqs/dist.txt reqs/test.txt); job_skip_cache_name=skip_test_python_39_py-3.9_ubuntu-latest; job_skip_cache_path=.skip_cache_test_python_39; job_skiplists=(job_test os_linux os_macos os_windows); job_test_args='-p no:pytest-qt --ignore=test/gui_qt'; job_type=test; job_variant='Python 3.9'; analyze_set_job_skip_cache_key
           job_cache_extra_deps=(); job_id=test_qt_gui; job_name='Test (Qt GUI)'; job_needs=(); job_os=Linux; job_platform=ubuntu-22.04; job_python=3.13.3; job_reqs=(reqs/dist.txt reqs/dist_extra_gui_qt.txt reqs/test.txt); job_skip_cache_name=skip_test_qt_gui_py-3.13.3_ubuntu-22.04; job_skip_cache_path=.skip_cache_test_qt_gui; job_skiplists=(job_test_gui_qt); job_test_args=test/gui_qt; job_type=test_gui_qt; job_variant='Qt GUI'; analyze_set_job_skip_cache_key
           job_cache_extra_deps=(); job_id=test_packaging; job_name='Test (Packaging)'; job_needs=(); job_os=Linux; job_platform=ubuntu-latest; job_python=3.13.3; job_reqs=(reqs/packaging.txt reqs/setup.txt); job_skip_cache_name=skip_test_packaging_py-3.13.3_ubuntu-latest; job_skip_cache_path=.skip_cache_test_packaging; job_skiplists=(job_test_packaging); job_type=test_packaging; job_variant=Packaging; analyze_set_job_skip_cache_key
           job_cache_extra_deps=('reqs/dist_*.txt' linux/appimage/deps.sh); job_id=build_linux; job_name='Build (Linux)'; job_needs=(test_linux); job_os=Linux; job_platform=ubuntu-22.04; job_python=3.13.3; job_reqs=(reqs/build.txt reqs/setup.txt); job_skip_cache_name=skip_build_linux_py-3.13.3_ubuntu-22.04; job_skip_cache_path=.skip_cache_build_linux; job_skiplists=(job_build os_linux); job_type=build; job_variant=Linux; analyze_set_job_skip_cache_key
@@ -54,81 +57,105 @@ jobs:
         uses: actions/cache@v3
         with:
           path: .skip_cache_test_linux
-          key: 5_check_${{ steps.set_cache.outputs.test_linux_skip_cache_key }}_${{ github.run_id }}
+          key: 6_check_${{ steps.set_cache.outputs.test_linux_skip_cache_key }}_${{ github.run_id }}
           restore-keys:
-            5_${{ steps.set_cache.outputs.test_linux_skip_cache_key }}
+            6_${{ steps.set_cache.outputs.test_linux_skip_cache_key }}
 
       - name: Check skip cache for Test (macOS)
         uses: actions/cache@v3
         with:
           path: .skip_cache_test_macos
-          key: 5_check_${{ steps.set_cache.outputs.test_macos_skip_cache_key }}_${{ github.run_id }}
+          key: 6_check_${{ steps.set_cache.outputs.test_macos_skip_cache_key }}_${{ github.run_id }}
           restore-keys:
-            5_${{ steps.set_cache.outputs.test_macos_skip_cache_key }}
+            6_${{ steps.set_cache.outputs.test_macos_skip_cache_key }}
 
       - name: Check skip cache for Test (Windows)
         uses: actions/cache@v3
         with:
           path: .skip_cache_test_windows
-          key: 5_check_${{ steps.set_cache.outputs.test_windows_skip_cache_key }}_${{ github.run_id }}
+          key: 6_check_${{ steps.set_cache.outputs.test_windows_skip_cache_key }}_${{ github.run_id }}
           restore-keys:
-            5_${{ steps.set_cache.outputs.test_windows_skip_cache_key }}
+            6_${{ steps.set_cache.outputs.test_windows_skip_cache_key }}
 
-      - name: Check skip cache for Test (Python 3.13)
+      - name: Check skip cache for Test (Python Latest Supported)
         uses: actions/cache@v3
         with:
-          path: .skip_cache_test_python_313
-          key: 5_check_${{ steps.set_cache.outputs.test_python_313_skip_cache_key }}_${{ github.run_id }}
+          path: .skip_cache_test_python_latest_supported
+          key: 6_check_${{ steps.set_cache.outputs.test_python_latest_supported_skip_cache_key }}_${{ github.run_id }}
           restore-keys:
-            5_${{ steps.set_cache.outputs.test_python_313_skip_cache_key }}
+            6_${{ steps.set_cache.outputs.test_python_latest_supported_skip_cache_key }}
+
+      - name: Check skip cache for Test (Python 3.12)
+        uses: actions/cache@v3
+        with:
+          path: .skip_cache_test_python_312
+          key: 6_check_${{ steps.set_cache.outputs.test_python_312_skip_cache_key }}_${{ github.run_id }}
+          restore-keys:
+            6_${{ steps.set_cache.outputs.test_python_312_skip_cache_key }}
+
+      - name: Check skip cache for Test (Python 3.11)
+        uses: actions/cache@v3
+        with:
+          path: .skip_cache_test_python_311
+          key: 6_check_${{ steps.set_cache.outputs.test_python_311_skip_cache_key }}_${{ github.run_id }}
+          restore-keys:
+            6_${{ steps.set_cache.outputs.test_python_311_skip_cache_key }}
 
       - name: Check skip cache for Test (Python 3.10)
         uses: actions/cache@v3
         with:
           path: .skip_cache_test_python_310
-          key: 5_check_${{ steps.set_cache.outputs.test_python_310_skip_cache_key }}_${{ github.run_id }}
+          key: 6_check_${{ steps.set_cache.outputs.test_python_310_skip_cache_key }}_${{ github.run_id }}
           restore-keys:
-            5_${{ steps.set_cache.outputs.test_python_310_skip_cache_key }}
+            6_${{ steps.set_cache.outputs.test_python_310_skip_cache_key }}
+
+      - name: Check skip cache for Test (Python 3.9)
+        uses: actions/cache@v3
+        with:
+          path: .skip_cache_test_python_39
+          key: 6_check_${{ steps.set_cache.outputs.test_python_39_skip_cache_key }}_${{ github.run_id }}
+          restore-keys:
+            6_${{ steps.set_cache.outputs.test_python_39_skip_cache_key }}
 
       - name: Check skip cache for Test (Qt GUI)
         uses: actions/cache@v3
         with:
           path: .skip_cache_test_qt_gui
-          key: 5_check_${{ steps.set_cache.outputs.test_qt_gui_skip_cache_key }}_${{ github.run_id }}
+          key: 6_check_${{ steps.set_cache.outputs.test_qt_gui_skip_cache_key }}_${{ github.run_id }}
           restore-keys:
-            5_${{ steps.set_cache.outputs.test_qt_gui_skip_cache_key }}
+            6_${{ steps.set_cache.outputs.test_qt_gui_skip_cache_key }}
 
       - name: Check skip cache for Test (Packaging)
         uses: actions/cache@v3
         with:
           path: .skip_cache_test_packaging
-          key: 5_check_${{ steps.set_cache.outputs.test_packaging_skip_cache_key }}_${{ github.run_id }}
+          key: 6_check_${{ steps.set_cache.outputs.test_packaging_skip_cache_key }}_${{ github.run_id }}
           restore-keys:
-            5_${{ steps.set_cache.outputs.test_packaging_skip_cache_key }}
+            6_${{ steps.set_cache.outputs.test_packaging_skip_cache_key }}
 
       - name: Check skip cache for Build (Linux)
         uses: actions/cache@v3
         with:
           path: .skip_cache_build_linux
-          key: 5_check_${{ steps.set_cache.outputs.build_linux_skip_cache_key }}_${{ github.run_id }}
+          key: 6_check_${{ steps.set_cache.outputs.build_linux_skip_cache_key }}_${{ github.run_id }}
           restore-keys:
-            5_${{ steps.set_cache.outputs.build_linux_skip_cache_key }}
+            6_${{ steps.set_cache.outputs.build_linux_skip_cache_key }}
 
       - name: Check skip cache for Build (macOS)
         uses: actions/cache@v3
         with:
           path: .skip_cache_build_macos
-          key: 5_check_${{ steps.set_cache.outputs.build_macos_skip_cache_key }}_${{ github.run_id }}
+          key: 6_check_${{ steps.set_cache.outputs.build_macos_skip_cache_key }}_${{ github.run_id }}
           restore-keys:
-            5_${{ steps.set_cache.outputs.build_macos_skip_cache_key }}
+            6_${{ steps.set_cache.outputs.build_macos_skip_cache_key }}
 
       - name: Check skip cache for Build (Windows)
         uses: actions/cache@v3
         with:
           path: .skip_cache_build_windows
-          key: 5_check_${{ steps.set_cache.outputs.build_windows_skip_cache_key }}_${{ github.run_id }}
+          key: 6_check_${{ steps.set_cache.outputs.build_windows_skip_cache_key }}_${{ github.run_id }}
           restore-keys:
-            5_${{ steps.set_cache.outputs.build_windows_skip_cache_key }}
+            6_${{ steps.set_cache.outputs.build_windows_skip_cache_key }}
 
       - name: Set outputs
         id: set_ouputs
@@ -137,8 +164,11 @@ jobs:
           job_cache_extra_deps=(); job_id=test_linux; job_name='Test (Linux)'; job_needs=(); job_os=Linux; job_platform=ubuntu-22.04; job_python=3.13.3; job_reqs=(reqs/dist.txt reqs/test.txt); job_skip_cache_name=skip_test_linux_py-3.13.3_ubuntu-22.04; job_skip_cache_path=.skip_cache_test_linux; job_skiplists=(job_test os_linux); job_test_args='-p no:pytest-qt --ignore=test/gui_qt'; job_type=test; job_variant=Linux; analyze_set_job_skip_job
           job_cache_extra_deps=(osx/deps.sh); job_id=test_macos; job_name='Test (macOS)'; job_needs=(); job_os=macOS; job_platform=macos-15; job_python=3.13.3; job_reqs=(reqs/dist.txt reqs/test.txt); job_skip_cache_name=skip_test_macos_py-3.13.3_macos-15; job_skip_cache_path=.skip_cache_test_macos; job_skiplists=(job_test os_macos); job_test_args='-p no:pytest-qt --ignore=test/gui_qt'; job_type=test; job_variant=macOS; analyze_set_job_skip_job
           job_cache_extra_deps=(); job_id=test_windows; job_name='Test (Windows)'; job_needs=(); job_os=Windows; job_platform=windows-2022; job_python=3.13.3; job_reqs=(reqs/dist.txt reqs/test.txt); job_skip_cache_name=skip_test_windows_py-3.13.3_windows-2022; job_skip_cache_path=.skip_cache_test_windows; job_skiplists=(job_test os_windows); job_test_args='-p no:pytest-qt --ignore=test/gui_qt'; job_type=test; job_variant=Windows; analyze_set_job_skip_job
-          job_cache_extra_deps=(); job_id=test_python_313; job_name='Test (Python 3.13)'; job_needs=(); job_os=Linux; job_platform=ubuntu-latest; job_python=3.13.3; job_reqs=(reqs/dist.txt reqs/test.txt); job_skip_cache_name=skip_test_python_313_py-3.13.3_ubuntu-latest; job_skip_cache_path=.skip_cache_test_python_313; job_skiplists=(job_test os_linux os_macos os_windows); job_test_args='-p no:pytest-qt --ignore=test/gui_qt'; job_type=test; job_variant='Python 3.13'; analyze_set_job_skip_job
+          job_cache_extra_deps=(); job_id=test_python_latest_supported; job_name='Test (Python Latest Supported)'; job_needs=(); job_os=Linux; job_platform=ubuntu-latest; job_python=3.13.3; job_reqs=(reqs/dist.txt reqs/test.txt); job_skip_cache_name=skip_test_python_latest_supported_py-3.13.3_ubuntu-latest; job_skip_cache_path=.skip_cache_test_python_latest_supported; job_skiplists=(job_test os_linux os_macos os_windows); job_test_args='-p no:pytest-qt --ignore=test/gui_qt'; job_type=test; job_variant='Python Latest Supported'; analyze_set_job_skip_job
+          job_cache_extra_deps=(); job_id=test_python_312; job_name='Test (Python 3.12)'; job_needs=(); job_os=Linux; job_platform=ubuntu-latest; job_python=3.12; job_reqs=(reqs/dist.txt reqs/test.txt); job_skip_cache_name=skip_test_python_312_py-3.12_ubuntu-latest; job_skip_cache_path=.skip_cache_test_python_312; job_skiplists=(job_test os_linux os_macos os_windows); job_test_args='-p no:pytest-qt --ignore=test/gui_qt'; job_type=test; job_variant='Python 3.12'; analyze_set_job_skip_job
+          job_cache_extra_deps=(); job_id=test_python_311; job_name='Test (Python 3.11)'; job_needs=(); job_os=Linux; job_platform=ubuntu-latest; job_python=3.11; job_reqs=(reqs/dist.txt reqs/test.txt); job_skip_cache_name=skip_test_python_311_py-3.11_ubuntu-latest; job_skip_cache_path=.skip_cache_test_python_311; job_skiplists=(job_test os_linux os_macos os_windows); job_test_args='-p no:pytest-qt --ignore=test/gui_qt'; job_type=test; job_variant='Python 3.11'; analyze_set_job_skip_job
           job_cache_extra_deps=(); job_id=test_python_310; job_name='Test (Python 3.10)'; job_needs=(); job_os=Linux; job_platform=ubuntu-latest; job_python=3.10; job_reqs=(reqs/dist.txt reqs/test.txt); job_skip_cache_name=skip_test_python_310_py-3.10_ubuntu-latest; job_skip_cache_path=.skip_cache_test_python_310; job_skiplists=(job_test os_linux os_macos os_windows); job_test_args='-p no:pytest-qt --ignore=test/gui_qt'; job_type=test; job_variant='Python 3.10'; analyze_set_job_skip_job
+          job_cache_extra_deps=(); job_id=test_python_39; job_name='Test (Python 3.9)'; job_needs=(); job_os=Linux; job_platform=ubuntu-latest; job_python=3.9; job_reqs=(reqs/dist.txt reqs/test.txt); job_skip_cache_name=skip_test_python_39_py-3.9_ubuntu-latest; job_skip_cache_path=.skip_cache_test_python_39; job_skiplists=(job_test os_linux os_macos os_windows); job_test_args='-p no:pytest-qt --ignore=test/gui_qt'; job_type=test; job_variant='Python 3.9'; analyze_set_job_skip_job
           job_cache_extra_deps=(); job_id=test_qt_gui; job_name='Test (Qt GUI)'; job_needs=(); job_os=Linux; job_platform=ubuntu-22.04; job_python=3.13.3; job_reqs=(reqs/dist.txt reqs/dist_extra_gui_qt.txt reqs/test.txt); job_skip_cache_name=skip_test_qt_gui_py-3.13.3_ubuntu-22.04; job_skip_cache_path=.skip_cache_test_qt_gui; job_skiplists=(job_test_gui_qt); job_test_args=test/gui_qt; job_type=test_gui_qt; job_variant='Qt GUI'; analyze_set_job_skip_job
           job_cache_extra_deps=(); job_id=test_packaging; job_name='Test (Packaging)'; job_needs=(); job_os=Linux; job_platform=ubuntu-latest; job_python=3.13.3; job_reqs=(reqs/packaging.txt reqs/setup.txt); job_skip_cache_name=skip_test_packaging_py-3.13.3_ubuntu-latest; job_skip_cache_path=.skip_cache_test_packaging; job_skiplists=(job_test_packaging); job_type=test_packaging; job_variant=Packaging; analyze_set_job_skip_job
           job_cache_extra_deps=('reqs/dist_*.txt' linux/appimage/deps.sh); job_id=build_linux; job_name='Build (Linux)'; job_needs=(test_linux); job_os=Linux; job_platform=ubuntu-22.04; job_python=3.13.3; job_reqs=(reqs/build.txt reqs/setup.txt); job_skip_cache_name=skip_build_linux_py-3.13.3_ubuntu-22.04; job_skip_cache_path=.skip_cache_build_linux; job_skiplists=(job_build os_linux); job_type=build; job_variant=Linux; analyze_set_job_skip_job
@@ -154,10 +184,16 @@ jobs:
       test_macos_skip_cache_key: ${{ steps.set_cache.outputs.test_macos_skip_cache_key }}
       test_windows_skip_job: ${{ steps.set_ouputs.outputs.test_windows_skip_job }}
       test_windows_skip_cache_key: ${{ steps.set_cache.outputs.test_windows_skip_cache_key }}
-      test_python_313_skip_job: ${{ steps.set_ouputs.outputs.test_python_313_skip_job }}
-      test_python_313_skip_cache_key: ${{ steps.set_cache.outputs.test_python_313_skip_cache_key }}
+      test_python_latest_supported_skip_job: ${{ steps.set_ouputs.outputs.test_python_latest_supported_skip_job }}
+      test_python_latest_supported_skip_cache_key: ${{ steps.set_cache.outputs.test_python_latest_supported_skip_cache_key }}
+      test_python_312_skip_job: ${{ steps.set_ouputs.outputs.test_python_312_skip_job }}
+      test_python_312_skip_cache_key: ${{ steps.set_cache.outputs.test_python_312_skip_cache_key }}
+      test_python_311_skip_job: ${{ steps.set_ouputs.outputs.test_python_311_skip_job }}
+      test_python_311_skip_cache_key: ${{ steps.set_cache.outputs.test_python_311_skip_cache_key }}
       test_python_310_skip_job: ${{ steps.set_ouputs.outputs.test_python_310_skip_job }}
       test_python_310_skip_cache_key: ${{ steps.set_cache.outputs.test_python_310_skip_cache_key }}
+      test_python_39_skip_job: ${{ steps.set_ouputs.outputs.test_python_39_skip_job }}
+      test_python_39_skip_cache_key: ${{ steps.set_cache.outputs.test_python_39_skip_cache_key }}
       test_qt_gui_skip_job: ${{ steps.set_ouputs.outputs.test_qt_gui_skip_job }}
       test_qt_gui_skip_cache_key: ${{ steps.set_cache.outputs.test_qt_gui_skip_cache_key }}
       test_packaging_skip_job: ${{ steps.set_ouputs.outputs.test_packaging_skip_job }}
@@ -199,7 +235,7 @@ jobs:
         uses: actions/cache@v4
         with:
           path: .cache
-          key: 5_${{ steps.set_cache.outputs.cache_name }}_${{ hashFiles('reqs/constraints.txt', 'reqs/dist.txt', 'reqs/test.txt') }}
+          key: 6_${{ steps.set_cache.outputs.cache_name }}_${{ hashFiles('reqs/constraints.txt', 'reqs/dist.txt', 'reqs/test.txt') }}
 
       - name: Setup Python environment
         run: setup_python_env -c reqs/constraints.txt -r reqs/dist.txt -r reqs/test.txt        
@@ -216,7 +252,7 @@ jobs:
         uses: actions/cache@v4
         with:
           path: .skip_cache_test_linux
-          key: 5_${{ needs.analyze.outputs.test_linux_skip_cache_key }}
+          key: 6_${{ needs.analyze.outputs.test_linux_skip_cache_key }}
 
       - name: Update skip cache 2
         run: run_eval "echo 'https://github.com/$GITHUB_REPOSITORY/actions/runs/$GITHUB_RUN_ID' >'.skip_cache_test_linux'"
@@ -248,7 +284,7 @@ jobs:
         uses: actions/cache@v4
         with:
           path: .cache
-          key: 5_${{ steps.set_cache.outputs.cache_name }}_${{ hashFiles('reqs/constraints.txt', 'reqs/dist.txt', 'reqs/test.txt', 'osx/deps.sh') }}
+          key: 6_${{ steps.set_cache.outputs.cache_name }}_${{ hashFiles('reqs/constraints.txt', 'reqs/dist.txt', 'reqs/test.txt', 'osx/deps.sh') }}
 
       # To support older macOS versions, setup Python from an official installer.
       - name: Setup Python
@@ -269,7 +305,7 @@ jobs:
         uses: actions/cache@v4
         with:
           path: .skip_cache_test_macos
-          key: 5_${{ needs.analyze.outputs.test_macos_skip_cache_key }}
+          key: 6_${{ needs.analyze.outputs.test_macos_skip_cache_key }}
 
       - name: Update skip cache 2
         run: run_eval "echo 'https://github.com/$GITHUB_REPOSITORY/actions/runs/$GITHUB_RUN_ID' >'.skip_cache_test_macos'"
@@ -311,7 +347,7 @@ jobs:
         uses: actions/cache@v4
         with:
           path: .cache
-          key: 5_${{ steps.set_cache.outputs.cache_name }}_${{ hashFiles('reqs/constraints.txt', 'reqs/dist.txt', 'reqs/test.txt') }}
+          key: 6_${{ steps.set_cache.outputs.cache_name }}_${{ hashFiles('reqs/constraints.txt', 'reqs/dist.txt', 'reqs/test.txt') }}
 
       - name: Setup Python environment
         run: setup_python_env -c reqs/constraints.txt -r reqs/dist.txt -r reqs/test.txt        
@@ -328,7 +364,7 @@ jobs:
         uses: actions/cache@v4
         with:
           path: .skip_cache_test_windows
-          key: 5_${{ needs.analyze.outputs.test_windows_skip_cache_key }}
+          key: 6_${{ needs.analyze.outputs.test_windows_skip_cache_key }}
 
       - name: Update skip cache 2
         run: run_eval "echo 'https://github.com/$GITHUB_REPOSITORY/actions/runs/$GITHUB_RUN_ID' >'.skip_cache_test_windows'"
@@ -337,15 +373,15 @@ jobs:
         run: list_cache
   # }}}
 
-  # Job: Test (Python 3.13) {{{
-  test_python_313:
+  # Job: Test (Python Latest Supported) {{{
+  test_python_latest_supported:
 
-    name: Test (Python 3.13)
+    name: Test (Python Latest Supported)
     runs-on: ubuntu-latest
     needs: [analyze, ]
     if: >-
       !cancelled()
-      && needs.analyze.outputs.test_python_313_skip_job == 'no'
+      && needs.analyze.outputs.test_python_latest_supported_skip_job == 'no'
 
     steps:
 
@@ -365,7 +401,7 @@ jobs:
         uses: actions/cache@v4
         with:
           path: .cache
-          key: 5_${{ steps.set_cache.outputs.cache_name }}_${{ hashFiles('reqs/constraints.txt', 'reqs/dist.txt', 'reqs/test.txt') }}
+          key: 6_${{ steps.set_cache.outputs.cache_name }}_${{ hashFiles('reqs/constraints.txt', 'reqs/dist.txt', 'reqs/test.txt') }}
 
       - name: Setup Python environment
         run: setup_python_env -c reqs/constraints.txt -r reqs/dist.txt -r reqs/test.txt        
@@ -381,11 +417,119 @@ jobs:
       - name: Update skip cache 1
         uses: actions/cache@v4
         with:
-          path: .skip_cache_test_python_313
-          key: 5_${{ needs.analyze.outputs.test_python_313_skip_cache_key }}
+          path: .skip_cache_test_python_latest_supported
+          key: 6_${{ needs.analyze.outputs.test_python_latest_supported_skip_cache_key }}
 
       - name: Update skip cache 2
-        run: run_eval "echo 'https://github.com/$GITHUB_REPOSITORY/actions/runs/$GITHUB_RUN_ID' >'.skip_cache_test_python_313'"
+        run: run_eval "echo 'https://github.com/$GITHUB_REPOSITORY/actions/runs/$GITHUB_RUN_ID' >'.skip_cache_test_python_latest_supported'"
+
+      - name: List cache contents
+        run: list_cache
+  # }}}
+
+  # Job: Test (Python 3.12) {{{
+  test_python_312:
+
+    name: Test (Python 3.12)
+    runs-on: ubuntu-latest
+    needs: [analyze, ]
+    if: >-
+      !cancelled()
+      && needs.analyze.outputs.test_python_312_skip_job == 'no'
+
+    steps:
+
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+
+      - name: Set cache name
+        id: set_cache
+        run: setup_cache_name '3.12' 'ubuntu-latest'
+
+      - name: Setup cache
+        uses: actions/cache@v4
+        with:
+          path: .cache
+          key: 6_${{ steps.set_cache.outputs.cache_name }}_${{ hashFiles('reqs/constraints.txt', 'reqs/dist.txt', 'reqs/test.txt') }}
+
+      - name: Setup Python environment
+        run: setup_python_env -c reqs/constraints.txt -r reqs/dist.txt -r reqs/test.txt        
+
+      # Test {{{
+
+      - name: Run tests
+        run: run_tests -p no:pytest-qt --ignore=test/gui_qt
+
+
+      # }}}
+
+      - name: Update skip cache 1
+        uses: actions/cache@v4
+        with:
+          path: .skip_cache_test_python_312
+          key: 6_${{ needs.analyze.outputs.test_python_312_skip_cache_key }}
+
+      - name: Update skip cache 2
+        run: run_eval "echo 'https://github.com/$GITHUB_REPOSITORY/actions/runs/$GITHUB_RUN_ID' >'.skip_cache_test_python_312'"
+
+      - name: List cache contents
+        run: list_cache
+  # }}}
+
+  # Job: Test (Python 3.11) {{{
+  test_python_311:
+
+    name: Test (Python 3.11)
+    runs-on: ubuntu-latest
+    needs: [analyze, ]
+    if: >-
+      !cancelled()
+      && needs.analyze.outputs.test_python_311_skip_job == 'no'
+
+    steps:
+
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+
+      - name: Set cache name
+        id: set_cache
+        run: setup_cache_name '3.11' 'ubuntu-latest'
+
+      - name: Setup cache
+        uses: actions/cache@v4
+        with:
+          path: .cache
+          key: 6_${{ steps.set_cache.outputs.cache_name }}_${{ hashFiles('reqs/constraints.txt', 'reqs/dist.txt', 'reqs/test.txt') }}
+
+      - name: Setup Python environment
+        run: setup_python_env -c reqs/constraints.txt -r reqs/dist.txt -r reqs/test.txt        
+
+      # Test {{{
+
+      - name: Run tests
+        run: run_tests -p no:pytest-qt --ignore=test/gui_qt
+
+
+      # }}}
+
+      - name: Update skip cache 1
+        uses: actions/cache@v4
+        with:
+          path: .skip_cache_test_python_311
+          key: 6_${{ needs.analyze.outputs.test_python_311_skip_cache_key }}
+
+      - name: Update skip cache 2
+        run: run_eval "echo 'https://github.com/$GITHUB_REPOSITORY/actions/runs/$GITHUB_RUN_ID' >'.skip_cache_test_python_311'"
 
       - name: List cache contents
         run: list_cache
@@ -419,7 +563,7 @@ jobs:
         uses: actions/cache@v4
         with:
           path: .cache
-          key: 5_${{ steps.set_cache.outputs.cache_name }}_${{ hashFiles('reqs/constraints.txt', 'reqs/dist.txt', 'reqs/test.txt') }}
+          key: 6_${{ steps.set_cache.outputs.cache_name }}_${{ hashFiles('reqs/constraints.txt', 'reqs/dist.txt', 'reqs/test.txt') }}
 
       - name: Setup Python environment
         run: setup_python_env -c reqs/constraints.txt -r reqs/dist.txt -r reqs/test.txt        
@@ -436,10 +580,64 @@ jobs:
         uses: actions/cache@v4
         with:
           path: .skip_cache_test_python_310
-          key: 5_${{ needs.analyze.outputs.test_python_310_skip_cache_key }}
+          key: 6_${{ needs.analyze.outputs.test_python_310_skip_cache_key }}
 
       - name: Update skip cache 2
         run: run_eval "echo 'https://github.com/$GITHUB_REPOSITORY/actions/runs/$GITHUB_RUN_ID' >'.skip_cache_test_python_310'"
+
+      - name: List cache contents
+        run: list_cache
+  # }}}
+
+  # Job: Test (Python 3.9) {{{
+  test_python_39:
+
+    name: Test (Python 3.9)
+    runs-on: ubuntu-latest
+    needs: [analyze, ]
+    if: >-
+      !cancelled()
+      && needs.analyze.outputs.test_python_39_skip_job == 'no'
+
+    steps:
+
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.9'
+
+      - name: Set cache name
+        id: set_cache
+        run: setup_cache_name '3.9' 'ubuntu-latest'
+
+      - name: Setup cache
+        uses: actions/cache@v4
+        with:
+          path: .cache
+          key: 6_${{ steps.set_cache.outputs.cache_name }}_${{ hashFiles('reqs/constraints.txt', 'reqs/dist.txt', 'reqs/test.txt') }}
+
+      - name: Setup Python environment
+        run: setup_python_env -c reqs/constraints.txt -r reqs/dist.txt -r reqs/test.txt        
+
+      # Test {{{
+
+      - name: Run tests
+        run: run_tests -p no:pytest-qt --ignore=test/gui_qt
+
+
+      # }}}
+
+      - name: Update skip cache 1
+        uses: actions/cache@v4
+        with:
+          path: .skip_cache_test_python_39
+          key: 6_${{ needs.analyze.outputs.test_python_39_skip_cache_key }}
+
+      - name: Update skip cache 2
+        run: run_eval "echo 'https://github.com/$GITHUB_REPOSITORY/actions/runs/$GITHUB_RUN_ID' >'.skip_cache_test_python_39'"
 
       - name: List cache contents
         run: list_cache
@@ -473,7 +671,7 @@ jobs:
         uses: actions/cache@v4
         with:
           path: .cache
-          key: 5_${{ steps.set_cache.outputs.cache_name }}_${{ hashFiles('reqs/constraints.txt', 'reqs/dist.txt', 'reqs/dist_extra_gui_qt.txt', 'reqs/test.txt') }}
+          key: 6_${{ steps.set_cache.outputs.cache_name }}_${{ hashFiles('reqs/constraints.txt', 'reqs/dist.txt', 'reqs/dist_extra_gui_qt.txt', 'reqs/test.txt') }}
 
       - name: Install system dependencies
         run: apt_get_install libdbus-1-dev libdbus-glib-1-dev libudev-dev libusb-1.0-0-dev libegl-dev libxkbcommon-x11-0
@@ -499,7 +697,7 @@ jobs:
         uses: actions/cache@v4
         with:
           path: .skip_cache_test_qt_gui
-          key: 5_${{ needs.analyze.outputs.test_qt_gui_skip_cache_key }}
+          key: 6_${{ needs.analyze.outputs.test_qt_gui_skip_cache_key }}
 
       - name: Update skip cache 2
         run: run_eval "echo 'https://github.com/$GITHUB_REPOSITORY/actions/runs/$GITHUB_RUN_ID' >'.skip_cache_test_qt_gui'"
@@ -539,7 +737,7 @@ jobs:
         uses: actions/cache@v4
         with:
           path: .cache
-          key: 5_${{ steps.set_cache.outputs.cache_name }}_${{ hashFiles('reqs/constraints.txt', 'reqs/packaging.txt', 'reqs/setup.txt') }}
+          key: 6_${{ steps.set_cache.outputs.cache_name }}_${{ hashFiles('reqs/constraints.txt', 'reqs/packaging.txt', 'reqs/setup.txt') }}
 
       - name: Setup Python environment
         run: setup_python_env -c reqs/constraints.txt -r reqs/packaging.txt -r reqs/setup.txt        
@@ -586,7 +784,7 @@ jobs:
         uses: actions/cache@v4
         with:
           path: .skip_cache_test_packaging
-          key: 5_${{ needs.analyze.outputs.test_packaging_skip_cache_key }}
+          key: 6_${{ needs.analyze.outputs.test_packaging_skip_cache_key }}
 
       - name: Update skip cache 2
         run: run_eval "echo 'https://github.com/$GITHUB_REPOSITORY/actions/runs/$GITHUB_RUN_ID' >'.skip_cache_test_packaging'"
@@ -630,7 +828,7 @@ jobs:
         uses: actions/cache@v4
         with:
           path: .cache
-          key: 5_${{ steps.set_cache.outputs.cache_name }}_${{ hashFiles('reqs/constraints.txt', 'reqs/build.txt', 'reqs/setup.txt', 'reqs/dist_*.txt', 'linux/appimage/deps.sh') }}
+          key: 6_${{ steps.set_cache.outputs.cache_name }}_${{ hashFiles('reqs/constraints.txt', 'reqs/build.txt', 'reqs/setup.txt', 'reqs/dist_*.txt', 'linux/appimage/deps.sh') }}
 
       - name: Install system dependencies
         run: apt_get_install libdbus-1-dev libdbus-glib-1-dev libudev-dev libusb-1.0-0-dev libegl-dev libxkbcommon-x11-0
@@ -660,7 +858,7 @@ jobs:
         uses: actions/cache@v4
         with:
           path: .skip_cache_build_linux
-          key: 5_${{ needs.analyze.outputs.build_linux_skip_cache_key }}
+          key: 6_${{ needs.analyze.outputs.build_linux_skip_cache_key }}
 
       - name: Update skip cache 2
         run: run_eval "echo 'https://github.com/$GITHUB_REPOSITORY/actions/runs/$GITHUB_RUN_ID' >'.skip_cache_build_linux'"
@@ -696,7 +894,7 @@ jobs:
         uses: actions/cache@v4
         with:
           path: .cache
-          key: 5_${{ steps.set_cache.outputs.cache_name }}_${{ hashFiles('reqs/constraints.txt', 'reqs/build.txt', 'reqs/setup.txt', 'reqs/dist_*.txt', 'osx/deps.sh') }}
+          key: 6_${{ steps.set_cache.outputs.cache_name }}_${{ hashFiles('reqs/constraints.txt', 'reqs/build.txt', 'reqs/setup.txt', 'reqs/dist_*.txt', 'osx/deps.sh') }}
 
       # To support older macOS versions, setup Python from an official installer.
       - name: Setup Python
@@ -727,7 +925,7 @@ jobs:
         uses: actions/cache@v4
         with:
           path: .skip_cache_build_macos
-          key: 5_${{ needs.analyze.outputs.build_macos_skip_cache_key }}
+          key: 6_${{ needs.analyze.outputs.build_macos_skip_cache_key }}
 
       - name: Update skip cache 2
         run: run_eval "echo 'https://github.com/$GITHUB_REPOSITORY/actions/runs/$GITHUB_RUN_ID' >'.skip_cache_build_macos'"
@@ -773,7 +971,7 @@ jobs:
         uses: actions/cache@v4
         with:
           path: .cache
-          key: 5_${{ steps.set_cache.outputs.cache_name }}_${{ hashFiles('reqs/constraints.txt', 'reqs/build.txt', 'reqs/setup.txt', 'reqs/dist_*.txt', 'windows/dist_deps.sh') }}
+          key: 6_${{ steps.set_cache.outputs.cache_name }}_${{ hashFiles('reqs/constraints.txt', 'reqs/build.txt', 'reqs/setup.txt', 'reqs/dist_*.txt', 'windows/dist_deps.sh') }}
 
       - name: Setup Python environment
         run: setup_python_env -c reqs/constraints.txt -r reqs/build.txt -r reqs/setup.txt        
@@ -809,7 +1007,7 @@ jobs:
         uses: actions/cache@v4
         with:
           path: .skip_cache_build_windows
-          key: 5_${{ needs.analyze.outputs.build_windows_skip_cache_key }}
+          key: 6_${{ needs.analyze.outputs.build_windows_skip_cache_key }}
 
       - name: Update skip cache 2
         run: run_eval "echo 'https://github.com/$GITHUB_REPOSITORY/actions/runs/$GITHUB_RUN_ID' >'.skip_cache_build_windows'"
@@ -824,14 +1022,17 @@ jobs:
     name: Release
     environment: release
     runs-on: ubuntu-latest
-    needs: [analyze, test_linux, test_macos, test_windows, test_python_313, test_python_310, test_qt_gui, test_packaging, build_linux, build_macos, build_windows]
+    needs: [analyze, test_linux, test_macos, test_windows, test_python_latest_supported, test_python_312, test_python_311, test_python_310, test_python_39, test_qt_gui, test_packaging, build_linux, build_macos, build_windows]
     if: >-
       !cancelled()
       && needs.test_linux.result == 'success'
       && needs.test_macos.result == 'success'
       && needs.test_windows.result == 'success'
-      && needs.test_python_313.result == 'success'
+      && needs.test_python_latest_supported.result == 'success'
+      && needs.test_python_312.result == 'success'
+      && needs.test_python_311.result == 'success'
       && needs.test_python_310.result == 'success'
+      && needs.test_python_39.result == 'success'
       && needs.test_qt_gui.result == 'success'
       && needs.test_packaging.result == 'success'
       && needs.build_linux.result == 'success'
@@ -844,7 +1045,6 @@ jobs:
       - name: Checkout
         uses: actions/checkout@v4
 
-      # FIXME pass python version via workflow_context
       - name: Setup Python
         uses: actions/setup-python@v5
         with:
