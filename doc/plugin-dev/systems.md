@@ -38,6 +38,8 @@ KEYMAPS: Dict[str, Dict[str, Union[str, Tuple[str, ...]]]]
 
 DICTIONARIES_ROOT: str
 DEFAULT_DICTIONARIES: Tuple[str, ...]
+
+display: Callable[[Tuple[str, ...]], str]
 ```
 
 Note that there are a lot of possible fields in a system plugin. You must set
