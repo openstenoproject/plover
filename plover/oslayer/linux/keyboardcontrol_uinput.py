@@ -38,8 +38,6 @@ BASE_LAYOUT = {
     "0": e.KEY_0,
     # Symbols
     " ": e.KEY_SPACE,
-    ".": e.KEY_DOT,
-    ",": e.KEY_COMMA,
     "\b": e.KEY_BACKSPACE,
     "\n": e.KEY_ENTER,
     # https://github.com/openstenoproject/plover/blob/9b5a357f1fb57cb0a9a8596ae12cd1e84fcff6c4/plover/oslayer/osx/keyboardcontrol.py#L75
@@ -50,6 +48,28 @@ BASE_LAYOUT = {
     "delete": e.KEY_DELETE,
     "escape": e.KEY_ESC,
     "clear": e.KEY_CLEAR,
+    "minus": e.KEY_MINUS,
+    "equal": e.KEY_EQUAL,
+    "bracketleft": e.KEY_LEFTBRACE,
+    "bracketright": e.KEY_RIGHTBRACE,
+    "backslash": e.KEY_BACKSLASH,
+    "semicolon": e.KEY_SEMICOLON,
+    "apostrophe": e.KEY_APOSTROPHE,
+    "comma": e.KEY_COMMA,
+    "dot": e.KEY_DOT,
+    "slash": e.KEY_SLASH,
+    "grave": e.KEY_GRAVE,
+    "-": e.KEY_MINUS,
+    "=": e.KEY_EQUAL,
+    "[": e.KEY_LEFTBRACE,
+    "]": e.KEY_RIGHTBRACE,
+    "\\": e.KEY_BACKSLASH,
+    ";": e.KEY_SEMICOLON,
+    "'": e.KEY_APOSTROPHE,
+    ",": e.KEY_COMMA,
+    ".": e.KEY_DOT,
+    "/": e.KEY_SLASH,
+    "`": e.KEY_GRAVE,
     # Navigation
     "up": e.KEY_UP,
     "down": e.KEY_DOWN,
@@ -256,13 +276,7 @@ LAYOUTS = {
     },
 }
 
-us_qwerty = {
-    **LAYOUTS[DEFAULT_LAYOUT],
-    ";": e.KEY_SEMICOLON,
-    "'": e.KEY_APOSTROPHE,
-    "[": e.KEY_LEFTBRACE,
-}
-KEYCODE_TO_KEY = dict(zip(us_qwerty.values(), us_qwerty.keys()))
+KEYCODE_TO_KEY = dict(zip(LAYOUTS[DEFAULT_LAYOUT].values(), LAYOUTS[DEFAULT_LAYOUT].keys()))
 
 
 class KeyboardEmulation(GenericKeyboardEmulation):
@@ -371,9 +385,13 @@ class KeyboardCapture(Capture):
         Filter out devices that should not be grabbed and suppressed, to avoid output feeding into itself.
         """
         is_uinput = device.name == "py-evdev-uinput" or device.phys == "py-evdev-uinput"
-        capabilities = device.capabilities()
-        is_mouse = e.EV_REL in capabilities or e.EV_ABS in capabilities
-        return not is_uinput and not is_mouse
+        # Check for some common keys to make sure it's really a keyboard
+        keys = device.capabilities().get(e.EV_KEY, [])
+        keyboard_keys_present = any(
+            key in keys
+            for key in [e.KEY_ESC, e.KEY_SPACE, e.KEY_ENTER, e.KEY_LEFTSHIFT]
+        )
+        return not is_uinput and keyboard_keys_present
 
     def start(self):
         self._running = True

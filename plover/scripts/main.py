@@ -130,7 +130,7 @@ def main():
                 # Other instance? Try focusing the main window.
                 try:
                     controller.send_command('focus')
-                except ConnectionRefusedError:
+                except (ConnectionRefusedError, ConnectionResetError):
                     log.error('connection to existing instance failed, '
                               'force cleaning before restart')
                     # Assume the previous instance died, leaving
