@@ -2,7 +2,7 @@ from PySide6.QtGui import QImage, QTextDocument
 from PySide6.QtWidgets import QTextBrowser
 from PySide6.QtCore import QUrl, Signal
 
-from plover.plugins_manager.requests import CachedSession, FuturesSession
+from plover.plugins_manager.requests import CachedSession, CachedFuturesSession
 
 from plover import log
 
@@ -48,7 +48,7 @@ class InfoBrowser(QTextBrowser):
         self._images.clear()
         if self._futures_session is not None:
             self._futures_session.close()
-        self._futures_session = FuturesSession(session=self._session)
+        self._futures_session = CachedFuturesSession(session=self._session)
 
     def setHtml(self, html):
         self._reset_session()

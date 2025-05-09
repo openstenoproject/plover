@@ -48,8 +48,7 @@ class PackageState:
     def __repr__(self):
         return str(self)
 
-#TODO update with proper URL
-UNSUPPORTED_PLUGINS_URL = 'https://raw.githubusercontent.com/mkrnr/plover_plugins_registry/registry_plover_v5/unsupported.json'
+UNSUPPORTED_PLUGINS_URL = 'https://raw.githubusercontent.com/openstenoproject/plover_plugins_registry/master/unsupported.json'
 
 
 class Registry:

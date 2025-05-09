@@ -37,7 +37,7 @@ setup_cache_name()
   if [ "$RUNNER_OS" = 'macOS' ]
   then
     . ./osx/deps.sh
-    [ "$target_python" = "${py_installer_version%.*}" ] || die 1 "versions mismatch: target=$target_python, installer=$py_installer_version"
+    [ "$target_python" = "$py_installer_version" ] || die 1 "versions mismatch: target=$target_python, installer=$py_installer_version"
     target_python="$py_installer_version"
   fi
   cache_name=$("$python" - "$GITHUB_JOB" "$target_python" "$platform_name" <<\EOF
@@ -66,7 +66,7 @@ setup_osx_python()
 {
   target_python="$1"
   . ./osx/deps.sh
-  [ "$target_python" = "${py_installer_version%.*}" ] || die 1 "versions mismatch: target=$target_python, installer=$py_installer_version"
+  [ "$target_python" = "$py_installer_version" ] || die 1 "versions mismatch: target=$target_python, installer=$py_installer_version"
   python='python3'
   python_dir="$cache_dir/python"
   if [ ! -e "$python_dir" ]
@@ -76,29 +76,10 @@ setup_osx_python()
   fi
   # Update PATH.
   run_eval "echo \"\$PWD/$python_dir/Python.framework/Versions/Current/bin\" >>\$GITHUB_PATH"
-  # Target High Sierra.
-  run_eval "echo MACOSX_DEPLOYMENT_TARGET=10.13 >>\$GITHUB_ENV"
+  run_eval "echo MACOSX_DEPLOYMENT_TARGET=12.0 >>\$GITHUB_ENV"
   # Fix SSL certificates so plover_build_utils.download works.
   SSL_CERT_FILE="$("$python" -m pip._vendor.certifi)" || die
   run_eval "echo SSL_CERT_FILE='$SSL_CERT_FILE' >>\$GITHUB_ENV"
-}
-
-setup_pip_options()
-{
-  # If the wheels cache is available, disable pip's index.
-  if [ -e "$wheels_cache" ]
-  then
-    run_eval "echo PIP_NO_INDEX=1 >>\$GITHUB_ENV"
-  else
-    run mkdir -p "$wheels_cache"
-  fi
-  if [ "$RUNNER_OS" = 'Windows' ]
-  then
-    PIP_FIND_LINKS="$(cygpath -a -w "$wheels_cache")" || die
-  else
-    PIP_FIND_LINKS="$PWD/$wheels_cache"
-  fi
-  run_eval "echo PIP_FIND_LINKS='$PIP_FIND_LINKS' >>\$GITHUB_ENV"
 }
 
 setup_python_env()

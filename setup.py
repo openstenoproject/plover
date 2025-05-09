@@ -213,7 +213,7 @@ class BinaryDistDmg(Command):
     def run(self):
         self.run_command('bdist_app')
         # Encode targeted macOS plaftorm in the filename.
-        from wheel.bdist_wheel import get_platform
+        from setuptools.command.bdist_wheel import get_platform
         platform = get_platform('dist/Plover.app')
         args = '{out!r}, {name!r}, {settings!r}, lookForHiDPI=True'.format(
             out='dist/%s-%s.dmg' % (PACKAGE, platform),

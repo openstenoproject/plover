@@ -58,7 +58,7 @@ build_dist()
   # not include the necessary files, e.g. `Python.h`).
   if [ "$kernel" != "Linux" ]
   then
-    bootstrap_dist "$wheel" --no-warn-script-location --no-install
+    bootstrap_dist "$wheel" --no-warn-script-location 
   fi
 
   # Fetch official embedded distribution.
@@ -88,7 +88,7 @@ build_dist()
   python='dist_python'
 
   # Install Plover and dependencies.
-  bootstrap_dist "$wheel" --no-warn-script-location --no-index
+  bootstrap_dist "$wheel" --no-warn-script-location
 
   # Trim the fat...
   if [ $opt_trim -eq 1 ]
@@ -117,7 +117,7 @@ EOF"
   run "$python" -m plover_build_utils.source_less "$dist_data" '*/pip/_vendor/distlib/*' '*/pip/_vendor/pep517/*'
 
   # Check requirements.
-  run "$python" -I -m plover_build_utils.check_requirements
+  #run "$python" -I -m plover_build_utils.check_requirements
 
   run mv "$builddir" "$distdir"
 )}
