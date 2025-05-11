@@ -81,8 +81,8 @@
   </layout>
   <action name="action_EditDictionaries">
    <property name="icon">
-    <iconset resource="resources/resources.qrc">
-     <normaloff>:/pencil.svg</normaloff>:/pencil.svg</iconset>
+    <iconset resource="resources.qrc">
+     <normaloff>:/resources/pencil.svg</normaloff>:/resources/pencil.svg</iconset>
    </property>
    <property name="text">
     <string>&amp;Edit dictionaries</string>
@@ -96,8 +96,8 @@
   </action>
   <action name="action_SaveDictionaries">
    <property name="icon">
-    <iconset resource="resources/resources.qrc">
-     <normaloff>:/save.svg</normaloff>:/save.svg</iconset>
+    <iconset resource="resources.qrc">
+     <normaloff>:/resources/save.svg</normaloff>:/resources/save.svg</iconset>
    </property>
    <property name="text">
     <string>&amp;Save dictionaries as...</string>
@@ -111,8 +111,8 @@
   </action>
   <action name="action_RemoveDictionaries">
    <property name="icon">
-    <iconset resource="resources/resources.qrc">
-     <normaloff>:/remove.svg</normaloff>:/remove.svg</iconset>
+    <iconset resource="resources.qrc">
+     <normaloff>:/resources/remove.svg</normaloff>:/resources/remove.svg</iconset>
    </property>
    <property name="text">
     <string>&amp;Remove dictionaries</string>
@@ -126,8 +126,8 @@
   </action>
   <action name="action_Undo">
    <property name="icon">
-    <iconset resource="resources/resources.qrc">
-     <normaloff>:/undo.svg</normaloff>:/undo.svg</iconset>
+    <iconset resource="resources.qrc">
+     <normaloff>:/resources/undo.svg</normaloff>:/resources/undo.svg</iconset>
    </property>
    <property name="text">
     <string>&amp;Undo</string>
@@ -141,8 +141,8 @@
   </action>
   <action name="action_AddDictionaries">
    <property name="icon">
-    <iconset resource="resources/resources.qrc">
-     <normaloff>:/add.svg</normaloff>:/add.svg</iconset>
+    <iconset resource="resources.qrc">
+     <normaloff>:/resources/add.svg</normaloff>:/resources/add.svg</iconset>
    </property>
    <property name="text">
     <string>&amp;Add dictionaries</string>
@@ -156,8 +156,8 @@
   </action>
   <action name="action_AddTranslation">
    <property name="icon">
-    <iconset resource="resources/resources.qrc">
-     <normaloff>:/translation_add.svg</normaloff>:/translation_add.svg</iconset>
+    <iconset resource="resources.qrc">
+     <normaloff>:/resources/translation_add.svg</normaloff>:/resources/translation_add.svg</iconset>
    </property>
    <property name="text">
     <string>Add &amp;translation</string>
@@ -171,8 +171,8 @@
   </action>
   <action name="action_MoveDictionariesUp">
    <property name="icon">
-    <iconset resource="resources/resources.qrc">
-     <normaloff>:/up.svg</normaloff>:/up.svg</iconset>
+    <iconset resource="resources.qrc">
+     <normaloff>:/resources/up.svg</normaloff>:/resources/up.svg</iconset>
    </property>
    <property name="text">
     <string>Move dictionaries &amp;up</string>
@@ -183,8 +183,8 @@
   </action>
   <action name="action_MoveDictionariesDown">
    <property name="icon">
-    <iconset resource="resources/resources.qrc">
-     <normaloff>:/down.svg</normaloff>:/down.svg</iconset>
+    <iconset resource="resources.qrc">
+     <normaloff>:/resources/down.svg</normaloff>:/resources/down.svg</iconset>
    </property>
    <property name="text">
     <string>Move dictionaries &amp;down</string>
@@ -216,14 +216,14 @@
  </widget>
  <layoutdefault spacing="5" margin="8"/>
  <resources>
-  <include location="resources/resources.qrc"/>
+  <include location="resources.qrc"/>
  </resources>
  <connections>
   <connection>
    <sender>action_RemoveDictionaries</sender>
    <signal>triggered()</signal>
    <receiver>DictionariesWidget</receiver>
-   <slot>on_remove_dictionaries()</slot>
+   <slot>remove_selected_dictionaries()</slot>
    <hints>
     <hint type="sourcelabel">
      <x>-1</x>
@@ -239,7 +239,7 @@
    <sender>action_Undo</sender>
    <signal>triggered()</signal>
    <receiver>DictionariesWidget</receiver>
-   <slot>on_undo()</slot>
+   <slot>undo()</slot>
    <hints>
     <hint type="sourcelabel">
      <x>-1</x>
@@ -255,7 +255,7 @@
    <sender>action_EditDictionaries</sender>
    <signal>triggered()</signal>
    <receiver>DictionariesWidget</receiver>
-   <slot>on_edit_dictionaries()</slot>
+   <slot>edit_selected_dictionaries()</slot>
    <hints>
     <hint type="sourcelabel">
      <x>-1</x>
@@ -271,7 +271,7 @@
    <sender>action_AddDictionaries</sender>
    <signal>triggered()</signal>
    <receiver>DictionariesWidget</receiver>
-   <slot>on_add_dictionaries()</slot>
+   <slot>open_add_dictionaries_menu()</slot>
    <hints>
     <hint type="sourcelabel">
      <x>-1</x>
@@ -287,7 +287,7 @@
    <sender>action_AddTranslation</sender>
    <signal>triggered()</signal>
    <receiver>DictionariesWidget</receiver>
-   <slot>on_add_translation()</slot>
+   <slot>add_translation()</slot>
    <hints>
     <hint type="sourcelabel">
      <x>-1</x>
@@ -303,7 +303,7 @@
    <sender>view</sender>
    <signal>activated(QModelIndex)</signal>
    <receiver>DictionariesWidget</receiver>
-   <slot>on_activate_dictionary(QModelIndex)</slot>
+   <slot>activate_dictionary(QModelIndex)</slot>
    <hints>
     <hint type="sourcelabel">
      <x>199</x>
@@ -319,7 +319,7 @@
    <sender>action_MoveDictionariesDown</sender>
    <signal>triggered()</signal>
    <receiver>DictionariesWidget</receiver>
-   <slot>on_move_dictionaries_down()</slot>
+   <slot>move_selected_dictionaries_down()</slot>
    <hints>
     <hint type="sourcelabel">
      <x>-1</x>
@@ -335,7 +335,7 @@
    <sender>action_MoveDictionariesUp</sender>
    <signal>triggered()</signal>
    <receiver>DictionariesWidget</receiver>
-   <slot>on_move_dictionaries_up()</slot>
+   <slot>move_selected_dictionaries_up()</slot>
    <hints>
     <hint type="sourcelabel">
      <x>-1</x>
@@ -351,7 +351,7 @@
    <sender>action_OpenDictionaries</sender>
    <signal>triggered()</signal>
    <receiver>DictionariesWidget</receiver>
-   <slot>on_open_dictionaries()</slot>
+   <slot>open_open_dictionaries_dialog()</slot>
    <hints>
     <hint type="sourcelabel">
      <x>-1</x>
@@ -367,7 +367,7 @@
    <sender>action_CreateDictionary</sender>
    <signal>triggered()</signal>
    <receiver>DictionariesWidget</receiver>
-   <slot>on_create_dictionary()</slot>
+   <slot>open_create_new_dictionary_dialog()</slot>
    <hints>
     <hint type="sourcelabel">
      <x>-1</x>
@@ -383,7 +383,7 @@
    <sender>action_MergeDictionaries</sender>
    <signal>triggered()</signal>
    <receiver>DictionariesWidget</receiver>
-   <slot>on_merge_dictionaries()</slot>
+   <slot>merge_selected_dictionaries()</slot>
    <hints>
     <hint type="sourcelabel">
      <x>-1</x>
@@ -399,7 +399,7 @@
    <sender>action_CopyDictionaries</sender>
    <signal>triggered()</signal>
    <receiver>DictionariesWidget</receiver>
-   <slot>on_copy_dictionaries()</slot>
+   <slot>copy_selected_dictionaries()</slot>
    <hints>
     <hint type="sourcelabel">
      <x>-1</x>
@@ -413,17 +413,17 @@
   </connection>
  </connections>
  <slots>
-  <slot>on_remove_dictionaries()</slot>
-  <slot>on_undo()</slot>
-  <slot>on_edit_dictionaries()</slot>
-  <slot>on_add_dictionaries()</slot>
-  <slot>on_add_translation()</slot>
-  <slot>on_activate_dictionary(QModelIndex)</slot>
-  <slot>on_move_dictionaries_up()</slot>
-  <slot>on_move_dictionaries_down()</slot>
-  <slot>on_open_dictionaries()</slot>
-  <slot>on_create_dictionary()</slot>
-  <slot>on_merge_dictionaries()</slot>
-  <slot>on_copy_dictionaries()</slot>
+  <slot>remove_selected_dictionaries()</slot>
+  <slot>undo()</slot>
+  <slot>edit_selected_dictionaries()</slot>
+  <slot>open_add_dictionaries_menu()</slot>
+  <slot>add_translation()</slot>
+  <slot>activate_dictionary(QModelIndex)</slot>
+  <slot>move_selected_dictionaries_up()</slot>
+  <slot>move_selected_dictionaries_down()</slot>
+  <slot>open_open_dictionaries_dialog()</slot>
+  <slot>open_create_new_dictionary_dialog()</slot>
+  <slot>merge_selected_dictionaries()</slot>
+  <slot>copy_selected_dictionaries()</slot>
  </slots>
 </ui>

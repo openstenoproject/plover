@@ -58,10 +58,6 @@ def main():
     log.info('Plover %s', __version__)
     log.info('configuration directory: %s', CONFIG_DIR)
 
-    if PLATFORM == 'mac':
-        # Fixes PyQt issue on macOS Big Sur.
-        os.environ['QT_MAC_WANTS_LAYER'] = '1'
-
     registry.update()
 
     if args.gui is None:
@@ -134,7 +130,7 @@ def main():
                 # Other instance? Try focusing the main window.
                 try:
                     controller.send_command('focus')
-                except ConnectionRefusedError:
+                except (ConnectionRefusedError, ConnectionResetError):
                     log.error('connection to existing instance failed, '
                               'force cleaning before restart')
                     # Assume the previous instance died, leaving

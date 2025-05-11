@@ -114,8 +114,8 @@ setup_python_env()
   run_eval "echo PYTHONUSERBASE='$PYTHONUSERBASE' >>\$GITHUB_ENV"
   if [ ! -e "$python_userbase" ]
   then
-    get_base_devel --no-warn-script-location --user || die
-    install_wheels --no-warn-script-location --user "$@" || die
+    get_base_devel --no-warn-script-location || die
+    install_wheels --no-warn-script-location "$@" || die
     if [ "$RUNNER_OS" = 'Windows' ]
     then
       run rm -rf "$python_userbase"/Python*/Scripts
@@ -128,15 +128,6 @@ setup_python_env()
 publish_github_release()
 {
   case "$RELEASE_TYPE" in
-    continuous)
-      tag='continuous'
-      title='Continuous build'
-      is_draft=''
-      is_prerelease='yes'
-      overwrite='yes'
-      notes_body='news_draft.md'
-      run_eval "'$python' -m towncrier --draft >$notes_body" || die
-      ;;
     tagged)
       tag="${GITHUB_REF#refs/tags/}"
       title="$tag"
@@ -224,14 +215,12 @@ publish_pypi_release()
 
 analyze_set_release_info()
 {
+  info "GITHUB_REF: $GITHUB_REF"
+  info "GITHUB_EVENT_NAME: $GITHUB_EVENT_NAME"
   if [[ "$GITHUB_REF" == refs/tags/* ]]
   then
     # Tagged release.
     release_type='tagged'
-  elif [[ "$GITHUB_REF" == refs/heads/$CONTINUOUS_RELEASE_BRANCH ]]
-  then
-    # Continuous release.
-    release_type='continuous'
   else
     # Not a release.
     release_type=''

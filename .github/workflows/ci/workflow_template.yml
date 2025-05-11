@@ -4,9 +4,9 @@ on:
   push:
     branches:
       - 'main'
-    tags-ignore:
-      # Ignore continuous releases' tag.
-      - 'continuous'
+      - 'maintenance/*'
+    tags:
+      - 'v*'
   pull_request:
     types:
         - opened
@@ -52,8 +52,6 @@ jobs:
       <% endif %>
       - name: Set outputs
         id: set_ouputs
-        env:
-          CONTINUOUS_RELEASE_BRANCH: ${{ secrets.CONTINUOUS_RELEASE_BRANCH }}
         run: |
           analyze_set_release_info
           <% for j in jobs %>
@@ -131,13 +129,14 @@ jobs:
         run: setup_osx_python '<@ j.python @>'
 
       <% endif %>
-      <% if j.type == 'build' and j.os == 'Linux' %>
+      <% if j.type in ['build', 'test_gui_qt'] and j.os == 'Linux' %>
       - name: Install system dependencies
-        run: apt_get_install libdbus-1-dev libdbus-glib-1-dev libudev-dev libusb-1.0-0-dev
+        run: apt_get_install libdbus-1-dev libdbus-glib-1-dev libudev-dev libusb-1.0-0-dev libegl-dev libxkbcommon-x11-0
 
       <% endif %>
       - name: Setup Python environment
         run: setup_python_env -c reqs/constraints.txt<% for r in j.reqs %> -r <@ r @><% endfor %>
+        
 
       <% if j.type in ['build', 'test_packaging'] %>
       - name: Patch version
@@ -150,6 +149,9 @@ jobs:
 
       <% endif %>
       <% if j.type == 'test_gui_qt' %>
+      - name: Build Resources
+        run: python setup.py build_resources
+
       - name: Build UI
         run: python setup.py build_ui
 
@@ -260,7 +262,7 @@ jobs:
       - name: List cache contents
         run: list_cache
     <% if j.type == 'test_packaging' %>
-  
+
     outputs:
       version: ${{ steps.set_version.outputs.version }}
     <% endif %>

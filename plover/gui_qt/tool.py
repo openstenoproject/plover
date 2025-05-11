@@ -1,10 +1,10 @@
 
-from PyQt5.QtWidgets import QDialog
+from PySide6.QtWidgets import QDialog
 
-from plover.gui_qt.utils import WindowState
+from plover.gui_qt.utils import WindowStateMixin
 
 
-class Tool(QDialog, WindowState):
+class Tool(QDialog, WindowStateMixin):
 
     # Used for dialog window title, menu entry text.
     TITLE = None

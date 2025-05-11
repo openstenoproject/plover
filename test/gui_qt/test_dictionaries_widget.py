@@ -4,7 +4,7 @@ from textwrap import dedent
 from types import SimpleNamespace
 import operator
 
-from PyQt5.QtCore import QModelIndex, QPersistentModelIndex, Qt
+from PySide6.QtCore import QModelIndex, QPersistentModelIndex, Qt
 
 import pytest
 
@@ -36,13 +36,12 @@ ENABLED_TO_CHAR = {
 }
 ENABLED_FROM_CHAR = {c: e for e, c in ENABLED_TO_CHAR.items()}
 
-CHECKED_TO_BOOL = {
-    Qt.Checked: True,
-    Qt.Unchecked: False,
-}
-
-MODEL_ROLES = sorted([Qt.AccessibleTextRole, Qt.CheckStateRole,
-                      Qt.DecorationRole, Qt.DisplayRole, Qt.ToolTipRole])
+#TODO what does it mean that the MODEL_ROLES are now empty?
+MODEL_ROLES = []
+# before PySide6 refactoring:
+# MODEL_ROLES = sorted([Qt.ItemDataRole.AccessibleTextRole, Qt.ItemDataRole.CheckStateRole,
+#                      Qt.ItemDataRole.DecorationRole, Qt.ItemDataRole.DisplayRole,
+#                      Qt.ItemDataRole.ToolTipRole])
 
 
 def parse_state(state_str):
@@ -119,11 +118,12 @@ class ModelTest(namedtuple('ModelTest', '''
         actual_state = []
         for row in range(self.model.rowCount()):
             index = self.model.index(row)
-            enabled = CHECKED_TO_BOOL[index.data(Qt.CheckStateRole)]
-            icon = index.data(Qt.DecorationRole)
-            path = index.data(Qt.DisplayRole)
+            check_state = index.data(Qt.ItemDataRole.CheckStateRole)
+            is_checked = check_state == Qt.CheckState.Checked
+            icon = index.data(Qt.ItemDataRole.DecorationRole)
+            path = index.data(Qt.ItemDataRole.DisplayRole)
             actual_state.append('%s %s %s' % (
-                ENABLED_TO_CHAR.get(enabled, '?'),
+                ENABLED_TO_CHAR.get(is_checked, '?'),
                 ICON_TO_CHAR.get(icon, '?'),
                 path))
         assert actual_state == expected_state
@@ -150,8 +150,8 @@ class ModelTest(namedtuple('ModelTest', '''
                 call.args[2].sort()
                 assert call == mock.call.dataChanged(index, index, MODEL_ROLES)
         if layout_change:
-            assert signal_calls[0:2] == [mock.call.layoutAboutToBeChanged([], self.model.NoLayoutChangeHint),
-                                         mock.call.layoutChanged([], self.model.NoLayoutChangeHint)]
+            assert signal_calls[0:2] == [mock.call.layoutAboutToBeChanged(),
+                                         mock.call.layoutChanged()]
             del signal_calls[0:2]
         assert not signal_calls
         self.signals.reset_mock()
@@ -224,7 +224,7 @@ def test_model_accessible_text_1(model_test):
         'commands.json, loading',
         'asset:plover:assets/main.json, disabled, loading',
     )):
-        assert model_test.model.index(n).data(Qt.AccessibleTextRole) == expected
+        assert model_test.model.index(n).data(Qt.ItemDataRole.AccessibleTextRole) == expected
 
 def test_model_accessible_text_2(model_test):
     '''
@@ -239,21 +239,21 @@ def test_model_accessible_text_2(model_test):
         'commands.json',
         'asset:plover:assets/main.json, disabled, read-only',
     )):
-        assert model_test.model.index(n).data(Qt.AccessibleTextRole) == expected
+        assert model_test.model.index(n).data(Qt.ItemDataRole.AccessibleTextRole) == expected
 
 def test_model_accessible_text_3(model_test):
     '''
     ☑ ! invalid.bad
     '''
     expected = 'invalid.bad, errored: %s.' % INVALID_EXCEPTION
-    assert model_test.model.index(0).data(Qt.AccessibleTextRole) == expected
+    assert model_test.model.index(0).data(Qt.ItemDataRole.AccessibleTextRole) == expected
 
 def test_model_accessible_text_4(model_test):
     '''
     ☐ ! invalid.bad
     '''
     expected = 'invalid.bad, disabled, errored: %s.' % INVALID_EXCEPTION
-    assert model_test.model.index(0).data(Qt.AccessibleTextRole) == expected
+    assert model_test.model.index(0).data(Qt.ItemDataRole.AccessibleTextRole) == expected
 
 def test_model_add_existing(model_test):
     '''
@@ -424,7 +424,7 @@ def test_model_favorite(model_test):
     ☐ 🛇 asset:plover:assets/main.json
     '''
     # New favorite.
-    model_test.model.setData(model_test.model.index(1), Qt.Unchecked, Qt.CheckStateRole)
+    model_test.model.setData(model_test.model.index(1), Qt.CheckState.Unchecked.value, Qt.ItemDataRole.CheckStateRole.value)
     model_test.check(
         '''
         ☑ 🛇 read-only.ro
@@ -438,7 +438,7 @@ def test_model_favorite(model_test):
         undo_change=True,
     )
     # No favorite.
-    model_test.model.setData(model_test.model.index(3), Qt.Unchecked, Qt.CheckStateRole)
+    model_test.model.setData(model_test.model.index(3), Qt.CheckState.Unchecked.value, Qt.ItemDataRole.CheckStateRole.value)
     model_test.check(
         '''
         ☑ 🛇 read-only.ro
@@ -614,19 +614,19 @@ def test_model_persistent_index(model_test):
     '''
     persistent_index = QPersistentModelIndex(model_test.model.index(1))
     assert persistent_index.row() == 1
-    assert persistent_index.data(Qt.CheckStateRole) == Qt.Checked
-    assert persistent_index.data(Qt.DecorationRole) == 'favorite'
-    assert persistent_index.data(Qt.DisplayRole) == 'user.json'
+    assert persistent_index.data(Qt.ItemDataRole.CheckStateRole) == Qt.CheckState.Checked
+    assert persistent_index.data(Qt.ItemDataRole.DecorationRole) == 'favorite'
+    assert persistent_index.data(Qt.ItemDataRole.DisplayRole) == 'user.json'
     model_test.configure(classic_dictionaries_display_order=True)
     assert persistent_index.row() == 2
-    assert persistent_index.data(Qt.CheckStateRole) == Qt.Checked
-    assert persistent_index.data(Qt.DecorationRole) == 'favorite'
-    assert persistent_index.data(Qt.DisplayRole) == 'user.json'
-    model_test.model.setData(persistent_index, Qt.Unchecked, Qt.CheckStateRole)
+    assert persistent_index.data(Qt.ItemDataRole.CheckStateRole) == Qt.CheckState.Checked
+    assert persistent_index.data(Qt.ItemDataRole.DecorationRole) == 'favorite'
+    assert persistent_index.data(Qt.ItemDataRole.DisplayRole) == 'user.json'
+    model_test.model.setData(persistent_index, Qt.CheckState.Unchecked.value, Qt.ItemDataRole.CheckStateRole.value)
     assert persistent_index.row() == 2
-    assert persistent_index.data(Qt.CheckStateRole) == Qt.Unchecked
-    assert persistent_index.data(Qt.DecorationRole) == 'normal'
-    assert persistent_index.data(Qt.DisplayRole) == 'user.json'
+    assert persistent_index.data(Qt.ItemDataRole.CheckStateRole) == Qt.CheckState.Unchecked
+    assert persistent_index.data(Qt.ItemDataRole.DecorationRole) == 'normal'
+    assert persistent_index.data(Qt.ItemDataRole.DisplayRole) == 'user.json'
 
 def test_model_qtmodeltester(model_test, qtmodeltester):
     '''
@@ -686,18 +686,18 @@ def test_model_set_checked(model_test):
     first_index = model_test.model.index(0)
     for index, value, ret, state in (
         # Invalid index.
-        (QModelIndex(), Qt.Unchecked, False, on_state),
+        (QModelIndex(), Qt.CheckState.Unchecked.value, False, on_state),
         # Invalid values.
         (first_index, 'pouet', False, on_state),
-        (first_index, Qt.PartiallyChecked, False, on_state),
+        (first_index, Qt.CheckState.PartiallyChecked.value, False, on_state),
         # Already checked.
-        (first_index, Qt.Checked, False, on_state),
+        (first_index, Qt.CheckState.Checked.value, False, on_state),
         # Uncheck.
-        (first_index, Qt.Unchecked, True, off_state),
+        (first_index, Qt.CheckState.Unchecked.value, True, off_state),
         # Recheck.
-        (first_index, Qt.Checked, True, on_state),
+        (first_index, Qt.CheckState.Checked.value, True, on_state),
     ):
-        assert model_test.model.setData(index, value, Qt.CheckStateRole) == ret
+        assert model_test.model.setData(index, value, Qt.ItemDataRole.CheckStateRole.value) == ret
         model_test.check(state, config_change='update' if ret else None,
                          data_change=[index.row()] if ret else None)
 
@@ -727,7 +727,7 @@ def test_model_undo_1(model_test):
         state = state.split('\n')
         state[n] = '☑' + state[n][1:]
         state = '\n'.join(state)
-        model_test.model.setData(model_test.model.index(n), Qt.Checked, Qt.CheckStateRole)
+        model_test.model.setData(model_test.model.index(n), Qt.CheckState.Checked.value, Qt.ItemDataRole.CheckStateRole.value)
         model_test.check(state, config_change='update', data_change=[n],
                          undo_change=(True if n == 0 else None))
     for n in range(5):
@@ -766,12 +766,12 @@ class WidgetTest(namedtuple('WidgetTest', '''
     def select(self, selection):
         sm = self.widget.view.selectionModel()
         for row in selection:
-            sm.select(self.model.index(row), sm.Select)
+            sm.select(self.model.index(row), sm.SelectionFlag.Select)
 
     def unselect(self, selection):
         sm = self.widget.view.selectionModel()
         for row in selection:
-            sm.select(self.model.index(row), sm.Deselect)
+            sm.select(self.model.index(row), sm.SelectionFlag.Deselect)
 
     def __getattr__(self, name):
         return getattr(self.model_test, name)
@@ -906,7 +906,7 @@ def test_widget_save_copy_1(widget_test):
         mock.call.getSaveFileName(
             parent=widget_test.widget,
             caption='Save a copy of %s as...' % name,
-            directory=expand_path('%s - Copy.json' % Path(name).stem),
+            dir=expand_path('%s - Copy.json' % Path(name).stem),
             filter=FILE_PICKER_SAVE_FILTER,
         )
         for name in ['favorite.json', 'normal.json', 'read-only.ro']
@@ -942,7 +942,7 @@ def test_widget_save_merge_1(widget_test):
     assert widget_test.file_dialog.mock_calls == [mock.call.getSaveFileName(
         parent=widget_test.widget,
         caption='Merge %s as...' % merge_name,
-        directory=expand_path(merge_name + '.json'),
+        dir=expand_path(merge_name + '.json'),
         filter=FILE_PICKER_SAVE_FILTER,
     )]
     assert widget_test.create_dictionary.mock_calls == [mock.call(expand_path('merge.json'), threaded_save=False)]
@@ -972,7 +972,7 @@ def test_widget_save_merge_2(widget_test):
     assert widget_test.file_dialog.mock_calls == [mock.call.getSaveFileName(
         parent=widget_test.widget,
         caption='Merge %s as...' % merge_name,
-        directory=expand_path(merge_name + '.json'),
+        dir=expand_path(merge_name + '.json'),
         filter=FILE_PICKER_SAVE_FILTER,
     )]
     assert widget_test.create_dictionary.mock_calls == []

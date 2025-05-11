@@ -173,7 +173,7 @@
    <sender>strokes</sender>
    <signal>textEdited(QString)</signal>
    <receiver>AddTranslationWidget</receiver>
-   <slot>on_strokes_edited(QString)</slot>
+   <slot>handle_stroke_input_change(QString)</slot>
    <hints>
     <hint type="sourcelabel">
      <x>210</x>
@@ -189,7 +189,7 @@
    <sender>translation</sender>
    <signal>textEdited(QString)</signal>
    <receiver>AddTranslationWidget</receiver>
-   <slot>on_translation_edited(QString)</slot>
+   <slot>handle_translation_input_change(QString)</slot>
    <hints>
     <hint type="sourcelabel">
      <x>210</x>
@@ -205,7 +205,7 @@
    <sender>dictionary</sender>
    <signal>activated(int)</signal>
    <receiver>AddTranslationWidget</receiver>
-   <slot>on_dictionary_selected(int)</slot>
+   <slot>update_selected_dictionary(int)</slot>
    <hints>
     <hint type="sourcelabel">
      <x>187</x>
@@ -219,8 +219,8 @@
   </connection>
  </connections>
  <slots>
-  <slot>on_strokes_edited(QString)</slot>
-  <slot>on_translation_edited(QString)</slot>
-  <slot>on_dictionary_selected(int)</slot>
+  <slot>handle_stroke_input_change(QString)</slot>
+  <slot>handle_translation_input_change(QString)</slot>
+  <slot>update_selected_dictionary(int)</slot>
  </slots>
 </ui>
