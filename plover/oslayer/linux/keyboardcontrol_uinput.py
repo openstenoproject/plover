@@ -1,7 +1,7 @@
 from evdev import UInput, ecodes as e, util, InputDevice, list_devices
 import threading
 from select import select
-import subprocess
+from psutil import process_iter
 
 from plover.output.keyboard import GenericKeyboardEmulation
 from plover.machine.keyboard_capture import Capture
@@ -274,13 +274,8 @@ class KeyboardEmulation(GenericKeyboardEmulation):
         self._ui = UInput(self._res)
 
         # Check that ibus or fcitx5 is running
-        try:
-            processes = subprocess.run(["ps", "-e", "-o", "comm", "--no-headers"], capture_output=True)
-            if processes.returncode == 0 and not any(line in ["ibus-daemon", "fcitx5"] for line in processes.stdout.decode().splitlines()):
-                log.warning("It appears that an input method, such as ibus or fcitx5, is not running on your system. Without this, some text may not be output correctly.")
-        except FileNotFoundError:
-            # in the extremely unlikely event that a system has uniput but not `ps`, don't crash the program
-            pass
+        if not any(p.name() in ["ibus-daemon", "fcitx5"] for p in process_iter()):
+            log.warning("It appears that an input method, such as ibus or fcitx5, is not running on your system. Without this, some text may not be output correctly.")
 
     def _update_layout(self, layout):
         if not layout in LAYOUTS:
