@@ -36,6 +36,7 @@ pkginfo==1.12.1.2
 plover-stroke==1.1.0
 pluggy==1.0.0
 plyer==2.1.0
+psutil==7.0.0
 py==1.10.0
 pycparser==2.20
 Pygments==2.10.0
