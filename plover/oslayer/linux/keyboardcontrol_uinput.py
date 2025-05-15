@@ -1,11 +1,21 @@
-from evdev import UInput, ecodes as e, util, InputDevice, list_devices
+from evdev import UInput, ecodes as e, util, InputDevice, list_devices, KeyEvent
+import os
 import threading
-from select import select
+import selectors
 
 from plover.output.keyboard import GenericKeyboardEmulation
 from plover.machine.keyboard_capture import Capture
 from plover.key_combo import parse_key_combo
 from plover import log
+
+# Keycodes for modifier keys that should always be passed through, and
+# that mark keyboard combinations that should always be passed through
+MODIFIER_KEY_CODES: set[int] = {
+    e.KEY_LEFTSHIFT, e.KEY_RIGHTSHIFT,
+    e.KEY_LEFTCTRL, e.KEY_RIGHTCTRL,
+    e.KEY_LEFTALT, e.KEY_RIGHTALT,
+    e.KEY_LEFTMETA, e.KEY_RIGHTMETA,
+}
 
 # Shared keys between all layouts
 BASE_LAYOUT = {
@@ -276,6 +286,8 @@ LAYOUTS = {
     },
 }
 
+SUPPRESSED_KEYCODE_TO_KEY = {code: key for key, code in LAYOUTS[DEFAULT_LAYOUT].items()}
+
 KEYCODE_TO_KEY = dict(zip(LAYOUTS[DEFAULT_LAYOUT].values(), LAYOUTS[DEFAULT_LAYOUT].keys()))
 
 
@@ -364,12 +376,25 @@ class KeyboardEmulation(GenericKeyboardEmulation):
 
 
 class KeyboardCapture(Capture):
+    _devices: list[InputDevice]
+    _selector: selectors.BaseSelector
+    _thread: threading.Thread | None
+    # Pipe to signal _monitor_devices thread to stop
+    # The thread will select() on this pipe to know when to stop
+    # This way, the thread does not need periodically stop reading input devices
+    # and check if it should stop.
+    _thread_read_pipe: int | None
+    _thread_write_pipe: int | None
+
     def __init__(self):
         super().__init__()
-        # This is based on the example from the python-evdev documentation, using the first of the three alternative methods: https://python-evdev.readthedocs.io/en/latest/tutorial.html#reading-events-from-multiple-devices-using-select
+        # This is based on the example from the python-evdev documentation: https://python-evdev.readthedocs.io/en/latest/tutorial.html#reading-events-from-multiple-devices-using-selectors
         self._devices = self._get_devices()
         self._running = False
+        self._selector = selectors.DefaultSelector()
         self._thread = None
+        self._thread_read_pipe = None
+        self._thread_write_pipe = None
         self._res = util.find_ecodes_by_regex(r"KEY_.*")
         self._ui = UInput(self._res)
         self._suppressed_keys = []
@@ -378,7 +403,7 @@ class KeyboardCapture(Capture):
     def _get_devices(self):
         input_devices = [InputDevice(path) for path in list_devices()]
         keyboard_devices = [dev for dev in input_devices if self._filter_devices(dev)]
-        return {dev.fd: dev for dev in keyboard_devices}
+        return keyboard_devices
 
     def _filter_devices(self, device):
         """
@@ -392,18 +417,53 @@ class KeyboardCapture(Capture):
             for key in [e.KEY_ESC, e.KEY_SPACE, e.KEY_ENTER, e.KEY_LEFTSHIFT]
         )
         return not is_uinput and keyboard_keys_present
+    
+    def _grab_devices(self):
+        """Grab all devices, waiting for each device to stop having keys pressed.
+        
+        If a device is grabbed when keys are being pressed, the key will
+        appear to be always pressed down until the device is ungrabbed and the
+        key is pressed again.
+        See https://stackoverflow.com/questions/41995349/why-does-ioctlfd-eviocgrab-1-cause-key-spam-sometimes
+        There is likely a race condition here between checking active keys and
+        actually grabbing the device, but it appears to work fine.
+        """
+        for device in self._devices:
+            if len(device.active_keys()) > 0:
+                for _ in device.read_loop():
+                    if len(device.active_keys()) == 0:
+                        # No keys are pressed. Grab the device
+                        break
+            device.grab()
 
     def start(self):
-        self._running = True
+        self._thread_read_pipe, self._thread_write_pipe = os.pipe()
+        self._selector.register(self._thread_read_pipe, selectors.EVENT_READ)
+
+        self._grab_devices()
+        for device in self._devices:
+            self._selector.register(device, selectors.EVENT_READ)
         self._thread = threading.Thread(target=self._run)
         self._thread.start()
+        self._running = True
 
     def cancel(self):
-        self._running = False
-        [dev.ungrab() for dev in self._devices.values()]
+        print("Canceling")
+        # Write some arbitrary data to the pipe to signal the _run thread to stop
+        os.write(self._thread_write_pipe, b"a")
         if self._thread is not None:
             self._thread.join()
-        self._ui.close()
+            self._thread = None
+
+        if self._thread_read_pipe is not None:
+            self._selector.unregister(self._thread_read_pipe)
+            os.close(self._thread_read_pipe)
+            self._thread_read_pipe = None
+        if self._thread_write_pipe is not None:
+            os.close(self._thread_write_pipe)
+            self._thread_write_pipe = None
+
+        self._running = False
 
     def suppress(self, suppressed_keys=()):
         """
@@ -414,23 +474,61 @@ class KeyboardCapture(Capture):
         self._suppressed_keys = suppressed_keys
 
     def _run(self):
-        [dev.grab() for dev in self._devices.values()]
-        while self._running:
-            """
-            The select() call blocks the loop until it gets an input, which meant that the keyboard
-            had to be pressed once after executing `cancel()`. Now, there is a 1 second delay instead
-            FIXME: maybe use one of the other options to avoid the timeout
-            https://python-evdev.readthedocs.io/en/latest/tutorial.html#reading-events-from-multiple-devices-using-select
-            """
-            r, _, _ = select(self._devices, [], [], 1)
-            for fd in r:
-                for event in self._devices[fd].read():
-                    if event.type == e.EV_KEY:
-                        if event.code in KEYCODE_TO_KEY:
-                            key_name = KEYCODE_TO_KEY[event.code]
-                            if key_name in self._suppressed_keys:
-                                pressed = event.value == 1
-                                (self.key_down if pressed else self.key_up)(key_name)
-                                continue  # Go to the next iteration, skipping the below code:
-                    self._ui.write(e.EV_KEY, event.code, event.value)
-                    self._ui.syn()
+        keys_pressed_with_modifier: set[int] = set()
+        down_modifier_keys: set[int] = set()
+
+        def _should_suppress(event) -> bool:
+            if event.code in MODIFIER_KEY_CODES:
+                # Can't use if-else because there is a third case: key_hold
+                if event.value == KeyEvent.key_down:
+                    down_modifier_keys.add(event.code)
+                elif event.value == KeyEvent.key_up:
+                    down_modifier_keys.discard(event.code)
+                return False
+            key = SUPPRESSED_KEYCODE_TO_KEY.get(event.code, None)
+            if key is None:
+                # Key is unhandled. Don't suppress
+                return False
+            if event.value == KeyEvent.key_down and down_modifier_keys:
+                keys_pressed_with_modifier.add(event.code)
+                return False
+            if event.value == KeyEvent.key_up and event.code in keys_pressed_with_modifier:
+                # Must pass through key up event if key was pressed with modifier
+                # or else it will stay pressed down and start repeating.
+                # Must release even if modifier key was released first
+                keys_pressed_with_modifier.discard(event.code)
+                return False
+            suppressed = key in self._suppressed_keys
+            return suppressed
+
+        try:
+            while True:
+                for key, events in self._selector.select():
+                    if key.fd == self._thread_read_pipe:
+                        # Clear the pipe
+                        os.read(key.fd, 999)
+                        return
+                    assert isinstance(key.fileobj, InputDevice)
+                    device: InputDevice = key.fileobj
+                    for event in device.read():
+                        if event.type == e.EV_KEY and _should_suppress(event):
+                            key_name = SUPPRESSED_KEYCODE_TO_KEY[event.code]
+                            if event.value == KeyEvent.key_down:
+                                self.key_down(key_name)
+                            elif event.value == KeyEvent.key_up:
+                                self.key_up(key_name)
+                            # Don't passthrough. Skip rest of this loop
+                            continue
+
+                        # Passthrough event
+                        self._ui.write_event(event)
+        finally:
+            # Always ungrab devices to prevent exceptions in the _run loop
+            # from causing grabbed input devices to be blocked
+            for device in self._devices:
+                try:
+                    device.ungrab()
+                    self._selector.unregister(device)
+                except:
+                    log.warning("Failed to ungrab device", exc_info=True)
+            self._ui.close()
