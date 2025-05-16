@@ -1,14 +1,13 @@
 import contextlib
 import importlib
 import os
-import re
 import subprocess
 import sys
 
 from setuptools.command.build_py import build_py
 from setuptools.command.develop import develop
-import pkg_resources
 import setuptools
+from importlib.metadata import distribution, PackageNotFoundError
 
 
 class Command(setuptools.Command):
@@ -28,16 +27,15 @@ class Command(setuptools.Command):
         old_path = sys.path[:]
         old_modules = sys.modules.copy()
         try:
-            sys.path.insert(0, pkg_resources.normalize_path(ei_cmd.egg_base))
-            pkg_resources.working_set.__init__()
-            pkg_resources.add_activation_listener(lambda dist: dist.activate())
-            pkg_resources.require('%s==%s' % (ei_cmd.egg_name, ei_cmd.egg_version))
+            sys.path.insert(0, os.path.abspath(ei_cmd.egg_base))
+            dist = distribution(ei_cmd.egg_name)
+            if dist is None:
+                raise PackageNotFoundError(f"Package {ei_cmd.egg_name} not found")
             yield
         finally:
             sys.path[:] = old_path
             sys.modules.clear()
             sys.modules.update(old_modules)
-            pkg_resources.working_set.__init__()
 
     def bdist_wheel(self):
         '''Run bdist_wheel and return resulting wheel file path.'''

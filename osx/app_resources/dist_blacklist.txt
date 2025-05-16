@@ -2,7 +2,7 @@
 :
   _CodeSignature
   share
-  Resources
+  Resources/Python.app
 :bin
   !python
   !python3*

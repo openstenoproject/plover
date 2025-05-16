@@ -1,5 +1,4 @@
 certifi
-pip
 setuptools
 wheel
 

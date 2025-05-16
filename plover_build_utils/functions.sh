@@ -158,7 +158,7 @@ bootstrap_dist()
     -r reqs/dist_extra_log.txt \
     "$@" || die
   # Avoid caching Plover's wheel.
-  run rm "$wheels_cache/$(basename "$wheel")"
+  #run rm "$wheels_cache/$(basename "$wheel")"
 }
 
 osx_standalone_python()
@@ -177,12 +177,12 @@ osx_standalone_python()
   [[ ! -e "$py_framework_dir" ]] || return 1
 
   run mkdir -p "$dest"
-  run "$python" -m plover_build_utils.download "https://www.python.org/ftp/python/$py_version/python-$py_version-macosx$py_macos.pkg" "$py_sha1"
+  run "$python" -m plover_build_utils.download "https://www.python.org/ftp/python/$py_version/python-$py_version-macos$py_macos.pkg" "$py_sha1"
   reloc_py_zip="$(run "$python" -m plover_build_utils.download "$reloc_py_url" "$reloc_py_sha1")"
   run unzip -d "$dest" "$reloc_py_zip"
   reloc_py_dir="$(echo -n "$dest"/relocatable-python-*/)"
   run "$python" "$reloc_py_dir/make_relocatable_python_framework.py" \
-    --baseurl="file://$PWD/$downloads_cache/%s/../python-%s-macosx%s.pkg" \
+    --baseurl="file://$PWD/$downloads_cache/%s/../python-%s-macos%s.pkg" \
     --python-version="$py_version" --os-version="$py_macos" \
     --destination="$dest" \
     --without-pip \

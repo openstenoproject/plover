@@ -1,6 +1,8 @@
 # Environment setup
 
-You need Python >= 3.8 installed, and you need [tox](https://pypi.org/project/tox/) >= 4.0.
+You need Python >= 3.10 installed, and you need [tox](https://pypi.org/project/tox/) >= 4.0.
+It is recommended to install the same Python version that is packaged in the official installer files.
+You can look up this version in the file `.github/workflows/ci/workflow_context.yml` in the vars section.
 
 Tox simplifies the process of creating and managing isolated virtual environments,
 handling dependency installation, and running the test suite in isolation. This

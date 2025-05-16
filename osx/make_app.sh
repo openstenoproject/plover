@@ -83,4 +83,7 @@ run "$python" -m plover_build_utils.source_less "$py_home/lib" "*/pip/_vendor/di
 # Check requirements.
 run "$python" -I -m plover_build_utils.check_requirements
 
+# Ad-hoc signing to satisfy Gatekeeper.
+run /usr/bin/codesign -s - --deep --force "$appdir"
+
 run mv "$appdir" "$distdir"
