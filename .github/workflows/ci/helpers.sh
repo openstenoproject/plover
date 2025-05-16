@@ -114,8 +114,8 @@ publish_github_release()
       title="$tag"
       is_draft='yes'
       is_prerelease="$("$python" <<EOF
-from pkg_resources import parse_version
-version = parse_version('$RELEASE_VERSION')
+from packaging.version import parse
+version = parse('$RELEASE_VERSION')
 print('1' if version.is_prerelease else '')
 EOF
 )" || die
@@ -164,10 +164,10 @@ EOF
       head -n20 <<<"$last_release"
       run_eval "last_version=\"\$(echo -n \"\$last_release\" | sed -n '/^# \\w\\+ \\([^ ]\\+\\)\$/{s//\\1/;P;Q0};\$Q1')\""
       if python <<EOF
-from pkg_resources import parse_version
+from packaging.version import parse
 import sys
-version = parse_version('$RELEASE_VERSION')
-last_version = parse_version('$last_version')
+version = parse('$RELEASE_VERSION')
+last_version = parse('$last_version')
 sys.exit(0 if version < last_version else 1)
 EOF
       then

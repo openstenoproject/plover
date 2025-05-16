@@ -8,11 +8,7 @@ import subprocess
 import sys
 
 from setuptools import setup
-try:
-    from setuptools.extern.packaging.version import Version
-except ImportError:
-    # Handle broken unvendored version of setuptools...
-    from packaging.version import Version
+from packaging.version import Version
 
 sys.path.insert(0, os.path.dirname(__file__))
 
