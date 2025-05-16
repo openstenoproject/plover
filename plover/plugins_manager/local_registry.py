@@ -15,10 +15,6 @@ def list_plugins():
         if dist.metadata['Name'].lower() == 'plover':
             continue
 
-        # TODO remove
-        if dist.name.lower() == 'plover_regenpfeifer':
-            print("test")
-
         # Check if any entry point group starts with 'plover.'
         if not any(ep.group.startswith('plover.') for ep in dist.entry_points):
             continue
