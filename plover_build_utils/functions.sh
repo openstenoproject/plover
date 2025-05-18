@@ -145,20 +145,22 @@ bootstrap_dist()
 {
   wheel="$1"
   shift
-  # We still need setuptools/wheel to be available (not even --use-pep517
-  # works around that). While we're at it, install Plover's wheel too,
-  # taking advantage of the fact that thanks to get_pip the current
-  # working directory is not added to sys.path.
   get_base_devel "$wheel" --no-deps "$@" || die
-  # Install the rest: Plover's dependencies, as well as standard plugins.
+  # Install plover's dependencies
   install_wheels \
     -c reqs/constraints.txt \
     -r reqs/dist.txt \
     -r reqs/dist_extra_gui_qt.txt \
     -r reqs/dist_extra_log.txt \
     "$@" || die
+
   # Avoid caching Plover's wheel.
-  run rm "$wheels_cache/$(basename "$wheel")"
+  if [ -f "$wheels_cache/$(basename "$wheel")" ]; then
+    info "Removing cached wheel: $wheels_cache/$(basename "$wheel")"
+    run rm "$wheels_cache/$(basename "$wheel")"
+  else
+    info "Wheel was not cached so no need to remove it: $wheels_cache/$(basename "$wheel")"
+  fi
 }
 
 osx_standalone_python()
