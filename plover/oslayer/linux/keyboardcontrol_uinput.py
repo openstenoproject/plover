@@ -400,10 +400,8 @@ class KeyboardCapture(Capture):
 
     def cancel(self):
         self._running = False
-        [dev.ungrab() for dev in self._devices.values()]
         if self._thread is not None:
             self._thread.join()
-        self._ui.close()
 
     def suppress(self, suppressed_keys=()):
         """
@@ -414,23 +412,35 @@ class KeyboardCapture(Capture):
         self._suppressed_keys = suppressed_keys
 
     def _run(self):
-        [dev.grab() for dev in self._devices.values()]
-        while self._running:
-            """
-            The select() call blocks the loop until it gets an input, which meant that the keyboard
-            had to be pressed once after executing `cancel()`. Now, there is a 1 second delay instead
-            FIXME: maybe use one of the other options to avoid the timeout
-            https://python-evdev.readthedocs.io/en/latest/tutorial.html#reading-events-from-multiple-devices-using-select
-            """
-            r, _, _ = select(self._devices, [], [], 1)
-            for fd in r:
-                for event in self._devices[fd].read():
-                    if event.type == e.EV_KEY:
-                        if event.code in KEYCODE_TO_KEY:
-                            key_name = KEYCODE_TO_KEY[event.code]
-                            if key_name in self._suppressed_keys:
-                                pressed = event.value == 1
-                                (self.key_down if pressed else self.key_up)(key_name)
-                                continue  # Go to the next iteration, skipping the below code:
-                    self._ui.write(e.EV_KEY, event.code, event.value)
-                    self._ui.syn()
+        try:
+            [dev.grab() for dev in self._devices.values()]
+            while self._running:
+                """
+                The select() call blocks the loop until it gets an input, which meant that the keyboard
+                had to be pressed once after executing `cancel()`. Now, there is a 1 second delay instead
+                FIXME: maybe use one of the other options to avoid the timeout
+                https://python-evdev.readthedocs.io/en/latest/tutorial.html#reading-events-from-multiple-devices-using-select
+                """
+                r, _, _ = select(self._devices, [], [], 1)
+                for fd in r:
+                    for event in self._devices[fd].read():
+                        if event.type == e.EV_KEY:
+                            if event.code in KEYCODE_TO_KEY:
+                                key_name = KEYCODE_TO_KEY[event.code]
+                                if key_name in self._suppressed_keys:
+                                    pressed = event.value == 1
+                                    (self.key_down if pressed else self.key_up)(key_name)
+                                    continue  # Go to the next iteration, skipping the below code:
+                        self._ui.write(e.EV_KEY, event.code, event.value)
+                        self._ui.syn()
+        except:
+            log.error("keyboard capture error", exc_info=True)
+        finally:
+            # Always ungrab devices to prevent exceptions in the _run loop
+            # from causing grabbed input devices to be blocked
+            for device in self._devices.values():
+                try:
+                    device.ungrab()
+                except:
+                    log.debug("failed to ungrab device", exc_info=True)
+            self._ui.close()
