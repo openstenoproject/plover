@@ -398,7 +398,27 @@ class KeyboardCapture(Capture):
         )
         return not is_uinput and keyboard_keys_present
 
+    def _grab_devices(self):
+        """Grab all devices, waiting for each device to stop having keys pressed.
+
+        If a device is grabbed when keys are being pressed, the key will
+        appear to be always pressed down until the device is ungrabbed and the
+        key is pressed again.
+        See https://stackoverflow.com/questions/41995349/why-does-ioctlfd-eviocgrab-1-cause-key-spam-sometimes
+        There is likely a race condition here between checking active keys and
+        actually grabbing the device, but it appears to work fine.
+        """
+        for device in self._devices.values():
+            if len(device.active_keys()) > 0:
+                for _ in device.read_loop():
+                    if len(device.active_keys()) == 0:
+                        # No keys are pressed. Grab the device
+                        break
+            device.grab()
+
+
     def start(self):
+        self._grab_devices()
         self._running = True
         self._thread = threading.Thread(target=self._run)
         self._thread.start()
@@ -419,7 +439,6 @@ class KeyboardCapture(Capture):
         self._suppressed_keys = suppressed_keys
 
     def _run(self):
-        [dev.grab() for dev in self._devices.values()]
         while self._running:
             """
             The select() call blocks the loop until it gets an input, which meant that the keyboard
