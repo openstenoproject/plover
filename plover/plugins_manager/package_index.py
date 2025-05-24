@@ -6,7 +6,7 @@ from plover.plugins_manager.requests import CachedFuturesSession
 
 
 PYPI_URL = 'https://pypi.org/pypi'
-REGISTRY_URL = 'https://github.com/openstenoproject/plover_plugins_registry/raw/master/registry.json'
+REGISTRY_URL = 'https://raw.githubusercontent.com/openstenoproject/plover_plugins_registry/master/registry.json'
 
 
 def find_plover_plugins_releases(pypi_url=None, registry_url=None, capture=None):

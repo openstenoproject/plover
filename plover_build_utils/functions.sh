@@ -145,20 +145,22 @@ bootstrap_dist()
 {
   wheel="$1"
   shift
-  # We still need setuptools/wheel to be available (not even --use-pep517
-  # works around that). While we're at it, install Plover's wheel too,
-  # taking advantage of the fact that thanks to get_pip the current
-  # working directory is not added to sys.path.
   get_base_devel "$wheel" --no-deps "$@" || die
-  # Install the rest: Plover's dependencies, as well as standard plugins.
+  # Install plover's dependencies
   install_wheels \
     -c reqs/constraints.txt \
     -r reqs/dist.txt \
     -r reqs/dist_extra_gui_qt.txt \
     -r reqs/dist_extra_log.txt \
     "$@" || die
+
   # Avoid caching Plover's wheel.
-  run rm "$wheels_cache/$(basename "$wheel")"
+  if [ -f "$wheels_cache/$(basename "$wheel")" ]; then
+    info "Removing cached wheel: $wheels_cache/$(basename "$wheel")"
+    run rm "$wheels_cache/$(basename "$wheel")"
+  else
+    info "Wheel was not cached so no need to remove it: $wheels_cache/$(basename "$wheel")"
+  fi
 }
 
 osx_standalone_python()
@@ -177,12 +179,12 @@ osx_standalone_python()
   [[ ! -e "$py_framework_dir" ]] || return 1
 
   run mkdir -p "$dest"
-  run "$python" -m plover_build_utils.download "https://www.python.org/ftp/python/$py_version/python-$py_version-macosx$py_macos.pkg" "$py_sha1"
+  run "$python" -m plover_build_utils.download "https://www.python.org/ftp/python/$py_version/python-$py_version-macos$py_macos.pkg" "$py_sha1"
   reloc_py_zip="$(run "$python" -m plover_build_utils.download "$reloc_py_url" "$reloc_py_sha1")"
   run unzip -d "$dest" "$reloc_py_zip"
   reloc_py_dir="$(echo -n "$dest"/relocatable-python-*/)"
   run "$python" "$reloc_py_dir/make_relocatable_python_framework.py" \
-    --baseurl="file://$PWD/$downloads_cache/%s/../python-%s-macosx%s.pkg" \
+    --baseurl="file://$PWD/$downloads_cache/%s/../python-%s-macos%s.pkg" \
     --python-version="$py_version" --os-version="$py_macos" \
     --destination="$dest" \
     --without-pip \

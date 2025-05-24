@@ -4,7 +4,6 @@
 
 "Launch the plover application."
 
-
 import argparse
 import atexit
 import os
@@ -12,7 +11,7 @@ import sys
 import subprocess
 import traceback
 
-import pkg_resources
+from importlib.metadata import entry_points
 
 from plover.config import Config
 from plover.oslayer.controller import Controller
@@ -74,17 +73,17 @@ def main():
     try:
         if args.script is not None:
             if args.script:
-                # Create a mapping of available console script,
+                # Create a mapping of available console scripts,
                 # with the following priorities (highest first):
                 # - {project_name}-{version}:{script_name}
                 # - {project_name}:{script_name}
                 # - {script_name}
                 console_scripts = {}
-                for e in sorted(pkg_resources.iter_entry_points('console_scripts'),
-                                key=lambda e: (e.dist, e.name)):
+                for e in sorted(entry_points(group='console_scripts'),
+                                key=lambda e: (e.dist.name, e.name)):
                     for key in (
-                        '%s-%s:%s' % (e.dist.project_name, e.dist.version, e.name),
-                        '%s:%s' % (e.dist.project_name, e.name),
+                        f"{e.dist.name}-{e.dist.version}:{e.name}",
+                        f"{e.dist.name}:{e.name}",
                         e.name,
                     ):
                         console_scripts[key] = e
@@ -103,19 +102,19 @@ def main():
             else:
                 print('available script(s):')
                 dist = None
-                for e in sorted(pkg_resources.iter_entry_points('console_scripts'),
-                                key=lambda e: (str(e.dist), e.name)):
+                for e in sorted(entry_points(group='console_scripts'),
+                                key=lambda e: (e.dist.name, e.name)):
                     if dist != e.dist:
                         dist = e.dist
-                        print('%s:' % dist)
-                    print('- %s' % e.name)
+                        print(f"{dist.name}-{dist.version}:")
+                    print(f"- {e.name}")
                 code = 0
             os._exit(code)
 
         # Ensure only one instance of Plover is running at a time.
         with Controller() as controller:
             if controller.is_owner:
-                # Not other instance, regular startup.
+                # No other instance, regular startup.
                 if PLATFORM == 'mac':
                     import appnope
                     appnope.nope()
@@ -161,6 +160,7 @@ def main():
         else:
             os.execv(args[0], args)
     os._exit(code)
+
 
 if __name__ == '__main__':
     main()

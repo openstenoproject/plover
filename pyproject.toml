@@ -1,8 +1,8 @@
 [build-system]
 requires = [
 	"Babel",
-	"PySide6-Essentials>=6.5.2",
-	"setuptools>=38.2.4,<77",
+	"PySide6-Essentials>=6.9.0",
+	"setuptools>=79.0.0",
 	"wheel",
 ]
 build-backend = "setuptools.build_meta"

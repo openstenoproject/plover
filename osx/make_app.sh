@@ -59,7 +59,7 @@ python='appdir_python'
 bootstrap_dist "$plover_wheel"
 
 # Create launcher.
-run gcc -Wall -O2 'osx/app_resources/plover_launcher.c' -o "$macos_dir/Plover"
+run gcc -Wall -O2 -arch x86_64 -arch arm64 'osx/app_resources/plover_launcher.c' -o "$macos_dir/Plover"
 
 # Copy icon.
 run cp 'osx/app_resources/plover.icns' "$resources_dir/plover.icns"
@@ -82,5 +82,8 @@ run "$python" -m plover_build_utils.source_less "$py_home/lib" "*/pip/_vendor/di
 
 # Check requirements.
 run "$python" -I -m plover_build_utils.check_requirements
+
+# Ad-hoc signing to satisfy Gatekeeper.
+run /usr/bin/codesign -s - --deep --force "$appdir"
 
 run mv "$appdir" "$distdir"
