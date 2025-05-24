@@ -59,7 +59,7 @@ python='appdir_python'
 bootstrap_dist "$plover_wheel"
 
 # Create launcher.
-run gcc -Wall -O2 'osx/app_resources/plover_launcher.c' -o "$macos_dir/Plover"
+run gcc -Wall -O2 -arch x86_64 -arch arm64 'osx/app_resources/plover_launcher.c' -o "$macos_dir/Plover"
 
 # Copy icon.
 run cp 'osx/app_resources/plover.icns' "$resources_dir/plover.icns"
