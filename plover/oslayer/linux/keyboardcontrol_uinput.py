@@ -411,8 +411,20 @@ class KeyboardCapture(Capture):
                         break
             device.grab()
 
+    def _ungrab_devices(self):
+        """Ungrab all devices. Handles all exceptions when ungrabbing."""
+        for device in self._devices.values():
+            try:
+                device.ungrab()
+            except:
+                log.debug("failed to ungrab device", exc_info=True)
 
     def start(self):
+        try:
+            self._grab_devices()
+        except Exception as e:
+            self._ungrab_devices()
+            raise
         self._running = True
         self._thread = threading.Thread(target=self._run)
         self._thread.start()
@@ -432,8 +444,6 @@ class KeyboardCapture(Capture):
 
     def _run(self):
         try:
-            self._grab_devices()
-
             while self._running:
                 """
                 The select() call blocks the loop until it gets an input, which meant that the keyboard
@@ -458,9 +468,5 @@ class KeyboardCapture(Capture):
         finally:
             # Always ungrab devices to prevent exceptions in the _run loop
             # from causing grabbed input devices to be blocked
-            for device in self._devices.values():
-                try:
-                    device.ungrab()
-                except:
-                    log.debug("failed to ungrab device", exc_info=True)
+            self._ungrab_devices()
             self._ui.close()
