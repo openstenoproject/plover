@@ -1,3 +1,44 @@
+# v5.0.0.dev1 (2025-06-03)
+
+
+## Features
+
+### Core
+
+- Integrate Plugins Manager and remove distribution plugins to simplify distribution of Plover. (#1601)
+- Update integrated Python version to 3.13. (#1720)
+
+### User Interface
+
+- Support dark mode that follows the system settings. (#1601)
+
+### Linux
+
+- On linux wayland, warn if ibus or fcitx5 isn't running. (#1711)
+
+### macOS
+
+- Add universal installer for macOS on Intel and Apple silicon. (#1720)
+
+## Bugfixes
+
+### Linux
+
+- Downgrade CI for building Linux AppImage to Ubuntu 22.04 to build against GLIBC 2.35. (#1718)
+- Fixed keyboards with mouse control functionality not able to be detected in the uinput module. (#1724)
+- Fix keys getting stuck if keys held when starting Plover and emulating keyboard with Uinput. (#1728)
+- When using Uinput, fix devices being disabled upon exceptions. (#1729)
+
+### macOS
+
+- Fix notifications for newer macOS versions. (#1601)
+
+## API
+
+### Breaking Changes
+
+- Update UI from PyQt5 to PySide6. (#1601)
+
 # v4.0.0 (2025-02-18)
 
 

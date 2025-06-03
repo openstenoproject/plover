@@ -1,8 +1,6 @@
 # Plover $version$
 
-Plover is going through a huge overhaul to make for a better experience for our users, and developers, too.
-
-> **Warning**: Version 4 is a major change and the configuration file it creates is not compatible with Plover 3 or earlier. Please backup your `plover.cfg`
+> **Warning**: Version 5 updates the graphical interface library from PyQt5 to PySide6 which requires graphical plugins to be migrated.
 
 ## Installation Guide
 
