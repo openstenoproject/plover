@@ -45,6 +45,9 @@ for j in context['jobs']:
     j['needs'] = j.get('needs', [])
     j['reqs'] = ['reqs/%s.txt' % r for r in j['reqs']]
     j['cache_extra_deps'] = j.get('cache_extra_deps', [])
+    if 'python' not in j:
+        j['python'] = context['default_python']
+
     if context['skippy_enabled']:
         # Path to the "skip_cache" file.
         j['skip_cache_path'] = '.skip_cache_{id}'.format(**j)

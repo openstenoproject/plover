@@ -105,24 +105,37 @@ def _blackbox_replay_action(blackbox, action_spec):
 
 
 def blackbox_test(cls_or_fn):
-
+    # If a class is decorated, we wrap all its test_ methods.
     if inspect.isclass(cls_or_fn):
-
-        class wrapper(cls_or_fn):
+        # Create a subclass to avoid modifying the original class
+        class WrapperClass(cls_or_fn):
             pass
-
-        for name in dir(wrapper):
+        # Iterate over all attributes in the class.
+        for name in dir(WrapperClass):
+            # Only wrap methods whose name starts with "test_"
             if name.startswith('test_'):
-                fn = getattr(wrapper, name)
+                fn = getattr(WrapperClass, name)
+                # Recursively apply the decorator to each test function.
                 new_fn = blackbox_test(fn)
-                setattr(wrapper, name, new_fn)
+                setattr(WrapperClass, name, new_fn)
+        # Return the wrappped class
+        return WrapperClass
 
     else:
-
+        # For a single test function:
         name = cls_or_fn.__name__
+        # Dedent the function's docstring which contains the blackbox test script.
         test = textwrap.dedent(cls_or_fn.__doc__)
-        # Use a lamdbda to reduce output size for failed tests.
-        wrapper = lambda bb, *args, **kwargs: (blackbox_setup(bb), cls_or_fn(bb, *args, **kwargs), blackbox_replay(bb, name, test))
-        wrapper = functools.wraps(cls_or_fn)(wrapper)
-
-    return wrapper
+        @functools.wraps(cls_or_fn)
+        def wrapper(bb, *args, **kwargs):
+            # Set up the blackbox environment:
+            # - This initializes the output capture, formatter, translator,
+            #   and dictionary used for replaying strokes.
+            blackbox_setup(bb)
+            # Execute the original test function.
+            cls_or_fn(bb, *args, **kwargs)
+            # Replay the test instructions captured in the dedented docstring.
+            # This verifies that the outputs match what is expected.
+            blackbox_replay(bb, name, test)
+        # Return the wrapper function that runs setup, the test, and replay.
+        return wrapper
