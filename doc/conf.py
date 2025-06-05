@@ -6,7 +6,7 @@ project = "Plover"
 copyright = "Open Steno Project"
 author = copyright
 
-release = "4.0.1"
+release = "4.0.2"
 version = release
 
 # -- General configuration ---------------------------------------------------

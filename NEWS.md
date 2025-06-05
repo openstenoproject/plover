@@ -1,3 +1,20 @@
+# v4.0.2 (2025-06-05)
+
+
+## Features
+
+No significant changes.
+
+## Bugfixes
+
+### Linux
+
+- When inputting Unicode with uinput the code now uses space to finalize the Unicode character instead of enter. (#1731)
+
+## API
+
+No significant changes.
+
 # v4.0.1 (2025-04-22)
 
 
