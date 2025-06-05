@@ -307,7 +307,7 @@ class KeyboardEmulation(GenericKeyboardEmulation):
         self.delay()
         self.send_string(hex)
         self.delay()
-        self._send_char("\n")
+        self._send_char(" ")
 
     def _send_char(self, char):
         (base, mods) = self._get_key(char)
