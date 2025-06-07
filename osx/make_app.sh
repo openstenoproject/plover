@@ -78,7 +78,8 @@ run sed -e "s/\$python_version/$py_version/" -e "s/\$python_base_version/${py_ve
 run "$python" -m plover_build_utils.trim "$py_home" "$builddir/dist_blacklist.txt"
 
 # Make distribution source-less.
-run "$python" -m plover_build_utils.source_less "$py_home/lib" "*/pip/_vendor/distlib/*" '*/pip/_vendor/pep517/*'
+# Keep pip sources, as we need them for pip install
+run "$python" -m plover_build_utils.source_less "$py_home/lib" "*/site-packages/pip/*"
 
 # Check requirements.
 run "$python" -I -m plover_build_utils.check_requirements

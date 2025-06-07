@@ -114,7 +114,8 @@ EOF"
   run mv {"$dist_data","$builddir"}/vcruntime140.dll
 
   # Make distribution source-less.
-  run "$python" -m plover_build_utils.source_less "$dist_data" '*/pip/_vendor/distlib/*' '*/pip/_vendor/pep517/*'
+  # Keep pip sources, as we need them for pip install
+  run "$python" -m plover_build_utils.source_less "$dist_data" "*/site-packages/pip/*"
 
   # Check requirements.
   #run "$python" -I -m plover_build_utils.check_requirements
