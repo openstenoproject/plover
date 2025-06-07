@@ -6,7 +6,7 @@ def gettext(contents):
     contents = re.sub(r'\n', (
         '\n'
         '_ = __import__(__package__.split(".", 1)[0])._\n'
-    ), contents, 1)
+    ), contents, count=1)
     contents = re.sub(
         r'\n\s+_translate = QtCore\.QCoreApplication\.translate\n',
         '\n',
