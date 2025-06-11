@@ -1,2 +1,2 @@
-py_embed_version='3.13.3'
-py_embed_sha1='0d94e8549449e1aa4747a3286a2f57d2c20be284'
+py_version='3.13.3'
+py_sha1='3dee2ab1d39c8fd8ea3c95f7757386904678ea23'
