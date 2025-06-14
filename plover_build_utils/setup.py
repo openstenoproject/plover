@@ -117,6 +117,16 @@ class BuildUi(Command):
             with open(dst, 'w') as fp:
                 fp.write(contents)
 
+    def _build_resources(self, src):
+        dst = os.path.splitext(src)[0] + '_rc.py'
+        # Skip if up‑to‑date unless --force was requested
+        if not self.force and os.path.exists(dst) and \
+           os.path.getmtime(dst) >= os.path.getmtime(src):
+            return
+        if self.verbose:
+            print('compiling', src, '->', dst)
+        subprocess.check_call(['pyside6-rcc', '-o', dst, src])
+
     def run(self):
         self.run_command('egg_info')
         std_hook_prefix = __package__ + '.pyqt:'
@@ -127,36 +137,15 @@ class BuildUi(Command):
         if self.verbose:
             print('generating UI using hooks:', ', '.join(hooks_info))
         ei_cmd = self.get_finalized_command('egg_info')
+
         for src in ei_cmd.filelist.files:
+            if src.endswith('.qrc'):
+                self._build_resources(src)
             if src.endswith('.ui'):
                 self._build_ui(src)
 
 # }}}
 
-# Resource compilation. {{{
-
-class BuildResources(Command):
-
-    description = 'build resource files'
-    user_options = []
-
-    def initialize_options(self):
-        pass
-
-    def finalize_options(self):
-        pass
-
-    def run(self):
-        resource_files = [
-            'plover/gui_qt/resources.qrc',
-        ]
-        for resource_file in resource_files:
-            output_file = os.path.splitext(resource_file)[0] + '_rc.py'
-            if self.verbose:
-                print(f'compiling {resource_file} to {output_file}')
-            subprocess.check_call(['pyside6-rcc', '-o', output_file, resource_file])
-
-# }}}
 
 # Patched `build_py` command. {{{
 
