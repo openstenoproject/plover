@@ -146,9 +146,6 @@ jobs:
 
       <% endif %>
       <% if j.type == 'test_gui_qt' %>
-      - name: Build Resources
-        run: python setup.py build_resources
-
       - name: Build UI
         run: python setup.py build_ui
 

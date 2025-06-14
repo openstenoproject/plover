@@ -3,6 +3,7 @@ import os
 import subprocess
 import site
 import sys
+import itertools
 
 from plover.plugins_manager import global_registry,local_registry 
 from plover.plugins_manager.utils import running_under_virtualenv
