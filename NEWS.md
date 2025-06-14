@@ -1,3 +1,26 @@
+# v5.0.0.dev2 (2025-06-14)
+
+
+## Features
+
+### Core
+
+- Integrate BuildResources into BuildUi to simplify UI plugin migration to Plover v5. (#1735)
+
+## Bugfixes
+
+### Core
+
+- Fix installation of plugins via git URL. (#1733)
+
+### Linux
+
+- When inputting Unicode with uinput the code now uses space to finalize the Unicode character instead of enter. (#1731)
+
+## API
+
+No significant changes.
+
 # v5.0.0.dev1 (2025-06-03)
 
 
