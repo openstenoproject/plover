@@ -137,5 +137,5 @@ class Registry:
                 pkg.available = metadata
                 if pkg.current and pkg.current.parsed_version < pkg.latest.parsed_version:
                     pkg.status = 'outdated'
-            if not self.is_plugin_supported(pkg, unsupported_plugins_dict):
+            if pkg.status != 'installed' and not self.is_plugin_supported(pkg, unsupported_plugins_dict):
                 pkg.status = 'unsupported'
