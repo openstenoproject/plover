@@ -7,7 +7,7 @@ from PySide6.QtCore import (
     Qt,
     Slot,
 )
-from PySide6.QtGui import QFont
+from PySide6.QtGui import QFont, QFontDatabase
 from PySide6.QtWidgets import (
     QFileDialog,
     QFontDialog,
@@ -130,6 +130,13 @@ class PaperTape(Tool, Ui_PaperTape):
         self.header.setContentsMargins(4, 0, 0, 0)
         self.styles.addItems(TAPE_STYLES)
         self.tape.setModel(self._model)
+
+        # Set a OS‑native fixed‑width (monospace) font.
+        fixed_font = QFontDatabase.systemFont(QFontDatabase.SystemFont.FixedFont)
+        fixed_font.setPointSize(fixed_font.pointSize() + 4)
+        self.header.setFont(fixed_font)
+        self.tape.setFont(fixed_font)
+
         self.tape.setSelectionMode(self.tape.SelectionMode.ExtendedSelection)
         self._copy_action = ActionCopyViewSelectionToClipboard(self.tape)
         self.tape.addAction(self._copy_action)

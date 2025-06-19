@@ -3,6 +3,7 @@ from html import escape as html_escape
 from os.path import split as os_path_split
 
 from PySide6.QtCore import QEvent, Signal, Slot
+from PySide6.QtGui import QFontDatabase
 from PySide6.QtWidgets import QApplication, QWidget
 
 from plover import _
@@ -40,17 +41,13 @@ class AddTranslationWidget(QWidget, Ui_AddTranslationWidget):
         engine.signal_connect('dictionaries_loaded', self.on_dictionaries_loaded)
         self.on_dictionaries_loaded(self._engine.dictionaries)
 
-        self._special_fmt = (
-            '<span style="' +
-            'font-family:monospace;' +
-            '">%s</span>'
-        )
+        fixed_family = QFontDatabase.systemFont(QFontDatabase.SystemFont.FixedFont).family()
 
+        self._special_fmt = (
+            f'<span style="font-family:{fixed_family};">%s</span>'
+        )
         self._special_fmt_bold = (
-            '<span style="' +
-            'font-family:monospace;' +
-            'font-weight:bold;' +
-            '">%s</span>'
+            f'<span style="font-family:{fixed_family};font-weight:bold;">%s</span>'
         )
 
         self.strokes.setValidator(StenoValidator())
