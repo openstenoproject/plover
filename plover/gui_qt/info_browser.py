@@ -14,7 +14,7 @@ class InfoBrowser(QTextBrowser):
     def __init__(self, parent=None):
         super().__init__(parent=parent)
         # Regex to remove any explicit font-family attribute
-        self._font_family_re = re.compile(r'\s*font-family\s*=\s*["\'][^"\']*["\']', re.I)
+        self._font_family_re = re.compile(r'\s*font-family\s*=\s*["\'][^"\']*["\']', re.IGNORECASE)
         self.setOpenExternalLinks(True)
         self._images = {}
         self._session = CachedSession()

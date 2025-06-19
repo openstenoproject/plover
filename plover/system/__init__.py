@@ -53,7 +53,7 @@ _EXPORTS = {
     'IMPLICIT_HYPHENS'         : lambda mod: {l.replace('-', '')
                                               for l in mod.IMPLICIT_HYPHEN_KEYS},
     'ORTHOGRAPHY_WORDS'        : lambda mod: _load_wordlist(mod.ORTHOGRAPHY_WORDLIST, mod.DICTIONARIES_ROOT),
-    'ORTHOGRAPHY_RULES'        : lambda mod: [(re.compile(pattern, re.I), replacement)
+    'ORTHOGRAPHY_RULES'        : lambda mod: [(re.compile(pattern, re.IGNORECASE), replacement)
                                               for pattern, replacement in mod.ORTHOGRAPHY_RULES],
     'ORTHOGRAPHY_RULES_ALIASES': lambda mod: dict(mod.ORTHOGRAPHY_RULES_ALIASES),
     'KEYMAPS'                  : lambda mod: mod.KEYMAPS,
