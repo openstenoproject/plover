@@ -40,6 +40,7 @@
   **/*Sensors*
   **/*Serial*
   **/*QtDBus*
+  **/*QtExampleIcons*
   **/*QtHelp*
   **/*QtLabs*
   **/*QtOpenGL*
@@ -61,7 +62,10 @@
   Qt/plugins/designer
   Qt/plugins/generic
   Qt/plugins/geoservices
+  Qt/plugins/imageformats/libqtiff*.dylib
   Qt/plugins/mediaservice
+  Qt/plugins/platforms/libqminimal*.dylib
+  Qt/plugins/platforms/libqoffscreen*.dylib
   Qt/plugins/playlistformats
   Qt/plugins/position
   Qt/plugins/printsupport
