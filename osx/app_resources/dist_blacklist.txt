@@ -39,7 +39,6 @@
   **/*Nfc*
   **/*Sensors*
   **/*Serial*
-  **/*QtDBus*
   **/*QtExampleIcons*
   **/*QtHelp*
   **/*QtLabs*
