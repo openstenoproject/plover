@@ -160,12 +160,7 @@ class SuggestionsDialog(Tool, Ui_SuggestionsDialog):
 
     @Slot(bool)
     def toggle_ontop(self, ontop):
-        flags = self.windowFlags()
-        if ontop:
-            flags |= Qt.WindowType.WindowStaysOnTopHint
-        else:
-            flags &= ~Qt.WindowType.WindowStaysOnTopHint
-        self.setWindowFlags(flags)
+        self.setWindowFlag(Qt.WindowStaysOnTopHint, ontop)
         self.show()
 
     @Slot()
