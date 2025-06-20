@@ -9,11 +9,14 @@ from PySide6.QtWidgets import (
     QToolBar,
     QToolButton,
     QWidget,
+    QApplication,
 )
 import importlib.resources
 
 from plover import _
 
+def is_wayland():
+    return "wayland" in QApplication.platformName().lower()
 
 def ActionCopyViewSelectionToClipboard(view):
     def copy_selection_to_clipboard():

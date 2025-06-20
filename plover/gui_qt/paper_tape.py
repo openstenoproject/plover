@@ -19,9 +19,10 @@ from wcwidth import wcwidth
 from plover import _, system
 from plover.steno import Stroke
 
-from .paper_tape_ui import Ui_PaperTape
-from .utils import ActionCopyViewSelectionToClipboard, ToolBar
-from .tool import Tool
+from plover.gui_qt import utils
+from plover.gui_qt.paper_tape_ui import Ui_PaperTape
+from plover.gui_qt.utils import ActionCopyViewSelectionToClipboard, ToolBar
+from plover.gui_qt.tool import Tool
 
 
 STYLE_PAPER, STYLE_RAW = (
@@ -141,12 +142,16 @@ class PaperTape(Tool, Ui_PaperTape):
         self._copy_action = ActionCopyViewSelectionToClipboard(self.tape)
         self.tape.addAction(self._copy_action)
         # Toolbar.
-        self.layout().addWidget(ToolBar(
-            self.action_ToggleOnTop,
+        actions = [
             self.action_SelectFont,
             self.action_Clear,
             self.action_Save,
-        ))
+        ]
+        if not utils.is_wayland:            
+            # Wayland does not support window on top.
+            actions.insert(0, self.action_ToggleOnTop)
+
+        self.layout().addWidget(ToolBar(*actions))
         self.action_Clear.setEnabled(False)
         self.action_Save.setEnabled(False)
         engine.signal_connect('config_changed', self.on_config_changed)

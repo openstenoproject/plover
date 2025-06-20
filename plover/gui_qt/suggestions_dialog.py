@@ -16,6 +16,7 @@ from plover import _
 from plover.suggestions import Suggestion
 from plover.formatting import RetroFormatter
 
+from plover.gui_qt import utils
 from plover.gui_qt.suggestions_dialog_ui import Ui_SuggestionsDialog
 from plover.gui_qt.utils import ToolBar
 from plover.gui_qt.tool import Tool
@@ -46,11 +47,16 @@ class SuggestionsDialog(Tool, Ui_SuggestionsDialog):
         self.setupUi(self)
         self._last_suggestions = None
         # Toolbar.
-        self.layout().addWidget(ToolBar(
-            self.action_ToggleOnTop,
+        actions = [
             self.action_SelectFont,
             self.action_Clear,
-        ))
+        ]
+        if not utils.is_wayland:            
+            # Wayland does not support window on top.
+            actions.insert(0, self.action_ToggleOnTop)
+
+        self.layout().addWidget(ToolBar(*actions))
+
         self.action_Clear.setEnabled(False)
         # Font popup menu.
         self._font_menu = QMenu()

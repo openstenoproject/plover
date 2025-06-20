@@ -9,7 +9,6 @@ from PySide6.QtGui import QCursor, QIcon, QKeySequence
 from PySide6.QtWidgets import (
     QMainWindow,
     QMenu,
-    QApplication,
 )
 
 from plover import _, log
@@ -17,13 +16,13 @@ from plover.oslayer import wmctrl
 from plover.oslayer.config import CONFIG_DIR, PLATFORM
 from plover.registry import registry
 
+from plover.gui_qt import utils
 from plover.gui_qt.log_qt import NotificationHandler
 from plover.gui_qt.main_window_ui import Ui_MainWindow
 from plover.gui_qt.config_window import ConfigWindow
 from plover.gui_qt.about_dialog import AboutDialog
 from plover.gui_qt.trayicon import TrayIcon
-from plover.gui_qt.utils import WindowStateMixin, find_menu_actions
-
+from plover.gui_qt.utils import WindowStateMixin
 
 class MainWindow(QMainWindow, Ui_MainWindow, WindowStateMixin):
 
@@ -40,7 +39,7 @@ class MainWindow(QMainWindow, Ui_MainWindow, WindowStateMixin):
             'about'             : AboutDialog,
             'configuration'     : ConfigWindow,
         }
-        all_actions = find_menu_actions(self.menubar)
+        all_actions = utils.find_menu_actions(self.menubar)
         # Dictionaries.
         self.dictionaries.signal_add_translation.connect(self._add_translation)
         self.dictionaries.setup(engine)
@@ -147,8 +146,6 @@ class MainWindow(QMainWindow, Ui_MainWindow, WindowStateMixin):
             else:
                 self.showMinimized()
 
-    def _is_wayland(self):
-        return "wayland" in QApplication.platformName().lower()
 
     def _activate_dialog(self, name, args=(), manage_windows=False):
         if manage_windows:
@@ -165,7 +162,7 @@ class MainWindow(QMainWindow, Ui_MainWindow, WindowStateMixin):
                     wmctrl.SetForegroundWindow(previous_window)
             dialog.finished.connect(on_finished)
         dialog.showNormal()
-        if not self._is_wayland():
+        if not utils.is_wayland():
             # Otherwise gives this warning:
             # Qt: Wayland does not support QWindow::requestActivate()
             dialog.activateWindow()
@@ -179,7 +176,7 @@ class MainWindow(QMainWindow, Ui_MainWindow, WindowStateMixin):
 
     def _focus(self):
         self.showNormal()
-        if not self._is_wayland():
+        if not utils.is_wayland():
             self.activateWindow()
         self.raise_()
 
