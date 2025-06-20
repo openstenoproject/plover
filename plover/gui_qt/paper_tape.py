@@ -218,8 +218,7 @@ class PaperTape(Tool, Ui_PaperTape):
 
     @Slot()
     def select_font(self):
-        ok, font = QFontDialog.getFont(self.tape.font(), self, '',
-                                       QFontDialog.FontDialogOption.MonospacedFonts)
+        ok, font = QFontDialog.getFont(self.tape.font(), self, '')
         if ok:
             self.header.setFont(font)
             self.tape.setFont(font)

@@ -7,7 +7,6 @@ from PySide6.QtCore import (
     QLibraryInfo,
     QTimer,
     QTranslator,
-    Qt,
     QtMsgType,
     qInstallMessageHandler,
 )
