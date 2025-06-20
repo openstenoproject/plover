@@ -7,7 +7,7 @@ from PySide6.QtCore import (
     Qt,
     Slot,
 )
-from PySide6.QtGui import QFont
+from PySide6.QtGui import QFont, QFontDatabase
 from PySide6.QtWidgets import (
     QFileDialog,
     QFontDialog,
@@ -19,9 +19,10 @@ from wcwidth import wcwidth
 from plover import _, system
 from plover.steno import Stroke
 
-from .paper_tape_ui import Ui_PaperTape
-from .utils import ActionCopyViewSelectionToClipboard, ToolBar
-from .tool import Tool
+from plover.gui_qt import utils
+from plover.gui_qt.paper_tape_ui import Ui_PaperTape
+from plover.gui_qt.utils import ActionCopyViewSelectionToClipboard, ToolBar
+from plover.gui_qt.tool import Tool
 
 
 STYLE_PAPER, STYLE_RAW = (
@@ -130,16 +131,27 @@ class PaperTape(Tool, Ui_PaperTape):
         self.header.setContentsMargins(4, 0, 0, 0)
         self.styles.addItems(TAPE_STYLES)
         self.tape.setModel(self._model)
+
+        # Set a OS‑native fixed‑width (monospace) font.
+        fixed_font = QFontDatabase.systemFont(QFontDatabase.SystemFont.FixedFont)
+        fixed_font.setPointSize(fixed_font.pointSize() + 4)
+        self.header.setFont(fixed_font)
+        self.tape.setFont(fixed_font)
+
         self.tape.setSelectionMode(self.tape.SelectionMode.ExtendedSelection)
         self._copy_action = ActionCopyViewSelectionToClipboard(self.tape)
         self.tape.addAction(self._copy_action)
         # Toolbar.
-        self.layout().addWidget(ToolBar(
-            self.action_ToggleOnTop,
+        actions = [
             self.action_SelectFont,
             self.action_Clear,
             self.action_Save,
-        ))
+        ]
+        if not utils.is_wayland:            
+            # Wayland does not support window on top.
+            actions.insert(0, self.action_ToggleOnTop)
+
+        self.layout().addWidget(ToolBar(*actions))
         self.action_Clear.setEnabled(False)
         self.action_Save.setEnabled(False)
         engine.signal_connect('config_changed', self.on_config_changed)
@@ -206,20 +218,14 @@ class PaperTape(Tool, Ui_PaperTape):
 
     @Slot()
     def select_font(self):
-        ok, font = QFontDialog.getFont(self.tape.font(), self, '',
-                                       QFontDialog.FontDialogOption.MonospacedFonts)
+        ok, font = QFontDialog.getFont(self.tape.font(), self, '')
         if ok:
             self.header.setFont(font)
             self.tape.setFont(font)
 
     @Slot(bool)
     def toggle_ontop(self, ontop):
-        flags = self.windowFlags()
-        if ontop:
-            flags |= Qt.WindowType.WindowStaysOnTopHint
-        else:
-            flags &= ~Qt.WindowType.WindowStaysOnTopHint
-        self.setWindowFlags(flags)
+        self.setWindowFlag(Qt.WindowStaysOnTopHint, ontop)
         self.show()
 
     @Slot()

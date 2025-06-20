@@ -16,6 +16,7 @@ from plover import _
 from plover.suggestions import Suggestion
 from plover.formatting import RetroFormatter
 
+from plover.gui_qt import utils
 from plover.gui_qt.suggestions_dialog_ui import Ui_SuggestionsDialog
 from plover.gui_qt.utils import ToolBar
 from plover.gui_qt.tool import Tool
@@ -46,11 +47,16 @@ class SuggestionsDialog(Tool, Ui_SuggestionsDialog):
         self.setupUi(self)
         self._last_suggestions = None
         # Toolbar.
-        self.layout().addWidget(ToolBar(
-            self.action_ToggleOnTop,
+        actions = [
             self.action_SelectFont,
             self.action_Clear,
-        ))
+        ]
+        if not utils.is_wayland:            
+            # Wayland does not support window on top.
+            actions.insert(0, self.action_ToggleOnTop)
+
+        self.layout().addWidget(ToolBar(*actions))
+
         self.action_Clear.setEnabled(False)
         # Font popup menu.
         self._font_menu = QMenu()
@@ -149,23 +155,16 @@ class SuggestionsDialog(Tool, Ui_SuggestionsDialog):
             return
         if action == self._font_menu_text:
             name = 'text_font'
-            font_options = ()
         elif action == self._font_menu_strokes:
             name = 'strokes_font'
-            font_options = (QFontDialog.FontDialogOption.MonospacedFonts,)
         font = self._get_font(name)
-        ok, font = QFontDialog.getFont(font, self, '', *font_options)
+        ok, font = QFontDialog.getFont(font, self, '')
         if ok:
             self._set_font(name, font)
 
     @Slot(bool)
     def toggle_ontop(self, ontop):
-        flags = self.windowFlags()
-        if ontop:
-            flags |= Qt.WindowType.WindowStaysOnTopHint
-        else:
-            flags &= ~Qt.WindowType.WindowStaysOnTopHint
-        self.setWindowFlags(flags)
+        self.setWindowFlag(Qt.WindowStaysOnTopHint, ontop)
         self.show()
 
     @Slot()
