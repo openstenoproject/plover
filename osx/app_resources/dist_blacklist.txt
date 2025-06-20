@@ -39,9 +39,14 @@
   **/*Nfc*
   **/*Sensors*
   **/*Serial*
+  **/*QtDBus*
+  **/*QtHelp*
+  **/*QtLabs*
   **/*QtOpenGL*
   **/*QtQuick*
   **/*QtQml*
+  **/*QtUiTools*
+  **/*QtXml*
   **/*SpacialAudio*
   **/*TextToSpeech*
   **/*WebChannel*
@@ -67,6 +72,9 @@
   Qt/plugins/tls
   Qt/qml
   Qt/resources
+  Qt/translations/assistant_*
+  Qt/translations/designer_*
+  Qt/translations/linguist_*
   Qt/translations/qt_help_*
   Qt/translations/qtconnectivity_*
   Qt/translations/qtdeclarative_*
