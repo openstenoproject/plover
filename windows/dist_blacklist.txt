@@ -28,7 +28,7 @@
   **/*QtLabs*
   **/*QtOpenGL*
   **/*[Qq]uick
-  **/*Qml*
+  **/*[Qq]ml*
   **/*QtUiTools*
   **/*QtXml*
   **/*SpacialAudio*
@@ -41,6 +41,10 @@
   **/*Pdf*
   **/*Test*
   **/*.tmpl.py
+  assistant.exe
+  linguist.exe
+  lupdate.exe
+  lrelease.exe
   bindings
   plugins/designer
   plugins/generic
@@ -55,8 +59,11 @@
   plugins/sceneparsers
   plugins/sqldrivers
   plugins/tls
-  Qt6/qml
+  Qt/qml
+  *Quick*.dll
   pylupdate*
+  translations/assistant*
+  translations/linguist*
   uic
 # Plover.
 :Lib/site-packages/plover
