@@ -1,20 +1,60 @@
 # Python.
   Scripts
+:Lib
+  pydoc*
+  tkinter
+  sqlite3
+  turtledemo
+
 # PySide6.
 :Lib/site-packages/PySide6
+  **/*3D*
+  **/*AxContainer*
+  **/*Bluetooth*
+  **/*CLucene*
+  **/*Concurrent*
+  **/*DataVisualization*
+  **/*Designer*
+  **/*Graphs*
+  **/*Network*
+  **/*PrintSupport*
+  **/*Location*
+  **/*Nfc*
+  **/*Sensors*
+  **/*Serial*
+  **/*[Oo]pen[Gg][Ll]*
+  **/*QtExampleIcons*
+  **/*QtHelp*
+  **/*QtLabs*
+  **/*QtOpenGL*
+  **/*[Qq]uick
+  **/*Qml*
+  **/*QtUiTools*
+  **/*QtXml*
+  **/*SpacialAudio*
+  **/*TextToSpeech*
+  **/*WebChannel*
+  **/*[Ww]eb[Ee]ngine*
   **/*Designer*
   **/*[Hh]elp*
+  **/*Sql*
+  **/*Pdf*
   **/*Test*
-  **/*Qml*
-  **/*[Qq]uick*
-  **/*[Ww]eb[Ee]ngine*
+  **/*.tmpl.py
   bindings
-  Qt6/bin/libeay32.dll
-  Qt6/bin/ssleay32.dll
-  Qt6/plugins/platforms/qminimal.dll
-  Qt6/plugins/platforms/qoffscreen.dll
-  Qt6/plugins/platforms/qwebgl.dll
-  Qt6/plugins/sceneparsers
+  plugins/designer
+  plugins/generic
+  plugins/imageformats/qtiff.dll
+  plugins/platforms/qminimal.dll
+  plugins/platforms/qoffscreen.dll
+  plugins/platforms/qdirect2d.dll
+  plugins/playlistformats
+  plugins/position
+  plugins/printsupport
+  plugins/qml*
+  plugins/sceneparsers
+  plugins/sqldrivers
+  plugins/tls
   Qt6/qml
   pylupdate*
   uic
