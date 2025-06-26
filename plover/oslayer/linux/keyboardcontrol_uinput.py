@@ -275,6 +275,46 @@ LAYOUTS = {
         "k": e.KEY_N,
         "h": e.KEY_M,
     },
+    "dvorak": {
+        **BASE_LAYOUT,
+        # Symbols
+        "/": e.KEY_LEFTBRACE,
+        "=": e.KEY_RIGHTBRACE,
+        "-": e.KEY_APOSTROPHE,
+        # Top row
+        "'": e.KEY_Q,
+        ",": e.KEY_W,
+        ".": e.KEY_E,
+        "p": e.KEY_R,
+        "y": e.KEY_T,
+        "f": e.KEY_Y,
+        "g": e.KEY_U,
+        "c": e.KEY_I,
+        "r": e.KEY_O,
+        "l": e.KEY_P,
+        # Middle row
+        "a": e.KEY_A,
+        "o": e.KEY_S,
+        "e": e.KEY_D,
+        "u": e.KEY_F,
+        "i": e.KEY_G,
+        "d": e.KEY_H,
+        "h": e.KEY_J,
+        "t": e.KEY_K,
+        "n": e.KEY_L,
+        "s": e.KEY_SEMICOLON,
+        # Bottom row
+        ";": e.KEY_Z,
+        "q": e.KEY_X,
+        "j": e.KEY_C,
+        "k": e.KEY_V,
+        "x": e.KEY_B,
+        "b": e.KEY_N,
+        "m": e.KEY_M,
+        "w": e.KEY_COMMA,
+        "v": e.KEY_DOT,
+        "z": e.KEY_SLASH,
+    },
 }
 
 KEYCODE_TO_KEY = dict(zip(LAYOUTS[DEFAULT_LAYOUT].values(), LAYOUTS[DEFAULT_LAYOUT].keys()))
