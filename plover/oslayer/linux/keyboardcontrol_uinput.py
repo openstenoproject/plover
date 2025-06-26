@@ -277,10 +277,6 @@ LAYOUTS = {
     },
     "dvorak": {
         **BASE_LAYOUT,
-        # Symbols
-        "/": e.KEY_LEFTBRACE,
-        "=": e.KEY_RIGHTBRACE,
-        "-": e.KEY_APOSTROPHE,
         # Top row
         "'": e.KEY_Q,
         ",": e.KEY_W,
@@ -292,6 +288,8 @@ LAYOUTS = {
         "c": e.KEY_I,
         "r": e.KEY_O,
         "l": e.KEY_P,
+        "/": e.KEY_LEFTBRACE,
+        "=": e.KEY_RIGHTBRACE,
         # Middle row
         "a": e.KEY_A,
         "o": e.KEY_S,
@@ -303,6 +301,7 @@ LAYOUTS = {
         "t": e.KEY_K,
         "n": e.KEY_L,
         "s": e.KEY_SEMICOLON,
+        "-": e.KEY_APOSTROPHE,
         # Bottom row
         ";": e.KEY_Z,
         "q": e.KEY_X,
