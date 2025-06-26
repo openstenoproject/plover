@@ -400,6 +400,7 @@ class ConfigWindow(QDialog, Ui_ConfigWindow, WindowStateMixin):
                                 "qwertz": "qwertz",
                                 "colemak": "colemak",
                                 "colemak-dh": "colemak-dh",
+                                "dvorak": "dvorak",
                             }),
                             _("Set the keyboard layout configurad in your system.\n"
                               "This only applies when using Linux/BSD and not using X11."))

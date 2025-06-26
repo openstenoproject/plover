@@ -338,7 +338,7 @@ class Config:
         boolean_option('start_capitalized', False, OUTPUT_CONFIG_SECTION),
         int_option('undo_levels', DEFAULT_UNDO_LEVELS, MINIMUM_UNDO_LEVELS, None, OUTPUT_CONFIG_SECTION),
         int_option('time_between_key_presses', DEFAULT_TIME_BETWEEN_KEY_PRESSES, MINIMUM_TIME_BETWEEN_KEY_PRESSES, None, OUTPUT_CONFIG_SECTION),
-        choice_option("keyboard_layout", ("qwerty", "qwertz", "colemak", "colemak-dh"), OUTPUT_CONFIG_SECTION),
+        choice_option("keyboard_layout", ("qwerty", "qwertz", "colemak", "colemak-dh", "dvorak"), OUTPUT_CONFIG_SECTION),
         # Logging.
         path_option('log_file_name', expand_path('strokes.log'), LOGGING_CONFIG_SECTION, 'log_file'),
         boolean_option('enable_stroke_logging', False, LOGGING_CONFIG_SECTION),
