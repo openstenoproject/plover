@@ -25,38 +25,72 @@
   */test*
 # PySide6.
 :lib/python$python_base_version/site-packages/PySide6
+  **/*3D*
   **/*AxContainer*
   **/*Bluetooth*
   **/*CLucene*
+  **/*Concurrent*
+  **/*DataVisualization*
   **/*Designer*
+  **/*Graphs*
+  **/*Network*
+  **/*PrintSupport*
   **/*Location*
   **/*Nfc*
   **/*Sensors*
   **/*Serial*
+  **/*QtExampleIcons*
+  **/*QtHelp*
+  **/*QtLabs*
+  **/*QtOpenGL*
+  **/*QtQuick*
+  **/*QtQml*
+  **/*QtUiTools*
+  **/*QtXml*
+  **/*SpacialAudio*
+  **/*TextToSpeech*
+  **/*WebChannel*
+  **/*WebEngine*
   **/*Sql*
+  **/*Pdf*
   **/*Test*
-  Qt6/plugins/audio
-  Qt6/plugins/bearer
-  Qt6/plugins/generic
-  Qt6/plugins/geoservices
-  Qt6/plugins/mediaservice
-  Qt6/plugins/playlistformats
-  Qt6/plugins/position
-  Qt6/plugins/printsupport
-  Qt6/plugins/sceneparsers
-  Qt6/plugins/sensor*
-  Qt6/plugins/sqldrivers
-  Qt6/qml
-  Qt6/resources
-  Qt6/translations/qt_help_*
-  Qt6/translations/qtconnectivity_*
-  Qt6/translations/qtdeclarative_*
-  Qt6/translations/qtlocation_*
-  Qt6/translations/qtmultimedia_*
-  Qt6/translations/qtquick*
-  Qt6/translations/qtserialport_*
-  Qt6/translations/qtwebsockets_*
+  **/*.app
+  **/*.tmpl.py
+  Qt/plugins/audio
+  Qt/plugins/bearer
+  Qt/plugins/designer
+  Qt/plugins/generic
+  Qt/plugins/geoservices
+  Qt/plugins/imageformats/libqtiff*.dylib
+  Qt/plugins/mediaservice
+  Qt/plugins/platforms/libqminimal*.dylib
+  Qt/plugins/platforms/libqoffscreen*.dylib
+  Qt/plugins/playlistformats
+  Qt/plugins/position
+  Qt/plugins/printsupport
+  Qt/plugins/qml*
+  Qt/plugins/sceneparsers
+  Qt/plugins/sensor*
+  Qt/plugins/sqldrivers
+  Qt/plugins/tls
+  Qt/qml
+  Qt/resources
+  Qt/translations/assistant_*
+  Qt/translations/designer_*
+  Qt/translations/linguist_*
+  Qt/translations/qt_help_*
+  Qt/translations/qtconnectivity_*
+  Qt/translations/qtdeclarative_*
+  Qt/translations/qtlocation_*
+  Qt/translations/qtmultimedia_*
+  Qt/translations/qtquick*
+  Qt/translations/qtserialport_*
+  Qt/translations/qtwebsockets_*
+  lupdate
   pylupdate*
+  qmlls
+  qmlformat
+  scripts
   uic
 # Plover.
 :lib/python$python_base_version/site-packages/plover
