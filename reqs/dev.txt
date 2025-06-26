@@ -1,0 +1,4 @@
+-r ci.txt
+-r code_quality.txt
+pre-commit
+tox
