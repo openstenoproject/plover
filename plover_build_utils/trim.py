@@ -20,14 +20,14 @@ def trim(directory, patterns_file, verbose=True, dry_run=False):
             if not line:
                 continue
             # Comment, ignore.
-            if line.startswith("#"):
+            if line.startswith('#'):
                 continue
             # Sub-directory change.
-            if line.startswith(":"):
+            if line.startswith(':'):
                 subdir = os.path.join(directory, line[1:])
                 continue
             # Pattern (relative to current sub-directory).
-            if line.startswith("!"):
+            if line.startswith('!'):
                 exclude_list.append(os.path.join(subdir, line[1:]))
             else:
                 pattern_list.append(os.path.join(subdir, line))
@@ -41,7 +41,7 @@ def trim(directory, patterns_file, verbose=True, dry_run=False):
             if path in to_keep:
                 continue
             if verbose:
-                print("removing", path)
+                print('removing', path)
             if dry_run:
                 continue
             if os.path.isdir(path):
@@ -50,6 +50,6 @@ def trim(directory, patterns_file, verbose=True, dry_run=False):
                 os.unlink(path)
 
 
-if __name__ == "__main__":
+if __name__ == '__main__':
     directory, patterns_file = sys.argv[1:]
     trim(directory, patterns_file)

@@ -7,16 +7,14 @@ from plover.plugins_manager.requests import CachedSession, CachedFuturesSession
 
 from plover import log
 
-
 class InfoBrowser(QTextBrowser):
+
     _resource_downloaded = Signal(str, bytes)
 
     def __init__(self, parent=None):
         super().__init__(parent=parent)
         # Regex to remove any explicit font-family attribute
-        self._font_family_re = re.compile(
-            r'\s*font-family\s*=\s*["\'][^"\']*["\']', re.IGNORECASE
-        )
+        self._font_family_re = re.compile(r'\s*font-family\s*=\s*["\'][^"\']*["\']', re.IGNORECASE)
         self.setOpenExternalLinks(True)
         self._images = {}
         self._session = CachedSession()
@@ -29,11 +27,8 @@ class InfoBrowser(QTextBrowser):
         else:
             resource = None
         resource_url = resource_url.url()
-        if (
-            resource is None
-            and resource_type == QTextDocument.ResourceType.ImageResource
-            and resource_url not in self._images
-        ):
+        if resource is None and resource_type == QTextDocument.ResourceType.ImageResource \
+           and resource_url not in self._images:
             future = self._futures_session.get(resource_url)
             future.add_done_callback(self._request_finished)
             self._images[resource_url] = future
@@ -76,7 +71,7 @@ class InfoBrowser(QTextBrowser):
                     yield frag
                 i += 1
             bl = bl.next()
-
+    
     def _sanitize_svg(self, data: bytes, url: str = "") -> bytes:
         """
         If *data* represents an SVG image, remove any explicit ``font-family``
@@ -121,7 +116,7 @@ class InfoBrowser(QTextBrowser):
 
         image = QImage.fromData(data)
         if image is None:
-            log.warning("could not load image from %s", url)
+            log.warning('could not load image from %s', url)
             return
         doc = self.document()
         doc.addResource(QTextDocument.ResourceType.ImageResource, QUrl(url), image)

@@ -9,13 +9,14 @@ from plover.oslayer.config import PLATFORM
 
 
 class Controller:
-    def __init__(self, instance="plover", authkey=b"plover"):
-        if PLATFORM == "win":
-            self._address = r"\\.\pipe" + "\\" + instance
-            self._family = "AF_PIPE"
+
+    def __init__(self, instance='plover', authkey=b'plover'):
+        if PLATFORM == 'win':
+            self._address = r'\\.\pipe' + '\\' + instance
+            self._family = 'AF_PIPE'
         else:
-            self._address = os.path.join(tempfile.gettempdir(), instance + "_socket")
-            self._family = "AF_UNIX"
+            self._address = os.path.join(tempfile.gettempdir(), instance + '_socket')
+            self._family = 'AF_UNIX'
         self._authkey = authkey
         self._listen = None
         self._thread = None
@@ -27,7 +28,7 @@ class Controller:
 
     def force_cleanup(self):
         assert not self.is_owner
-        if PLATFORM != "win" and os.path.exists(self._address):
+        if PLATFORM != 'win' and os.path.exists(self._address):
             os.unlink(self._address)
             return True
         return False
@@ -35,11 +36,10 @@ class Controller:
     def __enter__(self):
         assert self._listen is None
         try:
-            self._listen = connection.Listener(
-                self._address, self._family, authkey=self._authkey
-            )
+            self._listen = connection.Listener(self._address, self._family,
+                                               authkey=self._authkey)
         except Exception as e:
-            if PLATFORM == "win":
+            if PLATFORM == 'win':
                 if not isinstance(e, PermissionError):
                     raise
             else:
@@ -68,7 +68,7 @@ class Controller:
                 if self._accept():
                     break
             except Exception as e:
-                log.error("handling client failed", exc_info=True)
+                log.error('handling client failed', exc_info=True)
 
     def _send_message(self, msg):
         conn = connection.Client(self._address, self._family, authkey=self._authkey)
@@ -78,7 +78,7 @@ class Controller:
             conn.close()
 
     def send_command(self, command):
-        self._send_message(("command", command))
+        self._send_message(('command', command))
 
     def start(self, message_cb):
         assert self.is_owner

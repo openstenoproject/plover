@@ -1,4 +1,5 @@
 class Output:
+
     """Output interface."""
 
     def send_backspaces(self, count):
@@ -15,7 +16,7 @@ class Output:
         See `plover.key_combo` for the format of the `combo` string.
         """
         raise NotImplementedError()
-
+    
     def set_key_press_delay(self, delay_ms):
         """Sets the delay between outputting key press events."""
         raise NotImplementedError()

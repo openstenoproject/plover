@@ -1,3 +1,4 @@
+
 import re
 
 from PySide6.QtCore import Qt, Slot
@@ -22,15 +23,16 @@ from plover.gui_qt.tool import Tool
 
 
 class SuggestionsDialog(Tool, Ui_SuggestionsDialog):
+
     # i18n: Widget: “SuggestionsDialog”, tooltip.
-    __doc__ = _("Suggest possible strokes for the last written words.")
+    __doc__ = _('Suggest possible strokes for the last written words.')
 
-    TITLE = _("Suggestions")
-    ICON = ":/resources/lightbulb.svg"
-    ROLE = "suggestions"
-    SHORTCUT = "Ctrl+J"
+    TITLE = _('Suggestions')
+    ICON = ':/resources/lightbulb.svg'
+    ROLE = 'suggestions'
+    SHORTCUT = 'Ctrl+J'
 
-    WORD_RX = re.compile(r"(?:\w+|[^\w\s]+)\s*")
+    WORD_RX = re.compile(r'(?:\w+|[^\w\s]+)\s*')
 
     STYLE_TRANSLATION, STYLE_STROKES = range(2)
 
@@ -49,7 +51,7 @@ class SuggestionsDialog(Tool, Ui_SuggestionsDialog):
             self.action_SelectFont,
             self.action_Clear,
         ]
-        if not utils.is_wayland:
+        if not utils.is_wayland:            
             # Wayland does not support window on top.
             actions.insert(0, self.action_ToggleOnTop)
 
@@ -59,11 +61,11 @@ class SuggestionsDialog(Tool, Ui_SuggestionsDialog):
         # Font popup menu.
         self._font_menu = QMenu()
         # i18n: Widget: “SuggestionsDialog”, “font” menu.
-        self._font_menu_text = QAction(_("&Text"), self._font_menu)
+        self._font_menu_text = QAction(_('&Text'), self._font_menu)
         # i18n: Widget: “SuggestionsDialog”, “font” menu.
-        self._font_menu_strokes = QAction(_("&Strokes"), self._font_menu)
+        self._font_menu_strokes = QAction(_('&Strokes'), self._font_menu)
         self._font_menu.addActions([self._font_menu_text, self._font_menu_strokes])
-        engine.signal_connect("translated", self.on_translation)
+        engine.signal_connect('translated', self.on_translation)
         self.suggestions.setFocus()
         self.restore_state()
         self.finished.connect(self.save_state)
@@ -76,8 +78,8 @@ class SuggestionsDialog(Tool, Ui_SuggestionsDialog):
 
     def _restore_state(self, settings):
         for name in (
-            "text_font",
-            "strokes_font",
+            'text_font',
+            'strokes_font',
         ):
             font_string = settings.value(name)
             if font_string is None:
@@ -86,21 +88,21 @@ class SuggestionsDialog(Tool, Ui_SuggestionsDialog):
             if not font.fromString(font_string):
                 continue
             self._set_font(name, font)
-        ontop = settings.value("ontop", None, bool)
+        ontop = settings.value('ontop', None, bool)
         if ontop is not None:
             self.action_ToggleOnTop.setChecked(ontop)
             self.toggle_ontop(ontop)
 
     def _save_state(self, settings):
         for name in (
-            "text_font",
-            "strokes_font",
+            'text_font',
+            'strokes_font',
         ):
             font = self._get_font(name)
             font_string = font.toString()
             settings.setValue(name, font_string)
         ontop = bool(self.windowFlags() & Qt.WindowType.WindowStaysOnTopHint)
-        settings.setValue("ontop", ontop)
+        settings.setValue('ontop', ontop)
 
     def _show_suggestions(self, suggestion_list):
         self.suggestions.append(suggestion_list)
@@ -108,18 +110,19 @@ class SuggestionsDialog(Tool, Ui_SuggestionsDialog):
 
     @staticmethod
     def tails(ls):
-        """Return all tail combinations (a la Haskell)
+        ''' Return all tail combinations (a la Haskell)
 
-        tails :: [x] -> [[x]]
-        >>> tails('abcd')
-        ['abcd', 'bcd', 'cd', d']
+            tails :: [x] -> [[x]]
+            >>> tails('abcd')
+            ['abcd', 'bcd', 'cd', d']
 
-        """
+        '''
 
         for i in range(len(ls)):
             yield ls[i:]
 
     def on_translation(self, old, new):
+
         # Check for new output.
         for a in reversed(new):
             if a.text and not a.text.isspace():
@@ -135,7 +138,7 @@ class SuggestionsDialog(Tool, Ui_SuggestionsDialog):
 
         suggestion_list = []
         for phrase in self.tails(split_words):
-            phrase = "".join(phrase)
+            phrase = ''.join(phrase)
             suggestion_list.extend(self._engine.get_suggestions(phrase))
 
         if not suggestion_list and split_words:
@@ -151,11 +154,11 @@ class SuggestionsDialog(Tool, Ui_SuggestionsDialog):
         if action is None:
             return
         if action == self._font_menu_text:
-            name = "text_font"
+            name = 'text_font'
         elif action == self._font_menu_strokes:
-            name = "strokes_font"
+            name = 'strokes_font'
         font = self._get_font(name)
-        ok, font = QFontDialog.getFont(font, self, "")
+        ok, font = QFontDialog.getFont(font, self, '')
         if ok:
             self._set_font(name, font)
 

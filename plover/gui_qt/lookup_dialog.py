@@ -1,3 +1,4 @@
+
 from PySide6.QtCore import QEvent, Qt, Slot
 
 from plover import _
@@ -8,13 +9,14 @@ from plover.gui_qt.tool import Tool
 
 
 class LookupDialog(Tool, Ui_LookupDialog):
-    # i18n: Widget: “LookupDialog”, tooltip.
-    __doc__ = _("Search the dictionary for translations.")
 
-    TITLE = _("Lookup")
-    ICON = ":/resources/lookup.svg"
-    ROLE = "lookup"
-    SHORTCUT = "Ctrl+L"
+    # i18n: Widget: “LookupDialog”, tooltip.
+    __doc__ = _('Search the dictionary for translations.')
+
+    TITLE = _('Lookup')
+    ICON = ':/resources/lookup.svg'
+    ROLE = 'lookup'
+    SHORTCUT = 'Ctrl+L'
 
     def __init__(self, engine):
         super().__init__(engine)
@@ -26,10 +28,8 @@ class LookupDialog(Tool, Ui_LookupDialog):
         self.finished.connect(self.save_state)
 
     def eventFilter(self, watched, event):
-        if event.type() == QEvent.Type.KeyPress and event.key() in (
-            Qt.Key.Key_Enter,
-            Qt.Key.Key_Return,
-        ):
+        if event.type() == QEvent.Type.KeyPress and \
+           event.key() in (Qt.Key.Key_Enter, Qt.Key.Key_Return):
             return True
         return False
 

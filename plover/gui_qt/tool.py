@@ -1,9 +1,11 @@
+
 from PySide6.QtWidgets import QDialog
 
 from plover.gui_qt.utils import WindowStateMixin
 
 
 class Tool(QDialog, WindowStateMixin):
+
     # Used for dialog window title, menu entry text.
     TITLE = None
     # Optional path to icon image.
@@ -18,7 +20,7 @@ class Tool(QDialog, WindowStateMixin):
         self._engine = engine
 
     def _update_title(self):
-        self.setWindowTitle("Plover: " + self.TITLE)
+        self.setWindowTitle('Plover: ' + self.TITLE)
 
     def setupUi(self, widget):
         super().setupUi(widget)

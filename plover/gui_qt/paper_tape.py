@@ -27,14 +27,15 @@ from plover.gui_qt.tool import Tool
 
 STYLE_PAPER, STYLE_RAW = (
     # i18n: Paper tape style.
-    _("Paper"),
+    _('Paper'),
     # i18n: Paper tape style.
-    _("Raw"),
+    _('Raw'),
 )
 TAPE_STYLES = (STYLE_PAPER, STYLE_RAW)
 
 
 class TapeModel(QAbstractListModel):
+
     def __init__(self):
         super().__init__()
         self._stroke_list = []
@@ -60,11 +61,11 @@ class TapeModel(QAbstractListModel):
         text = self._all_keys_filler * 1
         keys = stroke.steno_keys[:]
         if any(key in self._numbers for key in keys):
-            keys.append("#")
+            keys.append('#')
         for key in keys:
             index = system.KEY_ORDER[key]
             text[index] = self._all_keys[index]
-        return "".join(text)
+        return ''.join(text)
 
     @staticmethod
     def _raw_format(stroke):
@@ -85,8 +86,11 @@ class TapeModel(QAbstractListModel):
 
     def reset(self):
         self.modelAboutToBeReset.emit()
-        self._all_keys = "".join(key.strip("-") for key in system.KEYS)
-        self._all_keys_filler = [" " * wcwidth(k) for k in self._all_keys]
+        self._all_keys = ''.join(key.strip('-') for key in system.KEYS)
+        self._all_keys_filler = [
+            ' ' * wcwidth(k)
+            for k in self._all_keys
+        ]
         self._numbers = set(system.NUMBERS.values())
         self._stroke_list.clear()
         self.modelReset.emit()
@@ -99,32 +103,26 @@ class TapeModel(QAbstractListModel):
         self.endInsertRows()
 
     def mimeTypes(self):
-        return ["text/plain"]
+        return ['text/plain']
 
     def mimeData(self, indexes):
         data = QMimeData()
-        data.setText(
-            "\n".join(
-                filter(
-                    None,
-                    (
-                        self.data(index, Qt.ItemDataRole.DisplayRole)
-                        for index in indexes
-                    ),
-                )
-            )
-        )
+        data.setText('\n'.join(filter(None, (
+            self.data(index, Qt.ItemDataRole.DisplayRole)
+            for index in indexes
+        ))))
         return data
 
 
 class PaperTape(Tool, Ui_PaperTape):
-    # i18n: Widget: “PaperTape”, tooltip.
-    __doc__ = _("Paper tape display of strokes.")
 
-    TITLE = _("Paper Tape")
-    ICON = ":/resources/tape.svg"
-    ROLE = "paper_tape"
-    SHORTCUT = "Ctrl+T"
+    # i18n: Widget: “PaperTape”, tooltip.
+    __doc__ = _('Paper tape display of strokes.')
+
+    TITLE = _('Paper Tape')
+    ICON = ':/resources/tape.svg'
+    ROLE = 'paper_tape'
+    SHORTCUT = 'Ctrl+T'
 
     def __init__(self, engine):
         super().__init__(engine)
@@ -149,45 +147,45 @@ class PaperTape(Tool, Ui_PaperTape):
             self.action_Clear,
             self.action_Save,
         ]
-        if not utils.is_wayland:
+        if not utils.is_wayland:            
             # Wayland does not support window on top.
             actions.insert(0, self.action_ToggleOnTop)
 
         self.layout().addWidget(ToolBar(*actions))
         self.action_Clear.setEnabled(False)
         self.action_Save.setEnabled(False)
-        engine.signal_connect("config_changed", self.on_config_changed)
+        engine.signal_connect('config_changed', self.on_config_changed)
         self.on_config_changed(engine.config)
-        engine.signal_connect("stroked", self.handle_stroke)
+        engine.signal_connect('stroked', self.handle_stroke)
         self.tape.setFocus()
         self.restore_state()
         self.finished.connect(self.save_state)
 
     def _restore_state(self, settings):
-        style = settings.value("style", None, int)
+        style = settings.value('style', None, int)
         if style is not None:
             style = TAPE_STYLES[style]
             self.styles.setCurrentText(style)
             self.change_style(style)
-        font_string = settings.value("font")
+        font_string = settings.value('font')
         if font_string is not None:
             font = QFont()
             if font.fromString(font_string):
                 self.header.setFont(font)
                 self.tape.setFont(font)
-        ontop = settings.value("ontop", None, bool)
+        ontop = settings.value('ontop', None, bool)
         if ontop is not None:
             self.action_ToggleOnTop.setChecked(ontop)
             self.toggle_ontop(ontop)
 
     def _save_state(self, settings):
-        settings.setValue("style", TAPE_STYLES.index(self._style))
-        settings.setValue("font", self.tape.font().toString())
+        settings.setValue('style', TAPE_STYLES.index(self._style))
+        settings.setValue('font', self.tape.font().toString())
         ontop = bool(self.windowFlags() & Qt.WindowType.WindowStaysOnTopHint)
-        settings.setValue("ontop", ontop)
+        settings.setValue('ontop', ontop)
 
     def on_config_changed(self, config):
-        if "system_name" in config:
+        if 'system_name' in config:
             all_keys = self._model.reset()
             self.header.setText(all_keys)
 
@@ -220,7 +218,7 @@ class PaperTape(Tool, Ui_PaperTape):
 
     @Slot()
     def select_font(self):
-        ok, font = QFontDialog.getFont(self.tape.font(), self, "")
+        ok, font = QFontDialog.getFont(self.tape.font(), self, '')
         if ok:
             self.header.setFont(font)
             self.tape.setFont(font)
@@ -234,12 +232,10 @@ class PaperTape(Tool, Ui_PaperTape):
     def clear(self):
         flags = self.windowFlags()
         msgbox = QMessageBox()
-        msgbox.setText(_("Do you want to clear the paper tape?"))
+        msgbox.setText(_('Do you want to clear the paper tape?'))
         msgbox.setStandardButtons(QMessageBox.Yes | QMessageBox.No)
         # Make sure the message box ends up above the paper tape!
-        msgbox.setWindowFlags(
-            msgbox.windowFlags() | (flags & Qt.WindowType.WindowStaysOnTopHint)
-        )
+        msgbox.setWindowFlags(msgbox.windowFlags() | (flags & Qt.WindowType.WindowStaysOnTopHint))
         if QMessageBox.Yes != msgbox.exec():
             return
         self._strokes = []
@@ -249,21 +245,14 @@ class PaperTape(Tool, Ui_PaperTape):
 
     @Slot()
     def save(self):
-        filename_suggestion = "steno-notes-%s.txt" % time.strftime("%Y-%m-%d-%H-%M")
+        filename_suggestion = 'steno-notes-%s.txt' % time.strftime('%Y-%m-%d-%H-%M')
         filename = QFileDialog.getSaveFileName(
-            self,
-            _("Save Paper Tape"),
-            filename_suggestion,
+            self, _('Save Paper Tape'), filename_suggestion,
             # i18n: Paper tape, "save" file picker.
-            _("Text files (*.txt)"),
+            _('Text files (*.txt)'),
         )[0]
         if not filename:
             return
-        with open(filename, "w") as fp:
+        with open(filename, 'w') as fp:
             for row in range(self._model.rowCount(self._model.index(-1, -1))):
-                print(
-                    self._model.data(
-                        self._model.index(row, 0), Qt.ItemDataRole.DisplayRole
-                    ),
-                    file=fp,
-                )
+                print(self._model.data(self._model.index(row, 0), Qt.ItemDataRole.DisplayRole), file=fp)

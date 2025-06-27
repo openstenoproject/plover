@@ -15,18 +15,15 @@ import importlib.resources
 
 from plover import _
 
-
 def is_wayland():
     return "wayland" in QApplication.platformName().lower()
-
 
 def ActionCopyViewSelectionToClipboard(view):
     def copy_selection_to_clipboard():
         indexes = view.selectedIndexes()
         data = view.model().mimeData(indexes)
         QGuiApplication.clipboard().setMimeData(data)
-
-    action = QAction(_("Copy selection to clipboard"))
+    action = QAction(_('Copy selection to clipboard'))
     action.setShortcut(QKeySequence(QKeySequence.StandardKey.Copy))
     action.triggered.connect(copy_selection_to_clipboard)
     return action
@@ -54,7 +51,7 @@ class WindowStateMixin:
 
     This class is used as a mixin alongside a class that inherits from QWidget.
     It does NOT inherit from QWidget to avoid multiple inheritance issues.
-
+    
     Usage:
         class MyDialog(QDialog, WindowStateMixin):
             ...
@@ -70,15 +67,13 @@ class WindowStateMixin:
 
     def save_state(self):
         assert self.ROLE
-        assert isinstance(self, QWidget), (
-            "WindowStateMixin must be used with a QWidget subclass"
-        )
+        assert isinstance(self, QWidget), "WindowStateMixin must be used with a QWidget subclass"
 
         settings = QSettings()
         settings.beginGroup(self.ROLE)
-        settings.setValue("geometry", self.saveGeometry())
+        settings.setValue('geometry', self.saveGeometry())
         if isinstance(self, QMainWindow):
-            settings.setValue("state", self.saveState())
+            settings.setValue('state', self.saveState())
         self._save_state(settings)
         settings.endGroup()
 
@@ -90,17 +85,15 @@ class WindowStateMixin:
 
     def restore_state(self):
         assert self.ROLE
-        assert isinstance(self, QWidget), (
-            "WindowStateMixin must be used with a QWidget subclass"
-        )
+        assert isinstance(self, QWidget), "WindowStateMixin must be used with a QWidget subclass"
 
         settings = QSettings()
         settings.beginGroup(self.ROLE)
-        geometry = settings.value("geometry")
+        geometry = settings.value('geometry')
         if geometry is not None:
             self.restoreGeometry(geometry)
         if isinstance(self, QMainWindow):
-            state = settings.value("state")
+            state = settings.value('state')
             if state is not None:
                 self.restoreState(state)
         self._restore_state(settings)
@@ -108,7 +101,7 @@ class WindowStateMixin:
 
 
 def find_menu_actions(menu):
-    """Recursively find and return a menu actions."""
+    '''Recursively find and return a menu actions.'''
     actions_dict = {}
     for action in menu.actions():
         name = action.objectName()

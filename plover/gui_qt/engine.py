@@ -8,6 +8,7 @@ from plover.oslayer.config import PLATFORM
 
 
 class Engine(StenoEngine, QThread):
+
     # Signals.
     signal_stroked = Signal(object)
     signal_translated = Signal(object, object)
@@ -30,7 +31,7 @@ class Engine(StenoEngine, QThread):
         QThread.__init__(self)
         self._signals = {}
         for hook in self.HOOKS:
-            signal = getattr(self, "signal_" + hook)
+            signal = getattr(self, 'signal_' + hook)
             self.hook_connect(hook, signal.emit)
             self._signals[hook] = signal
 
@@ -46,9 +47,8 @@ class Engine(StenoEngine, QThread):
         return self.code
 
     def run(self):
-        if PLATFORM == "mac":
+        if PLATFORM == 'mac':
             import appnope
-
             appnope.nope()
         super().run()
 

@@ -5,10 +5,7 @@ from packaging.version import parse
 
 
 @total_ordering
-class PluginMetadata(
-    namedtuple(
-        "PluginMetadata",
-        """
+class PluginMetadata(namedtuple('PluginMetadata', '''
                                 author
                                 author_email
                                 description
@@ -19,12 +16,11 @@ class PluginMetadata(
                                 name
                                 summary
                                 version
-                                """,
-    )
-):
+                                ''')):
+
     @property
     def requirement(self):
-        return "%s==%s" % (self.name, self.version)
+        return '%s==%s' % (self.name, self.version)
 
     @property
     def parsed_version(self):
@@ -32,7 +28,7 @@ class PluginMetadata(
 
     @classmethod
     def from_dict(cls, d):
-        return cls(*(d.get(k, "") for k in cls._fields))
+        return cls(*(d.get(k, '') for k in cls._fields))
 
     @classmethod
     def from_kwargs(cls, **kwargs):
@@ -42,13 +38,9 @@ class PluginMetadata(
         return dict(zip(self._fields, self))
 
     def __eq__(self, other):
-        return (self.name.lower(), self.parsed_version) == (
-            other.name.lower(),
-            other.parsed_version,
-        )
+        return ((self.name.lower(), self.parsed_version) ==
+                (other.name.lower(), other.parsed_version))
 
     def __lt__(self, other):
-        return (self.name.lower(), self.parsed_version) < (
-            other.name.lower(),
-            other.parsed_version,
-        )
+        return ((self.name.lower(), self.parsed_version) <
+                (other.name.lower(), other.parsed_version))

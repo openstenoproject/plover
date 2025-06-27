@@ -3,7 +3,7 @@ import collections
 from plover.steno import sort_steno_strokes
 
 
-Suggestion = collections.namedtuple("Suggestion", "text steno_list")
+Suggestion = collections.namedtuple('Suggestion', 'text steno_list')
 
 
 class Suggestions:
@@ -14,21 +14,21 @@ class Suggestions:
         suggestions = []
 
         mods = [
-            "%s",  # Same
-            "{^%s}",  # Prefix
-            "{^}%s",
-            "{^%s^}",  # Infix
-            "{^}%s{^}",
-            "{%s^}",  # Suffix
-            "%s{^}",
-            "{&%s}",  # Fingerspell
-            "{#%s}",  # Command
+            '%s',  # Same
+            '{^%s}',  # Prefix
+            '{^}%s',
+            '{^%s^}',  # Infix
+            '{^}%s{^}',
+            '{%s^}',  # Suffix
+            '%s{^}',
+            '{&%s}',  # Fingerspell
+            '{#%s}',  # Command
         ]
 
         possible_translations = {translation}
 
         # Only strip spaces, so patterns with \n or \t are correctly handled.
-        stripped_translation = translation.strip(" ")
+        stripped_translation = translation.strip(' ')
         if stripped_translation and stripped_translation != translation:
             possible_translations.add(stripped_translation)
 

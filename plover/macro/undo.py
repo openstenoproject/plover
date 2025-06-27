@@ -2,11 +2,10 @@ from plover.translation import Translation
 from plover.oslayer.config import PLATFORM
 
 
-if PLATFORM == "mac":
-    BACK_STRING = "{#Alt_L(BackSpace)}{^}"
+if PLATFORM == 'mac':
+    BACK_STRING = '{#Alt_L(BackSpace)}{^}'
 else:
-    BACK_STRING = "{#Control_L(BackSpace)}{^}"
-
+    BACK_STRING = '{#Control_L(BackSpace)}{^}'
 
 def undo(translator, stroke, cmdline):
     assert not cmdline

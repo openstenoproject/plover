@@ -17,20 +17,20 @@ from plover.misc import boolean
 
 
 # i18n: Machine state.
-STATE_STOPPED = _("stopped")
+STATE_STOPPED = _('stopped')
 # i18n: Machine state.
-STATE_INITIALIZING = _("initializing")
+STATE_INITIALIZING = _('initializing')
 # i18n: Machine state.
-STATE_RUNNING = _("connected")
+STATE_RUNNING = _('connected')
 # i18n: Machine state.
-STATE_ERROR = _("disconnected")
+STATE_ERROR = _('disconnected')
 
 
 class StenotypeBase:
     """The base class for all Stenotype classes."""
 
     # Layout of physical keys.
-    KEYS_LAYOUT = ""
+    KEYS_LAYOUT = ''
     # And special actions to map to.
     ACTIONS = ()
     # Fallback to use as machine type for finding a compatible keymap
@@ -81,7 +81,7 @@ class StenotypeBase:
 
     def add_state_callback(self, callback):
         self.state_subscribers.append(callback)
-
+        
     def remove_state_callback(self, callback):
         self.state_subscribers.remove(callback)
 
@@ -96,15 +96,15 @@ class StenotypeBase:
             self._notify(steno_keys)
 
     def set_suppression(self, enabled):
-        """Enable keyboard suppression.
+        '''Enable keyboard suppression.
 
         This is only of use for the keyboard machine,
         to suppress the keyboard when then engine is running.
-        """
+        '''
         pass
 
     def suppress_last_stroke(self, send_backspaces):
-        """Suppress the last stroke key events after the fact.
+        '''Suppress the last stroke key events after the fact.
 
         This is only of use for the keyboard machine,
         and the engine is resumed with a command stroke.
@@ -112,7 +112,7 @@ class StenotypeBase:
         Argument:
 
         send_backspaces -- The function to use to send backspaces.
-        """
+        '''
         pass
 
     def _set_state(self, state):
@@ -128,7 +128,7 @@ class StenotypeBase:
 
     def _ready(self):
         self._set_state(STATE_RUNNING)
-
+            
     def _error(self):
         self._set_state(STATE_ERROR)
 
@@ -149,24 +149,21 @@ class StenotypeBase:
 
 class ThreadedStenotypeBase(StenotypeBase, threading.Thread):
     """Base class for thread based machines.
-
+    
     Subclasses should override run.
     """
-
     def __init__(self):
         threading.Thread.__init__(self)
         self._on_unhandled_exception(self._error)
-        self.name += "-machine"
+        self.name += '-machine'
         StenotypeBase.__init__(self)
         self.finished = threading.Event()
 
     def _on_unhandled_exception(self, action):
         super_invoke_excepthook = self._invoke_excepthook
-
         def invoke_excepthook(self):
             action()
             super_invoke_excepthook(self)
-
         self._invoke_excepthook = invoke_excepthook
 
     def run(self):
@@ -188,7 +185,6 @@ class ThreadedStenotypeBase(StenotypeBase, threading.Thread):
             pass
         self._stopped()
 
-
 class SerialStenotypeBase(ThreadedStenotypeBase):
     """For use with stenotype machines that connect via serial port.
 
@@ -200,12 +196,12 @@ class SerialStenotypeBase(ThreadedStenotypeBase):
 
     # Default serial parameters.
     SERIAL_PARAMS = {
-        "port": None,
-        "baudrate": 9600,
-        "bytesize": 8,
-        "parity": "N",
-        "stopbits": 1,
-        "timeout": 2.0,
+        'port': None,
+        'baudrate': 9600,
+        'bytesize': 8,
+        'parity': 'N',
+        'stopbits': 1,
+        'timeout': 2.0,
     }
 
     def __init__(self, serial_params):
@@ -236,12 +232,12 @@ class SerialStenotypeBase(ThreadedStenotypeBase):
         try:
             self.serial_port = serial.Serial(**self.serial_params)
         except (serial.SerialException, OSError):
-            log.warning("Can't open serial port", exc_info=True)
+            log.warning('Can\'t open serial port', exc_info=True)
             self._error()
             return
 
         if not self.serial_port.isOpen():
-            log.warning("Serial port is not open: %s", self.serial_params.get("port"))
+            log.warning('Serial port is not open: %s', self.serial_params.get('port'))
             self._error()
             return
 
@@ -257,14 +253,14 @@ class SerialStenotypeBase(ThreadedStenotypeBase):
         """Get the default options for this machine."""
         sb = lambda s: int(float(s)) if float(s).is_integer() else float(s)
         converters = {
-            "port": str,
-            "baudrate": int,
-            "bytesize": int,
-            "parity": str,
-            "stopbits": sb,
-            "timeout": float,
-            "xonxoff": boolean,
-            "rtscts": boolean,
+            'port': str,
+            'baudrate': int,
+            'bytesize': int,
+            'parity': str,
+            'stopbits': sb,
+            'timeout': float,
+            'xonxoff': boolean,
+            'rtscts': boolean,
         }
         return {
             setting: (default, converters[setting])
@@ -283,21 +279,20 @@ class SerialStenotypeBase(ThreadedStenotypeBase):
           those reads return no data (but not on short read)
         """
         self.serial_port.timeout = max(
-            self.serial_params.get("timeout", 1.0) / packet_size,
+            self.serial_params.get('timeout', 1.0) / packet_size,
             0.01,
         )
-        packet = b""
+        packet = b''
         while not self.finished.is_set():
             raw = self.serial_port.read(packet_size - len(packet))
             if not raw:
                 if packet:
-                    log.error(
-                        "discarding incomplete packet: %s", binascii.hexlify(packet)
-                    )
-                packet = b""
+                    log.error('discarding incomplete packet: %s',
+                              binascii.hexlify(packet))
+                packet = b''
                 continue
             packet += raw
             if len(packet) != packet_size:
                 continue
             yield packet
-            packet = b""
+            packet = b''

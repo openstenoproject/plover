@@ -4,11 +4,12 @@ from plover.steno import normalize_steno
 
 
 class StenoValidator(QValidator):
+
     def validate(self, text, pos):
-        if not text.strip("-/"):
+        if not text.strip('-/'):
             state = QValidator.State.Intermediate
         else:
-            prefix = text.rstrip("-/")
+            prefix = text.rstrip('-/')
             if text == prefix:
                 state = QValidator.State.Acceptable
                 steno = text

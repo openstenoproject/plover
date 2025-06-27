@@ -1,3 +1,4 @@
+
 from collections import ChainMap
 from copy import copy
 from functools import partial
@@ -35,19 +36,21 @@ from plover.gui_qt.utils import WindowStateMixin
 
 
 class NopeOption(QLabel):
+
     valueChanged = Signal(bool)
 
     def __init__(self):
         super().__init__()
         # i18n: Widget: “NopeOption” (empty config option message,
         # e.g. the machine option when selecting the Treal machine).
-        self.setText(_("Nothing to see here!"))
+        self.setText(_('Nothing to see here!'))
 
     def setValue(self, value):
         pass
 
 
 class BooleanOption(QCheckBox):
+
     valueChanged = Signal(bool)
 
     def __init__(self):
@@ -59,6 +62,7 @@ class BooleanOption(QCheckBox):
 
 
 class IntOption(QSpinBox):
+
     def __init__(self, maximum=None, minimum=None):
         super().__init__()
         if maximum is not None:
@@ -68,6 +72,7 @@ class IntOption(QSpinBox):
 
 
 class ChoiceOption(QComboBox):
+
     valueChanged = Signal(str)
 
     def __init__(self, choices=None):
@@ -85,6 +90,7 @@ class ChoiceOption(QComboBox):
 
 
 class FileOption(QGroupBox, Ui_FileWidget):
+
     valueChanged = Signal(str)
 
     def __init__(self, dialog_title, dialog_filter):
@@ -100,8 +106,7 @@ class FileOption(QGroupBox, Ui_FileWidget):
     def open_file_dialog(self):
         filename_suggestion = self.path.text()
         filename = QFileDialog.getSaveFileName(
-            self,
-            self._dialog_title,
+            self, self._dialog_title,
             filename_suggestion,
             self._dialog_filter,
         )[0]
@@ -116,6 +121,7 @@ class FileOption(QGroupBox, Ui_FileWidget):
 
 
 class TableOption(QTableWidget):
+
     def __init__(self):
         super().__init__()
         self.horizontalHeader().setStretchLastSection(True)
@@ -133,16 +139,22 @@ class TableOption(QTableWidget):
                 row = current.row()
                 pos = self.pos()
                 x = pos.x()
-                y = +pos.y() + self.rowViewportPosition(row) + self.rowHeight(row)
+                y = (
+                    + pos.y()
+                    + self.rowViewportPosition(row)
+                    + self.rowHeight(row)
+                )
                 parent.ensureVisible(x, y)
                 return
             parent = parent.parent()
 
 
 class KeymapOption(TableOption):
+
     valueChanged = Signal(object)
 
     class ItemDelegate(QStyledItemDelegate):
+
         def __init__(self, action_list):
             super().__init__()
             self._action_list = action_list
@@ -150,7 +162,7 @@ class KeymapOption(TableOption):
         def createEditor(self, parent, option, index):
             if index.column() == 1:
                 combo = QComboBox(parent)
-                combo.addItem("")
+                combo.addItem('')
                 combo.addItems(self._action_list)
                 return combo
             return super().createEditor(parent, option, index)
@@ -160,14 +172,12 @@ class KeymapOption(TableOption):
         self._value = []
         self._updating = False
         self.setColumnCount(2)
-        self.setHorizontalHeaderLabels(
-            (
-                # i18n: Widget: “KeymapOption”.
-                _("Key"),
-                # i18n: Widget: “KeymapOption”.
-                _("Action"),
-            )
-        )
+        self.setHorizontalHeaderLabels((
+            # i18n: Widget: “KeymapOption”.
+            _('Key'),
+            # i18n: Widget: “KeymapOption”.
+            _('Action'),
+        ))
         self.cellChanged.connect(self._on_cell_changed)
 
     def setValue(self, value):
@@ -179,7 +189,7 @@ class KeymapOption(TableOption):
             for key in value.get_keys():
                 action = value.get_action(key)
                 if action is None:
-                    action = ""
+                    action = ''
                 row += 1
                 self.insertRow(row)
                 item = QTableWidgetItem(key)
@@ -207,13 +217,14 @@ class KeymapOption(TableOption):
 
 
 class MultipleChoicesOption(TableOption):
+
     valueChanged = Signal(object)
 
     LABELS = (
         # i18n: Widget: “MultipleChoicesOption”.
-        _("Choice"),
+        _('Choice'),
         # i18n: Widget: “MultipleChoicesOption”.
-        _("Selected"),
+        _('Selected'),
     )
 
     # i18n: Widget: “MultipleChoicesOption”.
@@ -225,7 +236,8 @@ class MultipleChoicesOption(TableOption):
         self._updating = False
         self._choices = {} if choices is None else choices
         self._reversed_choices = {
-            translation: choice for choice, translation in choices.items()
+            translation: choice
+            for choice, translation in choices.items()
         }
         self.setColumnCount(2)
         self.setHorizontalHeaderLabels(labels)
@@ -250,13 +262,8 @@ class MultipleChoicesOption(TableOption):
             item.setFlags(item.flags() & ~Qt.ItemFlag.ItemIsEditable)
             self.setItem(row, 0, item)
             item = QTableWidgetItem()
-            item.setFlags(
-                (item.flags() & ~Qt.ItemFlag.ItemIsEditable)
-                | Qt.ItemFlag.ItemIsUserCheckable
-            )
-            item.setCheckState(
-                Qt.CheckState.Checked if choice in value else Qt.CheckState.Unchecked
-            )
+            item.setFlags((item.flags() & ~Qt.ItemFlag.ItemIsEditable) | Qt.ItemFlag.ItemIsUserCheckable)
+            item.setCheckState(Qt.CheckState.Checked if choice in value else Qt.CheckState.Unchecked)
             self.setItem(row, 1, item)
         self.resizeColumnsToContents()
         self.setMinimumSize(self.viewportSizeHint())
@@ -266,9 +273,7 @@ class MultipleChoicesOption(TableOption):
         if self._updating:
             return
         assert column == 1
-        choice = self._reversed_choices[
-            self.item(row, 0).data(Qt.ItemDataRole.DisplayRole)
-        ]
+        choice = self._reversed_choices[self.item(row, 0).data(Qt.ItemDataRole.DisplayRole)]
         if self.item(row, 1).checkState():
             self._value.add(choice)
         else:
@@ -277,17 +282,18 @@ class MultipleChoicesOption(TableOption):
 
 
 class BooleanAsDualChoiceOption(ChoiceOption):
+
     valueChanged = Signal(bool)
 
     def __init__(self, choice_false, choice_true):
-        choices = {False: choice_false, True: choice_true}
+        choices = { False: choice_false, True: choice_true }
         super().__init__(choices)
 
 
 class ConfigOption:
-    def __init__(
-        self, display_name, option_name, widget_class, help_text="", dependents=()
-    ):
+
+    def __init__(self, display_name, option_name, widget_class,
+                 help_text='', dependents=()):
         self.display_name = display_name
         self.option_name = option_name
         self.help_text = help_text
@@ -299,238 +305,125 @@ class ConfigOption:
 
 
 class ConfigWindow(QDialog, Ui_ConfigWindow, WindowStateMixin):
-    ROLE = "configuration"
+
+    ROLE = 'configuration'
 
     def __init__(self, engine):
         super().__init__()
         self.setupUi(self)
         self._engine = engine
         machines = {
-            plugin.name: _(plugin.name) for plugin in registry.list_plugins("machine")
+            plugin.name: _(plugin.name)
+            for plugin in registry.list_plugins('machine')
         }
         mappings = (
             # i18n: Widget: “ConfigWindow”.
-            (
-                _("Interface"),
-                (
-                    ConfigOption(
-                        _("Start minimized:"),
-                        "start_minimized",
-                        BooleanOption,
-                        _("Minimize the main window to systray on startup."),
-                    ),
-                    ConfigOption(
-                        _("Show paper tape:"),
-                        "show_stroke_display",
-                        BooleanOption,
-                        _("Open the paper tape on startup."),
-                    ),
-                    ConfigOption(
-                        _("Show suggestions:"),
-                        "show_suggestions_display",
-                        BooleanOption,
-                        _("Open the suggestions dialog on startup."),
-                    ),
-                    ConfigOption(
-                        _("Add translation dialog opacity:"),
-                        "translation_frame_opacity",
-                        partial(IntOption, maximum=100, minimum=0),
-                        _(
-                            "Set the translation dialog opacity:\n"
-                            "- 0 makes the dialog invisible\n"
-                            "- 100 is fully opaque"
-                        ),
-                    ),
-                    ConfigOption(
-                        _("Dictionaries display order:"),
-                        "classic_dictionaries_display_order",
-                        partial(
-                            BooleanAsDualChoiceOption, _("top-down"), _("bottom-up")
-                        ),
-                        _(
-                            "Set the display order for dictionaries:\n"
-                            "- top-down: match the search order; highest priority first\n"
-                            "- bottom-up: reverse search order; lowest priority first\n"
-                        ),
-                    ),
-                ),
-            ),
+            (_('Interface'), (
+                ConfigOption(_('Start minimized:'), 'start_minimized', BooleanOption,
+                             _('Minimize the main window to systray on startup.')),
+                ConfigOption(_('Show paper tape:'), 'show_stroke_display', BooleanOption,
+                             _('Open the paper tape on startup.')),
+                ConfigOption(_('Show suggestions:'), 'show_suggestions_display', BooleanOption,
+                             _('Open the suggestions dialog on startup.')),
+                ConfigOption(_('Add translation dialog opacity:'), 'translation_frame_opacity',
+                             partial(IntOption, maximum=100, minimum=0),
+                             _('Set the translation dialog opacity:\n'
+                               '- 0 makes the dialog invisible\n'
+                               '- 100 is fully opaque')),
+                ConfigOption(_('Dictionaries display order:'), 'classic_dictionaries_display_order',
+                             partial(BooleanAsDualChoiceOption,
+                                     _('top-down'), _('bottom-up')),
+                             _('Set the display order for dictionaries:\n'
+                               '- top-down: match the search order; highest priority first\n'
+                               '- bottom-up: reverse search order; lowest priority first\n')),
+            )),
             # i18n: Widget: “ConfigWindow”.
-            (
-                _("Logging"),
-                (
-                    ConfigOption(
-                        _("Log file:"),
-                        "log_file_name",
-                        partial(
-                            FileOption, _("Select a log file"), _("Log files (*.log)")
-                        ),
-                        _("File to use for logging strokes/translations."),
-                    ),
-                    ConfigOption(
-                        _("Log strokes:"),
-                        "enable_stroke_logging",
-                        BooleanOption,
-                        _("Save strokes to the logfile."),
-                    ),
-                    ConfigOption(
-                        _("Log translations:"),
-                        "enable_translation_logging",
-                        BooleanOption,
-                        _("Save translations to the logfile."),
-                    ),
-                ),
-            ),
+            (_('Logging'), (
+                ConfigOption(_('Log file:'), 'log_file_name',
+                             partial(FileOption,
+                                     _('Select a log file'),
+                                     _('Log files (*.log)')),
+                             _('File to use for logging strokes/translations.')),
+                ConfigOption(_('Log strokes:'), 'enable_stroke_logging', BooleanOption,
+                             _('Save strokes to the logfile.')),
+                ConfigOption(_('Log translations:'), 'enable_translation_logging', BooleanOption,
+                             _('Save translations to the logfile.')),
+            )),
             # i18n: Widget: “ConfigWindow”.
-            (
-                _("Machine"),
-                (
-                    ConfigOption(
-                        _("Machine:"),
-                        "machine_type",
-                        partial(ChoiceOption, choices=machines),
-                        dependents=(
-                            ("machine_specific_options", self._update_machine_options),
-                            (
-                                "system_keymap",
-                                lambda v: self._update_keymap(machine_type=v),
-                            ),
-                        ),
-                    ),
-                    ConfigOption(
-                        _("Options:"), "machine_specific_options", self._machine_option
-                    ),
-                    ConfigOption(_("Keymap:"), "system_keymap", KeymapOption),
-                ),
-            ),
+            (_('Machine'), (
+                ConfigOption(_('Machine:'), 'machine_type', partial(ChoiceOption, choices=machines),
+                             dependents=(
+                                 ('machine_specific_options', self._update_machine_options),
+                                 ('system_keymap', lambda v: self._update_keymap(machine_type=v)),
+                             )),
+                ConfigOption(_('Options:'), 'machine_specific_options', self._machine_option),
+                ConfigOption(_('Keymap:'), 'system_keymap', KeymapOption),
+            )),
             # i18n: Widget: “ConfigWindow”.
-            (
-                _("Output"),
-                (
-                    ConfigOption(
-                        _("Enable at start:"),
-                        "auto_start",
-                        BooleanOption,
-                        _("Enable output on startup."),
-                    ),
-                    ConfigOption(
-                        _("Start attached:"),
-                        "start_attached",
-                        BooleanOption,
-                        _(
-                            "Disable preceding space on first output.\n"
-                            "\n"
-                            "This option is only applicable when spaces are placed before."
-                        ),
-                    ),
-                    ConfigOption(
-                        _("Start capitalized:"),
-                        "start_capitalized",
-                        BooleanOption,
-                        _("Capitalize the first word."),
-                    ),
-                    ConfigOption(
-                        _("Space placement:"),
-                        "space_placement",
-                        partial(
-                            ChoiceOption,
-                            choices={
-                                "Before Output": _("Before Output"),
-                                "After Output": _("After Output"),
-                            },
-                        ),
-                        _("Set automatic space placement: before or after each word."),
-                    ),
-                    ConfigOption(
-                        _("Undo levels:"),
-                        "undo_levels",
-                        partial(IntOption, maximum=10000, minimum=MINIMUM_UNDO_LEVELS),
-                        _(
-                            "Set how many preceding strokes can be undone.\n"
-                            "\n"
-                            "Note: the effective value will take into account the\n"
-                            "dictionaries entry with the maximum number of strokes."
-                        ),
-                    ),
-                    ConfigOption(
-                        _("Key press delay (ms):"),
-                        "time_between_key_presses",
-                        partial(
-                            IntOption,
-                            maximum=100000,
-                            minimum=MINIMUM_TIME_BETWEEN_KEY_PRESSES,
-                        ),
-                        _(
-                            "Set the delay between emulated key presses (in milliseconds).\n"
-                            "\n"
-                            "Some programs may drop key presses if too many are sent\n"
-                            "within a short period of time. Increasing the delay gives\n"
-                            "programs time to process each key press.\n"
-                            "Setting the delay too high will negatively impact the\n"
-                            "performance of key stroke output."
-                        ),
-                    ),
-                    ConfigOption(
-                        _("Linux keyboard layout:"),
-                        "keyboard_layout",
-                        partial(
-                            ChoiceOption,
-                            choices={
+            (_('Output'), (
+                ConfigOption(_('Enable at start:'), 'auto_start', BooleanOption,
+                             _('Enable output on startup.')),
+                ConfigOption(_('Start attached:'), 'start_attached', BooleanOption,
+                             _('Disable preceding space on first output.\n'
+                               '\n'
+                               'This option is only applicable when spaces are placed before.')),
+                ConfigOption(_('Start capitalized:'), 'start_capitalized', BooleanOption,
+                             _('Capitalize the first word.')),
+                ConfigOption(_('Space placement:'), 'space_placement',
+                             partial(ChoiceOption, choices={
+                                 'Before Output': _('Before Output'),
+                                 'After Output': _('After Output'),
+                             }),
+                             _('Set automatic space placement: before or after each word.')),
+                ConfigOption(_('Undo levels:'), 'undo_levels',
+                             partial(IntOption,
+                                     maximum=10000,
+                                     minimum=MINIMUM_UNDO_LEVELS),
+                             _('Set how many preceding strokes can be undone.\n'
+                               '\n'
+                               'Note: the effective value will take into account the\n'
+                               'dictionaries entry with the maximum number of strokes.')),
+                ConfigOption(_('Key press delay (ms):'), 'time_between_key_presses',
+                             partial(IntOption,
+                                     maximum=100000,
+                                     minimum=MINIMUM_TIME_BETWEEN_KEY_PRESSES),
+                             _('Set the delay between emulated key presses (in milliseconds).\n'
+                               '\n'
+                               'Some programs may drop key presses if too many are sent\n'
+                               'within a short period of time. Increasing the delay gives\n'
+                               'programs time to process each key press.\n'
+                               'Setting the delay too high will negatively impact the\n'
+                               'performance of key stroke output.')),
+                ConfigOption(_("Linux keyboard layout:"), "keyboard_layout",
+                             partial(ChoiceOption, choices={
                                 "qwerty": "qwerty",
                                 "qwertz": "qwertz",
                                 "colemak": "colemak",
                                 "colemak-dh": "colemak-dh",
-                            },
-                        ),
-                        _(
-                            "Set the keyboard layout configurad in your system.\n"
-                            "This only applies when using Linux/BSD and not using X11."
-                        ),
-                    ),
-                ),
-            ),
+                            }),
+                            _("Set the keyboard layout configurad in your system.\n"
+                              "This only applies when using Linux/BSD and not using X11."))
+            )),
             # i18n: Widget: “ConfigWindow”.
-            (
-                _("Plugins"),
-                (
-                    ConfigOption(
-                        _("Extension:"),
-                        "enabled_extensions",
-                        partial(
-                            MultipleChoicesOption,
-                            choices={
-                                plugin.name: plugin.name
-                                for plugin in registry.list_plugins("extension")
-                            },
-                            labels=(_("Name"), _("Enabled")),
-                        ),
-                        _("Configure enabled plugin extensions."),
-                    ),
-                ),
-            ),
+            (_('Plugins'), (
+                ConfigOption(_('Extension:'), 'enabled_extensions',
+                             partial(MultipleChoicesOption, choices={
+                                 plugin.name: plugin.name
+                                 for plugin in registry.list_plugins('extension')
+                             }, labels=(_('Name'), _('Enabled'))),
+                             _('Configure enabled plugin extensions.')),
+            )),
             # i18n: Widget: “ConfigWindow”.
-            (
-                _("System"),
-                (
-                    ConfigOption(
-                        _("System:"),
-                        "system_name",
-                        partial(
-                            ChoiceOption,
-                            choices={
-                                plugin.name: plugin.name
-                                for plugin in registry.list_plugins("system")
-                            },
-                        ),
-                        dependents=(
-                            (
-                                "system_keymap",
-                                lambda v: self._update_keymap(system_name=v),
-                            ),
-                        ),
-                    ),
-                ),
-            ),
+            (_('System'), (
+                ConfigOption(_('System:'), 'system_name',
+                             partial(ChoiceOption, choices={
+                                 plugin.name: plugin.name
+                                 for plugin in registry.list_plugins('system')
+                             }),
+                             dependents=(
+                                 ('system_keymap', lambda v: self._update_keymap(system_name=v)),
+                             )),
+            )),
         )
         # Only keep supported options, to avoid messing with things like
         # dictionaries, that are handled by another (possibly concurrent)
@@ -566,12 +459,8 @@ class ConfigWindow(QDialog, Ui_ConfigWindow, WindowStateMixin):
                 (option_by_name[option_name], update_fn)
                 for option_name, update_fn in option.dependents
             ]
-        self.buttons.button(QDialogButtonBox.StandardButton.Ok).clicked.connect(
-            self.on_apply
-        )
-        self.buttons.button(QDialogButtonBox.StandardButton.Apply).clicked.connect(
-            self.on_apply
-        )
+        self.buttons.button(QDialogButtonBox.StandardButton.Ok).clicked.connect(self.on_apply)
+        self.buttons.button(QDialogButtonBox.StandardButton.Apply).clicked.connect(self.on_apply)
         self.tabs.currentWidget().setFocus()
         self.restore_state()
         self.finished.connect(self.save_state)
@@ -580,26 +469,23 @@ class ConfigWindow(QDialog, Ui_ConfigWindow, WindowStateMixin):
         with self._engine:
             if save:
                 self._engine.config = self._config.maps[0]
-            self._config = ChainMap(
-                {},
-                {
-                    name: value
-                    for name, value in self._engine.config.items()
-                    if name in self._supported_options
-                },
-            )
+            self._config = ChainMap({}, {
+                name: value
+                for name, value in self._engine.config.items()
+                if name in self._supported_options
+            })
 
     def _machine_option(self, *args):
         machine_options = {
             plugin.name: plugin.obj
-            for plugin in registry.list_plugins("gui.qt.machine_option")
+            for plugin in registry.list_plugins('gui.qt.machine_option')
         }
-        machine_type = self._config["machine_type"]
-        machine_class = registry.get_plugin("machine", machine_type).obj
+        machine_type = self._config['machine_type']
+        machine_class = registry.get_plugin('machine', machine_type).obj
         for klass in machine_class.mro():
             # Look for `module_name:class_name` before `class_name`.
             for name in (
-                "%s:%s" % (klass.__module__, klass.__name__),
+                '%s:%s' % (klass.__module__, klass.__name__),
                 klass.__name__,
             ):
                 opt_class = machine_options.get(name)
@@ -608,18 +494,13 @@ class ConfigWindow(QDialog, Ui_ConfigWindow, WindowStateMixin):
         return NopeOption(*args)
 
     def _update_machine_options(self, machine_type=None):
-        return self._engine[
-            ("machine_specific_options", machine_type or self._config["machine_type"])
-        ]
+        return self._engine[('machine_specific_options',
+                             machine_type or self._config['machine_type'])]
 
     def _update_keymap(self, system_name=None, machine_type=None):
-        return self._engine[
-            (
-                "system_keymap",
-                system_name or self._config["system_name"],
-                machine_type or self._config["machine_type"],
-            )
-        ]
+        return self._engine[('system_keymap',
+                             system_name or self._config['system_name'],
+                             machine_type or self._config['machine_type'])]
 
     def _create_option_widget(self, option):
         widget = option.widget_class()

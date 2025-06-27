@@ -16,45 +16,41 @@ import string
 from plover.registry import registry
 
 
-Case = Enum(
-    "case",
-    (
-        (c, c.lower())
-        for c in """
+Case = Enum('case', ((c, c.lower()) for c in '''
                      CAP_FIRST_WORD
                      LOWER
                      LOWER_FIRST_CHAR
                      TITLE
                      UPPER
                      UPPER_FIRST_WORD
-                     """.split()
-    ),
-)
+                     '''.split()))
 
-SPACE = " "
+SPACE = ' '
 
-META_ATTACH_FLAG = "^"
-META_CARRY_CAPITALIZATION = "~|"
-META_GLUE_FLAG = "&"
+META_ATTACH_FLAG = '^'
+META_CARRY_CAPITALIZATION = '~|'
+META_GLUE_FLAG = '&'
 
-META_ESCAPE = "\\"
-RE_META_ESCAPE = "\\\\"
-META_START = "{"
-META_END = "}"
+META_ESCAPE = '\\'
+RE_META_ESCAPE = '\\\\'
+META_START = '{'
+META_END = '}'
 META_ESC_START = META_ESCAPE + META_START
 META_ESC_END = META_ESCAPE + META_END
 
 
 def _build_metas_parser(supported_metas):
+
     match_result_from_lastindex = [None]
     regex_parts = []
 
     for pattern, name, param in supported_metas:
         num_prev_groups = len(match_result_from_lastindex)
         if isinstance(pattern, tuple):
-            pattern = pattern[0].format(
-                *["(?:" + re.escape(s) + ")" for s in pattern[1:]]
-            )
+            pattern = pattern[0].format(*[
+                '(?:' + re.escape(s) + ')'
+                for s in pattern[1:]
+            ])
         num_groups = re.compile(pattern).groups
         if isinstance(name, int):
             assert num_groups > 0
@@ -67,12 +63,12 @@ def _build_metas_parser(supported_metas):
         if num_groups == 0:
             num_groups = 1
         else:
-            pattern = "?:" + pattern
+            pattern = '?:' + pattern
         groups = [n + num_prev_groups for n in range(num_groups)]
         match_result_from_lastindex.extend(((name, param),) * len(groups))
-        regex_parts.append("(" + pattern + ")$")
+        regex_parts.append('(' + pattern + ')$')
 
-    regex = re.compile("|".join(regex_parts), re.DOTALL | re.IGNORECASE)
+    regex = re.compile('|'.join(regex_parts), re.DOTALL | re.IGNORECASE)
 
     def parse(meta):
         m = regex.match(meta)
@@ -87,51 +83,43 @@ def _build_metas_parser(supported_metas):
 
     return parse
 
-
 # Note: declaration order matters!
-_parse_meta = _build_metas_parser(
-    (
-        # Generic {:macro:cmdline} syntax.
-        (r":([^:]+):?(.*)", 0, 1),
-        # Command.
-        (r"PLOVER:(.*)", "command", 0),
-        # Key combination.
-        (r"#(.*)", "key_combo", 0),
-        # Punctuation.
-        (r"([,:;])", "comma", 0),
-        (r"([.!?])", "stop", 0),
-        # Case.
-        (r"-\|", "case", Case.CAP_FIRST_WORD.value),
-        (r">", "case", Case.LOWER_FIRST_CHAR.value),
-        (r"<", "case", Case.UPPER_FIRST_WORD.value),
-        (r"\*-\|", "retro_case", Case.CAP_FIRST_WORD.value),
-        (r"\*>", "retro_case", Case.LOWER_FIRST_CHAR.value),
-        (r"\*<", "retro_case", Case.UPPER_FIRST_WORD.value),
-        # Explicit word end.
-        (r"(\$)", "word_end", 0),
-        # Conditional.
-        (r"=(.*)", "if_next_matches", 0),
-        # Mode.
-        (r"MODE:(.*)", "mode", 0),
-        # Currency.
-        (r"\*\((.*)\)", "retro_currency", 0),
-        # Glue.
-        ((r"{0}(.*)", META_GLUE_FLAG), "glue", 0),
-        # Carry capitalization.
-        (
-            (r"({0}?{1}.*{0}?)", META_ATTACH_FLAG, META_CARRY_CAPITALIZATION),
-            "carry_capitalize",
-            0,
-        ),
-        # Attach.
-        ((r"({0}.*{0}?)", META_ATTACH_FLAG), "attach", 0),
-        ((r"(.*{0})", META_ATTACH_FLAG), "attach", 0),
-    )
-)
+_parse_meta = _build_metas_parser((
+    # Generic {:macro:cmdline} syntax.
+    (r':([^:]+):?(.*)', 0, 1),
+    # Command.
+    (r'PLOVER:(.*)', 'command', 0),
+    # Key combination.
+    (r'#(.*)', 'key_combo', 0),
+    # Punctuation.
+    (r'([,:;])', 'comma', 0),
+    (r'([.!?])', 'stop' , 0),
+    # Case.
+    (r'-\|'  , 'case'      , Case.CAP_FIRST_WORD.value  ),
+    (r'>'    , 'case'      , Case.LOWER_FIRST_CHAR.value),
+    (r'<'    , 'case'      , Case.UPPER_FIRST_WORD.value),
+    (r'\*-\|', 'retro_case', Case.CAP_FIRST_WORD.value  ),
+    (r'\*>'  , 'retro_case', Case.LOWER_FIRST_CHAR.value),
+    (r'\*<'  , 'retro_case', Case.UPPER_FIRST_WORD.value),
+    # Explicit word end.
+    (r'(\$)', 'word_end', 0),
+    # Conditional.
+    (r'=(.*)', 'if_next_matches', 0),
+    # Mode.
+    (r'MODE:(.*)', 'mode', 0),
+    # Currency.
+    (r'\*\((.*)\)', 'retro_currency', 0),
+    # Glue.
+    ((r'{0}(.*)', META_GLUE_FLAG), 'glue' , 0),
+    # Carry capitalization.
+    ((r'({0}?{1}.*{0}?)', META_ATTACH_FLAG, META_CARRY_CAPITALIZATION), 'carry_capitalize', 0),
+    # Attach.
+    ((r'({0}.*{0}?)', META_ATTACH_FLAG), 'attach', 0),
+    ((r'(.*{0})', META_ATTACH_FLAG), 'attach', 0),
+))
 
 
-ATOM_RE = re.compile(
-    r"""(?:%s%s|%s%s|[^%s%s])+ # One or more of anything
+ATOM_RE = re.compile(r"""(?:%s%s|%s%s|[^%s%s])+ # One or more of anything
                                                 # other than unescaped { or }
                                                 #
                                               | # or
@@ -139,25 +127,13 @@ ATOM_RE = re.compile(
                      %s(?:%s%s|%s%s|[^%s%s])*%s # Anything of the form {X}
                                                 # where X doesn't contain
                                                 # unescaped { or }
-                      """
-    % (
-        RE_META_ESCAPE,
-        META_START,
-        RE_META_ESCAPE,
-        META_END,
-        META_START,
-        META_END,
-        META_START,
-        RE_META_ESCAPE,
-        META_START,
-        RE_META_ESCAPE,
-        META_END,
-        META_START,
-        META_END,
-        META_END,
-    ),
-    re.VERBOSE,
-)
+                      """ % (RE_META_ESCAPE, META_START, RE_META_ESCAPE,
+                             META_END, META_START, META_END,
+                             META_START,
+                             RE_META_ESCAPE, META_START, RE_META_ESCAPE,
+                             META_END, META_START, META_END,
+                             META_END),
+                     re.VERBOSE)
 
 # A more human-readable version of the above RE is:
 #
@@ -171,7 +147,7 @@ ATOM_RE = re.compile(
 #             """, re.VERBOSE)
 
 
-WORD_RX = re.compile(r"(?:\d+(?:[.,]\d+)+|[\'\w]+[-\w\']*|[^\w\s]+)\s*", re.UNICODE)
+WORD_RX = re.compile(r'(?:\d+(?:[.,]\d+)+|[\'\w]+[-\w\']*|[^\w\s]+)\s*', re.UNICODE)
 
 
 class RetroFormatter:
@@ -185,7 +161,7 @@ class RetroFormatter:
 
     """
 
-    FRAGMENT_RX = re.compile(r"\s*[^\s]+\s*|^\s*$")
+    FRAGMENT_RX = re.compile(r'\s*[^\s]+\s*|^\s*$')
 
     def __init__(self, previous_translations):
         self.previous_translations = previous_translations
@@ -203,14 +179,12 @@ class RetroFormatter:
         """
         replace = 0
         next_action = None
-        current_fragment = ""
+        current_fragment = ''
         for action in self.iter_last_actions():
-            part = "" if action.text is None else action.text
-            if (
-                next_action is not None
-                and next_action.text is not None
-                and not next_action.prev_attach
-            ):
+            part = '' if action.text is None else action.text
+            if next_action is not None and \
+               next_action.text is not None and \
+               not next_action.prev_attach:
                 part += next_action.space_char
             if replace:
                 # Ignore replaced content.
@@ -219,7 +193,7 @@ class RetroFormatter:
                     replace = 0
                 else:
                     replace -= len(part)
-                    part = ""
+                    part = ''
             if part:
                 # Find out new complete fragments.
                 fragments = self.FRAGMENT_RX.findall(part + current_fragment)
@@ -267,7 +241,7 @@ class RetroFormatter:
 
     def last_text(self, size):
         """Return the last <size> characters."""
-        text = ""
+        text = ''
         if not size:
             return text
         for fragment in self.iter_last_fragments():
@@ -334,14 +308,8 @@ class Formatter:
     """
 
     output_type = namedtuple(
-        "output",
-        [
-            "send_backspaces",
-            "send_string",
-            "send_key_combination",
-            "send_engine_command",
-        ],
-    )
+        'output', ['send_backspaces', 'send_string', 'send_key_combination',
+                   'send_engine_command'])
 
     def __init__(self):
         self.set_output(None)
@@ -349,7 +317,7 @@ class Formatter:
         self.last_output_spaces_after = False
         self.start_capitalized = False
         self.start_attached = False
-        self.space_char = " "
+        self.space_char = ' '
         self._listeners = set()
 
     def add_listener(self, callback):
@@ -378,16 +346,14 @@ class Formatter:
     def set_space_placement(self, s):
         # Set whether spaces will be inserted
         # before the output or after the output
-        self.spaces_after = bool(s == "After Output")
+        self.spaces_after = bool(s == 'After Output')
 
     def last_action(self, previous_translations):
         if previous_translations and previous_translations[-1].formatting:
             return previous_translations[-1].formatting[-1]
-        return _Action(
-            next_attach=self.start_attached or self.spaces_after,
-            next_case=Case.CAP_FIRST_WORD if self.start_capitalized else None,
-            space_char=self.space_char,
-        )
+        return _Action(next_attach=self.start_attached or self.spaces_after,
+                       next_case=Case.CAP_FIRST_WORD if self.start_capitalized else None,
+                       space_char=self.space_char)
 
     def format(self, undo, do, prev):
         """Format the given translations.
@@ -425,7 +391,7 @@ class Formatter:
         # Take into account previous look-ahead actions.
 
         if prev:
-            text = ""
+            text = ''
             for a in new:
                 if a.text:
                     text = a.text
@@ -480,9 +446,8 @@ class Formatter:
         else:
             last_action = None
 
-        OutputHelper(
-            self._output, self.last_output_spaces_after, self.spaces_after
-        ).render(last_action, old, new)
+        OutputHelper(self._output, self.last_output_spaces_after,
+                     self.spaces_after).render(last_action, old, new)
         self.last_output_spaces_after = self.spaces_after
 
 
@@ -492,15 +457,15 @@ class TextFormatter:
     def __init__(self, spaces_after):
         self.spaces_after = spaces_after
         # Initial replaced text.
-        self.replaced_text = ""
+        self.replaced_text = ''
         # New appended text.
-        self.appended_text = ""
-        self.trailing_space = ""
+        self.appended_text = ''
+        self.trailing_space = ''
 
     def _render_action(self, action):
         if self.spaces_after and self.trailing_space:
             assert self.appended_text.endswith(self.trailing_space)
-            self.appended_text = self.appended_text[: -len(self.trailing_space)]
+            self.appended_text = self.appended_text[:-len(self.trailing_space)]
         if action.prev_replace:
             replaced = len(action.prev_replace)
             appended = len(self.appended_text)
@@ -514,7 +479,7 @@ class TextFormatter:
                     assert self.replaced_text.endswith(action.prev_replace)
                     self.replaced_text = self.replaced_text[:-replaced]
                     self.replaced_text += action.prev_replace[:replaced]
-                self.appended_text = ""
+                self.appended_text = ''
             else:
                 assert self.appended_text.endswith(action.prev_replace)
                 self.appended_text = self.appended_text[:-replaced]
@@ -525,7 +490,7 @@ class TextFormatter:
             self.appended_text += action.space_char
             self.trailing_space = action.space_char
         else:
-            self.trailing_space = ""
+            self.trailing_space = ''
 
     def render(self, action_list, last_action):
         """Render a series of action.
@@ -544,7 +509,7 @@ class TextFormatter:
 
     def reset(self, trailing_space):
         """Reset current state (rendered text)."""
-        self.replaced_text = ""
+        self.replaced_text = ''
         self.appended_text = trailing_space
 
 
@@ -555,7 +520,6 @@ class OutputHelper:
     optimizes away extra backspaces and typing.
 
     """
-
     def __init__(self, output, before_spaces_after, after_spaces_after):
         self.output = output
         self.before = TextFormatter(before_spaces_after)
@@ -578,14 +542,8 @@ class OutputHelper:
         else:
             assert self.after.replaced_text.endswith(self.before.replaced_text)
             replaced_text = self.after.replaced_text
-        before = (
-            replaced_text[: len(replaced_text) - len(self.before.replaced_text)]
-            + self.before.appended_text
-        )
-        after = (
-            replaced_text[: len(replaced_text) - len(self.after.replaced_text)]
-            + self.after.appended_text
-        )
+        before = replaced_text[:len(replaced_text)-len(self.before.replaced_text)] + self.before.appended_text
+        after = replaced_text[:len(replaced_text)-len(self.after.replaced_text)] + self.after.appended_text
         common_length = len(commonprefix([before, after]))
         erased = len(before) - common_length
         if erased:
@@ -619,27 +577,16 @@ class _Action:
 
     """
 
-    def __init__(
-        self,
-        # Previous.
-        prev_attach=False,
-        prev_replace="",
-        # Current.
-        glue=False,
-        word=None,
-        orthography=True,
-        space_char=" ",
-        upper_carry=False,
-        case=None,
-        text=None,
-        trailing_space="",
-        word_is_finished=None,
-        combo=None,
-        command=None,
-        # Next.
-        next_attach=False,
-        next_case=None,
-    ):
+    def __init__(self,
+                 # Previous.
+                 prev_attach=False, prev_replace='',
+                 # Current.
+                 glue=False, word=None, orthography=True, space_char=' ',
+                 upper_carry=False, case=None, text=None, trailing_space='',
+                 word_is_finished=None, combo=None, command=None,
+                 # Next.
+                 next_attach=False, next_case=None
+                ):
         """Initialize a new action.
 
         Arguments:
@@ -713,17 +660,12 @@ class _Action:
             # Previous.
             prev_attach=self.next_attach,
             # Current.
-            case=self.case,
-            glue=self.glue,
-            orthography=self.orthography,
-            space_char=self.space_char,
-            upper_carry=self.upper_carry,
-            word=self.word,
-            trailing_space=self.trailing_space,
+            case=self.case, glue=self.glue, orthography=self.orthography,
+            space_char=self.space_char, upper_carry=self.upper_carry,
+            word=self.word, trailing_space=self.trailing_space,
             word_is_finished=self.word_is_finished,
             # Next.
-            next_attach=self.next_attach,
-            next_case=self.next_case,
+            next_attach=self.next_attach, next_case=self.next_case,
         )
 
     def new_state(self):
@@ -731,8 +673,7 @@ class _Action:
             # Previous.
             prev_attach=self.next_attach,
             # Current.
-            space_char=self.space_char,
-            case=self.case,
+            space_char=self.space_char, case=self.case,
             trailing_space=self.trailing_space,
             # Next.
         )
@@ -745,26 +686,26 @@ class _Action:
 
     def __str__(self):
         kwargs = [
-            "%s=%r" % (k, v)
+            '%s=%r' % (k, v)
             for k, v in self.__dict__.items()
             if v != self.DEFAULT.__dict__[k]
         ]
-        return "Action(%s)" % ", ".join(sorted(kwargs))
+        return 'Action(%s)' % ', '.join(sorted(kwargs))
 
     def __repr__(self):
         return str(self)
-
 
 _Action.DEFAULT = _Action()
 
 
 class _LookAheadAction(_Action):
+
     def __init__(self, pattern, action1, action2):
         self.pattern = pattern
         self.action1 = action1
         self.action2 = action2
         self.action = None
-        self.update("")
+        self.update('')
 
     def update(self, text):
         if re.match(self.pattern, text) is None:
@@ -777,7 +718,7 @@ class _LookAheadAction(_Action):
         return getattr(self.action, name)
 
     def __str__(self):
-        return "LookAheadAction(%s)" % str(self.__dict__)
+        return 'LookAheadAction(%s)' % str(self.__dict__)
 
 
 def _translation_to_actions(translation, ctx):
@@ -799,7 +740,9 @@ def _translation_to_actions(translation, ctx):
         # If a translation is only digits then glue it to neighboring digits.
         atoms = [_glue_translation(translation)]
     else:
-        atoms = filter(None, (x.strip(" ") for x in ATOM_RE.findall(translation)))
+        atoms = filter(None, (
+            x.strip(' ') for x in ATOM_RE.findall(translation))
+        )
     action_list = []
     for atom in atoms:
         action = _atom_to_action(atom, ctx)
@@ -827,17 +770,14 @@ def _raw_to_actions(stroke, ctx):
     # If a raw stroke is composed of digits then remove the dash (if
     # present) and glue it to any neighboring digits. Otherwise, just
     # output the raw stroke as is.
-    no_dash = stroke.replace("-", "", 1)
+    no_dash = stroke.replace('-', '', 1)
     if no_dash.isdigit():
         return _translation_to_actions(no_dash, ctx)
-    action = _Action(
-        text=stroke,
-        word=stroke,
-        case=ctx.last_action.case,
-        prev_attach=ctx.last_action.next_attach,
-        space_char=ctx.last_action.space_char,
-        trailing_space=ctx.last_action.space_char,
-    )
+    action = _Action(text=stroke, word=stroke,
+                     case=ctx.last_action.case,
+                     prev_attach=ctx.last_action.next_attach,
+                     space_char=ctx.last_action.space_char,
+                     trailing_space=ctx.last_action.space_char)
     ctx.translated(action)
     return [action]
 
@@ -845,7 +785,7 @@ def _raw_to_actions(stroke, ctx):
 def _meta_to_action(meta, ctx):
     meta_name, meta_arg = _parse_meta(meta)
     if meta_name is not None:
-        meta_fn = registry.get_plugin("meta", meta_name).obj
+        meta_fn = registry.get_plugin('meta', meta_name).obj
         action = meta_fn(ctx, meta_arg)
     else:
         action = ctx.new_action()
@@ -876,9 +816,8 @@ def _atom_to_action(atom, ctx):
     _finalize_action(action, ctx)
     return action
 
-
 def _finalize_action(action, ctx):
-    """Finalize action's text."""
+    '''Finalize action's text.'''
     if isinstance(action, _LookAheadAction):
         _finalize_action(action.action1, ctx)
         _finalize_action(action.action2, ctx)
@@ -891,7 +830,7 @@ def _finalize_action(action, ctx):
         last_word = None
         if action.glue and ctx.last_action.glue:
             last_word = ctx.last_action.word
-        action.word = rightmost_word((last_word or "") + text)
+        action.word = rightmost_word((last_word or '') + text)
     # Apply case.
     case = ctx.last_action.next_case
     if case is None and action.prev_attach and ctx.last_action.upper_carry:
@@ -900,11 +839,10 @@ def _finalize_action(action, ctx):
     if case == Case.UPPER_FIRST_WORD:
         action.upper_carry = not has_word_boundary(text)
     # Apply mode.
-    action.text = apply_mode(
-        text, action.case, action.space_char, action.prev_attach, ctx.last_action
-    )
+    action.text = apply_mode(text, action.case, action.space_char,
+                             action.prev_attach, ctx.last_action)
     # Update trailing space.
-    action.trailing_space = "" if action.next_attach else action.space_char
+    action.trailing_space = '' if action.next_attach else action.space_char
 
 
 def apply_case(text, case):
@@ -916,20 +854,22 @@ def apply_case(text, case):
         return lower_first_character(text)
     if case == Case.UPPER_FIRST_WORD:
         return upper_first_word(text)
-    raise ValueError("%r is not a valid case" % case)
+    raise ValueError('%r is not a valid case' % case)
 
 
 def apply_mode(text, case, space_char, begin, last_action):
     # Should title case be applied to the beginning of the next string?
-    lower_title_case = begin and not last_action.case in (
-        Case.CAP_FIRST_WORD,
-        Case.UPPER_FIRST_WORD,
-    )
+    lower_title_case = (begin and not
+                        last_action.case in (
+                            Case.CAP_FIRST_WORD,
+                            Case.UPPER_FIRST_WORD,
+                        ))
     # Apply case, then replace space character.
     text = apply_mode_case(text, case, lower_title_case)
     text = apply_mode_space_char(text, space_char)
     # Title case is sensitive to lower flag.
-    if last_action.next_case == Case.LOWER_FIRST_CHAR and text and case == Case.TITLE:
+    if (last_action.next_case == Case.LOWER_FIRST_CHAR
+        and text and case == Case.TITLE):
         text = lower_first_character(text)
     return text
 
@@ -946,7 +886,7 @@ def apply_mode_case(text, case, appended):
         if appended:
             return text
         return capitalize_all_words(text)
-    raise ValueError("%r is not a valid case" % case)
+    raise ValueError('%r is not a valid case' % case)
 
 
 def apply_mode_space_char(text, space_char):
@@ -957,8 +897,10 @@ def apply_mode_space_char(text, space_char):
 
 def _get_meta(atom):
     """Return the meta command, if any, without surrounding meta markups."""
-    if atom is not None and atom.startswith(META_START) and atom.endswith(META_END):
-        return atom[len(META_START) : -len(META_END)]
+    if (atom is not None and
+        atom.startswith(META_START) and
+        atom.endswith(META_END)):
+        return atom[len(META_START):-len(META_END)]
     return None
 
 
@@ -1008,17 +950,17 @@ def upper_first_word(s):
     if m is None:
         return s
     first_word = m.group()
-    return first_word.upper() + s[len(first_word) :]
+    return first_word.upper() + s[len(first_word):]
 
 
 def rightmost_word(s):
     """Get the rightmost word in s."""
     words = WORD_RX.findall(s)
     if not words:
-        return ""
+        return ''
     last_word = words[-1]
     if last_word[-1].isspace():
-        return ""
+        return ''
     return last_word
 
 

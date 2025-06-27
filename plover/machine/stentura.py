@@ -6,7 +6,8 @@
 # is a connection error.
 # TODO: Address any generic exceptions still left.
 
-"""Thread-based monitoring of a stenotype machine using the stentura protocol."""
+"""Thread-based monitoring of a stenotype machine using the stentura protocol.
+"""
 
 """
 The stentura protocol uses packets to communicate with the machine. A
@@ -156,8 +157,8 @@ def buffer(object, offset=None, size=None):
     if offset is None:
         offset = 0
     if size is None:
-        size = len(object) - offset
-    return memoryview(object)[offset : offset + size]
+        size = len(object)-offset
+    return memoryview(object)[offset:offset+size]
 
 
 def _allocate_buffer():
@@ -166,285 +167,57 @@ def _allocate_buffer():
 
 class _ProtocolViolationException(Exception):
     """Something has happened that is doesn't follow the protocol."""
-
     pass
 
 
 class _StopException(Exception):
     """The thread was asked to stop."""
-
     pass
 
 
 class _TimeoutException(Exception):
     """An operation has timed out."""
-
     pass
 
 
 class _ConnectionLostException(Exception):
     """Cannot communicate with the machine."""
-
     pass
 
 
 _CRC_TABLE = [
-    0x0000,
-    0xC0C1,
-    0xC181,
-    0x0140,
-    0xC301,
-    0x03C0,
-    0x0280,
-    0xC241,
-    0xC601,
-    0x06C0,
-    0x0780,
-    0xC741,
-    0x0500,
-    0xC5C1,
-    0xC481,
-    0x0440,
-    0xCC01,
-    0x0CC0,
-    0x0D80,
-    0xCD41,
-    0x0F00,
-    0xCFC1,
-    0xCE81,
-    0x0E40,
-    0x0A00,
-    0xCAC1,
-    0xCB81,
-    0x0B40,
-    0xC901,
-    0x09C0,
-    0x0880,
-    0xC841,
-    0xD801,
-    0x18C0,
-    0x1980,
-    0xD941,
-    0x1B00,
-    0xDBC1,
-    0xDA81,
-    0x1A40,
-    0x1E00,
-    0xDEC1,
-    0xDF81,
-    0x1F40,
-    0xDD01,
-    0x1DC0,
-    0x1C80,
-    0xDC41,
-    0x1400,
-    0xD4C1,
-    0xD581,
-    0x1540,
-    0xD701,
-    0x17C0,
-    0x1680,
-    0xD641,
-    0xD201,
-    0x12C0,
-    0x1380,
-    0xD341,
-    0x1100,
-    0xD1C1,
-    0xD081,
-    0x1040,
-    0xF001,
-    0x30C0,
-    0x3180,
-    0xF141,
-    0x3300,
-    0xF3C1,
-    0xF281,
-    0x3240,
-    0x3600,
-    0xF6C1,
-    0xF781,
-    0x3740,
-    0xF501,
-    0x35C0,
-    0x3480,
-    0xF441,
-    0x3C00,
-    0xFCC1,
-    0xFD81,
-    0x3D40,
-    0xFF01,
-    0x3FC0,
-    0x3E80,
-    0xFE41,
-    0xFA01,
-    0x3AC0,
-    0x3B80,
-    0xFB41,
-    0x3900,
-    0xF9C1,
-    0xF881,
-    0x3840,
-    0x2800,
-    0xE8C1,
-    0xE981,
-    0x2940,
-    0xEB01,
-    0x2BC0,
-    0x2A80,
-    0xEA41,
-    0xEE01,
-    0x2EC0,
-    0x2F80,
-    0xEF41,
-    0x2D00,
-    0xEDC1,
-    0xEC81,
-    0x2C40,
-    0xE401,
-    0x24C0,
-    0x2580,
-    0xE541,
-    0x2700,
-    0xE7C1,
-    0xE681,
-    0x2640,
-    0x2200,
-    0xE2C1,
-    0xE381,
-    0x2340,
-    0xE101,
-    0x21C0,
-    0x2080,
-    0xE041,
-    0xA001,
-    0x60C0,
-    0x6180,
-    0xA141,
-    0x6300,
-    0xA3C1,
-    0xA281,
-    0x6240,
-    0x6600,
-    0xA6C1,
-    0xA781,
-    0x6740,
-    0xA501,
-    0x65C0,
-    0x6480,
-    0xA441,
-    0x6C00,
-    0xACC1,
-    0xAD81,
-    0x6D40,
-    0xAF01,
-    0x6FC0,
-    0x6E80,
-    0xAE41,
-    0xAA01,
-    0x6AC0,
-    0x6B80,
-    0xAB41,
-    0x6900,
-    0xA9C1,
-    0xA881,
-    0x6840,
-    0x7800,
-    0xB8C1,
-    0xB981,
-    0x7940,
-    0xBB01,
-    0x7BC0,
-    0x7A80,
-    0xBA41,
-    0xBE01,
-    0x7EC0,
-    0x7F80,
-    0xBF41,
-    0x7D00,
-    0xBDC1,
-    0xBC81,
-    0x7C40,
-    0xB401,
-    0x74C0,
-    0x7580,
-    0xB541,
-    0x7700,
-    0xB7C1,
-    0xB681,
-    0x7640,
-    0x7200,
-    0xB2C1,
-    0xB381,
-    0x7340,
-    0xB101,
-    0x71C0,
-    0x7080,
-    0xB041,
-    0x5000,
-    0x90C1,
-    0x9181,
-    0x5140,
-    0x9301,
-    0x53C0,
-    0x5280,
-    0x9241,
-    0x9601,
-    0x56C0,
-    0x5780,
-    0x9741,
-    0x5500,
-    0x95C1,
-    0x9481,
-    0x5440,
-    0x9C01,
-    0x5CC0,
-    0x5D80,
-    0x9D41,
-    0x5F00,
-    0x9FC1,
-    0x9E81,
-    0x5E40,
-    0x5A00,
-    0x9AC1,
-    0x9B81,
-    0x5B40,
-    0x9901,
-    0x59C0,
-    0x5880,
-    0x9841,
-    0x8801,
-    0x48C0,
-    0x4980,
-    0x8941,
-    0x4B00,
-    0x8BC1,
-    0x8A81,
-    0x4A40,
-    0x4E00,
-    0x8EC1,
-    0x8F81,
-    0x4F40,
-    0x8D01,
-    0x4DC0,
-    0x4C80,
-    0x8C41,
-    0x4400,
-    0x84C1,
-    0x8581,
-    0x4540,
-    0x8701,
-    0x47C0,
-    0x4680,
-    0x8641,
-    0x8201,
-    0x42C0,
-    0x4380,
-    0x8341,
-    0x4100,
-    0x81C1,
-    0x8081,
-    0x4040,
+    0x0000, 0xc0c1, 0xc181, 0x0140, 0xc301, 0x03c0, 0x0280, 0xc241,
+    0xc601, 0x06c0, 0x0780, 0xc741, 0x0500, 0xc5c1, 0xc481, 0x0440,
+    0xcc01, 0x0cc0, 0x0d80, 0xcd41, 0x0f00, 0xcfc1, 0xce81, 0x0e40,
+    0x0a00, 0xcac1, 0xcb81, 0x0b40, 0xc901, 0x09c0, 0x0880, 0xc841,
+    0xd801, 0x18c0, 0x1980, 0xd941, 0x1b00, 0xdbc1, 0xda81, 0x1a40,
+    0x1e00, 0xdec1, 0xdf81, 0x1f40, 0xdd01, 0x1dc0, 0x1c80, 0xdc41,
+    0x1400, 0xd4c1, 0xd581, 0x1540, 0xd701, 0x17c0, 0x1680, 0xd641,
+    0xd201, 0x12c0, 0x1380, 0xd341, 0x1100, 0xd1c1, 0xd081, 0x1040,
+    0xf001, 0x30c0, 0x3180, 0xf141, 0x3300, 0xf3c1, 0xf281, 0x3240,
+    0x3600, 0xf6c1, 0xf781, 0x3740, 0xf501, 0x35c0, 0x3480, 0xf441,
+    0x3c00, 0xfcc1, 0xfd81, 0x3d40, 0xff01, 0x3fc0, 0x3e80, 0xfe41,
+    0xfa01, 0x3ac0, 0x3b80, 0xfb41, 0x3900, 0xf9c1, 0xf881, 0x3840,
+    0x2800, 0xe8c1, 0xe981, 0x2940, 0xeb01, 0x2bc0, 0x2a80, 0xea41,
+    0xee01, 0x2ec0, 0x2f80, 0xef41, 0x2d00, 0xedc1, 0xec81, 0x2c40,
+    0xe401, 0x24c0, 0x2580, 0xe541, 0x2700, 0xe7c1, 0xe681, 0x2640,
+    0x2200, 0xe2c1, 0xe381, 0x2340, 0xe101, 0x21c0, 0x2080, 0xe041,
+    0xa001, 0x60c0, 0x6180, 0xa141, 0x6300, 0xa3c1, 0xa281, 0x6240,
+    0x6600, 0xa6c1, 0xa781, 0x6740, 0xa501, 0x65c0, 0x6480, 0xa441,
+    0x6c00, 0xacc1, 0xad81, 0x6d40, 0xaf01, 0x6fc0, 0x6e80, 0xae41,
+    0xaa01, 0x6ac0, 0x6b80, 0xab41, 0x6900, 0xa9c1, 0xa881, 0x6840,
+    0x7800, 0xb8c1, 0xb981, 0x7940, 0xbb01, 0x7bc0, 0x7a80, 0xba41,
+    0xbe01, 0x7ec0, 0x7f80, 0xbf41, 0x7d00, 0xbdc1, 0xbc81, 0x7c40,
+    0xb401, 0x74c0, 0x7580, 0xb541, 0x7700, 0xb7c1, 0xb681, 0x7640,
+    0x7200, 0xb2c1, 0xb381, 0x7340, 0xb101, 0x71c0, 0x7080, 0xb041,
+    0x5000, 0x90c1, 0x9181, 0x5140, 0x9301, 0x53c0, 0x5280, 0x9241,
+    0x9601, 0x56c0, 0x5780, 0x9741, 0x5500, 0x95c1, 0x9481, 0x5440,
+    0x9c01, 0x5cc0, 0x5d80, 0x9d41, 0x5f00, 0x9fc1, 0x9e81, 0x5e40,
+    0x5a00, 0x9ac1, 0x9b81, 0x5b40, 0x9901, 0x59c0, 0x5880, 0x9841,
+    0x8801, 0x48c0, 0x4980, 0x8941, 0x4b00, 0x8bc1, 0x8a81, 0x4a40,
+    0x4e00, 0x8ec1, 0x8f81, 0x4f40, 0x8d01, 0x4dc0, 0x4c80, 0x8c41,
+    0x4400, 0x84c1, 0x8581, 0x4540, 0x8701, 0x47c0, 0x4680, 0x8641,
+    0x8201, 0x42c0, 0x4380, 0x8341, 0x4100, 0x81c1, 0x8081, 0x4040
 ]
 
 
@@ -477,7 +250,8 @@ def _crc(data, offset=None, size=None):
     checksum = 0
     for n in range(offset, offset + size):
         b = data[n]
-        checksum = _CRC_TABLE[(checksum ^ b) & 0xFF] ^ ((checksum >> 8) & 0xFF)
+        checksum = (_CRC_TABLE[(checksum ^ b) & 0xff] ^
+                    ((checksum >> 8) & 0xff))
     return checksum
 
 
@@ -491,37 +265,14 @@ def _write_to_buffer(buf, offset, data):
     - offset. The offset at which to start writing.
     - data: An iterable containing the data to write.
     """
-    buf[offset : offset + len(data)] = data
-
+    buf[offset:offset+len(data)] = data
 
 # Helper table for parsing strokes of the form:
 # 11^#STKP 11WHRAO* 11EUFRPB 11LGTSDZ
-_STENO_KEY_CHART = (
-    "^",
-    "#",
-    "S-",
-    "T-",
-    "K-",
-    "P-",  # Byte #1
-    "W-",
-    "H-",
-    "R-",
-    "A-",
-    "O-",
-    "*",  # Byte #2
-    "-E",
-    "-U",
-    "-F",
-    "-R",
-    "-P",
-    "-B",  # Byte #3
-    "-L",
-    "-G",
-    "-T",
-    "-S",
-    "-D",
-    "-Z",
-)  # Byte #4
+_STENO_KEY_CHART = ('^', '#', 'S-', 'T-', 'K-', 'P-',    # Byte #1
+                    'W-', 'H-', 'R-', 'A-', 'O-', '*',   # Byte #2
+                    '-E', '-U', '-F', '-R', '-P', '-B',  # Byte #3
+                    '-L', '-G', '-T', '-S', '-D', '-Z')  # Byte #4
 
 
 def _parse_stroke(a, b, c, d):
@@ -537,8 +288,10 @@ def _parse_stroke(a, b, c, d):
              e.g. ['S-', 'A-', '-T']
 
     """
-    fullstroke = ((a & 0x3F) << 18) | ((b & 0x3F) << 12) | ((c & 0x3F) << 6) | d & 0x3F
-    return [_STENO_KEY_CHART[i] for i in range(24) if (fullstroke & (1 << (23 - i)))]
+    fullstroke = (((a & 0x3f) << 18) | ((b & 0x3f) << 12) |
+                  ((c & 0x3f) << 6) | d & 0x3f)
+    return [_STENO_KEY_CHART[i] for i in range(24)
+            if (fullstroke & (1 << (23 - i)))]
 
 
 def _parse_strokes(data):
@@ -556,15 +309,13 @@ def _parse_strokes(data):
     strokes = []
     if (len(data) % 4) != 0:
         raise _ProtocolViolationException(
-            "Data size is not divisible by 4: %d" % (len(data))
-        )
+            "Data size is not divisible by 4: %d" % (len(data)))
     for b in data:
         if (b & 0b11000000) != 0b11000000:
             raise _ProtocolViolationException("Data is not stroke: 0x%X" % (b))
     for a, b, c, d in zip(*([iter(data)] * 4)):
         strokes.append(_parse_stroke(a, b, c, d))
     return strokes
-
 
 # Actions
 _CLOSE = 0x2
@@ -578,8 +329,8 @@ _RESET = 0x14
 _TERM = 0x15
 
 # Compiled struct for writing request headers.
-_REQUEST_STRUCT = struct.Struct("<2B7H")
-_SHORT_STRUCT = struct.Struct("<H")
+_REQUEST_STRUCT = struct.Struct('<2B7H')
+_SHORT_STRUCT = struct.Struct('<H')
 
 
 def _make_request(buf, action, seq, p1=0, p2=0, p3=0, p4=0, p5=0, data=None):
@@ -600,7 +351,8 @@ def _make_request(buf, action, seq, p1=0, p2=0, p3=0, p4=0, p5=0, data=None):
     length = 18
     if data:
         length += len(data) + 2  # +2 for the data CRC.
-    _REQUEST_STRUCT.pack_into(buf, 0, 1, seq, length, action, p1, p2, p3, p4, p5)
+    _REQUEST_STRUCT.pack_into(buf, 0, 1, seq, length, action,
+                              p1, p2, p3, p4, p5)
     crc = _crc(buf, 1, 15)
     _SHORT_STRUCT.pack_into(buf, 16, crc)
     if data:
@@ -708,10 +460,7 @@ def _read_data(port, stop, buf, offset, num_bytes):
     _write_to_buffer(buf, offset, read_bytes)
     return len(read_bytes)
 
-
 MINIMUM_PACKET_LENGTH = 14
-
-
 def _read_packet(port, stop, buf):
     """Read a full packet from the port.
 
@@ -738,7 +487,8 @@ def _read_packet(port, stop, buf):
     # Packet length should always be at least 14 bytes long
     if packet_length < MINIMUM_PACKET_LENGTH:
         raise _ProtocolViolationException()
-    bytes_read += _read_data(port, stop, buf, bytes_read, packet_length - bytes_read)
+    bytes_read += _read_data(port, stop, buf, bytes_read,
+                             packet_length - bytes_read)
     packet = buffer(buf, 0, bytes_read)
     if not _validate_response(packet):
         raise _ProtocolViolationException()
@@ -798,7 +548,6 @@ def _send_receive(port, stop, packet, buf, max_tries=3):
 
 class _SequenceCounter:
     """A mod 256 counter."""
-
     def __init__(self, seq=0):
         """Init a new counter starting at seq."""
         self.seq = seq
@@ -833,10 +582,8 @@ def _read(port, stop, seq, request_buf, response_buf, stroke_buf, block, byte):
         packet = _make_read(request_buf, seq(), block, byte, length=512)
         response = _send_receive(port, stop, packet, response_buf)
         p1 = _SHORT_STRUCT.unpack(response[8:10])[0]
-        if not (
-            (p1 == 0 and len(response) == 14)  # No data.
-            or (p1 == len(response) - 16)
-        ):  # Data.
+        if not ((p1 == 0 and len(response) == 14) or  # No data.
+                (p1 == len(response) - 16)):          # Data.
             raise _ProtocolViolationException()
         if p1 == 0:
             return block, byte, buffer(stroke_buf, 0, bytes_read)
@@ -847,7 +594,6 @@ def _read(port, stop, seq, request_buf, response_buf, stroke_buf, block, byte):
         if byte >= 512:
             block += 1
             byte -= 512
-
 
 def _loop(port, stop, callback, ready_callback, timeout=1):
     """Enter into a loop talking to the machine and returning strokes.
@@ -882,19 +628,15 @@ def _loop(port, stop, callback, ready_callback, timeout=1):
     request_buf, response_buf = _allocate_buffer(), _allocate_buffer()
     stroke_buf = _allocate_buffer()
     seq = _SequenceCounter()
-    request = _make_open(request_buf, seq(), b"A", b"REALTIME.000")
+    request = _make_open(request_buf, seq(), b'A', b'REALTIME.000')
     # Any checking needed on the response packet?
     _send_receive(port, stop, request, response_buf)
     # Do a full read to get to the current position in the realtime file.
     block, byte = 0, 0
-    block, byte, _ = _read(
-        port, stop, seq, request_buf, response_buf, stroke_buf, block, byte
-    )
+    block, byte, _ = _read(port, stop, seq, request_buf, response_buf, stroke_buf, block, byte)
     ready_callback()
     while True:
-        block, byte, data = _read(
-            port, stop, seq, request_buf, response_buf, stroke_buf, block, byte
-        )
+        block, byte, data = _read(port, stop, seq, request_buf, response_buf, stroke_buf, block, byte)
         strokes = _parse_strokes(data)
         for stroke in strokes:
             callback(stroke)
@@ -908,13 +650,13 @@ class Stentura(plover.machine.base.SerialStenotypeBase):
     add_callback.
     """
 
-    KEYS_LAYOUT = """
+    KEYS_LAYOUT = '''
         #  #  #  #  #  #  #  #  #  #
         S- T- P- H- * -F -P -L -T -D
         S- K- W- R- * -R -B -G -S -Z
               A- O-   -E -U
         ^
-    """
+    '''
 
     def run(self):
         """Overrides base class run method. Do not call directly."""

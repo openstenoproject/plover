@@ -1,3 +1,4 @@
+
 from PySide6.QtWidgets import QDialogButtonBox, QDialog
 
 from plover.gui_qt.console_widget import ConsoleWidget
@@ -5,6 +6,7 @@ from plover.gui_qt.run_dialog_ui import Ui_RunDialog
 
 
 class RunDialog(QDialog, Ui_RunDialog):
+
     def __init__(self, run_args, popen=None):
         super().__init__()
         self.setupUi(self)
@@ -22,19 +24,16 @@ class RunDialog(QDialog, Ui_RunDialog):
 
     def reject(self):
         if self._successful is not None:
-            super().done(
-                getattr(
-                    QDialog.DialogCode, "Accepted" if self._successful else "Rejected"
-                )
-            )
+            super().done(getattr(QDialog.DialogCode, 'Accepted'
+                                 if self._successful
+                                 else 'Rejected'))
             return
         self._console.terminate()
 
 
-if __name__ == "__main__":
+if __name__ == '__main__':
     import sys
     from PySide6.QtWidgets import QApplication
-
     app = QApplication([])
     dlg = RunDialog(sys.argv[1:])
     dlg.show()

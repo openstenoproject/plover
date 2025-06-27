@@ -12,36 +12,35 @@ from plover.resource import (
 )
 
 
-@pytest.mark.parametrize(
-    "resource, exists, filename",
-    (
-        # Relative filename.
-        (Path(__file__).relative_to(Path.cwd()), True, None),
-        # Relative directory.
-        (Path(__file__).parent.relative_to(Path.cwd()), True, None),
-        # Absolute filename.
-        (__file__, True, None),
-        # Absolute directory.
-        (Path(__file__).parent, True, None),
-        # Missing relative path.
-        ("test/pouet", False, None),
-        # Missing absolute path.
-        (Path.cwd() / "test" / "pouet", False, None),
-        # Asset filename.
-        ("asset:plover:assets/user.json", True, "plover/assets/user.json"),
-        # Asset directory.
-        ("asset:plover:", True, "plover"),
-        ("asset:plover:assets", True, "plover/assets"),
-        # Missing asset.
-        ("asset:plover:assets/pouet.json", False, "plover/assets/pouet.json"),
-        # Invalid asset: missing package and path.
-        ("asset:", ValueError, ValueError),
-        # Invalid asset: missing path.
-        ("asset:package", ValueError, ValueError),
-        # Invalid asset: absolute resource path.
-        ("asset:plover:/assets/user.json", ValueError, ValueError),
-    ),
-)
+@pytest.mark.parametrize('resource, exists, filename', (
+    # Relative filename.
+    (Path(__file__).relative_to(Path.cwd()), True, None),
+    # Relative directory.
+    (Path(__file__).parent.relative_to(Path.cwd()), True, None),
+    # Absolute filename.
+    (__file__, True, None),
+    # Absolute directory.
+    (Path(__file__).parent, True, None),
+    # Missing relative path.
+    ('test/pouet', False, None),
+    # Missing absolute path.
+    (Path.cwd() / 'test' / 'pouet', False, None),
+    # Asset filename.
+    ('asset:plover:assets/user.json', True,
+     'plover/assets/user.json'),
+    # Asset directory.
+    ('asset:plover:', True, 'plover'),
+    ('asset:plover:assets', True, 'plover/assets'),
+    # Missing asset.
+    ('asset:plover:assets/pouet.json', False,
+     'plover/assets/pouet.json'),
+    # Invalid asset: missing package and path.
+    ('asset:', ValueError, ValueError),
+    # Invalid asset: missing path.
+    ('asset:package', ValueError, ValueError),
+    # Invalid asset: absolute resource path.
+    ('asset:plover:/assets/user.json', ValueError, ValueError),
+))
 def test_resource(resource, exists, filename):
     resource = str(resource)
     if inspect.isclass(exists):
@@ -67,19 +66,19 @@ def test_resource(resource, exists, filename):
 
 def test_resource_update(tmp_path):
     # Can't update assets.
-    resource = "asset:plover:assets/pouet.json"
+    resource = 'asset:plover:assets/pouet.json'
     resource_path = Path(resource_filename(resource))
     with pytest.raises(ValueError):
         with resource_update(resource):
-            resource_path.write_bytes(b"contents")
+            resource_path.write_bytes(b'contents')
     assert not resource_path.exists()
     # Don't update resource on exception (but still cleanup).
-    resource = (tmp_path / "resource").resolve()
-    exception_str = "Houston, we have a problem"
+    resource = (tmp_path / 'resource').resolve()
+    exception_str = 'Houston, we have a problem'
     with pytest.raises(Exception, match=exception_str):
         with resource_update(str(resource)) as tmpf:
             tmpf = Path(tmpf)
-            tmpf.write_bytes(b"contents")
+            tmpf.write_bytes(b'contents')
             raise Exception(exception_str)
     assert not resource.exists()
     assert not tmpf.exists()
@@ -95,7 +94,7 @@ def test_resource_update(tmp_path):
         # atomic rename can be used).
         assert tmpf.parent == resource.parent
         # Save something.
-        tmpf.write_bytes(b"contents")
+        tmpf.write_bytes(b'contents')
         st = tmpf.stat()
     assert resource.stat() == st
-    assert resource.read_bytes() == b"contents"
+    assert resource.read_bytes() == b'contents'

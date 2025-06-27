@@ -25,59 +25,55 @@ from plover.registry import registry
 from plover import system
 
 
-_ESCAPE_RX = re.compile("(\\\\[nrt]|[\n\r\t])")
+_ESCAPE_RX = re.compile('(\\\\[nrt]|[\n\r\t])')
 _ESCAPE_REPLACEMENTS = {
-    "\n": r"\n",
-    "\r": r"\r",
-    "\t": r"\t",
-    r"\n": r"\\n",
-    r"\r": r"\\r",
-    r"\t": r"\\t",
+    '\n': r'\n',
+    '\r': r'\r',
+    '\t': r'\t',
+    r'\n': r'\\n',
+    r'\r': r'\\r',
+    r'\t': r'\\t',
 }
-
 
 def escape_translation(translation):
     return _ESCAPE_RX.sub(lambda m: _ESCAPE_REPLACEMENTS[m.group(0)], translation)
 
-
-_UNESCAPE_RX = re.compile(r"((?<!\\)|\\)\\([nrt])")
+_UNESCAPE_RX = re.compile(r'((?<!\\)|\\)\\([nrt])')
 _UNESCAPE_REPLACEMENTS = {
-    r"\\n": r"\n",
-    r"\\r": r"\r",
-    r"\\t": r"\t",
-    r"\n": "\n",
-    r"\r": "\r",
-    r"\t": "\t",
+    r'\\n': r'\n',
+    r'\\r': r'\r',
+    r'\\t': r'\t',
+    r'\n' : '\n',
+    r'\r' : '\r',
+    r'\t' : '\t',
 }
-
 
 def unescape_translation(translation):
     return _UNESCAPE_RX.sub(lambda m: _UNESCAPE_REPLACEMENTS[m.group(0)], translation)
 
 
 _LEGACY_MACROS_ALIASES = {
-    "{*}": "retro_toggle_asterisk",
-    "{*!}": "retro_delete_space",
-    "{*?}": "retro_insert_space",
-    "{*+}": "repeat_last_stroke",
+    '{*}': 'retro_toggle_asterisk',
+    '{*!}': 'retro_delete_space',
+    '{*?}': 'retro_insert_space',
+    '{*+}': 'repeat_last_stroke',
 }
 
-_MACRO_RX = re.compile(r"=\w+(:|$)")
+_MACRO_RX = re.compile(r'=\w+(:|$)')
 
-Macro = namedtuple("Macro", "name stroke cmdline")
-
+Macro = namedtuple('Macro', 'name stroke cmdline')
 
 def _mapping_to_macro(mapping, stroke):
-    """Return a macro/stroke if mapping is one, or None otherwise."""
-    macro, cmdline = None, ""
+    '''Return a macro/stroke if mapping is one, or None otherwise.'''
+    macro, cmdline = None, ''
     if mapping is None:
         if stroke.is_correction:
-            macro = "undo"
+            macro = 'undo'
     else:
         if mapping in _LEGACY_MACROS_ALIASES:
             macro = _LEGACY_MACROS_ALIASES[mapping]
         elif _MACRO_RX.match(mapping):
-            args = mapping[1:].split(":", 1)
+            args = mapping[1:].split(':', 1)
             macro = args[0]
             if len(args) == 2:
                 cmdline = args[1]
@@ -89,7 +85,7 @@ class Translation:
 
     This class represents the mapping between a sequence of Stroke objects and
     a text string, typically a word or phrase. This class is used as the output
-    from translation and the input to formatting. The class contains the
+    from translation and the input to formatting. The class contains the 
     following attributes:
 
     strokes -- A sequence of Stroke objects from which the translation is
@@ -134,11 +130,11 @@ class Translation:
 
     def __str__(self):
         if self.english is None:
-            translation = "None"
+            translation = 'None'
         else:
             translation = escape_translation(self.english)
-            translation = '"%s"' % translation.replace('"', r"\"")
-        return "Translation(%s : %s)" % (self.rtfcre, translation)
+            translation = '"%s"' % translation.replace('"', r'\"')
+        return 'Translation(%s : %s)' % (self.rtfcre, translation)
 
     def __repr__(self):
         return str(self)
@@ -194,7 +190,6 @@ class Translator:
     output to every function that has registered via the add_callback method.
 
     """
-
     def __init__(self):
         self._undo_length = 0
         self._dictionary = None
@@ -243,17 +238,17 @@ class Translator:
         self._resize_translations()
 
     def flush(self, extra_translations=None):
-        """Process translations scheduled for undoing/doing.
+        '''Process translations scheduled for undoing/doing.
 
         Arguments:
 
         extra_translations --  Extra translations to add to the list
                                of translation to do. Note: those will
                                not be saved to the state history.
-        """
+        '''
         if self._to_do:
             prev = self._state.prev(self._to_do)
-            do = self._state.translations[-self._to_do :]
+            do = self._state.translations[-self._to_do:]
         else:
             prev = self._state.prev()
             do = []
@@ -271,7 +266,8 @@ class Translator:
             callback(undo, do, prev)
 
     def _resize_translations(self):
-        self._state.restrict_size(max(self._dictionary.longest_key, self._undo_length))
+        self._state.restrict_size(max(self._dictionary.longest_key,
+                                      self._undo_length))
 
     def get_state(self):
         """Get the state of the translator."""
@@ -304,21 +300,18 @@ class Translator:
             return
         t = (
             # No prefix lookups (note we avoid looking up [stroke] again).
-            self._find_longest_match(2, max_len, stroke)
-            or
+            self._find_longest_match(2, max_len, stroke) or
             # Return [stroke] result if mapped.
-            (mapping is not None and Translation([stroke], mapping))
-            or
+            (mapping is not None and Translation([stroke], mapping)) or
             # No direct match, try with suffixes.
-            self._find_longest_match(1, max_len, stroke, system.SUFFIX_KEYS)
-            or
+            self._find_longest_match(1, max_len, stroke, system.SUFFIX_KEYS) or
             # Fallback to untranslate.
             Translation([stroke], None)
         )
         self.translate_translation(t)
 
     def translate_macro(self, macro):
-        macro_fn = registry.get_plugin("macro", macro.name).obj
+        macro_fn = registry.get_plugin('macro', macro.name).obj
         macro_fn(self, macro.stroke, macro.cmdline)
 
     def translate_translation(self, t):
@@ -342,7 +335,7 @@ class Translator:
         self._to_do += len(translations)
 
     def _find_longest_match(self, min_len, max_len, stroke, suffixes=()):
-        """Find mapping with the longest series of strokes.
+        '''Find mapping with the longest series of strokes.
 
         min_len  -- Minimum number of strokes involved.
         max_len  -- Maximum number of strokes involved.
@@ -354,7 +347,7 @@ class Translator:
         Note: the code either look for a direct match (empty suffix
         list), or assume the last stroke contains an implicit suffix
         and look for a corresponding match, but not both.
-        """
+        '''
         if suffixes:
             # Implicit suffix lookup, determine possible suffixes.
             suffixes = self._lookup_involved_suffixes(stroke, suffixes)
@@ -375,15 +368,13 @@ class Translator:
         # The new stroke can either create a new translation or replace
         # existing translations by matching a longer entry in the
         # dictionary.
-        for i in range(len(translations) + 1):
+        for i in range(len(translations)+1):
             replaced = translations[i:]
             strokes = [s for t in replaced for s in t.strokes]
             strokes.append(stroke)
             if len(strokes) < min_len:
                 continue
-            mapping = self._lookup_with_prefix(
-                max_len, translations[:i], strokes, suffixes
-            )
+            mapping = self._lookup_with_prefix(max_len, translations[:i], strokes, suffixes)
             if mapping is not None:
                 t = Translation(strokes, mapping)
                 t.replaced = replaced
@@ -391,16 +382,16 @@ class Translator:
         return None
 
     def _lookup_strokes(self, strokes):
-        """Look for a matching translation.
+        '''Look for a matching translation.
 
         strokes -- a list of Stroke instances.
 
         Return the resulting mapping.
-        """
+        '''
         return self._dictionary.lookup(tuple(s.rtfcre for s in strokes))
 
     def _lookup_with_suffix(self, strokes, suffixes=()):
-        """Look for a matching translation.
+        '''Look for a matching translation.
 
         suffixes -- A list of (suffix stroke, suffix mapping) pairs to try.
 
@@ -408,27 +399,25 @@ class Translator:
 
         Otherwise, assume the last stroke contains an implicit suffix,
         and look for a corresponding match.
-        """
+        '''
         if not suffixes:
             # No suffix, do a regular lookup.
             return self._lookup_strokes(strokes)
         for suffix_stroke, suffix_mapping in suffixes:
             assert suffix_stroke in strokes[-1]
-            main_mapping = self._lookup_strokes(
-                strokes[:-1] + [strokes[-1] - suffix_stroke]
-            )
+            main_mapping = self._lookup_strokes(strokes[:-1] + [strokes[-1] - suffix_stroke])
             if main_mapping is not None:
-                return main_mapping + " " + suffix_mapping
+                return main_mapping + ' ' + suffix_mapping
         return None
 
     def _lookup_involved_suffixes(self, stroke, suffixes):
-        """Find possible implicit suffixes for a stroke.
+        '''Find possible implicit suffixes for a stroke.
 
         stroke   -- The stroke to check for implicit suffixes.
         suffixes -- List of supported suffix keys.
 
         Return a list of (suffix_stroke, suffix_mapping) pairs.
-        """
+        '''
         possible_suffixes = []
         for suffix_stroke in map(Stroke, suffixes):
             if suffix_stroke not in stroke:
@@ -458,12 +447,8 @@ class Translator:
         return formatting[-1].word_is_finished
 
     def _lookup_with_prefix(self, max_len, last_translations, strokes, suffixes=()):
-        if len(strokes) < max_len and self._previous_word_is_finished(
-            last_translations
-        ):
-            mapping = self._lookup_with_suffix(
-                [Stroke.PREFIX_STROKE] + strokes, suffixes
-            )
+        if len(strokes) < max_len and self._previous_word_is_finished(last_translations):
+            mapping = self._lookup_with_suffix([Stroke.PREFIX_STROKE] + strokes, suffixes)
             if mapping is not None:
                 return mapping
         if len(strokes) <= max_len:
@@ -481,7 +466,6 @@ class _State:
     tail -- The oldest translation still saved but is no longer undoable.
 
     """
-
     def __init__(self):
         self.translations = []
         self.tail = None

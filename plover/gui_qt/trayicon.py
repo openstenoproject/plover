@@ -14,6 +14,7 @@ from plover.machine.base import (
 
 
 class TrayIcon(QObject):
+
     def __init__(self):
         super().__init__()
         self._supported = QSystemTrayIcon.isSystemTrayAvailable()
@@ -22,16 +23,16 @@ class TrayIcon(QObject):
         self._trayicon = None
         self._state_icons = {}
         for state in (
-            "disconnected",
-            "disabled",
-            "enabled",
+            'disconnected',
+            'disabled',
+            'enabled',
         ):
-            icon = QIcon(":resources/state-%s.svg" % state)
-            if hasattr(icon, "setIsMask"):
+            icon = QIcon(':resources/state-%s.svg' % state)
+            if hasattr(icon, 'setIsMask'):
                 icon.setIsMask(True)
             self._state_icons[state] = icon
         self._machine = None
-        self._machine_state = "disconnected"
+        self._machine_state = 'disconnected'
         self._is_running = False
         self._update_state()
 
@@ -40,12 +41,11 @@ class TrayIcon(QObject):
         if self._enabled:
             self._trayicon.setContextMenu(menu)
 
-    def show_message(
-        self, message, icon=QSystemTrayIcon.MessageIcon.Information, timeout=10000
-    ):
-        self._trayicon.showMessage(
-            __software_name__.capitalize(), message, icon, timeout
-        )
+    def show_message(self, message,
+                     icon=QSystemTrayIcon.MessageIcon.Information,
+                     timeout=10000):
+        self._trayicon.showMessage(__software_name__.capitalize(),
+                                   message, icon, timeout)
 
     def log(self, level, message):
         if self._enabled:
@@ -80,7 +80,7 @@ class TrayIcon(QObject):
         self._trayicon = QSystemTrayIcon()
         # On OS X, the context menu is activated with either mouse buttons,
         # and activation messages are still sent, so ignore those...
-        if PLATFORM != "mac":
+        if PLATFORM != 'mac':
             self._trayicon.activated.connect(self._on_activated)
         if self._context_menu is not None:
             self._trayicon.setContextMenu(self._context_menu)
@@ -111,26 +111,26 @@ class TrayIcon(QObject):
 
     def _update_state(self):
         if self._machine_state not in (STATE_INITIALIZING, STATE_RUNNING):
-            state = "disconnected"
+            state = 'disconnected'
         else:
-            state = "enabled" if self._is_running else "disabled"
+            state = 'enabled' if self._is_running else 'disabled'
         icon = self._state_icons[state]
         if not self._enabled:
             return
-        machine_state = _("{machine} is {state}").format(
+        machine_state = _('{machine} is {state}').format(
             machine=_(self._machine),
             state=_(self._machine_state),
         )
         if self._is_running:
             # i18n: Tray icon tooltip.
-            output_state = _("output is enabled")
+            output_state = _('output is enabled')
         else:
             # i18n: Tray icon tooltip.
-            output_state = _("output is disabled")
+            output_state = _('output is disabled')
         self._trayicon.setIcon(icon)
         self._trayicon.setToolTip(
             # i18n: Tray icon tooltip.
-            "Plover:\n- %s\n- %s" % (output_state, machine_state)
+            'Plover:\n- %s\n- %s' % (output_state, machine_state)
         )
 
     def _on_activated(self, reason):

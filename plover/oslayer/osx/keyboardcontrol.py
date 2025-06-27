@@ -69,85 +69,43 @@ NX_KEYS = {
     "AudioPrev": 18,
     "AudioRewind": 20,
     "KbdBrightnessUp": 21,
-    "KbdBrightnessDown": 22,
+    "KbdBrightnessDown": 22
 }
 
 KEYNAME_TO_KEYCODE = {
-    "fn": 63,
-    "alt_l": 58,
-    "alt_r": 61,
-    "control_l": 59,
-    "control_r": 62,
-    "shift_l": 56,
-    "shift_r": 60,
-    "super_l": 55,
-    "super_r": 55,
-    "caps_lock": 57,
-    "return": 36,
-    "tab": 48,
-    "backspace": BACK_SPACE,
-    "delete": 117,
-    "escape": 53,
-    "clear": 71,
-    "up": 126,
-    "down": 125,
-    "left": 123,
-    "right": 124,
-    "page_up": 116,
-    "page_down": 121,
-    "home": 115,
-    "end": 119,
-    "f1": 122,
-    "f2": 120,
-    "f3": 99,
-    "f4": 118,
-    "f5": 96,
-    "f6": 97,
-    "f7": 98,
-    "f8": 100,
-    "f9": 101,
-    "f10": 109,
-    "f11": 103,
-    "f12": 111,
-    "f13": 105,
-    "f14": 107,
-    "f15": 113,
-    "f16": 106,
-    "f17": 64,
-    "f18": 79,
-    "f19": 80,
-    "f20": 90,
-    "kp_0": 82,
-    "kp_1": 83,
-    "kp_2": 84,
-    "kp_3": 85,
-    "kp_4": 86,
-    "kp_5": 87,
-    "kp_6": 88,
-    "kp_7": 89,
-    "kp_8": 91,
-    "kp_9": 92,
-    "kp_add": 69,
-    "kp_decimal": 65,
-    "kp_delete": 71,
-    "kp_divide": 75,
-    "kp_enter": 76,
-    "kp_equal": 81,
-    "kp_multiply": 67,
-    "kp_subtract": 78,
+    'fn': 63,
+
+    'alt_l': 58, 'alt_r': 61, 'control_l': 59, 'control_r': 62,
+    'shift_l': 56, 'shift_r': 60, 'super_l': 55, 'super_r': 55,
+    'caps_lock': 57,
+
+    'return': 36, 'tab': 48, 'backspace': BACK_SPACE, 'delete': 117,
+    'escape': 53, 'clear': 71,
+
+    'up': 126, 'down': 125, 'left': 123, 'right': 124, 'page_up': 116,
+    'page_down': 121, 'home': 115, 'end': 119,
+
+    'f1': 122, 'f2': 120, 'f3': 99, 'f4': 118, 'f5': 96, 'f6': 97,
+    'f7': 98, 'f8': 100, 'f9': 101, 'f10': 109, 'f11': 103,
+    'f12': 111, 'f13': 105, 'f14': 107, 'f15': 113, 'f16': 106,
+    'f17': 64, 'f18': 79, 'f19': 80, 'f20': 90,
+
+    'kp_0': 82, 'kp_1': 83, 'kp_2': 84, 'kp_3': 85, 'kp_4': 86,
+    'kp_5': 87, 'kp_6': 88, 'kp_7': 89, 'kp_8': 91, 'kp_9': 92,
+    'kp_add': 69, 'kp_decimal': 65, 'kp_delete': 71, 'kp_divide': 75,
+    'kp_enter': 76, 'kp_equal': 81, 'kp_multiply': 67, 'kp_subtract': 78,
 }
 for name, code in NX_KEYS.items():
     KEYNAME_TO_KEYCODE[name.lower()] = code + NX_KEY_OFFSET
 add_modifiers_aliases(KEYNAME_TO_KEYCODE)
 
 DEADKEY_SYMBOLS = {
-    "dead_acute": "´",
-    "dead_circumflex": "^",
-    "dead_diaeresis": "¨",
-    "dead_grave": "`",
-    "dead_tilde": "~",
+    'dead_acute': '´',
+    'dead_circumflex': '^',
+    'dead_diaeresis': '¨',
+    'dead_grave': '`',
+    'dead_tilde': '~',
 }
-
 
 def down(seq):
     return [(x, True) for x in seq]
@@ -159,7 +117,6 @@ def up(seq):
 
 def down_up(seq):
     return down(seq) + up(seq)
-
 
 # Maps from keycodes to corresponding event masks.
 MODIFIER_KEYS_TO_MASKS = {
@@ -182,90 +139,36 @@ OUTPUT_SOURCE = CGEventSourceCreate(kCGEventSourceStateHIDSystemState)
 #     KEYCODE_TO_KEY = {keycode: mac_keycode.CharForKeycode(keycode) \
 #             for keycode in range(127)}
 KEYCODE_TO_KEY = {
-    122: "F1",
-    120: "F2",
-    99: "F3",
-    118: "F4",
-    96: "F5",
-    97: "F6",
-    98: "F7",
-    100: "F8",
-    101: "F9",
-    109: "F10",
-    103: "F11",
-    111: "F12",
-    50: "`",
-    29: "0",
-    18: "1",
-    19: "2",
-    20: "3",
-    21: "4",
-    23: "5",
-    22: "6",
-    26: "7",
-    28: "8",
-    25: "9",
-    27: "-",
-    24: "=",
-    12: "q",
-    13: "w",
-    14: "e",
-    15: "r",
-    17: "t",
-    16: "y",
-    32: "u",
-    34: "i",
-    31: "o",
-    35: "p",
-    33: "[",
-    30: "]",
-    42: "\\",
-    0: "a",
-    1: "s",
-    2: "d",
-    3: "f",
-    5: "g",
-    4: "h",
-    38: "j",
-    40: "k",
-    37: "l",
-    41: ";",
-    39: "'",
-    6: "z",
-    7: "x",
-    8: "c",
-    9: "v",
-    11: "b",
-    45: "n",
-    46: "m",
-    43: ",",
-    47: ".",
-    44: "/",
-    49: "space",
-    BACK_SPACE: "BackSpace",
-    117: "Delete",
-    125: "Down",
-    119: "End",
-    53: "Escape",
-    115: "Home",
-    123: "Left",
-    121: "Page_Down",
-    116: "Page_Up",
-    36: "Return",
-    124: "Right",
-    48: "Tab",
-    126: "Up",
-}
+    122: 'F1', 120: 'F2', 99: 'F3', 118: 'F4', 96: 'F5', 97: 'F6',
+    98: 'F7', 100: 'F8', 101: 'F9', 109: 'F10', 103: 'F11', 111: 'F12',
 
+    50: '`', 29: '0', 18: '1', 19: '2', 20: '3', 21: '4', 23: '5',
+    22: '6', 26: '7', 28: '8', 25: '9', 27: '-', 24: '=',
+
+    12: 'q', 13: 'w', 14: 'e', 15: 'r', 17: 't', 16: 'y',
+    32: 'u', 34: 'i', 31: 'o',  35: 'p', 33: '[', 30: ']', 42: '\\',
+
+    0: 'a', 1: 's', 2: 'd', 3: 'f', 5: 'g',
+    4: 'h', 38: 'j', 40: 'k', 37: 'l', 41: ';', 39: '\'',
+
+    6: 'z', 7: 'x', 8: 'c', 9: 'v', 11: 'b',
+    45: 'n', 46: 'm', 43: ',', 47: '.', 44: '/',
+
+    49: 'space', BACK_SPACE: "BackSpace",
+    117: "Delete", 125: "Down", 119: "End",
+    53: "Escape", 115: "Home", 123: "Left", 121: "Page_Down", 116: "Page_Up",
+    36: "Return", 124: "Right", 48: "Tab", 126: "Up",
+}
 
 def keycode_needs_fn_mask(keycode):
     return (
-        keycode >= KEYNAME_TO_KEYCODE["escape"]
+        keycode >= KEYNAME_TO_KEYCODE['escape']
         and keycode not in MODIFIER_KEYS_TO_MASKS
     )
 
 
 class KeyboardCaptureLoop:
+
     def __init__(self, callback):
         self._callback = callback
         self._loop = None
@@ -281,23 +184,20 @@ class KeyboardCaptureLoop:
         CFRunLoopRun()
 
     def start(self):
-        self._tap = CGEventTapCreate(
-            kCGSessionEventTap,
-            kCGHeadInsertEventTap,
-            kCGEventTapOptionDefault,
-            CGEventMaskBit(kCGEventKeyDown) | CGEventMaskBit(kCGEventKeyUp),
-            self._callback,
-            None,
-        )
+        self._tap = CGEventTapCreate(kCGSessionEventTap,
+                                     kCGHeadInsertEventTap,
+                                     kCGEventTapOptionDefault,
+                                     CGEventMaskBit(kCGEventKeyDown)
+                                     | CGEventMaskBit(kCGEventKeyUp),
+                                     self._callback, None)
         if self._tap is None:
             # TODO: See if there is a nice way to show
             # the user what's needed (or do it for them).
             raise Exception("Enable access for assistive devices.")
         self._source = CFMachPortCreateRunLoopSource(None, self._tap, 0)
         loop_is_set = threading.Event()
-        self._thread = threading.Thread(
-            target=self._run, args=(loop_is_set,), name="KeyboardCaptureLoop"
-        )
+        self._thread = threading.Thread(target=self._run, args=(loop_is_set,),
+                                        name="KeyboardCaptureLoop")
         self._thread.start()
         loop_is_set.wait()
         self.toggle_tap(True)
@@ -318,15 +218,14 @@ class KeyboardCaptureLoop:
 
 
 class KeyboardCapture(Capture):
+
     _KEYBOARD_EVENTS = {kCGEventKeyDown, kCGEventKeyUp}
 
     # Don't ignore Fn and Numeric flags so we can handle
     # the arrow and extended (home, end, etc...) keys.
-    _PASSTHROUGH_MODIFIERS = ~(
-        kCGEventFlagMaskNumericPad
-        | kCGEventFlagMaskSecondaryFn
-        | kCGEventFlagMaskNonCoalesced
-    )
+    _PASSTHROUGH_MODIFIERS = ~(kCGEventFlagMaskNumericPad |
+                               kCGEventFlagMaskSecondaryFn |
+                               kCGEventFlagMaskNonCoalesced)
 
     def __init__(self):
         super().__init__()
@@ -338,7 +237,7 @@ class KeyboardCapture(Capture):
         self._capture_loop = None
 
     def _callback(self, proxy, event_type, event, reference):
-        """
+        '''
         Returning the event means that it is passed on
         for further processing by others.
 
@@ -351,16 +250,14 @@ class KeyboardCapture(Capture):
         This motivates pushing callbacks to the other side
         of a queue of received events, so that we can return
         from this callback as soon as possible.
-        """
+        '''
         if event_type not in self._KEYBOARD_EVENTS:
             # Don't pass on meta events meant for this event tap.
             if event_type == kCGEventTapDisabledByTimeout:
                 # Re-enable the tap and hope we act faster next time.
                 self._capture_loop.toggle_tap(True)
-                log.warning(
-                    "Keystrokes may have been missed, the"
-                    "keyboard event tap has been re-enabled."
-                )
+                log.warning("Keystrokes may have been missed, the"
+                            "keyboard event tap has been re-enabled.")
             return None
         if CGEventGetFlags(event) & self._PASSTHROUGH_MODIFIERS:
             # Don't intercept or suppress the event if it has
@@ -379,7 +276,8 @@ class KeyboardCapture(Capture):
     def start(self):
         self._capture_loop = KeyboardCaptureLoop(self._callback)
         self._capture_loop.start()
-        self._event_thread = threading.Thread(name="KeyboardCapture", target=self._run)
+        self._event_thread = threading.Thread(name="KeyboardCapture",
+                                              target=self._run)
         self._event_thread.start()
 
     def cancel(self):
@@ -405,6 +303,7 @@ class KeyboardCapture(Capture):
 
 
 class KeyboardEmulation(GenericKeyboardEmulation):
+
     RAW_PRESS, STRING_PRESS = range(2)
 
     def __init__(self):
@@ -413,8 +312,10 @@ class KeyboardEmulation(GenericKeyboardEmulation):
 
     def send_backspaces(self, count):
         for _ in self.with_delay(range(count)):
-            backspace_down = CGEventCreateKeyboardEvent(OUTPUT_SOURCE, BACK_SPACE, True)
-            backspace_up = CGEventCreateKeyboardEvent(OUTPUT_SOURCE, BACK_SPACE, False)
+            backspace_down = CGEventCreateKeyboardEvent(
+                OUTPUT_SOURCE, BACK_SPACE, True)
+            backspace_up = CGEventCreateKeyboardEvent(
+                OUTPUT_SOURCE, BACK_SPACE, False)
             CGEventPost(kCGSessionEventTap, backspace_down)
             CGEventPost(kCGSessionEventTap, backspace_up)
 
@@ -428,12 +329,12 @@ class KeyboardEmulation(GenericKeyboardEmulation):
         # the current keycode sequence,
         # and add the sequence to the key plan when called as a function.
         def apply_raw():
-            if hasattr(apply_raw, "sequence") and len(apply_raw.sequence) != 0:
+            if hasattr(apply_raw, 'sequence') \
+                    and len(apply_raw.sequence) != 0:
                 apply_raw.sequence.extend(apply_raw.release_modifiers)
                 key_plan.append((self.RAW_PRESS, apply_raw.sequence))
             apply_raw.sequence = []
             apply_raw.release_modifiers = []
-
         apply_raw()
 
         last_modifier = None
@@ -444,9 +345,11 @@ class KeyboardEmulation(GenericKeyboardEmulation):
                         # Flush on modifier change.
                         apply_raw()
                         last_modifier = modifier
-                        modifier_keycodes = self._modifier_to_keycodes(modifier)
+                        modifier_keycodes = self._modifier_to_keycodes(
+                            modifier)
                         apply_raw.sequence.extend(down(modifier_keycodes))
-                        apply_raw.release_modifiers.extend(up(modifier_keycodes))
+                        apply_raw.release_modifiers.extend(
+                            up(modifier_keycodes))
                     apply_raw.sequence.extend(down_up([keycode]))
                 else:
                     # Flush on type change.
@@ -479,7 +382,7 @@ class KeyboardEmulation(GenericKeyboardEmulation):
             if code is not None:
                 pass
             # Dead keys
-            elif name.startswith("dead_"):
+            elif name.startswith('dead_'):
                 code, mod = self._layout.deadkey_symbol_to_key_sequence(
                     DEADKEY_SYMBOLS.get(name)
                 )[0]
@@ -488,7 +391,6 @@ class KeyboardEmulation(GenericKeyboardEmulation):
                 char = KEYNAME_TO_CHAR.get(name, name)
                 code, mods = self._layout.char_to_key_sequence(char)[0]
             return code
-
         # Parse and validate combo.
         key_events = parse_key_combo(combo, name_to_code)
         # Send events...
@@ -498,34 +400,38 @@ class KeyboardEmulation(GenericKeyboardEmulation):
     def _modifier_to_keycodes(modifier):
         keycodes = []
         if modifier & 16:
-            keycodes.append(KEYNAME_TO_KEYCODE["control_r"])
+            keycodes.append(KEYNAME_TO_KEYCODE['control_r'])
         if modifier & 8:
-            keycodes.append(KEYNAME_TO_KEYCODE["alt_r"])
+            keycodes.append(KEYNAME_TO_KEYCODE['alt_r'])
         if modifier & 2:
-            keycodes.append(KEYNAME_TO_KEYCODE["shift_r"])
+            keycodes.append(KEYNAME_TO_KEYCODE['shift_r'])
         if modifier & 1:
-            keycodes.append(KEYNAME_TO_KEYCODE["super_r"])
+            keycodes.append(KEYNAME_TO_KEYCODE['super_r'])
         return keycodes
 
     @staticmethod
     def _set_event_string(event, s):
-        nb_utf16_codepoints = len(s.encode("utf-16-le")) // 2
+        nb_utf16_codepoints = len(s.encode('utf-16-le')) // 2
         CGEventKeyboardSetUnicodeString(event, nb_utf16_codepoints, s)
 
     MODS_MASK = (
-        kCGEventFlagMaskAlternate
-        | kCGEventFlagMaskControl
-        | kCGEventFlagMaskShift
-        | kCGEventFlagMaskCommand
-        | kCGEventFlagMaskSecondaryFn
+        kCGEventFlagMaskAlternate |
+        kCGEventFlagMaskControl |
+        kCGEventFlagMaskShift |
+        kCGEventFlagMaskCommand |
+        kCGEventFlagMaskSecondaryFn
     )
 
     @staticmethod
     def _get_media_event(key_id, key_down):
         # Credit: https://gist.github.com/fredrikw/4078034
-        flags = 0xA00 if key_down else 0xB00
+        flags = 0xa00 if key_down else 0xb00
         return NSEvent.otherEventWithType_location_modifierFlags_timestamp_windowNumber_context_subtype_data1_data2_(  # nopep8: We can't make this line shorter!
-            NSSystemDefined, (0, 0), flags, 0, 0, 0, 8, (key_id << 16) | flags, -1
+            NSSystemDefined, (0, 0),
+            flags,
+            0, 0, 0, 8,
+            (key_id << 16) | flags,
+            -1
         ).CGEvent()
 
     def _send_sequence(self, sequence):
@@ -541,8 +447,7 @@ class KeyboardEmulation(GenericKeyboardEmulation):
             if keycode >= NX_KEY_OFFSET:
                 # Handle media (NX) key.
                 event = KeyboardEmulation._get_media_event(
-                    keycode - NX_KEY_OFFSET, key_down
-                )
+                    keycode - NX_KEY_OFFSET, key_down)
             else:
                 # Handle regular keycode.
                 if not key_down and keycode in MODIFIER_KEYS_TO_MASKS:
@@ -551,14 +456,14 @@ class KeyboardEmulation(GenericKeyboardEmulation):
                 if key_down and keycode_needs_fn_mask(keycode):
                     mods_flags |= kCGEventFlagMaskSecondaryFn
 
-                event = CGEventCreateKeyboardEvent(OUTPUT_SOURCE, keycode, key_down)
+                event = CGEventCreateKeyboardEvent(
+                    OUTPUT_SOURCE, keycode, key_down)
 
                 if key_down and keycode not in MODIFIER_KEYS_TO_MASKS:
                     event_flags = CGEventGetFlags(event)
                     # Add wanted flags, remove unwanted flags.
-                    goal_flags = (
-                        event_flags & ~KeyboardEmulation.MODS_MASK
-                    ) | mods_flags
+                    goal_flags = ((event_flags & ~KeyboardEmulation.MODS_MASK)
+                                  | mods_flags)
                     if event_flags != goal_flags:
                         CGEventSetFlags(event, goal_flags)
 

@@ -11,7 +11,7 @@ from plover.oslayer.keyboardcontrol import KeyboardCapture
 
 
 # i18n: Machine name.
-_._("Keyboard")
+_._('Keyboard')
 
 
 class Keyboard(StenotypeBase):
@@ -23,7 +23,7 @@ class Keyboard(StenotypeBase):
 
     """
 
-    KEYS_LAYOUT = """
+    KEYS_LAYOUT = '''
     Escape  F1 F2 F3 F4  F5 F6 F7 F8  F9 F10 F11 F12
 
       `  1  2  3  4  5  6  7  8  9  0  -  =  \\ BackSpace  Insert Home Page_Up
@@ -31,19 +31,17 @@ class Keyboard(StenotypeBase):
            a  s  d  f  g  h  j  k  l  ;  '      Return
             z  x  c  v  b  n  m  ,  .  /                          Up
                      space                                   Left Down Right
-    """
-    ACTIONS = ("arpeggiate",)
+    '''
+    ACTIONS = ('arpeggiate',)
 
     def __init__(self, params):
         """Monitor the keyboard's events."""
         super().__init__()
-        self._arpeggiate = params["arpeggiate"]
-        self._first_up_chord_send = params["first_up_chord_send"]
+        self._arpeggiate = params['arpeggiate']
+        self._first_up_chord_send = params['first_up_chord_send']
         if self._arpeggiate and self._first_up_chord_send:
             self._error()
-            raise RuntimeError(
-                "Arpeggiate and first-up chord send cannot both be enabled!"
-            )
+            raise RuntimeError("Arpeggiate and first-up chord send cannot both be enabled!")
         self._is_suppressed = False
         # Currently held keys.
         self._down_keys = set()
@@ -69,9 +67,9 @@ class Keyboard(StenotypeBase):
         self._arpeggiate_key = None
         self._bindings = dict(self.keymap.get_bindings())
         for key, mapping in list(self._bindings.items()):
-            if "no-op" == mapping:
+            if 'no-op' == mapping:
                 self._bindings[key] = None
-            elif "arpeggiate" == mapping:
+            elif 'arpeggiate' == mapping:
                 if self._arpeggiate:
                     self._bindings[key] = None
                     self._arpeggiate_key = key
@@ -139,9 +137,9 @@ class Keyboard(StenotypeBase):
             # and — when arpeggiate mode is enabled — the arpeggiate key
             # is part of it.
             if (
-                self._down_keys
-                or not self._stroke_keys
-                or (self._arpeggiate and self._arpeggiate_key not in self._stroke_keys)
+                self._down_keys or
+                not self._stroke_keys or
+                (self._arpeggiate and self._arpeggiate_key not in self._stroke_keys)
             ):
                 return
 
@@ -160,6 +158,6 @@ class Keyboard(StenotypeBase):
     @classmethod
     def get_option_info(cls):
         return {
-            "arpeggiate": (False, boolean),
-            "first_up_chord_send": (False, boolean),
+            'arpeggiate': (False, boolean),
+            'first_up_chord_send': (False, boolean),
         }

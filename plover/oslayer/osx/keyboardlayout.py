@@ -21,14 +21,15 @@ from plover.key_combo import CHAR_TO_KEYNAME
 from plover.misc import popcount_8
 
 
-carbon_path = ctypes.util.find_library("Carbon")
+carbon_path = ctypes.util.find_library('Carbon')
 carbon = ctypes.cdll.LoadLibrary(carbon_path)
 
 CFIndex = ctypes.c_int64
 
 
 class CFRange(ctypes.Structure):
-    _fields_ = [("loc", CFIndex), ("len", CFIndex)]
+    _fields_ = [('loc', CFIndex),
+                ('len', CFIndex)]
 
 
 carbon.TISCopyCurrentKeyboardInputSource.argtypes = []
@@ -48,19 +49,18 @@ carbon.CFRelease.argtypes = [ctypes.c_void_p]
 carbon.CFRelease.restype = None
 
 kTISPropertyUnicodeKeyLayoutData = ctypes.c_void_p.in_dll(
-    carbon, "kTISPropertyUnicodeKeyLayoutData"
-)
-kTISPropertyInputSourceID = ctypes.c_void_p.in_dll(carbon, "kTISPropertyInputSourceID")
+    carbon, 'kTISPropertyUnicodeKeyLayoutData')
+kTISPropertyInputSourceID = ctypes.c_void_p.in_dll(
+    carbon, 'kTISPropertyInputSourceID')
 kTISPropertyInputSourceIsASCIICapable = ctypes.c_void_p.in_dll(
-    carbon, "kTISPropertyInputSourceIsASCIICapable"
-)
-COMMAND = "⌘"
-SHIFT = "⇧"
-OPTION = "⌥"
-CONTROL = "⌃"
-CAPS = "⇪"
-UNKNOWN = "?"
-UNKNOWN_L = "?_L"
+    carbon, 'kTISPropertyInputSourceIsASCIICapable')
+COMMAND = '⌘'
+SHIFT = '⇧'
+OPTION = '⌥'
+CONTROL = '⌃'
+CAPS = '⇪'
+UNKNOWN = '?'
+UNKNOWN_L = '?_L'
 
 KEY_CODE_VISUALIZATION = """
 ┌───────────────────Layout of Apple Extended Keyboard II───────────────────────┐
@@ -78,40 +78,38 @@ Valid keycodes not visible on layout:
 """
 
 SPECIAL_KEY_NAMES = {
-    "\x1b": "Esc",  # Will map both Esc and Clear (key codes 53 and 71)
-    "\xa0": "nbsp",
-    "\x08": "Bksp",
-    "\x05": "Help",
-    "\x01": "Home",
-    "\x7f": "Del",
-    "\x04": "End",
-    "\x0c": "PgDn",
-    "\x0b": "PgUp",  # \x0b is also the clear character signal
+    '\x1b': 'Esc',   # Will map both Esc and Clear (key codes 53 and 71)
+    '\xa0': 'nbsp',
+    '\x08': 'Bksp',
+    '\x05': 'Help',
+    '\x01': 'Home',
+    '\x7f': 'Del',
+    '\x04': 'End',
+    '\x0c': 'PgDn',
+    '\x0b': 'PgUp',  # \x0b is also the clear character signal
 }
 
-DEFAULT_SEQUENCE = ((None, 0),)
+DEFAULT_SEQUENCE = (None, 0),
 
 
 def is_printable(string):
     for character in string:
         category = unicodedata.category(character)
-        if category[0] in "C":
+        if category[0] in 'C':
             # Exception: the "Apple" character that most Mac layouts have
             return False if string != "" else True
-        elif category == "Zs" and character != " ":
+        elif category == 'Zs' and character != ' ':
             return False
-        elif category in "Zl, Zp":
+        elif category in 'Zl, Zp':
             return False
     return True
 
 
 def get_printable_string(s):
     if s is None:
-        return "None"
-    return (
-        s
-        if is_printable(s)
-        else SPECIAL_KEY_NAMES.setdefault(s, s.encode("unicode_escape").decode("utf-8"))
+        return 'None'
+    return s if is_printable(s) else SPECIAL_KEY_NAMES.setdefault(
+        s, s.encode('unicode_escape').decode("utf-8")
     )
 
 
@@ -124,7 +122,9 @@ class KeyboardLayout:
 
         # Spawn a thread that responds to system keyboard layout changes.
         if watch_layout:
-            self._watcher = Thread(target=self._layout_watcher, name="LayoutWatcher")
+            self._watcher = Thread(
+                target=self._layout_watcher,
+                name="LayoutWatcher")
             self._watcher.start()
 
         self._update_layout()
@@ -134,24 +134,22 @@ class KeyboardLayout:
 
         class LayoutWatchingCallback(AppKit.NSObject):
             def layoutChanged_(self, event):
-                log.info("Mac keyboard layout changed, updating")
+                log.info('Mac keyboard layout changed, updating')
                 layout._update_layout()
 
         center = Foundation.NSDistributedNotificationCenter.defaultCenter()
         watcher_callback = LayoutWatchingCallback.new()
         center.addObserver_selector_name_object_suspensionBehavior_(
             watcher_callback,
-            "layoutChanged:",
-            "com.apple.Carbon.TISNotifySelectedKeyboardInputSourceChanged",
+            'layoutChanged:',
+            'com.apple.Carbon.TISNotifySelectedKeyboardInputSourceChanged',
             None,
-            Foundation.NSNotificationSuspensionBehaviorDeliverImmediately,
+            Foundation.NSNotificationSuspensionBehaviorDeliverImmediately
         )
         AppHelper.runConsoleEventLoop(installInterrupt=True)
 
     def _update_layout(self):
-        char_to_key_sequence, key_sequence_to_char, modifier_masks = (
-            KeyboardLayout._get_layout()
-        )
+        char_to_key_sequence, key_sequence_to_char, modifier_masks = KeyboardLayout._get_layout()
         self._char_to_key_sequence = char_to_key_sequence
         self._key_sequence_to_char = key_sequence_to_char
         self._modifier_masks = modifier_masks
@@ -162,50 +160,49 @@ class KeyboardLayout:
 
     def key_code_to_char(self, key_code, modifier=0):
         """Provide a key code and a modifier and it provides the character"""
-        return get_printable_string(self._key_sequence_to_char[key_code, modifier])
+        return get_printable_string(
+            self._key_sequence_to_char[key_code, modifier]
+        )
 
     def char_to_key_sequence(self, char):
         """Finds the key code and modifier sequence for the character"""
         key_sequence = self._char_to_key_sequence.get(char, DEFAULT_SEQUENCE)
         if not isinstance(key_sequence[0], tuple):
-            key_sequence = (key_sequence,)
+            key_sequence = key_sequence,
         return key_sequence
 
     def _deadkeys_by_symbols(self):
         # We store deadkeys as "characters"; dkX, where X is the symbol.
         symbols = {
-            "`": "`",
-            "´": "´",
-            "^": ("^", "ˆ"),
-            "~": ("~", "˜"),
-            "¨": "¨",
+            '`': '`',
+            '´': '´',
+            '^': ('^', 'ˆ'),
+            '~': ('~', '˜'),
+            '¨': '¨',
         }
         deadkeys_by_symbol = {}
         for symbol, equivalent_symbols in symbols.items():
             for equivalent_symbol in equivalent_symbols:
-                sequence = self.char_to_key_sequence("dk%s" % equivalent_symbol)
+                sequence = self.char_to_key_sequence('dk%s' % equivalent_symbol)
                 if sequence[0][0] is not None:
                     deadkeys_by_symbol[symbol] = sequence
         return deadkeys_by_symbol
 
     def format_modifier_header(self):
         modifiers = (
-            "| {}\t".format(KeyboardLayout._modifier_string(mod)).expandtabs(8)
+            '| {}\t'.format(KeyboardLayout._modifier_string(mod)).expandtabs(8)
             for mod in sorted(self._modifier_masks.values())
         )
-        header = "Keycode\t{}".format("".join(modifiers))
-        return "%s\n%s" % (header, re.sub(r"[^|]", "-", header))
+        header = 'Keycode\t{}'.format(''.join(modifiers))
+        return '%s\n%s' % (header, re.sub(r'[^|]', '-', header))
 
     def format_keycode_keys(self, keycode):
         """Returns all the variations of the keycode with modifiers"""
-        keys = (
-            "| {}\t".format(
-                get_printable_string(self._key_sequence_to_char[keycode, mod])
-            ).expandtabs(8)
-            for mod in sorted(self._modifier_masks.values())
-        )
+        keys = ('| {}\t'.format(get_printable_string(
+            self._key_sequence_to_char[keycode, mod])).expandtabs(8)
+                for mod in sorted(self._modifier_masks.values()))
 
-        return "{}\t{}".format(keycode, "".join(keys)).expandtabs(8)
+        return '{}\t{}'.format(keycode, ''.join(keys)).expandtabs(8)
 
     @staticmethod
     def _modifier_dictionary(modifier_mask):
@@ -217,7 +214,7 @@ class KeyboardLayout:
             OPTION: False,
             CAPS: False,
             UNKNOWN: False,
-            UNKNOWN_L: False,
+            UNKNOWN_L: False
         }
         if modifier_mask & 16:
             modifiers[CONTROL] = True
@@ -234,10 +231,10 @@ class KeyboardLayout:
     @staticmethod
     def _modifier_string(modifier_mask):
         """Turn modifier mask into string representing modifiers"""
-        s = ""
+        s = ''
         modifiers = KeyboardLayout._modifier_dictionary(modifier_mask)
         for key in modifiers:
-            s += key if modifiers[key] else ""
+            s += key if modifiers[key] else ''
         return s
 
     @staticmethod
@@ -250,31 +247,29 @@ class KeyboardLayout:
         # Some keyboard layouts don't return UnicodeKeyLayoutData so we turn to a different source.
         if layout_source is None:
             carbon.CFRelease(keyboard_input_source)
-            keyboard_input_source = (
-                carbon.TISCopyCurrentASCIICapableKeyboardLayoutInputSource()
-            )
+            keyboard_input_source = carbon.TISCopyCurrentASCIICapableKeyboardLayoutInputSource()
             layout_source = carbon.TISGetInputSourceProperty(
                 keyboard_input_source, kTISPropertyUnicodeKeyLayoutData
             )
         layout_size = carbon.CFDataGetLength(layout_source)
-        layout_buffer = ctypes.create_string_buffer(b"\000" * layout_size)
+        layout_buffer = ctypes.create_string_buffer(b'\000' * layout_size)
         carbon.CFDataGetBytes(
             layout_source, CFRange(0, layout_size), ctypes.byref(layout_buffer)
         )
         keyboard_type = carbon.LMGetKbdType()
-        parsed_layout = KeyboardLayout._parse_layout(layout_buffer, keyboard_type)
+        parsed_layout = KeyboardLayout._parse_layout(
+            layout_buffer, keyboard_type
+        )
         carbon.CFRelease(keyboard_input_source)
         return parsed_layout
 
     @staticmethod
     def _parse_layout(buf, ktype):
-        hf, dv, featureinfo, ktcount = struct.unpack_from("HHII", buf)
-        offset = struct.calcsize("HHII")
-        ktsize = struct.calcsize("IIIIIII")
-        kts = [
-            struct.unpack_from("IIIIIII", buf, offset + ktsize * i)
-            for i in range(ktcount)
-        ]
+        hf, dv, featureinfo, ktcount = struct.unpack_from('HHII', buf)
+        offset = struct.calcsize('HHII')
+        ktsize = struct.calcsize('IIIIIII')
+        kts = [struct.unpack_from('IIIIIII', buf, offset + ktsize * i)
+               for i in range(ktcount)]
         for i, kt in enumerate(kts):
             if kt[0] <= ktype <= kt[1]:
                 kentry = i
@@ -284,9 +279,9 @@ class KeyboardLayout:
         ktf, ktl, modoff, charoff, sroff, stoff, seqoff = kts[kentry]
 
         # Modifiers
-        mf, deftable, mcount = struct.unpack_from("HHI", buf, modoff)
-        modtableoff = modoff + struct.calcsize("HHI")
-        modtables = struct.unpack_from("B" * mcount, buf, modtableoff)
+        mf, deftable, mcount = struct.unpack_from('HHI', buf, modoff)
+        modtableoff = modoff + struct.calcsize('HHI')
+        modtables = struct.unpack_from('B' * mcount, buf, modtableoff)
         modifier_masks = {}
         for i, table in enumerate(modtables):
             modifier_masks.setdefault(table, i)
@@ -294,14 +289,13 @@ class KeyboardLayout:
         # Sequences
         sequences = []
         if seqoff:
-            sf, scount = struct.unpack_from("HH", buf, seqoff)
-            seqtableoff = seqoff + struct.calcsize("HH")
+            sf, scount = struct.unpack_from('HH', buf, seqoff)
+            seqtableoff = seqoff + struct.calcsize('HH')
             lastoff = -1
-            for soff in struct.unpack_from("H" * scount, buf, seqtableoff):
+            for soff in struct.unpack_from('H' * scount, buf, seqtableoff):
                 if lastoff >= 0:
                     sequences.append(
-                        buf[seqoff + lastoff : seqoff + soff].decode("utf-16")
-                    )
+                        buf[seqoff + lastoff:seqoff + soff].decode('utf-16'))
                 lastoff = soff
 
         def lookupseq(key):
@@ -316,20 +310,20 @@ class KeyboardLayout:
         # Dead keys
         deadkeys = []
         if sroff:
-            srf, srcount = struct.unpack_from("HH", buf, sroff)
-            srtableoff = sroff + struct.calcsize("HH")
-            for recoff in struct.unpack_from("I" * srcount, buf, srtableoff):
-                cdata, nextstate, ecount, eformat = struct.unpack_from(
-                    "HHHH", buf, recoff
-                )
-                recdataoff = recoff + struct.calcsize("HHHH")
-                edata = buf[recdataoff : recdataoff + 4 * ecount]
+            srf, srcount = struct.unpack_from('HH', buf, sroff)
+            srtableoff = sroff + struct.calcsize('HH')
+            for recoff in struct.unpack_from('I' * srcount, buf, srtableoff):
+                cdata, nextstate, ecount, eformat = struct.unpack_from('HHHH',
+                                                                       buf,
+                                                                       recoff)
+                recdataoff = recoff + struct.calcsize('HHHH')
+                edata = buf[recdataoff:recdataoff + 4 * ecount]
                 deadkeys.append((cdata, nextstate, ecount, eformat, edata))
 
         if stoff:
-            stf, stcount = struct.unpack_from("HH", buf, stoff)
-            sttableoff = stoff + struct.calcsize("HH")
-            dkterms = struct.unpack_from("H" * stcount, buf, sttableoff)
+            stf, stcount = struct.unpack_from('HH', buf, stoff)
+            sttableoff = stoff + struct.calcsize('HH')
+            dkterms = struct.unpack_from('H' * stcount, buf, sttableoff)
         else:
             dkterms = []
 
@@ -371,13 +365,14 @@ class KeyboardLayout:
             return a_favored_over_b
 
         def save_shortest_key_sequence(character, new_sequence):
-            current_sequence = char_to_key_sequence.setdefault(character, new_sequence)
+            current_sequence = char_to_key_sequence.setdefault(character,
+                                                               new_sequence)
             if current_sequence != new_sequence:
                 # Convert responses to tuples...
                 if not isinstance(current_sequence[0], tuple):
-                    current_sequence = (current_sequence,)
+                    current_sequence = current_sequence,
                 if not isinstance(new_sequence[0], tuple):
-                    new_sequence = (new_sequence,)
+                    new_sequence = new_sequence,
 
                 first_current_better = favored_modifiers(
                     current_sequence[-1][1], new_sequence[-1][1]
@@ -408,18 +403,18 @@ class KeyboardLayout:
             save_shortest_key_sequence(ch, (j, mod))
             key_sequence_to_char[j, mod] = ch
 
-        cf, csize, ccount = struct.unpack_from("HHI", buf, charoff)
-        chartableoff = charoff + struct.calcsize("HHI")
+        cf, csize, ccount = struct.unpack_from('HHI', buf, charoff)
+        chartableoff = charoff + struct.calcsize('HHI')
 
         for i, table_offset in enumerate(
-            struct.unpack_from("I" * ccount, buf, chartableoff)
-        ):
+                struct.unpack_from('I' * ccount, buf, chartableoff)):
             mod = modifier_masks[i]
-            for j, key in enumerate(struct.unpack_from("H" * csize, buf, table_offset)):
+            for j, key in enumerate(
+                    struct.unpack_from('H' * csize, buf, table_offset)):
                 if key == 65535:
-                    key_sequence_to_char[j, mod] = "mod"
+                    key_sequence_to_char[j, mod] = 'mod'
                 elif key >= 0xFFFE:
-                    key_sequence_to_char[j, mod] = "<{}>".format(key)
+                    key_sequence_to_char[j, mod] = '<{}>'.format(key)
                 elif key & 0x0C000 == 0x4000:
                     dead = key & ~0xC000
                     if dead < len(deadkeys):
@@ -431,20 +426,14 @@ class KeyboardLayout:
                                 nextstate, new_deadkey
                             )
                             if new_deadkey != current_deadkey:
-                                if (
-                                    favored_modifiers(
-                                        current_deadkey[1], new_deadkey[1]
-                                    )
-                                    < 0
-                                ):
-                                    deadkey_state_to_key_sequence[nextstate] = (
-                                        new_deadkey
-                                    )
+                                if favored_modifiers(current_deadkey[1],
+                                                     new_deadkey[1]) < 0:
+                                    deadkey_state_to_key_sequence[nextstate] = new_deadkey
                             if nextstate - 1 < len(dkterms):
                                 base_key = lookupseq(dkterms[nextstate - 1])
-                                dead_key_name = "dk{}".format(base_key)
+                                dead_key_name = 'dk{}'.format(base_key)
                             else:
-                                dead_key_name = "dk#{}".format(nextstate)
+                                dead_key_name = 'dk#{}'.format(nextstate)
                             key_sequence_to_char[j, mod] = dead_key_name
                             save_shortest_key_sequence(dead_key_name, (j, mod))
                         elif eformat == 1 or (eformat == 0 and not nextstate):
@@ -461,7 +450,8 @@ class KeyboardLayout:
         for key, dead in key_sequence_to_deadkey_state.items():
             j, mod = key
             cdata, nextstate, ecount, eformat, edata = dead
-            entries = [struct.unpack_from("HH", edata, i * 4) for i in range(ecount)]
+            entries = [struct.unpack_from('HH', edata, i * 4) for i in
+                       range(ecount)]
             for state, key in entries:
                 # Ignore if unknown state...
                 if state in deadkey_state_to_key_sequence:
@@ -470,14 +460,14 @@ class KeyboardLayout:
                     save_shortest_key_sequence(ch, ((dj, dmod), (j, mod)))
                     key_sequence_to_char[(dj, dmod), (j, mod)] = ch
 
-        char_to_key_sequence["\n"] = (36, 0)
-        char_to_key_sequence["\r"] = (36, 0)
-        char_to_key_sequence["\t"] = (48, 0)
+        char_to_key_sequence['\n'] = (36, 0)
+        char_to_key_sequence['\r'] = (36, 0)
+        char_to_key_sequence['\t'] = (48, 0)
 
         return char_to_key_sequence, key_sequence_to_char, modifier_masks
 
 
-if __name__ == "__main__":
+if __name__ == '__main__':
     layout = KeyboardLayout(False)
     print(KEY_CODE_VISUALIZATION)
     print()
@@ -491,27 +481,18 @@ if __name__ == "__main__":
         for code, mod in layout.char_to_key_sequence(char):
             if code is not None:
                 sequence.append(
-                    (
-                        code,
-                        "{}{}".format(
-                            layout._modifier_string(mod),
-                            layout.key_code_to_char(code, 0),
-                        ),
-                    )
+                    (code, '{}{}'.format(
+                        layout._modifier_string(mod),
+                        layout.key_code_to_char(code, 0)
+                    ))
                 )
             else:
                 unmapped_characters.append(char)
         if sequence:
-            print(
-                "Name:\t\t{}\nCharacter:\t{}\nSequence:\t‘{}’\nBase codes:\t‘{}’\n".format(
-                    keyname,
-                    char,
-                    "’, ‘".join(combo[1] for combo in sequence),
-                    "’, ‘".join(str(combo[0]) for combo in sequence),
-                )
-            )
-    print(
-        "No mapping on this layout for characters: ‘{}’".format(
-            "’, ‘".join(unmapped_characters)
-        )
-    )
+            print('Name:\t\t{}\nCharacter:\t{}\nSequence:\t‘{}’\nBase codes:\t‘{}’\n'.format(
+                keyname, char, '’, ‘'.join(combo[1] for combo in sequence),
+                '’, ‘'.join(str(combo[0]) for combo in sequence)
+            ))
+    print('No mapping on this layout for characters: ‘{}’'.format(
+        '’, ‘'.join(unmapped_characters)
+    ))

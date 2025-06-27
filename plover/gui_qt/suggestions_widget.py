@@ -24,11 +24,12 @@ from .utils import ActionCopyViewSelectionToClipboard
 
 
 # i18n: Widget: “SuggestionsWidget”.
-NO_SUGGESTIONS_STRING = _("no suggestions")
+NO_SUGGESTIONS_STRING = _('no suggestions')
 MAX_SUGGESTIONS_COUNT = 10
 
 
 class SuggestionsDelegate(QStyledItemDelegate):
+
     def __init__(self, parent=None):
         super().__init__(parent=parent)
         self._doc = QTextDocument()
@@ -60,13 +61,13 @@ class SuggestionsDelegate(QStyledItemDelegate):
 
     def _format_suggestion(self, index):
         suggestion = index.data(Qt.ItemDataRole.DisplayRole)
-        translation = escape_translation(suggestion.text) + ":"
+        translation = escape_translation(suggestion.text) + ':'
         if not suggestion.steno_list:
-            translation += " " + NO_SUGGESTIONS_STRING
+            translation += ' ' + NO_SUGGESTIONS_STRING
             return translation, None
-        strokes = ""
+        strokes = ''
         for strokes_list in suggestion.steno_list[:MAX_SUGGESTIONS_COUNT]:
-            strokes += "\n    " + "/".join(strokes_list)
+            strokes += '\n    ' + '/'.join(strokes_list)
         return translation, strokes
 
     def _suggestion_size_hint(self, index):
@@ -105,6 +106,7 @@ class SuggestionsDelegate(QStyledItemDelegate):
 
 
 class SuggestionsModel(QAbstractListModel):
+
     def __init__(self):
         super().__init__()
         self._suggestion_list = []
@@ -121,13 +123,11 @@ class SuggestionsModel(QAbstractListModel):
         if role == Qt.ItemDataRole.AccessibleTextRole:
             translation = escape_translation(suggestion.text)
             if suggestion.steno_list:
-                steno = ", ".join(
-                    "/".join(strokes_list)
-                    for strokes_list in suggestion.steno_list[:MAX_SUGGESTIONS_COUNT]
-                )
+                steno = ', '.join('/'.join(strokes_list) for strokes_list in
+                                  suggestion.steno_list[:MAX_SUGGESTIONS_COUNT])
             else:
                 steno = NO_SUGGESTIONS_STRING
-            return translation + ": " + steno
+            return translation + ': ' + steno
         return None
 
     def clear(self):
@@ -142,25 +142,19 @@ class SuggestionsModel(QAbstractListModel):
         self.endInsertRows()
 
     def mimeTypes(self):
-        return ["text/plain"]
+        return ['text/plain']
 
     def mimeData(self, indexes):
         data = QMimeData()
-        data.setText(
-            "\n".join(
-                filter(
-                    None,
-                    (
-                        self.data(index, Qt.ItemDataRole.AccessibleTextRole)
-                        for index in indexes
-                    ),
-                )
-            )
-        )
+        data.setText('\n'.join(filter(None, (
+            self.data(index, Qt.ItemDataRole.AccessibleTextRole)
+            for index in indexes
+        ))))
         return data
 
 
 class SuggestionsWidget(QListView):
+
     def __init__(self, parent=None):
         super().__init__(parent=parent)
         self.setResizeMode(self.ResizeMode.Adjust)
