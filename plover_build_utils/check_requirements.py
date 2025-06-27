@@ -13,14 +13,13 @@ def sorted_requirements(requirements):
 
 # Find all available distributions.
 all_requirements = [
-    Requirement(f"{dist.metadata['Name']}=={dist.version}")
-    for dist in distributions()
+    Requirement(f"{dist.metadata['Name']}=={dist.version}") for dist in distributions()
 ]
 
 # Find Plover requirements.
 plover_deps = set()
 try:
-    plover_requires = requires('plover') or []
+    plover_requires = requires("plover") or []
     for req in plover_requires:
         plover_deps.add(Requirement(req))
 except PackageNotFoundError:
@@ -28,11 +27,11 @@ except PackageNotFoundError:
     plover_requires = []
 
 # List requirements.
-print('# plover')
+print("# plover")
 for requirement in sorted_requirements(plover_deps):
     print(requirement)
-print('# other')
+print("# other")
 for requirement in sorted_requirements(all_requirements):
     if requirement not in plover_deps:
         print(requirement)
-print('# ''vim: ft=cfg commentstring=#\\ %s list')
+print("# vim: ft=cfg commentstring=#\\ %s list")

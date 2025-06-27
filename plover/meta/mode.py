@@ -15,34 +15,34 @@ def meta_mode(ctx, cmdline):
         set_space:xy: Set space to xy
         reset: Reset to normal case, space resets to ' '
     """
-    args = cmdline.split(':', 1)
+    args = cmdline.split(":", 1)
     mode = args.pop(0).lower()
     action = ctx.copy_last_action()
-    if mode == 'set_space':
-        action.space_char = args[0] if args else ''
+    if mode == "set_space":
+        action.space_char = args[0] if args else ""
         return action
     # No argument allowed for other mode directives.
     if args:
-        raise ValueError('%r is not a valid mode' % cmdline)
-    if mode == 'caps':
+        raise ValueError("%r is not a valid mode" % cmdline)
+    if mode == "caps":
         action.case = Case.UPPER
-    elif mode == 'title':
+    elif mode == "title":
         action.case = Case.TITLE
-    elif mode == 'lower':
+    elif mode == "lower":
         action.case = Case.LOWER
-    elif mode == 'snake':
-        action.space_char = '_'
-    elif mode == 'camel':
+    elif mode == "snake":
+        action.space_char = "_"
+    elif mode == "camel":
         action.case = Case.TITLE
-        action.space_char = ''
+        action.space_char = ""
         action.next_case = Case.LOWER_FIRST_CHAR
-    elif mode == 'reset':
+    elif mode == "reset":
         action.space_char = SPACE
         action.case = None
-    elif mode == 'reset_space':
+    elif mode == "reset_space":
         action.space_char = SPACE
-    elif mode == 'reset_case':
+    elif mode == "reset_case":
         action.case = None
     else:
-        raise ValueError('%r is not a valid mode' % cmdline)
+        raise ValueError("%r is not a valid mode" % cmdline)
     return action

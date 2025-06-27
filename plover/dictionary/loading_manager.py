@@ -13,7 +13,6 @@ from plover import log
 
 
 class DictionaryLoadingManager:
-
     def __init__(self):
         self.dictionaries = {}
 
@@ -30,7 +29,9 @@ class DictionaryLoadingManager:
         op = self.dictionaries.get(filename)
         if op is not None and not op.needs_reloading():
             return op
-        log.info('%s dictionary: %s', 'loading' if op is None else 'reloading', filename)
+        log.info(
+            "%s dictionary: %s", "loading" if op is None else "reloading", filename
+        )
         op = DictionaryLoadingOperation(filename)
         self.dictionaries[filename] = op
         return op
@@ -43,17 +44,14 @@ class DictionaryLoadingManager:
     def load(self, filenames):
         start_time = time.time()
         self.dictionaries = {f: self.start_loading(f) for f in filenames}
-        results = [
-            self.dictionaries[f].get()
-            for f in filenames
-        ]
-        log.info('loaded %u dictionaries in %.3fs',
-                 len(results), time.time() - start_time)
+        results = [self.dictionaries[f].get() for f in filenames]
+        log.info(
+            "loaded %u dictionaries in %.3fs", len(results), time.time() - start_time
+        )
         return results
 
 
 class DictionaryLoadingOperation:
-
     def __init__(self, filename):
         self.loading_thread = threading.Thread(target=self.load)
         self.filename = filename
@@ -88,7 +86,7 @@ class DictionaryLoadingOperation:
             timestamp = resource_timestamp(self.filename)
             self.result = load_dictionary(self.filename)
         except Exception as e:
-            log.debug('loading dictionary %s failed', self.filename, exc_info=True)
+            log.debug("loading dictionary %s failed", self.filename, exc_info=True)
             self.result = DictionaryLoaderException(self.filename, e)
             self.result.timestamp = timestamp
 

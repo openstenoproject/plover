@@ -7,6 +7,7 @@ def meta_case(ctx, case):
     action.next_case = case
     return action
 
+
 def meta_retro_case(ctx, case):
     case = Case(case.lower())
     action = ctx.copy_last_action()
@@ -16,5 +17,5 @@ def meta_retro_case(ctx, case):
         action.prev_replace = last_words[0]
         action.text = apply_case(last_words[0], case)
     else:
-        action.text = ''
+        action.text = ""
     return action
