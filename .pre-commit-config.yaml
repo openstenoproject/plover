@@ -1,8 +1,7 @@
 repos:
-- repo: local
+- repo: https://github.com/astral-sh/ruff-pre-commit
+  # Ruff version.
+  rev: v0.12.1 # also update constraints.txt
   hooks:
+    # Run the formatter.
     - id: ruff-format
-      name: ruff format
-      entry: ruff format
-      language: system
-      types: [python]
