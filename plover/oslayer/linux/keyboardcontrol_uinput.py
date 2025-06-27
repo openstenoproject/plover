@@ -277,7 +277,9 @@ LAYOUTS = {
     },
 }
 
-KEYCODE_TO_KEY = dict(zip(LAYOUTS[DEFAULT_LAYOUT].values(), LAYOUTS[DEFAULT_LAYOUT].keys()))
+KEYCODE_TO_KEY = dict(
+    zip(LAYOUTS[DEFAULT_LAYOUT].values(), LAYOUTS[DEFAULT_LAYOUT].keys())
+)
 
 
 class KeyboardEmulation(GenericKeyboardEmulation):
@@ -289,7 +291,9 @@ class KeyboardEmulation(GenericKeyboardEmulation):
 
         # Check that ibus or fcitx5 is running
         if not any(p.name() in ["ibus-daemon", "fcitx5"] for p in process_iter()):
-            log.warning("It appears that an input method, such as ibus or fcitx5, is not running on your system. Without this, some text may not be output correctly.")
+            log.warning(
+                "It appears that an input method, such as ibus or fcitx5, is not running on your system. Without this, some text may not be output correctly."
+            )
 
     def _update_layout(self, layout):
         if not layout in LAYOUTS:
@@ -464,7 +468,9 @@ class KeyboardCapture(Capture):
                                 key_name = KEYCODE_TO_KEY[event.code]
                                 if key_name in self._suppressed_keys:
                                     pressed = event.value == 1
-                                    (self.key_down if pressed else self.key_up)(key_name)
+                                    (self.key_down if pressed else self.key_up)(
+                                        key_name
+                                    )
                                     continue  # Go to the next iteration, skipping the below code:
                         self._ui.write(e.EV_KEY, event.code, event.value)
                         self._ui.syn()

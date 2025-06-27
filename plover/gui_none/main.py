@@ -6,7 +6,7 @@ from plover.gui_none.engine import Engine
 
 
 def show_error(title, message):
-    print('%s: %s' % (title, message))
+    print("%s: %s" % (title, message))
 
 
 def main(config, controller):
@@ -14,7 +14,7 @@ def main(config, controller):
     if not engine.load_config():
         return 3
     quitting = Event()
-    engine.hook_connect('quit', quitting.set)
+    engine.hook_connect("quit", quitting.set)
     engine.start()
     try:
         quitting.wait()

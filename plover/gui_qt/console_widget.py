@@ -1,4 +1,3 @@
-
 import os
 import signal
 import subprocess
@@ -14,11 +13,10 @@ from PySide6.QtWidgets import QWidget
 from plover.gui_qt.console_widget_ui import Ui_ConsoleWidget
 
 
-NULL = open(os.devnull, 'r+b')
+NULL = open(os.devnull, "r+b")
 
 
 class ConsoleWidget(QWidget, Ui_ConsoleWidget):
-
     textOutput = Signal(str)
     processFinished = Signal(object)
 
@@ -31,27 +29,25 @@ class ConsoleWidget(QWidget, Ui_ConsoleWidget):
         self._thread = None
         font = QFontDatabase.systemFont(QFontDatabase.SystemFont.FixedFont)
         metrics = QFontMetrics(font)
-        self.output.setMinimumSize(80 * metrics.maxWidth(),
-                                   24 * metrics.height())
+        self.output.setMinimumSize(80 * metrics.maxWidth(), 24 * metrics.height())
         self.output.setCurrentFont(font)
 
     def run(self, args):
         assert self._thread is None
-        if sys.platform.startswith('win32'):
+        if sys.platform.startswith("win32"):
             # Make it possible to interrupt by sending a Ctrl+C event.
-            kwargs = {'creationflags': subprocess.CREATE_NEW_PROCESS_GROUP}
+            kwargs = {"creationflags": subprocess.CREATE_NEW_PROCESS_GROUP}
         else:
             kwargs = {}
-        self._proc = self._popen(args, stdin=NULL,
-                                 stdout=subprocess.PIPE,
-                                 stderr=subprocess.STDOUT,
-                                 **kwargs)
+        self._proc = self._popen(
+            args, stdin=NULL, stdout=subprocess.PIPE, stderr=subprocess.STDOUT, **kwargs
+        )
         self._thread = threading.Thread(target=self._subprocess)
         self._thread.start()
 
     def terminate(self):
         assert self._proc is not None
-        if sys.platform.startswith('win32'):
+        if sys.platform.startswith("win32"):
             sig = signal.CTRL_C_EVENT
         else:
             sig = signal.SIGINT
@@ -72,7 +68,7 @@ class ConsoleWidget(QWidget, Ui_ConsoleWidget):
                 break
             line = line.decode()
             if line.endswith(os.linesep):
-                line = line[:-len(os.linesep)]
+                line = line[: -len(os.linesep)]
             print(line)
             self.textOutput.emit(line)
         self.processFinished.emit(self._proc.wait())

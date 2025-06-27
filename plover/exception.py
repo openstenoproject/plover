@@ -8,9 +8,12 @@ loop and displayed to the user as an alert dialog.
 
 """
 
+
 class InvalidConfigurationError(Exception):
     "Raised when there is something wrong in the configuration."
+
     pass
+
 
 class DictionaryLoaderException(Exception):
     """Dictionary file could not be loaded."""
@@ -21,4 +24,4 @@ class DictionaryLoaderException(Exception):
         self.exception = exception
 
     def __str__(self):
-        return 'loading dictionary `%s` failed: %s' % (self.path, self.exception)
+        return "loading dictionary `%s` failed: %s" % (self.path, self.exception)

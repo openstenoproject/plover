@@ -1,5 +1,4 @@
 class Capture:
-
     """Keyboard capture interface."""
 
     # Callbacks for keyboard press/release events.

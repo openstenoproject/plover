@@ -7,7 +7,7 @@ import os
 import sys
 
 
-DOWNLOADS_DIR = os.path.join('.cache', 'downloads')
+DOWNLOADS_DIR = os.path.join(".cache", "downloads")
 
 
 def download(url, sha1=None, filename=None, downloads_dir=DOWNLOADS_DIR):
@@ -22,15 +22,15 @@ def download(url, sha1=None, filename=None, downloads_dir=DOWNLOADS_DIR):
         if sha1 is None or not os.path.exists(dst):
             retries += 1
             try:
-                with urlopen(url) as req, open(dst, 'wb') as fp:
+                with urlopen(url) as req, open(dst, "wb") as fp:
                     fp.write(req.read())
             except Exception as e:
-                print('error', e, file=sys.stderr)
+                print("error", e, file=sys.stderr)
                 continue
         if sha1 is None:
             break
         h = hashlib.sha1()
-        with open(dst, 'rb') as fp:
+        with open(dst, "rb") as fp:
             while True:
                 d = fp.read(4 * 1024 * 1024)
                 if not d:
@@ -38,14 +38,16 @@ def download(url, sha1=None, filename=None, downloads_dir=DOWNLOADS_DIR):
                 h.update(d)
         if h.hexdigest() == sha1:
             break
-        print('sha1 does not match: %s instead of %s'
-              % (h.hexdigest(), sha1), file=sys.stderr)
+        print(
+            "sha1 does not match: %s instead of %s" % (h.hexdigest(), sha1),
+            file=sys.stderr,
+        )
         os.unlink(dst)
-    assert os.path.exists(dst), 'could not successfully retrieve %s' % url
+    assert os.path.exists(dst), "could not successfully retrieve %s" % url
     return dst
 
 
-if __name__ == '__main__':
+if __name__ == "__main__":
     args = sys.argv[1:]
     url = args.pop(0)
     sha1 = None
