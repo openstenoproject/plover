@@ -12,32 +12,12 @@ from plover.machine.base import SerialStenotypeBase
 # ProCAT machines send 4 bytes per stroke, with the last byte only consisting of
 # FF. So we need only look at the first 3 bytes to see our steno. The leading
 # bit is 0.
-STENO_KEY_CHART = (
-    None,
-    "#",
-    "S-",
-    "T-",
-    "K-",
-    "P-",
-    "W-",
-    "H-",
-    "R-",
-    "A-",
-    "O-",
-    "*",
-    "-E",
-    "-U",
-    "-F",
-    "-R",
-    "-P",
-    "-B",
-    "-L",
-    "-G",
-    "-T",
-    "-S",
-    "-D",
-    "-Z",
-)
+# fmt: off
+STENO_KEY_CHART = (None, "#", "S-", "T-", "K-", "P-", "W-", "H-",
+                   "R-", "A-", "O-", "*", "-E", "-U", "-F", "-R",
+                   "-P", "-B", "-L", "-G", "-T", "-S", "-D", "-Z",
+                   )
+# fmt: on
 
 BYTES_PER_STROKE = 4
 

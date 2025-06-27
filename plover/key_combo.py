@@ -4,6 +4,7 @@ import re
 
 
 # Mapping of "standard" keynames (derived from X11 keysym names) to Unicode.
+# fmt: off
 KEYNAME_TO_CHAR = {
     # Generated using:
     #
@@ -18,112 +19,113 @@ KEYNAME_TO_CHAR = {
     #     if us == kn or not us:
     #         continue
     # print '    %-20r: %8r, # %s' % (kn, us, us)
-    "aacute": "\xe1",  # á
-    "acircumflex": "\xe2",  # â
-    "acute": "\xb4",  # ´
-    "adiaeresis": "\xe4",  # ä
-    "ae": "\xe6",  # æ
-    "agrave": "\xe0",  # à
-    "ampersand": "&",  # &
-    "apostrophe": "'",  # '
-    "aring": "\xe5",  # å
-    "asciicircum": "^",  # ^
-    "asciitilde": "~",  # ~
-    "asterisk": "*",  # *
-    "at": "@",  # @
-    "atilde": "\xe3",  # ã
-    "backslash": "\\",  # \
-    "bar": "|",  # |
-    "braceleft": "{",  # {
-    "braceright": "}",  # }
-    "bracketleft": "[",  # [
-    "bracketright": "]",  # ]
-    "brokenbar": "\xa6",  # ¦
-    "ccedilla": "\xe7",  # ç
-    "cedilla": "\xb8",  # ¸
-    "cent": "\xa2",  # ¢
-    "clear": "\x0b",  #
-    "colon": ":",  # :
-    "comma": ",",  # ,
-    "copyright": "\xa9",  # ©
-    "currency": "\xa4",  # ¤
-    "degree": "\xb0",  # °
-    "diaeresis": "\xa8",  # ¨
-    "division": "\xf7",  # ÷
-    "dollar": "$",  # $
-    "eacute": "\xe9",  # é
-    "ecircumflex": "\xea",  # ê
-    "ediaeresis": "\xeb",  # ë
-    "egrave": "\xe8",  # è
-    "equal": "=",  # =
-    "eth": "\xf0",  # ð
-    "exclam": "!",  # !
-    "exclamdown": "\xa1",  # ¡
-    "grave": "`",  # `
-    "greater": ">",  # >
-    "guillemotleft": "\xab",  # «
-    "guillemotright": "\xbb",  # »
-    "hyphen": "\xad",  # ­
-    "iacute": "\xed",  # í
-    "icircumflex": "\xee",  # î
-    "idiaeresis": "\xef",  # ï
-    "igrave": "\xec",  # ì
-    "less": "<",  # <
-    "macron": "\xaf",  # ¯
-    "masculine": "\xba",  # º
-    "minus": "-",  # -
-    "mu": "\xb5",  # µ
-    "multiply": "\xd7",  # ×
-    "nobreakspace": "\xa0",  #
-    "notsign": "\xac",  # ¬
-    "ntilde": "\xf1",  # ñ
-    "numbersign": "#",  # #
-    "oacute": "\xf3",  # ó
-    "ocircumflex": "\xf4",  # ô
-    "odiaeresis": "\xf6",  # ö
-    "ograve": "\xf2",  # ò
-    "onehalf": "\xbd",  # ½
-    "onequarter": "\xbc",  # ¼
-    "onesuperior": "\xb9",  # ¹
-    "ooblique": "\xd8",  # Ø
-    "ordfeminine": "\xaa",  # ª
-    "oslash": "\xf8",  # ø
-    "otilde": "\xf5",  # õ
-    "paragraph": "\xb6",  # ¶
-    "parenleft": "(",  # (
-    "parenright": ")",  # )
-    "percent": "%",  # %
-    "period": ".",  # .
-    "periodcentered": "\xb7",  # ·
-    "plus": "+",  # +
-    "plusminus": "\xb1",  # ±
-    "question": "?",  # ?
-    "questiondown": "\xbf",  # ¿
-    "quotedbl": '"',  # "
-    "quoteleft": "`",  # `
-    "quoteright": "'",  # '
-    "registered": "\xae",  # ®
-    "return": "\r",  #
-    "section": "\xa7",  # §
-    "semicolon": ";",  # ;
-    "slash": "/",  # /
-    "space": " ",  #
-    "ssharp": "\xdf",  # ß
-    "sterling": "\xa3",  # £
-    "tab": "\t",  #
-    "thorn": "\xfe",  # þ
-    "threequarters": "\xbe",  # ¾
-    "threesuperior": "\xb3",  # ³
-    "twosuperior": "\xb2",  # ²
-    "uacute": "\xfa",  # ú
-    "ucircumflex": "\xfb",  # û
-    "udiaeresis": "\xfc",  # ü
-    "ugrave": "\xf9",  # ù
-    "underscore": "_",  # _
-    "yacute": "\xfd",  # ý
-    "ydiaeresis": "\xff",  # ÿ
-    "yen": "\xa5",  # ¥
+    "aacute"            :  "\xe1", # á
+    "acircumflex"       :  "\xe2", # â
+    "acute"             :  "\xb4", # ´
+    "adiaeresis"        :  "\xe4", # ä
+    "ae"                :  "\xe6", # æ
+    "agrave"            :  "\xe0", # à
+    "ampersand"         :     "&", # &
+    "apostrophe"        :     "'", # '
+    "aring"             :  "\xe5", # å
+    "asciicircum"       :     "^", # ^
+    "asciitilde"        :     "~", # ~
+    "asterisk"          :     "*", # *
+    "at"                :     "@", # @
+    "atilde"            :  "\xe3", # ã
+    "backslash"         :    "\\", # \
+    "bar"               :     "|", # |
+    "braceleft"         :     "{", # {
+    "braceright"        :     "}", # }
+    "bracketleft"       :     "[", # [
+    "bracketright"      :     "]", # ]
+    "brokenbar"         :  "\xa6", # ¦
+    "ccedilla"          :  "\xe7", # ç
+    "cedilla"           :  "\xb8", # ¸
+    "cent"              :  "\xa2", # ¢
+    "clear"             :  "\x0b", # 
+    "colon"             :     ":", # :
+    "comma"             :     ",", # ,
+    "copyright"         :  "\xa9", # ©
+    "currency"          :  "\xa4", # ¤
+    "degree"            :  "\xb0", # °
+    "diaeresis"         :  "\xa8", # ¨
+    "division"          :  "\xf7", # ÷
+    "dollar"            :     "$", # $
+    "eacute"            :  "\xe9", # é
+    "ecircumflex"       :  "\xea", # ê
+    "ediaeresis"        :  "\xeb", # ë
+    "egrave"            :  "\xe8", # è
+    "equal"             :     "=", # =
+    "eth"               :  "\xf0", # ð
+    "exclam"            :     "!", # !
+    "exclamdown"        :  "\xa1", # ¡
+    "grave"             :     "`", # `
+    "greater"           :     ">", # >
+    "guillemotleft"     :  "\xab", # «
+    "guillemotright"    :  "\xbb", # »
+    "hyphen"            :  "\xad", # ­
+    "iacute"            :  "\xed", # í
+    "icircumflex"       :  "\xee", # î
+    "idiaeresis"        :  "\xef", # ï
+    "igrave"            :  "\xec", # ì
+    "less"              :     "<", # <
+    "macron"            :  "\xaf", # ¯
+    "masculine"         :  "\xba", # º
+    "minus"             :     "-", # -
+    "mu"                :  "\xb5", # µ
+    "multiply"          :  "\xd7", # ×
+    "nobreakspace"      :  "\xa0", #  
+    "notsign"           :  "\xac", # ¬
+    "ntilde"            :  "\xf1", # ñ
+    "numbersign"        :     "#", # #
+    "oacute"            :  "\xf3", # ó
+    "ocircumflex"       :  "\xf4", # ô
+    "odiaeresis"        :  "\xf6", # ö
+    "ograve"            :  "\xf2", # ò
+    "onehalf"           :  "\xbd", # ½
+    "onequarter"        :  "\xbc", # ¼
+    "onesuperior"       :  "\xb9", # ¹
+    "ooblique"          :  "\xd8", # Ø
+    "ordfeminine"       :  "\xaa", # ª
+    "oslash"            :  "\xf8", # ø
+    "otilde"            :  "\xf5", # õ
+    "paragraph"         :  "\xb6", # ¶
+    "parenleft"         :     "(", # (
+    "parenright"        :     ")", # )
+    "percent"           :     "%", # %
+    "period"            :     ".", # .
+    "periodcentered"    :  "\xb7", # ·
+    "plus"              :     "+", # +
+    "plusminus"         :  "\xb1", # ±
+    "question"          :     "?", # ?
+    "questiondown"      :  "\xbf", # ¿
+    "quotedbl"          :     '"', # "
+    "quoteleft"         :     "`", # `
+    "quoteright"        :     "'", # '
+    "registered"        :  "\xae", # ®
+    "return"            :    "\r", # 
+    "section"           :  "\xa7", # §
+    "semicolon"         :     ";", # ;
+    "slash"             :     "/", # /
+    "space"             :     " ", #  
+    "ssharp"            :  "\xdf", # ß
+    "sterling"          :  "\xa3", # £
+    "tab"               :    "\t", # 	
+    "thorn"             :  "\xfe", # þ
+    "threequarters"     :  "\xbe", # ¾
+    "threesuperior"     :  "\xb3", # ³
+    "twosuperior"       :  "\xb2", # ²
+    "uacute"            :  "\xfa", # ú
+    "ucircumflex"       :  "\xfb", # û
+    "udiaeresis"        :  "\xfc", # ü
+    "ugrave"            :  "\xf9", # ù
+    "underscore"        :     "_", # _
+    "yacute"            :  "\xfd", # ý
+    "ydiaeresis"        :  "\xff", # ÿ
+    "yen"               :  "\xa5", # ¥
 }
+# fmt: on
 for char in "0123456789abcdefghijklmnopqrstuvwxyz":
     KEYNAME_TO_CHAR[char] = char
 CHAR_TO_KEYNAME = {char: name for name, char in KEYNAME_TO_CHAR.items()}

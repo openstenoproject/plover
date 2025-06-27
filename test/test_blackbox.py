@@ -12,31 +12,17 @@ from plover_build_utils.testing import blackbox_test
 @pytest.fixture
 def with_melani_system(monkeypatch, request):
     class Melani:
+        # fmt: off
         KEYS = (
             "#",
-            "S-",
-            "P-",
-            "C-",
-            "T-",
-            "H-",
-            "V-",
-            "R-",
-            "I-",
-            "A-",
-            "-E",
-            "-O",
-            "-c",
-            "-s",
-            "-t",
-            "-h",
-            "-p",
-            "-r",
+            "S-", "P-", "C-", "T-", "H-", "V-", "R-",
+            "I-", "A-",
+            "-E", "-O",
+            "-c", "-s", "-t", "-h", "-p", "-r",
             "*",
-            "-i",
-            "-e",
-            "-a",
-            "-o",
+            "-i", "-e", "-a", "-o",
         )
+        # fmt: on
         IMPLICIT_HYPHEN_KEYS = KEYS
         SUFFIX_KEYS = ()
         NUMBER_KEY = "#"
@@ -73,44 +59,18 @@ def with_melani_system(monkeypatch, request):
 @pytest.fixture
 def with_korean_system(monkeypatch, request):
     class KoreanCAS:
+        # fmt: off
         KEYS = (
-            "1-",
-            "2-",
-            "3-",
-            "4-",
-            "5-",
-            "ㅎ-",
-            "ㅁ-",
-            "ㄱ-",
-            "ㅈ-",
-            "ㄴ-",
-            "ㄷ-",
-            "ㅇ-",
-            "ㅅ-",
-            "ㅂ-",
-            "ㄹ-",
-            "ㅗ-",
-            "ㅏ-",
-            "ㅜ-",
-            "-*",
-            "-ㅓ",
-            "-ㅣ",
-            "-6",
-            "-7",
-            "-8",
-            "-9",
-            "-0",
-            "-ㅎ",
-            "-ㅇ",
-            "-ㄹ",
-            "-ㄱ",
-            "-ㄷ",
-            "-ㅂ",
-            "-ㄴ",
-            "-ㅅ",
-            "-ㅈ",
-            "-ㅁ",
+            "1-", "2-", "3-", "4-", "5-",
+            "ㅎ-", "ㅁ-", "ㄱ-", "ㅈ-", "ㄴ-",
+            "ㄷ-", "ㅇ-", "ㅅ-", "ㅂ-", "ㄹ-",
+            "ㅗ-", "ㅏ-", "ㅜ-",
+            "-*", "-ㅓ", "-ㅣ",
+            "-6", "-7", "-8", "-9", "-0",
+            "-ㅎ", "-ㅇ", "-ㄹ", "-ㄱ", "-ㄷ",
+            "-ㅂ", "-ㄴ", "-ㅅ", "-ㅈ", "-ㅁ",
         )
+        # fmt: on
         IMPLICIT_HYPHEN_KEYS = (
             "ㅗ-",
             "ㅏ-",

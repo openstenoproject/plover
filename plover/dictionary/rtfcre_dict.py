@@ -66,40 +66,42 @@ class RegexFormatter:
 
 
 class TranslationFormatter:
+    # fmt: off
     TO_ESCAPE = (
-        (r"([\\{}])", r"\\\1"),
-        (r"\n\n", r"\\par "),
-        (r"\n", r"\\line "),
-        (r"\t", r"\\tab "),
+        (r"([\\{}])", r"\\\1"   ),
+        (r"\n\n"    , r"\\par " ),
+        (r"\n"      , r"\\line "),
+        (r"\t"      , r"\\tab " ),
     )
     ATOMS_FORMATTERS = (
         # Note order matters!
-        (r"{\.}", r"{{\cxp. }}"),
-        (r"{!}", r"{{\cxp! }}"),
-        (r"{\?}", r"{{\cxp? }}"),
-        (r"{\,}", r"{{\cxp, }}"),
-        (r"{:}", r"{{\cxp: }}"),
-        (r"{;}", r"{{\cxp; }}"),
-        (r"{\^ \^}", r"\~"),
-        (r"{\^-\^}", r"\_"),
-        (r"{\^\^?}", r"{{\cxds}}"),
-        (r"{\^([^^}]*)\^}", r"{{\cxds {0}\cxds}}"),
-        (r"{\^([^^}]*)}", r"{{\cxds {0}}}"),
-        (r"{([^^}]*)\^}", r"{{{0}\cxds}}"),
-        (r"{-\|}", r"\cxfc "),
-        (r"{>}", r"\cxfl "),
-        (r"{ }", r" "),
-        (r"{&([^}]+)}", r"{{\cxfing {0}}}"),
-        (r"{(.*)}", r"{{\*\cxplovermeta {0}}}"),
+        (r"{\.}"                       , r"{{\cxp. }}"                 ),
+        (r"{!}"                        , r"{{\cxp! }}"                 ),
+        (r"{\?}"                       , r"{{\cxp? }}"                 ),
+        (r"{\,}"                       , r"{{\cxp, }}"                 ),
+        (r"{:}"                        , r"{{\cxp: }}"                 ),
+        (r"{;}"                        , r"{{\cxp; }}"                 ),
+        (r"{\^ \^}"                    , r"\~"                         ),
+        (r"{\^-\^}"                    , r"\_"                         ),
+        (r"{\^\^?}"                    , r"{{\cxds}}"                  ),
+        (r"{\^([^^}]*)\^}"             , r"{{\cxds {0}\cxds}}"         ),
+        (r"{\^([^^}]*)}"               , r"{{\cxds {0}}}"              ),
+        (r"{([^^}]*)\^}"               , r"{{{0}\cxds}}"               ),
+        (r"{-\|}"                      , r"\cxfc "                     ),
+        (r"{>}"                        , r"\cxfl "                     ),
+        (r"{ }"                        , r" "                          ),
+        (r"{&([^}]+)}"                 , r"{{\cxfing {0}}}"            ),
+        (r"{(.*)}"                     , r"{{\*\cxplovermeta {0}}}"    ),
     )
     TRANSLATIONS_FORMATTERS = (
-        (r"{\*}", r"{{\*\cxplovermacro retrospective_toggle_asterisk}}"),
-        (r"{\*!}", r"{{\*\cxplovermacro retrospective_delete_space}}"),
-        (r"{\*\?}", r"{{\*\cxplovermacro retrospective_insert_space}}"),
-        (r"{\*\+}", r"{{\*\cxplovermacro repeat_last_stroke}}"),
-        (r"=undo", r"\cxdstroke"),
-        (r"=(\w+(?::.*)?)", r"{{\*\cxplovermacro {0}}}"),
+        (r"{\*}"                       , r"{{\*\cxplovermacro retrospective_toggle_asterisk}}"),
+        (r"{\*!}"                      , r"{{\*\cxplovermacro retrospective_delete_space}}"),
+        (r"{\*\?}"                     , r"{{\*\cxplovermacro retrospective_insert_space}}"),
+        (r"{\*\+}"                     , r"{{\*\cxplovermacro repeat_last_stroke}}"),
+        (r"=undo"                      , r"\cxdstroke"                 ),
+        (r"=(\w+(?::.*)?)"             , r"{{\*\cxplovermacro {0}}}"   ),
     )
+    # fmt: on
 
     def __init__(self):
         self._to_escape = [

@@ -112,13 +112,13 @@ SCANCODE_TO_KEY = {
 KEY_TO_SCANCODE = dict(zip(SCANCODE_TO_KEY.values(), SCANCODE_TO_KEY.keys()))
 
 PASSTHROUGH_KEYS = {
-    0xA2,
+    0xA2,  # Control
     0xA3,  # Control
-    0xA0,
+    0xA0,  # Shift
     0xA1,  # Shift
-    0xA4,
+    0xA4,  # Alt
     0xA5,  # Alt
-    0x5B,
+    0x5B,  # Win
     0x5C,  # Win
 }
 

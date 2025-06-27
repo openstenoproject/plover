@@ -16,50 +16,14 @@ from plover.machine.base import SerialStenotypeBase
 # such, there are really only seven bits of steno data in each packet
 # byte. This is why the STENO_KEY_CHART below is visually presented as
 # six rows of seven elements instead of six rows of eight elements.
-STENO_KEY_CHART = (
-    "Fn",
-    "#1",
-    "#2",
-    "#3",
-    "#4",
-    "#5",
-    "#6",
-    "S1-",
-    "S2-",
-    "T-",
-    "K-",
-    "P-",
-    "W-",
-    "H-",
-    "R-",
-    "A-",
-    "O-",
-    "*1",
-    "*2",
-    "res1",
-    "res2",
-    "pwr",
-    "*3",
-    "*4",
-    "-E",
-    "-U",
-    "-F",
-    "-R",
-    "-P",
-    "-B",
-    "-L",
-    "-G",
-    "-T",
-    "-S",
-    "-D",
-    "#7",
-    "#8",
-    "#9",
-    "#A",
-    "#B",
-    "#C",
-    "-Z",
-)
+# fmt: off
+STENO_KEY_CHART = ("Fn", "#1", "#2", "#3", "#4", "#5", "#6",
+                   "S1-", "S2-", "T-", "K-", "P-", "W-", "H-",
+                   "R-", "A-", "O-", "*1", "*2", "res1", "res2",
+                   "pwr", "*3", "*4", "-E", "-U", "-F", "-R",
+                   "-P", "-B", "-L", "-G", "-T", "-S", "-D",
+                   "#7", "#8", "#9", "#A", "#B", "#C", "-Z")
+# fmt: on
 
 BYTES_PER_STROKE = 6
 
