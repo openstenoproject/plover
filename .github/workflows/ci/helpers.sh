@@ -37,7 +37,7 @@ setup_cache_name()
   if [ "$RUNNER_OS" = 'macOS' ]
   then
     . ./osx/deps.sh
-    [ "$target_python" = "${py_installer_version%.*}" ] || die 1 "versions mismatch: target=$target_python, installer=$py_installer_version"
+    [ "$target_python" = "$py_installer_version" ] || die 1 "versions mismatch: target=$target_python, installer=$py_installer_version"
     target_python="$py_installer_version"
   fi
   cache_name=$("$python" - "$GITHUB_JOB" "$target_python" "$platform_name" <<\EOF
@@ -58,7 +58,8 @@ else:
     'versions mismatch: expected=%s, actual=%s' % (target_python, python_version)
 
 print(f'{name}_py-{python_version}_{platform_name}')
-EOF)
+EOF
+)
   echo "cache_name=$cache_name" >> $GITHUB_OUTPUT
 }
 
@@ -66,7 +67,7 @@ setup_osx_python()
 {
   target_python="$1"
   . ./osx/deps.sh
-  [ "$target_python" = "${py_installer_version%.*}" ] || die 1 "versions mismatch: target=$target_python, installer=$py_installer_version"
+  [ "$target_python" = "$py_installer_version" ] || die 1 "versions mismatch: target=$target_python, installer=$py_installer_version"
   python='python3'
   python_dir="$cache_dir/python"
   if [ ! -e "$python_dir" ]
@@ -76,29 +77,10 @@ setup_osx_python()
   fi
   # Update PATH.
   run_eval "echo \"\$PWD/$python_dir/Python.framework/Versions/Current/bin\" >>\$GITHUB_PATH"
-  # Target High Sierra.
-  run_eval "echo MACOSX_DEPLOYMENT_TARGET=10.13 >>\$GITHUB_ENV"
+  run_eval "echo MACOSX_DEPLOYMENT_TARGET=12.0 >>\$GITHUB_ENV"
   # Fix SSL certificates so plover_build_utils.download works.
   SSL_CERT_FILE="$("$python" -m pip._vendor.certifi)" || die
   run_eval "echo SSL_CERT_FILE='$SSL_CERT_FILE' >>\$GITHUB_ENV"
-}
-
-setup_pip_options()
-{
-  # If the wheels cache is available, disable pip's index.
-  if [ -e "$wheels_cache" ]
-  then
-    run_eval "echo PIP_NO_INDEX=1 >>\$GITHUB_ENV"
-  else
-    run mkdir -p "$wheels_cache"
-  fi
-  if [ "$RUNNER_OS" = 'Windows' ]
-  then
-    PIP_FIND_LINKS="$(cygpath -a -w "$wheels_cache")" || die
-  else
-    PIP_FIND_LINKS="$PWD/$wheels_cache"
-  fi
-  run_eval "echo PIP_FIND_LINKS='$PIP_FIND_LINKS' >>\$GITHUB_ENV"
 }
 
 setup_python_env()
@@ -114,8 +96,8 @@ setup_python_env()
   run_eval "echo PYTHONUSERBASE='$PYTHONUSERBASE' >>\$GITHUB_ENV"
   if [ ! -e "$python_userbase" ]
   then
-    get_base_devel --no-warn-script-location --user || die
-    install_wheels --no-warn-script-location --user "$@" || die
+    get_base_devel --no-warn-script-location || die
+    install_wheels --no-warn-script-location "$@" || die
     if [ "$RUNNER_OS" = 'Windows' ]
     then
       run rm -rf "$python_userbase"/Python*/Scripts
@@ -128,22 +110,13 @@ setup_python_env()
 publish_github_release()
 {
   case "$RELEASE_TYPE" in
-    continuous)
-      tag='continuous'
-      title='Continuous build'
-      is_draft=''
-      is_prerelease='yes'
-      overwrite='yes'
-      notes_body='news_draft.md'
-      run_eval "'$python' -m towncrier --draft >$notes_body" || die
-      ;;
     tagged)
       tag="${GITHUB_REF#refs/tags/}"
       title="$tag"
       is_draft='yes'
       is_prerelease="$("$python" <<EOF
-from pkg_resources import parse_version
-version = parse_version('$RELEASE_VERSION')
+from packaging.version import parse
+version = parse('$RELEASE_VERSION')
 print('1' if version.is_prerelease else '')
 EOF
 )" || die
@@ -179,7 +152,7 @@ EOF
   run pandoc --from=gfm --to=gfm \
     --lua-filter=.github/RELEASE_DRAFT_FILTER.lua \
     --template=.github/RELEASE_DRAFT_TEMPLATE.md \
-    --base-header-level=2 --wrap=none \
+    --shift-heading-level-by=2 --wrap=none \
     --variable="version:$RELEASE_VERSION" \
     --output=notes.md \
     "$notes_body" || die
@@ -192,10 +165,10 @@ EOF
       head -n20 <<<"$last_release"
       run_eval "last_version=\"\$(echo -n \"\$last_release\" | sed -n '/^# \\w\\+ \\([^ ]\\+\\)\$/{s//\\1/;P;Q0};\$Q1')\""
       if python <<EOF
-from pkg_resources import parse_version
+from packaging.version import parse
 import sys
-version = parse_version('$RELEASE_VERSION')
-last_version = parse_version('$last_version')
+version = parse('$RELEASE_VERSION')
+last_version = parse('$last_version')
 sys.exit(0 if version < last_version else 1)
 EOF
       then
@@ -224,14 +197,12 @@ publish_pypi_release()
 
 analyze_set_release_info()
 {
+  info "GITHUB_REF: $GITHUB_REF"
+  info "GITHUB_EVENT_NAME: $GITHUB_EVENT_NAME"
   if [[ "$GITHUB_REF" == refs/tags/* ]]
   then
     # Tagged release.
     release_type='tagged'
-  elif [[ "$GITHUB_REF" == refs/heads/$CONTINUOUS_RELEASE_BRANCH ]]
-  then
-    # Continuous release.
-    release_type='continuous'
   else
     # Not a release.
     release_type=''

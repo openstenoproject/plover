@@ -14,7 +14,6 @@ import plover.dictionary.loading_manager as loading_manager
 
 
 class FakeDictionaryContents:
-
     def __init__(self, contents, timestamp):
         self.contents = contents
         self.timestamp = timestamp
@@ -24,18 +23,18 @@ class FakeDictionaryContents:
             return self.contents == other.contents
         return self.contents == other
 
-class FakeDictionaryInfo:
 
+class FakeDictionaryInfo:
     def __init__(self, name, contents):
         self.name = name
         self.contents = contents
         self.tf = tempfile.NamedTemporaryFile()
 
     def __repr__(self):
-        return 'FakeDictionaryInfo(%r, %r)' % (self.name, self.contents)
+        return "FakeDictionaryInfo(%r, %r)" % (self.name, self.contents)
+
 
 class MockLoader:
-
     def __init__(self, files):
         self.files = files
         self.load_counts = defaultdict(int)
@@ -50,10 +49,9 @@ class MockLoader:
 
 
 def test_loading(monkeypatch):
-
     dictionaries = {}
     for i in range(8):
-        c = chr(ord('a') + i)
+        c = chr(ord("a") + i)
         contents = c * 5
         if i >= 4:
             contents = Exception(contents)
@@ -67,33 +65,33 @@ def test_loading(monkeypatch):
         return dictionaries[name].tf.name
 
     loader = MockLoader(dictionaries)
-    monkeypatch.setattr('plover.dictionary.loading_manager.load_dictionary', loader)
+    monkeypatch.setattr("plover.dictionary.loading_manager.load_dictionary", loader)
     manager = loading_manager.DictionaryLoadingManager()
-    manager.start_loading(df('a')).get()
-    manager.start_loading(df('b')).get()
-    results = manager.load([df('c'), df('b')])
+    manager.start_loading(df("a")).get()
+    manager.start_loading(df("b")).get()
+    results = manager.load([df("c"), df("b")])
     # Returns the right values in the right order.
-    assert results == ['ccccc', 'bbbbb']
+    assert results == ["ccccc", "bbbbb"]
     # Dropped superfluous files.
-    assert sorted([df('b'), df('c')]) == sorted(manager.dictionaries.keys())
+    assert sorted([df("b"), df("c")]) == sorted(manager.dictionaries.keys())
     # Check dict like interface.
     assert len(manager) == 2
-    assert df('a') not in manager
+    assert df("a") not in manager
     with pytest.raises(KeyError):
-        manager[df('a')]
-    assert df('b') in manager
-    assert df('c') in manager
-    assert results == [manager[df('c')], manager[df('b')]]
+        manager[df("a")]
+    assert df("b") in manager
+    assert df("c") in manager
+    assert results == [manager[df("c")], manager[df("b")]]
     # Return a DictionaryLoaderException for load errors.
-    results = manager.load([df('c'), df('e'), df('b'), df('f')])
+    results = manager.load([df("c"), df("e"), df("b"), df("f")])
     assert len(results) == 4
-    assert results[0] == 'ccccc'
-    assert results[2] == 'bbbbb'
+    assert results[0] == "ccccc"
+    assert results[2] == "bbbbb"
     assert isinstance(results[1], DictionaryLoaderException)
-    assert results[1].path == df('e')
+    assert results[1].path == df("e")
     assert isinstance(results[1].exception, Exception)
     assert isinstance(results[3], DictionaryLoaderException)
-    assert results[3].path == df('f')
+    assert results[3].path == df("f")
     assert isinstance(results[3].exception, Exception)
     # Only loaded the files once.
     assert all(x == 1 for x in loader.load_counts.values())
@@ -102,17 +100,17 @@ def test_loading(monkeypatch):
     # Plover and saved back)
     file_timestamp = results[0].timestamp
     results[0].timestamp = file_timestamp + 1
-    dictionaries['c'].contents = 'CCCCC'
-    results = manager.load([df('c')])
-    assert results == ['ccccc']
-    assert loader.load_counts[df('c')] == 1
+    dictionaries["c"].contents = "CCCCC"
+    results = manager.load([df("c")])
+    assert results == ["ccccc"]
+    assert loader.load_counts[df("c")] == 1
     # Check outdated dictionaries are reloaded.
     results[0].timestamp = file_timestamp - 1
-    results = manager.load([df('c')])
-    assert results == ['CCCCC']
-    assert loader.load_counts[df('c')] == 2
+    results = manager.load([df("c")])
+    assert results == ["CCCCC"]
+    assert loader.load_counts[df("c")] == 2
     # Check trimming of outdated dictionaries.
     results[0].timestamp = file_timestamp - 1
     manager.unload_outdated()
     assert len(manager) == 0
-    assert df('c') not in manager
+    assert df("c") not in manager

@@ -24,10 +24,12 @@ import plover.machine.base
 # seen. Additionally, if there is no activity then the machine will
 # send a zero byte every few seconds.
 
+# fmt: off
 STENO_KEY_CHART = ("S-", "T-", "K-", "P-", "W-", "H-",  # 00
                    "R-", "A-", "O-", "*", "-E", "-U",   # 01
                    "-F", "-R", "-P", "-B", "-L", "-G",  # 10
                    "-T", "-S", "-D", "-Z", "#")         # 11
+# fmt: on
 
 
 class TxBolt(plover.machine.base.SerialStenotypeBase):
@@ -39,12 +41,12 @@ class TxBolt(plover.machine.base.SerialStenotypeBase):
 
     """
 
-    KEYS_LAYOUT = '''
+    KEYS_LAYOUT = """
         #  #  #  #  #  #  #  #  #  #
         S- T- P- H- * -F -P -L -T -D
         S- K- W- R- * -R -B -G -S -Z
               A- O-   -E -U
-    '''
+    """
 
     def __init__(self, params):
         super().__init__(params)
@@ -63,7 +65,7 @@ class TxBolt(plover.machine.base.SerialStenotypeBase):
     def run(self):
         """Overrides base class run method. Do not call directly."""
         settings = self.serial_port.getSettingsDict()
-        settings['timeout'] = 0.1 # seconds
+        settings["timeout"] = 0.1  # seconds
         self.serial_port.applySettingsDict(settings)
         self._ready()
         while not self.finished.is_set():

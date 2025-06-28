@@ -42,7 +42,7 @@ This method does not get called automatically upon instantiating a Registry
 object, so make sure to call it before using any plugins.
 ```
 
-```{method} register_plugin_from_entrypoint(plugin_type: str, entrypoint: pkg_resources.EntryPoint)
+```{method} register_plugin_from_entrypoint(plugin_type: str, entrypoint: importlib.metadata.EntryPoint)
 Adds a plugin of the specified type discovered through the entry point
 mechanism to the registry.
 ```
@@ -86,13 +86,9 @@ function, class, or module.
 
 ````{class} PluginDistribution(dist, plugins)
 ```{attribute} dist
-:type: pkg_resources.Distribution
+:type: str
 
-A [`Distribution`](https://setuptools.readthedocs.io/en/latest/pkg_resources.html#distribution-objects)
-providing information on a single package either
-bundled with Plover, or installed from the plugins manager, for
-example, the main Plover package `plover 4.0.0-dev12`. Each
-distribution may contain multiple plugins.
+A string representing the entry point group of the distribution plugin.
 ```
 
 ```{attribute} plugins

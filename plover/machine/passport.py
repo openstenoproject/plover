@@ -10,16 +10,17 @@ from plover.machine.base import SerialStenotypeBase
 # Passport protocol is documented here:
 # http://www.eclipsecat.com/?q=system/files/Passport%20protocol_0.pdf
 
+
 class Passport(SerialStenotypeBase):
     """Passport interface."""
 
-    KEYS_LAYOUT = '''
+    KEYS_LAYOUT = """
         # # # # # # # # # #
         S T P H ~ F N L Y D
         C K W R * Q B G X Z
             A O   E U
         ! ^ +
-    '''
+    """
 
     SERIAL_PARAMS = dict(SerialStenotypeBase.SERIAL_PARAMS)
     SERIAL_PARAMS.update(baudrate=38400)
@@ -31,12 +32,12 @@ class Passport(SerialStenotypeBase):
     def _read(self, b):
         b = chr(b)
         self.packet.append(b)
-        if b == '>':
-            self._handle_packet(''.join(self.packet))
+        if b == ">":
+            self._handle_packet("".join(self.packet))
             del self.packet[:]
 
     def _handle_packet(self, packet):
-        encoded = packet.split('/')[1]
+        encoded = packet.split("/")[1]
         steno_keys = []
         for key, shadow in grouper(encoded, 2, 0):
             shadow = int(shadow, base=16)

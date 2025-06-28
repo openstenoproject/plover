@@ -1,13 +1,12 @@
-
 import re
 
-from PyQt5.QtCore import Qt
-from PyQt5.QtGui import (
+from PySide6.QtCore import Qt, Slot
+from PySide6.QtGui import (
+    QAction,
     QCursor,
     QFont,
 )
-from PyQt5.QtWidgets import (
-    QAction,
+from PySide6.QtWidgets import (
     QFontDialog,
     QMenu,
 )
@@ -16,22 +15,22 @@ from plover import _
 from plover.suggestions import Suggestion
 from plover.formatting import RetroFormatter
 
+from plover.gui_qt import utils
 from plover.gui_qt.suggestions_dialog_ui import Ui_SuggestionsDialog
 from plover.gui_qt.utils import ToolBar
 from plover.gui_qt.tool import Tool
 
 
 class SuggestionsDialog(Tool, Ui_SuggestionsDialog):
-
     # i18n: Widget: “SuggestionsDialog”, tooltip.
-    __doc__ = _('Suggest possible strokes for the last written words.')
+    __doc__ = _("Suggest possible strokes for the last written words.")
 
-    TITLE = _('Suggestions')
-    ICON = ':/lightbulb.svg'
-    ROLE = 'suggestions'
-    SHORTCUT = 'Ctrl+J'
+    TITLE = _("Suggestions")
+    ICON = ":/resources/lightbulb.svg"
+    ROLE = "suggestions"
+    SHORTCUT = "Ctrl+J"
 
-    WORD_RX = re.compile(r'(?:\w+|[^\w\s]+)\s*')
+    WORD_RX = re.compile(r"(?:\w+|[^\w\s]+)\s*")
 
     STYLE_TRANSLATION, STYLE_STROKES = range(2)
 
@@ -46,20 +45,25 @@ class SuggestionsDialog(Tool, Ui_SuggestionsDialog):
         self.setupUi(self)
         self._last_suggestions = None
         # Toolbar.
-        self.layout().addWidget(ToolBar(
-            self.action_ToggleOnTop,
+        actions = [
             self.action_SelectFont,
             self.action_Clear,
-        ))
+        ]
+        if not utils.is_wayland:
+            # Wayland does not support window on top.
+            actions.insert(0, self.action_ToggleOnTop)
+
+        self.layout().addWidget(ToolBar(*actions))
+
         self.action_Clear.setEnabled(False)
         # Font popup menu.
         self._font_menu = QMenu()
         # i18n: Widget: “SuggestionsDialog”, “font” menu.
-        self._font_menu_text = QAction(_('&Text'), self._font_menu)
+        self._font_menu_text = QAction(_("&Text"), self._font_menu)
         # i18n: Widget: “SuggestionsDialog”, “font” menu.
-        self._font_menu_strokes = QAction(_('&Strokes'), self._font_menu)
+        self._font_menu_strokes = QAction(_("&Strokes"), self._font_menu)
         self._font_menu.addActions([self._font_menu_text, self._font_menu_strokes])
-        engine.signal_connect('translated', self.on_translation)
+        engine.signal_connect("translated", self.on_translation)
         self.suggestions.setFocus()
         self.restore_state()
         self.finished.connect(self.save_state)
@@ -72,8 +76,8 @@ class SuggestionsDialog(Tool, Ui_SuggestionsDialog):
 
     def _restore_state(self, settings):
         for name in (
-            'text_font',
-            'strokes_font',
+            "text_font",
+            "strokes_font",
         ):
             font_string = settings.value(name)
             if font_string is None:
@@ -82,21 +86,21 @@ class SuggestionsDialog(Tool, Ui_SuggestionsDialog):
             if not font.fromString(font_string):
                 continue
             self._set_font(name, font)
-        ontop = settings.value('ontop', None, bool)
+        ontop = settings.value("ontop", None, bool)
         if ontop is not None:
             self.action_ToggleOnTop.setChecked(ontop)
-            self.on_toggle_ontop(ontop)
+            self.toggle_ontop(ontop)
 
     def _save_state(self, settings):
         for name in (
-            'text_font',
-            'strokes_font',
+            "text_font",
+            "strokes_font",
         ):
             font = self._get_font(name)
             font_string = font.toString()
             settings.setValue(name, font_string)
-        ontop = bool(self.windowFlags() & Qt.WindowStaysOnTopHint)
-        settings.setValue('ontop', ontop)
+        ontop = bool(self.windowFlags() & Qt.WindowType.WindowStaysOnTopHint)
+        settings.setValue("ontop", ontop)
 
     def _show_suggestions(self, suggestion_list):
         self.suggestions.append(suggestion_list)
@@ -104,19 +108,18 @@ class SuggestionsDialog(Tool, Ui_SuggestionsDialog):
 
     @staticmethod
     def tails(ls):
-        ''' Return all tail combinations (a la Haskell)
+        """Return all tail combinations (a la Haskell)
 
-            tails :: [x] -> [[x]]
-            >>> tails('abcd')
-            ['abcd', 'bcd', 'cd', d']
+        tails :: [x] -> [[x]]
+        >>> tails('abcd')
+        ['abcd', 'bcd', 'cd', d']
 
-        '''
+        """
 
         for i in range(len(ls)):
             yield ls[i:]
 
     def on_translation(self, old, new):
-
         # Check for new output.
         for a in reversed(new):
             if a.text and not a.text.isspace():
@@ -132,7 +135,7 @@ class SuggestionsDialog(Tool, Ui_SuggestionsDialog):
 
         suggestion_list = []
         for phrase in self.tails(split_words):
-            phrase = ''.join(phrase)
+            phrase = "".join(phrase)
             suggestion_list.extend(self._engine.get_suggestions(phrase))
 
         if not suggestion_list and split_words:
@@ -142,31 +145,27 @@ class SuggestionsDialog(Tool, Ui_SuggestionsDialog):
             self._last_suggestions = suggestion_list
             self._show_suggestions(suggestion_list)
 
-    def on_select_font(self):
-        action = self._font_menu.exec_(QCursor.pos())
+    @Slot()
+    def select_font(self):
+        action = self._font_menu.exec(QCursor.pos())
         if action is None:
             return
         if action == self._font_menu_text:
-            name = 'text_font'
-            font_options = ()
+            name = "text_font"
         elif action == self._font_menu_strokes:
-            name = 'strokes_font'
-            font_options = (QFontDialog.MonospacedFonts,)
+            name = "strokes_font"
         font = self._get_font(name)
-        font, ok = QFontDialog.getFont(font, self, '', *font_options)
+        ok, font = QFontDialog.getFont(font, self, "")
         if ok:
             self._set_font(name, font)
 
-    def on_toggle_ontop(self, ontop):
-        flags = self.windowFlags()
-        if ontop:
-            flags |= Qt.WindowStaysOnTopHint
-        else:
-            flags &= ~Qt.WindowStaysOnTopHint
-        self.setWindowFlags(flags)
+    @Slot(bool)
+    def toggle_ontop(self, ontop):
+        self.setWindowFlag(Qt.WindowStaysOnTopHint, ontop)
         self.show()
 
-    def on_clear(self):
+    @Slot()
+    def clear(self):
         self.action_Clear.setEnabled(False)
         self._last_suggestions = None
         self.suggestions.clear()

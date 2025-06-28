@@ -1,4 +1,3 @@
-
 from plover.translation import Translation
 from plover.steno import Stroke
 from plover import system
@@ -13,11 +12,12 @@ def toggle_asterisk(translator, stroke, cmdline):
     t = translations[-1]
     translator.untranslate_translation(t)
     keys = set(t.strokes[-1].steno_keys)
-    if '*' in keys:
-        keys.remove('*')
+    if "*" in keys:
+        keys.remove("*")
     else:
-        keys.add('*')
+        keys.add("*")
     translator.translate_stroke(Stroke(keys))
+
 
 def delete_space(translator, stroke, cmdline):
     assert not cmdline
@@ -33,12 +33,13 @@ def delete_space(translator, stroke, cmdline):
         if t.english is not None:
             english.append(t.english)
         elif len(t.rtfcre) == 1 and t.rtfcre[0].isdigit():
-            english.append('{&%s}' % t.rtfcre[0])
+            english.append("{&%s}" % t.rtfcre[0])
     if len(english) > 1:
-        t = Translation([stroke], '{^~|^}'.join(english))
+        t = Translation([stroke], "{^~|^}".join(english))
         t.replaced = replaced
         t.is_retrospective_command = True
         translator.translate_translation(t)
+
 
 def insert_space(translator, stroke, cmdline):
     assert not cmdline
@@ -50,14 +51,13 @@ def insert_space(translator, stroke, cmdline):
     if replaced.is_retrospective_command:
         return
     lookup_stroke = replaced.strokes[-1]
-    english = [t.english or '/'.join(t.rtfcre)
-               for t in replaced.replaced]
+    english = [t.english or "/".join(t.rtfcre) for t in replaced.replaced]
     if english:
         english.append(
             translator.lookup([lookup_stroke], system.SUFFIX_KEYS)
             or lookup_stroke.rtfcre
         )
-        t = Translation([stroke], ' '.join(english))
+        t = Translation([stroke], " ".join(english))
         t.replaced = [replaced]
         t.is_retrospective_command = True
         translator.translate_translation(t)

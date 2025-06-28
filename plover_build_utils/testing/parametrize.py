@@ -4,7 +4,7 @@ import pytest
 
 
 def parametrize(tests, arity=None):
-    '''Helper for parametrizing pytest tests.
+    """Helper for parametrizing pytest tests.
 
     Expects a list of lambdas, one per test. Each lambda must return
     the parameters for its respective test.
@@ -16,16 +16,17 @@ def parametrize(tests, arity=None):
     set from the function's last arguments, according to the numbers of
     parameters for each test.
 
-    '''
+    """
     ids = []
     argvalues = []
     for n, t in enumerate(tests):
         line = inspect.getsourcelines(t)[1]
-        ids.append('%u:%u' % (n+1, line))
+        ids.append("%u:%u" % (n + 1, line))
         argvalues.append(t())
     if arity is None:
         arity = len(argvalues[0])
     assert arity > 0
+
     def decorator(fn):
         argnames = list(
             parameter.name
@@ -35,4 +36,5 @@ def parametrize(tests, arity=None):
         if arity == 1:
             argnames = argnames[0]
         return pytest.mark.parametrize(argnames, argvalues, ids=ids)(fn)
+
     return decorator

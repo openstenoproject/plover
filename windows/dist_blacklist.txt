@@ -1,29 +1,73 @@
 # Python.
   Scripts
-# PyQt5.
-:Lib/site-packages/PyQt5
+:Lib
+  pydoc*
+  tkinter
+  sqlite3
+  turtledemo
+
+# PySide6.
+:Lib/site-packages/PySide6
+  **/*3D*
+  **/*AxContainer*
+  **/*Bluetooth*
+  **/*CLucene*
+  **/*Concurrent*
+  **/*DataVisualization*
+  **/*Designer*
+  **/*Graphs*
+  **/*Network*
+  **/*PrintSupport*
+  **/*Location*
+  **/*Nfc*
+  **/*Sensors*
+  **/*Serial*
+  **/*[Oo]pen[Gg][Ll]*
+  **/*QtExampleIcons*
+  **/*QtHelp*
+  **/*QtLabs*
+  **/*QtOpenGL*
+  **/*[Qq]uick
+  **/*[Qq]ml*
+  **/*QtUiTools*
+  **/*QtXml*
+  **/*SpacialAudio*
+  **/*TextToSpeech*
+  **/*WebChannel*
+  **/*[Ww]eb[Ee]ngine*
   **/*Designer*
   **/*[Hh]elp*
+  **/*Sql*
+  **/*Pdf*
   **/*Test*
-  **/*Qml*
-  **/*[Qq]uick*
-  **/*[Ww]eb[Ee]ngine*
+  **/*.tmpl.py
+  assistant.exe
+  linguist.exe
+  lupdate.exe
+  lrelease.exe
   bindings
-  Qt5/bin/libeay32.dll
-  Qt5/bin/ssleay32.dll
-  Qt5/plugins/platforms/qminimal.dll
-  Qt5/plugins/platforms/qoffscreen.dll
-  Qt5/plugins/platforms/qwebgl.dll
-  Qt5/plugins/sceneparsers
-  Qt5/qml
+  plugins/designer
+  plugins/generic
+  plugins/imageformats/qtiff.dll
+  plugins/platforms/qminimal.dll
+  plugins/platforms/qoffscreen.dll
+  plugins/platforms/qdirect2d.dll
+  plugins/playlistformats
+  plugins/position
+  plugins/printsupport
+  plugins/qml*
+  plugins/sceneparsers
+  plugins/sqldrivers
+  plugins/tls
+  Qt/qml
+  *Quick*.dll
   pylupdate*
-  pyrcc*
+  translations/assistant*
+  translations/linguist*
   uic
 # Plover.
 :Lib/site-packages/plover
   gui_qt/*.ui
-  gui_qt/*.ui
-  gui_qt/resources
   messages/**/*.po
   messages/plover.pot
 

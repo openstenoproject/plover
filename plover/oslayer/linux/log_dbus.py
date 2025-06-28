@@ -8,9 +8,9 @@ from plover.oslayer.config import ASSETS_DIR
 
 
 APPNAME = ctypes.c_char_p(__software_name__.capitalize().encode())
-APPICON = ctypes.c_char_p(os.path.join(ASSETS_DIR, 'plover.png').encode())
-SERVICE = ctypes.c_char_p(b'org.freedesktop.Notifications')
-INTERFACE = ctypes.c_char_p(b'/org/freedesktop/Notifications')
+APPICON = ctypes.c_char_p(os.path.join(ASSETS_DIR, "plover.png").encode())
+SERVICE = ctypes.c_char_p(b"org.freedesktop.Notifications")
+INTERFACE = ctypes.c_char_p(b"/org/freedesktop/Notifications")
 
 NOTIFY_URGENCY_LOW = ctypes.c_uint8(0)
 NOTIFY_URGENCY_NORMAL = ctypes.c_uint8(1)
@@ -18,70 +18,76 @@ NOTIFY_URGENCY_CRITICAL = ctypes.c_uint8(2)
 
 DBUS_BUS_SESSION = ctypes.c_uint(0)
 
-DBUS_TYPE_ARRAY      = ctypes.c_int(ord('a'))
-DBUS_TYPE_BYTE       = ctypes.c_int(ord('y'))
-DBUS_TYPE_DICT_ENTRY = ctypes.c_int(ord('e'))
-DBUS_TYPE_INT32      = ctypes.c_int(ord('i'))
-DBUS_TYPE_STRING     = ctypes.c_int(ord('s'))
-DBUS_TYPE_UINT32     = ctypes.c_int(ord('u'))
-DBUS_TYPE_VARIANT    = ctypes.c_int(ord('v'))
+DBUS_TYPE_ARRAY = ctypes.c_int(ord("a"))
+DBUS_TYPE_BYTE = ctypes.c_int(ord("y"))
+DBUS_TYPE_DICT_ENTRY = ctypes.c_int(ord("e"))
+DBUS_TYPE_INT32 = ctypes.c_int(ord("i"))
+DBUS_TYPE_STRING = ctypes.c_int(ord("s"))
+DBUS_TYPE_UINT32 = ctypes.c_int(ord("u"))
+DBUS_TYPE_VARIANT = ctypes.c_int(ord("v"))
+
 
 class DBusConnection(ctypes.c_void_p):
     pass
 
+
 class DBusError(ctypes.Structure):
     _fields_ = (
-        ('name'    , ctypes.c_char_p),
-        ('message' , ctypes.c_char_p),
-        ('dummy1'  , ctypes.c_uint),
-        ('dummy2'  , ctypes.c_uint),
-        ('dummy3'  , ctypes.c_uint),
-        ('dummy4'  , ctypes.c_uint),
-        ('dummy5'  , ctypes.c_uint),
-        ('padding1', ctypes.c_void_p),
+        ("name", ctypes.c_char_p),
+        ("message", ctypes.c_char_p),
+        ("dummy1", ctypes.c_uint),
+        ("dummy2", ctypes.c_uint),
+        ("dummy3", ctypes.c_uint),
+        ("dummy4", ctypes.c_uint),
+        ("dummy5", ctypes.c_uint),
+        ("padding1", ctypes.c_void_p),
     )
+
 
 class DBusMessage(ctypes.c_void_p):
     pass
 
+
 class DBusMessageIter(ctypes.Structure):
     _fields_ = (
-        ('dummy1' , ctypes.c_void_p),
-        ('dummy2' , ctypes.c_void_p),
-        ('dummy3' , ctypes.c_uint32),
-        ('dummy4' , ctypes.c_int),
-        ('dummy5' , ctypes.c_int),
-        ('dummy6' , ctypes.c_int),
-        ('dummy7' , ctypes.c_int),
-        ('dummy8' , ctypes.c_int),
-        ('dummy9' , ctypes.c_int),
-        ('dummy10', ctypes.c_int),
-        ('dummy11', ctypes.c_int),
-        ('pad1'   , ctypes.c_int),
-        ('pad2'   , ctypes.c_void_p),
-        ('pad3'   , ctypes.c_void_p),
+        ("dummy1", ctypes.c_void_p),
+        ("dummy2", ctypes.c_void_p),
+        ("dummy3", ctypes.c_uint32),
+        ("dummy4", ctypes.c_int),
+        ("dummy5", ctypes.c_int),
+        ("dummy6", ctypes.c_int),
+        ("dummy7", ctypes.c_int),
+        ("dummy8", ctypes.c_int),
+        ("dummy9", ctypes.c_int),
+        ("dummy10", ctypes.c_int),
+        ("dummy11", ctypes.c_int),
+        ("pad1", ctypes.c_int),
+        ("pad2", ctypes.c_void_p),
+        ("pad3", ctypes.c_void_p),
     )
 
+
 def ctypes_type(signature):
-    if signature == 'void':
+    if signature == "void":
         return None
     ct = {
-        'connection_p'  : DBusConnection,
-        'error_p'       : DBusError,
-        'message_p'     : DBusMessage,
-        'message_iter_p': DBusMessageIter,
+        "connection_p": DBusConnection,
+        "error_p": DBusError,
+        "message_p": DBusMessage,
+        "message_iter_p": DBusMessageIter,
     }.get(signature)
     if ct is not None:
         return ctypes.POINTER(ct)
-    ct = getattr(ctypes, 'c_' + signature, None)
+    ct = getattr(ctypes, "c_" + signature, None)
     if ct is not None:
         return ct
-    if not signature.endswith('_p'):
+    if not signature.endswith("_p"):
         raise ValueError(signature)
-    ct = getattr(ctypes, 'c_' + signature[:-2])
+    ct = getattr(ctypes, "c_" + signature[:-2])
     if ct is None:
         raise ValueError(signature)
     return ctypes.POINTER(ct)
+
 
 def ctypes_func(library, signature):
     restype, func_name, *argtypes = signature.split()
@@ -92,29 +98,46 @@ def ctypes_func(library, signature):
 
 
 class DBusNotificationHandler(logging.Handler):
-    """ Handler using DBus notifications to show messages. """
+    """Handler using DBus notifications to show messages."""
 
     def __init__(self):
         super().__init__()
         self.setLevel(log.WARNING)
-        self.setFormatter(log.NoExceptionTracebackFormatter('<b>%(levelname)s:</b> %(message)s'))
+        self.setFormatter(
+            log.NoExceptionTracebackFormatter("<b>%(levelname)s:</b> %(message)s")
+        )
 
-        libname = ctypes.util.find_library('dbus-1')
+        libname = ctypes.util.find_library("dbus-1")
         if libname is None:
-            raise FileNotFoundError('dbus-1 library')
+            raise FileNotFoundError("dbus-1 library")
         library = ctypes.cdll.LoadLibrary(libname)
 
-        error_free = ctypes_func(library, 'void dbus_error_free error_p')
-        error_init = ctypes_func(library, 'void dbus_error_init error_p')
-        error_is_set = ctypes_func(library, 'bool dbus_error_is_set error_p')
-        bus_get = ctypes_func(library, 'connection_p dbus_bus_get uint error_p')
-        message_new = ctypes_func(library, 'message_p dbus_message_new_method_call char_p char_p char_p char_p')
-        message_unref = ctypes_func(library, 'void dbus_message_unref message_p')
-        iter_init_append = ctypes_func(library, 'void dbus_message_iter_init_append message_p message_iter_p')
-        iter_append_basic = ctypes_func(library, 'bool dbus_message_iter_append_basic message_iter_p int void_p')
-        iter_open_container = ctypes_func(library, 'bool dbus_message_iter_open_container message_iter_p int char_p message_iter_p')
-        iter_close_container = ctypes_func(library, 'bool dbus_message_iter_close_container message_iter_p message_iter_p')
-        connection_send = ctypes_func(library, 'bool dbus_connection_send connection_p message_p uint32_p')
+        error_free = ctypes_func(library, "void dbus_error_free error_p")
+        error_init = ctypes_func(library, "void dbus_error_init error_p")
+        error_is_set = ctypes_func(library, "bool dbus_error_is_set error_p")
+        bus_get = ctypes_func(library, "connection_p dbus_bus_get uint error_p")
+        message_new = ctypes_func(
+            library,
+            "message_p dbus_message_new_method_call char_p char_p char_p char_p",
+        )
+        message_unref = ctypes_func(library, "void dbus_message_unref message_p")
+        iter_init_append = ctypes_func(
+            library, "void dbus_message_iter_init_append message_p message_iter_p"
+        )
+        iter_append_basic = ctypes_func(
+            library, "bool dbus_message_iter_append_basic message_iter_p int void_p"
+        )
+        iter_open_container = ctypes_func(
+            library,
+            "bool dbus_message_iter_open_container message_iter_p int char_p message_iter_p",
+        )
+        iter_close_container = ctypes_func(
+            library,
+            "bool dbus_message_iter_close_container message_iter_p message_iter_p",
+        )
+        connection_send = ctypes_func(
+            library, "bool dbus_connection_send connection_p message_p uint32_p"
+        )
 
         # Need message + container + dict_entry + variant = 4 iterators.
         self._iter_stack = [DBusMessageIter() for __ in range(4)]
@@ -135,23 +158,27 @@ class DBusNotificationHandler(logging.Handler):
                 self._iter_stack_index -= 1
 
         def append_basic(kind, value):
-            if not iter_append_basic(self._iter_stack[self._iter_stack_index], kind, ctypes.byref(value)):
+            if not iter_append_basic(
+                self._iter_stack[self._iter_stack_index], kind, ctypes.byref(value)
+            ):
                 raise MemoryError
 
         error = DBusError()
         error_init(error)
         bus = bus_get(DBUS_BUS_SESSION, ctypes.byref(error))
         if error_is_set(error):
-            e = ConnectionError('%s: %s' % (error.name.decode(), error.message.decode()))
+            e = ConnectionError(
+                "%s: %s" % (error.name.decode(), error.message.decode())
+            )
             error_free(error)
             raise e
         assert bus is not None
 
-        actions_signature = ctypes.c_char_p(b's')
-        hints_signature = ctypes.c_char_p(b'{sv}')
-        notify_str = ctypes.c_char_p(b'Notify')
-        urgency_signature = ctypes.c_char_p(b'y')
-        urgency_str = ctypes.c_char_p(b'urgency')
+        actions_signature = ctypes.c_char_p(b"s")
+        hints_signature = ctypes.c_char_p(b"{sv}")
+        notify_str = ctypes.c_char_p(b"Notify")
+        urgency_signature = ctypes.c_char_p(b"y")
+        urgency_str = ctypes.c_char_p(b"urgency")
         zero = ctypes.c_uint(0)
 
         def notify(body, urgency, timeout):
@@ -172,7 +199,10 @@ class DBusNotificationHandler(logging.Handler):
                 with open_container(DBUS_TYPE_ARRAY, actions_signature):
                     pass
                 # hints
-                with open_container(DBUS_TYPE_ARRAY, hints_signature), open_container(DBUS_TYPE_DICT_ENTRY, None):
+                with (
+                    open_container(DBUS_TYPE_ARRAY, hints_signature),
+                    open_container(DBUS_TYPE_DICT_ENTRY, None),
+                ):
                     append_basic(DBUS_TYPE_STRING, urgency_str)
                     with open_container(DBUS_TYPE_VARIANT, urgency_signature):
                         append_basic(DBUS_TYPE_BYTE, urgency)
@@ -184,10 +214,10 @@ class DBusNotificationHandler(logging.Handler):
 
         self._notify = notify
 
-    def emit(self, record):
+    def handle(self, record):
         level = record.levelno
         message = self.format(record)
-        if message.endswith('\n'):
+        if message.endswith("\n"):
             message = message[:-1]
         if level <= log.INFO:
             timeout = 10
@@ -198,4 +228,6 @@ class DBusNotificationHandler(logging.Handler):
         else:
             timeout = 0
             urgency = NOTIFY_URGENCY_CRITICAL
-        self._notify(ctypes.c_char_p(message.encode()), urgency, ctypes.c_int(timeout * 1000))
+        self._notify(
+            ctypes.c_char_p(message.encode()), urgency, ctypes.c_int(timeout * 1000)
+        )

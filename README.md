@@ -22,8 +22,8 @@
     </a>
 </p>
 
-| [Homepage][] | [Wiki][] | [Blog][] | [Google Group][] |
-| ------------ | -------- | -------- | ---------------- |
+| [Homepage][] | [Wiki][] | [Blog][] | [Google Group][] | [Discord](https://discord.com/invite/H5HnRE6) |
+| ------------ | -------- | -------- | ---------------- | --------------------------------------------- |
 
 -   [About](#about)
 -   [Installation](#installation)
@@ -98,7 +98,7 @@ including [StenoJig][] (JavaScript) and [StenoTray][] (Java).
 -   The [Plover Wiki][Wiki] discusses Plover and Open Steno in
     general. Edits to the Wiki and new page ideas are welcome.
 -   Graphic art for Plover and stenography in general is always
-    appreciated. The app's icons are worked on at [morinted/plover\_icons][].
+    appreciated. The app's icons are worked on at [TheaMorin/plover\_icons][].
     You may consider reimagining or reposing [Plover's mascot, Dolores][Mascot].
 -   UX improvement suggestions are welcome. Plover runs on Windows, Mac,
     and Linux, and should be powerful but out of the way, which poses
@@ -119,25 +119,25 @@ Please follow through for your system:
 -   [Linux][Linux README]
 -   [Mac][macOS README]
 
-[Beginner's Guide]: https://github.com/openstenoproject/plover/wiki/Beginner's-Guide:-Get-Started-with-Plover
+[Beginner's Guide]: https://plover.wiki/index.php/Beginner%27s_Guide
 [Blog]: http://plover.stenoknight.com
-[Contributing]: https://github.com/openstenoproject/plover/blob/master/CONTRIBUTING.md
+[Contributing]: https://github.com/openstenoproject/plover/blob/main/CONTRIBUTING.md
 [Donate]: http://www.openstenoproject.org/donate
 [Google Group]: https://groups.google.com/forum/#!forum/ploversteno
 [Homepage Source]: https://github.com/openstenoproject/plover/tree/gh-pages
 [Homepage]: http://opensteno.org/plover
 [Issues]: https://github.com/openstenoproject/plover/issues?q=is:issue
-[License]: https://github.com/openstenoproject/plover/blob/master/LICENSE.txt
+[License]: https://github.com/openstenoproject/plover/blob/main/LICENSE.txt
 [Open Steno Project Homepage Source]: https://github.com/openstenoproject/openstenoproject.github.io
 [Open Steno Project]: http://opensteno.org
 [Mascot]: http://plover.stenoknight.com/2010/10/new-logo.html
 [StenoJig]: https://github.com/JoshuaGrams/steno-jig
 [StenoTray]: https://github.com/SmackleFunky/StenoTray
-[Supported Hardware]: https://github.com/openstenoproject/plover/wiki/Supported-Hardware
-[Troubleshooting Common Issues]: https://github.com/openstenoproject/plover/wiki/Troubleshooting:-Common-Issues
-[Wiki]: https://github.com/openstenoproject/plover/wiki
-[installation guide]: https://github.com/openstenoproject/plover/wiki/Installation-Guide
-[morinted/plover\_icons]: https://github.com/morinted/plover_icons
-[Windows README]: https://github.com/openstenoproject/plover/blob/master/windows/README.md
-[Linux README]: https://github.com/openstenoproject/plover/blob/master/linux/README.md
-[macOS README]: https://github.com/openstenoproject/plover/blob/master/osx/README.md
+[Supported Hardware]: https://plover.wiki/index.php/Supported_hardware
+[Troubleshooting Common Issues]: https://plover.wiki/index.php/Troubleshooting_issues
+[Wiki]: https://plover.wiki
+[installation guide]: https://plover.wiki/index.php/Installation_Guide
+[TheaMorin/plover\_icons]: https://github.com/TheaMorin/plover_icons
+[Windows README]: https://github.com/openstenoproject/plover/blob/main/windows/README.md
+[Linux README]: https://github.com/openstenoproject/plover/blob/main/linux/README.md
+[macOS README]: https://github.com/openstenoproject/plover/blob/main/osx/README.md

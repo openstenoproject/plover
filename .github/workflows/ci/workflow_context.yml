@@ -1,29 +1,28 @@
 cache_epoch: 0 # <- increase number to clear cache.
 
-action_cache: actions/cache@v3
-action_checkout: actions/checkout@v3
-action_setup_python: actions/setup-python@v4
-action_upload_artifact: actions/upload-artifact@v3
-action_download_artifact: actions/download-artifact@v3
+action_cache: actions/cache@v4
+action_checkout: actions/checkout@v4
+action_setup_python: actions/setup-python@v5
+action_upload_artifact: actions/upload-artifact@v4
+action_download_artifact: actions/download-artifact@v4
 
 skippy_enabled: true
+
+default_python: 3.13.3
 
 vars:
   - &dist_linux
     variant: Linux
-    python: "3.9"
     os: Linux
     platform: ubuntu-22.04
 
   - &dist_macos
     variant: macOS
-    python: "3.9"
     os: macOS
-    platform: macos-12
+    platform: macos-15
 
   - &dist_win
     variant: Windows
-    python: "3.9"
     os: Windows
     platform: windows-2022
 
@@ -51,9 +50,14 @@ jobs:
   - &python_test
     <<: *test
     <<: *dist_other
-    variant: Python 3.8
-    python: "3.8"
+    variant: Python Latest Supported
     skiplists: ["job_test", "os_linux", "os_macos", "os_windows"]
+  - <<: *python_test
+    variant: Python 3.12
+    python: "3.12"
+  - <<: *python_test
+    variant: Python 3.11
+    python: "3.11"
   - <<: *python_test
     variant: Python 3.10
     python: "3.10"
@@ -70,9 +74,14 @@ jobs:
   - <<: *dist_other
     type: test_packaging
     variant: Packaging
-    python: "3.9"
     reqs: ["packaging", "setup"]
     skiplists: ["job_test_packaging"]
+
+  # Code quality.
+  - <<: *dist_other
+    type: test_code_quality
+    variant: Code Quality
+    reqs: ["code_quality"]
 
   # Platform builds.
   - &build
