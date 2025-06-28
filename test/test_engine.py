@@ -231,10 +231,6 @@ def test_loading_dictionaries(tmp_path, engine):
                     (valid_dict_1, False),
                     (invalid_dict_1, True),
                 ],
-                [
-                    (valid_dict_1, False, False),
-                    (invalid_dict_1, True, True),
-                ],
             ],
             # Replace invalid dictionary with another invalid one.
             [

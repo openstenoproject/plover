@@ -117,7 +117,7 @@ class StenoEngine:
         self._translator = Translator()
         self._translator.add_listener(log.translation)
         self._translator.add_listener(self._formatter.format)
-        self._dictionaries = self._translator.get_dictionary()
+        self._dictionaries = self._translator.get_dictionary()  # type: StenoDictionaryCollection
         self._dictionaries_manager = DictionaryLoadingManager(
             functools.partial(self._trigger_hook, "dictionary_state_changed")
         )
