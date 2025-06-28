@@ -120,9 +120,6 @@ jobs:
           path: .cache
           key: <@ cache_epoch @>_${{ steps.set_cache.outputs.cache_name }}_${{ hashFiles('reqs/constraints.txt'<% for d in (j.reqs + j.cache_extra_deps) %><@ ', %r' % d @><% endfor %>) }}
 
-      - name: Setup pip options
-        run: setup_pip_options
-
       <% if j.os == 'macOS' %>
       # To support older macOS versions, setup Python from an official installer.
       - name: Setup Python
@@ -138,6 +135,11 @@ jobs:
         run: setup_python_env -c reqs/constraints.txt<% for r in j.reqs %> -r <@ r @><% endfor %>
         
 
+      <% if j.type == 'test_code_quality' %>
+      - name: Run Ruff (format check)
+        run: ruff format --check .
+
+      <% endif %>
       <% if j.type in ['build', 'test_packaging'] %>
       - name: Patch version
         id: set_version
@@ -149,9 +151,6 @@ jobs:
 
       <% endif %>
       <% if j.type == 'test_gui_qt' %>
-      - name: Build Resources
-        run: python setup.py build_resources
-
       - name: Build UI
         run: python setup.py build_ui
 
@@ -288,11 +287,10 @@ jobs:
       - name: Checkout
         uses: <@ action_checkout @>
 
-      # FIXME pass python version via workflow_context
       - name: Setup Python
         uses: <@ action_setup_python @>
         with:
-          python-version: 3.9
+          python-version: <@ default_python @>
 
       - name: Install dependencies
         run: |

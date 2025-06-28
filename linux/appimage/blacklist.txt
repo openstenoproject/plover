@@ -28,36 +28,42 @@
   pip/_vendor/distlib/*.exe
   setuptools/*.exe
 
+# PySide6.
+:usr/bin
+  pylupdate6
+  pyuic6
+:usr/lib/python${pyversion}/site-packages/PySide6
+  **/*[Aa]ssistant*
+  **/*[Dd]esigner*
+  **/*[Hh]elp*
+  **/*[Ll]inguist*
+  **/*[Oo]pen[Gg][Ll]*
+  **/*[Qq]ml*
+  **/*[Qq]uick*
+  **/*[Ss]ql*
+  **/*[Tt]est*
+  **/*[Ww]eb[Ee]ngine*
+  **/*.tmpl.py
+  bindings
+  lupdate
+  lrelease
+  Qt/plugins/egldeviceintegrations
+  Qt/plugins/geoservices
+  Qt/plugins/platforms/libqeglfs.so
+  Qt/plugins/platforms/libqlinuxfb.so
+  Qt/plugins/platforms/libqminimal.so
+  Qt/plugins/platforms/libqminimalegl.so
+  Qt/plugins/platforms/libqoffscreen.so
+  Qt/plugins/platforms/libqvnc.so
+  Qt/plugins/platforms/libqwebgl.so
+  Qt/plugins/sceneparsers
+  Qt/plugins/webview
+  Qt/translations/qtdeclarative_*
+  pylupdate*
+  uic
+
 # Plover.
 :usr/lib/python${pyversion}/site-packages/plover
   gui_qt/*.ui
   messages/**/*.po
   messages/plover.pot
-
-  # PySide6.
-:usr/bin
-  pylupdate6
-  pyuic6
-:usr/lib/python${pyversion}/site-packages/PySide6
-  **/*Designer*
-  **/*[Hh]elp*
-  **/*[Qq]ml*
-  **/*[Qq]uick*
-  **/*Test*
-  **/*[Ww]eb[Ee]ngine*
-  bindings
-  Qt6/plugins/egldeviceintegrations
-  Qt6/plugins/geoservices
-  Qt6/plugins/platforms/libqeglfs.so
-  Qt6/plugins/platforms/libqlinuxfb.so
-  Qt6/plugins/platforms/libqminimal.so
-  Qt6/plugins/platforms/libqminimalegl.so
-  Qt6/plugins/platforms/libqoffscreen.so
-  Qt6/plugins/platforms/libqvnc.so
-  Qt6/plugins/platforms/libqwebgl.so
-  Qt6/plugins/sceneparsers
-  Qt6/plugins/webview
-  pylupdate*
-  uic
-
-# vim: ft=config

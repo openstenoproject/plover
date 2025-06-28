@@ -1,4 +1,3 @@
-
 from threading import Thread
 import atexit
 import html
@@ -6,7 +5,13 @@ import os
 import sys
 
 from PySide6.QtCore import Qt, Signal, Slot
-from PySide6.QtWidgets import QDialog, QMessageBox, QTableWidgetItem, QInputDialog,QWidget
+from PySide6.QtWidgets import (
+    QDialog,
+    QMessageBox,
+    QTableWidgetItem,
+    QInputDialog,
+    QWidget,
+)
 
 from plover.gui_qt.tool import Tool
 from plover.gui_qt.info_browser import InfoBrowser
@@ -18,10 +23,9 @@ from plover.plugins_manager.__main__ import pip
 
 
 class PluginsManager(Tool, Ui_PluginsManager):
-
-    TITLE = 'Plugins Manager'
-    ROLE = 'plugins_manager'
-    ICON = ':/resources/plugins_manager.svg'
+    TITLE = "Plugins Manager"
+    ROLE = "plugins_manager"
+    ICON = ":/resources/plugins_manager.svg"
 
     # We use a class instance so the state is persistent
     # accross different executions of the dialog when
@@ -46,7 +50,7 @@ class PluginsManager(Tool, Ui_PluginsManager):
 
     def _need_restart(self):
         for state in self._packages:
-            if state.status in ('removed', 'updated'):
+            if state.status in ("removed", "updated"):
                 return True
         return False
 
@@ -62,7 +66,7 @@ class PluginsManager(Tool, Ui_PluginsManager):
         self.table.setSortingEnabled(False)
         self.table.setRowCount(len(self._packages))
         for row, state in enumerate(self._packages):
-            for column, attr in enumerate('status name version summary'.split()):
+            for column, attr in enumerate("status name version summary".split()):
                 item = QTableWidgetItem(getattr(state, attr, "N/A"))
                 item.setFlags(item.flags() & ~Qt.ItemFlag.ItemIsEditable)
                 self.table.setItem(row, column, item)
@@ -80,12 +84,12 @@ class PluginsManager(Tool, Ui_PluginsManager):
             if item.column() != 0:
                 continue
             state = self._get_state(item.row())
-            if state.status in ('installed', 'updated'):
+            if state.status in ("installed", "updated"):
                 can_uninstall.append(state.name)
-            elif state.status in ('outdated',):
+            elif state.status in ("outdated",):
                 can_uninstall.append(state.name)
                 can_install.append(state.name)
-            elif state.status != 'unsupported' and state.latest:
+            elif state.status != "unsupported" and state.latest:
                 can_install.append(state.name)
         return can_install, can_uninstall
 
@@ -108,7 +112,7 @@ class PluginsManager(Tool, Ui_PluginsManager):
         metadata = self._get_state(current_item.row()).metadata
         if metadata is None:
             return
-        prologue = '<h1>%s (%s)</h1>' % (
+        prologue = "<h1>%s (%s)</h1>" % (
             html.escape(metadata.name),
             html.escape(metadata.version),
         )
@@ -122,7 +126,7 @@ class PluginsManager(Tool, Ui_PluginsManager):
                 metadata.home_page,
                 html.escape(metadata.home_page),
             )
-        prologue += '<hr>'
+        prologue += "<hr>"
         if metadata.description:
             description = metadata.description
             description_content_type = metadata.description_content_type
@@ -138,7 +142,7 @@ class PluginsManager(Tool, Ui_PluginsManager):
             self._engine.restart()
         else:
             atexit._run_exitfuncs()
-            args = [sys.executable, '-m', __spec__.name]
+            args = [sys.executable, "-m", __spec__.name]
             os.execv(args[0], args)
 
     def _update_packages(self):
@@ -146,7 +150,7 @@ class PluginsManager(Tool, Ui_PluginsManager):
         self._packages_updated.emit()
 
     def _clear_info(self):
-        self.info.setHtml('')
+        self.info.setHtml("")
 
     @Slot()
     def refresh(self):
@@ -159,43 +163,42 @@ class PluginsManager(Tool, Ui_PluginsManager):
     @Slot()
     def install_from_git(self):
         url, ok = QInputDialog.getText(
-            self, "Install from Git repo", 
-            '<b>WARNING: Installing plugins is a security risk.<br>'
-            'A plugin from a Git repo can contain malicious code.<br>'
-            'Only install it if you got it from a trusted source.</b><br><br>'
-            'Enter repository link for plugin<br>'
-            '(will look similar to '
-            'https://github.com/user/repository.git): <br>'
-            )
+            self,
+            "Install from Git repo",
+            "<b>WARNING: Installing plugins is a security risk.<br>"
+            "A plugin from a Git repo can contain malicious code.<br>"
+            "Only install it if you got it from a trusted source.</b><br><br>"
+            "Enter repository link for plugin<br>"
+            "(will look similar to "
+            "https://github.com/user/repository.git): <br>",
+        )
         if not ok or not url:
             return
 
-        code = self._run(
-            ['install'] +
-            ['git+' + url]
-        )
+        code = self._run(["install"] + ["git+" + url])
         if code == QDialog.DialogCode.Accepted:
             self._update_table()
             self.restart_button.setEnabled(True)
-           
+
     @Slot()
     def install_selected_package(self):
         packages = self._get_selection()[0]
-        if QMessageBox.warning(
-            self, 'Install ' + ', '.join(packages),
-            'Installing plugins is a <b>security risk</b>. '
-            'A plugin can contain virus/malware. '
-            'Only install it if you got it from a trusted source.'
-            ' Are you sure you want to proceed?'
-            ,
-            buttons=QMessageBox.StandardButton.Yes | QMessageBox.StandardButton.No,
-            defaultButton=QMessageBox.StandardButton.No
-        ) != QMessageBox.StandardButton.Yes:
+        if (
+            QMessageBox.warning(
+                self,
+                "Install " + ", ".join(packages),
+                "Installing plugins is a <b>security risk</b>. "
+                "A plugin can contain virus/malware. "
+                "Only install it if you got it from a trusted source."
+                " Are you sure you want to proceed?",
+                buttons=QMessageBox.StandardButton.Yes | QMessageBox.StandardButton.No,
+                defaultButton=QMessageBox.StandardButton.No,
+            )
+            != QMessageBox.StandardButton.Yes
+        ):
             return
         code = self._run(
-            ['install'] +
-            [self._packages[name].latest.requirement
-             for name in packages]
+            ["install"] + [self._packages[name].latest.requirement for name in packages]
         )
         if code == QDialog.DialogCode.Accepted:
             for name in packages:
@@ -207,7 +210,7 @@ class PluginsManager(Tool, Ui_PluginsManager):
     @Slot()
     def uninstall_selected_package(self):
         packages = self._get_selection()[1]
-        code = self._run(['uninstall', '-y'] + packages)
+        code = self._run(["uninstall", "-y"] + packages)
         if code == QDialog.DialogCode.Accepted:
             for name in packages:
                 state = self._packages[name]
@@ -216,8 +219,9 @@ class PluginsManager(Tool, Ui_PluginsManager):
             self.restart_button.setEnabled(True)
 
 
-if __name__ == '__main__':
+if __name__ == "__main__":
     from PySide6.QtWidgets import QApplication
+
     app = QApplication([])
     dlg = PluginsManager(None)
     dlg.show()

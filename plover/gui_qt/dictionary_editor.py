@@ -1,13 +1,7 @@
-
 from operator import attrgetter, itemgetter
 from collections import namedtuple
 from itertools import chain
-from PySide6.QtCore import (
-    QAbstractTableModel,
-    QModelIndex,
-    Qt,
-    Slot
-)
+from PySide6.QtCore import QAbstractTableModel, QModelIndex, Qt, Slot
 from PySide6.QtGui import QIcon
 from PySide6.QtWidgets import (
     QComboBox,
@@ -28,8 +22,7 @@ from plover.gui_qt.utils import ToolBar, WindowStateMixin
 _COL_STENO, _COL_TRANS, _COL_DICT, _COL_COUNT = range(3 + 1)
 
 
-class DictionaryItem(namedtuple('DictionaryItem', 'steno translation dictionary')):
-
+class DictionaryItem(namedtuple("DictionaryItem", "steno translation dictionary")):
     @property
     def strokes(self):
         return normalize_steno(self.steno, strict=False)
@@ -40,7 +33,6 @@ class DictionaryItem(namedtuple('DictionaryItem', 'steno translation dictionary'
 
 
 class DictionaryItemDelegate(QStyledItemDelegate):
-
     def __init__(self, dictionary_list):
         super().__init__()
         self._dictionary_list = dictionary_list
@@ -62,10 +54,9 @@ class DictionaryItemDelegate(QStyledItemDelegate):
 
 
 class DictionaryItemModel(QAbstractTableModel):
-
     def __init__(self, dictionary_list, sort_column, sort_order):
         super().__init__()
-        self._error_icon = QIcon(':resources/dictionary_error.svg')
+        self._error_icon = QIcon(":resources/dictionary_error.svg")
         self._dictionary_list = dictionary_list
         self._operations = []
         self._entries = []
@@ -77,12 +68,12 @@ class DictionaryItemModel(QAbstractTableModel):
         self._entries = []
         for dictionary in self._dictionary_list:
             for strokes, translation in dictionary.items():
-                steno = '/'.join(strokes)
-                if strokes_filter is not None and \
-                   not steno.startswith(strokes_filter):
+                steno = "/".join(strokes)
+                if strokes_filter is not None and not steno.startswith(strokes_filter):
                     continue
-                if translation_filter is not None and \
-                   not translation.startswith(translation_filter):
+                if translation_filter is not None and not translation.startswith(
+                    translation_filter
+                ):
                     continue
                 item = DictionaryItem(steno, translation, dictionary)
                 self._entries.append(item)
@@ -150,8 +141,9 @@ class DictionaryItemModel(QAbstractTableModel):
         else:
             old_item.dictionary[old_item.strokes] = old_item.translation
             self._entries[row] = old_item
-            self.dataChanged.emit(self.index(row, _COL_STENO),
-                                  self.index(row, _COL_TRANS))
+            self.dataChanged.emit(
+                self.index(row, _COL_STENO), self.index(row, _COL_TRANS)
+            )
 
     def undo(self, op=None):
         op = self._operations.pop()
@@ -168,24 +160,27 @@ class DictionaryItemModel(QAbstractTableModel):
         return _COL_COUNT
 
     def headerData(self, section, orientation, role):
-        if orientation != Qt.Orientation.Horizontal or role != Qt.ItemDataRole.DisplayRole:
+        if (
+            orientation != Qt.Orientation.Horizontal
+            or role != Qt.ItemDataRole.DisplayRole
+        ):
             return None
         if section == _COL_STENO:
             # i18n: Widget: “DictionaryEditor”.
-            return _('Strokes')
+            return _("Strokes")
         if section == _COL_TRANS:
             # i18n: Widget: “DictionaryEditor”.
-            return _('Translation')
+            return _("Translation")
         if section == _COL_DICT:
             # i18n: Widget: “DictionaryEditor”.
-            return _('Dictionary')
+            return _("Dictionary")
 
     def data(self, index, role):
         if not index.isValid() or role not in (
-                Qt.ItemDataRole.EditRole,
-                Qt.ItemDataRole.DisplayRole,
-                Qt.ItemDataRole.DecorationRole
-            ):
+            Qt.ItemDataRole.EditRole,
+            Qt.ItemDataRole.DisplayRole,
+            Qt.ItemDataRole.DecorationRole,
+        ):
             return None
         item = self._entries[index.row()]
         column = index.column()
@@ -224,13 +219,12 @@ class DictionaryItemModel(QAbstractTableModel):
     def sort(self, column, order):
         self.layoutAboutToBeChanged.emit()
         if column == _COL_DICT:
-            key = attrgetter('dictionary_path')
+            key = attrgetter("dictionary_path")
         elif column == _COL_STENO:
             key = self._item_steno_sort_key
         else:
             key = itemgetter(column)
-        self._entries.sort(key=key,
-                           reverse=(order == Qt.SortOrder.DescendingOrder))
+        self._entries.sort(key=key, reverse=(order == Qt.SortOrder.DescendingOrder))
         self._sort_column = column
         self._sort_order = order
         self.layoutChanged.emit()
@@ -244,7 +238,7 @@ class DictionaryItemModel(QAbstractTableModel):
         steno, translation, dictionary = old_item
         if column == _COL_STENO:
             strokes = normalize_steno(value.strip(), strict=False)
-            steno = '/'.join(strokes)
+            steno = "/".join(strokes)
             if not steno or steno == old_item.steno:
                 return False
         elif column == _COL_TRANS:
@@ -281,7 +275,7 @@ class DictionaryItemModel(QAbstractTableModel):
                 dictionary = self._dictionary_list[0]
             else:
                 dictionary = self._entries[row].dictionary
-            item = DictionaryItem('', '', dictionary)
+            item = DictionaryItem("", "", dictionary)
         self.beginInsertRows(QModelIndex(), row, row)
         self._entries.insert(row, item)
         if record:
@@ -306,8 +300,7 @@ class DictionaryItemModel(QAbstractTableModel):
 
 
 class DictionaryEditor(QDialog, Ui_DictionaryEditor, WindowStateMixin):
-
-    ROLE = 'dictionary_editor'
+    ROLE = "dictionary_editor"
 
     def __init__(self, engine, dictionary_paths):
         super().__init__()
@@ -320,23 +313,26 @@ class DictionaryEditor(QDialog, Ui_DictionaryEditor, WindowStateMixin):
                 if dictionary.path in dictionary_paths
             ]
         sort_column, sort_order = _COL_STENO, Qt.SortOrder.AscendingOrder
-        self._model = DictionaryItemModel(dictionary_list,
-                                          sort_column,
-                                          sort_order)
+        self._model = DictionaryItemModel(dictionary_list, sort_column, sort_order)
         self._model.dataChanged.connect(self.update_after_data_change)
         self.table.sortByColumn(sort_column, sort_order)
         self.table.setSortingEnabled(True)
         self.table.setModel(self._model)
         self.table.resizeColumnsToContents()
         self.table.setItemDelegate(DictionaryItemDelegate(dictionary_list))
-        self.table.selectionModel().selectionChanged.connect(self.handle_selection_change)
+        self.table.selectionModel().selectionChanged.connect(
+            self.handle_selection_change
+        )
         background = self.table.palette().highlightedText().color().name()
         text_color = self.table.palette().highlight().color().name()
-        self.table.setStyleSheet('''
+        self.table.setStyleSheet(
+            """
                                  QTableView::item:focus {
                                      background-color: %s;
                                      color: %s;
-                                }''' % (background, text_color))
+                                }"""
+            % (background, text_color)
+        )
         self.table.setFocus()
         for action in (
             self.action_Undo,
@@ -344,21 +340,22 @@ class DictionaryEditor(QDialog, Ui_DictionaryEditor, WindowStateMixin):
         ):
             action.setEnabled(False)
         # Toolbar.
-        self.layout().addWidget(ToolBar(
-            self.action_Undo,
-            self.action_Delete,
-            self.action_New,
-        ))
+        self.layout().addWidget(
+            ToolBar(
+                self.action_Undo,
+                self.action_Delete,
+                self.action_New,
+            )
+        )
         self.strokes_filter.setValidator(StenoValidator())
         self.restore_state()
         self.finished.connect(self.save_state)
 
     @property
     def _selection(self):
-        return list(sorted(
-            index.row() for index in
-            self.table.selectionModel().selectedRows(0)
-        ))
+        return list(
+            sorted(index.row() for index in self.table.selectionModel().selectedRows(0))
+        )
 
     def _select(self, row, edit=False):
         row = min(row, self._model.rowCount(QModelIndex()) - 1)
@@ -375,9 +372,7 @@ class DictionaryEditor(QDialog, Ui_DictionaryEditor, WindowStateMixin):
     @Slot()
     def handle_selection_change(self):
         enabled = bool(self._selection)
-        for action in (
-            self.action_Delete,
-        ):
+        for action in (self.action_Delete,):
             action.setEnabled(enabled)
 
     @Slot()
@@ -409,19 +404,23 @@ class DictionaryEditor(QDialog, Ui_DictionaryEditor, WindowStateMixin):
     @Slot()
     def apply_filter(self):
         self.table.selectionModel().clear()
-        strokes_filter = '/'.join(normalize_steno(self.strokes_filter.text().strip()))
-        translation_filter = unescape_translation(self.translation_filter.text().strip())
-        self._model.filter(strokes_filter=strokes_filter,
-                           translation_filter=translation_filter)
+        strokes_filter = "/".join(normalize_steno(self.strokes_filter.text().strip()))
+        translation_filter = unescape_translation(
+            self.translation_filter.text().strip()
+        )
+        self._model.filter(
+            strokes_filter=strokes_filter, translation_filter=translation_filter
+        )
+
     @Slot()
     def clear_filter(self):
-        self.strokes_filter.setText('')
-        self.translation_filter.setText('')
+        self.strokes_filter.setText("")
+        self.translation_filter.setText("")
         self._model.filter(strokes_filter=None, translation_filter=None)
 
     @Slot(int)
     def save_modified_dictionaries(self, result):
         with self._engine:
-            self._engine.dictionaries.save(dictionary.path
-                                           for dictionary
-                                           in self._model.modified)
+            self._engine.dictionaries.save(
+                dictionary.path for dictionary in self._model.modified
+            )

@@ -22,11 +22,14 @@ def set_config(engine, cmdline):
 
 
 def _cmdline_to_dict(cmdline):
-    """ Add braces and parse the entire command line as a Python dict literal. """
+    """Add braces and parse the entire command line as a Python dict literal."""
     try:
-        opt_dict = ast.literal_eval('{'+cmdline+'}')
+        opt_dict = ast.literal_eval("{" + cmdline + "}")
         assert isinstance(opt_dict, dict)
         return opt_dict
     except (AssertionError, SyntaxError, ValueError) as e:
-        raise ValueError('Bad command string "%s" for PLOVER:SET_CONFIG.\n' % cmdline
-                         + 'See for reference:\n\n' + set_config.__doc__) from e
+        raise ValueError(
+            'Bad command string "%s" for PLOVER:SET_CONFIG.\n' % cmdline
+            + "See for reference:\n\n"
+            + set_config.__doc__
+        ) from e

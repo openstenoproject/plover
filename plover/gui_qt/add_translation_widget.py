@@ -3,6 +3,7 @@ from html import escape as html_escape
 from os.path import split as os_path_split
 
 from PySide6.QtCore import QEvent, Signal, Slot
+from PySide6.QtGui import QFontDatabase
 from PySide6.QtWidgets import QApplication, QWidget
 
 from plover import _
@@ -18,11 +19,12 @@ from plover.gui_qt.steno_validator import StenoValidator
 
 
 class AddTranslationWidget(QWidget, Ui_AddTranslationWidget):
-
     # i18n: Widget: “AddTranslationWidget”, tooltip.
-    __doc__ = _('Add a new translation to the dictionary.')
+    __doc__ = _("Add a new translation to the dictionary.")
 
-    EngineState = namedtuple('EngineState', 'dictionary_filter translator starting_stroke')
+    EngineState = namedtuple(
+        "EngineState", "dictionary_filter translator starting_stroke"
+    )
 
     mappingValid = Signal(bool)
 
@@ -35,22 +37,18 @@ class AddTranslationWidget(QWidget, Ui_AddTranslationWidget):
         self._reverse_order = False
         self._selected_dictionary = None
         self._mapping_is_valid = False
-        engine.signal_connect('config_changed', self.on_config_changed)
+        engine.signal_connect("config_changed", self.on_config_changed)
         self.on_config_changed(engine.config)
-        engine.signal_connect('dictionaries_loaded', self.on_dictionaries_loaded)
+        engine.signal_connect("dictionaries_loaded", self.on_dictionaries_loaded)
         self.on_dictionaries_loaded(self._engine.dictionaries)
 
-        self._special_fmt = (
-            '<span style="' +
-            'font-family:monospace;' +
-            '">%s</span>'
-        )
+        fixed_family = QFontDatabase.systemFont(
+            QFontDatabase.SystemFont.FixedFont
+        ).family()
 
+        self._special_fmt = f'<span style="font-family:{fixed_family};">%s</span>'
         self._special_fmt_bold = (
-            '<span style="' +
-            'font-family:monospace;' +
-            'font-weight:bold;' +
-            '">%s</span>'
+            f'<span style="font-family:{fixed_family};font-weight:bold;">%s</span>'
         )
 
         self.strokes.setValidator(StenoValidator())
@@ -58,7 +56,6 @@ class AddTranslationWidget(QWidget, Ui_AddTranslationWidget):
         self.translation.installEventFilter(self)
 
         with engine:
-
             # Pre-populate the strokes or translations with last stroke/word.
             last_translations = engine.translator_state.translations
             translation = None
@@ -81,17 +78,19 @@ class AddTranslationWidget(QWidget, Ui_AddTranslationWidget):
                     self.translation.setText(last_words[0])
                     self.handle_translation_input_change()
 
-            self._original_state = self.EngineState(None,
-                                                    engine.translator_state,
-                                                    engine.starting_stroke_state)
+            self._original_state = self.EngineState(
+                None, engine.translator_state, engine.starting_stroke_state
+            )
             engine.clear_translator_state()
-            self._strokes_state = self.EngineState(self._dictionary_filter,
-                                                   engine.translator_state,
-                                                   StartingStrokeState(True, False, '/'))
+            self._strokes_state = self.EngineState(
+                self._dictionary_filter,
+                engine.translator_state,
+                StartingStrokeState(True, False, "/"),
+            )
             engine.clear_translator_state()
-            self._translations_state = self.EngineState(None,
-                                                        engine.translator_state,
-                                                        StartingStrokeState(True, False, ' '))
+            self._translations_state = self.EngineState(
+                None, engine.translator_state, StartingStrokeState(True, False, " ")
+            )
         self._engine_state = self._original_state
         self._focus = None
 
@@ -128,12 +127,12 @@ class AddTranslationWidget(QWidget, Ui_AddTranslationWidget):
     @staticmethod
     def _dictionary_filter(key, value):
         # Allow undo...
-        if value == '=undo':
+        if value == "=undo":
             return False
         # ...and translations with special entries. Do this by looking for
         # braces but take into account escaped braces and slashes.
-        escaped = value.replace('\\\\', '').replace('\\{', '')
-        special = '{#'  in escaped or '{PLOVER:' in escaped
+        escaped = value.replace("\\\\", "").replace("\\{", "")
+        special = "{#" in escaped or "{PLOVER:" in escaped
         return not special
 
     def _unfocus(self):
@@ -141,37 +140,37 @@ class AddTranslationWidget(QWidget, Ui_AddTranslationWidget):
         self._unfocus_translation()
 
     def _focus_strokes(self):
-        if self._focus == 'strokes':
+        if self._focus == "strokes":
             return
         self._unfocus_translation()
         self._set_engine_state(self._strokes_state)
-        self._focus = 'strokes'
+        self._focus = "strokes"
 
     def _unfocus_strokes(self):
-        if self._focus != 'strokes':
+        if self._focus != "strokes":
             return
         self._set_engine_state(self._original_state)
         self._focus = None
 
     def _focus_translation(self):
-        if self._focus == 'translation':
+        if self._focus == "translation":
             return
         self._unfocus_strokes()
         self._set_engine_state(self._translations_state)
-        self._focus = 'translation'
+        self._focus = "translation"
 
     def _unfocus_translation(self):
-        if self._focus != 'translation':
+        if self._focus != "translation":
             return
         self._set_engine_state(self._original_state)
         self._focus = None
 
     def _strokes(self):
         strokes = self.strokes.text().strip()
-        has_prefix = strokes.startswith('/')
-        strokes = '/'.join(strokes.replace('/', ' ').split())
+        has_prefix = strokes.startswith("/")
+        strokes = "/".join(strokes.replace("/", " ").split())
         if has_prefix:
-            strokes = '/' + strokes
+            strokes = "/" + strokes
         strokes = normalize_steno(strokes)
         return strokes
 
@@ -192,7 +191,7 @@ class AddTranslationWidget(QWidget, Ui_AddTranslationWidget):
             item = shorten_path(d.path)
             if not d.enabled:
                 # i18n: Widget: “AddTranslationWidget”.
-                item = _('{dictionary} (disabled)').format(dictionary=item)
+                item = _("{dictionary} (disabled)").format(dictionary=item)
             self.dictionary.addItem(item)
         selected_index = 0
         if self._selected_dictionary is None:
@@ -213,17 +212,15 @@ class AddTranslationWidget(QWidget, Ui_AddTranslationWidget):
 
     def on_dictionaries_loaded(self, dictionaries):
         # We only care about loaded writable dictionaries.
-        dictionaries = [
-            d
-            for d in dictionaries.dicts
-            if not d.readonly
-        ]
+        dictionaries = [d for d in dictionaries.dicts if not d.readonly]
         if dictionaries != self._dictionaries:
             self._update_items(dictionaries=dictionaries)
 
     def on_config_changed(self, config_update):
-        if 'classic_dictionaries_display_order' in config_update:
-            self._update_items(reverse_order=config_update['classic_dictionaries_display_order'])
+        if "classic_dictionaries_display_order" in config_update:
+            self._update_items(
+                reverse_order=config_update["classic_dictionaries_display_order"]
+            )
 
     @Slot(int)
     def update_selected_dictionary(self, index):
@@ -233,10 +230,14 @@ class AddTranslationWidget(QWidget, Ui_AddTranslationWidget):
 
     def _format_label(self, fmt, strokes, translation=None, filename=None):
         if strokes:
-            strokes = ', '.join(self._special_fmt % html_escape('/'.join(s))
-                                for s in sort_steno_strokes(strokes))
+            strokes = ", ".join(
+                self._special_fmt % html_escape("/".join(s))
+                for s in sort_steno_strokes(strokes)
+            )
         if translation:
-            translation = self._special_fmt_bold % html_escape(escape_translation(translation))
+            translation = self._special_fmt_bold % html_escape(
+                escape_translation(translation)
+            )
 
         if filename:
             filename = html_escape(filename)
@@ -256,29 +257,30 @@ class AddTranslationWidget(QWidget, Ui_AddTranslationWidget):
             translations = self._engine.raw_lookup_from_all(strokes)
             if translations:
                 # i18n: Widget: “AddTranslationWidget”.
-                info = self._format_label(_('{strokes} maps to '), (strokes,))
+                info = self._format_label(_("{strokes} maps to "), (strokes,))
                 entries = [
                     self._format_label(
-                        ('• ' if i else '') + '<bf>{translation}<bf/>\t({filename})',
+                        ("• " if i else "") + "<bf>{translation}<bf/>\t({filename})",
                         None,
                         translation,
-                        os_path_split(resource_filename(dictionary.path))[1]
-                    ) for i, (translation, dictionary) in enumerate(translations)
+                        os_path_split(resource_filename(dictionary.path))[1],
+                    )
+                    for i, (translation, dictionary) in enumerate(translations)
                 ]
-                if (len(entries) > 1):
+                if len(entries) > 1:
                     # i18n: Widget: “AddTranslationWidget”.
-                    entries.insert(1, '<br />' + _('Overwritten entries:'))
-                info += '<br />'.join(entries)
+                    entries.insert(1, "<br />" + _("Overwritten entries:"))
+                info += "<br />".join(entries)
             else:
                 info = self._format_label(
                     # i18n: Widget: “AddTranslationWidget”.
-                    _('{strokes} is not mapped in any dictionary'),
-                    (strokes, )
+                    _("{strokes} is not mapped in any dictionary"),
+                    (strokes,),
                 )
         else:
-            info = ''
+            info = ""
         self.strokes_info.setText(info)
-        
+
     @Slot()
     def handle_translation_input_change(self):
         translation = self._translation()
@@ -286,13 +288,13 @@ class AddTranslationWidget(QWidget, Ui_AddTranslationWidget):
             strokes = self._engine.reverse_lookup(translation)
             if strokes:
                 # i18n: Widget: “AddTranslationWidget”.
-                fmt = _('{translation} is mapped to: {strokes}')
+                fmt = _("{translation} is mapped to: {strokes}")
             else:
                 # i18n: Widget: “AddTranslationWidget”.
-                fmt = _('{translation} is not in the dictionary')
+                fmt = _("{translation} is not in the dictionary")
             info = self._format_label(fmt, strokes, translation)
         else:
-            info = ''
+            info = ""
         self.translation_info.setText(info)
 
     def save_entry(self):
@@ -305,8 +307,9 @@ class AddTranslationWidget(QWidget, Ui_AddTranslationWidget):
                 index = -index - 1
             dictionary = self._dictionaries[index]
             old_translation = self._engine.dictionaries[dictionary.path].get(strokes)
-            self._engine.add_translation(strokes, translation,
-                                         dictionary_path=dictionary.path)
+            self._engine.add_translation(
+                strokes, translation, dictionary_path=dictionary.path
+            )
             return dictionary, strokes, old_translation, translation
 
     def reject(self):

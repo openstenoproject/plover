@@ -1,3 +1,3 @@
 def patch_ports_info(port_list):
-    '''NOP…'''
+    """NOP…"""
     return port_list

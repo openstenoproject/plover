@@ -59,7 +59,7 @@ python='appdir_python'
 bootstrap_dist "$plover_wheel"
 
 # Create launcher.
-run gcc -Wall -O2 'osx/app_resources/plover_launcher.c' -o "$macos_dir/Plover"
+run gcc -Wall -O2 -arch x86_64 -arch arm64 'osx/app_resources/plover_launcher.c' -o "$macos_dir/Plover"
 
 # Copy icon.
 run cp 'osx/app_resources/plover.icns' "$resources_dir/plover.icns"
@@ -78,9 +78,13 @@ run sed -e "s/\$python_version/$py_version/" -e "s/\$python_base_version/${py_ve
 run "$python" -m plover_build_utils.trim "$py_home" "$builddir/dist_blacklist.txt"
 
 # Make distribution source-less.
-run "$python" -m plover_build_utils.source_less "$py_home/lib" "*/pip/_vendor/distlib/*" '*/pip/_vendor/pep517/*'
+# Keep pip sources, as we need them for pip install
+run "$python" -m plover_build_utils.source_less "$py_home/lib" "*/site-packages/pip/*"
 
 # Check requirements.
 run "$python" -I -m plover_build_utils.check_requirements
+
+# Ad-hoc signing to satisfy Gatekeeper.
+run /usr/bin/codesign -s - --deep --force "$appdir"
 
 run mv "$appdir" "$distdir"

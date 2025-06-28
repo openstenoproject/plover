@@ -1,6 +1,7 @@
 from evdev import UInput, ecodes as e, util, InputDevice, list_devices
 import threading
 from select import select
+from psutil import process_iter
 
 from plover.output.keyboard import GenericKeyboardEmulation
 from plover.machine.keyboard_capture import Capture
@@ -38,8 +39,6 @@ BASE_LAYOUT = {
     "0": e.KEY_0,
     # Symbols
     " ": e.KEY_SPACE,
-    ".": e.KEY_DOT,
-    ",": e.KEY_COMMA,
     "\b": e.KEY_BACKSPACE,
     "\n": e.KEY_ENTER,
     # https://github.com/openstenoproject/plover/blob/9b5a357f1fb57cb0a9a8596ae12cd1e84fcff6c4/plover/oslayer/osx/keyboardcontrol.py#L75
@@ -50,6 +49,28 @@ BASE_LAYOUT = {
     "delete": e.KEY_DELETE,
     "escape": e.KEY_ESC,
     "clear": e.KEY_CLEAR,
+    "minus": e.KEY_MINUS,
+    "equal": e.KEY_EQUAL,
+    "bracketleft": e.KEY_LEFTBRACE,
+    "bracketright": e.KEY_RIGHTBRACE,
+    "backslash": e.KEY_BACKSLASH,
+    "semicolon": e.KEY_SEMICOLON,
+    "apostrophe": e.KEY_APOSTROPHE,
+    "comma": e.KEY_COMMA,
+    "dot": e.KEY_DOT,
+    "slash": e.KEY_SLASH,
+    "grave": e.KEY_GRAVE,
+    "-": e.KEY_MINUS,
+    "=": e.KEY_EQUAL,
+    "[": e.KEY_LEFTBRACE,
+    "]": e.KEY_RIGHTBRACE,
+    "\\": e.KEY_BACKSLASH,
+    ";": e.KEY_SEMICOLON,
+    "'": e.KEY_APOSTROPHE,
+    ",": e.KEY_COMMA,
+    ".": e.KEY_DOT,
+    "/": e.KEY_SLASH,
+    "`": e.KEY_GRAVE,
     # Navigation
     "up": e.KEY_UP,
     "down": e.KEY_DOWN,
@@ -254,15 +275,50 @@ LAYOUTS = {
         "k": e.KEY_N,
         "h": e.KEY_M,
     },
+    "dvorak": {
+        **BASE_LAYOUT,
+        # Top row
+        "'": e.KEY_Q,
+        ",": e.KEY_W,
+        ".": e.KEY_E,
+        "p": e.KEY_R,
+        "y": e.KEY_T,
+        "f": e.KEY_Y,
+        "g": e.KEY_U,
+        "c": e.KEY_I,
+        "r": e.KEY_O,
+        "l": e.KEY_P,
+        "/": e.KEY_LEFTBRACE,
+        "=": e.KEY_RIGHTBRACE,
+        # Middle row
+        "a": e.KEY_A,
+        "o": e.KEY_S,
+        "e": e.KEY_D,
+        "u": e.KEY_F,
+        "i": e.KEY_G,
+        "d": e.KEY_H,
+        "h": e.KEY_J,
+        "t": e.KEY_K,
+        "n": e.KEY_L,
+        "s": e.KEY_SEMICOLON,
+        "-": e.KEY_APOSTROPHE,
+        # Bottom row
+        ";": e.KEY_Z,
+        "q": e.KEY_X,
+        "j": e.KEY_C,
+        "k": e.KEY_V,
+        "x": e.KEY_B,
+        "b": e.KEY_N,
+        "m": e.KEY_M,
+        "w": e.KEY_COMMA,
+        "v": e.KEY_DOT,
+        "z": e.KEY_SLASH,
+    },
 }
 
-us_qwerty = {
-    **LAYOUTS[DEFAULT_LAYOUT],
-    ";": e.KEY_SEMICOLON,
-    "'": e.KEY_APOSTROPHE,
-    "[": e.KEY_LEFTBRACE,
-}
-KEYCODE_TO_KEY = dict(zip(us_qwerty.values(), us_qwerty.keys()))
+KEYCODE_TO_KEY = dict(
+    zip(LAYOUTS[DEFAULT_LAYOUT].values(), LAYOUTS[DEFAULT_LAYOUT].keys())
+)
 
 
 class KeyboardEmulation(GenericKeyboardEmulation):
@@ -271,6 +327,12 @@ class KeyboardEmulation(GenericKeyboardEmulation):
         # Initialize UInput with all keys available
         self._res = util.find_ecodes_by_regex(r"KEY_.*")
         self._ui = UInput(self._res)
+
+        # Check that ibus or fcitx5 is running
+        if not any(p.name() in ["ibus-daemon", "fcitx5"] for p in process_iter()):
+            log.warning(
+                "It appears that an input method, such as ibus or fcitx5, is not running on your system. Without this, some text may not be output correctly."
+            )
 
     def _update_layout(self, layout):
         if not layout in LAYOUTS:
@@ -307,7 +369,7 @@ class KeyboardEmulation(GenericKeyboardEmulation):
         self.delay()
         self.send_string(hex)
         self.delay()
-        self._send_char("\n")
+        self._send_char(" ")
 
     def _send_char(self, char):
         (base, mods) = self._get_key(char)
@@ -371,21 +433,54 @@ class KeyboardCapture(Capture):
         Filter out devices that should not be grabbed and suppressed, to avoid output feeding into itself.
         """
         is_uinput = device.name == "py-evdev-uinput" or device.phys == "py-evdev-uinput"
-        capabilities = device.capabilities()
-        is_mouse = e.EV_REL in capabilities or e.EV_ABS in capabilities
-        return not is_uinput and not is_mouse
+        # Check for some common keys to make sure it's really a keyboard
+        keys = device.capabilities().get(e.EV_KEY, [])
+        keyboard_keys_present = any(
+            key in keys
+            for key in [e.KEY_ESC, e.KEY_SPACE, e.KEY_ENTER, e.KEY_LEFTSHIFT]
+        )
+        return not is_uinput and keyboard_keys_present
+
+    def _grab_devices(self):
+        """Grab all devices, waiting for each device to stop having keys pressed.
+
+        If a device is grabbed when keys are being pressed, the key will
+        appear to be always pressed down until the device is ungrabbed and the
+        key is pressed again.
+        See https://stackoverflow.com/questions/41995349/why-does-ioctlfd-eviocgrab-1-cause-key-spam-sometimes
+        There is likely a race condition here between checking active keys and
+        actually grabbing the device, but it appears to work fine.
+        """
+        for device in self._devices.values():
+            if len(device.active_keys()) > 0:
+                for _ in device.read_loop():
+                    if len(device.active_keys()) == 0:
+                        # No keys are pressed. Grab the device
+                        break
+            device.grab()
+
+    def _ungrab_devices(self):
+        """Ungrab all devices. Handles all exceptions when ungrabbing."""
+        for device in self._devices.values():
+            try:
+                device.ungrab()
+            except:
+                log.debug("failed to ungrab device", exc_info=True)
 
     def start(self):
+        try:
+            self._grab_devices()
+        except Exception as e:
+            self._ungrab_devices()
+            raise
         self._running = True
         self._thread = threading.Thread(target=self._run)
         self._thread.start()
 
     def cancel(self):
         self._running = False
-        [dev.ungrab() for dev in self._devices.values()]
         if self._thread is not None:
             self._thread.join()
-        self._ui.close()
 
     def suppress(self, suppressed_keys=()):
         """
@@ -396,23 +491,32 @@ class KeyboardCapture(Capture):
         self._suppressed_keys = suppressed_keys
 
     def _run(self):
-        [dev.grab() for dev in self._devices.values()]
-        while self._running:
-            """
-            The select() call blocks the loop until it gets an input, which meant that the keyboard
-            had to be pressed once after executing `cancel()`. Now, there is a 1 second delay instead
-            FIXME: maybe use one of the other options to avoid the timeout
-            https://python-evdev.readthedocs.io/en/latest/tutorial.html#reading-events-from-multiple-devices-using-select
-            """
-            r, _, _ = select(self._devices, [], [], 1)
-            for fd in r:
-                for event in self._devices[fd].read():
-                    if event.type == e.EV_KEY:
-                        if event.code in KEYCODE_TO_KEY:
-                            key_name = KEYCODE_TO_KEY[event.code]
-                            if key_name in self._suppressed_keys:
-                                pressed = event.value == 1
-                                (self.key_down if pressed else self.key_up)(key_name)
-                                continue  # Go to the next iteration, skipping the below code:
-                    self._ui.write(e.EV_KEY, event.code, event.value)
-                    self._ui.syn()
+        try:
+            while self._running:
+                """
+                The select() call blocks the loop until it gets an input, which meant that the keyboard
+                had to be pressed once after executing `cancel()`. Now, there is a 1 second delay instead
+                FIXME: maybe use one of the other options to avoid the timeout
+                https://python-evdev.readthedocs.io/en/latest/tutorial.html#reading-events-from-multiple-devices-using-select
+                """
+                r, _, _ = select(self._devices, [], [], 1)
+                for fd in r:
+                    for event in self._devices[fd].read():
+                        if event.type == e.EV_KEY:
+                            if event.code in KEYCODE_TO_KEY:
+                                key_name = KEYCODE_TO_KEY[event.code]
+                                if key_name in self._suppressed_keys:
+                                    pressed = event.value == 1
+                                    (self.key_down if pressed else self.key_up)(
+                                        key_name
+                                    )
+                                    continue  # Go to the next iteration, skipping the below code:
+                        self._ui.write(e.EV_KEY, event.code, event.value)
+                        self._ui.syn()
+        except:
+            log.error("keyboard capture error", exc_info=True)
+        finally:
+            # Always ungrab devices to prevent exceptions in the _run loop
+            # from causing grabbed input devices to be blocked
+            self._ungrab_devices()
+            self._ui.close()

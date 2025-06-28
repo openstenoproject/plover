@@ -1,38 +1,28 @@
 #!/usr/bin/env python3
 
 import os
-import shutil
 import sys
-import zipfile
-
-from .download import download
-from .install_wheels import WHEELS_CACHE, install_wheels
-
-
-PIP_VERSION = '21.3.1'
-PIP_WHEEL_URL = 'https://files.pythonhosted.org/packages/a4/6d/6463d49a933f547439d6b5b98b46af8742cc03ae83543e4d7688c2420f8b/pip-21.3.1-py3-none-any.whl'
-PIP_INSTALL = os.path.join('.cache', 'pip', PIP_VERSION)
+import subprocess
 
 
 def get_pip(args=None):
-    # Download the wheel.
-    pip_wheel = download(PIP_WHEEL_URL, downloads_dir=WHEELS_CACHE)
-    # "Install" it (can't run directly from it because of the PEP 517 code).
-    if not os.path.exists(PIP_INSTALL):
-        os.makedirs(PIP_INSTALL)
-        # Extract it.
-        with zipfile.ZipFile(pip_wheel) as z:
-            z.extractall(PIP_INSTALL)
-        # Get rid of the info metadata.
-        shutil.rmtree(os.path.join(PIP_INSTALL, 'pip-%s.dist-info' % PIP_VERSION))
-    # If no arguments where passed, or only options arguments,
-    # automatically install pip / setuptools / wheel,
-    # otherwise, let the caller be in charge.
-    if args is None or not next((a for a in args if not a.startswith('-')), None):
-        args = (args or []) + [pip_wheel, 'setuptools', 'wheel']
-    # Run pip from the wheel we just got.
-    install_wheels(args, pip_install=os.path.join(PIP_INSTALL, 'pip'))
+    os.makedirs("build", exist_ok=True)
+
+    # can be downloaded from https://github.com/pypa/get-pip/tags by following the commit ID and opening the raw file
+    cmd = [
+        "curl",
+        "https://raw.githubusercontent.com/pypa/get-pip/c8048075753de535e6279e501940f41bc040c081/public/get-pip.py",
+        "-o",
+        "build/get-pip.py",
+    ]
+    subprocess.call(cmd)
+    cmd = [sys.executable, "build/get-pip.py", "pip==25.1"]
+    subprocess.call(cmd)
+    if args:
+        cmd = [sys.executable, "-m", "pip", "install"] + args
+        print("running", " ".join(cmd), flush=True)
+        subprocess.check_call(cmd)
 
 
-if __name__ == '__main__':
+if __name__ == "__main__":
     get_pip(sys.argv[1:])
