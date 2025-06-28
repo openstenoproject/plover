@@ -177,8 +177,9 @@ def test_engine_lifecycle(engine):
 
 def test_loading_dictionaries(tmp_path, engine):
     def check_loaded_events(actual_events, expected_events):
-        assert len(actual_events) == len(expected_events)
-        for n, event in enumerate(actual_events):
+        filtered_events = [event for event in actual_events if event[0] != "dictionary_state_changed"]
+        assert len(filtered_events) == len(expected_events)
+        for n, event in enumerate(filtered_events):
             event_type, event_args, event_kwargs = event
             msg = "event %u: %r" % (n, event)
             assert event_type == "dictionaries_loaded", msg
@@ -235,7 +236,7 @@ def test_loading_dictionaries(tmp_path, engine):
                     (invalid_dict_1, True, True),
                 ],
             ],
-            # Replace invalid dictonary with another invalid one.
+            # Replace invalid dictionary with another invalid one.
             [
                 [
                     (valid_dict_1, False),

@@ -118,7 +118,9 @@ class StenoEngine:
         self._translator.add_listener(log.translation)
         self._translator.add_listener(self._formatter.format)
         self._dictionaries = self._translator.get_dictionary()
-        self._dictionaries_manager = DictionaryLoadingManager(functools.partial(self._trigger_hook, "dictionary_state_changed"))
+        self._dictionaries_manager = DictionaryLoadingManager(
+            functools.partial(self._trigger_hook, "dictionary_state_changed")
+        )
         self._running_state = self._translator.get_state()
         self._translator.clear_state()
         self._keyboard_emulation = keyboard_emulation

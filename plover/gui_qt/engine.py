@@ -14,8 +14,12 @@ class Engine(StenoEngine, QThread):
     signal_machine_state_changed = Signal(str, str)
     signal_output_changed = Signal(bool)
     signal_config_changed = Signal(object)
-    signal_dictionary_state_changed = Signal(str, object)  # Some dictionary has finished loading. Refer to class DictionaryLoadingManager for argument description.
-    signal_dictionaries_loaded = Signal(object)  # All dictionaries are loaded. Argument is a StenoDictionaryCollection instance.
+    signal_dictionary_state_changed = Signal(
+        str, object
+    )  # Some dictionary has finished loading. Refer to class DictionaryLoadingManager for argument description.
+    signal_dictionaries_loaded = Signal(
+        object
+    )  # All dictionaries are loaded. Argument is a StenoDictionaryCollection instance.
     signal_send_string = Signal(str)
     signal_send_backspaces = Signal(int)
     signal_send_key_combination = Signal(str)

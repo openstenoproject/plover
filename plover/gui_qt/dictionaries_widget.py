@@ -132,7 +132,9 @@ class DictionariesModel(QAbstractListModel):
             config = engine.config
             engine.signal_connect("config_changed", self._on_config_changed)
             engine.signal_connect("dictionaries_loaded", self._on_dictionaries_loaded)
-            engine.signal_connect("dictionary_state_changed", self._on_dictionary_state_changed)
+            engine.signal_connect(
+                "dictionary_state_changed", self._on_dictionary_state_changed
+            )
             self._reset_items(
                 config["dictionaries"],
                 config["classic_dictionaries_display_order"],
