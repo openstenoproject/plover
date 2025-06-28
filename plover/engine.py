@@ -1,13 +1,13 @@
 from collections import namedtuple, OrderedDict
 from functools import wraps
 from queue import Queue
+import functools
 import os
 import shutil
 import threading
 
 from plover import log, system
 from plover.dictionary.loading_manager import DictionaryLoadingManager
-from plover.exception import DictionaryLoaderException
 from plover.formatting import Formatter
 from plover.misc import shorten_path
 from plover.registry import registry
@@ -83,6 +83,7 @@ class StenoEngine:
     output_changed
     config_changed
     dictionaries_loaded
+    dictionary_state_changed
     send_string
     send_backspaces
     send_key_combination
@@ -117,7 +118,7 @@ class StenoEngine:
         self._translator.add_listener(log.translation)
         self._translator.add_listener(self._formatter.format)
         self._dictionaries = self._translator.get_dictionary()
-        self._dictionaries_manager = DictionaryLoadingManager()
+        self._dictionaries_manager = DictionaryLoadingManager(functools.partial(self._trigger_hook, "dictionary_state_changed"))
         self._running_state = self._translator.get_state()
         self._translator.clear_state()
         self._keyboard_emulation = keyboard_emulation
@@ -282,18 +283,15 @@ class StenoEngine:
         )
         # And then (re)load all dictionaries.
         dictionaries = []
-        for result in self._dictionaries_manager.load(config_dictionaries.keys()):
-            if isinstance(result, DictionaryLoaderException):
-                d = ErroredDictionary(result.path, result.exception)
+        for d in self._dictionaries_manager.load(config_dictionaries.keys()):
+            if isinstance(d, ErroredDictionary):
                 # Only show an error if it's new.
-                if d != self._dictionaries.get(result.path):
+                if d != self._dictionaries.get(d.path):
                     log.error(
                         "loading dictionary `%s` failed: %s",
-                        shorten_path(result.path),
-                        str(result.exception),
+                        shorten_path(d.path),
+                        str(d.exception),
                     )
-            else:
-                d = result
             d.enabled = config_dictionaries[d.path].enabled
             dictionaries.append(d)
         self._set_dictionaries(dictionaries)
