@@ -149,7 +149,7 @@ class PaperTape(Tool, Ui_PaperTape):
             self.action_Clear,
             self.action_Save,
         ]
-        if not utils.is_wayland:
+        if not utils.is_wayland():
             # Wayland does not support window on top.
             actions.insert(0, self.action_ToggleOnTop)
 

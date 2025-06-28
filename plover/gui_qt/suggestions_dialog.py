@@ -49,7 +49,7 @@ class SuggestionsDialog(Tool, Ui_SuggestionsDialog):
             self.action_SelectFont,
             self.action_Clear,
         ]
-        if not utils.is_wayland:
+        if not utils.is_wayland():
             # Wayland does not support window on top.
             actions.insert(0, self.action_ToggleOnTop)
 
