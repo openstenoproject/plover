@@ -57,7 +57,7 @@ requests-cache==1.2.1
 requests-futures==1.0.2
 requests-toolbelt==1.0.0
 rfc3986==2.0.0
-rtf-tokenize==1.0.0
+rtf-tokenize==1.0.1
 ruff==0.12.1 # also update .pre-commit-config.yaml
 SecretStorage==3.3.3
 setuptools==79.0.0
