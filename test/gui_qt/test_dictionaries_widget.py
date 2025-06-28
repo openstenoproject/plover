@@ -222,7 +222,11 @@ def model_test(monkeypatch, request):
     """.split():
         getattr(model, slot).connect(getattr(signals, slot))
     connections = dict(call.args for call in engine.signal_connect.mock_calls)
-    assert connections.keys() == {"config_changed", "dictionaries_loaded", "dictionary_state_changed"}
+    assert connections.keys() == {
+        "config_changed",
+        "dictionaries_loaded",
+        "dictionary_state_changed",
+    }
     config.reset_mock()
     engine.reset_mock()
     # Test helper.
