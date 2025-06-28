@@ -1,4 +1,3 @@
-
 from plover.steno import Stroke
 
 

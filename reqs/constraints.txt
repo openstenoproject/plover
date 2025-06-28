@@ -35,6 +35,7 @@ pkginfo==1.12.1.2
 plover-stroke==1.1.0
 pluggy==1.5.0
 plyer==2.1.0
+pre-commit==4.2.0
 psutil==7.0.0
 py==1.11.0
 pycparser==2.22
@@ -57,12 +58,14 @@ requests-futures==1.0.2
 requests-toolbelt==1.0.0
 rfc3986==2.0.0
 rtf-tokenize==1.0.0
+ruff==0.12.1 # also update .pre-commit-config.yaml
 SecretStorage==3.3.3
 setuptools==79.0.0
 six==1.17.0
 toml==0.10.2
 tomli==2.2.1
 towncrier==24.8.0
+tox==4.27.0
 tqdm==4.67.1
 twine==6.1.0
 url-normalize==2.2.0

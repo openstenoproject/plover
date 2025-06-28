@@ -58,7 +58,8 @@ else:
     'versions mismatch: expected=%s, actual=%s' % (target_python, python_version)
 
 print(f'{name}_py-{python_version}_{platform_name}')
-EOF)
+EOF
+)
   echo "cache_name=$cache_name" >> $GITHUB_OUTPUT
 }
 

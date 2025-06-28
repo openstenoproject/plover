@@ -31,6 +31,7 @@ from plover.system import english_stenotype
 def dedent_strip(s):
     return textwrap.dedent(s).strip()
 
+
 def dict_replace(d, update):
     d = dict(d)
     d.update(update)
@@ -38,8 +39,7 @@ def dict_replace(d, update):
 
 
 class FakeMachine:
-
-    KEYMAP_MACHINE_TYPE = 'Keyboard'
+    KEYMAP_MACHINE_TYPE = "Keyboard"
 
     def get_keys():
         return Keyboard.get_keys()
@@ -49,17 +49,20 @@ class FakeMachine:
 
     @staticmethod
     def get_option_info():
-        bool_converter = lambda s: s == 'True'
+        bool_converter = lambda s: s == "True"
         return {
-            'stroption1': (None, str),
-            'intoption1': (3, int),
-            'stroption2': ('abc', str),
-            'floatoption1': (1, float),
-            'booloption1': (True, bool_converter),
-            'booloption2': (False, bool_converter)
+            "stroption1": (None, str),
+            "intoption1": (3, int),
+            "stroption2": ("abc", str),
+            "floatoption1": (1, float),
+            "booloption1": (True, bool_converter),
+            "booloption2": (False, bool_converter),
         }
 
-FakeMachine.DEFAULT_OPTIONS = {k: v[0] for k, v in FakeMachine.get_option_info().items()}
+
+FakeMachine.DEFAULT_OPTIONS = {
+    k: v[0] for k, v in FakeMachine.get_option_info().items()
+}
 
 
 class FakeSystem:
@@ -73,14 +76,14 @@ class FakeSystem:
     ORTHOGRAPHY_RULES_ALIASES = {}
     ORTHOGRAPHY_WORDLIST = None
     KEYMAPS = {
-        'Faky faky': english_stenotype.KEYMAPS['Keyboard'],
+        "Faky faky": english_stenotype.KEYMAPS["Keyboard"],
     }
-    DEFAULT_DICTIONARIES = ('utilisateur.json', 'principal.json')
+    DEFAULT_DICTIONARIES = ("utilisateur.json", "principal.json")
 
 
 def test_config_dict():
-    short_path = os.path.normcase(os.path.normpath('~/foo/bar'))
-    full_path = os.path.normcase(os.path.expanduser(os.path.normpath('~/foo/bar')))
+    short_path = os.path.normcase(os.path.normpath("~/foo/bar"))
+    full_path = os.path.normcase(os.path.expanduser(os.path.normpath("~/foo/bar")))
     # Path should be expanded.
     assert DictionaryConfig(short_path).path == full_path
     assert DictionaryConfig(full_path).path == full_path
@@ -88,132 +91,155 @@ def test_config_dict():
     assert DictionaryConfig(full_path).short_path == short_path
     assert DictionaryConfig(short_path).short_path == short_path
     # Enabled default to True.
-    assert DictionaryConfig('foo').enabled
-    assert not DictionaryConfig('foo', False).enabled
+    assert DictionaryConfig("foo").enabled
+    assert not DictionaryConfig("foo", False).enabled
     # When converting to a dict (for dumping to JSON),
     # a dictionary with the shortened path is used.
-    assert DictionaryConfig(full_path).to_dict() == \
-            {'path': short_path, 'enabled': True}
-    assert DictionaryConfig(short_path, False).to_dict() == \
-            {'path': short_path, 'enabled': False}
+    assert DictionaryConfig(full_path).to_dict() == {
+        "path": short_path,
+        "enabled": True,
+    }
+    assert DictionaryConfig(short_path, False).to_dict() == {
+        "path": short_path,
+        "enabled": False,
+    }
     # Test from_dict creation helper.
-    assert DictionaryConfig.from_dict({'path': short_path}) == \
-            DictionaryConfig(short_path)
-    assert DictionaryConfig.from_dict({'path': full_path, 'enabled': False}) == \
-            DictionaryConfig(short_path, False)
+    assert DictionaryConfig.from_dict({"path": short_path}) == DictionaryConfig(
+        short_path
+    )
+    assert DictionaryConfig.from_dict(
+        {"path": full_path, "enabled": False}
+    ) == DictionaryConfig(short_path, False)
 
 
-if PLATFORM == 'win':
-    ABS_PATH = os.path.normcase(r'c:/foo/bar')
+if PLATFORM == "win":
+    ABS_PATH = os.path.normcase(r"c:/foo/bar")
 else:
-    ABS_PATH = '/foo/bar'
+    ABS_PATH = "/foo/bar"
 
-DEFAULT_KEYMAP = Keymap(Keyboard.get_keys(), english_stenotype.KEYS + Keyboard.get_actions())
-DEFAULT_KEYMAP.set_mappings(english_stenotype.KEYMAPS['Keyboard'])
+DEFAULT_KEYMAP = Keymap(
+    Keyboard.get_keys(), english_stenotype.KEYS + Keyboard.get_actions()
+)
+DEFAULT_KEYMAP.set_mappings(english_stenotype.KEYMAPS["Keyboard"])
 
 DEFAULTS = {
-    'space_placement': 'Before Output',
-    'start_attached': False,
-    'start_capitalized': False,
-    'undo_levels': config.DEFAULT_UNDO_LEVELS,
-    'log_file_name': expand_path('strokes.log'),
-    'enable_stroke_logging': False,
-    'enable_translation_logging': False,
-    'start_minimized': False,
-    'show_stroke_display': False,
-    'show_suggestions_display': False,
-    'translation_frame_opacity': 100,
-    'classic_dictionaries_display_order': False,
-    'enabled_extensions': set(),
-    'auto_start': False,
-    'machine_type': 'Keyboard',
-    'machine_specific_options': { 'arpeggiate': False, 'first_up_chord_send': False },
-    'system_name': config.DEFAULT_SYSTEM_NAME,
-    'system_keymap': DEFAULT_KEYMAP,
-    'dictionaries': [DictionaryConfig(p) for p in english_stenotype.DEFAULT_DICTIONARIES]
+    "space_placement": "Before Output",
+    "start_attached": False,
+    "start_capitalized": False,
+    "undo_levels": config.DEFAULT_UNDO_LEVELS,
+    "log_file_name": expand_path("strokes.log"),
+    "enable_stroke_logging": False,
+    "enable_translation_logging": False,
+    "start_minimized": False,
+    "show_stroke_display": False,
+    "show_suggestions_display": False,
+    "translation_frame_opacity": 100,
+    "classic_dictionaries_display_order": False,
+    "enabled_extensions": set(),
+    "auto_start": False,
+    "machine_type": "Keyboard",
+    "machine_specific_options": {"arpeggiate": False, "first_up_chord_send": False},
+    "system_name": config.DEFAULT_SYSTEM_NAME,
+    "system_keymap": DEFAULT_KEYMAP,
+    "dictionaries": [
+        DictionaryConfig(p) for p in english_stenotype.DEFAULT_DICTIONARIES
+    ],
 }
 
 CONFIG_TESTS = (
-
-    ('defaults',
-     '''
-     ''',
-     DEFAULTS,
-     {}, {},
-     '''
-     ''',
+    (
+        "defaults",
+        """
+     """,
+        DEFAULTS,
+        {},
+        {},
+        """
+     """,
     ),
-
-    ('simple_options',
-     '''
+    (
+        "simple_options",
+        """
      [Output Configuration]
      space_placement = After Output
      start_attached = true
      start_capitalized = yes
      undo_levels = 42
-     ''',
-     dict_replace(DEFAULTS, {
-         'space_placement': 'After Output',
-         'start_attached': True,
-         'start_capitalized': True,
-         'undo_levels': 42,
-     }),
-     {
-         'space_placement': 'Before Output',
-         'start_attached': False,
-         'start_capitalized': False,
-         'undo_levels': 200,
-     },
-     None,
-     '''
+     """,
+        dict_replace(
+            DEFAULTS,
+            {
+                "space_placement": "After Output",
+                "start_attached": True,
+                "start_capitalized": True,
+                "undo_levels": 42,
+            },
+        ),
+        {
+            "space_placement": "Before Output",
+            "start_attached": False,
+            "start_capitalized": False,
+            "undo_levels": 200,
+        },
+        None,
+        """
      [Output Configuration]
      space_placement = Before Output
      start_attached = False
      start_capitalized = False
      undo_levels = 200
-     ''',
+     """,
     ),
-
-    ('machine_options',
-     '''
+    (
+        "machine_options",
+        """
      [Machine Configuration]
      auto_start = True
      machine_type = keyboard
 
      [Keyboard]
      arpeggiate = True
-     ''',
-     dict_replace(DEFAULTS, {
-         'auto_start': True,
-         'machine_specific_options': dict_replace(
-             DEFAULTS['machine_specific_options'], {
-                 'arpeggiate': True,
-             }),
-     }),
-     {
-         'machine_type': 'faKY FAky',
-         'machine_specific_options': {
-                 'stroption1': 42,
-                 'floatoption1': '4.2',
-                 'booloption1': False,
-         },
-         'system_name': 'FAUX SYSTÈME',
-         'system_keymap': str(DEFAULT_KEYMAP),
-     },
-     {
-         'machine_type': 'Faky faky',
-         'machine_specific_options': dict_replace(
-             FakeMachine.DEFAULT_OPTIONS, {
-                 'stroption1': '42',
-                 'floatoption1': 4.2,
-                 'booloption1': False,
-             }),
-         'system_name': 'Faux système',
-         'system_keymap': DEFAULT_KEYMAP,
-         'dictionaries': [DictionaryConfig('utilisateur.json'),
-                          DictionaryConfig('principal.json')],
-     },
-     '''
+     """,
+        dict_replace(
+            DEFAULTS,
+            {
+                "auto_start": True,
+                "machine_specific_options": dict_replace(
+                    DEFAULTS["machine_specific_options"],
+                    {
+                        "arpeggiate": True,
+                    },
+                ),
+            },
+        ),
+        {
+            "machine_type": "faKY FAky",
+            "machine_specific_options": {
+                "stroption1": 42,
+                "floatoption1": "4.2",
+                "booloption1": False,
+            },
+            "system_name": "FAUX SYSTÈME",
+            "system_keymap": str(DEFAULT_KEYMAP),
+        },
+        {
+            "machine_type": "Faky faky",
+            "machine_specific_options": dict_replace(
+                FakeMachine.DEFAULT_OPTIONS,
+                {
+                    "stroption1": "42",
+                    "floatoption1": 4.2,
+                    "booloption1": False,
+                },
+            ),
+            "system_name": "Faux système",
+            "system_keymap": DEFAULT_KEYMAP,
+            "dictionaries": [
+                DictionaryConfig("utilisateur.json"),
+                DictionaryConfig("principal.json"),
+            ],
+        },
+        """
      [Machine Configuration]
      auto_start = True
      machine_type = Faky faky
@@ -234,252 +260,299 @@ CONFIG_TESTS = (
 
      [System: Faux système]
      keymap[faky faky] = %s
-     ''' % DEFAULT_KEYMAP,
+     """
+        % DEFAULT_KEYMAP,
     ),
-
-    ('machine_bool_option',
-     '''
-     ''',
-     DEFAULTS,
-     {
-         'machine_specific_options': {
-                 'arpeggiate': True,
-         },
-     },
-     {
-         'machine_specific_options': {
-             'arpeggiate': True,
-             'first_up_chord_send': False,
-         }
-     },
-     '''
+    (
+        "machine_bool_option",
+        """
+     """,
+        DEFAULTS,
+        {
+            "machine_specific_options": {
+                "arpeggiate": True,
+            },
+        },
+        {
+            "machine_specific_options": {
+                "arpeggiate": True,
+                "first_up_chord_send": False,
+            }
+        },
+        """
      [Keyboard]
      arpeggiate = True
      first_up_chord_send = False
-     '''
+     """,
     ),
-
-    ('legacy_dictionaries_1',
-     '''
+    (
+        "legacy_dictionaries_1",
+        """
      [Dictionary Configuration]
      dictionary_file = main.json
-     ''',
-     dict_replace(DEFAULTS, {
-         'dictionaries': [DictionaryConfig('main.json')],
-     }),
-     {
-         'dictionaries': ['user.json', 'main.json'],
-     },
-     {
-         'dictionaries': [DictionaryConfig('user.json'),
-                          DictionaryConfig('main.json')],
-     },
-     '''
+     """,
+        dict_replace(
+            DEFAULTS,
+            {
+                "dictionaries": [DictionaryConfig("main.json")],
+            },
+        ),
+        {
+            "dictionaries": ["user.json", "main.json"],
+        },
+        {
+            "dictionaries": [
+                DictionaryConfig("user.json"),
+                DictionaryConfig("main.json"),
+            ],
+        },
+        """
      [System: English Stenotype]
      dictionaries = [{"enabled": true, "path": "user.json"}, {"enabled": true, "path": "main.json"}]
-     '''
+     """,
     ),
-
-    ('legacy_dictionaries_2',
-     '''
+    (
+        "legacy_dictionaries_2",
+        """
      [Dictionary Configuration]
      dictionary_file1 = main.json
      dictionary_file3 = user.json
-     ''',
-     dict_replace(DEFAULTS, {
-         'dictionaries': [DictionaryConfig('user.json'),
-                          DictionaryConfig('main.json')],
-     }),
-     {
-         'dictionaries': ['user.json', 'commands.json', 'main.json'],
-     },
-     {
-         'dictionaries': [DictionaryConfig('user.json'),
-                          DictionaryConfig('commands.json'),
-                          DictionaryConfig('main.json')],
-     },
-     '''
+     """,
+        dict_replace(
+            DEFAULTS,
+            {
+                "dictionaries": [
+                    DictionaryConfig("user.json"),
+                    DictionaryConfig("main.json"),
+                ],
+            },
+        ),
+        {
+            "dictionaries": ["user.json", "commands.json", "main.json"],
+        },
+        {
+            "dictionaries": [
+                DictionaryConfig("user.json"),
+                DictionaryConfig("commands.json"),
+                DictionaryConfig("main.json"),
+            ],
+        },
+        """
      [System: English Stenotype]
      dictionaries = [{"enabled": true, "path": "user.json"}, {"enabled": true, "path": "commands.json"}, {"enabled": true, "path": "main.json"}]
-     '''
+     """,
     ),
-
-    ('dictionaries',
-     '''
+    (
+        "dictionaries",
+        """
      [System: English Stenotype]
      dictionaries = %s
-     ''' % json.dumps([os.path.join(ABS_PATH, 'user.json'),
-                       "english/main.json"]),
-     dict_replace(DEFAULTS, {
-         'dictionaries': [DictionaryConfig(os.path.join(ABS_PATH, 'user.json')),
-                          DictionaryConfig('english/main.json')],
-     }),
-     {
-         'dictionaries': [DictionaryConfig(os.path.join(ABS_PATH, 'user.json')),
-                          DictionaryConfig('english/main.json')],
-     },
-     {
-         'dictionaries': [DictionaryConfig(os.path.join(ABS_PATH, 'user.json')),
-                          DictionaryConfig('english/main.json')],
-     },
-     '''
+     """
+        % json.dumps([os.path.join(ABS_PATH, "user.json"), "english/main.json"]),
+        dict_replace(
+            DEFAULTS,
+            {
+                "dictionaries": [
+                    DictionaryConfig(os.path.join(ABS_PATH, "user.json")),
+                    DictionaryConfig("english/main.json"),
+                ],
+            },
+        ),
+        {
+            "dictionaries": [
+                DictionaryConfig(os.path.join(ABS_PATH, "user.json")),
+                DictionaryConfig("english/main.json"),
+            ],
+        },
+        {
+            "dictionaries": [
+                DictionaryConfig(os.path.join(ABS_PATH, "user.json")),
+                DictionaryConfig("english/main.json"),
+            ],
+        },
+        """
      [System: English Stenotype]
      dictionaries = %s
-     ''' % json.dumps([{"enabled": True, "path": os.path.join(ABS_PATH, 'user.json')},
-                       {"enabled": True, "path": os.path.join('english', 'main.json')}],
-                      sort_keys=True)
+     """
+        % json.dumps(
+            [
+                {"enabled": True, "path": os.path.join(ABS_PATH, "user.json")},
+                {"enabled": True, "path": os.path.join("english", "main.json")},
+            ],
+            sort_keys=True,
+        ),
     ),
-
-    ('invalid_config',
-     '''
+    (
+        "invalid_config",
+        """
      [Startup]
      Start Minimized = True
 
      [Machine Configuratio
      machine_type = Faky faky
-     ''',
-     config.InvalidConfigurationError,
-     {},
-     {},
-     '''
-     '''
+     """,
+        config.InvalidConfigurationError,
+        {},
+        {},
+        """
+     """,
     ),
-
-    ('invalid_keymap_1',
-     '''
+    (
+        "invalid_keymap_1",
+        """
      [System: English Stenotype]
      keymap[keyboard] = [["_-"]]
-     ''',
-     DEFAULTS,
-     {},
-     {},
-     None,
+     """,
+        DEFAULTS,
+        {},
+        {},
+        None,
     ),
-
-    ('invalid_keymap_2',
-     '''
+    (
+        "invalid_keymap_2",
+        """
      [System: English Stenotype]
      keymap[keyboard] = 42
-     ''',
-     DEFAULTS,
-     {},
-     {},
-     None,
+     """,
+        DEFAULTS,
+        {},
+        {},
+        None,
     ),
-
-    ('invalid_options_1',
-     '''
+    (
+        "invalid_options_1",
+        """
      [System]
      name = foobar
-     ''',
-     DEFAULTS,
-     {},
-     {},
-     None,
+     """,
+        DEFAULTS,
+        {},
+        {},
+        None,
     ),
-
-    ('invalid_options_2',
-     '''
+    (
+        "invalid_options_2",
+        """
      [Machine Configuration]
      machine_type = Faky faky
 
      [Faky faky]
      booloption2 = 50
      intoption1 = 3.14
-     ''',
-     dict_replace(DEFAULTS, {
-         'machine_type': 'Faky faky',
-         'machine_specific_options': FakeMachine.DEFAULT_OPTIONS,
-     }),
-     {},
-     {},
-     None,
+     """,
+        dict_replace(
+            DEFAULTS,
+            {
+                "machine_type": "Faky faky",
+                "machine_specific_options": FakeMachine.DEFAULT_OPTIONS,
+            },
+        ),
+        {},
+        {},
+        None,
     ),
-
-    ('invalid_options_3',
-     '''
+    (
+        "invalid_options_3",
+        """
      [Output Configuration]
      undo_levels = foobar
-     ''',
-     DEFAULTS,
-     {},
-     {},
-     None,
+     """,
+        DEFAULTS,
+        {},
+        {},
+        None,
     ),
-
-    ('invalid_update_1',
-     '''
+    (
+        "invalid_update_1",
+        """
      [Translation Frame]
      opacity = 75
-     ''',
-     dict_replace(DEFAULTS, {
-         'translation_frame_opacity': 75,
-     }),
-     {
-         'start_minimized': False,
-         'show_stroke_display': True,
-         'translation_frame_opacity': 101,
-     },
-     config.InvalidConfigOption,
-     None,
+     """,
+        dict_replace(
+            DEFAULTS,
+            {
+                "translation_frame_opacity": 75,
+            },
+        ),
+        {
+            "start_minimized": False,
+            "show_stroke_display": True,
+            "translation_frame_opacity": 101,
+        },
+        config.InvalidConfigOption,
+        None,
     ),
-
-    ('invalid_update_2',
-     '''
-     ''',
-     DEFAULTS,
-     {
-         'machine_type': 'FakeMachine',
-         'machine_specific_options': dict_replace(
-             FakeMachine.DEFAULT_OPTIONS, {
-                 'stroption1': '42',
-             }),
-     },
-     config.InvalidConfigOption,
-     None,
+    (
+        "invalid_update_2",
+        """
+     """,
+        DEFAULTS,
+        {
+            "machine_type": "FakeMachine",
+            "machine_specific_options": dict_replace(
+                FakeMachine.DEFAULT_OPTIONS,
+                {
+                    "stroption1": "42",
+                },
+            ),
+        },
+        config.InvalidConfigOption,
+        None,
     ),
-
-    ('setitem_valid',
-     '''
-     ''',
-     DEFAULTS,
-     ('auto_start', True),
-     None,
-     '''
+    (
+        "setitem_valid",
+        """
+     """,
+        DEFAULTS,
+        ("auto_start", True),
+        None,
+        """
      [Machine Configuration]
      auto_start = True
-     '''
+     """,
     ),
-
-    ('setitem_invalid',
-     '''
-     ''',
-     DEFAULTS,
-     ('undo_levels', -42),
-     config.InvalidConfigOption,
-     '''
-     '''
+    (
+        "setitem_invalid",
+        """
+     """,
+        DEFAULTS,
+        ("undo_levels", -42),
+        config.InvalidConfigOption,
+        """
+     """,
     ),
 )
 
 
-@pytest.mark.parametrize(('original_contents', 'original_config',
-                          'config_update', 'validated_config_update',
-                          'resulting_contents'),
-                         [t[1:] for t in CONFIG_TESTS],
-                         ids=[t[0] for t in CONFIG_TESTS])
-def test_config(original_contents, original_config,
-                config_update, validated_config_update,
-                resulting_contents, monkeypatch, tmpdir):
+@pytest.mark.parametrize(
+    (
+        "original_contents",
+        "original_config",
+        "config_update",
+        "validated_config_update",
+        "resulting_contents",
+    ),
+    [t[1:] for t in CONFIG_TESTS],
+    ids=[t[0] for t in CONFIG_TESTS],
+)
+def test_config(
+    original_contents,
+    original_config,
+    config_update,
+    validated_config_update,
+    resulting_contents,
+    monkeypatch,
+    tmpdir,
+):
     registry = Registry()
-    registry.register_plugin('machine', 'Keyboard', Keyboard)
-    registry.register_plugin('machine', 'Faky faky', FakeMachine)
-    registry.register_plugin('system', 'English Stenotype', english_stenotype)
-    registry.register_plugin('system', 'Faux système', FakeSystem)
-    monkeypatch.setattr('plover.config.registry', registry)
-    config_file = tmpdir / 'config.cfg'
+    registry.register_plugin("machine", "Keyboard", Keyboard)
+    registry.register_plugin("machine", "Faky faky", FakeMachine)
+    registry.register_plugin("system", "English Stenotype", english_stenotype)
+    registry.register_plugin("system", "Faux système", FakeSystem)
+    monkeypatch.setattr("plover.config.registry", registry)
+    config_file = tmpdir / "config.cfg"
     # Check initial contents.
-    config_file.write_text(original_contents, encoding='utf-8')
+    config_file.write_text(original_contents, encoding="utf-8")
     cfg = config.Config(config_file.strpath)
     if inspect.isclass(original_config):
         with pytest.raises(original_config):
@@ -511,44 +584,50 @@ def test_config(original_contents, original_config,
                 key, value = validated_config_update
                 cfg_dict[key] = value
         assert cfg.as_dict() == cfg_dict
-    config_file.write_text('', encoding='utf-8')
+    config_file.write_text("", encoding="utf-8")
     cfg.save()
     if resulting_contents is None:
         resulting_contents = original_contents
-    assert config_file.read_text(encoding='utf-8').strip() == dedent_strip(resulting_contents)
+    assert config_file.read_text(encoding="utf-8").strip() == dedent_strip(
+        resulting_contents
+    )
 
 
 CONFIG_MISSING_INTS_TESTS = (
-    ('int_option',
-    config.OUTPUT_CONFIG_SECTION,
-    'undo_levels',
-    config.DEFAULT_UNDO_LEVELS,
+    (
+        "int_option",
+        config.OUTPUT_CONFIG_SECTION,
+        "undo_levels",
+        config.DEFAULT_UNDO_LEVELS,
     ),
-
-    ('opacity_option',
-    'Translation Frame',
-    'translation_frame_opacity',
-    100,
+    (
+        "opacity_option",
+        "Translation Frame",
+        "translation_frame_opacity",
+        100,
     ),
 )
 
 
-@pytest.mark.parametrize(('which_section', 'which_option', 'fixed_value'),
-                         [t[1:] for t in CONFIG_MISSING_INTS_TESTS],
-                         ids=[t[0] for t in CONFIG_MISSING_INTS_TESTS])
-def test_config_missing_ints(which_section, which_option, fixed_value,
-                               monkeypatch, tmpdir, caplog):
+@pytest.mark.parametrize(
+    ("which_section", "which_option", "fixed_value"),
+    [t[1:] for t in CONFIG_MISSING_INTS_TESTS],
+    ids=[t[0] for t in CONFIG_MISSING_INTS_TESTS],
+)
+def test_config_missing_ints(
+    which_section, which_option, fixed_value, monkeypatch, tmpdir, caplog
+):
     registry = Registry()
-    registry.register_plugin('machine', 'Keyboard', Keyboard)
-    registry.register_plugin('system', 'English Stenotype', english_stenotype)
-    monkeypatch.setattr('plover.config.registry', registry)
-    config_file = tmpdir / 'config.cfg'
+    registry.register_plugin("machine", "Keyboard", Keyboard)
+    registry.register_plugin("system", "English Stenotype", english_stenotype)
+    monkeypatch.setattr("plover.config.registry", registry)
+    config_file = tmpdir / "config.cfg"
 
     # Make config with the appropriate empty section
-    contents = f'''
+    contents = f"""
     [{which_section}]
-    '''
-    config_file.write_text(contents, encoding='utf-8')
+    """
+    config_file.write_text(contents, encoding="utf-8")
     cfg = config.Config(config_file.strpath)
     cfg.load()
 
@@ -557,101 +636,131 @@ def test_config_missing_ints(which_section, which_option, fixed_value,
     assert cfg[which_option] == fixed_value
 
     # Ensure that missing options are handled
-    assert 'InvalidConfigOption: None' not in caplog.text
+    assert "InvalidConfigOption: None" not in caplog.text
     # ... or any that there aren't any unhandled errors
     for record in caplog.records:
-        assert record.levelname != 'ERROR'
+        assert record.levelname != "ERROR"
 
 
 CONFIG_DIR_TESTS = (
     # Default to `user_config_dir`.
-    ('''
+    (
+        """
      $user_config_dir/foo.cfg
      $user_data_dir/bar.cfg
      $cwd/config.cfg
-     ''', '$user_config_dir'),
+     """,
+        "$user_config_dir",
+    ),
     # Use cwd if config file is present, override other directories.
-    ('''
+    (
+        """
      $user_config_dir/plover.cfg
      $user_data_dir/plover.cfg
      $cwd/plover.cfg
-     ''', '$cwd'),
+     """,
+        "$cwd",
+    ),
     # plover.cfg must be a file.
-    ('''
+    (
+        """
      $user_data_dir/plover.cfg
      $cwd/plover.cfg/config
-     ''', '$user_data_dir'),
+     """,
+        "$user_data_dir",
+    ),
 )
 
 if appdirs.user_data_dir() != appdirs.user_config_dir():
     CONFIG_DIR_TESTS += (
         # `user_config_dir` take precedence over `user_data_dir`.
-        ('''
+        (
+            """
          $user_config_dir/plover.cfg
          $user_data_dir/plover.cfg
          $cwd/config.cfg
-         ''', '$user_config_dir'),
+         """,
+            "$user_config_dir",
+        ),
         # But `user_data_dir` is still used when applicable.
-        ('''
+        (
+            """
          $user_config_dir/plover.cfg/conf
          $user_data_dir/plover.cfg
          $cwd/config.cfg
-         ''', '$user_data_dir'),
+         """,
+            "$user_data_dir",
+        ),
     )
 
-@pytest.mark.parametrize(('tree', 'expected_config_dir'), CONFIG_DIR_TESTS)
+
+@pytest.mark.parametrize(("tree", "expected_config_dir"), CONFIG_DIR_TESTS)
 def test_config_dir(tree, expected_config_dir, tmpdir):
     # Create fake home/cwd directories.
-    home = tmpdir / 'home'
+    home = tmpdir / "home"
     home.mkdir()
-    cwd = tmpdir / 'cwd'
+    cwd = tmpdir / "cwd"
     cwd.mkdir()
     directories = {
-        'tmpdir': str(tmpdir),
-        'home': str(home),
-        'cwd': str(cwd),
+        "tmpdir": str(tmpdir),
+        "home": str(home),
+        "cwd": str(cwd),
     }
     # Setup environment.
     env = dict(os.environ)
-    if PLATFORM == 'win':
-        env['USERPROFILE'] = str(home)
+    if PLATFORM == "win":
+        env["USERPROFILE"] = str(home)
     else:
-        env['HOME'] = str(home)
-    env['PYTHONUSERBASE'] = USER_BASE
+        env["HOME"] = str(home)
+    env["PYTHONUSERBASE"] = USER_BASE
     # Ensure XDG_xxx environment variables don't screw up our isolation.
     for k in list(env):
-        if k.startswith('XDG_'):
+        if k.startswith("XDG_"):
             del env[k]
+
     # Helpers.
     def pyeval(script):
-        return literal_eval(subprocess.check_output(
-            (sys.executable, '-c', script),
-            cwd=str(cwd), env=env).decode())
+        return literal_eval(
+            subprocess.check_output(
+                (sys.executable, "-c", script), cwd=str(cwd), env=env
+            ).decode()
+        )
+
     def path_expand(path):
-        return Template(path.replace('/', os.sep)).substitute(**directories)
+        return Template(path.replace("/", os.sep)).substitute(**directories)
+
     # Find out user_config_dir/user_data_dir locations.
-    directories.update(pyeval(dedent_strip(
-        '''
+    directories.update(
+        pyeval(
+            dedent_strip(
+                """
         import appdirs, os
         print(repr({
             'user_config_dir': appdirs.user_config_dir('plover'),
             'user_data_dir': appdirs.user_data_dir('plover'),
         }))
-        ''')))
+        """
+            )
+        )
+    )
     # Create initial tree.
     created_files = []
-    for filename_template in dedent_strip(tree).replace('/', os.sep).split('\n'):
+    for filename_template in dedent_strip(tree).replace("/", os.sep).split("\n"):
         filename = Path(path_expand(filename_template))
         filename.parent.mkdir(parents=True, exist_ok=True)
-        filename.write_text('pouet')
+        filename.write_text("pouet")
         created_files.append(filename)
     # Check plover.oslayer.config.CONFIG_DIR is correctly set.
-    config_dir = pyeval(dedent_strip(
-        '''
+    config_dir = pyeval(
+        dedent_strip(
+            """
         __import__('sys').path.insert(0, %r)
         from plover.oslayer.config import CONFIG_DIR
         print(repr(CONFIG_DIR))
-        ''' % str(Path(config.__file__).parent.parent)))
+        """
+            % str(Path(config.__file__).parent.parent)
+        )
+    )
     expected_config_dir = path_expand(expected_config_dir)
     assert config_dir == expected_config_dir
     # Cleanup created files and directories.

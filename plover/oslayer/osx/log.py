@@ -2,25 +2,29 @@ import objc
 import logging
 from plover import log
 
-NSUserNotification = objc.lookUpClass('NSUserNotification')
-NSUserNotificationCenter = objc.lookUpClass('NSUserNotificationCenter')
-NSObject = objc.lookUpClass('NSObject')
+NSUserNotification = objc.lookUpClass("NSUserNotification")
+NSUserNotificationCenter = objc.lookUpClass("NSUserNotificationCenter")
+NSObject = objc.lookUpClass("NSObject")
+
 
 class NotificationHandler(logging.Handler):
-    """ Handler using OS X Notification Center to show messages. """
+    """Handler using OS X Notification Center to show messages."""
 
     def __init__(self):
         super().__init__()
         self.setLevel(log.WARNING)
-        self.setFormatter(log.NoExceptionTracebackFormatter('%(message)s'))
+        self.setFormatter(log.NoExceptionTracebackFormatter("%(message)s"))
 
-        self.notification_center = NSUserNotificationCenter.defaultUserNotificationCenter()
+        self.notification_center = (
+            NSUserNotificationCenter.defaultUserNotificationCenter()
+        )
         if self.notification_center is None:
-            print("no notification center available (e.g. when running from source); not showing notifications")
+            print(
+                "no notification center available (e.g. when running from source); not showing notifications"
+            )
             self.always_present_delegator = None
         else:
             self.always_present_delegator = AlwaysPresentNSDelegator.alloc().init()
-
 
     def handle(self, record):
         if self.notification_center is None:
@@ -36,10 +40,12 @@ class NotificationHandler(logging.Handler):
         self.notification_center.setDelegate_(self.always_present_delegator)
         self.notification_center.deliverNotification_(notification)
 
+
 class AlwaysPresentNSDelegator(NSObject):
     """
     Custom delegator to force presenting even if Plover is in the foreground.
     """
+
     def userNotificationCenter_didActivateNotification_(self, ns, note):
         # Do nothing
         return

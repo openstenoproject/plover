@@ -135,6 +135,11 @@ jobs:
         run: setup_python_env -c reqs/constraints.txt<% for r in j.reqs %> -r <@ r @><% endfor %>
         
 
+      <% if j.type == 'test_code_quality' %>
+      - name: Run Ruff (format check)
+        run: ruff format --check .
+
+      <% endif %>
       <% if j.type in ['build', 'test_packaging'] %>
       - name: Patch version
         id: set_version

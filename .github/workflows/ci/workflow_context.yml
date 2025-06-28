@@ -77,6 +77,12 @@ jobs:
     reqs: ["packaging", "setup"]
     skiplists: ["job_test_packaging"]
 
+  # Code quality.
+  - <<: *dist_other
+    type: test_code_quality
+    variant: Code Quality
+    reqs: ["code_quality"]
+
   # Platform builds.
   - &build
     <<: *dist_linux

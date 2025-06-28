@@ -5,17 +5,16 @@ import os
 from plover.plugins_manager.requests import CachedFuturesSession
 
 
-PYPI_URL = 'https://pypi.org/pypi'
-REGISTRY_URL = 'https://raw.githubusercontent.com/openstenoproject/plover_plugins_registry/master/registry.json'
+PYPI_URL = "https://pypi.org/pypi"
+REGISTRY_URL = "https://raw.githubusercontent.com/openstenoproject/plover_plugins_registry/master/registry.json"
 
 
 def find_plover_plugins_releases(pypi_url=None, registry_url=None, capture=None):
-
     if pypi_url is None:
-        pypi_url = os.environ.get('PYPI_URL', PYPI_URL)
+        pypi_url = os.environ.get("PYPI_URL", PYPI_URL)
 
     if registry_url is None:
-        registry_url = os.environ.get('REGISTRY_URL', REGISTRY_URL)
+        registry_url = os.environ.get("REGISTRY_URL", REGISTRY_URL)
 
     session = CachedFuturesSession()
 
@@ -27,16 +26,15 @@ def find_plover_plugins_releases(pypi_url=None, registry_url=None, capture=None)
             return
         all_releases[(name, version)] = None
         if version is None:
-            url = '%s/%s/json' % (pypi_url, name)
+            url = "%s/%s/json" % (pypi_url, name)
         else:
-            url = '%s/%s/%s/json' % (pypi_url, name, version)
+            url = "%s/%s/%s/json" % (pypi_url, name, version)
         in_progress.add(session.get(url))
 
     with session:
-
         for name in session.get(registry_url).result().json():
             fetch_release(name)
-        
+
         while in_progress:
             for future in as_completed(list(in_progress)):
                 in_progress.remove(future)
@@ -47,21 +45,17 @@ def find_plover_plugins_releases(pypi_url=None, registry_url=None, capture=None)
                     # Can happen if a package has been deleted.
                     continue
                 release = resp.json()
-                info = release['info']
-                if 'plover_plugin' not in info['keywords'].split():
+                info = release["info"]
+                if "plover_plugin" not in info["keywords"].split():
                     # Not a plugin.
                     continue
-                name, version = info['name'], info['version']
+                name, version = info["name"], info["version"]
                 all_releases[(name, version)] = release
 
-    all_releases = [
-        release
-        for release in all_releases.values()
-        if release is not None
-    ]
+    all_releases = [release for release in all_releases.values() if release is not None]
 
     if capture is not None:
-        with open(capture, 'w') as fp:
+        with open(capture, "w") as fp:
             json.dump(all_releases, fp, indent=2, sort_keys=True)
 
     return all_releases

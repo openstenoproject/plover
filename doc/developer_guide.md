@@ -1,8 +1,8 @@
 # Environment setup
 
-You need Python >= 3.10 installed, and you need [tox](https://pypi.org/project/tox/) >= 4.0.
+You need Python installed.
 It is recommended to install the same Python version that is packaged in the official installer files.
-You can look up this version in the file `.github/workflows/ci/workflow_context.yml` in the vars section.
+You can look up this version in the file `.github/workflows/ci/workflow_context.yml` in the vars section (`default_python`).
 
 Tox simplifies the process of creating and managing isolated virtual environments,
 handling dependency installation, and running the test suite in isolation. This
@@ -12,6 +12,33 @@ However, it is still recommended to install and run tox within a Python virtual
 environment created using tools like [venv](https://docs.python.org/3/library/venv.html).
 This helps keep your global Python environment clean, avoids project conflicts, and
 isolates tox and its dependencies.
+
+A typical setup looks like this:
+
+### Linux/macOS (Bash):
+```bash
+cd path/to/plover
+python -m venv .venv
+source .venv/bin/activate 
+pip install -r reqs/dev.txt
+pre-commit install
+pre-commit run --all-files
+tox
+```
+
+### Windows (PowerShell):
+```powershell
+cd path\to\plover
+python -m venv .venv
+.venv\Scripts\Activate.ps1
+pip install -r reqs\dev.txt
+pre-commit install
+pre-commit run --all-files
+tox
+```
+Some features require a Bash shell, so on Windows you may need to use Git Bash or WSL instead of PowerShell.
+
+## Tox
 
 The command for using tox is: `tox {-e envlist} {-- arguments}`. Use `tox -a
 -v` to get a list of available environments.

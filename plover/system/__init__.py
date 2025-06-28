@@ -20,13 +20,14 @@ def _load_wordlist(filename, assets_dir):
             break
     else:
         return {}
-    with open(path, encoding='utf-8') as f:
+    with open(path, encoding="utf-8") as f:
         text = f.read()
     fields = text.split()
     it = iter(fields)
     words = dict(zip(it, map(int, it)))
-    assert len(fields) == 2 * len(words), path + ' contains duplicate words.'
+    assert len(fields) == 2 * len(words), path + " contains duplicate words."
     return words
+
 
 def _key_order(keys, numbers):
     key_order = {}
@@ -37,38 +38,53 @@ def _key_order(keys, numbers):
             key_order[number_key] = order
     return key_order
 
+
 def _suffix_keys(keys):
     assert isinstance(keys, Sequence)
     return keys
 
+
 _EXPORTS = {
-    'KEYS'                     : lambda mod: mod.KEYS,
-    'KEY_ORDER'                : lambda mod: _key_order(mod.KEYS, mod.NUMBERS),
-    'NUMBER_KEY'               : lambda mod: mod.NUMBER_KEY,
-    'NUMBERS'                  : lambda mod: dict(mod.NUMBERS),
-    'FERAL_NUMBER_KEY'         : lambda mod: getattr(mod, 'FERAL_NUMBER_KEY', False),
-    'SUFFIX_KEYS'              : lambda mod: _suffix_keys(mod.SUFFIX_KEYS),
-    'UNDO_STROKE_STENO'        : lambda mod: mod.UNDO_STROKE_STENO,
-    'IMPLICIT_HYPHEN_KEYS'     : lambda mod: set(mod.IMPLICIT_HYPHEN_KEYS),
-    'IMPLICIT_HYPHENS'         : lambda mod: {l.replace('-', '')
-                                              for l in mod.IMPLICIT_HYPHEN_KEYS},
-    'ORTHOGRAPHY_WORDS'        : lambda mod: _load_wordlist(mod.ORTHOGRAPHY_WORDLIST, mod.DICTIONARIES_ROOT),
-    'ORTHOGRAPHY_RULES'        : lambda mod: [(re.compile(pattern, re.IGNORECASE), replacement)
-                                              for pattern, replacement in mod.ORTHOGRAPHY_RULES],
-    'ORTHOGRAPHY_RULES_ALIASES': lambda mod: dict(mod.ORTHOGRAPHY_RULES_ALIASES),
-    'KEYMAPS'                  : lambda mod: mod.KEYMAPS,
-    'DICTIONARIES_ROOT'        : lambda mod: mod.DICTIONARIES_ROOT,
-    'DEFAULT_DICTIONARIES'     : lambda mod: mod.DEFAULT_DICTIONARIES,
+    "KEYS": lambda mod: mod.KEYS,
+    "KEY_ORDER": lambda mod: _key_order(mod.KEYS, mod.NUMBERS),
+    "NUMBER_KEY": lambda mod: mod.NUMBER_KEY,
+    "NUMBERS": lambda mod: dict(mod.NUMBERS),
+    "FERAL_NUMBER_KEY": lambda mod: getattr(mod, "FERAL_NUMBER_KEY", False),
+    "SUFFIX_KEYS": lambda mod: _suffix_keys(mod.SUFFIX_KEYS),
+    "UNDO_STROKE_STENO": lambda mod: mod.UNDO_STROKE_STENO,
+    "IMPLICIT_HYPHEN_KEYS": lambda mod: set(mod.IMPLICIT_HYPHEN_KEYS),
+    "IMPLICIT_HYPHENS": lambda mod: {
+        l.replace("-", "") for l in mod.IMPLICIT_HYPHEN_KEYS
+    },
+    "ORTHOGRAPHY_WORDS": lambda mod: _load_wordlist(
+        mod.ORTHOGRAPHY_WORDLIST, mod.DICTIONARIES_ROOT
+    ),
+    "ORTHOGRAPHY_RULES": lambda mod: [
+        (re.compile(pattern, re.IGNORECASE), replacement)
+        for pattern, replacement in mod.ORTHOGRAPHY_RULES
+    ],
+    "ORTHOGRAPHY_RULES_ALIASES": lambda mod: dict(mod.ORTHOGRAPHY_RULES_ALIASES),
+    "KEYMAPS": lambda mod: mod.KEYMAPS,
+    "DICTIONARIES_ROOT": lambda mod: mod.DICTIONARIES_ROOT,
+    "DEFAULT_DICTIONARIES": lambda mod: mod.DEFAULT_DICTIONARIES,
 }
+
 
 def setup(system_name):
     system_symbols = {}
-    system_mod = registry.get_plugin('system', system_name).obj
+    system_mod = registry.get_plugin("system", system_name).obj
     for symbol, init in _EXPORTS.items():
         system_symbols[symbol] = init(system_mod)
-    system_symbols['NAME'] = system_name
+    system_symbols["NAME"] = system_name
     globals().update(system_symbols)
-    Stroke.setup(KEYS, IMPLICIT_HYPHEN_KEYS, NUMBER_KEY, NUMBERS,
-                 FERAL_NUMBER_KEY, UNDO_STROKE_STENO)
+    Stroke.setup(
+        KEYS,
+        IMPLICIT_HYPHEN_KEYS,
+        NUMBER_KEY,
+        NUMBERS,
+        FERAL_NUMBER_KEY,
+        UNDO_STROKE_STENO,
+    )
+
 
 NAME = None
