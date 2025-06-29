@@ -117,6 +117,8 @@ ADD_SUFFIX_TESTS = (
     lambda: ("editor", "ial", "editorial"),
     lambda: ("editor", "ially", "editorially"),
     lambda: ("spaghetti", "ification", "spaghettification"),
+    lambda: ("Hawaii", "ification", "Hawaiification"),
+    lambda: ("play", "ification", "playification"),
     lambda: ("fantastic", "ical", "fantastical"),
     lambda: ("epistomology", "ical", "epistomological"),
     lambda: ("oratory", "ical", "oratorical"),
