@@ -46,40 +46,23 @@ python='python'
 
 . ./windows/dist_deps.sh
 
-py_base_ver="${py_embed_version%.*}"
+py_base_ver="${py_version%.*}"
 py_base_ver="${py_base_ver//.}"
 
 build_dist()
 {(
-  kernel="$(uname -s)" || die
-
-  # Build/cache the wheels we need first using the default Python, so C
-  # extensions can be successfully built (the embedded distribution does
-  # not include the necessary files, e.g. `Python.h`).
-  if [ "$kernel" != "Linux" ]
-  then
-    bootstrap_dist "$wheel" --no-warn-script-location --no-install
-  fi
-
-  # Fetch official embedded distribution.
-  py_embed_zip="$(run "$python" -m plover_build_utils.download "https://www.python.org/ftp/python/$py_embed_version/python-$py_embed_version-embed-amd64.zip" "$py_embed_sha1")" || die
-
-  # Setup embedded Python distribution.
-  # Note: python3x.zip is decompressed to prevent errors when 2to3
-  # is used (including indirectly by setuptools `build_py` command).
+  # Fetch official python distribution.
+  py_zip="$(run "$python" -m plover_build_utils.download "https://www.python.org/ftp/python/$py_version/python-$py_version-amd64.zip" "$py_sha1")" || die
+  
+  # Setup Python distribution.
   dist_data="$builddir/data"
-  py_stdlib_zip="$dist_data/python$py_base_ver.zip"
-  py_site_packages="$dist_data/Lib/site-packages"
-  run mkdir "$builddir"
-  run unzip -d "$dist_data" "$py_embed_zip"
-  run unzip -d "$dist_data/Lib" "$py_stdlib_zip"
-  run rm "$py_stdlib_zip"
-  # We don't want a completely isolated Python when using
-  # python.exe/pythonw.exe, so get rid of `python3x._pth`.
-  run rm "$dist_data/python$py_base_ver._pth"
+  run mkdir -p "$dist_data"
+  run unzip -d "$dist_data" "$py_zip"
 
   # Switch to the distribution Python.
   dist_python=("$dist_data/python.exe")
+
+  kernel="$(uname -s)" || die
   if [ "$kernel" = "Linux" ]
   then
     dist_python=(wine "$dist_python")
@@ -88,7 +71,7 @@ build_dist()
   python='dist_python'
 
   # Install Plover and dependencies.
-  bootstrap_dist "$wheel" --no-warn-script-location --no-index
+  bootstrap_dist "$wheel" --no-warn-script-location
 
   # Trim the fat...
   if [ $opt_trim -eq 1 ]
@@ -114,7 +97,8 @@ EOF"
   run mv {"$dist_data","$builddir"}/vcruntime140.dll
 
   # Make distribution source-less.
-  run "$python" -m plover_build_utils.source_less "$dist_data" '*/pip/_vendor/distlib/*' '*/pip/_vendor/pep517/*'
+  # Keep pip sources, as we need them for pip install
+  run "$python" -m plover_build_utils.source_less "$dist_data" "*/site-packages/pip/*"
 
   # Check requirements.
   run "$python" -I -m plover_build_utils.check_requirements

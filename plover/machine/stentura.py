@@ -6,8 +6,7 @@
 # is a connection error.
 # TODO: Address any generic exceptions still left.
 
-"""Thread-based monitoring of a stenotype machine using the stentura protocol.
-"""
+"""Thread-based monitoring of a stenotype machine using the stentura protocol."""
 
 """
 The stentura protocol uses packets to communicate with the machine. A
@@ -157,8 +156,8 @@ def buffer(object, offset=None, size=None):
     if offset is None:
         offset = 0
     if size is None:
-        size = len(object)-offset
-    return memoryview(object)[offset:offset+size]
+        size = len(object) - offset
+    return memoryview(object)[offset : offset + size]
 
 
 def _allocate_buffer():
@@ -167,24 +166,29 @@ def _allocate_buffer():
 
 class _ProtocolViolationException(Exception):
     """Something has happened that is doesn't follow the protocol."""
+
     pass
 
 
 class _StopException(Exception):
     """The thread was asked to stop."""
+
     pass
 
 
 class _TimeoutException(Exception):
     """An operation has timed out."""
+
     pass
 
 
 class _ConnectionLostException(Exception):
     """Cannot communicate with the machine."""
+
     pass
 
 
+# fmt: off
 _CRC_TABLE = [
     0x0000, 0xc0c1, 0xc181, 0x0140, 0xc301, 0x03c0, 0x0280, 0xc241,
     0xc601, 0x06c0, 0x0780, 0xc741, 0x0500, 0xc5c1, 0xc481, 0x0440,
@@ -219,6 +223,7 @@ _CRC_TABLE = [
     0x4400, 0x84c1, 0x8581, 0x4540, 0x8701, 0x47c0, 0x4680, 0x8641,
     0x8201, 0x42c0, 0x4380, 0x8341, 0x4100, 0x81c1, 0x8081, 0x4040
 ]
+# fmt: on
 
 
 def _crc(data, offset=None, size=None):
@@ -250,8 +255,7 @@ def _crc(data, offset=None, size=None):
     checksum = 0
     for n in range(offset, offset + size):
         b = data[n]
-        checksum = (_CRC_TABLE[(checksum ^ b) & 0xff] ^
-                    ((checksum >> 8) & 0xff))
+        checksum = _CRC_TABLE[(checksum ^ b) & 0xFF] ^ ((checksum >> 8) & 0xFF)
     return checksum
 
 
@@ -265,14 +269,17 @@ def _write_to_buffer(buf, offset, data):
     - offset. The offset at which to start writing.
     - data: An iterable containing the data to write.
     """
-    buf[offset:offset+len(data)] = data
+    buf[offset : offset + len(data)] = data
+
 
 # Helper table for parsing strokes of the form:
 # 11^#STKP 11WHRAO* 11EUFRPB 11LGTSDZ
-_STENO_KEY_CHART = ('^', '#', 'S-', 'T-', 'K-', 'P-',    # Byte #1
-                    'W-', 'H-', 'R-', 'A-', 'O-', '*',   # Byte #2
-                    '-E', '-U', '-F', '-R', '-P', '-B',  # Byte #3
-                    '-L', '-G', '-T', '-S', '-D', '-Z')  # Byte #4
+# fmt: off
+_STENO_KEY_CHART = ("^", "#", "S-", "T-", "K-", "P-",    # Byte #1
+                    "W-", "H-", "R-", "A-", "O-", "*",   # Byte #2
+                    "-E", "-U", "-F", "-R", "-P", "-B",  # Byte #3
+                    "-L", "-G", "-T", "-S", "-D", "-Z")  # Byte #4
+# fmt: on
 
 
 def _parse_stroke(a, b, c, d):
@@ -288,10 +295,8 @@ def _parse_stroke(a, b, c, d):
              e.g. ['S-', 'A-', '-T']
 
     """
-    fullstroke = (((a & 0x3f) << 18) | ((b & 0x3f) << 12) |
-                  ((c & 0x3f) << 6) | d & 0x3f)
-    return [_STENO_KEY_CHART[i] for i in range(24)
-            if (fullstroke & (1 << (23 - i)))]
+    fullstroke = ((a & 0x3F) << 18) | ((b & 0x3F) << 12) | ((c & 0x3F) << 6) | d & 0x3F
+    return [_STENO_KEY_CHART[i] for i in range(24) if (fullstroke & (1 << (23 - i)))]
 
 
 def _parse_strokes(data):
@@ -309,13 +314,15 @@ def _parse_strokes(data):
     strokes = []
     if (len(data) % 4) != 0:
         raise _ProtocolViolationException(
-            "Data size is not divisible by 4: %d" % (len(data)))
+            "Data size is not divisible by 4: %d" % (len(data))
+        )
     for b in data:
         if (b & 0b11000000) != 0b11000000:
             raise _ProtocolViolationException("Data is not stroke: 0x%X" % (b))
     for a, b, c, d in zip(*([iter(data)] * 4)):
         strokes.append(_parse_stroke(a, b, c, d))
     return strokes
+
 
 # Actions
 _CLOSE = 0x2
@@ -329,8 +336,8 @@ _RESET = 0x14
 _TERM = 0x15
 
 # Compiled struct for writing request headers.
-_REQUEST_STRUCT = struct.Struct('<2B7H')
-_SHORT_STRUCT = struct.Struct('<H')
+_REQUEST_STRUCT = struct.Struct("<2B7H")
+_SHORT_STRUCT = struct.Struct("<H")
 
 
 def _make_request(buf, action, seq, p1=0, p2=0, p3=0, p4=0, p5=0, data=None):
@@ -351,8 +358,7 @@ def _make_request(buf, action, seq, p1=0, p2=0, p3=0, p4=0, p5=0, data=None):
     length = 18
     if data:
         length += len(data) + 2  # +2 for the data CRC.
-    _REQUEST_STRUCT.pack_into(buf, 0, 1, seq, length, action,
-                              p1, p2, p3, p4, p5)
+    _REQUEST_STRUCT.pack_into(buf, 0, 1, seq, length, action, p1, p2, p3, p4, p5)
     crc = _crc(buf, 1, 15)
     _SHORT_STRUCT.pack_into(buf, 16, crc)
     if data:
@@ -460,7 +466,10 @@ def _read_data(port, stop, buf, offset, num_bytes):
     _write_to_buffer(buf, offset, read_bytes)
     return len(read_bytes)
 
+
 MINIMUM_PACKET_LENGTH = 14
+
+
 def _read_packet(port, stop, buf):
     """Read a full packet from the port.
 
@@ -487,8 +496,7 @@ def _read_packet(port, stop, buf):
     # Packet length should always be at least 14 bytes long
     if packet_length < MINIMUM_PACKET_LENGTH:
         raise _ProtocolViolationException()
-    bytes_read += _read_data(port, stop, buf, bytes_read,
-                             packet_length - bytes_read)
+    bytes_read += _read_data(port, stop, buf, bytes_read, packet_length - bytes_read)
     packet = buffer(buf, 0, bytes_read)
     if not _validate_response(packet):
         raise _ProtocolViolationException()
@@ -548,6 +556,7 @@ def _send_receive(port, stop, packet, buf, max_tries=3):
 
 class _SequenceCounter:
     """A mod 256 counter."""
+
     def __init__(self, seq=0):
         """Init a new counter starting at seq."""
         self.seq = seq
@@ -582,8 +591,10 @@ def _read(port, stop, seq, request_buf, response_buf, stroke_buf, block, byte):
         packet = _make_read(request_buf, seq(), block, byte, length=512)
         response = _send_receive(port, stop, packet, response_buf)
         p1 = _SHORT_STRUCT.unpack(response[8:10])[0]
-        if not ((p1 == 0 and len(response) == 14) or  # No data.
-                (p1 == len(response) - 16)):          # Data.
+        if not (
+            (p1 == 0 and len(response) == 14)  # No data.
+            or (p1 == len(response) - 16)
+        ):  # Data.
             raise _ProtocolViolationException()
         if p1 == 0:
             return block, byte, buffer(stroke_buf, 0, bytes_read)
@@ -594,6 +605,7 @@ def _read(port, stop, seq, request_buf, response_buf, stroke_buf, block, byte):
         if byte >= 512:
             block += 1
             byte -= 512
+
 
 def _loop(port, stop, callback, ready_callback, timeout=1):
     """Enter into a loop talking to the machine and returning strokes.
@@ -628,15 +640,19 @@ def _loop(port, stop, callback, ready_callback, timeout=1):
     request_buf, response_buf = _allocate_buffer(), _allocate_buffer()
     stroke_buf = _allocate_buffer()
     seq = _SequenceCounter()
-    request = _make_open(request_buf, seq(), b'A', b'REALTIME.000')
+    request = _make_open(request_buf, seq(), b"A", b"REALTIME.000")
     # Any checking needed on the response packet?
     _send_receive(port, stop, request, response_buf)
     # Do a full read to get to the current position in the realtime file.
     block, byte = 0, 0
-    block, byte, _ = _read(port, stop, seq, request_buf, response_buf, stroke_buf, block, byte)
+    block, byte, _ = _read(
+        port, stop, seq, request_buf, response_buf, stroke_buf, block, byte
+    )
     ready_callback()
     while True:
-        block, byte, data = _read(port, stop, seq, request_buf, response_buf, stroke_buf, block, byte)
+        block, byte, data = _read(
+            port, stop, seq, request_buf, response_buf, stroke_buf, block, byte
+        )
         strokes = _parse_strokes(data)
         for stroke in strokes:
             callback(stroke)
@@ -650,13 +666,13 @@ class Stentura(plover.machine.base.SerialStenotypeBase):
     add_callback.
     """
 
-    KEYS_LAYOUT = '''
+    KEYS_LAYOUT = """
         #  #  #  #  #  #  #  #  #  #
         S- T- P- H- * -F -P -L -T -D
         S- K- W- R- * -R -B -G -S -Z
               A- O-   -E -U
         ^
-    '''
+    """
 
     def run(self):
         """Overrides base class run method. Do not call directly."""

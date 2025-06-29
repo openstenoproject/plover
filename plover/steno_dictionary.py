@@ -10,7 +10,12 @@ A steno dictionary maps sequences of steno strokes to translations.
 import collections
 import os
 
-from plover.resource import ASSET_SCHEME, resource_filename, resource_timestamp, resource_update
+from plover.resource import (
+    ASSET_SCHEME,
+    resource_filename,
+    resource_timestamp,
+    resource_update,
+)
 
 
 class StenoDictionary:
@@ -41,7 +46,7 @@ class StenoDictionary:
         self.path = None
 
     def __str__(self):
-        return '%s(%r)' % (self.__class__.__name__, self.path)
+        return "%s(%r)" % (self.__class__.__name__, self.path)
 
     def __repr__(self):
         return str(self)
@@ -50,7 +55,7 @@ class StenoDictionary:
     def create(cls, resource):
         assert not resource.startswith(ASSET_SCHEME)
         if cls.readonly:
-            raise ValueError('%s does not support creation' % cls.__name__)
+            raise ValueError("%s does not support creation" % cls.__name__)
         d = cls()
         d.path = resource
         return d
@@ -61,9 +66,11 @@ class StenoDictionary:
         timestamp = resource_timestamp(filename)
         d = cls()
         d._load(filename)
-        if (cls.readonly or
-            resource.startswith(ASSET_SCHEME) or
-            not os.access(filename, os.W_OK)):
+        if (
+            cls.readonly
+            or resource.startswith(ASSET_SCHEME)
+            or not os.access(filename, os.W_OK)
+        ):
             d.readonly = True
         d.path = resource
         d.timestamp = timestamp
@@ -108,8 +115,7 @@ class StenoDictionary:
     def update(self, *args, **kwargs):
         assert not self.readonly
         iterable_list = [
-            a.items() if isinstance(a, (dict, StenoDictionary))
-            else a for a in args
+            a.items() if isinstance(a, (dict, StenoDictionary)) else a for a in args
         ]
         if kwargs:
             iterable_list.append(kwargs.items())
@@ -165,7 +171,6 @@ class StenoDictionary:
 
 
 class StenoDictionaryCollection:
-
     def __init__(self, dicts=[]):
         self.dicts = []
         self.filters = []
@@ -195,10 +200,10 @@ class StenoDictionaryCollection:
                     return value
 
     def _lookup_from_all(self, key, dicts=None, filters=()):
-        ''' Key lookup from all dictionaries
+        """Key lookup from all dictionaries
 
         Returns list of (value, dictionary) tuples
-        '''
+        """
         if dicts is None:
             dicts = self.dicts
         key_len = len(key)
@@ -217,7 +222,7 @@ class StenoDictionaryCollection:
         return values
 
     def __str__(self):
-        return 'StenoDictionaryCollection' + repr(tuple(self.dicts))
+        return "StenoDictionaryCollection" + repr(tuple(self.dicts))
 
     def __repr__(self):
         return str(self)
@@ -240,8 +245,11 @@ class StenoDictionaryCollection:
             if not d.enabled:
                 continue
             # Ignore key if it's overridden by a higher priority dictionary.
-            keys.update(k for k in d.reverse_lookup(value)
-                        if self._lookup(k, dicts=self.dicts[:n]) is None)
+            keys.update(
+                k
+                for k in d.reverse_lookup(value)
+                if self._lookup(k, dicts=self.dicts[:n]) is None
+            )
         return keys
 
     def casereverse_lookup(self, value):
@@ -253,11 +261,11 @@ class StenoDictionaryCollection:
         return keys
 
     def first_writable(self):
-        '''Return the first writable dictionary.'''
+        """Return the first writable dictionary."""
         for d in self.dicts:
             if not d.readonly:
                 return d
-        raise KeyError('no writable dictionary')
+        raise KeyError("no writable dictionary")
 
     def set(self, key, value, path=None):
         if path is None:
@@ -267,9 +275,9 @@ class StenoDictionaryCollection:
         d[key] = value
 
     def save(self, path_list=None):
-        '''Save the dictionaries in <path_list>.
+        """Save the dictionaries in <path_list>.
 
-        If <path_list> is None, all writable dictionaries are saved'''
+        If <path_list> is None, all writable dictionaries are saved"""
         if path_list is None:
             dict_list = [d for d in self if not d.readonly]
         else:

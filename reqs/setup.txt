@@ -1,6 +1,6 @@
 Babel
-PyQt5>=5.8.2
-setuptools>=38.2.4
+PySide6-Essentials
+setuptools
 wheel
 
 # vim: ft=cfg commentstring=#\ %s list

@@ -1,5 +1,5 @@
-py_installer_version="3.9.7"
-py_installer_macos="10.9"
-py_installer_sha1="c2695f66610d78fcd91fe7c2c72c797d98b82a6d"
-reloc_py_url='https://github.com/gregneagle/relocatable-python/archive/06b3052afe49c400aa4196f2aada15c0992e3725.zip'
-reloc_py_sha1='ca85e6439a756ed2429eea1664ec160c04f3712e'
+py_installer_version="3.13.3"
+py_installer_macos="11"
+py_installer_sha1="2f3d458d3fdb74fc2df0f8b5ad81a04a366a3064"
+reloc_py_url='https://github.com/gregneagle/relocatable-python/archive/8ee72fe3a5dbef733365370ebf44f25022b895ef.zip'
+reloc_py_sha1='5ecbd252d11ef18ef0934dce46df13cc113f0671'

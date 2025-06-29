@@ -61,17 +61,3 @@ The full path name of the Plover configuration file.
 
 The directory containing Plover's assets, such as icons and dictionaries.
 ```
-
-```{data} plover_dist
-:type: pkg_resources.DistInfoDistribution
-
-A {class}`pkg_resources.DistInfoDistribution` containing information about
-Plover's base distribution, such as resource paths and package metadata.
-```
-
-```{data} HAS_GUI_QT
-:type: bool
-
-`True` if Plover supports the Qt-based GUI and Qt is installed,
-`False` otherwise.
-```

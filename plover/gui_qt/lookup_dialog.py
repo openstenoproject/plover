@@ -1,5 +1,4 @@
-
-from PyQt5.QtCore import QEvent, Qt
+from PySide6.QtCore import QEvent, Qt, Slot
 
 from plover import _
 from plover.translation import unescape_translation
@@ -9,14 +8,13 @@ from plover.gui_qt.tool import Tool
 
 
 class LookupDialog(Tool, Ui_LookupDialog):
-
     # i18n: Widget: “LookupDialog”, tooltip.
-    __doc__ = _('Search the dictionary for translations.')
+    __doc__ = _("Search the dictionary for translations.")
 
-    TITLE = _('Lookup')
-    ICON = ':/lookup.svg'
-    ROLE = 'lookup'
-    SHORTCUT = 'Ctrl+L'
+    TITLE = _("Lookup")
+    ICON = ":/resources/lookup.svg"
+    ROLE = "lookup"
+    SHORTCUT = "Ctrl+L"
 
     def __init__(self, engine):
         super().__init__(engine)
@@ -28,8 +26,10 @@ class LookupDialog(Tool, Ui_LookupDialog):
         self.finished.connect(self.save_state)
 
     def eventFilter(self, watched, event):
-        if event.type() == QEvent.KeyPress and \
-           event.key() in (Qt.Key_Enter, Qt.Key_Return):
+        if event.type() == QEvent.Type.KeyPress and event.key() in (
+            Qt.Key.Key_Enter,
+            Qt.Key.Key_Return,
+        ):
             return True
         return False
 
@@ -37,13 +37,14 @@ class LookupDialog(Tool, Ui_LookupDialog):
         self.suggestions.clear()
         self.suggestions.append(suggestion_list)
 
-    def on_lookup(self, pattern):
+    @Slot(str)
+    def lookup(self, pattern):
         translation = unescape_translation(pattern.strip())
         suggestion_list = self._engine.get_suggestions(translation)
         self._update_suggestions(suggestion_list)
 
     def changeEvent(self, event):
         super().changeEvent(event)
-        if event.type() == QEvent.ActivationChange and self.isActiveWindow():
+        if event.type() == QEvent.Type.ActivationChange and self.isActiveWindow():
             self.pattern.setFocus()
             self.pattern.selectAll()

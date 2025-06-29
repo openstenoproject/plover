@@ -7,6 +7,7 @@ def meta_comma(ctx, text):
     action.prev_attach = True
     return action
 
+
 def meta_stop(ctx, text):
     action = ctx.new_action()
     action.prev_attach = True

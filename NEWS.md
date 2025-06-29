@@ -1,3 +1,113 @@
+# v5.0.0.dev2 (2025-06-14)
+
+
+## Features
+
+### Core
+
+- Integrate BuildResources into BuildUi to simplify UI plugin migration to Plover v5. (#1735)
+
+## Bugfixes
+
+### Core
+
+- Fix installation of plugins via git URL. (#1733)
+
+### Linux
+
+- When inputting Unicode with uinput the code now uses space to finalize the Unicode character instead of enter. (#1731)
+
+## API
+
+No significant changes.
+
+# v5.0.0.dev1 (2025-06-03)
+
+
+## Features
+
+### Core
+
+- Integrate Plugins Manager and remove distribution plugins to simplify distribution of Plover. (#1601)
+- Update integrated Python version to 3.13. (#1720)
+
+### User Interface
+
+- Support dark mode that follows the system settings. (#1601)
+
+### Linux
+
+- On linux wayland, warn if ibus or fcitx5 isn't running. (#1711)
+
+### macOS
+
+- Add universal installer for macOS on Intel and Apple silicon. (#1720)
+
+## Bugfixes
+
+### Linux
+
+- Downgrade CI for building Linux AppImage to Ubuntu 22.04 to build against GLIBC 2.35. (#1718)
+- Fixed keyboards with mouse control functionality not able to be detected in the uinput module. (#1724)
+- Fix keys getting stuck if keys held when starting Plover and emulating keyboard with Uinput. (#1728)
+- When using Uinput, fix devices being disabled upon exceptions. (#1729)
+
+### macOS
+
+- Fix notifications for newer macOS versions. (#1601)
+
+## API
+
+### Breaking Changes
+
+- Update UI from PyQt5 to PySide6. (#1601)
+
+# v4.0.0 (2025-02-18)
+
+
+## Features
+
+- Same as `v4.0.0rc5`
+- See [NEWS.md](https://github.com/openstenoproject/plover/blob/main/NEWS.md) for the features included in the `v4.0.0.dev` and `v4.0.0rc` versions.
+
+# v4.0.0rc5 (2025-02-10)
+
+
+## Features
+
+### User Interface
+
+- Renamed the 'Scan' button in the serial port configuration window to 'Refresh', to (hopefully) more accurately convey that it simply lists all available serial ports. (#1640)
+- Added a button to the Plugins Manager for installing plugins via Git URL. (#1700)
+
+### Linux
+
+- Added keyboard emulation and capture using uinput, compatible with X11, Wayland and anything else on linux and bsd. (#1679)
+
+## Bugfixes
+
+### Windows
+
+- Fixed backspace scancode and swapped page up/down. (#1697)
+
+## API
+
+### New
+
+- Renamed the `=retrospective_*` macros to simply `=retro_*`. The previous names are retained for backwards compatibility, but are now deprecated. (#1639)
+
+# v4.0.0rc4 (2025-02-09)
+
+
+- *Skipped for technical reasons.*
+
+
+# v4.0.0rc3 (2025-02-09)
+
+
+- *Skipped for technical reasons.*
+
+
 # v4.0.0rc2 (2023-09-28)
 
 

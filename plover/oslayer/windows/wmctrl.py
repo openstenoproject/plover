@@ -7,6 +7,6 @@ GetForegroundWindow.restype = wintypes.HWND
 
 SetForegroundWindow = windll.user32.SetForegroundWindow
 SetForegroundWindow.argtypes = [
-    wintypes.HWND, # hWnd
+    wintypes.HWND,  # hWnd
 ]
 SetForegroundWindow.restype = wintypes.BOOL

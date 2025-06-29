@@ -2,11 +2,11 @@ from pathlib import Path
 
 
 def patch_ports_info(port_list):
-    '''Patch serial ports info to use device-by-id links.'''
+    """Patch serial ports info to use device-by-id links."""
     try:
         device_by_id = {
             str(device.resolve()): str(device)
-            for device in Path('/dev/serial/by-id').iterdir()
+            for device in Path("/dev/serial/by-id").iterdir()
         }
     except FileNotFoundError:
         device_by_id = {}

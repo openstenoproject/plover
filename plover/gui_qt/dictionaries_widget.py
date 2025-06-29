@@ -1,14 +1,18 @@
 from contextlib import contextmanager
 import os
 
-from PyQt5.QtCore import (
+from PySide6.QtCore import (
     QAbstractListModel,
     QModelIndex,
     Qt,
-    pyqtSignal,
+    Signal,
+    Slot,
 )
-from PyQt5.QtGui import QCursor, QIcon
-from PyQt5.QtWidgets import (
+from PySide6.QtGui import (
+    QCursor,
+    QIcon,
+)
+from PySide6.QtWidgets import (
     QFileDialog,
     QGroupBox,
     QMenu,
@@ -28,24 +32,28 @@ from plover.gui_qt.utils import ToolBar
 
 
 def _dictionary_formats(include_readonly=True):
-    return {plugin.name
-            for plugin in registry.list_plugins('dictionary')
-            if include_readonly or not plugin.obj.readonly}
+    return {
+        plugin.name
+        for plugin in registry.list_plugins("dictionary")
+        if include_readonly or not plugin.obj.readonly
+    }
+
 
 def _dictionary_filters(include_readonly=True):
     formats = sorted(_dictionary_formats(include_readonly=include_readonly))
-    filters = ['*.' + ext for ext in formats]
+    filters = ["*." + ext for ext in formats]
     # i18n: Widget: “DictionariesWidget”, file picker.
-    filters = [_('Dictionaries ({extensions})').format(extensions=' '.join(filters))]
+    filters = [_("Dictionaries ({extensions})").format(extensions=" ".join(filters))]
     filters.extend(
         # i18n: Widget: “DictionariesWidget”, file picker.
-        _('{format} dictionaries ({extensions})').format(
-            format=ext.strip('.').upper(),
-            extensions='*.' + ext,
+        _("{format} dictionaries ({extensions})").format(
+            format=ext.strip(".").upper(),
+            extensions="*." + ext,
         )
         for ext in formats
     )
-    return ';; '.join(filters)
+    return ";; ".join(filters)
+
 
 @contextmanager
 def _new_dictionary(filename):
@@ -54,14 +62,12 @@ def _new_dictionary(filename):
         yield d
         d.save()
     except Exception as e:
-        raise Exception('creating dictionary %s failed. %s' % (filename, e)) from e
+        raise Exception("creating dictionary %s failed. %s" % (filename, e)) from e
 
 
 class DictionariesModel(QAbstractListModel):
-
     class DictionaryItem:
-
-        __slots__ = 'row path enabled short_path _loaded state'.split()
+        __slots__ = "row path enabled short_path _loaded state".split()
 
         def __init__(self, row, config, loaded=None):
             self.row = row
@@ -77,13 +83,13 @@ class DictionariesModel(QAbstractListModel):
         @loaded.setter
         def loaded(self, loaded):
             if loaded is None:
-                state = 'loading'
+                state = "loading"
             elif isinstance(loaded, ErroredDictionary):
-                state = 'error'
+                state = "error"
             elif loaded.readonly:
-                state = 'readonly'
+                state = "readonly"
             else:
-                state = 'normal'
+                state = "normal"
             self.state = state
             self._loaded = loaded
 
@@ -93,16 +99,24 @@ class DictionariesModel(QAbstractListModel):
 
         @property
         def is_loaded(self):
-            return self.state not in {'loading', 'error'}
+            return self.state not in {"loading", "error"}
 
     SUPPORTED_ROLES = {
-        Qt.AccessibleTextRole, Qt.CheckStateRole,
-        Qt.DecorationRole, Qt.DisplayRole, Qt.ToolTipRole
+        Qt.ItemDataRole.AccessibleTextRole,
+        Qt.ItemDataRole.CheckStateRole,
+        Qt.ItemDataRole.DecorationRole,
+        Qt.ItemDataRole.DisplayRole,
+        Qt.ItemDataRole.ToolTipRole,
     }
 
-    FLAGS = Qt.ItemIsEnabled | Qt.ItemIsSelectable | Qt.ItemIsUserCheckable | Qt.ItemIsDragEnabled
+    FLAGS = (
+        Qt.ItemFlag.ItemIsEnabled
+        | Qt.ItemFlag.ItemIsSelectable
+        | Qt.ItemFlag.ItemIsUserCheckable
+        | Qt.ItemFlag.ItemIsDragEnabled
+    )
 
-    has_undo_changed = pyqtSignal(bool)
+    has_undo_changed = Signal(bool)
 
     def __init__(self, engine, icons, max_undo=20):
         super().__init__()
@@ -116,11 +130,14 @@ class DictionariesModel(QAbstractListModel):
         self._icons = icons
         with engine:
             config = engine.config
-            engine.signal_connect('config_changed', self._on_config_changed)
-            engine.signal_connect('dictionaries_loaded', self._on_dictionaries_loaded)
-            self._reset_items(config['dictionaries'],
-                              config['classic_dictionaries_display_order'],
-                              backup=False, publish=False)
+            engine.signal_connect("config_changed", self._on_config_changed)
+            engine.signal_connect("dictionaries_loaded", self._on_dictionaries_loaded)
+            self._reset_items(
+                config["dictionaries"],
+                config["classic_dictionaries_display_order"],
+                backup=False,
+                publish=False,
+            )
 
     @property
     def _config(self):
@@ -144,7 +161,7 @@ class DictionariesModel(QAbstractListModel):
             self._undo_stack.pop(0)
 
     def _publish_config(self, config):
-        self._engine.config = {'dictionaries': config}
+        self._engine.config = {"dictionaries": config}
 
     def _update_favorite(self):
         item_list = self._from_row
@@ -152,16 +169,13 @@ class DictionariesModel(QAbstractListModel):
             item_list = reversed(item_list)
         old, new = self._favorite, None
         for item in item_list:
-            if item.enabled and item.state == 'normal':
+            if item.enabled and item.state == "normal":
                 new = item
                 break
         if new is old:
             return set()
         self._favorite = new
-        return {
-            favorite.row for favorite in
-            filter(None, (old, new))
-        }
+        return {favorite.row for favorite in filter(None, (old, new))}
 
     def _reset_items(self, config, reverse_order=None, backup=True, publish=True):
         if backup:
@@ -172,8 +186,7 @@ class DictionariesModel(QAbstractListModel):
         old_persistent_indexes = self.persistentIndexList()
         assert all(index.isValid() for index in old_persistent_indexes)
         old_persistent_items = [
-            self._from_row[index.row()]
-            for index in old_persistent_indexes
+            self._from_row[index.row()] for index in old_persistent_indexes
         ]
         from_row = []
         from_path = {}
@@ -199,15 +212,14 @@ class DictionariesModel(QAbstractListModel):
             else:
                 new_index = self.index(new_item.row)
             new_persistent_indexes.append(new_index)
-        self.changePersistentIndexList(old_persistent_indexes,
-                                       new_persistent_indexes)
+        self.changePersistentIndexList(old_persistent_indexes, new_persistent_indexes)
         self.layoutChanged.emit()
         if publish:
             self._publish_config(config)
 
     def _on_config_changed(self, config_update):
-        config = config_update.get('dictionaries')
-        reverse_order = config_update.get('classic_dictionaries_display_order')
+        config = config_update.get("dictionaries")
+        reverse_order = config_update.get("classic_dictionaries_display_order")
         noop = True
         if reverse_order is not None:
             noop = reverse_order == self._reverse_order
@@ -221,8 +233,7 @@ class DictionariesModel(QAbstractListModel):
             if self._undo_stack:
                 self.has_undo_changed.emit(False)
             self._undo_stack.clear()
-        self._reset_items(config, reverse_order,
-                          backup=False, publish=False)
+        self._reset_items(config, reverse_order, backup=False, publish=False)
 
     def _on_dictionaries_loaded(self, loaded_dictionaries):
         updated_rows = set()
@@ -258,10 +269,7 @@ class DictionariesModel(QAbstractListModel):
             return
         if self._reverse_order:
             new_path_list = reversed(new_path_list)
-        config = [
-            self._from_path[path].config
-            for path in new_path_list
-        ]
+        config = [self._from_path[path].config for path in new_path_list]
         self._reset_items(config)
 
     @staticmethod
@@ -270,16 +278,16 @@ class DictionariesModel(QAbstractListModel):
 
     @staticmethod
     def _normalized_row_list(index_list):
-        return list(dict.fromkeys(index.row()
-                                  for index in index_list
-                                  if index.isValid()))
+        return list(
+            dict.fromkeys(index.row() for index in index_list if index.isValid())
+        )
 
     def _insert(self, dest_row, path_list):
         old_path_list = [item.path for item in self._from_row]
         new_path_list = (
             [p for p in old_path_list[:dest_row] if p not in path_list]
-            + path_list +
-            [p for p in old_path_list[dest_row:] if p not in path_list]
+            + path_list
+            + [p for p in old_path_list[dest_row:] if p not in path_list]
         )
         if new_path_list == old_path_list:
             return
@@ -295,8 +303,7 @@ class DictionariesModel(QAbstractListModel):
 
     def add(self, path_list):
         new_path_list = self._normalized_path_list(
-            path for path in path_list
-            if path not in self._from_path
+            path for path in path_list if path not in self._from_path
         )
         if new_path_list:
             # Add with highest priority.
@@ -325,8 +332,13 @@ class DictionariesModel(QAbstractListModel):
         self._insert(row, self._normalized_path_list(path_list))
 
     def move(self, dst_index, src_index_list):
-        self.insert(dst_index, [self._from_row[row].path for row in
-                                self._normalized_row_list(src_index_list)])
+        self.insert(
+            dst_index,
+            [
+                self._from_row[row].path
+                for row in self._normalized_row_list(src_index_list)
+            ],
+        )
 
     def move_down(self, index_list):
         self._move(index_list, +1)
@@ -338,9 +350,7 @@ class DictionariesModel(QAbstractListModel):
         row_set = self._normalized_row_list(index_list)
         if not row_set:
             return
-        config = [item.config
-                  for item in self._from_row
-                  if item.row not in row_set]
+        config = [item.config for item in self._from_row if item.row not in row_set]
         self._reset_items(config)
 
     def undo(self):
@@ -354,64 +364,67 @@ class DictionariesModel(QAbstractListModel):
     def rowCount(self, parent=QModelIndex()):
         return 0 if parent.isValid() else len(self._from_row)
 
-    @classmethod
-    def flags(cls, index):
-        return cls.FLAGS if index.isValid() else Qt.NoItemFlags
+    def flags(self, index):
+        return self.FLAGS if index.isValid() else Qt.ItemFlag.NoItemFlags
 
     def data(self, index, role):
         if not index.isValid() or role not in self.SUPPORTED_ROLES:
             return None
         d = self._from_row[index.row()]
-        if role == Qt.DisplayRole:
+        if role == Qt.ItemDataRole.DisplayRole:
             return d.short_path
-        if role == Qt.CheckStateRole:
-            return Qt.Checked if d.enabled else Qt.Unchecked
-        if role == Qt.AccessibleTextRole:
+        if role == Qt.ItemDataRole.CheckStateRole:
+            return Qt.CheckState.Checked if d.enabled else Qt.CheckState.Unchecked
+        if role == Qt.ItemDataRole.AccessibleTextRole:
             accessible_text = [d.short_path]
             if not d.enabled:
                 # i18n: Widget: “DictionariesWidget”, accessible text.
-                accessible_text.append(_('disabled'))
+                accessible_text.append(_("disabled"))
             if d is self._favorite:
                 # i18n: Widget: “DictionariesWidget”, accessible text.
-                accessible_text.append(_('favorite'))
-            elif d.state == 'error':
+                accessible_text.append(_("favorite"))
+            elif d.state == "error":
                 # i18n: Widget: “DictionariesWidget”, accessible text.
-                accessible_text.append(_('errored: {exception}.').format(
-                    exception=str(d.loaded.exception)))
-            elif d.state == 'loading':
+                accessible_text.append(
+                    _("errored: {exception}.").format(exception=str(d.loaded.exception))
+                )
+            elif d.state == "loading":
                 # i18n: Widget: “DictionariesWidget”, accessible text.
-                accessible_text.append(_('loading'))
-            elif d.state == 'readonly':
+                accessible_text.append(_("loading"))
+            elif d.state == "readonly":
                 # i18n: Widget: “DictionariesWidget”, accessible text.
-                accessible_text.append(_('read-only'))
-            return ', '.join(accessible_text)
-        if role == Qt.DecorationRole:
-            return self._icons.get('favorite' if d is self._favorite else d.state)
-        if role == Qt.ToolTipRole:
+                accessible_text.append(_("read-only"))
+            return ", ".join(accessible_text)
+        if role == Qt.ItemDataRole.DecorationRole:
+            return self._icons.get("favorite" if d is self._favorite else d.state)
+        if role == Qt.ItemDataRole.ToolTipRole:
             # i18n: Widget: “DictionariesWidget”, tooltip.
-            tooltip = [_('Full path: {path}.').format(path=d.config.path)]
+            tooltip = [_("Full path: {path}.").format(path=d.config.path)]
             if d is self._favorite:
                 # i18n: Widget: “DictionariesWidget”, tool tip.
-                tooltip.append(_('This dictionary is marked as the favorite.'))
-            elif d.state == 'loading':
+                tooltip.append(_("This dictionary is marked as the favorite."))
+            elif d.state == "loading":
                 # i18n: Widget: “DictionariesWidget”, tool tip.
-                tooltip.append(_('This dictionary is being loaded.'))
-            elif d.state == 'error':
+                tooltip.append(_("This dictionary is being loaded."))
+            elif d.state == "error":
                 # i18n: Widget: “DictionariesWidget”, tool tip.
-                tooltip.append(_('Loading this dictionary failed: {exception}.')
-                               .format(exception=str(d.loaded.exception)))
-            elif d.state == 'readonly':
+                tooltip.append(
+                    _("Loading this dictionary failed: {exception}.").format(
+                        exception=str(d.loaded.exception)
+                    )
+                )
+            elif d.state == "readonly":
                 # i18n: Widget: “DictionariesWidget”, tool tip.
-                tooltip.append(_('This dictionary is read-only.'))
-            return '\n\n'.join(tooltip)
+                tooltip.append(_("This dictionary is read-only."))
+            return "\n\n".join(tooltip)
         return None
 
     def setData(self, index, value, role):
-        if not index.isValid() or role != Qt.CheckStateRole:
+        if not index.isValid() or role != Qt.ItemDataRole.CheckStateRole.value:
             return False
-        if value == Qt.Checked:
+        if value == Qt.CheckState.Checked.value:
             enabled = True
-        elif value == Qt.Unchecked:
+        elif value == Qt.CheckState.Unchecked.value:
             enabled = False
         else:
             return False
@@ -426,11 +439,11 @@ class DictionariesModel(QAbstractListModel):
 
 
 class DictionariesWidget(QGroupBox, Ui_DictionariesWidget):
+    signal_add_translation = Signal(str)
 
-    add_translation = pyqtSignal(str)
-
-    def __init__(self, *args, **kwargs):
-        super().__init__(*args, **kwargs)
+    # TODO what to do with parent?
+    def __init__(self, parent=None):
+        super().__init__()
         self.setupUi(self)
         self._setup = False
         self._engine = None
@@ -450,17 +463,19 @@ class DictionariesWidget(QGroupBox, Ui_DictionariesWidget):
         ):
             action.setEnabled(False)
         # Toolbar.
-        self.layout().addWidget(ToolBar(
-            self.action_Undo,
-            None,
-            self.action_EditDictionaries,
-            self.action_RemoveDictionaries,
-            self.action_AddDictionaries,
-            self.action_AddTranslation,
-            None,
-            self.action_MoveDictionariesUp,
-            self.action_MoveDictionariesDown,
-        ))
+        self.layout().addWidget(
+            ToolBar(
+                self.action_Undo,
+                None,
+                self.action_EditDictionaries,
+                self.action_RemoveDictionaries,
+                self.action_AddDictionaries,
+                self.action_AddTranslation,
+                None,
+                self.action_MoveDictionariesUp,
+                self.action_MoveDictionariesDown,
+            )
+        )
         # Add menu.
         self.menu_AddDictionaries = QMenu(self.action_AddDictionaries.text())
         self.menu_AddDictionaries.setIcon(self.action_AddDictionaries.icon())
@@ -487,21 +502,27 @@ class DictionariesWidget(QGroupBox, Ui_DictionariesWidget):
         edit_menu.addSeparator()
         edit_menu.addAction(self.action_MoveDictionariesUp)
         edit_menu.addAction(self.action_MoveDictionariesDown)
-        self.view.setContextMenuPolicy(Qt.CustomContextMenu)
+        self.view.setContextMenuPolicy(Qt.ContextMenuPolicy.CustomContextMenu)
         self.view.customContextMenuRequested.connect(
-            lambda p: edit_menu.exec_(self.view.mapToGlobal(p)))
+            lambda p: edit_menu.exec(self.view.mapToGlobal(p))
+        )
         self.edit_menu = edit_menu
 
     def setup(self, engine):
         assert not self._setup
         self._engine = engine
-        self._model = DictionariesModel(engine, {
-            name: QIcon(':/dictionary_%s.svg' % name)
-            for name in 'favorite loading error readonly normal'.split()
-        })
-        self._model.has_undo_changed.connect(self.on_has_undo)
+        self._model = DictionariesModel(
+            engine,
+            {
+                name: QIcon(":resources/dictionary_%s.svg" % name)
+                for name in "favorite loading error readonly normal".split()
+            },
+        )
+        self._model.has_undo_changed.connect(self.toggle_undo_action)
         self.view.setModel(self._model)
-        self.view.selectionModel().selectionChanged.connect(self.on_selection_changed)
+        self.view.selectionModel().selectionChanged.connect(
+            self.handle_selection_change
+        )
         for action in (
             self.action_AddDictionaries,
             self.action_AddTranslation,
@@ -511,8 +532,7 @@ class DictionariesWidget(QGroupBox, Ui_DictionariesWidget):
 
     @property
     def _selected(self):
-        return sorted(self.view.selectedIndexes(),
-                      key=lambda index: index.row())
+        return sorted(self.view.selectedIndexes(), key=lambda index: index.row())
 
     def _drag_accept(self, event):
         accepted = False
@@ -549,20 +569,23 @@ class DictionariesWidget(QGroupBox, Ui_DictionariesWidget):
             path_list = [url.toLocalFile() for url in event.mimeData().urls()]
             self._model.insert(index, path_list)
 
-    def _get_dictionary_save_name(self, title, default_name=None,
-                                  default_extensions=(), initial_filename=None):
+    def _get_dictionary_save_name(
+        self, title, default_name=None, default_extensions=(), initial_filename=None
+    ):
         if default_name is not None:
             # Default to a writable dictionary format.
             writable_extensions = set(_dictionary_formats(include_readonly=False))
-            default_name += '.' + next((e for e in default_extensions
-                                        if e in writable_extensions),
-                                       'json')
+            default_name += "." + next(
+                (e for e in default_extensions if e in writable_extensions), "json"
+            )
             default_name = os.path.join(self._file_dialogs_directory, default_name)
         else:
             default_name = self._file_dialogs_directory
         default_name = normalize_path(default_name)
         new_filename = QFileDialog.getSaveFileName(
-            parent=self, caption=title, directory=default_name,
+            parent=self,
+            caption=title,
+            dir=default_name,
             filter=_dictionary_filters(include_readonly=False),
         )[0]
         if not new_filename:
@@ -578,20 +601,21 @@ class DictionariesWidget(QGroupBox, Ui_DictionariesWidget):
         if not path_list:
             return
         editor = DictionaryEditor(self._engine, path_list)
-        editor.exec_()
+        editor.exec()
 
     def _copy_dictionaries(self, dictionaries):
         need_reload = False
         # i18n: Widget: “DictionariesWidget”, “save as copy” file picker.
-        title_template = _('Save a copy of {name} as...')
+        title_template = _("Save a copy of {name} as...")
         # i18n: Widget: “DictionariesWidget”, “save as copy” file picker.
-        default_name_template = _('{name} - Copy')
+        default_name_template = _("{name} - Copy")
         for original in dictionaries:
             title = title_template.format(name=os.path.basename(original.path))
             name, ext = os.path.splitext(os.path.basename(original.path))
             default_name = default_name_template.format(name=name)
-            new_filename = self._get_dictionary_save_name(title, default_name, [ext[1:]],
-                                                          initial_filename=original.path)
+            new_filename = self._get_dictionary_save_name(
+                title, default_name, [ext[1:]], initial_filename=original.path
+            )
             if new_filename is None:
                 continue
             with _new_dictionary(new_filename) as copy:
@@ -600,13 +624,13 @@ class DictionariesWidget(QGroupBox, Ui_DictionariesWidget):
         return need_reload
 
     def _merge_dictionaries(self, dictionaries):
-        names, exts = zip(*(
-            os.path.splitext(os.path.basename(d.path))
-            for d in dictionaries))
-        default_name = ' + '.join(names)
+        names, exts = zip(
+            *(os.path.splitext(os.path.basename(d.path)) for d in dictionaries)
+        )
+        default_name = " + ".join(names)
         default_exts = list(dict.fromkeys(e[1:] for e in exts))
         # i18n: Widget: “DictionariesWidget”, “save as merge” file picker.
-        title = _('Merge {names} as...').format(names=default_name)
+        title = _("Merge {names} as...").format(names=default_name)
         new_filename = self._get_dictionary_save_name(title, default_name, default_exts)
         if new_filename is None:
             return False
@@ -630,11 +654,13 @@ class DictionariesWidget(QGroupBox, Ui_DictionariesWidget):
             # This will trigger a reload of any modified dictionary.
             self._engine.config = {}
 
-    def on_open_dictionaries(self):
+    @Slot()
+    def open_open_dictionaries_dialog(self):
         new_filenames = QFileDialog.getOpenFileNames(
             # i18n: Widget: “DictionariesWidget”, “add” file picker.
-            parent=self, caption=_('Load dictionaries'),
-            directory=self._file_dialogs_directory,
+            parent=self,
+            caption=_("Load dictionaries"),
+            dir=self._file_dialogs_directory,
             filter=_dictionary_filters(),
         )[0]
         if not new_filenames:
@@ -642,47 +668,61 @@ class DictionariesWidget(QGroupBox, Ui_DictionariesWidget):
         self._file_dialogs_directory = os.path.dirname(new_filenames[-1])
         self._model.add(new_filenames)
 
-    def on_create_dictionary(self):
+    @Slot()
+    def open_create_new_dictionary_dialog(self):
         # i18n: Widget: “DictionariesWidget”, “new” file picker.
-        new_filename = self._get_dictionary_save_name(_('Create dictionary'))
+        new_filename = self._get_dictionary_save_name(_("Create dictionary"))
         if new_filename is None:
             return
         with _new_dictionary(new_filename):
             pass
         self._model.add([new_filename])
 
-    def on_copy_dictionaries(self):
+    @Slot()
+    def copy_selected_dictionaries(self):
         self._save_dictionaries()
 
-    def on_merge_dictionaries(self):
+    @Slot()
+    def merge_selected_dictionaries(self):
         self._save_dictionaries(merge=True)
 
-    def on_activate_dictionary(self, index):
+    @Slot(QModelIndex)
+    def activate_dictionary(self, index):
         self._edit_dictionaries([index])
 
-    def on_add_dictionaries(self):
-        self.menu_AddDictionaries.exec_(QCursor.pos())
+    @Slot()
+    def open_add_dictionaries_menu(self):
+        self.menu_AddDictionaries.exec(QCursor.pos())
 
-    def on_add_translation(self):
+    @Slot()
+    def add_translation(self):
         dictionary = next(self._model.iter_loaded([self.view.currentIndex()]), None)
-        self.add_translation.emit(None if dictionary is None else dictionary.path)
+        self.signal_add_translation.emit(
+            None if dictionary is None else dictionary.path
+        )
 
-    def on_edit_dictionaries(self):
+    @Slot()
+    def edit_selected_dictionaries(self):
         self._edit_dictionaries(self._selected)
 
-    def on_has_undo(self, available):
+    @Slot(bool)
+    def toggle_undo_action(self, available):
         self.action_Undo.setEnabled(available)
 
-    def on_move_dictionaries_down(self):
+    @Slot()
+    def move_selected_dictionaries_down(self):
         self._model.move_down(self._selected)
 
-    def on_move_dictionaries_up(self):
+    @Slot()
+    def move_selected_dictionaries_up(self):
         self._model.move_up(self._selected)
 
-    def on_remove_dictionaries(self):
+    @Slot()
+    def remove_selected_dictionaries(self):
         self._model.remove(self._selected)
 
-    def on_selection_changed(self):
+    @Slot()
+    def handle_selection_change(self):
         selection = self._selected
         has_selection = bool(selection)
         for widget in (
@@ -699,5 +739,6 @@ class DictionariesWidget(QGroupBox, Ui_DictionariesWidget):
         ):
             widget.setEnabled(has_live_selection)
 
-    def on_undo(self):
+    @Slot()
+    def undo(self):
         self._model.undo()
