@@ -132,6 +132,9 @@ class DictionariesModel(QAbstractListModel):
             config = engine.config
             engine.signal_connect("config_changed", self._on_config_changed)
             engine.signal_connect("dictionaries_loaded", self._on_dictionaries_loaded)
+            engine.signal_connect(
+                "dictionary_state_changed", self._on_dictionary_state_changed
+            )
             self._reset_items(
                 config["dictionaries"],
                 config["classic_dictionaries_display_order"],
@@ -247,6 +250,12 @@ class DictionariesModel(QAbstractListModel):
             return
         updated_rows.update(self._update_favorite())
         self._updated_rows(updated_rows)
+
+    def _on_dictionary_state_changed(self, filename, d):
+        [item] = [item for item in self._from_row if item.path == filename]
+        if item.loaded != d:
+            item.loaded = d
+            self._updated_rows([item.row])
 
     def _move(self, index_list, step):
         row_list = sorted(self._normalized_row_list(index_list))
