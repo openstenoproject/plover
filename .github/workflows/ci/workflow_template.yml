@@ -1,10 +1,6 @@
 
 name: CI
 
-permissions:
-  contents: read
-  id-token: write
-
 on:
   push:
     branches:
@@ -276,6 +272,9 @@ jobs:
     name: Release
     environment: release
     runs-on: ubuntu-latest
+    permissions:
+      contents: write
+      id-token: write
     needs: [analyze, <@ jobs|join(', ', attribute='id') @>]
     if: >-
       !cancelled()

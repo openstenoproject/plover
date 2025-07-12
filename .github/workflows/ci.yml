@@ -3,11 +3,8 @@
 # .github/workflows/ci/workflow_template.yml
 #
 
-name: CI
 
-permissions:
-  contents: read
-  id-token: write
+name: CI
 
 on:
   push:
@@ -842,6 +839,9 @@ jobs:
     name: Release
     environment: release
     runs-on: ubuntu-latest
+    permissions:
+      contents: write
+      id-token: write
     needs: [analyze, test_linux, test_macos, test_windows, test_python_38, test_python_310, test_qt_gui, test_packaging, build_linux, build_macos, build_windows]
     if: >-
       !cancelled()
