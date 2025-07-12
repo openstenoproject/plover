@@ -311,11 +311,17 @@ jobs:
           RELEASE_VERSION: ${{ needs.test_packaging.outputs.version }}
         run: publish_github_release
 
+      - name: Collect Python distributions for PyPI
+        run: |
+          mkdir -p dist/pypi
+          cp dist/Source/*.tar.gz dist/pypi/
+          cp dist/Wheel/*.whl dist/pypi/
+
       - name: Publish release to PyPI (Trusted Publishing)
         if: needs.analyze.outputs.release_type == 'tagged'
         uses: pypa/gh-action-pypi-publish@release/v1
         with:
-          packages-dir: dist
+          packages-dir: dist/pypi
           skip-existing: true
   # }}}
 
