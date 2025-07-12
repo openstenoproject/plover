@@ -1,3 +1,20 @@
+# v4.0.3 (2025-07-12)
+
+
+## Features
+
+No significant changes.
+
+## Bugfixes
+
+### Core
+
+- Update plover-plugins-manager and related Python dependencies. (#1750)
+
+## API
+
+No significant changes.
+
 # v4.0.2 (2025-06-05)
 
 
