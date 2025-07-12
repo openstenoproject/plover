@@ -1,4 +1,9 @@
+
 name: CI
+
+permissions:
+  contents: read
+  id-token: write
 
 on:
   push:
@@ -307,15 +312,12 @@ jobs:
           RELEASE_VERSION: ${{ needs.test_packaging.outputs.version }}
         run: publish_github_release
 
-      - name: Publish PyPI release
+      - name: Publish release to PyPI (Trusted Publishing)
         if: needs.analyze.outputs.release_type == 'tagged'
-        env:
-          TWINE_NON_INTERACTIVE: 1
-          TWINE_USERNAME: __token__
-          TWINE_PASSWORD: ${{ secrets.PYPI_TOKEN }}
-          # Optional: twine will fallback to default if empty.
-          TWINE_REPOSITORY_URL: ${{ secrets.PYPI_URL }}
-        run: publish_pypi_release
+        uses: pypa/gh-action-pypi-publish@release/v1
+        with:
+          packages-dir: dist
+          skip-existing: true
   # }}}
 
 # vim: foldmethod=marker foldlevel=0
