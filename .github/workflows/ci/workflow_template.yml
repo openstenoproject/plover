@@ -274,6 +274,9 @@ jobs:
     name: Release
     environment: release
     runs-on: ubuntu-latest
+    permissions:
+      contents: write
+      id-token: write
     needs: [analyze, <@ jobs|join(', ', attribute='id') @>]
     if: >-
       !cancelled()
@@ -309,15 +312,16 @@ jobs:
           RELEASE_VERSION: ${{ needs.test_packaging.outputs.version }}
         run: publish_github_release
 
-      - name: Publish PyPI release
-        if: needs.analyze.outputs.release_type == 'tagged'
-        env:
-          TWINE_NON_INTERACTIVE: 1
-          TWINE_USERNAME: __token__
-          TWINE_PASSWORD: ${{ secrets.PYPI_TOKEN }}
-          # Optional: twine will fallback to default if empty.
-          TWINE_REPOSITORY_URL: ${{ secrets.PYPI_URL }}
-        run: publish_pypi_release
-  # }}}
+      - name: Collect Python distributions for PyPI
+        run: |
+          mkdir -p dist/pypi
+          cp dist/Source/*.tar.gz dist/pypi/
+          cp dist/Wheel/*.whl dist/pypi/
 
-# vim: foldmethod=marker foldlevel=0
+      - name: Publish release to PyPI (Trusted Publishing)
+        if: needs.analyze.outputs.release_type == 'tagged'
+        uses: pypa/gh-action-pypi-publish@release/v1
+        with:
+          packages-dir: dist/pypi
+          skip-existing: true
+  # }}}

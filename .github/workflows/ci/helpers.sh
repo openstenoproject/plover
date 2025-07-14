@@ -190,11 +190,6 @@ EOF
     "$tag" "${assets[@]}"
 }
 
-publish_pypi_release()
-{
-  run "$python" -m twine upload dist/Source/* dist/Wheel/*
-}
-
 analyze_set_release_info()
 {
   info "GITHUB_REF: $GITHUB_REF"
