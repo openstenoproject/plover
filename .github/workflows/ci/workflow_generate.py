@@ -86,6 +86,9 @@ with open(".github/workflows/ci.yml", "w") as fp:
     )
     fp.write(workflow)
 
+    # Ensure the generated file ends with a trailing newline.
+    fp.write("\n")
+
 # And try parsing it to check it's valid YAML,
 # and ensure anchors/aliases are not used.
 GithubActionsYamlLoader(workflow).get_single_data()
