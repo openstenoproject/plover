@@ -61,6 +61,7 @@ class DictionaryLoadingOperation:
     def __init__(self, filename, state_change_callback):
         """
         Parameters:
+        filename -- Path to dictionary file.
         state_change_callback -- A function that will be called when the load is finished
             with two parameters: the filename and the loaded StenoDictionary object
             (or an instance of ErroredDictionary if the load fails).
