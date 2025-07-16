@@ -569,7 +569,11 @@ class KeyboardEmulation(GenericKeyboardEmulation):
 
     # Abstraction to set flags to 0 and create an input type
     def _keyboard(self, code, flags=0):
-        return self._input(self._keyboard_input(code, self.keyboard_layout.vk_to_sc.get(code, 0), flags))
+        return self._input(
+            self._keyboard_input(
+                code, self.keyboard_layout.vk_to_sc.get(code, 0), flags
+            )
+        )
 
     def _key_event(self, keycode, pressed):
         flags = 0 if pressed else KEYEVENTF_KEYUP
