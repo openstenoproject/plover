@@ -376,7 +376,7 @@ class KeyboardLayout:  # {{{
 
         # Find virtual key code for each scan code (if any).
         sc_to_vk = {}
-        vk_to_sc = {}
+        self.vk_to_sc = vk_to_sc = {}
         for sc in range(0x01, 0x7F + 1):
             vk = MapVirtualKeyEx(sc, 3, layout_id)
             if vk != 0:
