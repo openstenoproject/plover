@@ -571,7 +571,7 @@ class KeyboardEmulation(GenericKeyboardEmulation):
     def _keyboard(self, code, flags=0):
         return self._input(
             self._keyboard_input(
-                code, self.keyboard_layout.vk_to_sc.get(code, 0), flags
+                code, self.keyboard_layout.vk_to_sc_with_fallback.get(code, 0), flags
             )
         )
 
