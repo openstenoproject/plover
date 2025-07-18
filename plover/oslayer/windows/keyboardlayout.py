@@ -384,17 +384,23 @@ class KeyboardLayout:  # {{{
                 vk_to_sc[vk] = sc
 
         from copy import copy
+
         self.vk_to_sc_with_fallback = copy(vk_to_sc)
         for vk, fallback_vk in [
-                (VK.CONTROL, VK.LCONTROL),
-                (VK.CONTROL, VK.RCONTROL),
-                (VK.MENU, VK.LMENU),
-                (VK.MENU, VK.RMENU),
-                (VK.SHIFT, VK.LSHIFT),
-                (VK.SHIFT, VK.RSHIFT),
-                ]:
-            if fallback_vk in self.vk_to_sc_with_fallback and vk not in self.vk_to_sc_with_fallback:
-                self.vk_to_sc_with_fallback[vk] = self.vk_to_sc_with_fallback[fallback_vk]
+            (VK.CONTROL, VK.LCONTROL),
+            (VK.CONTROL, VK.RCONTROL),
+            (VK.MENU, VK.LMENU),
+            (VK.MENU, VK.RMENU),
+            (VK.SHIFT, VK.LSHIFT),
+            (VK.SHIFT, VK.RSHIFT),
+        ]:
+            if (
+                fallback_vk in self.vk_to_sc_with_fallback
+                and vk not in self.vk_to_sc_with_fallback
+            ):
+                self.vk_to_sc_with_fallback[vk] = self.vk_to_sc_with_fallback[
+                    fallback_vk
+                ]
 
         state = (wintypes.BYTE * 256)()
         strbuf = ctypes.create_unicode_buffer(8)
