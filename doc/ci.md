@@ -123,13 +123,8 @@ jobs completed successfully.
 ### PyPI release
 
 On *tagged* release, the source distribution and wheel are published
-to PyPI.
+to PyPI via [Trusted Publishing](https://docs.pypi.org/trusted-publishers/).
 
-For this to work, a valid [PyPI token](https://pypi.org/help/#apitoken)
-must be configured: the `PYPI_TOKEN` secret of the `release`
-[environment](https://docs.github.com/en/actions/reference/environments)
-will be used. Additionally, the optional `PYPI_URL` secret can be set to
-use another PyPI compatible index (e.g. Test PyPI).
 
 ### GitHub release
 
