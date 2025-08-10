@@ -523,6 +523,40 @@ class KeyboardCapture(Capture):
         self._suppressed_keys = set(suppressed_keys)
 
     def _run(self):
+        keys_pressed_with_modifier: set[int] = set()
+        down_modifier_keys: set[int] = set()
+
+        def _parse_key_event(event: InputEvent) -> tuple[str | None, bool]:
+            """
+            Returns a tuple of (key_to_send_to_plover, suppress)
+            """
+            if not self._suppressed_keys:
+                # No keys are suppressed
+                # Always send to plover so that it can handle global shortcuts like PLOVER_TOGGLE (PHRO*L)
+                return HANDLED_KEYCODE_TO_KEY.get(event.code, None), False
+            if event.code in MODIFIER_KEY_CODES:
+                # Can't use if-else because there is a third case: key_hold
+                if event.value == KeyEvent.key_down:
+                    down_modifier_keys.add(event.code)
+                elif event.value == KeyEvent.key_up:
+                    down_modifier_keys.discard(event.code)
+                return None, False
+            key = HANDLED_KEYCODE_TO_KEY.get(event.code, None)
+            if key is None:
+                # Key is unhandled. Passthrough
+                return None, False
+            if event.value == KeyEvent.key_down and down_modifier_keys:
+                keys_pressed_with_modifier.add(event.code)
+                return None, False
+            if event.value == KeyEvent.key_up and event.code in keys_pressed_with_modifier:
+                # Must pass through key up event if key was pressed with modifier
+                # or else it will stay pressed down and start repeating.
+                # Must release even if modifier key was released first
+                keys_pressed_with_modifier.discard(event.code)
+                return None, False
+            suppress = key in self._suppressed_keys
+            return key, suppress
+
         try:
             while True:
                 for key, events in self._selector.select():
@@ -532,16 +566,21 @@ class KeyboardCapture(Capture):
                     assert isinstance(key.fileobj, InputDevice)
                     device: InputDevice = key.fileobj
                     for event in device.read():
-                        if event.code in KEYCODE_TO_KEY:
-                            key_name = KEYCODE_TO_KEY[event.code]
-                            if key_name in self._suppressed_keys:
-                                pressed = event.value == 1
-                                (self.key_down if pressed else self.key_up)(
-                                    key_name
-                                )
-                                continue  # Go to the next iteration, skipping the below code:
-                        self._ui.write(e.EV_KEY, event.code, event.value)
-                        self._ui.syn()
+                        if event.type == e.EV_KEY:
+                            key_to_send_to_plover, suppress = _parse_key_event(event)
+                            if key_to_send_to_plover is not None:
+                                # Always send keys to Plover when no keys suppressed
+                                if event.value == KeyEvent.key_down:
+                                    self.key_down(key_to_send_to_plover)
+                                elif event.value == KeyEvent.key_up:
+                                    self.key_up(key_to_send_to_plover)
+                            if suppress:
+                                # Skip rest of loop to prevent event from
+                                # being passed through
+                                continue
+
+                        # Passthrough event
+                        self._ui.write_event(event)
         except:
             log.error("keyboard capture error", exc_info=True)
         finally:
