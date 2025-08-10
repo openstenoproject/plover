@@ -575,6 +575,8 @@ class KeyboardCapture(Capture):
                             key_to_send_to_plover, suppress = _parse_key_event(event)
                             if key_to_send_to_plover is not None:
                                 # Always send keys to Plover when no keys suppressed
+                                # This is required for global shortcuts like
+                                # Plover enable/disable (PHRO*L)
                                 if event.value == KeyEvent.key_down:
                                     self.key_down(key_to_send_to_plover)
                                 elif event.value == KeyEvent.key_up:
