@@ -421,6 +421,7 @@ class KeyboardCapture(Capture):
     _device_thread_write_pipe: int | None
 
     def __init__(self):
+        print("init")
         super().__init__()
         self._devices = self._get_devices()
         self._running = False
@@ -507,10 +508,8 @@ class KeyboardCapture(Capture):
         if self._device_thread_read_pipe is not None:
             self._selector.unregister(self._device_thread_read_pipe)
             os.close(self._device_thread_read_pipe)
-            self._device_thread_read_pipe = None
         if self._device_thread_write_pipe is not None:
             os.close(self._device_thread_write_pipe)
-            self._device_thread_write_pipe = None
         self._selector.close()
 
         self._running = False
@@ -528,8 +527,7 @@ class KeyboardCapture(Capture):
             while True:
                 for key, events in self._selector.select():
                     if key.fd == self._device_thread_read_pipe:
-                        # Clear the pipe
-                        os.read(key.fd, 999)
+                        # Stop this thread
                         return
                     assert isinstance(key.fileobj, InputDevice)
                     device: InputDevice = key.fileobj
@@ -542,8 +540,8 @@ class KeyboardCapture(Capture):
                                     key_name
                                 )
                                 continue  # Go to the next iteration, skipping the below code:
-                    self._ui.write(e.EV_KEY, event.code, event.value)
-                    self._ui.syn()
+                        self._ui.write(e.EV_KEY, event.code, event.value)
+                        self._ui.syn()
         except:
             log.error("keyboard capture error", exc_info=True)
         finally:
