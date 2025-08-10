@@ -322,6 +322,12 @@ KEYCODE_TO_KEY = dict(
     zip(LAYOUTS[DEFAULT_LAYOUT].values(), LAYOUTS[DEFAULT_LAYOUT].keys())
 )
 
+MODIFIER_KEY_CODES: set[int] = {
+    e.KEY_LEFTSHIFT, e.KEY_RIGHTSHIFT,
+    e.KEY_LEFTCTRL, e.KEY_RIGHTCTRL,
+    e.KEY_LEFTALT, e.KEY_RIGHTALT,
+    e.KEY_LEFTMETA, e.KEY_RIGHTMETA,
+}
 
 class KeyboardEmulation(GenericKeyboardEmulation):
     def __init__(self):
@@ -421,7 +427,6 @@ class KeyboardCapture(Capture):
     _device_thread_write_pipe: int | None
 
     def __init__(self):
-        print("init")
         super().__init__()
         self._devices = self._get_devices()
         self._running = False
@@ -533,7 +538,7 @@ class KeyboardCapture(Capture):
             if not self._suppressed_keys:
                 # No keys are suppressed
                 # Always send to plover so that it can handle global shortcuts like PLOVER_TOGGLE (PHRO*L)
-                return HANDLED_KEYCODE_TO_KEY.get(event.code, None), False
+                return KEYCODE_TO_KEY.get(event.code, None), False
             if event.code in MODIFIER_KEY_CODES:
                 # Can't use if-else because there is a third case: key_hold
                 if event.value == KeyEvent.key_down:
@@ -541,7 +546,7 @@ class KeyboardCapture(Capture):
                 elif event.value == KeyEvent.key_up:
                     down_modifier_keys.discard(event.code)
                 return None, False
-            key = HANDLED_KEYCODE_TO_KEY.get(event.code, None)
+            key = KEYCODE_TO_KEY.get(event.code, None)
             if key is None:
                 # Key is unhandled. Passthrough
                 return None, False
