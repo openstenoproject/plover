@@ -429,7 +429,6 @@ class KeyboardCapture(Capture):
     _device_thread_write_pipe: int | None
 
     def __init__(self):
-        print("init")
         super().__init__()
         self._devices = self._get_devices()
         self._running = False
