@@ -4,8 +4,6 @@ from evdev import (
     util,
     InputDevice,
     list_devices,
-    InputEvent,
-    KeyEvent,
 )
 import threading
 import os
