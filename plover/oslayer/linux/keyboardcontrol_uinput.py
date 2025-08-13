@@ -435,7 +435,7 @@ class KeyboardEmulation(GenericKeyboardEmulation):
 class KeyboardCapture(Capture):
     _selector: selectors.DefaultSelector
     _device_thread: threading.Thread | None
-    # Pipe to signal `_monitor_devices` thread to stop
+    # Pipes to signal `_run` thread to stop
     _device_thread_read_pipe: int | None
     _device_thread_write_pipe: int | None
 
