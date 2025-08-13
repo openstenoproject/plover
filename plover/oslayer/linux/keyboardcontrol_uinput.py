@@ -1,4 +1,12 @@
-from evdev import UInput, ecodes as e, util, InputDevice, list_devices, InputEvent, KeyEvent
+from evdev import (
+    UInput,
+    ecodes as e,
+    util,
+    InputDevice,
+    list_devices,
+    InputEvent,
+    KeyEvent,
+)
 import threading
 import os
 import selectors
@@ -323,11 +331,16 @@ KEYCODE_TO_KEY = dict(
 )
 
 MODIFIER_KEY_CODES: set[int] = {
-    e.KEY_LEFTSHIFT, e.KEY_RIGHTSHIFT,
-    e.KEY_LEFTCTRL, e.KEY_RIGHTCTRL,
-    e.KEY_LEFTALT, e.KEY_RIGHTALT,
-    e.KEY_LEFTMETA, e.KEY_RIGHTMETA,
+    e.KEY_LEFTSHIFT,
+    e.KEY_RIGHTSHIFT,
+    e.KEY_LEFTCTRL,
+    e.KEY_RIGHTCTRL,
+    e.KEY_LEFTALT,
+    e.KEY_RIGHTALT,
+    e.KEY_LEFTMETA,
+    e.KEY_RIGHTMETA,
 }
+
 
 class KeyboardEmulation(GenericKeyboardEmulation):
     def __init__(self):
@@ -450,7 +463,6 @@ class KeyboardCapture(Capture):
         """
         Filter out devices that should not be grabbed and suppressed, to avoid output feeding into itself.
         """
-        capabilities = device.capabilities()
         is_uinput = device.name == "py-evdev-uinput" or device.phys == "py-evdev-uinput"
         # Check for some common keys to make sure it's really a keyboard
         keys = device.capabilities().get(e.EV_KEY, [])
@@ -553,7 +565,10 @@ class KeyboardCapture(Capture):
             if event.value == KeyEvent.key_down and down_modifier_keys:
                 keys_pressed_with_modifier.add(event.code)
                 return None, False
-            if event.value == KeyEvent.key_up and event.code in keys_pressed_with_modifier:
+            if (
+                event.value == KeyEvent.key_up
+                and event.code in keys_pressed_with_modifier
+            ):
                 # Must pass through key up event if key was pressed with modifier
                 # or else it will stay pressed down and start repeating.
                 # Must release even if modifier key was released first
