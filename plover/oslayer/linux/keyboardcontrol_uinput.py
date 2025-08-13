@@ -543,8 +543,10 @@ class KeyboardCapture(Capture):
         keys_pressed_with_modifier: set[int] = set()
         down_modifier_keys: set[int] = set()
 
-        def _parse_key_event(event: InputEvent) -> tuple[str | None, bool]:
+        def _process_key_event(event: InputEvent) -> tuple[str | None, bool]:
             """
+            Processes an InputEvent to determine which key Plover should receive.
+            Considers pressed modifiers and Plover's suppressed keys.
             Returns a tuple of (key_to_send_to_plover, suppress)
             """
             if not self._suppressed_keys:
@@ -587,11 +589,13 @@ class KeyboardCapture(Capture):
                     device: InputDevice = key.fileobj
                     for event in device.read():
                         if event.type == e.EV_KEY:
-                            key_to_send_to_plover, suppress = _parse_key_event(event)
+                            key_to_send_to_plover, suppress = _process_key_event(event)
                             if key_to_send_to_plover is not None:
-                                # Always send keys to Plover when no keys suppressed
+                                # Always send keys to Plover when no keys suppressed.
                                 # This is required for global shortcuts like
-                                # Plover enable/disable (PHRO*L)
+                                # Plover toggle (PHROLG) when Plover is disabled.
+                                # Note: Must explicitly check key_up or key_down
+                                # because there is a third case: key_hold
                                 if event.value == KeyEvent.key_down:
                                     self.key_down(key_to_send_to_plover)
                                 elif event.value == KeyEvent.key_up:
