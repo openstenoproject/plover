@@ -1,10 +1,4 @@
-from evdev import (
-    UInput,
-    ecodes as e,
-    util,
-    InputDevice,
-    list_devices,
-)
+from evdev import UInput, ecodes as e, util, InputDevice, list_devices
 import threading
 import os
 import selectors
@@ -450,7 +444,6 @@ class KeyboardCapture(Capture):
         """
         Filter out devices that should not be grabbed and suppressed, to avoid output feeding into itself.
         """
-        capabilities = device.capabilities()
         is_uinput = device.name == "py-evdev-uinput" or device.phys == "py-evdev-uinput"
         # Check for some common keys to make sure it's really a keyboard
         keys = device.capabilities().get(e.EV_KEY, [])
