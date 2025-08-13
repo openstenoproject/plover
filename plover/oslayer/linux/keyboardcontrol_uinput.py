@@ -545,13 +545,14 @@ class KeyboardCapture(Capture):
 
         def _process_key_event(event: InputEvent) -> tuple[str | None, bool]:
             """
-            Processes an InputEvent to determine which key Plover should receive.
+            Processes an InputEvent to determine which key Plover should receive
+            and whether the event should be suppressed.
             Considers pressed modifiers and Plover's suppressed keys.
             Returns a tuple of (key_to_send_to_plover, suppress)
             """
             if not self._suppressed_keys:
                 # No keys are suppressed
-                # Always send to plover so that it can handle global shortcuts like PLOVER_TOGGLE (PHRO*L)
+                # Always send to Plover so that it can handle global shortcuts like PLOVER_TOGGLE (PHROLG)
                 return KEYCODE_TO_KEY.get(event.code, None), False
             if event.code in MODIFIER_KEY_CODES:
                 # Can't use if-else because there is a third case: key_hold
