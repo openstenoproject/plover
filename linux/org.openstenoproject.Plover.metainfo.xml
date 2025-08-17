@@ -1,0 +1,76 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<component type="desktop-application">
+  <id>org.openstenoproject.Plover</id>
+  <name>Plover</name>
+  <summary>Free and open source stenography engine</summary>
+  <developer id="dev.zed">
+    <name translate="no">Open Steno Project</name>
+  </developer>
+  <description>
+    <p>
+      <b
+      >NOTE:</b> This is the official release of Plover, packaged into a Flatpak by the community. This repackaging is not yet supported by the Open Steno Project.
+    </p>
+    <p>
+      Before there was Plover, there was deposition software, often called computer-aided transcription (CAT) software. While this software is very useful for stenographers making depositions, it is not well-fitted to other purposes. It is sandboxed, proprietary, and often bloated. Plover is a small, slick Python application that you run in the background. It acts as a translator to read steno input from your keyboard or steno machine and then emulates keystrokes. The programs you use can't tell that you're using steno.
+    </p>
+    <p>
+      This means that you can use Plover to chat on Facebook, write in Microsoft Word, browse the web, control your media, use a terminal, fire off keyboard shortcuts, open and close programs, navigate with arrow keys, write code, or anything else you could do with a regular keyboard, but at potentially much greater speeds!
+    </p>
+    <p>
+      Plover is used today by over a thousand people, of varying skills. It is used by both professional stenographers, transcriptionists, programmers, and hobbyists (for general computer use and composition). If you want to know more about the community, it's best to join our <a
+        href="https://discord.gg/0lQde43a6dGmAMp2"
+      >official Discord server</a>.
+    </p>
+    <p>Features:</p>
+    <ul>
+      <li>Runs on Windows, Linux, and Mac.</li>
+      <li>Works with regular keyboards and with real steno machines.</li>
+      <li>Works in most applications to input text.</li>
+      <li>Has extensive support for sending keyboard shortcuts.</li>
+      <li>Includes training tools to help you learn stenography.</li>
+      <li
+      >Minimal, clean, out-of-your-face interface so you can focus on writing.</li>
+      <li>A plugins manager to allow the community to add features.</li>
+      <li>…and much, much more.</li>
+    </ul>
+  </description>
+  <branding>
+    <color type="primary" scheme_preference="light">#26a269</color>
+    <color type="primary" scheme_preference="dark">#8ff0a4</color>
+  </branding>
+  <launchable type="desktop-id">org.openstenoproject.Plover.desktop</launchable>
+  <requires>
+    <control>keyboard</control>
+    <control>pointing</control>
+  </requires>
+  <screenshots>
+    <screenshot type="default">
+      <caption
+      >The main window of Plover, showing available input sources and dictionaries.</caption>
+      <image
+      >https://www.openstenoproject.org/plover/images/plover_screenshot.png</image>
+    </screenshot>
+  </screenshots>
+  <categories>
+    <category>Office</category>
+    <category>Utility</category>
+  </categories>
+  <url type="homepage">https://openstenoproject.org/plover</url>
+  <url type="bugtracker">https://github.com/openstenoproject/issues</url>
+  <url type="help">https://plover.wiki</url>
+  <url type="donate">https://www.openstenoproject.org/donate/</url>
+  <url type="contact">https://www.openstenoproject.org/community/</url>
+  <url type="vcs-browser">https://github.com/openstenoproject/plover</url>
+  <url
+    type="contribute"
+  >https://github.com/openstenoproject/plover/blob/main/CONTRIBUTING.md</url>
+  <releases>
+    <release version="v5.0.0.dev3" date="2025-07-14">
+      <description />
+    </release>
+  </releases>
+  <metadata_license>MIT</metadata_license>
+  <project_license>GPL-2.0-or-later</project_license>
+  <content_rating type="oars-1.1" />
+</component>
