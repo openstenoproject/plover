@@ -499,6 +499,9 @@ class KeyboardCapture(Capture):
                 log.debug("failed to ungrab device", exc_info=True)
 
     def start(self):
+        # Exception handling note: cancel() will eventually be called when the
+        # machine reconnect button is pressed or when the machine is changed.
+        # Therefore, cancel() does not need to be called in the except block.
         try:
             self._grab_devices()
             self._device_thread_read_pipe, self._device_thread_write_pipe = os.pipe()
@@ -517,17 +520,37 @@ class KeyboardCapture(Capture):
     def cancel(self):
         # Write some arbitrary data to the pipe to signal the _run thread to stop
         if self._device_thread_write_pipe is not None:
-            os.write(self._device_thread_write_pipe, b"a")
+            try:
+                os.write(self._device_thread_write_pipe, b"a")
+            except Exception:
+                log.warning("failed to write to device thread pipe", exc_info=True)
         if self._device_thread is not None:
-            self._device_thread.join()
-            self._device_thread = None
+            try:
+                self._device_thread.join()
+            except Exception:
+                log.warning("failed to join device thread", exc_info=True)
+        self._device_thread = None
+        try:
+            self._ungrab_devices()
+        except Exception:
+            log.warning("failed to ungrab devices", exc_info=True)
+        try:
+            self._selector.close()
+        except Exception:
+            log.warning("failed to close selector", exec_info=True)
 
         if self._device_thread_read_pipe is not None:
-            self._selector.unregister(self._device_thread_read_pipe)
-            os.close(self._device_thread_read_pipe)
+            try:
+                os.close(self._device_thread_read_pipe)
+            except Exception:
+                log.warning("failed to close device thread read pipe", exc_info=True)
+            self._device_thread_read_pipe = None
         if self._device_thread_write_pipe is not None:
-            os.close(self._device_thread_write_pipe)
-        self._selector.close()
+            try:
+                os.close(self._device_thread_write_pipe)
+            except Exception:
+                log.warning("failed to close device thread write pipe", exc_info=True)
+            self._device_thread_write_pipe = None
 
         self._running = False
 
