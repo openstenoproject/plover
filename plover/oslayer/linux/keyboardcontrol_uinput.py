@@ -480,8 +480,8 @@ class KeyboardCapture(Capture):
                 log.debug("failed to ungrab device", exc_info=True)
 
     def start(self):
-        # Exception note: cancel() will eventually by called when the machine
-        # reconnect machine is pressed, or when the machine is changed.
+        # Exception handling note: cancel() will eventually be called when the
+        # machine reconnect button is pressed or when the machine is changed.
         # Therefore, cancel() does not need to be called in the except block.
         try:
             self._grab_devices()
