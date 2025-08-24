@@ -499,10 +499,13 @@ class KeyboardCapture(Capture):
             raise
 
     def cancel(self):
-        if self._device_thread_read_pipe is None or self._device_thread_write_pipe is None:
+        if (
+            self._device_thread_read_pipe is None
+            or self._device_thread_write_pipe is None
+        ):
             # The only way for these pipes to be None is if pipe creation in start() failed
             # In that case, no other code after pipe creation would have run such as selectors.register or thread creation,
-            # so no cleanup is required
+            # and no cleanup is required
             return
         # Write some arbitrary data to the pipe to signal the _run thread to stop
         os.write(self._device_thread_write_pipe, b"a")
