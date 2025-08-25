@@ -507,20 +507,19 @@ class KeyboardCapture(Capture):
             # In that case, no other code after pipe creation would have run such as selectors.register or thread creation,
             # and no cleanup is required
             return
-        # Write some arbitrary data to the pipe to signal the _run thread to stop
-        os.write(self._device_thread_write_pipe, b"a")
+        try:
+            # Write some arbitrary data to the pipe to signal the _run thread to stop
+            os.write(self._device_thread_write_pipe, b"a")
 
-        if self._device_thread is not None:
-            # Possible exception is joining a thread that was not started
-            try:
+            if self._device_thread is not None:
                 self._device_thread.join()
-            except Exception:
-                log.debug("failed to join device thread", exc_info=True)
-        self._ungrab_devices()
-        self._selector.close()
-
-        os.close(self._device_thread_read_pipe)
-        os.close(self._device_thread_write_pipe)
+            self._selector.close()
+        except Exception:
+            log.debug(exc_info=True)
+        finally:
+            self._ungrab_devices()
+            os.close(self._device_thread_read_pipe)
+            os.close(self._device_thread_write_pipe)
 
     def suppress(self, suppressed_keys=()):
         """
