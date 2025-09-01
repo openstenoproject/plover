@@ -442,7 +442,6 @@ class KeyboardCapture(Capture):
     def __init__(self):
         super().__init__()
         self._devices = self._get_devices()
-        self._running = False
 
         self._selector = selectors.DefaultSelector()
         self._device_thread = None
@@ -511,10 +510,9 @@ class KeyboardCapture(Capture):
 
             self._device_thread = threading.Thread(target=self._run)
             self._device_thread.start()
-
-            self._running = True
         except Exception:
             self._ungrab_devices()
+            self._ui.close()
             raise
 
     def cancel(self):
@@ -523,20 +521,18 @@ class KeyboardCapture(Capture):
             or self._device_thread_write_pipe is None
         ):
             # The only way for these pipes to be None is if pipe creation in start() failed
-            # In that case, no other code after pipe creation would have run such as selectors.register or thread creation,
+            # In that case, no other code after pipe creation would have run
             # and no cleanup is required
             return
         try:
             # Write some arbitrary data to the pipe to signal the _run thread to stop
             os.write(self._device_thread_write_pipe, b"a")
-
             if self._device_thread is not None:
                 self._device_thread.join()
             self._selector.close()
         except Exception:
-            log.debug(exc_info=True)
+            log.debug("error stopping KeyboardCapture", exc_info=True)
         finally:
-            self._ungrab_devices()
             os.close(self._device_thread_read_pipe)
             os.close(self._device_thread_write_pipe)
 
