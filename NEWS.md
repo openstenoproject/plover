@@ -1,3 +1,22 @@
+# v5.0.0rc1 (2025-09-02)
+
+
+## Features
+
+### Linux
+
+- Refactor Uinput to use pipe instead of select with timeout. (#1760)
+- Passthrough keyboard shortcuts. (#1761)
+- Uinput: refactor initialization and cleanup. (#1765)
+
+## Bugfixes
+
+No significant changes.
+
+## API
+
+No significant changes.
+
 # v5.0.0.dev3 (2025-07-14)
 
 
