@@ -442,7 +442,6 @@ class KeyboardCapture(Capture):
     def __init__(self):
         super().__init__()
         self._devices = self._get_devices()
-        self._running = False
 
         self._selector = selectors.DefaultSelector()
         self._device_thread = None
@@ -511,48 +510,31 @@ class KeyboardCapture(Capture):
 
             self._device_thread = threading.Thread(target=self._run)
             self._device_thread.start()
-
-            self._running = True
         except Exception:
             self._ungrab_devices()
+            self._ui.close()
             raise
 
     def cancel(self):
-        # Write some arbitrary data to the pipe to signal the _run thread to stop
-        if self._device_thread_write_pipe is not None:
-            try:
-                os.write(self._device_thread_write_pipe, b"a")
-            except Exception:
-                log.warning("failed to write to device thread pipe", exc_info=True)
-        if self._device_thread is not None:
-            try:
+        if (
+            self._device_thread_read_pipe is None
+            or self._device_thread_write_pipe is None
+        ):
+            # The only way for these pipes to be None is if pipe creation in start() failed
+            # In that case, no other code after pipe creation would have run
+            # and no cleanup is required
+            return
+        try:
+            # Write some arbitrary data to the pipe to signal the _run thread to stop
+            os.write(self._device_thread_write_pipe, b"a")
+            if self._device_thread is not None:
                 self._device_thread.join()
-            except Exception:
-                log.warning("failed to join device thread", exc_info=True)
-        self._device_thread = None
-        try:
-            self._ungrab_devices()
-        except Exception:
-            log.warning("failed to ungrab devices", exc_info=True)
-        try:
             self._selector.close()
         except Exception:
-            log.warning("failed to close selector", exec_info=True)
-
-        if self._device_thread_read_pipe is not None:
-            try:
-                os.close(self._device_thread_read_pipe)
-            except Exception:
-                log.warning("failed to close device thread read pipe", exc_info=True)
-            self._device_thread_read_pipe = None
-        if self._device_thread_write_pipe is not None:
-            try:
-                os.close(self._device_thread_write_pipe)
-            except Exception:
-                log.warning("failed to close device thread write pipe", exc_info=True)
-            self._device_thread_write_pipe = None
-
-        self._running = False
+            log.debug("error stopping KeyboardCapture", exc_info=True)
+        finally:
+            os.close(self._device_thread_read_pipe)
+            os.close(self._device_thread_write_pipe)
 
     def suppress(self, suppressed_keys=()):
         """
