@@ -1,3 +1,18 @@
+# v5.0.0 (2025-09-10)
+
+
+## Features
+
+No significant changes.
+
+## Bugfixes
+
+No significant changes.
+
+## API
+
+No significant changes.
+
 # v5.0.0rc1 (2025-09-02)
 
 

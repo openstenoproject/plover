@@ -152,7 +152,7 @@ EOF
   run pandoc --from=gfm --to=gfm \
     --lua-filter=.github/RELEASE_DRAFT_FILTER.lua \
     --template=.github/RELEASE_DRAFT_TEMPLATE.md \
-    --shift-heading-level-by=2 --wrap=none \
+    --shift-heading-level-by=1 --wrap=none \
     --variable="version:$RELEASE_VERSION" \
     --output=notes.md \
     "$notes_body" || die
