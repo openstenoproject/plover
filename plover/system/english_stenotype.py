@@ -80,7 +80,9 @@ ORTHOGRAPHY_RULES = [
     (r"^(.+)y \^ (ial|ially)$", r"\1\2"),
     # == +if ==
     # spaghetti +ification = spaghettification (*spaghettiification)
-    (r"^(.+)i \^ if(y|ying|ied|ies|ication|ications)$", r"\1if\2"),
+    # pretty +ify = prettify (*prettyify)
+    (r"^(.+i) \^ if(y|ying|ied|ies|ication|ications)$", r"\1f\2"),
+    (r"^(.*[^aeiou])y \^ if(y|ying|ied|ies|ication|ications)$", r"\1if\2"),
     # == +ical ==
     # fantastic +ical = fantastical (*fantasticcal)
     (r"^(.+)ic \^ (ical|ically)$", r"\1\2"),

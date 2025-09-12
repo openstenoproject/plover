@@ -27,9 +27,9 @@ keywords = plover plover_plugin
 [options]
 zip_safe = True
 setup_requires =
-  setuptools>=30.3.0
+  setuptools>=79.0.0 # just an example, might need to be higher
 install_requires =
-  plover>=4.0.0.dev10
+  plover>=4.0.0.dev10 # or higher, especially for GUI plugins
 packages =
   ...  # Your packages go here
 py_modules =

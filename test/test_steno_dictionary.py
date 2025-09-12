@@ -14,18 +14,26 @@ def test_dictionary_collection():
     d1 = StenoDictionary()
     d1[("S",)] = "a"
     d1[("T",)] = "b"
+    d1[("H",)] = "{PLOVER:deleted}"
+    d1[("R",)] = "e"
     d1.path = "d1"
     d2 = StenoDictionary()
     d2[("S",)] = "c"
     d2[("W",)] = "d"
+    d2[("H",)] = "f"
+    d2[("R",)] = "{plover:deleted}"
     d2.path = "d2"
     dc = StenoDictionaryCollection([d2, d1])
     assert dc.lookup(("S",)) == "c"
     assert dc.lookup(("W",)) == "d"
     assert dc.lookup(("T",)) == "b"
+    assert dc.lookup(("H",)) == "f"
+    assert dc.lookup(("R",)) == None
     assert dc.lookup_from_all(("S",)) == [("c", d2), ("a", d1)]
     assert dc.lookup_from_all(("W",)) == [("d", d2)]
     assert dc.lookup_from_all(("T",)) == [("b", d1)]
+    assert dc.lookup_from_all(("H",)) == [("f", d2), ("{PLOVER:deleted}", d1)]
+    assert dc.lookup_from_all(("R",)) == [("{plover:deleted}", d2), ("e", d1)]
     f = lambda k, v: v == "c"
     dc.add_filter(f)
     assert dc.lookup(("S",)) == "a"
@@ -50,9 +58,13 @@ def test_dictionary_collection():
     assert dc.lookup(("S",)) == "c"
     assert dc.lookup(("W",)) == "d"
     assert dc.lookup(("T",)) == "b"
+    assert dc.lookup(("H",)) == "f"
+    assert dc.lookup(("R",)) == None
     assert dc.lookup_from_all(("S",)) == [("c", d2), ("a", d1)]
     assert dc.lookup_from_all(("W",)) == [("d", d2)]
     assert dc.lookup_from_all(("T",)) == [("b", d1)]
+    assert dc.lookup_from_all(("H",)) == [("f", d2), ("{PLOVER:deleted}", d1)]
+    assert dc.lookup_from_all(("R",)) == [("{plover:deleted}", d2), ("e", d1)]
 
     assert dc.reverse_lookup("c") == {("S",)}
 

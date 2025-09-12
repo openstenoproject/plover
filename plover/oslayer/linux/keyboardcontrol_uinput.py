@@ -1,6 +1,16 @@
-from evdev import UInput, ecodes as e, util, InputDevice, list_devices
+from evdev import (
+    UInput,
+    ecodes as e,
+    util,
+    InputDevice,
+    list_devices,
+    InputEvent,
+    KeyEvent,
+)
 import threading
-from select import select
+import os
+import selectors
+
 from psutil import process_iter
 
 from plover.output.keyboard import GenericKeyboardEmulation
@@ -320,6 +330,17 @@ KEYCODE_TO_KEY = dict(
     zip(LAYOUTS[DEFAULT_LAYOUT].values(), LAYOUTS[DEFAULT_LAYOUT].keys())
 )
 
+MODIFIER_KEY_CODES: set[int] = {
+    e.KEY_LEFTSHIFT,
+    e.KEY_RIGHTSHIFT,
+    e.KEY_LEFTCTRL,
+    e.KEY_RIGHTCTRL,
+    e.KEY_LEFTALT,
+    e.KEY_RIGHTALT,
+    e.KEY_LEFTMETA,
+    e.KEY_RIGHTMETA,
+}
+
 
 class KeyboardEmulation(GenericKeyboardEmulation):
     def __init__(self):
@@ -412,21 +433,30 @@ class KeyboardEmulation(GenericKeyboardEmulation):
 
 
 class KeyboardCapture(Capture):
+    _selector: selectors.DefaultSelector
+    _device_thread: threading.Thread | None
+    # Pipes to signal `_run` thread to stop
+    _device_thread_read_pipe: int | None
+    _device_thread_write_pipe: int | None
+
     def __init__(self):
         super().__init__()
-        # This is based on the example from the python-evdev documentation, using the first of the three alternative methods: https://python-evdev.readthedocs.io/en/latest/tutorial.html#reading-events-from-multiple-devices-using-select
         self._devices = self._get_devices()
-        self._running = False
-        self._thread = None
+
+        self._selector = selectors.DefaultSelector()
+        self._device_thread = None
+        self._device_thread_read_pipe = None
+        self._device_thread_write_pipe = None
+
         self._res = util.find_ecodes_by_regex(r"KEY_.*")
         self._ui = UInput(self._res)
-        self._suppressed_keys = []
+        self._suppressed_keys = set()
         # The keycodes from evdev, e.g. e.KEY_A refers to the *physical* a, which corresponds with the qwerty layout.
 
     def _get_devices(self):
         input_devices = [InputDevice(path) for path in list_devices()]
         keyboard_devices = [dev for dev in input_devices if self._filter_devices(dev)]
-        return {dev.fd: dev for dev in keyboard_devices}
+        return keyboard_devices
 
     def _filter_devices(self, device):
         """
@@ -451,7 +481,7 @@ class KeyboardCapture(Capture):
         There is likely a race condition here between checking active keys and
         actually grabbing the device, but it appears to work fine.
         """
-        for device in self._devices.values():
+        for device in self._devices:
             if len(device.active_keys()) > 0:
                 for _ in device.read_loop():
                     if len(device.active_keys()) == 0:
@@ -461,26 +491,50 @@ class KeyboardCapture(Capture):
 
     def _ungrab_devices(self):
         """Ungrab all devices. Handles all exceptions when ungrabbing."""
-        for device in self._devices.values():
+        for device in self._devices:
             try:
                 device.ungrab()
             except:
                 log.debug("failed to ungrab device", exc_info=True)
 
     def start(self):
+        # Exception handling note: cancel() will eventually be called when the
+        # machine reconnect button is pressed or when the machine is changed.
+        # Therefore, cancel() does not need to be called in the except block.
         try:
             self._grab_devices()
-        except Exception as e:
+            self._device_thread_read_pipe, self._device_thread_write_pipe = os.pipe()
+            self._selector.register(self._device_thread_read_pipe, selectors.EVENT_READ)
+            for device in self._devices:
+                self._selector.register(device, selectors.EVENT_READ)
+
+            self._device_thread = threading.Thread(target=self._run)
+            self._device_thread.start()
+        except Exception:
             self._ungrab_devices()
+            self._ui.close()
             raise
-        self._running = True
-        self._thread = threading.Thread(target=self._run)
-        self._thread.start()
 
     def cancel(self):
-        self._running = False
-        if self._thread is not None:
-            self._thread.join()
+        if (
+            self._device_thread_read_pipe is None
+            or self._device_thread_write_pipe is None
+        ):
+            # The only way for these pipes to be None is if pipe creation in start() failed
+            # In that case, no other code after pipe creation would have run
+            # and no cleanup is required
+            return
+        try:
+            # Write some arbitrary data to the pipe to signal the _run thread to stop
+            os.write(self._device_thread_write_pipe, b"a")
+            if self._device_thread is not None:
+                self._device_thread.join()
+            self._selector.close()
+        except Exception:
+            log.debug("error stopping KeyboardCapture", exc_info=True)
+        finally:
+            os.close(self._device_thread_read_pipe)
+            os.close(self._device_thread_write_pipe)
 
     def suppress(self, suppressed_keys=()):
         """
@@ -488,31 +542,77 @@ class KeyboardCapture(Capture):
         are passed through to a UInput device and emulated, while keys in this list get sent to plover.
         It does add a little bit of delay, but that is not noticeable.
         """
-        self._suppressed_keys = suppressed_keys
+        self._suppressed_keys = set(suppressed_keys)
 
     def _run(self):
+        keys_pressed_with_modifier: set[int] = set()
+        down_modifier_keys: set[int] = set()
+
+        def _process_key_event(event: InputEvent) -> tuple[str | None, bool]:
+            """
+            Processes an InputEvent to determine which key Plover should receive
+            and whether the event should be suppressed.
+            Considers pressed modifiers and Plover's suppressed keys.
+            Returns a tuple of (key_to_send_to_plover, suppress)
+            """
+            if not self._suppressed_keys:
+                # No keys are suppressed
+                # Always send to Plover so that it can handle global shortcuts like PLOVER_TOGGLE (PHROLG)
+                return KEYCODE_TO_KEY.get(event.code, None), False
+            if event.code in MODIFIER_KEY_CODES:
+                # Can't use if-else because there is a third case: key_hold
+                if event.value == KeyEvent.key_down:
+                    down_modifier_keys.add(event.code)
+                elif event.value == KeyEvent.key_up:
+                    down_modifier_keys.discard(event.code)
+                return None, False
+            key = KEYCODE_TO_KEY.get(event.code, None)
+            if key is None:
+                # Key is unhandled. Passthrough
+                return None, False
+            if event.value == KeyEvent.key_down and down_modifier_keys:
+                keys_pressed_with_modifier.add(event.code)
+                return None, False
+            if (
+                event.value == KeyEvent.key_up
+                and event.code in keys_pressed_with_modifier
+            ):
+                # Must pass through key up event if key was pressed with modifier
+                # or else it will stay pressed down and start repeating.
+                # Must release even if modifier key was released first
+                keys_pressed_with_modifier.discard(event.code)
+                return None, False
+            suppress = key in self._suppressed_keys
+            return key, suppress
+
         try:
-            while self._running:
-                """
-                The select() call blocks the loop until it gets an input, which meant that the keyboard
-                had to be pressed once after executing `cancel()`. Now, there is a 1 second delay instead
-                FIXME: maybe use one of the other options to avoid the timeout
-                https://python-evdev.readthedocs.io/en/latest/tutorial.html#reading-events-from-multiple-devices-using-select
-                """
-                r, _, _ = select(self._devices, [], [], 1)
-                for fd in r:
-                    for event in self._devices[fd].read():
+            while True:
+                for key, events in self._selector.select():
+                    if key.fd == self._device_thread_read_pipe:
+                        # Stop this thread
+                        return
+                    assert isinstance(key.fileobj, InputDevice)
+                    device: InputDevice = key.fileobj
+                    for event in device.read():
                         if event.type == e.EV_KEY:
-                            if event.code in KEYCODE_TO_KEY:
-                                key_name = KEYCODE_TO_KEY[event.code]
-                                if key_name in self._suppressed_keys:
-                                    pressed = event.value == 1
-                                    (self.key_down if pressed else self.key_up)(
-                                        key_name
-                                    )
-                                    continue  # Go to the next iteration, skipping the below code:
-                        self._ui.write(e.EV_KEY, event.code, event.value)
-                        self._ui.syn()
+                            key_to_send_to_plover, suppress = _process_key_event(event)
+                            if key_to_send_to_plover is not None:
+                                # Always send keys to Plover when no keys suppressed.
+                                # This is required for global shortcuts like
+                                # Plover toggle (PHROLG) when Plover is disabled.
+                                # Note: Must explicitly check key_up or key_down
+                                # because there is a third case: key_hold
+                                if event.value == KeyEvent.key_down:
+                                    self.key_down(key_to_send_to_plover)
+                                elif event.value == KeyEvent.key_up:
+                                    self.key_up(key_to_send_to_plover)
+                            if suppress:
+                                # Skip rest of loop to prevent event from
+                                # being passed through
+                                continue
+
+                        # Passthrough event
+                        self._ui.write_event(event)
         except:
             log.error("keyboard capture error", exc_info=True)
         finally:

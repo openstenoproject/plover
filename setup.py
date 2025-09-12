@@ -176,7 +176,7 @@ class PatchVersion(Command):
 
         plover_init_file_path = os.path.join("plover", "__init__.py")
         self.patch_version(
-            plover_init_file_path, r"^__version__ = .*$", "__version__ = '%s'", version
+            plover_init_file_path, r"^__version__ = .*$", '__version__ = "%s"', version
         )
 
         doc_conf_file_path = os.path.join("doc", "conf.py")

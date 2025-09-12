@@ -1,3 +1,67 @@
+# v5.0.0 (2025-09-10)
+
+
+## Features
+
+No significant changes.
+
+## Bugfixes
+
+No significant changes.
+
+## API
+
+No significant changes.
+
+# v5.0.0rc1 (2025-09-02)
+
+
+## Features
+
+### Linux
+
+- Refactor Uinput to use pipe instead of select with timeout. (#1760)
+- Passthrough keyboard shortcuts. (#1761)
+- Uinput: refactor initialization and cleanup. (#1765)
+
+## Bugfixes
+
+No significant changes.
+
+## API
+
+No significant changes.
+
+# v5.0.0.dev3 (2025-07-14)
+
+
+## Features
+
+### Core
+
+- Allow higher priority dictionaries to delete entries from others. (#1160)
+- Improve orthography rules for `^ify` suffixes. (#1680)
+- Reduce installer file size. (#1741)
+
+### Linux
+
+- Add dvorak keymap support for uinput users. (#1746)
+
+## Bugfixes
+
+### Core
+
+- Allow uninstall of installed unsupported plugins. (#1739)
+- Fix missing font family warnings. (#1740)
+
+### Windows
+
+- Do not consider extended scan codes in Windows keyboard capture. (#1357)
+
+## API
+
+No significant changes.
+
 # v5.0.0.dev2 (2025-06-14)
 
 
