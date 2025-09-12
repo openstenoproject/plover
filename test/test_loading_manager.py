@@ -9,7 +9,7 @@ import tempfile
 
 import pytest
 
-from plover.exception import DictionaryLoaderException
+from plover.engine import ErroredDictionary
 import plover.dictionary.loading_manager as loading_manager
 
 
@@ -66,7 +66,7 @@ def test_loading(monkeypatch):
 
     loader = MockLoader(dictionaries)
     monkeypatch.setattr("plover.dictionary.loading_manager.load_dictionary", loader)
-    manager = loading_manager.DictionaryLoadingManager()
+    manager = loading_manager.DictionaryLoadingManager(lambda filename, result: None)
     manager.start_loading(df("a")).get()
     manager.start_loading(df("b")).get()
     results = manager.load([df("c"), df("b")])
@@ -82,15 +82,15 @@ def test_loading(monkeypatch):
     assert df("b") in manager
     assert df("c") in manager
     assert results == [manager[df("c")], manager[df("b")]]
-    # Return a DictionaryLoaderException for load errors.
+    # Return a ErroredDictionary for load errors.
     results = manager.load([df("c"), df("e"), df("b"), df("f")])
     assert len(results) == 4
     assert results[0] == "ccccc"
     assert results[2] == "bbbbb"
-    assert isinstance(results[1], DictionaryLoaderException)
+    assert isinstance(results[1], ErroredDictionary)
     assert results[1].path == df("e")
     assert isinstance(results[1].exception, Exception)
-    assert isinstance(results[3], DictionaryLoaderException)
+    assert isinstance(results[3], ErroredDictionary)
     assert results[3].path == df("f")
     assert isinstance(results[3].exception, Exception)
     # Only loaded the files once.
