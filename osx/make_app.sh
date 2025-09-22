@@ -12,8 +12,10 @@ python='python3'
 plover_wheel="$1"
 
 . ./osx/deps.sh
+. ./osx/make_common.sh
 
 py_version="$py_installer_version"
+bundle_id="org.openstenoproject.plover"
 
 echo "Making Plover.app with Plover wheel $plover_wheel."
 
@@ -34,16 +36,22 @@ py_binary="$py_home/bin/python${py_version%.*}"
 
 # Extract Python binary from launcher and fix its references.
 run mv "$py_home/Resources/Python.app/Contents/MacOS/Python" "$py_binary"
-run install_name_tool -rpath "@executable_path/../../../../../../" "@executable_path/../../../" "$py_binary"
-# Remove the codesignature so that we can change the identifier for notifications.
-run /usr/bin/codesign -s - --deep --force "$py_binary"
-run tee "$py_home/bin/Info.plist" <<\EOF
+
+echo "Rewrite runtime search path of Python binary with install_name_tool..."
+run_quiet install_name_tool -rpath "@executable_path/../../../../../../" "@executable_path/../../../" "$py_binary"
+echo "Rewrite runtime search path complete"
+
+echo "Ad-hoc signing the Python binary after install_name_tool invalidated signature..."
+run_quiet /usr/bin/codesign -s - --force "$py_binary"
+echo "Ad-hoc signing complete"
+
+run tee "$py_home/bin/Info.plist" <<EOF
 <?xml version="1.0" encoding="UTF-8"?>
 <!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
 <plist version="1.0">
 <dict>
     <key>CFBundleIdentifier</key>
-    <string>org.openstenoproject.plover</string>
+    <string>${bundle_id}</string>
 </dict>
 </plist>
 EOF
@@ -84,7 +92,65 @@ run "$python" -m plover_build_utils.source_less "$py_home/lib" "*/site-packages/
 # Check requirements.
 run "$python" -I -m plover_build_utils.check_requirements
 
-# Ad-hoc signing to satisfy Gatekeeper.
-run /usr/bin/codesign -s - --deep --force "$appdir"
-
+# Move the finished app to dist.
 run mv "$appdir" "$distdir"
+
+# --- Codesign (with Developer ID if configured; otherwise ad-hoc) ---
+# Required envs when enabled:
+#   MACOS_CODESIGN_ENABLED=1
+#   MACOS_CODESIGN_IDENTITY
+# Optional envs when enabled:
+#   MACOS_CODESIGN_KEYCHAIN
+codesign_enabled="${MACOS_CODESIGN_ENABLED:-0}"
+if [[ "$codesign_enabled" == "1" ]]; then
+  require_env MACOS_CODESIGN_IDENTITY
+  echo "Signing with identity: $MACOS_CODESIGN_IDENTITY ..."
+  ent_plist="$builddir/entitlements.plist"
+  cat >"$ent_plist" <<'EOS'
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
+<plist version="1.0">
+<dict>
+  <key>com.apple.security.cs.disable-library-validation</key><true/>
+</dict>
+</plist>
+EOS
+
+  # Build common codesign args
+  cs_args=(--force --timestamp --options runtime --entitlements "$ent_plist" -s "$MACOS_CODESIGN_IDENTITY")
+  if [[ -n "${MACOS_CODESIGN_KEYCHAIN:-}" ]]; then
+    cs_args+=(--keychain "$MACOS_CODESIGN_KEYCHAIN")
+    echo "Using keychain: $MACOS_CODESIGN_KEYCHAIN"
+  fi
+
+  # 1) Sign all Mach-O binaries first: *.dylib, *.so, and the actual executables inside
+  #    framework Versions directories. This ensures their _CodeSignature folders exist
+  #    before we sign the framework bundle itself, preventing resource seal mismatches.
+  while IFS= read -r -d '' f; do
+    run_quiet /usr/bin/codesign "${cs_args[@]}" "$f"
+  done < <(find "$distdir/Contents" -type f \
+              \( -name "*.dylib" -o -name "*.so" -o \
+                 \( -path "*/*.framework/Versions/*" -perm -111 \) \
+              \) -print0)
+
+  # 2) Now sign framework bundles depth-first, after their contents are signed.
+  while IFS= read -r -d '' fw; do
+    run_quiet /usr/bin/codesign "${cs_args[@]}" "$fw"
+  done < <(find "$distdir/Contents" -depth -type d -name "*.framework" -print0)
+
+  # 3) Sign the main executable and then the app bundle.
+  run_quiet /usr/bin/codesign "${cs_args[@]}" "$distdir/Contents/MacOS/Plover"
+  run_quiet /usr/bin/codesign "${cs_args[@]}" "$distdir"
+
+  echo "Verifying signature..."
+  run_quiet /usr/bin/codesign --verify --deep --strict "$distdir"
+  run_quiet /usr/bin/codesign --verify --deep --strict "$distdir/Contents/Frameworks/Python.framework"
+  echo "✅ Code signing complete"
+else
+  echo "️ℹ️ Ad-hoc signing (MACOS_CODESIGN_ENABLED=$codesign_enabled)."
+  run /usr/bin/codesign -s - --deep --force "$distdir"
+fi
+# --- End codesign ---
+
+# Notarize & staple DMG (optional)
+notarize_and_staple_if_enabled "$distdir"

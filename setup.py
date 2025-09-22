@@ -222,19 +222,16 @@ class BinaryDistDmg(Command):
 
     def run(self):
         self.run_command("bdist_app")
-        # Encode targeted macOS plaftorm in the filename.
+
+        # Determine targeted macOS platform
         from setuptools.command.bdist_wheel import get_platform
 
         platform = get_platform("dist/Plover.app")
-        args = "{out!r}, {name!r}, {settings!r}, lookForHiDPI=True".format(
-            out="dist/%s-%s.dmg" % (PACKAGE, platform),
-            name=__software_name__.capitalize(),
-            settings="osx/dmg_resources/settings.py",
-        )
+
+        cmd = ["bash", "osx/make_dmg.sh", platform, PACKAGE]
         if self.verbose:
-            print("running dmgbuild(%s)" % args)
-        script = "__import__('dmgbuild').build_dmg(" + args + ")"
-        subprocess.check_call((sys.executable, "-u", "-c", script))
+            print("running", " ".join(cmd))
+        subprocess.check_call(cmd)
 
 
 if sys.platform.startswith("darwin"):
