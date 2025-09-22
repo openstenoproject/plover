@@ -152,5 +152,5 @@ else
 fi
 # --- End codesign ---
 
-# Notarize & staple DMG (optional)
+# Notarize & staple app
 notarize_and_staple_if_enabled "$distdir"

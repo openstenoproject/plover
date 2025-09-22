@@ -19,11 +19,11 @@ APP="$topdir/dist/Plover.app"
 
 DMG="$topdir/dist/${PACKAGE}-${PLATFORM}.dmg"
 
-# Build DMG via dmgbuild (CLI or module)
+# Build DMG via dmgbuild
 echo "Building DMG → $DMG"
 python3 -m dmgbuild -s osx/dmg_resources/settings.py "Plover" "$DMG"
 
-# --- Codesign (with Developer ID if configured; otherwise ad-hoc) ---
+# --- Codesign (with Developer ID if configured) ---
 # Required envs when enabled:
 #   MACOS_CODESIGN_ENABLED=1
 #   MACOS_CODESIGN_IDENTITY
@@ -44,7 +44,7 @@ if [[ "${MACOS_CODESIGN_ENABLED:-0}" == "1" ]]; then
 fi
 # --- End codesign ---
 
-# Notarize & staple DMG (optional)
+# Notarize & staple DMG
 notarize_and_staple_if_enabled "$DMG"
 
 echo "🎉 DMG ready: $DMG"
