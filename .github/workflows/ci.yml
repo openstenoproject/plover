@@ -863,6 +863,7 @@ jobs:
   build_macos:
 
     name: Build (macOS)
+    environment: ${{ github.ref == 'refs/heads/main' && 'main' || 'dev' }}
     runs-on: macos-15
     needs: [analyze, test_macos]
     if: >-
@@ -871,14 +872,14 @@ jobs:
       && needs.analyze.outputs.build_macos_skip_job == 'no'
     env:
       # Code signing
-      MACOS_CODESIGN_ENABLED: ${{ secrets.MACOS_CODESIGN_ENABLED }}
+      MACOS_CODESIGN_ENABLED: ${{ secrets.MACOS_CODESIGN_ENABLED || '0' }}
       MACOS_CODESIGN_IDENTITY: ${{ secrets.MACOS_CODESIGN_IDENTITY }}
       MACOS_CODESIGN_CERT_P12_BASE64: ${{ secrets.MACOS_CODESIGN_CERT_P12_BASE64 }}
       MACOS_CODESIGN_CERT_PASSWORD: ${{ secrets.MACOS_CODESIGN_CERT_PASSWORD }}
       MACOS_TEMP_KEYCHAIN_NAME: plover-build
       MACOS_TEMP_KEYCHAIN_PASSWORD: ${{ secrets.MACOS_TEMP_KEYCHAIN_PASSWORD }}
       # Notarization 
-      MACOS_NOTARIZE_ENABLED: ${{ secrets.MACOS_NOTARIZE_ENABLED }}
+      MACOS_NOTARIZE_ENABLED: ${{ secrets.MACOS_NOTARIZE_ENABLED || '0' }}
       MACOS_NOTARIZE_TEAM_ID: ${{ secrets.MACOS_NOTARIZE_TEAM_ID }}
       MACOS_NOTARIZE_KEY_ID: ${{ secrets.MACOS_NOTARIZE_KEY_ID }}
       MACOS_NOTARIZE_ISSUER_ID: ${{ secrets.MACOS_NOTARIZE_ISSUER_ID }}
