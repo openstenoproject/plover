@@ -135,7 +135,10 @@ class KeyboardLayout:
         class LayoutWatchingCallback(AppKit.NSObject):
             def layoutChanged_(self, event):
                 log.info("Mac keyboard layout changed, updating")
-                layout._update_layout()
+                try:
+                    layout._update_layout()
+                except:
+                    log.warning("error during layout update, ignoring")
 
         center = Foundation.NSDistributedNotificationCenter.defaultCenter()
         watcher_callback = LayoutWatchingCallback.new()
