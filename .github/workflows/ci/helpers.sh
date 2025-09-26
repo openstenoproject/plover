@@ -19,7 +19,12 @@ generate_translations_catalogs_archive()
 
 list_cache()
 {
-  "$python" -m plover_build_utils.tree -L 2 .cache
+  if [ -d .cache ]
+  then
+    "$python" -m plover_build_utils.tree -L 2 .cache
+  else
+    echo "no .cache directory found; nothing to list"
+  fi
 }
 
 run_tests()
