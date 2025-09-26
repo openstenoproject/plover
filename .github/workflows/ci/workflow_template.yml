@@ -326,9 +326,6 @@ jobs:
       - name: Set codesign keychain env
         run: echo "MACOS_CODESIGN_KEYCHAIN=${MACOS_TEMP_KEYCHAIN_NAME}.keychain" >> $GITHUB_ENV
 
-      - name: Setup Python (installer)
-        run: setup_osx_python '<@ j.python @>'
-
       - name: Notarize & staple app
         run: |
           chmod +x osx/notarize_app.sh
@@ -364,9 +361,6 @@ jobs:
 
       - name: Set codesign keychain env
         run: echo "MACOS_CODESIGN_KEYCHAIN=${MACOS_TEMP_KEYCHAIN_NAME}.keychain" >> $GITHUB_ENV
-
-      - name: Setup Python (installer)
-        run: setup_osx_python '<@ j.python @>'
 
       - name: Notarize & staple DMG
         run: |
