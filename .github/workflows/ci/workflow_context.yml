@@ -93,7 +93,28 @@ jobs:
     skiplists: ["job_build", "os_linux"]
   - <<: *build
     <<: *dist_macos
+    variant: macOS App
     needs: [test_macos]
+    cache_extra_deps: ["reqs/dist_*.txt", "osx/deps.sh"]
+    skiplists: ["job_build", "os_macos"]
+  - <<: *dist_macos
+    type: notarize
+    variant: macOS App
+    needs: [build_macos_app]
+    reqs: ["build", "setup"]
+    cache_extra_deps: ["reqs/dist_*.txt", "osx/deps.sh"]
+    skiplists: ["job_build", "os_macos"]
+  - <<: *build
+    <<: *dist_macos
+    variant: macOS DMG
+    needs: [build_macos_app, notarize_macos_app]
+    cache_extra_deps: ["reqs/dist_*.txt", "osx/deps.sh"]
+    skiplists: ["job_build", "os_macos"]
+  - <<: *dist_macos
+    type: notarize
+    variant: macOS DMG
+    needs: [build_macos_dmg]
+    reqs: ["build", "setup"]
     cache_extra_deps: ["reqs/dist_*.txt", "osx/deps.sh"]
     skiplists: ["job_build", "os_macos"]
   - <<: *build

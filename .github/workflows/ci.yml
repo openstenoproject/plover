@@ -50,7 +50,10 @@ jobs:
           job_cache_extra_deps=(); job_id=test_packaging; job_name='Test (Packaging)'; job_needs=(); job_os=Linux; job_platform=ubuntu-latest; job_python=3.13.3; job_reqs=(reqs/packaging.txt reqs/setup.txt); job_skip_cache_name=skip_test_packaging_py-3.13.3_ubuntu-latest; job_skip_cache_path=.skip_cache_test_packaging; job_skiplists=(job_test_packaging); job_type=test_packaging; job_variant=Packaging; analyze_set_job_skip_cache_key
           job_cache_extra_deps=(); job_id=test_code_quality; job_name='Test (Code Quality)'; job_needs=(); job_os=Linux; job_platform=ubuntu-latest; job_python=3.13.3; job_reqs=(reqs/code_quality.txt); job_skip_cache_name=skip_test_code_quality_py-3.13.3_ubuntu-latest; job_skip_cache_path=.skip_cache_test_code_quality; job_type=test_code_quality; job_variant='Code Quality'; analyze_set_job_skip_cache_key
           job_cache_extra_deps=('reqs/dist_*.txt' linux/appimage/deps.sh); job_id=build_linux; job_name='Build (Linux)'; job_needs=(test_linux); job_os=Linux; job_platform=ubuntu-22.04; job_python=3.13.3; job_reqs=(reqs/build.txt reqs/setup.txt); job_skip_cache_name=skip_build_linux_py-3.13.3_ubuntu-22.04; job_skip_cache_path=.skip_cache_build_linux; job_skiplists=(job_build os_linux); job_type=build; job_variant=Linux; analyze_set_job_skip_cache_key
-          job_cache_extra_deps=('reqs/dist_*.txt' osx/deps.sh); job_id=build_macos; job_name='Build (macOS)'; job_needs=(test_macos); job_os=macOS; job_platform=macos-15; job_python=3.13.3; job_reqs=(reqs/build.txt reqs/setup.txt); job_skip_cache_name=skip_build_macos_py-3.13.3_macos-15; job_skip_cache_path=.skip_cache_build_macos; job_skiplists=(job_build os_macos); job_type=build; job_variant=macOS; analyze_set_job_skip_cache_key
+          job_cache_extra_deps=('reqs/dist_*.txt' osx/deps.sh); job_id=build_macos_app; job_name='Build (macOS App)'; job_needs=(test_macos); job_os=macOS; job_platform=macos-15; job_python=3.13.3; job_reqs=(reqs/build.txt reqs/setup.txt); job_skip_cache_name=skip_build_macos_app_py-3.13.3_macos-15; job_skip_cache_path=.skip_cache_build_macos_app; job_skiplists=(job_build os_macos); job_type=build; job_variant='macOS App'; analyze_set_job_skip_cache_key
+          job_cache_extra_deps=('reqs/dist_*.txt' osx/deps.sh); job_id=notarize_macos_app; job_name='Notarize (macOS App)'; job_needs=(build_macos_app); job_os=macOS; job_platform=macos-15; job_python=3.13.3; job_reqs=(reqs/build.txt reqs/setup.txt); job_skip_cache_name=skip_notarize_macos_app_py-3.13.3_macos-15; job_skip_cache_path=.skip_cache_notarize_macos_app; job_skiplists=(job_build os_macos); job_type=notarize; job_variant='macOS App'; analyze_set_job_skip_cache_key
+          job_cache_extra_deps=('reqs/dist_*.txt' osx/deps.sh); job_id=build_macos_dmg; job_name='Build (macOS DMG)'; job_needs=(build_macos_app notarize_macos_app); job_os=macOS; job_platform=macos-15; job_python=3.13.3; job_reqs=(reqs/build.txt reqs/setup.txt); job_skip_cache_name=skip_build_macos_dmg_py-3.13.3_macos-15; job_skip_cache_path=.skip_cache_build_macos_dmg; job_skiplists=(job_build os_macos); job_type=build; job_variant='macOS DMG'; analyze_set_job_skip_cache_key
+          job_cache_extra_deps=('reqs/dist_*.txt' osx/deps.sh); job_id=notarize_macos_dmg; job_name='Notarize (macOS DMG)'; job_needs=(build_macos_dmg); job_os=macOS; job_platform=macos-15; job_python=3.13.3; job_reqs=(reqs/build.txt reqs/setup.txt); job_skip_cache_name=skip_notarize_macos_dmg_py-3.13.3_macos-15; job_skip_cache_path=.skip_cache_notarize_macos_dmg; job_skiplists=(job_build os_macos); job_type=notarize; job_variant='macOS DMG'; analyze_set_job_skip_cache_key
           job_cache_extra_deps=('reqs/dist_*.txt' windows/dist_deps.sh); job_id=build_windows; job_name='Build (Windows)'; job_needs=(test_windows); job_os=Windows; job_platform=windows-2022; job_python=3.13.3; job_reqs=(reqs/build.txt reqs/setup.txt); job_skip_cache_name=skip_build_windows_py-3.13.3_windows-2022; job_skip_cache_path=.skip_cache_build_windows; job_skiplists=(job_build os_windows); job_type=build; job_variant=Windows; analyze_set_job_skip_cache_key
 
       - name: Check skip cache for Test (Linux)
@@ -141,13 +144,37 @@ jobs:
           restore-keys:
             0_${{ steps.set_cache.outputs.build_linux_skip_cache_key }}
 
-      - name: Check skip cache for Build (macOS)
+      - name: Check skip cache for Build (macOS App)
         uses: actions/cache@v3
         with:
-          path: .skip_cache_build_macos
-          key: 0_check_${{ steps.set_cache.outputs.build_macos_skip_cache_key }}_${{ github.run_id }}
+          path: .skip_cache_build_macos_app
+          key: 0_check_${{ steps.set_cache.outputs.build_macos_app_skip_cache_key }}_${{ github.run_id }}
           restore-keys:
-            0_${{ steps.set_cache.outputs.build_macos_skip_cache_key }}
+            0_${{ steps.set_cache.outputs.build_macos_app_skip_cache_key }}
+
+      - name: Check skip cache for Notarize (macOS App)
+        uses: actions/cache@v3
+        with:
+          path: .skip_cache_notarize_macos_app
+          key: 0_check_${{ steps.set_cache.outputs.notarize_macos_app_skip_cache_key }}_${{ github.run_id }}
+          restore-keys:
+            0_${{ steps.set_cache.outputs.notarize_macos_app_skip_cache_key }}
+
+      - name: Check skip cache for Build (macOS DMG)
+        uses: actions/cache@v3
+        with:
+          path: .skip_cache_build_macos_dmg
+          key: 0_check_${{ steps.set_cache.outputs.build_macos_dmg_skip_cache_key }}_${{ github.run_id }}
+          restore-keys:
+            0_${{ steps.set_cache.outputs.build_macos_dmg_skip_cache_key }}
+
+      - name: Check skip cache for Notarize (macOS DMG)
+        uses: actions/cache@v3
+        with:
+          path: .skip_cache_notarize_macos_dmg
+          key: 0_check_${{ steps.set_cache.outputs.notarize_macos_dmg_skip_cache_key }}_${{ github.run_id }}
+          restore-keys:
+            0_${{ steps.set_cache.outputs.notarize_macos_dmg_skip_cache_key }}
 
       - name: Check skip cache for Build (Windows)
         uses: actions/cache@v3
@@ -172,7 +199,10 @@ jobs:
           job_cache_extra_deps=(); job_id=test_packaging; job_name='Test (Packaging)'; job_needs=(); job_os=Linux; job_platform=ubuntu-latest; job_python=3.13.3; job_reqs=(reqs/packaging.txt reqs/setup.txt); job_skip_cache_name=skip_test_packaging_py-3.13.3_ubuntu-latest; job_skip_cache_path=.skip_cache_test_packaging; job_skiplists=(job_test_packaging); job_type=test_packaging; job_variant=Packaging; analyze_set_job_skip_job
           job_cache_extra_deps=(); job_id=test_code_quality; job_name='Test (Code Quality)'; job_needs=(); job_os=Linux; job_platform=ubuntu-latest; job_python=3.13.3; job_reqs=(reqs/code_quality.txt); job_skip_cache_name=skip_test_code_quality_py-3.13.3_ubuntu-latest; job_skip_cache_path=.skip_cache_test_code_quality; job_type=test_code_quality; job_variant='Code Quality'; analyze_set_job_skip_job
           job_cache_extra_deps=('reqs/dist_*.txt' linux/appimage/deps.sh); job_id=build_linux; job_name='Build (Linux)'; job_needs=(test_linux); job_os=Linux; job_platform=ubuntu-22.04; job_python=3.13.3; job_reqs=(reqs/build.txt reqs/setup.txt); job_skip_cache_name=skip_build_linux_py-3.13.3_ubuntu-22.04; job_skip_cache_path=.skip_cache_build_linux; job_skiplists=(job_build os_linux); job_type=build; job_variant=Linux; analyze_set_job_skip_job
-          job_cache_extra_deps=('reqs/dist_*.txt' osx/deps.sh); job_id=build_macos; job_name='Build (macOS)'; job_needs=(test_macos); job_os=macOS; job_platform=macos-15; job_python=3.13.3; job_reqs=(reqs/build.txt reqs/setup.txt); job_skip_cache_name=skip_build_macos_py-3.13.3_macos-15; job_skip_cache_path=.skip_cache_build_macos; job_skiplists=(job_build os_macos); job_type=build; job_variant=macOS; analyze_set_job_skip_job
+          job_cache_extra_deps=('reqs/dist_*.txt' osx/deps.sh); job_id=build_macos_app; job_name='Build (macOS App)'; job_needs=(test_macos); job_os=macOS; job_platform=macos-15; job_python=3.13.3; job_reqs=(reqs/build.txt reqs/setup.txt); job_skip_cache_name=skip_build_macos_app_py-3.13.3_macos-15; job_skip_cache_path=.skip_cache_build_macos_app; job_skiplists=(job_build os_macos); job_type=build; job_variant='macOS App'; analyze_set_job_skip_job
+          job_cache_extra_deps=('reqs/dist_*.txt' osx/deps.sh); job_id=notarize_macos_app; job_name='Notarize (macOS App)'; job_needs=(build_macos_app); job_os=macOS; job_platform=macos-15; job_python=3.13.3; job_reqs=(reqs/build.txt reqs/setup.txt); job_skip_cache_name=skip_notarize_macos_app_py-3.13.3_macos-15; job_skip_cache_path=.skip_cache_notarize_macos_app; job_skiplists=(job_build os_macos); job_type=notarize; job_variant='macOS App'; analyze_set_job_skip_job
+          job_cache_extra_deps=('reqs/dist_*.txt' osx/deps.sh); job_id=build_macos_dmg; job_name='Build (macOS DMG)'; job_needs=(build_macos_app notarize_macos_app); job_os=macOS; job_platform=macos-15; job_python=3.13.3; job_reqs=(reqs/build.txt reqs/setup.txt); job_skip_cache_name=skip_build_macos_dmg_py-3.13.3_macos-15; job_skip_cache_path=.skip_cache_build_macos_dmg; job_skiplists=(job_build os_macos); job_type=build; job_variant='macOS DMG'; analyze_set_job_skip_job
+          job_cache_extra_deps=('reqs/dist_*.txt' osx/deps.sh); job_id=notarize_macos_dmg; job_name='Notarize (macOS DMG)'; job_needs=(build_macos_dmg); job_os=macOS; job_platform=macos-15; job_python=3.13.3; job_reqs=(reqs/build.txt reqs/setup.txt); job_skip_cache_name=skip_notarize_macos_dmg_py-3.13.3_macos-15; job_skip_cache_path=.skip_cache_notarize_macos_dmg; job_skiplists=(job_build os_macos); job_type=notarize; job_variant='macOS DMG'; analyze_set_job_skip_job
           job_cache_extra_deps=('reqs/dist_*.txt' windows/dist_deps.sh); job_id=build_windows; job_name='Build (Windows)'; job_needs=(test_windows); job_os=Windows; job_platform=windows-2022; job_python=3.13.3; job_reqs=(reqs/build.txt reqs/setup.txt); job_skip_cache_name=skip_build_windows_py-3.13.3_windows-2022; job_skip_cache_path=.skip_cache_build_windows; job_skiplists=(job_build os_windows); job_type=build; job_variant=Windows; analyze_set_job_skip_job
 
     outputs:
@@ -200,8 +230,14 @@ jobs:
       test_code_quality_skip_cache_key: ${{ steps.set_cache.outputs.test_code_quality_skip_cache_key }}
       build_linux_skip_job: ${{ steps.set_ouputs.outputs.build_linux_skip_job }}
       build_linux_skip_cache_key: ${{ steps.set_cache.outputs.build_linux_skip_cache_key }}
-      build_macos_skip_job: ${{ steps.set_ouputs.outputs.build_macos_skip_job }}
-      build_macos_skip_cache_key: ${{ steps.set_cache.outputs.build_macos_skip_cache_key }}
+      build_macos_app_skip_job: ${{ steps.set_ouputs.outputs.build_macos_app_skip_job }}
+      build_macos_app_skip_cache_key: ${{ steps.set_cache.outputs.build_macos_app_skip_cache_key }}
+      notarize_macos_app_skip_job: ${{ steps.set_ouputs.outputs.notarize_macos_app_skip_job }}
+      notarize_macos_app_skip_cache_key: ${{ steps.set_cache.outputs.notarize_macos_app_skip_cache_key }}
+      build_macos_dmg_skip_job: ${{ steps.set_ouputs.outputs.build_macos_dmg_skip_job }}
+      build_macos_dmg_skip_cache_key: ${{ steps.set_cache.outputs.build_macos_dmg_skip_cache_key }}
+      notarize_macos_dmg_skip_job: ${{ steps.set_ouputs.outputs.notarize_macos_dmg_skip_job }}
+      notarize_macos_dmg_skip_cache_key: ${{ steps.set_cache.outputs.notarize_macos_dmg_skip_cache_key }}
       build_windows_skip_job: ${{ steps.set_ouputs.outputs.build_windows_skip_job }}
       build_windows_skip_cache_key: ${{ steps.set_cache.outputs.build_windows_skip_cache_key }}
       release_skip_job: ${{ steps.set_ouputs.outputs.release_skip_job }}
@@ -859,31 +895,16 @@ jobs:
         run: list_cache
   # }}}
 
-  # Job: Build (macOS) {{{
-  build_macos:
+  # Job: Build (macOS App) {{{
+  build_macos_app:
 
-    name: Build (macOS)
-    environment: ${{ github.ref == 'refs/heads/main' && 'main' || 'dev' }}
+    name: Build (macOS App)
     runs-on: macos-15
     needs: [analyze, test_macos]
     if: >-
       !cancelled()
       && (needs.test_macos.result == 'success' || needs.test_macos.result == 'skipped')
-      && needs.analyze.outputs.build_macos_skip_job == 'no'
-    env:
-      # Code signing
-      MACOS_CODESIGN_ENABLED: ${{ secrets.MACOS_CODESIGN_ENABLED || '0' }}
-      MACOS_CODESIGN_IDENTITY: ${{ secrets.MACOS_CODESIGN_IDENTITY }}
-      MACOS_CODESIGN_CERT_P12_BASE64: ${{ secrets.MACOS_CODESIGN_CERT_P12_BASE64 }}
-      MACOS_CODESIGN_CERT_PASSWORD: ${{ secrets.MACOS_CODESIGN_CERT_PASSWORD }}
-      MACOS_TEMP_KEYCHAIN_NAME: plover-build
-      MACOS_TEMP_KEYCHAIN_PASSWORD: ${{ secrets.MACOS_TEMP_KEYCHAIN_PASSWORD }}
-      # Notarization 
-      MACOS_NOTARIZE_ENABLED: ${{ secrets.MACOS_NOTARIZE_ENABLED || '0' }}
-      MACOS_NOTARIZE_TEAM_ID: ${{ secrets.MACOS_NOTARIZE_TEAM_ID }}
-      MACOS_NOTARIZE_KEY_ID: ${{ secrets.MACOS_NOTARIZE_KEY_ID }}
-      MACOS_NOTARIZE_ISSUER_ID: ${{ secrets.MACOS_NOTARIZE_ISSUER_ID }}
-      MACOS_NOTARIZE_KEY_CONTENTS: ${{ secrets.MACOS_NOTARIZE_KEY_CONTENTS }}
+      && needs.analyze.outputs.build_macos_app_skip_job == 'no'
 
     steps:
 
@@ -917,91 +938,307 @@ jobs:
 
       # Build {{{
 
-      - name: Install Developer ID certificate into temporary keychain
-        if: ${{ env.MACOS_CODESIGN_ENABLED == '1' }}
-        env:
-          KC_NAME: ${{ env.MACOS_TEMP_KEYCHAIN_NAME }}
-          KC_PASS: ${{ env.MACOS_TEMP_KEYCHAIN_PASSWORD }}
+      - name: Build distribution (macOS app)
+        run: python setup.py -q bdist_app
+
+      - name: Pack app as tar (preserve symlinks)
         run: |
-          set -euo pipefail
-      
-          : "${MACOS_CODESIGN_CERT_P12_BASE64:?Missing secret MACOS_CODESIGN_CERT_P12_BASE64}"
-          : "${MACOS_CODESIGN_CERT_PASSWORD:?Missing secret MACOS_CODESIGN_CERT_PASSWORD}"
-          : "${KC_PASS:?Missing secret MACOS_TEMP_KEYCHAIN_PASSWORD}"
-          : "${KC_NAME:?MACOS_TEMP_KEYCHAIN_NAME not set}"
-      
-          KC_FILE="${KC_NAME}.keychain"
-          KC_DB="${HOME}/Library/Keychains/${KC_NAME}.keychain-db"
-      
-          # Clean any stale keychain (both list entry and on-disk file)
-          if security list-keychains -d user | grep -q "$KC_FILE"; then
-            security -q delete-keychain "$KC_FILE" || true
-          fi
-          rm -f "$KC_DB" || true
-      
-          # Create & unlock keychain (6h auto-lock)
-          security -q create-keychain -p "$KC_PASS" "$KC_FILE"
-          security -q set-keychain-settings -lut 21600 "$KC_FILE"
-          security -q unlock-keychain -p "$KC_PASS" "$KC_FILE"
-      
-          # Put our keychain first in the search list (keep existing ones)
-          existing="$(security list-keychains -d user | tr -d ' "')"
-          security -q list-keychains -d user -s "$KC_FILE" $existing
-      
-          # Decode the .p12 file
-          echo "$MACOS_CODESIGN_CERT_P12_BASE64" | base64 --decode > signing.p12
-      
-          # Import identity and always remove the .p12 file
-          security import signing.p12 -k "$KC_FILE" -P "$MACOS_CODESIGN_CERT_PASSWORD" \
-            -T /usr/bin/codesign -T /usr/bin/security >/dev/null; rm -f signing.p12
+          rm -f dist/Plover.app.tgz
+          tar -C dist -czf dist/Plover.app.tgz Plover.app
 
-          # Allow codesign to use the private key non-interactively
-          security set-key-partition-list -S apple-tool:,apple:,codesign: -s \
-            -k "$KC_PASS" "$KC_FILE" >/dev/null
-
-          # Sanity check: can we see a codesigning identity in this keychain?
-          if ! security find-identity -p codesigning -v "$KC_FILE" | grep -q "Developer ID Application"; then
-            echo "No Developer ID Application identity found in $KC_FILE" >&2
-            exit 1
-          fi
-
-      - name: Set codesign keychain env
-        run: echo "MACOS_CODESIGN_KEYCHAIN=${MACOS_TEMP_KEYCHAIN_NAME}.keychain" >> $GITHUB_ENV
-
-      - name: Build distribution (macOS DMG)
-        run: python setup.py -q bdist_dmg
-
-      - name: Cleanup temporary keychain
-        if: ${{ always() && env.MACOS_CODESIGN_ENABLED == '1' }}
-        env:
-          KC_NAME: ${{ env.MACOS_TEMP_KEYCHAIN_NAME }}
-        run: |
-          KC_FILE="${MACOS_CODESIGN_KEYCHAIN:-${KC_NAME}.keychain}"
-          KC_DB="$HOME/Library/Keychains/${KC_NAME}.keychain-db"
-
-          # Remove the temp keychain; this also drops it from the search list.
-          security -q delete-keychain "$KC_FILE" || true
-          rm -f "$KC_DB" || true
-
-          # Clear env so later steps don't reference a non-existent keychain.
-          echo "MACOS_CODESIGN_KEYCHAIN=" >> "$GITHUB_ENV"
-
-      - name: Archive artifact (macOS DMG)
+      - name: Upload artifact (macOS App)
         uses: actions/upload-artifact@v4
         with:
-          name: macOS DMG
-          path: dist/*.dmg
+          name: macOS App
+          path: dist/Plover.app.tgz
+          overwrite: true
 
       # }}}
 
       - name: Update skip cache 1
         uses: actions/cache@v4
         with:
-          path: .skip_cache_build_macos
-          key: 0_${{ needs.analyze.outputs.build_macos_skip_cache_key }}
+          path: .skip_cache_build_macos_app
+          key: 0_${{ needs.analyze.outputs.build_macos_app_skip_cache_key }}
 
       - name: Update skip cache 2
-        run: run_eval "echo 'https://github.com/$GITHUB_REPOSITORY/actions/runs/$GITHUB_RUN_ID' >'.skip_cache_build_macos'"
+        run: run_eval "echo 'https://github.com/$GITHUB_REPOSITORY/actions/runs/$GITHUB_RUN_ID' >'.skip_cache_build_macos_app'"
+
+      - name: List cache contents
+        run: list_cache
+  # }}}
+
+  # Job: Notarize (macOS App) {{{
+  notarize_macos_app:
+
+    name: Notarize (macOS App)
+    # TODO change to production
+    environment: main
+    runs-on: macos-15
+    needs: [analyze, build_macos_app]
+    if: >-
+      !cancelled()
+      && (needs.build_macos_app.result == 'success' || needs.build_macos_app.result == 'skipped')
+      && needs.analyze.outputs.notarize_macos_app_skip_job == 'no'
+    env:
+      # Code signing
+      MACOS_CODESIGN_IDENTITY: ${{ secrets.MACOS_CODESIGN_IDENTITY }}
+      MACOS_CODESIGN_CERT_P12_BASE64: ${{ secrets.MACOS_CODESIGN_CERT_P12_BASE64 }}
+      MACOS_CODESIGN_CERT_PASSWORD: ${{ secrets.MACOS_CODESIGN_CERT_PASSWORD }}
+      MACOS_TEMP_KEYCHAIN_NAME: plover-build
+      MACOS_TEMP_KEYCHAIN_PASSWORD: ${{ secrets.MACOS_TEMP_KEYCHAIN_PASSWORD }}
+      # Notarization
+      MACOS_NOTARIZE_ENABLED: ${{ secrets.MACOS_NOTARIZE_ENABLED || '0' }}
+      MACOS_NOTARIZE_TEAM_ID: ${{ secrets.MACOS_NOTARIZE_TEAM_ID }}
+      MACOS_NOTARIZE_KEY_ID: ${{ secrets.MACOS_NOTARIZE_KEY_ID }}
+      MACOS_NOTARIZE_ISSUER_ID: ${{ secrets.MACOS_NOTARIZE_ISSUER_ID }}
+      MACOS_NOTARIZE_KEY_CONTENTS: ${{ secrets.MACOS_NOTARIZE_KEY_CONTENTS }}
+
+    steps:
+
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Set cache name
+        id: set_cache
+        run: setup_cache_name '3.13.3' 'macos-15'
+
+      - name: Setup cache
+        uses: actions/cache@v4
+        with:
+          path: .cache
+          key: 0_${{ steps.set_cache.outputs.cache_name }}_${{ hashFiles('reqs/constraints.txt', 'reqs/build.txt', 'reqs/setup.txt', 'reqs/dist_*.txt', 'osx/deps.sh') }}
+
+      # Notarize {{{
+
+      - name: Download artifact (macOS App)
+        uses: actions/download-artifact@v4
+        with:
+          name: macOS App
+          path: dist
+          pattern: "*.tgz"
+
+      - name: Extract app tarball
+        run: |
+          mkdir -p dist
+          tar -C dist -xzf dist/*.tgz
+
+      - name: Install Developer ID certificate into temporary keychain
+        if: ${{ env.MACOS_NOTARIZE_ENABLED == '1' }}
+        run: install_dev_id_cert_into_temp_keychain
+
+      - name: Set codesign keychain env
+        run: echo "MACOS_CODESIGN_KEYCHAIN=${MACOS_TEMP_KEYCHAIN_NAME}.keychain" >> $GITHUB_ENV
+
+      - name: Setup Python (installer)
+        run: setup_osx_python '3.13.3'
+
+      - name: Notarize & staple app
+        run: |
+          chmod +x osx/notarize_app.sh
+          ./osx/notarize_app.sh dist/*.app
+
+      - name: Cleanup temporary keychain
+        if: ${{ always() && env.MACOS_NOTARIZE_ENABLED == '1' }}
+        run: cleanup_dev_id_temp_keychain
+
+      - name: Repack notarized app as tar
+        run: |
+          rm -f dist/Plover.app.tgz
+          tar -C dist -czf dist/Plover.app.tgz Plover.app
+
+      - name: Upload artifact (macOS App)
+        uses: actions/upload-artifact@v4
+        with:
+          name: macOS App
+          path: dist/Plover.app.tgz
+          overwrite: true
+
+
+      # }}}
+      - name: Update skip cache 1
+        uses: actions/cache@v4
+        with:
+          path: .skip_cache_notarize_macos_app
+          key: 0_${{ needs.analyze.outputs.notarize_macos_app_skip_cache_key }}
+
+      - name: Update skip cache 2
+        run: run_eval "echo 'https://github.com/$GITHUB_REPOSITORY/actions/runs/$GITHUB_RUN_ID' >'.skip_cache_notarize_macos_app'"
+
+      - name: List cache contents
+        run: list_cache
+  # }}}
+
+  # Job: Build (macOS DMG) {{{
+  build_macos_dmg:
+
+    name: Build (macOS DMG)
+    runs-on: macos-15
+    needs: [analyze, build_macos_app, notarize_macos_app]
+    if: >-
+      !cancelled()
+      && (needs.build_macos_app.result == 'success' || needs.build_macos_app.result == 'skipped')
+      && (needs.notarize_macos_app.result == 'success' || needs.notarize_macos_app.result == 'skipped')
+      && needs.analyze.outputs.build_macos_dmg_skip_job == 'no'
+
+    steps:
+
+      - name: Checkout
+        uses: actions/checkout@v4
+        with:
+          # We need the whole history for patching the version.
+          fetch-depth: 0
+
+      - name: Set cache name
+        id: set_cache
+        run: setup_cache_name '3.13.3' 'macos-15'
+
+      - name: Setup cache
+        uses: actions/cache@v4
+        with:
+          path: .cache
+          key: 0_${{ steps.set_cache.outputs.cache_name }}_${{ hashFiles('reqs/constraints.txt', 'reqs/build.txt', 'reqs/setup.txt', 'reqs/dist_*.txt', 'osx/deps.sh') }}
+
+      # To support older macOS versions, setup Python from an official installer.
+      - name: Setup Python
+        run: setup_osx_python '3.13.3'
+
+      - name: Setup Python environment
+        run: setup_python_env -c reqs/constraints.txt -r reqs/build.txt -r reqs/setup.txt        
+
+      - name: Patch version
+        id: set_version
+        run: |
+          python setup.py patch_version
+
+      # Build {{{
+
+      - name: Download artifact (macOS App)
+        uses: actions/download-artifact@v4
+        with:
+          name: macOS App
+          path: dist
+          pattern: "*.tgz"
+
+      - name: Extract app tarball
+        run: |
+          mkdir -p dist
+          tgz="$(ls -1 dist/*.tgz)"
+          echo "Using: $tgz"
+          tar -C dist -xzf "$tgz"
+
+      - name: Ensure app exists
+        run: test -d dist/*.app
+
+      - name: Build distribution (macOS DMG from existing app)
+        run: python setup.py -q bdist_dmg --skip-app-build
+
+      - name: Upload artifact (macOS DMG)
+        uses: actions/upload-artifact@v4
+        with:
+          name: macOS DMG
+          path: dist/*.dmg
+          overwrite: true
+      # }}}
+
+      - name: Update skip cache 1
+        uses: actions/cache@v4
+        with:
+          path: .skip_cache_build_macos_dmg
+          key: 0_${{ needs.analyze.outputs.build_macos_dmg_skip_cache_key }}
+
+      - name: Update skip cache 2
+        run: run_eval "echo 'https://github.com/$GITHUB_REPOSITORY/actions/runs/$GITHUB_RUN_ID' >'.skip_cache_build_macos_dmg'"
+
+      - name: List cache contents
+        run: list_cache
+  # }}}
+
+  # Job: Notarize (macOS DMG) {{{
+  notarize_macos_dmg:
+
+    name: Notarize (macOS DMG)
+    # TODO change to production
+    environment: main
+    runs-on: macos-15
+    needs: [analyze, build_macos_dmg]
+    if: >-
+      !cancelled()
+      && (needs.build_macos_dmg.result == 'success' || needs.build_macos_dmg.result == 'skipped')
+      && needs.analyze.outputs.notarize_macos_dmg_skip_job == 'no'
+    env:
+      # Code signing
+      MACOS_CODESIGN_IDENTITY: ${{ secrets.MACOS_CODESIGN_IDENTITY }}
+      MACOS_CODESIGN_CERT_P12_BASE64: ${{ secrets.MACOS_CODESIGN_CERT_P12_BASE64 }}
+      MACOS_CODESIGN_CERT_PASSWORD: ${{ secrets.MACOS_CODESIGN_CERT_PASSWORD }}
+      MACOS_TEMP_KEYCHAIN_NAME: plover-build
+      MACOS_TEMP_KEYCHAIN_PASSWORD: ${{ secrets.MACOS_TEMP_KEYCHAIN_PASSWORD }}
+      # Notarization
+      MACOS_NOTARIZE_ENABLED: ${{ secrets.MACOS_NOTARIZE_ENABLED || '0' }}
+      MACOS_NOTARIZE_TEAM_ID: ${{ secrets.MACOS_NOTARIZE_TEAM_ID }}
+      MACOS_NOTARIZE_KEY_ID: ${{ secrets.MACOS_NOTARIZE_KEY_ID }}
+      MACOS_NOTARIZE_ISSUER_ID: ${{ secrets.MACOS_NOTARIZE_ISSUER_ID }}
+      MACOS_NOTARIZE_KEY_CONTENTS: ${{ secrets.MACOS_NOTARIZE_KEY_CONTENTS }}
+
+    steps:
+
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Set cache name
+        id: set_cache
+        run: setup_cache_name '3.13.3' 'macos-15'
+
+      - name: Setup cache
+        uses: actions/cache@v4
+        with:
+          path: .cache
+          key: 0_${{ steps.set_cache.outputs.cache_name }}_${{ hashFiles('reqs/constraints.txt', 'reqs/build.txt', 'reqs/setup.txt', 'reqs/dist_*.txt', 'osx/deps.sh') }}
+
+      # Notarize {{{
+
+      - name: Download artifact (macOS DMG)
+        uses: actions/download-artifact@v4
+        with:
+          name: macOS DMG
+          path: dist
+          pattern: "*.dmg"
+
+      - name: Install Developer ID certificate into temporary keychain
+        if: ${{ env.MACOS_NOTARIZE_ENABLED == '1' }}
+        run: install_dev_id_cert_into_temp_keychain
+
+      - name: Set codesign keychain env
+        run: echo "MACOS_CODESIGN_KEYCHAIN=${MACOS_TEMP_KEYCHAIN_NAME}.keychain" >> $GITHUB_ENV
+
+      - name: Setup Python (installer)
+        run: setup_osx_python '3.13.3'
+
+      - name: Notarize & staple DMG
+        run: |
+          chmod +x osx/notarize_dmg.sh
+          ./osx/notarize_dmg.sh dist/*.dmg
+
+      - name: Cleanup temporary keychain
+        if: ${{ always() && env.MACOS_NOTARIZE_ENABLED == '1' }}
+        run: cleanup_dev_id_temp_keychain
+
+      - name: Upload artifact (macOS DMG)
+        uses: actions/upload-artifact@v4
+        with:
+          name: macOS DMG
+          path: dist/*.dmg
+          overwrite: true
+
+      # }}}
+      - name: Update skip cache 1
+        uses: actions/cache@v4
+        with:
+          path: .skip_cache_notarize_macos_dmg
+          key: 0_${{ needs.analyze.outputs.notarize_macos_dmg_skip_cache_key }}
+
+      - name: Update skip cache 2
+        run: run_eval "echo 'https://github.com/$GITHUB_REPOSITORY/actions/runs/$GITHUB_RUN_ID' >'.skip_cache_notarize_macos_dmg'"
 
       - name: List cache contents
         run: list_cache
@@ -1098,7 +1335,7 @@ jobs:
     permissions:
       contents: write
       id-token: write
-    needs: [analyze, test_linux, test_macos, test_windows, test_python_latest_supported, test_python_312, test_python_311, test_python_310, test_qt_gui, test_packaging, test_code_quality, build_linux, build_macos, build_windows]
+    needs: [analyze, test_linux, test_macos, test_windows, test_python_latest_supported, test_python_312, test_python_311, test_python_310, test_qt_gui, test_packaging, test_code_quality, build_linux, build_macos_app, notarize_macos_app, build_macos_dmg, notarize_macos_dmg, build_windows]
     if: >-
       !cancelled()
       && needs.test_linux.result == 'success'
@@ -1112,7 +1349,10 @@ jobs:
       && needs.test_packaging.result == 'success'
       && needs.test_code_quality.result == 'success'
       && needs.build_linux.result == 'success'
-      && needs.build_macos.result == 'success'
+      && needs.build_macos_app.result == 'success'
+      && needs.notarize_macos_app.result == 'success'
+      && needs.build_macos_dmg.result == 'success'
+      && needs.notarize_macos_dmg.result == 'success'
       && needs.build_windows.result == 'success'
       && needs.analyze.outputs.release_skip_job == 'no'
 
