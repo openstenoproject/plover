@@ -60,129 +60,129 @@ jobs:
         uses: actions/cache@v3
         with:
           path: .skip_cache_test_linux
-          key: 2_check_${{ steps.set_cache.outputs.test_linux_skip_cache_key }}_${{ github.run_id }}
+          key: 3_check_${{ steps.set_cache.outputs.test_linux_skip_cache_key }}_${{ github.run_id }}
           restore-keys:
-            2_${{ steps.set_cache.outputs.test_linux_skip_cache_key }}
+            3_${{ steps.set_cache.outputs.test_linux_skip_cache_key }}
 
       - name: Check skip cache for Test (macOS)
         uses: actions/cache@v3
         with:
           path: .skip_cache_test_macos
-          key: 2_check_${{ steps.set_cache.outputs.test_macos_skip_cache_key }}_${{ github.run_id }}
+          key: 3_check_${{ steps.set_cache.outputs.test_macos_skip_cache_key }}_${{ github.run_id }}
           restore-keys:
-            2_${{ steps.set_cache.outputs.test_macos_skip_cache_key }}
+            3_${{ steps.set_cache.outputs.test_macos_skip_cache_key }}
 
       - name: Check skip cache for Test (Windows)
         uses: actions/cache@v3
         with:
           path: .skip_cache_test_windows
-          key: 2_check_${{ steps.set_cache.outputs.test_windows_skip_cache_key }}_${{ github.run_id }}
+          key: 3_check_${{ steps.set_cache.outputs.test_windows_skip_cache_key }}_${{ github.run_id }}
           restore-keys:
-            2_${{ steps.set_cache.outputs.test_windows_skip_cache_key }}
+            3_${{ steps.set_cache.outputs.test_windows_skip_cache_key }}
 
       - name: Check skip cache for Test (Python Latest Supported)
         uses: actions/cache@v3
         with:
           path: .skip_cache_test_python_latest_supported
-          key: 2_check_${{ steps.set_cache.outputs.test_python_latest_supported_skip_cache_key }}_${{ github.run_id }}
+          key: 3_check_${{ steps.set_cache.outputs.test_python_latest_supported_skip_cache_key }}_${{ github.run_id }}
           restore-keys:
-            2_${{ steps.set_cache.outputs.test_python_latest_supported_skip_cache_key }}
+            3_${{ steps.set_cache.outputs.test_python_latest_supported_skip_cache_key }}
 
       - name: Check skip cache for Test (Python 3.12)
         uses: actions/cache@v3
         with:
           path: .skip_cache_test_python_312
-          key: 2_check_${{ steps.set_cache.outputs.test_python_312_skip_cache_key }}_${{ github.run_id }}
+          key: 3_check_${{ steps.set_cache.outputs.test_python_312_skip_cache_key }}_${{ github.run_id }}
           restore-keys:
-            2_${{ steps.set_cache.outputs.test_python_312_skip_cache_key }}
+            3_${{ steps.set_cache.outputs.test_python_312_skip_cache_key }}
 
       - name: Check skip cache for Test (Python 3.11)
         uses: actions/cache@v3
         with:
           path: .skip_cache_test_python_311
-          key: 2_check_${{ steps.set_cache.outputs.test_python_311_skip_cache_key }}_${{ github.run_id }}
+          key: 3_check_${{ steps.set_cache.outputs.test_python_311_skip_cache_key }}_${{ github.run_id }}
           restore-keys:
-            2_${{ steps.set_cache.outputs.test_python_311_skip_cache_key }}
+            3_${{ steps.set_cache.outputs.test_python_311_skip_cache_key }}
 
       - name: Check skip cache for Test (Python 3.10)
         uses: actions/cache@v3
         with:
           path: .skip_cache_test_python_310
-          key: 2_check_${{ steps.set_cache.outputs.test_python_310_skip_cache_key }}_${{ github.run_id }}
+          key: 3_check_${{ steps.set_cache.outputs.test_python_310_skip_cache_key }}_${{ github.run_id }}
           restore-keys:
-            2_${{ steps.set_cache.outputs.test_python_310_skip_cache_key }}
+            3_${{ steps.set_cache.outputs.test_python_310_skip_cache_key }}
 
       - name: Check skip cache for Test (Qt GUI)
         uses: actions/cache@v3
         with:
           path: .skip_cache_test_qt_gui
-          key: 2_check_${{ steps.set_cache.outputs.test_qt_gui_skip_cache_key }}_${{ github.run_id }}
+          key: 3_check_${{ steps.set_cache.outputs.test_qt_gui_skip_cache_key }}_${{ github.run_id }}
           restore-keys:
-            2_${{ steps.set_cache.outputs.test_qt_gui_skip_cache_key }}
+            3_${{ steps.set_cache.outputs.test_qt_gui_skip_cache_key }}
 
       - name: Check skip cache for Test (Packaging)
         uses: actions/cache@v3
         with:
           path: .skip_cache_test_packaging
-          key: 2_check_${{ steps.set_cache.outputs.test_packaging_skip_cache_key }}_${{ github.run_id }}
+          key: 3_check_${{ steps.set_cache.outputs.test_packaging_skip_cache_key }}_${{ github.run_id }}
           restore-keys:
-            2_${{ steps.set_cache.outputs.test_packaging_skip_cache_key }}
+            3_${{ steps.set_cache.outputs.test_packaging_skip_cache_key }}
 
       - name: Check skip cache for Test (Code Quality)
         uses: actions/cache@v3
         with:
           path: .skip_cache_test_code_quality
-          key: 2_check_${{ steps.set_cache.outputs.test_code_quality_skip_cache_key }}_${{ github.run_id }}
+          key: 3_check_${{ steps.set_cache.outputs.test_code_quality_skip_cache_key }}_${{ github.run_id }}
           restore-keys:
-            2_${{ steps.set_cache.outputs.test_code_quality_skip_cache_key }}
+            3_${{ steps.set_cache.outputs.test_code_quality_skip_cache_key }}
 
       - name: Check skip cache for Build (Linux)
         uses: actions/cache@v3
         with:
           path: .skip_cache_build_linux
-          key: 2_check_${{ steps.set_cache.outputs.build_linux_skip_cache_key }}_${{ github.run_id }}
+          key: 3_check_${{ steps.set_cache.outputs.build_linux_skip_cache_key }}_${{ github.run_id }}
           restore-keys:
-            2_${{ steps.set_cache.outputs.build_linux_skip_cache_key }}
+            3_${{ steps.set_cache.outputs.build_linux_skip_cache_key }}
 
       - name: Check skip cache for Build (macOS App)
         uses: actions/cache@v3
         with:
           path: .skip_cache_build_macos_app
-          key: 2_check_${{ steps.set_cache.outputs.build_macos_app_skip_cache_key }}_${{ github.run_id }}
+          key: 3_check_${{ steps.set_cache.outputs.build_macos_app_skip_cache_key }}_${{ github.run_id }}
           restore-keys:
-            2_${{ steps.set_cache.outputs.build_macos_app_skip_cache_key }}
+            3_${{ steps.set_cache.outputs.build_macos_app_skip_cache_key }}
 
       - name: Check skip cache for Notarize (macOS App)
         uses: actions/cache@v3
         with:
           path: .skip_cache_notarize_macos_app
-          key: 2_check_${{ steps.set_cache.outputs.notarize_macos_app_skip_cache_key }}_${{ github.run_id }}
+          key: 3_check_${{ steps.set_cache.outputs.notarize_macos_app_skip_cache_key }}_${{ github.run_id }}
           restore-keys:
-            2_${{ steps.set_cache.outputs.notarize_macos_app_skip_cache_key }}
+            3_${{ steps.set_cache.outputs.notarize_macos_app_skip_cache_key }}
 
       - name: Check skip cache for Build (macOS DMG)
         uses: actions/cache@v3
         with:
           path: .skip_cache_build_macos_dmg
-          key: 2_check_${{ steps.set_cache.outputs.build_macos_dmg_skip_cache_key }}_${{ github.run_id }}
+          key: 3_check_${{ steps.set_cache.outputs.build_macos_dmg_skip_cache_key }}_${{ github.run_id }}
           restore-keys:
-            2_${{ steps.set_cache.outputs.build_macos_dmg_skip_cache_key }}
+            3_${{ steps.set_cache.outputs.build_macos_dmg_skip_cache_key }}
 
       - name: Check skip cache for Notarize (macOS DMG)
         uses: actions/cache@v3
         with:
           path: .skip_cache_notarize_macos_dmg
-          key: 2_check_${{ steps.set_cache.outputs.notarize_macos_dmg_skip_cache_key }}_${{ github.run_id }}
+          key: 3_check_${{ steps.set_cache.outputs.notarize_macos_dmg_skip_cache_key }}_${{ github.run_id }}
           restore-keys:
-            2_${{ steps.set_cache.outputs.notarize_macos_dmg_skip_cache_key }}
+            3_${{ steps.set_cache.outputs.notarize_macos_dmg_skip_cache_key }}
 
       - name: Check skip cache for Build (Windows)
         uses: actions/cache@v3
         with:
           path: .skip_cache_build_windows
-          key: 2_check_${{ steps.set_cache.outputs.build_windows_skip_cache_key }}_${{ github.run_id }}
+          key: 3_check_${{ steps.set_cache.outputs.build_windows_skip_cache_key }}_${{ github.run_id }}
           restore-keys:
-            2_${{ steps.set_cache.outputs.build_windows_skip_cache_key }}
+            3_${{ steps.set_cache.outputs.build_windows_skip_cache_key }}
 
       - name: Set outputs
         id: set_ouputs
@@ -271,7 +271,7 @@ jobs:
         uses: actions/cache@v4
         with:
           path: .cache
-          key: 2_${{ steps.set_cache.outputs.cache_name }}_${{ hashFiles('reqs/constraints.txt', 'reqs/dist.txt', 'reqs/test.txt') }}
+          key: 3_${{ steps.set_cache.outputs.cache_name }}_${{ hashFiles('reqs/constraints.txt', 'reqs/dist.txt', 'reqs/test.txt') }}
 
       - name: Setup Python environment
         run: setup_python_env -c reqs/constraints.txt -r reqs/dist.txt -r reqs/test.txt        
@@ -288,7 +288,7 @@ jobs:
         uses: actions/cache@v4
         with:
           path: .skip_cache_test_linux
-          key: 2_${{ needs.analyze.outputs.test_linux_skip_cache_key }}
+          key: 3_${{ needs.analyze.outputs.test_linux_skip_cache_key }}
 
       - name: Update skip cache 2
         run: run_eval "echo 'https://github.com/$GITHUB_REPOSITORY/actions/runs/$GITHUB_RUN_ID' >'.skip_cache_test_linux'"
@@ -320,7 +320,7 @@ jobs:
         uses: actions/cache@v4
         with:
           path: .cache
-          key: 2_${{ steps.set_cache.outputs.cache_name }}_${{ hashFiles('reqs/constraints.txt', 'reqs/dist.txt', 'reqs/test.txt', 'osx/deps.sh') }}
+          key: 3_${{ steps.set_cache.outputs.cache_name }}_${{ hashFiles('reqs/constraints.txt', 'reqs/dist.txt', 'reqs/test.txt', 'osx/deps.sh') }}
 
       # To support older macOS versions, setup Python from an official installer.
       - name: Setup Python
@@ -341,7 +341,7 @@ jobs:
         uses: actions/cache@v4
         with:
           path: .skip_cache_test_macos
-          key: 2_${{ needs.analyze.outputs.test_macos_skip_cache_key }}
+          key: 3_${{ needs.analyze.outputs.test_macos_skip_cache_key }}
 
       - name: Update skip cache 2
         run: run_eval "echo 'https://github.com/$GITHUB_REPOSITORY/actions/runs/$GITHUB_RUN_ID' >'.skip_cache_test_macos'"
@@ -383,7 +383,7 @@ jobs:
         uses: actions/cache@v4
         with:
           path: .cache
-          key: 2_${{ steps.set_cache.outputs.cache_name }}_${{ hashFiles('reqs/constraints.txt', 'reqs/dist.txt', 'reqs/test.txt') }}
+          key: 3_${{ steps.set_cache.outputs.cache_name }}_${{ hashFiles('reqs/constraints.txt', 'reqs/dist.txt', 'reqs/test.txt') }}
 
       - name: Setup Python environment
         run: setup_python_env -c reqs/constraints.txt -r reqs/dist.txt -r reqs/test.txt        
@@ -400,7 +400,7 @@ jobs:
         uses: actions/cache@v4
         with:
           path: .skip_cache_test_windows
-          key: 2_${{ needs.analyze.outputs.test_windows_skip_cache_key }}
+          key: 3_${{ needs.analyze.outputs.test_windows_skip_cache_key }}
 
       - name: Update skip cache 2
         run: run_eval "echo 'https://github.com/$GITHUB_REPOSITORY/actions/runs/$GITHUB_RUN_ID' >'.skip_cache_test_windows'"
@@ -437,7 +437,7 @@ jobs:
         uses: actions/cache@v4
         with:
           path: .cache
-          key: 2_${{ steps.set_cache.outputs.cache_name }}_${{ hashFiles('reqs/constraints.txt', 'reqs/dist.txt', 'reqs/test.txt') }}
+          key: 3_${{ steps.set_cache.outputs.cache_name }}_${{ hashFiles('reqs/constraints.txt', 'reqs/dist.txt', 'reqs/test.txt') }}
 
       - name: Setup Python environment
         run: setup_python_env -c reqs/constraints.txt -r reqs/dist.txt -r reqs/test.txt        
@@ -454,7 +454,7 @@ jobs:
         uses: actions/cache@v4
         with:
           path: .skip_cache_test_python_latest_supported
-          key: 2_${{ needs.analyze.outputs.test_python_latest_supported_skip_cache_key }}
+          key: 3_${{ needs.analyze.outputs.test_python_latest_supported_skip_cache_key }}
 
       - name: Update skip cache 2
         run: run_eval "echo 'https://github.com/$GITHUB_REPOSITORY/actions/runs/$GITHUB_RUN_ID' >'.skip_cache_test_python_latest_supported'"
@@ -491,7 +491,7 @@ jobs:
         uses: actions/cache@v4
         with:
           path: .cache
-          key: 2_${{ steps.set_cache.outputs.cache_name }}_${{ hashFiles('reqs/constraints.txt', 'reqs/dist.txt', 'reqs/test.txt') }}
+          key: 3_${{ steps.set_cache.outputs.cache_name }}_${{ hashFiles('reqs/constraints.txt', 'reqs/dist.txt', 'reqs/test.txt') }}
 
       - name: Setup Python environment
         run: setup_python_env -c reqs/constraints.txt -r reqs/dist.txt -r reqs/test.txt        
@@ -508,7 +508,7 @@ jobs:
         uses: actions/cache@v4
         with:
           path: .skip_cache_test_python_312
-          key: 2_${{ needs.analyze.outputs.test_python_312_skip_cache_key }}
+          key: 3_${{ needs.analyze.outputs.test_python_312_skip_cache_key }}
 
       - name: Update skip cache 2
         run: run_eval "echo 'https://github.com/$GITHUB_REPOSITORY/actions/runs/$GITHUB_RUN_ID' >'.skip_cache_test_python_312'"
@@ -545,7 +545,7 @@ jobs:
         uses: actions/cache@v4
         with:
           path: .cache
-          key: 2_${{ steps.set_cache.outputs.cache_name }}_${{ hashFiles('reqs/constraints.txt', 'reqs/dist.txt', 'reqs/test.txt') }}
+          key: 3_${{ steps.set_cache.outputs.cache_name }}_${{ hashFiles('reqs/constraints.txt', 'reqs/dist.txt', 'reqs/test.txt') }}
 
       - name: Setup Python environment
         run: setup_python_env -c reqs/constraints.txt -r reqs/dist.txt -r reqs/test.txt        
@@ -562,7 +562,7 @@ jobs:
         uses: actions/cache@v4
         with:
           path: .skip_cache_test_python_311
-          key: 2_${{ needs.analyze.outputs.test_python_311_skip_cache_key }}
+          key: 3_${{ needs.analyze.outputs.test_python_311_skip_cache_key }}
 
       - name: Update skip cache 2
         run: run_eval "echo 'https://github.com/$GITHUB_REPOSITORY/actions/runs/$GITHUB_RUN_ID' >'.skip_cache_test_python_311'"
@@ -599,7 +599,7 @@ jobs:
         uses: actions/cache@v4
         with:
           path: .cache
-          key: 2_${{ steps.set_cache.outputs.cache_name }}_${{ hashFiles('reqs/constraints.txt', 'reqs/dist.txt', 'reqs/test.txt') }}
+          key: 3_${{ steps.set_cache.outputs.cache_name }}_${{ hashFiles('reqs/constraints.txt', 'reqs/dist.txt', 'reqs/test.txt') }}
 
       - name: Setup Python environment
         run: setup_python_env -c reqs/constraints.txt -r reqs/dist.txt -r reqs/test.txt        
@@ -616,7 +616,7 @@ jobs:
         uses: actions/cache@v4
         with:
           path: .skip_cache_test_python_310
-          key: 2_${{ needs.analyze.outputs.test_python_310_skip_cache_key }}
+          key: 3_${{ needs.analyze.outputs.test_python_310_skip_cache_key }}
 
       - name: Update skip cache 2
         run: run_eval "echo 'https://github.com/$GITHUB_REPOSITORY/actions/runs/$GITHUB_RUN_ID' >'.skip_cache_test_python_310'"
@@ -653,7 +653,7 @@ jobs:
         uses: actions/cache@v4
         with:
           path: .cache
-          key: 2_${{ steps.set_cache.outputs.cache_name }}_${{ hashFiles('reqs/constraints.txt', 'reqs/dist.txt', 'reqs/dist_extra_gui_qt.txt', 'reqs/test.txt') }}
+          key: 3_${{ steps.set_cache.outputs.cache_name }}_${{ hashFiles('reqs/constraints.txt', 'reqs/dist.txt', 'reqs/dist_extra_gui_qt.txt', 'reqs/test.txt') }}
 
       - name: Install system dependencies
         run: apt_get_install libdbus-1-dev libdbus-glib-1-dev libudev-dev libusb-1.0-0-dev libegl-dev libxkbcommon-x11-0
@@ -676,7 +676,7 @@ jobs:
         uses: actions/cache@v4
         with:
           path: .skip_cache_test_qt_gui
-          key: 2_${{ needs.analyze.outputs.test_qt_gui_skip_cache_key }}
+          key: 3_${{ needs.analyze.outputs.test_qt_gui_skip_cache_key }}
 
       - name: Update skip cache 2
         run: run_eval "echo 'https://github.com/$GITHUB_REPOSITORY/actions/runs/$GITHUB_RUN_ID' >'.skip_cache_test_qt_gui'"
@@ -716,7 +716,7 @@ jobs:
         uses: actions/cache@v4
         with:
           path: .cache
-          key: 2_${{ steps.set_cache.outputs.cache_name }}_${{ hashFiles('reqs/constraints.txt', 'reqs/packaging.txt', 'reqs/setup.txt') }}
+          key: 3_${{ steps.set_cache.outputs.cache_name }}_${{ hashFiles('reqs/constraints.txt', 'reqs/packaging.txt', 'reqs/setup.txt') }}
 
       - name: Setup Python environment
         run: setup_python_env -c reqs/constraints.txt -r reqs/packaging.txt -r reqs/setup.txt        
@@ -763,7 +763,7 @@ jobs:
         uses: actions/cache@v4
         with:
           path: .skip_cache_test_packaging
-          key: 2_${{ needs.analyze.outputs.test_packaging_skip_cache_key }}
+          key: 3_${{ needs.analyze.outputs.test_packaging_skip_cache_key }}
 
       - name: Update skip cache 2
         run: run_eval "echo 'https://github.com/$GITHUB_REPOSITORY/actions/runs/$GITHUB_RUN_ID' >'.skip_cache_test_packaging'"
@@ -803,7 +803,7 @@ jobs:
         uses: actions/cache@v4
         with:
           path: .cache
-          key: 2_${{ steps.set_cache.outputs.cache_name }}_${{ hashFiles('reqs/constraints.txt', 'reqs/code_quality.txt') }}
+          key: 3_${{ steps.set_cache.outputs.cache_name }}_${{ hashFiles('reqs/constraints.txt', 'reqs/code_quality.txt') }}
 
       - name: Setup Python environment
         run: setup_python_env -c reqs/constraints.txt -r reqs/code_quality.txt        
@@ -815,7 +815,7 @@ jobs:
         uses: actions/cache@v4
         with:
           path: .skip_cache_test_code_quality
-          key: 2_${{ needs.analyze.outputs.test_code_quality_skip_cache_key }}
+          key: 3_${{ needs.analyze.outputs.test_code_quality_skip_cache_key }}
 
       - name: Update skip cache 2
         run: run_eval "echo 'https://github.com/$GITHUB_REPOSITORY/actions/runs/$GITHUB_RUN_ID' >'.skip_cache_test_code_quality'"
@@ -856,7 +856,7 @@ jobs:
         uses: actions/cache@v4
         with:
           path: .cache
-          key: 2_${{ steps.set_cache.outputs.cache_name }}_${{ hashFiles('reqs/constraints.txt', 'reqs/build.txt', 'reqs/setup.txt', 'reqs/dist_*.txt', 'linux/appimage/deps.sh') }}
+          key: 3_${{ steps.set_cache.outputs.cache_name }}_${{ hashFiles('reqs/constraints.txt', 'reqs/build.txt', 'reqs/setup.txt', 'reqs/dist_*.txt', 'linux/appimage/deps.sh') }}
 
       - name: Install system dependencies
         run: apt_get_install libdbus-1-dev libdbus-glib-1-dev libudev-dev libusb-1.0-0-dev libegl-dev libxkbcommon-x11-0
@@ -886,7 +886,7 @@ jobs:
         uses: actions/cache@v4
         with:
           path: .skip_cache_build_linux
-          key: 2_${{ needs.analyze.outputs.build_linux_skip_cache_key }}
+          key: 3_${{ needs.analyze.outputs.build_linux_skip_cache_key }}
 
       - name: Update skip cache 2
         run: run_eval "echo 'https://github.com/$GITHUB_REPOSITORY/actions/runs/$GITHUB_RUN_ID' >'.skip_cache_build_linux'"
@@ -922,7 +922,7 @@ jobs:
         uses: actions/cache@v4
         with:
           path: .cache
-          key: 2_${{ steps.set_cache.outputs.cache_name }}_${{ hashFiles('reqs/constraints.txt', 'reqs/build.txt', 'reqs/setup.txt', 'reqs/dist_*.txt', 'osx/deps.sh') }}
+          key: 3_${{ steps.set_cache.outputs.cache_name }}_${{ hashFiles('reqs/constraints.txt', 'reqs/build.txt', 'reqs/setup.txt', 'reqs/dist_*.txt', 'osx/deps.sh') }}
 
       # To support older macOS versions, setup Python from an official installer.
       - name: Setup Python
@@ -959,7 +959,7 @@ jobs:
         uses: actions/cache@v4
         with:
           path: .skip_cache_build_macos_app
-          key: 2_${{ needs.analyze.outputs.build_macos_app_skip_cache_key }}
+          key: 3_${{ needs.analyze.outputs.build_macos_app_skip_cache_key }}
 
       - name: Update skip cache 2
         run: run_eval "echo 'https://github.com/$GITHUB_REPOSITORY/actions/runs/$GITHUB_RUN_ID' >'.skip_cache_build_macos_app'"
@@ -972,8 +972,7 @@ jobs:
   notarize_macos_app:
 
     name: Notarize (macOS App)
-    # TODO change to production
-    environment: main
+    environment: production
     runs-on: macos-15
     needs: [analyze, build_macos_app]
     if: >-
@@ -1007,7 +1006,7 @@ jobs:
         uses: actions/cache@v4
         with:
           path: .cache
-          key: 2_${{ steps.set_cache.outputs.cache_name }}_${{ hashFiles('reqs/constraints.txt', 'reqs/build.txt', 'reqs/setup.txt', 'reqs/dist_*.txt', 'osx/deps.sh') }}
+          key: 3_${{ steps.set_cache.outputs.cache_name }}_${{ hashFiles('reqs/constraints.txt', 'reqs/build.txt', 'reqs/setup.txt', 'reqs/dist_*.txt', 'osx/deps.sh') }}
 
       # Notarize {{{
 
@@ -1057,7 +1056,7 @@ jobs:
         uses: actions/cache@v4
         with:
           path: .skip_cache_notarize_macos_app
-          key: 2_${{ needs.analyze.outputs.notarize_macos_app_skip_cache_key }}
+          key: 3_${{ needs.analyze.outputs.notarize_macos_app_skip_cache_key }}
 
       - name: Update skip cache 2
         run: run_eval "echo 'https://github.com/$GITHUB_REPOSITORY/actions/runs/$GITHUB_RUN_ID' >'.skip_cache_notarize_macos_app'"
@@ -1094,7 +1093,7 @@ jobs:
         uses: actions/cache@v4
         with:
           path: .cache
-          key: 2_${{ steps.set_cache.outputs.cache_name }}_${{ hashFiles('reqs/constraints.txt', 'reqs/build.txt', 'reqs/setup.txt', 'reqs/dist_*.txt', 'osx/deps.sh') }}
+          key: 3_${{ steps.set_cache.outputs.cache_name }}_${{ hashFiles('reqs/constraints.txt', 'reqs/build.txt', 'reqs/setup.txt', 'reqs/dist_*.txt', 'osx/deps.sh') }}
 
       # To support older macOS versions, setup Python from an official installer.
       - name: Setup Python
@@ -1142,7 +1141,7 @@ jobs:
         uses: actions/cache@v4
         with:
           path: .skip_cache_build_macos_dmg
-          key: 2_${{ needs.analyze.outputs.build_macos_dmg_skip_cache_key }}
+          key: 3_${{ needs.analyze.outputs.build_macos_dmg_skip_cache_key }}
 
       - name: Update skip cache 2
         run: run_eval "echo 'https://github.com/$GITHUB_REPOSITORY/actions/runs/$GITHUB_RUN_ID' >'.skip_cache_build_macos_dmg'"
@@ -1155,8 +1154,7 @@ jobs:
   notarize_macos_dmg:
 
     name: Notarize (macOS DMG)
-    # TODO change to production
-    environment: main
+    environment: production
     runs-on: macos-15
     needs: [analyze, build_macos_dmg]
     if: >-
@@ -1190,7 +1188,7 @@ jobs:
         uses: actions/cache@v4
         with:
           path: .cache
-          key: 2_${{ steps.set_cache.outputs.cache_name }}_${{ hashFiles('reqs/constraints.txt', 'reqs/build.txt', 'reqs/setup.txt', 'reqs/dist_*.txt', 'osx/deps.sh') }}
+          key: 3_${{ steps.set_cache.outputs.cache_name }}_${{ hashFiles('reqs/constraints.txt', 'reqs/build.txt', 'reqs/setup.txt', 'reqs/dist_*.txt', 'osx/deps.sh') }}
 
       # Notarize {{{
 
@@ -1229,7 +1227,7 @@ jobs:
         uses: actions/cache@v4
         with:
           path: .skip_cache_notarize_macos_dmg
-          key: 2_${{ needs.analyze.outputs.notarize_macos_dmg_skip_cache_key }}
+          key: 3_${{ needs.analyze.outputs.notarize_macos_dmg_skip_cache_key }}
 
       - name: Update skip cache 2
         run: run_eval "echo 'https://github.com/$GITHUB_REPOSITORY/actions/runs/$GITHUB_RUN_ID' >'.skip_cache_notarize_macos_dmg'"
@@ -1275,7 +1273,7 @@ jobs:
         uses: actions/cache@v4
         with:
           path: .cache
-          key: 2_${{ steps.set_cache.outputs.cache_name }}_${{ hashFiles('reqs/constraints.txt', 'reqs/build.txt', 'reqs/setup.txt', 'reqs/dist_*.txt', 'windows/dist_deps.sh') }}
+          key: 3_${{ steps.set_cache.outputs.cache_name }}_${{ hashFiles('reqs/constraints.txt', 'reqs/build.txt', 'reqs/setup.txt', 'reqs/dist_*.txt', 'windows/dist_deps.sh') }}
 
       - name: Setup Python environment
         run: setup_python_env -c reqs/constraints.txt -r reqs/build.txt -r reqs/setup.txt        
@@ -1311,7 +1309,7 @@ jobs:
         uses: actions/cache@v4
         with:
           path: .skip_cache_build_windows
-          key: 2_${{ needs.analyze.outputs.build_windows_skip_cache_key }}
+          key: 3_${{ needs.analyze.outputs.build_windows_skip_cache_key }}
 
       - name: Update skip cache 2
         run: run_eval "echo 'https://github.com/$GITHUB_REPOSITORY/actions/runs/$GITHUB_RUN_ID' >'.skip_cache_build_windows'"

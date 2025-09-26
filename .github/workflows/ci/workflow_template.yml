@@ -78,8 +78,7 @@ jobs:
 
     name: <@ j.name @>
     <% if j.os == 'macOS' and j.type == 'notarize' %>
-    # TODO change to production
-    environment: main
+    environment: production
     <% endif %>
     runs-on: <@ j.platform @>
     needs: [analyze, <@ j.needs|join(', ') @>]

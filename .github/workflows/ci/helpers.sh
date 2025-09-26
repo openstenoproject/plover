@@ -239,19 +239,18 @@ analyze_set_job_skip_cache_key()
 
 analyze_set_job_skip_job()
 {
-  # TODO add back
-  #if [[ "${job_type:-}" == "notarize" ]]; then
-  #  case "$GITHUB_EVENT_NAME:$GITHUB_REF" in
-  #    push:refs/heads/main|push:refs/heads/maintenance/*|push:refs/tags/v*)
-  #      : ;;  # allowed; continue to normal skip logic below
-  #    *)
-  #      skip_job='yes'
-  #      info "Skip $job_name? $skip_job (notarize allowed only on push to main, maintenance/*, or v* tag; event=$GITHUB_EVENT_NAME ref=$GITHUB_REF)"
-  #      echo "${job_id}_skip_job=$skip_job" >> $GITHUB_OUTPUT
-  #      return
-  #      ;;
-  #  esac
-  #fi
+  if [[ "${job_type:-}" == "notarize" ]]; then
+    case "$GITHUB_EVENT_NAME:$GITHUB_REF" in
+      push:refs/heads/main|push:refs/heads/maintenance/*|push:refs/tags/v*)
+        : ;;  # allowed; continue to normal skip logic below
+      *)
+        skip_job='yes'
+        info "Skip $job_name? $skip_job (notarize allowed only on push to main, maintenance/*, or v* tag; event=$GITHUB_EVENT_NAME ref=$GITHUB_REF)"
+        echo "${job_id}_skip_job=$skip_job" >> $GITHUB_OUTPUT
+        return
+        ;;
+    esac
+  fi
   if [ "$is_release" = "no" -a -e "$job_skip_cache_path" ]
   then
     run_link="$(< "$job_skip_cache_path")" || die
