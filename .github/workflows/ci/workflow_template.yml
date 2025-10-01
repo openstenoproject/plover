@@ -78,7 +78,7 @@ jobs:
 
     name: <@ j.name @>
     <% if j.os == 'macOS' and j.type == 'notarize' %>
-    environment: main
+    environment: production
     <% endif %>
     runs-on: <@ j.platform @>
     needs: [analyze, <@ j.needs|join(', ') @>]
@@ -247,15 +247,15 @@ jobs:
         uses: <@ action_cache_save @>
         with:
           path: dist/Plover.app.tgz
-          key: macos-app-raw-${{ github.run_id }}
+          key: <@ cache_epoch @>_macos-app-raw-${{ github.run_id }}
 
       <% elif j.type == 'build' and j.variant == 'macOS DMG' %>
       - name: Restore app tarball from internal cache (prefer notarized)
         uses: <@ action_cache_restore @>
         with:
           path: dist/Plover.app.tgz
-          key: macos-app-notarized-${{ github.run_id }}
-          restore-keys: macos-app-raw-${{ github.run_id }}
+          key: <@ cache_epoch @>_macos-app-notarized-${{ github.run_id }}
+          restore-keys: <@ cache_epoch @>_macos-app-raw-${{ github.run_id }}
 
       - name: Extract app tarball
         run: |
@@ -309,7 +309,7 @@ jobs:
         uses: <@ action_cache_restore @>
         with:
           path: dist/Plover.app.tgz
-          key: macos-app-raw-${{ github.run_id }}
+          key: <@ cache_epoch @>_macos-app-raw-${{ github.run_id }}
 
       - name: Extract app tarball
         run: |
@@ -341,7 +341,7 @@ jobs:
         uses: <@ action_cache_save @>
         with:
           path: dist/Plover.app.tgz
-          key: macos-app-notarized-${{ github.run_id }}
+          key: <@ cache_epoch @>_macos-app-notarized-${{ github.run_id }}
 
       <% elif j.variant == 'macOS DMG' %>
       - name: Download artifact (macOS DMG)
