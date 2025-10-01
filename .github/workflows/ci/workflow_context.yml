@@ -1,6 +1,8 @@
-cache_epoch: 0 # <- increase number to clear cache.
+cache_epoch: 4 # <- increase number to clear cache.
 
 action_cache: actions/cache@v4
+action_cache_restore: actions/cache/restore@v4
+action_cache_save: actions/cache/save@v4
 action_checkout: actions/checkout@v4
 action_setup_python: actions/setup-python@v5
 action_upload_artifact: actions/upload-artifact@v4

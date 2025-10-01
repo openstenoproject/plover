@@ -78,7 +78,7 @@ jobs:
 
     name: <@ j.name @>
     <% if j.os == 'macOS' and j.type == 'notarize' %>
-    environment: production
+    environment: main
     <% endif %>
     runs-on: <@ j.platform @>
     needs: [analyze, <@ j.needs|join(', ') @>]
@@ -243,20 +243,19 @@ jobs:
           rm -f dist/Plover.app.tgz
           tar -C dist -czf dist/Plover.app.tgz Plover.app
 
-      - name: Upload artifact (macOS App)
-        uses: <@ action_upload_artifact @>
+      - name: Save app tarball to internal cache
+        uses: <@ action_cache_save @>
         with:
-          name: macOS App
           path: dist/Plover.app.tgz
-          overwrite: true
+          key: macos-app-raw-${{ github.run_id }}
 
       <% elif j.type == 'build' and j.variant == 'macOS DMG' %>
-      - name: Download artifact (macOS App)
-        uses: <@ action_download_artifact @>
+      - name: Restore app tarball from internal cache (prefer notarized)
+        uses: <@ action_cache_restore @>
         with:
-          name: macOS App
-          path: dist
-          pattern: "*.tgz"
+          path: dist/Plover.app.tgz
+          key: macos-app-notarized-${{ github.run_id }}
+          restore-keys: macos-app-raw-${{ github.run_id }}
 
       - name: Extract app tarball
         run: |
@@ -306,12 +305,11 @@ jobs:
       # Notarize {{{
 
       <% if j.variant == 'macOS App' %>
-      - name: Download artifact (macOS App)
-        uses: <@ action_download_artifact @>
+      - name: Restore app tarball from internal cache
+        uses: <@ action_cache_restore @>
         with:
-          name: macOS App
-          path: dist
-          pattern: "*.tgz"
+          path: dist/Plover.app.tgz
+          key: macos-app-raw-${{ github.run_id }}
 
       - name: Extract app tarball
         run: |
@@ -339,12 +337,11 @@ jobs:
           rm -f dist/Plover.app.tgz
           tar -C dist -czf dist/Plover.app.tgz Plover.app
 
-      - name: Upload artifact (macOS App)
-        uses: <@ action_upload_artifact @>
+      - name: Save notarized app tarball to internal cache
+        uses: <@ action_cache_save @>
         with:
-          name: macOS App
           path: dist/Plover.app.tgz
-          overwrite: true
+          key: macos-app-notarized-${{ github.run_id }}
 
       <% elif j.variant == 'macOS DMG' %>
       - name: Download artifact (macOS DMG)
