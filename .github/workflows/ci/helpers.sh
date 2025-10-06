@@ -19,7 +19,12 @@ generate_translations_catalogs_archive()
 
 list_cache()
 {
-  "$python" -m plover_build_utils.tree -L 2 .cache
+  if [ -d .cache ]
+  then
+    "$python" -m plover_build_utils.tree -L 2 .cache
+  else
+    echo "no .cache directory found; nothing to list"
+  fi
 }
 
 run_tests()
@@ -234,6 +239,18 @@ analyze_set_job_skip_cache_key()
 
 analyze_set_job_skip_job()
 {
+  if [[ "${job_type:-}" == "notarize" ]]; then
+    case "$GITHUB_EVENT_NAME:$GITHUB_REF" in
+      push:refs/heads/main|push:refs/heads/maintenance/*|push:refs/tags/v*)
+        : ;;  # allowed; continue to normal skip logic below
+      *)
+        skip_job='yes'
+        info "Skip $job_name? $skip_job (notarize allowed only on push to main, maintenance/*, or v* tag; event=$GITHUB_EVENT_NAME ref=$GITHUB_REF)"
+        echo "${job_id}_skip_job=$skip_job" >> $GITHUB_OUTPUT
+        return
+        ;;
+    esac
+  fi
   if [ "$is_release" = "no" -a -e "$job_skip_cache_path" ]
   then
     run_link="$(< "$job_skip_cache_path")" || die
@@ -244,6 +261,91 @@ analyze_set_job_skip_job()
   fi
   info "Skip $job_name? $skip_job"
   echo "${job_id}_skip_job=$skip_job" >> $GITHUB_OUTPUT
+}
+
+# Install Developer ID certificate into a temporary keychain
+#
+# Env vars required:
+#   MACOS_CODESIGN_CERT_P12_BASE64
+#   MACOS_CODESIGN_CERT_PASSWORD
+#   MACOS_TEMP_KEYCHAIN_NAME
+#   MACOS_TEMP_KEYCHAIN_PASSWORD
+#
+# Side effects:
+#   - Creates/unlocks ${MACOS_TEMP_KEYCHAIN_NAME}.keychain
+#   - Adds it first in the user keychain search list
+#   - Imports the Developer ID identity (.p12)
+#   - Configures key partition list for non-interactive codesign
+install_dev_id_cert_into_temp_keychain() {
+  set -euo pipefail
+
+  : "${MACOS_CODESIGN_CERT_P12_BASE64:?Missing secret MACOS_CODESIGN_CERT_P12_BASE64}"
+  : "${MACOS_CODESIGN_CERT_PASSWORD:?Missing secret MACOS_CODESIGN_CERT_PASSWORD}"
+  : "${MACOS_TEMP_KEYCHAIN_PASSWORD:?Missing secret MACOS_TEMP_KEYCHAIN_PASSWORD}"
+  : "${MACOS_TEMP_KEYCHAIN_NAME:?MACOS_TEMP_KEYCHAIN_NAME not set}"
+
+  KC_FILE="${MACOS_TEMP_KEYCHAIN_NAME}.keychain"
+  KC_DB="${HOME}/Library/Keychains/${MACOS_TEMP_KEYCHAIN_NAME}.keychain-db"
+
+  # Clean any stale keychain (both list entry and on-disk file)
+  if security list-keychains -d user | grep -q "$KC_FILE"; then
+    security -q delete-keychain "$KC_FILE" || true
+  fi
+  rm -f "$KC_DB" || true
+
+  # Create & unlock keychain (6h auto-lock)
+  security -q create-keychain -p "$MACOS_TEMP_KEYCHAIN_PASSWORD" "$KC_FILE"
+  security -q set-keychain-settings -lut 21600 "$KC_FILE"
+  security -q unlock-keychain -p "$MACOS_TEMP_KEYCHAIN_PASSWORD" "$KC_FILE"
+
+  # Put our keychain first in the search list (keep existing ones)
+  existing="$(security list-keychains -d user | tr -d ' \"')"
+  security -q list-keychains -d user -s "$KC_FILE" $existing
+
+  # Decode the .p12 file
+  echo "$MACOS_CODESIGN_CERT_P12_BASE64" | base64 --decode > signing.p12
+
+  # Import identity and always remove the .p12 file
+  security import signing.p12 -k "$KC_FILE" -P "$MACOS_CODESIGN_CERT_PASSWORD" \
+    -T /usr/bin/codesign -T /usr/bin/security >/dev/null; rm -f signing.p12
+
+  # Allow codesign to use the private key non-interactively
+  security set-key-partition-list -S apple-tool:,apple:,codesign: -s \
+    -k "$MACOS_TEMP_KEYCHAIN_PASSWORD" "$KC_FILE" >/dev/null
+
+  # Sanity check: can we see a codesigning identity in this keychain?
+  if ! security find-identity -p codesigning -v "$KC_FILE" | grep -q "Developer ID Application"; then
+    echo "No Developer ID Application identity found in ${MACOS_TEMP_KEYCHAIN_NAME}.keychain" >&2
+    return 1
+  fi
+}
+
+# Cleanup the temporary keychain created for codesigning
+#
+# Env vars required:
+#   MACOS_TEMP_KEYCHAIN_NAME
+# Optional env:
+#   MACOS_CODESIGN_KEYCHAIN  # if set, will be used as the keychain file name
+#
+# Side effects:
+#   - Deletes the keychain and its on-disk DB
+#   - Clears MACOS_CODESIGN_KEYCHAIN from the GitHub Actions environment (if available)
+cleanup_dev_id_temp_keychain() {
+  set -euo pipefail
+
+  : "${MACOS_TEMP_KEYCHAIN_NAME:?MACOS_TEMP_KEYCHAIN_NAME not set}"
+
+  # Respect an explicit keychain override if provided; otherwise derive from the temp name
+  KC_FILE="${MACOS_CODESIGN_KEYCHAIN:-${MACOS_TEMP_KEYCHAIN_NAME}.keychain}"
+  KC_DB="${HOME}/Library/Keychains/${MACOS_TEMP_KEYCHAIN_NAME}.keychain-db"
+
+  security -q delete-keychain "$KC_FILE" || true
+  rm -f "$KC_DB" || true
+
+  # Clear env for downstream steps only when running in GitHub Actions
+  if [[ -n "${GITHUB_ENV:-}" && -w "${GITHUB_ENV}" ]]; then
+    echo "MACOS_CODESIGN_KEYCHAIN=" >> "$GITHUB_ENV"
+  fi
 }
 
 python='python3'

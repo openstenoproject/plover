@@ -211,6 +211,44 @@ class BinaryDistApp(Command):
 
 
 class BinaryDistDmg(Command):
+    user_options = [
+        (
+            "skip-app-build",
+            None,
+            "skip building the app; assume dist/Plover.app already exists",
+        ),
+    ]
+    boolean_options = ["skip-app-build"]
+
+    def initialize_options(self):
+        self.skip_app_build = False
+
+    def finalize_options(self):
+        pass
+
+    def run(self):
+        # Build the app first unless the user asked for DMG-only.
+        if not self.skip_app_build:
+            self.run_command("bdist_app")
+
+        app_path = "dist/Plover.app"
+        if not os.path.isdir(app_path):
+            raise SystemExit(
+                "Plover.app not found in 'dist/'. Build the app first or omit --skip-app-build."
+            )
+
+        # Determine targeted macOS platform
+        from setuptools.command.bdist_wheel import get_platform
+
+        platform = get_platform(app_path)
+
+        cmd = ["bash", "osx/make_dmg.sh", platform, PACKAGE]
+        if self.verbose:
+            print("running", " ".join(cmd))
+        subprocess.check_call(cmd)
+
+
+class NotarizeApp(Command):
     user_options = []
     extra_args = []
 
@@ -221,25 +259,49 @@ class BinaryDistDmg(Command):
         pass
 
     def run(self):
-        self.run_command("bdist_app")
-        # Encode targeted macOS plaftorm in the filename.
-        from setuptools.command.bdist_wheel import get_platform
-
-        platform = get_platform("dist/Plover.app")
-        args = "{out!r}, {name!r}, {settings!r}, lookForHiDPI=True".format(
-            out="dist/%s-%s.dmg" % (PACKAGE, platform),
-            name=__software_name__.capitalize(),
-            settings="osx/dmg_resources/settings.py",
-        )
+        cmd = ["bash", "osx/notarize_app.sh"]
         if self.verbose:
-            print("running dmgbuild(%s)" % args)
-        script = "__import__('dmgbuild').build_dmg(" + args + ")"
-        subprocess.check_call((sys.executable, "-u", "-c", script))
+            print("running", " ".join(cmd))
+        subprocess.check_call(cmd)
+
+
+class NotarizeDmg(Command):
+    user_options = []
+    extra_args = []
+
+    def initialize_options(self):
+        pass
+
+    def finalize_options(self):
+        pass
+
+    def run(self):
+        import glob
+
+        # Locate the DMG we want to notarize
+        dmgs = sorted(glob.glob("dist/*.dmg"))
+        if not dmgs:
+            raise SystemExit(
+                "No DMG found in 'dist/'. Build the DMG first (bdist_dmg)."
+            )
+        if len(dmgs) > 1:
+            raise SystemExit(
+                "Multiple DMGs found in 'dist/': "
+                + ", ".join(os.path.basename(p) for p in dmgs)
+            )
+        dmg_path = dmgs[0]
+
+        cmd = ["bash", "osx/notarize_dmg.sh", dmg_path]
+        if self.verbose:
+            print("running", " ".join(cmd))
+        subprocess.check_call(cmd)
 
 
 if sys.platform.startswith("darwin"):
     cmdclass["bdist_app"] = BinaryDistApp
     cmdclass["bdist_dmg"] = BinaryDistDmg
+    cmdclass["notarize_app"] = NotarizeApp
+    cmdclass["notarize_dmg"] = NotarizeDmg
 
 # }}}
 

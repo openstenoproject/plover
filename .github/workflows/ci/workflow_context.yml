@@ -1,6 +1,8 @@
 cache_epoch: 0 # <- increase number to clear cache.
 
 action_cache: actions/cache@v4
+action_cache_restore: actions/cache/restore@v4
+action_cache_save: actions/cache/save@v4
 action_checkout: actions/checkout@v4
 action_setup_python: actions/setup-python@v5
 action_upload_artifact: actions/upload-artifact@v4
@@ -93,7 +95,28 @@ jobs:
     skiplists: ["job_build", "os_linux"]
   - <<: *build
     <<: *dist_macos
+    variant: macOS App
     needs: [test_macos]
+    cache_extra_deps: ["reqs/dist_*.txt", "osx/deps.sh"]
+    skiplists: ["job_build", "os_macos"]
+  - <<: *dist_macos
+    type: notarize
+    variant: macOS App
+    needs: [build_macos_app]
+    reqs: ["build", "setup"]
+    cache_extra_deps: ["reqs/dist_*.txt", "osx/deps.sh"]
+    skiplists: ["job_build", "os_macos"]
+  - <<: *build
+    <<: *dist_macos
+    variant: macOS DMG
+    needs: [build_macos_app, notarize_macos_app]
+    cache_extra_deps: ["reqs/dist_*.txt", "osx/deps.sh"]
+    skiplists: ["job_build", "os_macos"]
+  - <<: *dist_macos
+    type: notarize
+    variant: macOS DMG
+    needs: [build_macos_dmg]
+    reqs: ["build", "setup"]
     cache_extra_deps: ["reqs/dist_*.txt", "osx/deps.sh"]
     skiplists: ["job_build", "os_macos"]
   - <<: *build

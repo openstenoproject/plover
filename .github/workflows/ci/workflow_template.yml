@@ -77,6 +77,9 @@ jobs:
   <@ j.id @>:
 
     name: <@ j.name @>
+    <% if j.os == 'macOS' and j.type == 'notarize' %>
+    environment: production
+    <% endif %>
     runs-on: <@ j.platform @>
     needs: [analyze, <@ j.needs|join(', ') @>]
     if: >-
@@ -85,6 +88,21 @@ jobs:
       && (needs.<@ need_id @>.result == 'success' || needs.<@ need_id @>.result == 'skipped')
       <% endfor %>
       && needs.analyze.outputs.<@ j.id @>_skip_job == 'no'
+    <% if j.os == 'macOS' and j.type == 'notarize' %>
+    env:
+      # Code signing
+      MACOS_CODESIGN_IDENTITY: ${{ secrets.MACOS_CODESIGN_IDENTITY }}
+      MACOS_CODESIGN_CERT_P12_BASE64: ${{ secrets.MACOS_CODESIGN_CERT_P12_BASE64 }}
+      MACOS_CODESIGN_CERT_PASSWORD: ${{ secrets.MACOS_CODESIGN_CERT_PASSWORD }}
+      MACOS_TEMP_KEYCHAIN_NAME: plover-build
+      MACOS_TEMP_KEYCHAIN_PASSWORD: ${{ secrets.MACOS_TEMP_KEYCHAIN_PASSWORD }}
+      # Notarization
+      MACOS_NOTARIZE_ENABLED: ${{ secrets.MACOS_NOTARIZE_ENABLED || '0' }}
+      MACOS_NOTARIZE_TEAM_ID: ${{ secrets.MACOS_NOTARIZE_TEAM_ID }}
+      MACOS_NOTARIZE_KEY_ID: ${{ secrets.MACOS_NOTARIZE_KEY_ID }}
+      MACOS_NOTARIZE_ISSUER_ID: ${{ secrets.MACOS_NOTARIZE_ISSUER_ID }}
+      MACOS_NOTARIZE_KEY_CONTENTS: ${{ secrets.MACOS_NOTARIZE_KEY_CONTENTS }}
+    <% endif %>
 
     steps:
 
@@ -120,7 +138,7 @@ jobs:
           path: .cache
           key: <@ cache_epoch @>_${{ steps.set_cache.outputs.cache_name }}_${{ hashFiles('reqs/constraints.txt'<% for d in (j.reqs + j.cache_extra_deps) %><@ ', %r' % d @><% endfor %>) }}
 
-      <% if j.os == 'macOS' %>
+      <% if j.os == 'macOS' and j.type != 'notarize' %>
       # To support older macOS versions, setup Python from an official installer.
       - name: Setup Python
         run: setup_osx_python '<@ j.python @>'
@@ -131,10 +149,12 @@ jobs:
         run: apt_get_install libdbus-1-dev libdbus-glib-1-dev libudev-dev libusb-1.0-0-dev libegl-dev libxkbcommon-x11-0
 
       <% endif %>
+      <% if j.type != 'notarize' %>
       - name: Setup Python environment
         run: setup_python_env -c reqs/constraints.txt<% for r in j.reqs %> -r <@ r @><% endfor %>
         
 
+      <% endif %>
       <% if j.type == 'test_code_quality' %>
       - name: Run Ruff (format check)
         run: ruff format --check .
@@ -214,15 +234,49 @@ jobs:
 
       <% endif %>
       <% if j.os == 'macOS' %>
-      - name: Build distribution (macOS DMG)
-        run: python setup.py -q bdist_dmg
+      <% if j.type == 'build' and j.variant == 'macOS App' %>
+      - name: Build distribution (macOS app)
+        run: python setup.py -q bdist_app
 
-      - name: Archive artifact (macOS DMG)
+      - name: Pack app as tar (preserve symlinks)
+        run: |
+          rm -f dist/Plover.app.tgz
+          tar -C dist -czf dist/Plover.app.tgz Plover.app
+
+      - name: Save app tarball to internal cache
+        uses: <@ action_cache_save @>
+        with:
+          path: dist/Plover.app.tgz
+          key: <@ cache_epoch @>_macos-app-raw-${{ github.run_id }}
+
+      <% elif j.type == 'build' and j.variant == 'macOS DMG' %>
+      - name: Restore app tarball from internal cache (prefer notarized)
+        uses: <@ action_cache_restore @>
+        with:
+          path: dist/Plover.app.tgz
+          key: <@ cache_epoch @>_macos-app-notarized-${{ github.run_id }}
+          restore-keys: <@ cache_epoch @>_macos-app-raw-${{ github.run_id }}
+
+      - name: Extract app tarball
+        run: |
+          mkdir -p dist
+          tgz="$(ls -1 dist/*.tgz)"
+          echo "Using: $tgz"
+          tar -C dist -xzf "$tgz"
+
+      - name: Ensure app exists
+        run: test -d dist/*.app
+
+      - name: Build distribution (macOS DMG from existing app)
+        run: python setup.py -q bdist_dmg --skip-app-build
+
+      - name: Upload artifact (macOS DMG)
         uses: <@ action_upload_artifact @>
         with:
           name: macOS DMG
           path: dist/*.dmg
-
+          overwrite: true
+      <% endif %>
       <% endif %>
       <% if j.os == 'Windows' %>
       - name: Build distributions (Windows)
@@ -246,6 +300,82 @@ jobs:
       <% endif %>
       # }}}
 
+      <% endif %>
+      <% if j.os == 'macOS' and j.type == 'notarize' %>
+      # Notarize {{{
+
+      <% if j.variant == 'macOS App' %>
+      - name: Restore app tarball from internal cache
+        uses: <@ action_cache_restore @>
+        with:
+          path: dist/Plover.app.tgz
+          key: <@ cache_epoch @>_macos-app-raw-${{ github.run_id }}
+
+      - name: Extract app tarball
+        run: |
+          mkdir -p dist
+          tar -C dist -xzf dist/*.tgz
+
+      - name: Install Developer ID certificate into temporary keychain
+        if: ${{ env.MACOS_NOTARIZE_ENABLED == '1' }}
+        run: install_dev_id_cert_into_temp_keychain
+
+      - name: Set codesign keychain env
+        run: echo "MACOS_CODESIGN_KEYCHAIN=${MACOS_TEMP_KEYCHAIN_NAME}.keychain" >> $GITHUB_ENV
+
+      - name: Notarize & staple app
+        run: |
+          chmod +x osx/notarize_app.sh
+          ./osx/notarize_app.sh dist/*.app
+
+      - name: Cleanup temporary keychain
+        if: ${{ always() && env.MACOS_NOTARIZE_ENABLED == '1' }}
+        run: cleanup_dev_id_temp_keychain
+
+      - name: Repack notarized app as tar
+        run: |
+          rm -f dist/Plover.app.tgz
+          tar -C dist -czf dist/Plover.app.tgz Plover.app
+
+      - name: Save notarized app tarball to internal cache
+        uses: <@ action_cache_save @>
+        with:
+          path: dist/Plover.app.tgz
+          key: <@ cache_epoch @>_macos-app-notarized-${{ github.run_id }}
+
+      <% elif j.variant == 'macOS DMG' %>
+      - name: Download artifact (macOS DMG)
+        uses: <@ action_download_artifact @>
+        with:
+          name: macOS DMG
+          path: dist
+          pattern: "*.dmg"
+
+      - name: Install Developer ID certificate into temporary keychain
+        if: ${{ env.MACOS_NOTARIZE_ENABLED == '1' }}
+        run: install_dev_id_cert_into_temp_keychain
+
+      - name: Set codesign keychain env
+        run: echo "MACOS_CODESIGN_KEYCHAIN=${MACOS_TEMP_KEYCHAIN_NAME}.keychain" >> $GITHUB_ENV
+
+      - name: Notarize & staple DMG
+        run: |
+          chmod +x osx/notarize_dmg.sh
+          ./osx/notarize_dmg.sh dist/*.dmg
+
+      - name: Cleanup temporary keychain
+        if: ${{ always() && env.MACOS_NOTARIZE_ENABLED == '1' }}
+        run: cleanup_dev_id_temp_keychain
+
+      - name: Upload artifact (macOS DMG)
+        uses: <@ action_upload_artifact @>
+        with:
+          name: macOS DMG
+          path: dist/*.dmg
+          overwrite: true
+      <% endif %>
+
+      # }}}
       <% endif %>
       <% if skippy_enabled %>
       - name: Update skip cache 1

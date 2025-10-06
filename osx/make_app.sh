@@ -14,6 +14,7 @@ plover_wheel="$1"
 . ./osx/deps.sh
 
 py_version="$py_installer_version"
+bundle_id="org.openstenoproject.plover"
 
 echo "Making Plover.app with Plover wheel $plover_wheel."
 
@@ -34,16 +35,22 @@ py_binary="$py_home/bin/python${py_version%.*}"
 
 # Extract Python binary from launcher and fix its references.
 run mv "$py_home/Resources/Python.app/Contents/MacOS/Python" "$py_binary"
-run install_name_tool -rpath "@executable_path/../../../../../../" "@executable_path/../../../" "$py_binary"
-# Remove the codesignature so that we can change the identifier for notifications.
-run /usr/bin/codesign -s - --deep --force "$py_binary"
-run tee "$py_home/bin/Info.plist" <<\EOF
+
+echo "Rewrite runtime search path of Python binary with install_name_tool..."
+run_quiet install_name_tool -rpath "@executable_path/../../../../../../" "@executable_path/../../../" "$py_binary"
+echo "Rewrite runtime search path complete"
+
+echo "Ad-hoc signing the Python binary after install_name_tool invalidated signature..."
+run_quiet /usr/bin/codesign -s - --force "$py_binary"
+echo "Ad-hoc signing complete"
+
+run tee "$py_home/bin/Info.plist" <<EOF
 <?xml version="1.0" encoding="UTF-8"?>
 <!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
 <plist version="1.0">
 <dict>
     <key>CFBundleIdentifier</key>
-    <string>org.openstenoproject.plover</string>
+    <string>${bundle_id}</string>
 </dict>
 </plist>
 EOF
@@ -84,7 +91,5 @@ run "$python" -m plover_build_utils.source_less "$py_home/lib" "*/site-packages/
 # Check requirements.
 run "$python" -I -m plover_build_utils.check_requirements
 
-# Ad-hoc signing to satisfy Gatekeeper.
-run /usr/bin/codesign -s - --deep --force "$appdir"
-
+# Move the finished app to dist.
 run mv "$appdir" "$distdir"

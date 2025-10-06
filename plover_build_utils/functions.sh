@@ -3,6 +3,9 @@
 opt_dry_run=0
 opt_timings=0
 
+# Default CI to false if not set
+: "${CI:=false}"
+
 python='false'
 cache_dir='.cache'
 wheels_cache="$cache_dir/wheels"
@@ -85,27 +88,70 @@ die()
   exit "$code"
 }
 
-run()
-{
-  if [ $opt_dry_run -eq 0 -a "x$CI" = "xtrue" ]
-  then
-    echo -n '::group::' 1>&2
+# Internal runner: first arg must be --normal, --quiet, or --stderr-only
+_run_impl() {
+  local mode="$1"; shift
+
+  if [ "$mode" != "--quiet" ]; then
+    if [ $opt_dry_run -eq 0 -a "x$CI" = "xtrue" ]; then
+      echo -n '::group::' 1>&2
+    fi
+
+    info "$(printf "%q " "$@")"
   fi
-  info "$(printf "%q " "$@")"
+
   [ $opt_dry_run -ne 0 ] && return
-  if [ $opt_timings -ne 0 ]
-  then
-    time "$@"
-    code=$?
+
+  if [ $opt_timings -ne 0 ]; then
+    case "$mode" in
+      --quiet)
+        { time "$@" >/dev/null 2>&1; }
+        code=$?
+        ;;
+      --stderr-only)
+        { time "$@" >/dev/null; } 2>&1
+        code=$?
+        ;;
+      *)
+        time "$@"
+        code=$?
+        ;;
+    esac
   else
-    "$@"
-    code=$?
+    case "$mode" in
+      --quiet)
+        "$@" >/dev/null 2>&1
+        code=$?
+        ;;
+      --stderr-only)
+        "$@" >/dev/null
+        code=$?
+        ;;
+      *)
+        "$@"
+        code=$?
+        ;;
+    esac
   fi
-  if [ "x$CI" = "xtrue" ]
-  then
-    echo "::endgroup::" 1>&2
+
+  if [ "$mode" != "--quiet" ]; then
+    if [ "x$CI" = "xtrue" ]; then
+      echo "::endgroup::" 1>&2
+    fi
   fi
   return $code
+}
+
+run()          { _run_impl --normal "$@"; }
+run_quiet()    { _run_impl --quiet  "$@"; }
+run_stderr()   { _run_impl --stderr-only "$@"; }
+
+require_env() {
+  local name=${1:?}
+  if [[ -z "${!name:-}" ]]; then
+    echo "❌ Missing required env: $name" >&2
+    exit 1
+  fi
 }
 
 run_eval()
