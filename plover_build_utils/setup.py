@@ -98,32 +98,6 @@ class BuildUi(Command):
     def finalize_options(self):
         pass
 
-    def _run_pyside6_tool(self, tool, tool_args):
-        """Runs PySide6.scripts.pyside_tool.<tool>() instead of the pyside6-<tool> executable
-        since that's missing in some environments."""
-        module = "PySide6.scripts.pyside_tool"
-        try:
-            entry = getattr(importlib.import_module(module), tool)
-        except Exception as exc:
-            raise RuntimeError(
-                f"PySide6 tool '{tool}' not available via {module}"
-            ) from exc
-
-        old_argv = sys.argv[:]
-        cmd = [f"pyside6-{tool}"] + list(tool_args)
-        try:
-            sys.argv = cmd
-            try:
-                entry()
-            except SystemExit as se:
-                code = se.code
-                if code not in (0, None):
-                    raise subprocess.CalledProcessError(
-                        code if isinstance(code, int) else 1, cmd
-                    )
-        finally:
-            sys.argv = old_argv
-
     def _build_ui(self, src):
         dst = os.path.splitext(src)[0] + "_ui.py"
         if (
@@ -132,10 +106,10 @@ class BuildUi(Command):
             and os.path.getmtime(dst) >= os.path.getmtime(src)
         ):
             return
-
         if self.verbose:
-            print("generating", src, "->", dst)
-        self._run_pyside6_tool("uic", ["--from-imports", src, "-o", dst])
+            print("generating", dst)
+
+        subprocess.check_call(["pyside6-uic", "--from-imports", src, "-o", dst])
 
         for hook in self.hooks:
             mod_name, attr_name = hook.split(":")
@@ -156,10 +130,9 @@ class BuildUi(Command):
             and os.path.getmtime(dst) >= os.path.getmtime(src)
         ):
             return
-
         if self.verbose:
             print("compiling", src, "->", dst)
-        self._run_pyside6_tool("rcc", ["-o", dst, src])
+        subprocess.check_call(["pyside6-rcc", "-o", dst, src])
 
     def run(self):
         self.run_command("egg_info")
