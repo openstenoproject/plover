@@ -20,10 +20,6 @@ UNIVERSAL2="${UNIVERSAL2:-0}"
 SCRIPT_DIR="$(cd -- "$(dirname -- "${BASH_SOURCE[0]}")" && pwd)"
 REPO_ROOT="$(cd -- "${SCRIPT_DIR}/.." && pwd)"
 
-# Shared fetch/build helpers
-# shellcheck disable=SC1091
-. "${REPO_ROOT}/osx/build_hidapi.sh"
-
 WORK_DIR="${REPO_ROOT}/build/local-hidapi"
 SRC_DIR="${WORK_DIR}/src"
 BUILD_DIR="${WORK_DIR}/build"
@@ -35,14 +31,21 @@ rm -rf "${SRC_DIR}" "${BUILD_DIR}"
 mkdir -p "${SRC_DIR}" "${BUILD_DIR}"
 
 TARBALL="${WORK_DIR}/hidapi-${HIDAPI_VERSION}.tar.gz"
-echo "==> Downloading & unpacking hidapi ${HIDAPI_VERSION}"
-fetch_hidapi "${HIDAPI_VERSION}" "${SRC_DIR}" "${TARBALL}"
+
 
 OS="$(uname -s)"
 ARCH="$(uname -m)"
 
 if [[ "${OS}" == "Darwin" ]]; then
   echo "==> Configuring (macOS, IOHIDManager backend)"
+
+  # Shared fetch/build helpers
+  # shellcheck disable=SC1091
+  . "${REPO_ROOT}/osx/build_hidapi.sh"
+
+  echo "==> Downloading & unpacking hidapi ${HIDAPI_VERSION}"
+  fetch_hidapi "${HIDAPI_VERSION}" "${SRC_DIR}" "${TARBALL}"
+
   mkdir -p "${OUT_LIB_DIR_MAC}"
   # Architectures
   if [[ "${UNIVERSAL2}" == "1" ]]; then
@@ -91,14 +94,15 @@ EOF
 elif [[ "${OS}" == "Linux" ]]; then
   echo "==> Configuring (Linux, hidraw backend)"
   mkdir -p "${OUT_LIB_DIR_LNX}"
-  need cmake
 
-  cmake -S "${SRC_DIR}" -B "${BUILD_DIR}" \
-    -DBUILD_SHARED_LIBS=ON \
-    -DCMAKE_BUILD_TYPE=RelWithDebInfo
+  # Shared fetch/build helpers
+  # shellcheck disable=SC1091
+  . "${REPO_ROOT}/linux/build_hidapi.sh"
 
-  echo "==> Building"
-  cmake --build "${BUILD_DIR}" --config RelWithDebInfo --parallel
+  echo "==> Downloading & unpacking hidapi ${HIDAPI_VERSION}"
+
+  fetch_hidapi "${HIDAPI_VERSION}" "${SRC_DIR}" "${TARBALL}"
+  cmake_build_linux "${SRC_DIR}" "${BUILD_DIR}" "RelWithDebInfo"
 
   SO="$(/usr/bin/find "${BUILD_DIR}" -type f -name 'libhidapi-hidraw.so*' -print -quit || true)"
   if [[ -z "${SO}" ]]; then
@@ -111,7 +115,6 @@ elif [[ "${OS}" == "Linux" ]]; then
   cp -f "${SO}" "${OUT_LIB_DIR_LNX}/${BASENAME}"
 
   pushd "${OUT_LIB_DIR_LNX}" >/dev/null
-  # soname convenience
   [[ -e libhidapi-hidraw.so ]] || ln -sf "${BASENAME}" libhidapi-hidraw.so || true
   popd >/dev/null
 
