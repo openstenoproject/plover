@@ -2,7 +2,6 @@
 
 set -e
 
-. ./plover_build_utils/deps.sh
 . ./plover_build_utils/functions.sh
 
 opt_incremental=0

@@ -2,7 +2,6 @@
 
 set -e
 
-. ./plover_build_utils/deps.sh
 . ./plover_build_utils/functions.sh
 
 topdir="$PWD"
@@ -65,37 +64,6 @@ python='appdir_python'
 
 # Install Plover and dependencies.
 bootstrap_dist "$plover_wheel"
-
-# ------- Start: Build & bundle hidapi from source  -------
-. ./osx/build_hidapi.sh
-
-hidapi_src="$builddir/hidapi-src"
-hidapi_bld="$builddir/hidapi-build"
-hidapi_tar="$builddir/hidapi.tar.gz"
-
-echo "Downloading and unpacking hidapi ${HIDAPI_VERSION}…"
-fetch_hidapi_macos "$HIDAPI_VERSION" "$hidapi_src" "$hidapi_tar"
-
-cmake_build_macos "$hidapi_src" "$hidapi_bld" "x86_64;arm64" "Release"
-
-# Locate the produced dylib
-hidapi_dylib="$(/usr/bin/find "$hidapi_bld" -name 'libhidapi*.dylib' -type f -print -quit)"
-if [ -z "$hidapi_dylib" ] || [ ! -f "$hidapi_dylib" ]; then
-  echo "Error: built libhidapi*.dylib not found." >&2
-  exit 3
-fi
-
-# Bundle into the app's Frameworks directory
-run cp "$hidapi_dylib" "$frameworks_dir/"
-base="$(basename "$hidapi_dylib")"
-
-# Add alias to Frameworks dir
-ln -sfn "$base" "$frameworks_dir/libhidapi.dylib"
-
-# Add RPATH to the Python binary itself and re-sign it
-run install_name_tool -add_rpath "@executable_path/../../../../../Frameworks" "$py_binary"
-run /usr/bin/codesign -f -s - "$py_binary"
-# ------- End: Build & bundle hidapi from source  -------
 
 # Create launcher.
 run gcc -Wall -O2 -arch x86_64 -arch arm64 'osx/app_resources/plover_launcher.c' -o "$macos_dir/Plover"

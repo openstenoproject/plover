@@ -19,21 +19,27 @@ from plover import log
 
 
 def _darwin_disable_exclusive_open():
-    lib = getattr(hid, "hidapi", None)
-    if lib is not None:
-        func = getattr(lib, "hid_darwin_set_open_exclusive")
-        func.argtypes = (ctypes.c_int,)
-        func.restype = None
-        func(0)
-    else:
+    log.debug("darwin exclusive toggle: begin (CDLL on hid module)")
+
+    modpath = getattr(hid, "__file__", None)
+    if not modpath:
         log.warning(
-            "could not call hid_darwin_set_open_exclusive; HID may open exclusively"
+            "darwin exclusive toggle: cannot locate hid extension module path; cannot disable exclusive mode"
         )
+        return
 
+    try:
+        lib = ctypes.CDLL(modpath, mode=getattr(ctypes, "RTLD_GLOBAL", 0))
+        set_func = getattr(lib, "hid_darwin_set_open_exclusive")
+        set_func.argtypes = (ctypes.c_int,)
+        set_func.restype = None
+        set_func(0)
+    except Exception as e:
+        log.warning(f"darwin exclusive toggle: failed via CDLL(hid.__file__): {e}")
+        return
 
-# Invoke once at import time (before any devices are opened)
-if platform.system() == "Darwin":
-    _darwin_disable_exclusive_open()
+    log.debug("darwin exclusive toggle: successful")
+
 
 USAGE_PAGE: int = 0xFF50
 USAGE: int = 0x4C56
@@ -135,7 +141,7 @@ class PloverHid(ThreadedStenotypeBase):
             try:
                 current = self._parse(report)
             except InvalidReport:
-                log.error("invalid report")
+                log.error("invalid report (parse)")
                 continue
 
             press_started = time.time()
@@ -160,24 +166,38 @@ class PloverHid(ThreadedStenotypeBase):
     def start_capture(self):
         self.finished.clear()
         self._initializing()
+        if platform.system() == "Darwin":
+            _darwin_disable_exclusive_open()
+
         # Enumerate all hid devices on the machine and if we find one with our
         # usage page and usage we try to connect to it.
         try:
-            devices = [
-                device["path"]
-                for device in hid.enumerate()
-                if device["usage_page"] == USAGE_PAGE and device["usage"] == USAGE
-            ]
+            log.debug("hid start_capture: beginning enumeration")
+            devices = []
+            for devinfo in hid.enumerate():
+                v = devinfo.get("vendor_id")
+                p = devinfo.get("product_id")
+                up = devinfo.get("usage_page")
+                u = devinfo.get("usage")
+                path = devinfo.get("path")
+                log.debug(
+                    f"hid enumerate: vid=0x{v:04x} pid=0x{p:04x} up=0x{up:04x} u=0x{u:04x} path={path}"
+                )
+                if up == USAGE_PAGE and u == USAGE:
+                    devices.append(path)
 
             if not devices:
                 self._error()
-                log.info("no device found")
+                log.info(
+                    "hid start_capture: no matching device found (usage_page/usage)"
+                )
                 return
 
-            # FIXME: if multiple compatible devices are found we should either
-            # let the end user configure which one they want, or support reading
-            # from all connected plover hid devices at the same time.
-            self._hid = hid.Device(path=devices[0])
+            log.debug(f"hid start_capture: opening first matching device: {devices[0]}")
+            dev = hid.device()
+            dev.open_path(devices[0])
+            self._hid = dev
+            log.debug("hid start_capture: device opened successfully")
         except Exception as e:
             self._error()
             log.error(f"error during start of capture: {e}")
