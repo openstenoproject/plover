@@ -5,7 +5,6 @@ set -euo pipefail
 #
 # Usage:
 #   ./dev/macos_dev_setup.sh
-#   HIDAPI_VERSION=0.15.0 ./dev/build_hidapi.sh
 #   MACOS_UNIVERSAL2=0 ./dev/build_hidapi.sh      # macOS: don't build universal2
 #
 # Resulting libs:
@@ -13,7 +12,8 @@ set -euo pipefail
 #   Linux:   build/local-hidapi/linux/lib/libhidapi-hidraw.so
 #   Windows: build/local-hidapi/windows/bin/hidapi.dll
 
-HIDAPI_VERSION="${HIDAPI_VERSION:-0.15.0}"
+. ./plover_build_utils/deps.sh
+
 MACOS_UNIVERSAL2="${MACOS_UNIVERSAL2:-1}"
 
 # Resolve repo root relative to this script

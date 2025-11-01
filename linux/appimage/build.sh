@@ -2,6 +2,7 @@
 
 set -e
 
+. ./plover_build_utils/deps.sh
 . ./plover_build_utils/functions.sh
 
 topdir="$PWD"
@@ -197,10 +198,6 @@ run "$linuxdeploy" \
 bootstrap_dist "$wheel"
 
 # ------- Start: Build & bundle hidapi from source (Linux) -------
-
-#TODO read version from central place
-HIDAPI_VERSION="${HIDAPI_VERSION:-0.15.0}"
-
 hidapi_src="$builddir/hidapi-src"
 hidapi_bld="$builddir/hidapi-build"
 hidapi_tar="$builddir/hidapi.tar.gz"

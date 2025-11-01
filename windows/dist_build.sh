@@ -2,6 +2,7 @@
 
 set -e
 
+. ./plover_build_utils/deps.sh
 . ./plover_build_utils/functions.sh
 
 opt_incremental=0
@@ -52,7 +53,6 @@ py_base_ver="${py_base_ver//.}"
 build_dist()
 {(
   # Build hidapi first
-  HIDAPI_VERSION="${HIDAPI_VERSION:-0.15.0}"
   hidapi_src="$builddir/hidapi-src"
   hidapi_bld="$builddir/hidapi-build"
   hidapi_tar="$builddir/hidapi.tar.gz"

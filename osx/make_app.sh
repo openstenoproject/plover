@@ -2,6 +2,7 @@
 
 set -e
 
+. ./plover_build_utils/deps.sh
 . ./plover_build_utils/functions.sh
 
 topdir="$PWD"
@@ -66,9 +67,6 @@ python='appdir_python'
 bootstrap_dist "$plover_wheel"
 
 # ------- Start: Build & bundle hidapi from source  -------
-
-#TODO: read version from central place
-HIDAPI_VERSION="${HIDAPI_VERSION:-0.15.0}"
 
 . ./osx/build_hidapi.sh
 
