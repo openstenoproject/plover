@@ -146,7 +146,7 @@ jobs:
       <% endif %>
       <% if j.type in ['build', 'test_gui_qt'] and j.os == 'Linux' %>
       - name: Install system dependencies
-        run: apt_get_install libdbus-1-dev libdbus-glib-1-dev libudev-dev libusb-1.0-0-dev libegl-dev libxkbcommon-x11-0
+        run: apt_get_install cmake libdbus-1-dev libdbus-glib-1-dev libudev-dev libusb-1.0-0-dev libegl-dev libxkbcommon-x11-0
 
       <% endif %>
       <% if j.type != 'notarize' %>

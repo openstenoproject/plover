@@ -3,6 +3,7 @@ from pathlib import Path
 
 from PySide6.QtCore import Qt, Signal, Slot
 from PySide6.QtGui import (
+    QIntValidator,
     QTextCharFormat,
     QTextFrameFormat,
     QTextListFormat,
@@ -11,8 +12,8 @@ from PySide6.QtGui import (
 )
 from PySide6.QtWidgets import (
     QGroupBox,
-    QStyledItemDelegate,
     QStyle,
+    QStyledItemDelegate,
     QToolTip,
 )
 
@@ -24,6 +25,7 @@ from plover.oslayer.serial import patch_ports_info
 
 from plover.gui_qt.config_keyboard_widget_ui import Ui_KeyboardWidget
 from plover.gui_qt.config_serial_widget_ui import Ui_SerialWidget
+from plover.gui_qt.config_plover_hid_widget_ui import Ui_PloverHidWidget
 
 
 def serial_port_details(port_info):
@@ -234,3 +236,43 @@ class KeyboardOption(QGroupBox, Ui_KeyboardWidget):
     def update_first_up_chord_send(self, value):
         self._value["first_up_chord_send"] = value
         self.valueChanged.emit(self._value)
+
+
+class PloverHidOption(QGroupBox, Ui_PloverHidWidget):
+    valueChanged = Signal(object)
+
+    def __init__(self):
+        super().__init__()
+        self.setupUi(self)
+        self._value = {}
+        self.repeat_delay_ms.setValidator(QIntValidator(10, 10000, self))
+        self.repeat_interval_ms.setValidator(QIntValidator(10, 10000, self))
+
+    def setValue(self, value):
+        self._value = copy(value)
+        self.first_up_chord_send.setChecked(value["first_up_chord_send"])
+        self.double_tap_repeat.setChecked(value["double_tap_repeat"])
+        self.repeat_delay_ms.setText(str(value["repeat_delay_ms"]))
+        self.repeat_interval_ms.setText(str(value["repeat_interval_ms"]))
+
+    @Slot(bool)
+    def update_first_up_chord_send(self, value):
+        self._value["first_up_chord_send"] = value
+        self.valueChanged.emit(self._value)
+
+    @Slot(bool)
+    def update_double_tap_repeat(self, value):
+        self._value["double_tap_repeat"] = value
+        self.valueChanged.emit(self._value)
+
+    @Slot(str)
+    def update_repeat_delay_ms(self, text):
+        if text.isdigit():
+            self._value["repeat_delay_ms"] = int(text)
+            self.valueChanged.emit(self._value)
+
+    @Slot(str)
+    def update_repeat_interval_ms(self, text):
+        if text.isdigit():
+            self._value["repeat_interval_ms"] = int(text)
+            self.valueChanged.emit(self._value)

@@ -1,5 +1,6 @@
 appdirs
 appnope; "darwin" in sys_platform
+hid
 pkginfo
 plover-stroke
 plyer; "win32" in sys_platform
