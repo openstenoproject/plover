@@ -65,7 +65,7 @@ if [[ "${OS}" == "Darwin" ]]; then
   . "${REPO_ROOT}/osx/build_hidapi.sh"
 
   echo "==> Downloading & unpacking hidapi ${HIDAPI_VERSION}"
-  fetch_hidapi "${HIDAPI_VERSION}" "${SRC_DIR}" "${TARBALL}"
+  fetch_hidapi_macos "${HIDAPI_VERSION}" "${SRC_DIR}" "${TARBALL}"
 
   mkdir -p "${OUT_LIB_DIR_MAC}"
   # Architectures
@@ -109,7 +109,7 @@ elif [[ "${OS}" == "Linux" ]]; then
   . "${REPO_ROOT}/linux/build_hidapi.sh"
 
   echo "==> Downloading & unpacking hidapi ${HIDAPI_VERSION}"
-  fetch_hidapi "${HIDAPI_VERSION}" "${SRC_DIR}" "${TARBALL}"
+  fetch_hidapi_linux "${HIDAPI_VERSION}" "${SRC_DIR}" "${TARBALL}"
   cmake_build_linux "${SRC_DIR}" "${BUILD_DIR}" "RelWithDebInfo"
 
   SO="$(/usr/bin/find "${BUILD_DIR}" -type f -name 'libhidapi-hidraw.so*' -print -quit || true)"
@@ -138,7 +138,7 @@ elif [[ "${OS}" == MINGW* || "${OS}" == MSYS* || "${OS}" == CYGWIN* || "${OS}" =
   . "${REPO_ROOT}/windows/build_hidapi.sh"
 
   echo "==> Downloading & unpacking hidapi ${HIDAPI_VERSION}"
-  fetch_hidapi "${HIDAPI_VERSION}" "${SRC_DIR}" "${TARBALL}"
+  fetch_hidapi_windows "${HIDAPI_VERSION}" "${SRC_DIR}" "${TARBALL}"
 
   # Build shared DLL
   cmake_build_windows "${SRC_DIR}" "${BUILD_DIR}" "Release"

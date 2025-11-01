@@ -67,7 +67,6 @@ python='appdir_python'
 bootstrap_dist "$plover_wheel"
 
 # ------- Start: Build & bundle hidapi from source  -------
-
 . ./osx/build_hidapi.sh
 
 hidapi_src="$builddir/hidapi-src"
@@ -75,7 +74,7 @@ hidapi_bld="$builddir/hidapi-build"
 hidapi_tar="$builddir/hidapi.tar.gz"
 
 echo "Downloading and unpacking hidapi ${HIDAPI_VERSION}…"
-fetch_hidapi "$HIDAPI_VERSION" "$hidapi_src" "$hidapi_tar"
+fetch_hidapi_macos "$HIDAPI_VERSION" "$hidapi_src" "$hidapi_tar"
 
 cmake_build_macos "$hidapi_src" "$hidapi_bld" "x86_64;arm64" "Release"
 
@@ -96,7 +95,6 @@ ln -sfn "$base" "$frameworks_dir/libhidapi.dylib"
 # Add RPATH to the Python binary itself and re-sign it
 run install_name_tool -add_rpath "@executable_path/../../../../../Frameworks" "$py_binary"
 run /usr/bin/codesign -f -s - "$py_binary"
-
 # ------- End: Build & bundle hidapi from source  -------
 
 # Create launcher.

@@ -197,7 +197,7 @@ run "$linuxdeploy" \
 # Install Plover and dependencies.
 bootstrap_dist "$wheel"
 
-# ------- Start: Build & bundle hidapi from source (Linux) -------
+# ------- Start: Build & bundle hidapi from source -------
 hidapi_src="$builddir/hidapi-src"
 hidapi_bld="$builddir/hidapi-build"
 hidapi_tar="$builddir/hidapi.tar.gz"
@@ -205,7 +205,7 @@ hidapi_tar="$builddir/hidapi.tar.gz"
 . ./linux/build_hidapi.sh
 
 echo "Downloading and unpacking hidapi ${HIDAPI_VERSION}…"
-fetch_hidapi "$HIDAPI_VERSION" "$hidapi_src" "$hidapi_tar"
+fetch_hidapi_linux "$HIDAPI_VERSION" "$hidapi_src" "$hidapi_tar"
 
 cmake_build_linux "$hidapi_src" "$hidapi_bld" "Release"
 
@@ -223,7 +223,7 @@ base="$(basename "$hidapi_so")"
 if [ ! -e "$appdir/usr/lib/libhidapi-hidraw.so" ]; then
   ln -s "$base" "$appdir/usr/lib/libhidapi-hidraw.so"
 fi
-# ------- End: Build & bundle hidapi from source (Linux) -------
+# ------- End: Build & bundle hidapi from source -------
 
 # Trim the fat, second pass.
 run "$python" -m plover_build_utils.trim "$appdir" "$builddir/blacklist.txt"

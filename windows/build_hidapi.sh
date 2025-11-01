@@ -2,7 +2,7 @@
 
 need() { command -v "$1" >/dev/null 2>&1 || { echo "Error: '$1' not found" >&2; exit 2; }; }
 
-fetch_hidapi() {
+fetch_hidapi_windows() {
   local version="$1" src_dir="$2" tarball="$3"
   local url="https://github.com/libusb/hidapi/archive/refs/tags/hidapi-${version}.tar.gz"
   need curl; need tar
