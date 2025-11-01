@@ -51,6 +51,24 @@ py_base_ver="${py_base_ver//.}"
 
 build_dist()
 {(
+  # Build hidapi first
+  HIDAPI_VERSION="${HIDAPI_VERSION:-0.15.0}"
+  hidapi_src="$builddir/hidapi-src"
+  hidapi_bld="$builddir/hidapi-build"
+  hidapi_tar="$builddir/hidapi.tar.gz"
+
+  echo "Downloading and unpacking hidapi ${HIDAPI_VERSION}..."
+  . ./windows/build_hidapi.sh
+  fetch_hidapi "$HIDAPI_VERSION" "$hidapi_src" "$hidapi_tar"
+  cmake_build_windows "$hidapi_src" "$hidapi_bld" "Release"
+
+  # Find the built DLL - should be in Release/ subdirectory
+  hidapi_dll="$(/usr/bin/find "$hidapi_bld" -name 'hidapi.dll' -type f -print -quit)"
+  if [ -z "$hidapi_dll" ] || [ ! -f "$hidapi_dll" ]; then
+    echo "Error: built hidapi.dll not found." >&2
+    exit 3
+  fi
+
   # Fetch official python distribution.
   py_zip="$(run "$python" -m plover_build_utils.download "https://www.python.org/ftp/python/$py_version/python-$py_version-amd64.zip" "$py_sha1")" || die
   
@@ -72,6 +90,9 @@ build_dist()
 
   # Install Plover and dependencies.
   bootstrap_dist "$wheel" --no-warn-script-location
+
+  # Copy hidapi.dll to distribution directory where the exe will find it
+  run cp "$hidapi_dll" "$dist_data/"
 
   # Trim the fat...
   if [ $opt_trim -eq 1 ]

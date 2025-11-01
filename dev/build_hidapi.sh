@@ -1,20 +1,20 @@
 #!/usr/bin/env bash
 set -euo pipefail
 
-# Build a local hidapi shared library for development.
-# After building, export DYLD/LD paths it prints so `import hid` finds it.
+# Build hidapi library locally for development.
 #
 # Usage:
 #   ./dev/macos_dev_setup.sh
-#   HIDAPI_VERSION=0.15.0 ./dev/macos_dev_setup.sh
-#   UNIVERSAL2=1 ./dev/macos_dev_setup.sh      # macOS: build arm64+x86_64
+#   HIDAPI_VERSION=0.15.0 ./dev/build_hidapi.sh
+#   MACOS_UNIVERSAL2=0 ./dev/build_hidapi.sh      # macOS: don't build universal2
 #
 # Resulting libs:
-#   macOS:  build/local-hidapi/macos/lib/libhidapi*.dylib
-#   Linux:  build/local-hidapi/linux/lib/libhidapi-hidraw.so
+#   macOS:   build/local-hidapi/macos/lib/libhidapi*.dylib
+#   Linux:   build/local-hidapi/linux/lib/libhidapi-hidraw.so
+#   Windows: build/local-hidapi/windows/bin/hidapi.dll
 
 HIDAPI_VERSION="${HIDAPI_VERSION:-0.15.0}"
-UNIVERSAL2="${UNIVERSAL2:-0}"
+MACOS_UNIVERSAL2="${MACOS_UNIVERSAL2:-1}"
 
 # Resolve repo root relative to this script
 SCRIPT_DIR="$(cd -- "$(dirname -- "${BASH_SOURCE[0]}")" && pwd)"
@@ -25,21 +25,42 @@ SRC_DIR="${WORK_DIR}/src"
 BUILD_DIR="${WORK_DIR}/build"
 OUT_LIB_DIR_MAC="${WORK_DIR}/macos/lib"
 OUT_LIB_DIR_LNX="${WORK_DIR}/linux/lib"
+OUT_BIN_DIR_WIN="${WORK_DIR}/windows/bin"
 
-# Fetch source
+# Clean and prep
+# Prepare directories 
+mkdir -p "${SRC_DIR}" "${BUILD_DIR}"
+
+OS="$(uname -s || true)"
+# If outputs already exist for the current platform, skip rebuilding.
+if [[ "${OS}" == "Darwin" ]]; then
+  if ls "${OUT_LIB_DIR_MAC}"/libhidapi*.dylib >/dev/null 2>&1; then
+    echo "hidapi found at ${OUT_LIB_DIR_MAC}; skipping build."
+    exit 0
+  fi
+elif [[ "${OS}" == "Linux" ]]; then
+  if ls "${OUT_LIB_DIR_LNX}"/libhidapi-hidraw.so* >/dev/null 2>&1; then
+    echo "hidapi found at ${OUT_LIB_DIR_LNX}; skipping build."
+    exit 0
+  fi
+elif [[ "${OS}" == MINGW* || "${OS}" == MSYS* || "${OS}" == CYGWIN* || "${OS}" == "Windows_NT" ]]; then
+  if [ -f "${OUT_BIN_DIR_WIN}/hidapi.dll" ]; then
+    echo "hidapi found at ${OUT_BIN_DIR_WIN}/hidapi.dll; skipping build."
+    exit 0
+  fi
+fi
+
+# Clean and prep for a fresh build
 rm -rf "${SRC_DIR}" "${BUILD_DIR}"
 mkdir -p "${SRC_DIR}" "${BUILD_DIR}"
 
 TARBALL="${WORK_DIR}/hidapi-${HIDAPI_VERSION}.tar.gz"
 
 
-OS="$(uname -s)"
-ARCH="$(uname -m)"
-
 if [[ "${OS}" == "Darwin" ]]; then
   echo "==> Configuring (macOS, IOHIDManager backend)"
 
-  # Shared fetch/build helpers
+  # Shared fetch/build helpers (macOS)
   # shellcheck disable=SC1091
   . "${REPO_ROOT}/osx/build_hidapi.sh"
 
@@ -48,10 +69,10 @@ if [[ "${OS}" == "Darwin" ]]; then
 
   mkdir -p "${OUT_LIB_DIR_MAC}"
   # Architectures
-  if [[ "${UNIVERSAL2}" == "1" ]]; then
+  if [[ "${MACOS_UNIVERSAL2}" == "1" ]]; then
     OSX_ARCHES="x86_64;arm64"
   else
-    # build host arch only for faster local dev
+    ARCH="$(uname -m || true)"
     if [[ "${ARCH}" == "arm64" || "${ARCH}" == "aarch64" ]]; then
       OSX_ARCHES="arm64"
     else
@@ -61,7 +82,7 @@ if [[ "${OS}" == "Darwin" ]]; then
 
   cmake_build_macos "${SRC_DIR}" "${BUILD_DIR}" "${OSX_ARCHES}" "RelWithDebInfo"
 
-  # Find the produced dylib (name can be libhidapi.dylib or versioned)
+  # Find produced dylib
   DYLIB="$(/usr/bin/find "${BUILD_DIR}" -type f -name 'libhidapi*.dylib' -print -quit || true)"
   if [[ -z "${DYLIB}" ]]; then
     echo "Error: libhidapi*.dylib not found in build output." >&2
@@ -73,34 +94,21 @@ if [[ "${OS}" == "Darwin" ]]; then
   cp -f "${DYLIB}" "${OUT_LIB_DIR_MAC}/${BASENAME}"
 
   pushd "${OUT_LIB_DIR_MAC}" >/dev/null
-  # Create friendly aliases some loaders use
-  ln -sf "${BASENAME}" libhidapi.dylib
+  ln -sf "${BASENAME}" libhidapi.dylib || true
   popd >/dev/null
 
   echo
   echo "✅ Built macOS hidapi at: ${OUT_LIB_DIR_MAC}/${BASENAME}"
-  echo
-  echo "To use it for source runs (tox/venv):"
-  echo "  export DYLD_FALLBACK_LIBRARY_PATH=\"${OUT_LIB_DIR_MAC}:\${DYLD_FALLBACK_LIBRARY_PATH:-}\""
-  echo "  # then run: tox -e launch (or python …)"
-  echo
-  echo "Tox snippet:"
-  cat <<EOF
-[testenv]
-setenv =
-    DYLD_FALLBACK_LIBRARY_PATH = ${OUT_LIB_DIR_MAC}:\${DYLD_FALLBACK_LIBRARY_PATH}
-EOF
 
 elif [[ "${OS}" == "Linux" ]]; then
   echo "==> Configuring (Linux, hidraw backend)"
   mkdir -p "${OUT_LIB_DIR_LNX}"
 
-  # Shared fetch/build helpers
+  # Shared fetch/build helpers (Linux)
   # shellcheck disable=SC1091
   . "${REPO_ROOT}/linux/build_hidapi.sh"
 
   echo "==> Downloading & unpacking hidapi ${HIDAPI_VERSION}"
-
   fetch_hidapi "${HIDAPI_VERSION}" "${SRC_DIR}" "${TARBALL}"
   cmake_build_linux "${SRC_DIR}" "${BUILD_DIR}" "RelWithDebInfo"
 
@@ -120,19 +128,35 @@ elif [[ "${OS}" == "Linux" ]]; then
 
   echo
   echo "✅ Built Linux hidapi at: ${OUT_LIB_DIR_LNX}/${BASENAME}"
-  echo
-  echo "To use it for source runs:"
-  echo "  export LD_LIBRARY_PATH=\"${OUT_LIB_DIR_LNX}:\${LD_LIBRARY_PATH:-}\""
-  echo "  # then run: tox -e launch (or python …)"
-  echo
-  echo "Tox snippet:"
-  cat <<EOF
-[testenv]
-setenv =
-    LD_LIBRARY_PATH = ${OUT_LIB_DIR_LNX}:\${LD_LIBRARY_PATH}
-EOF
 
+elif [[ "${OS}" == MINGW* || "${OS}" == MSYS* || "${OS}" == CYGWIN* || "${OS}" == "Windows_NT" ]]; then
+  echo "==> Configuring (Windows, WinAPI backend)"
+  mkdir -p "${OUT_BIN_DIR_WIN}"
+
+  # Shared fetch/build helpers (Windows)
+  # shellcheck disable=SC1091
+  . "${REPO_ROOT}/windows/build_hidapi.sh"
+
+  echo "==> Downloading & unpacking hidapi ${HIDAPI_VERSION}"
+  fetch_hidapi "${HIDAPI_VERSION}" "${SRC_DIR}" "${TARBALL}"
+
+  # Build shared DLL
+  cmake_build_windows "${SRC_DIR}" "${BUILD_DIR}" "Release"
+
+  # Find the produced DLL (varies by generator)
+  DLL="$(/usr/bin/find "${BUILD_DIR}" -type f \( -iname 'hidapi*.dll' -o -iname 'libhidapi*.dll' \) -print -quit 2>/dev/null || true)"
+  if [[ -z "${DLL}" ]]; then
+    echo "Error: hidapi DLL not found in build output." >&2
+    exit 3
+  fi
+
+  BASENAME="$(basename "${DLL}")"
+  echo "==> Staging ${BASENAME}"
+  cp -f "${DLL}" "${OUT_BIN_DIR_WIN}/hidapi.dll"
+
+  echo
+  echo "✅ Built Windows hidapi at: ${OUT_BIN_DIR_WIN}/hidapi.dll"
 else
-  echo "Unsupported OS: ${OS}. This helper currently supports macOS and Linux." >&2
+  echo "Unsupported OS: ${OS}. This helper currently supports macOS, Linux, and Windows." >&2
   exit 4
 fi
