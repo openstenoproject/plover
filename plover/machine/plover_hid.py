@@ -80,7 +80,7 @@ class PloverHid(ThreadedStenotypeBase):
     def __init__(self, params):
         super().__init__()
         self._params = params
-        self._hid = None
+        self._hids = []
 
     def _parse(self, report):
         # The first byte is the report id, and due to idiosyncrasies
@@ -102,7 +102,7 @@ class PloverHid(ThreadedStenotypeBase):
     def run(self):
         self._ready()
 
-        if not self._hid:
+        if not self._hids:
             log.error("no HID available")
             self._error()
             return
@@ -114,12 +114,24 @@ class PloverHid(ThreadedStenotypeBase):
         sent_first_up = False
         while not self.finished.wait(0):
             interval_ms = self._params["repeat_interval_ms"]
-            try:
-                report = self._hid.read(65536, interval_ms)
-            except Exception as e:
-                log.error(f"exception during run: {e}")
-                self._error()
-                return
+
+            report = None
+            # Poll all devices: block on the first, then non-blocking on the rest
+            for idx, dev in enumerate(list(self._hids)):
+                try:
+                    r = dev.read(65536, interval_ms if idx == 0 else 0)
+                except Exception as e:
+                    log.debug(f"exception during run: {e}")
+                    try:
+                        dev.close()
+                    except Exception:
+                        pass
+                    self._hids.remove(dev)
+                    continue
+                if r:
+                    report = r
+                    break
+
             if not report:
                 # The set of keys pressed down hasn't changed. Figure out if we need to be sending repeats:
                 if (
@@ -131,7 +143,12 @@ class PloverHid(ThreadedStenotypeBase):
                     self.send(current)
                     # Avoid sending an extra chord when the repeated chord is released.
                     sent_first_up = True
+                # If all devices are gone, stop.
+                if not self._hids:
+                    self._error()
+                    return
                 continue
+
             try:
                 current = self._parse(report)
             except InvalidReport:
@@ -174,10 +191,7 @@ class PloverHid(ThreadedStenotypeBase):
                 log.info("no device found")
                 return
 
-            # FIXME: if multiple compatible devices are found we should either
-            # let the end user configure which one they want, or support reading
-            # from all connected plover hid devices at the same time.
-            self._hid = hid.Device(path=devices[0])
+            self._hids = [hid.Device(path=path) for path in devices]
         except Exception as e:
             self._error()
             log.error(f"error during start of capture: {e}")
@@ -186,9 +200,13 @@ class PloverHid(ThreadedStenotypeBase):
 
     def stop_capture(self):
         super().stop_capture()
-        if self._hid:
-            self._hid.close()
-            self._hid = None
+        for dev in self._hids:
+            try:
+                dev.close()
+            except Exception as e:
+                log.debug(f"error while closing device: {e}")
+                pass
+        self._hids = []
 
     @classmethod
     def get_option_info(cls):
@@ -196,5 +214,5 @@ class PloverHid(ThreadedStenotypeBase):
             "first_up_chord_send": (False, boolean),
             "double_tap_repeat": (False, boolean),
             "repeat_delay_ms": (200, int),
-            "repeat_interval_ms": (50, int),
+            "repeat_interval_ms": (30, int),
         }
