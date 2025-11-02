@@ -10,12 +10,16 @@ of the steno machine every time that state changes.
 
 from plover.machine.base import ThreadedStenotypeBase
 from plover.misc import boolean
+from plover import log
 
 import hid
 import time
 import platform
 import ctypes
-from plover import log
+import threading
+from queue import Queue, Empty
+from typing import Dict
+from dataclasses import dataclass
 
 
 def _darwin_disable_exclusive_open():
@@ -45,11 +49,6 @@ N_LEVERS: int = 64
 SIMPLE_REPORT_TYPE: int = 0x01
 SIMPLE_REPORT_LEN: int = N_LEVERS // 8
 
-
-class InvalidReport(Exception):
-    pass
-
-
 # fmt: off
 STENO_KEY_CHART = (
     "S1-", "T-", "K-", "P-", "W-", "H-", "R-", "A-",
@@ -62,6 +61,16 @@ STENO_KEY_CHART = (
     "X19", "X20", "X21", "X22", "X23", "X24", "X25", "X26",
 )
 # fmt: on
+
+
+class InvalidReport(Exception):
+    pass
+
+
+@dataclass
+class HidDeviceRecord:
+    device: hid.Device
+    thread: threading.Thread
 
 
 class PloverHid(ThreadedStenotypeBase):
@@ -80,7 +89,99 @@ class PloverHid(ThreadedStenotypeBase):
     def __init__(self, params):
         super().__init__()
         self._params = params
-        self._hids = []
+        self._devices: Dict[str, HidDeviceRecord] = {}
+        self._report_queue: Queue[bytes] = Queue()
+        self._lock: threading.Lock = threading.Lock()
+        self._device_watcher: threading.Thread | None = None
+
+    def _add_device(self, path):
+        """Open a HID device at `path`, start its reader, and mark ready if first."""
+        try:
+            device = hid.Device(path=path)
+        except Exception as e:
+            log.debug(f"open failed for {path!r}: {e}")
+            return False
+        was_empty = len(self._devices) == 0
+        thread = threading.Thread(
+            target=self._read_from_device_loop, args=(path, device), daemon=True
+        )
+        self._devices[path] = HidDeviceRecord(device=device, thread=thread)
+        thread.start()
+        if was_empty:
+            # We were previously in a disconnected/error state; now we're ready.
+            self._ready()
+        return True
+
+    def _remove_device(self, path):
+        """Close and forget a HID device by path; if none remain, mark disconnected."""
+        with self._lock:
+            entry = self._devices.pop(path, None)
+        if not entry:
+            return
+        device = entry.device
+        thread = entry.thread
+        # Closing the device will unblock any pending read in the reader thread.
+        try:
+            device.close()
+        except Exception:
+            log.debug("failed to close HID device")
+            pass
+        # Join the reader if we're not currently in that same thread.
+        try:
+            if thread is not None and thread is not threading.current_thread():
+                thread.join(timeout=0.2)
+        except Exception:
+            log.debug("failed kill device read thread")
+            pass
+        # If nothing left and we're not shutting down, show Disconnected in the UI
+        if not self._devices and not self.finished.is_set():
+            self._error()
+
+    def _scan_device_loop(self):
+        """Scan for new matching HID devices and start readers for them."""
+        scan_ms = self._params["device_scan_interval_ms"]
+        while not self.finished.is_set():
+            try:
+                paths = [
+                    d["path"]
+                    for d in hid.enumerate()
+                    if d.get("usage_page") == USAGE_PAGE and d.get("usage") == USAGE
+                ]
+            except Exception as e:
+                log.debug(f"device scan enumerate failed: {e}")
+                paths = []
+
+            with self._lock:
+                for path in paths:
+                    if path in self._devices:
+                        continue
+                    # Call outside lock to avoid holding it during open/start
+            for path in paths:
+                if path in self._devices:
+                    continue
+                if self._add_device(path):
+                    log.debug("device scan: opened new HID device")
+
+            # sleep but wake early if stopping
+            if self.finished.wait(scan_ms / 1000.0):
+                break
+
+    def _read_from_device_loop(self, path: str, device: hid.Device) -> None:
+        """Per-device reader thread: blocking read, push reports to the report queue."""
+        slice_ms = self._params["repeat_interval_ms"]
+        while not self.finished.is_set():
+            try:
+                report = device.read(65536, slice_ms)
+            except Exception:
+                log.debug("read error: device unplugged?")
+                break
+            if report:
+                try:
+                    self._report_queue.put_nowait(report)
+                except Exception:
+                    log.debug("failed to put report in queue")
+                    pass
+        self._remove_device(path)
 
     def _parse(self, report):
         # The first byte is the report id, and due to idiosyncrasies
@@ -92,7 +193,7 @@ class PloverHid(ThreadedStenotypeBase):
         else:
             raise InvalidReport()
 
-    def send(self, key_state):
+    def _send(self, key_state):
         steno_actions = self.keymap.keys_to_actions(
             [key for i, key in enumerate(STENO_KEY_CHART) if key_state >> (63 - i) & 1]
         )
@@ -100,13 +201,6 @@ class PloverHid(ThreadedStenotypeBase):
             self._notify(steno_actions)
 
     def run(self):
-        self._ready()
-
-        if not self._hids:
-            log.error("no HID available")
-            self._error()
-            return
-
         key_state = 0
         current = 0
         last_sent = 0
@@ -114,39 +208,19 @@ class PloverHid(ThreadedStenotypeBase):
         sent_first_up = False
         while not self.finished.wait(0):
             interval_ms = self._params["repeat_interval_ms"]
-
-            report = None
-            # Poll all devices: block on the first, then non-blocking on the rest
-            for idx, dev in enumerate(list(self._hids)):
-                try:
-                    r = dev.read(65536, interval_ms if idx == 0 else 0)
-                except Exception as e:
-                    log.debug(f"exception during run: {e}")
-                    try:
-                        dev.close()
-                    except Exception:
-                        pass
-                    self._hids.remove(dev)
-                    continue
-                if r:
-                    report = r
-                    break
-
-            if not report:
-                # The set of keys pressed down hasn't changed. Figure out if we need to be sending repeats:
+            try:
+                report = self._report_queue.get(timeout=interval_ms / 1000.0)
+            except Empty:
+                # No report in this slice; handle repeats
                 if (
                     self._params["double_tap_repeat"]
                     and 0 != current == last_sent
                     and time.time() - press_started
                     > self._params["repeat_delay_ms"] / 1e3
                 ):
-                    self.send(current)
+                    self._send(current)
                     # Avoid sending an extra chord when the repeated chord is released.
                     sent_first_up = True
-                # If all devices are gone, stop.
-                if not self._hids:
-                    self._error()
-                    return
                 continue
 
             try:
@@ -159,7 +233,7 @@ class PloverHid(ThreadedStenotypeBase):
             if self._params["first_up_chord_send"]:
                 if key_state & ~current and not sent_first_up:
                     # A finger went up: send a first-up chord and remember it.
-                    self.send(key_state)
+                    self._send(key_state)
                     last_sent = key_state
                     sent_first_up = True
                 if current & ~key_state:
@@ -170,7 +244,7 @@ class PloverHid(ThreadedStenotypeBase):
                 key_state |= current
                 if current == 0:
                     # All fingers are up: send the "total" chord and reset it.
-                    self.send(key_state)
+                    self._send(key_state)
                     last_sent = key_state
                     key_state = 0
 
@@ -187,11 +261,17 @@ class PloverHid(ThreadedStenotypeBase):
             ]
 
             if not devices:
+                log.info("no HID device found; watching for devices…")
+                # setting state to error to display Disconnected in the main window
                 self._error()
-                log.info("no device found")
-                return
 
-            self._hids = [hid.Device(path=path) for path in devices]
+            for path in devices:
+                self._add_device(path)
+            # Start device watcher
+            self._device_watcher = threading.Thread(
+                target=self._scan_device_loop, daemon=True
+            )
+            self._device_watcher.start()
         except Exception as e:
             self._error()
             log.error(f"error during start of capture: {e}")
@@ -200,13 +280,26 @@ class PloverHid(ThreadedStenotypeBase):
 
     def stop_capture(self):
         super().stop_capture()
-        for dev in self._hids:
+        # Stop device watcher
+        t_watch = getattr(self, "_device_watcher", None)
+        if t_watch is not None:
             try:
-                dev.close()
-            except Exception as e:
-                log.debug(f"error while closing device: {e}")
+                t_watch.join(timeout=0.3)
+            except Exception:
                 pass
-        self._hids = []
+            self._device_watcher = None
+        # Remove all devices via common teardown
+        for path in list(self._devices.keys()):
+            try:
+                self._remove_device(path)
+            except Exception:
+                pass
+        # Drain the report queue best-effort
+        try:
+            while True:
+                self._report_queue.get_nowait()
+        except Exception:
+            pass
 
     @classmethod
     def get_option_info(cls):
@@ -215,4 +308,5 @@ class PloverHid(ThreadedStenotypeBase):
             "double_tap_repeat": (False, boolean),
             "repeat_delay_ms": (200, int),
             "repeat_interval_ms": (30, int),
+            "device_scan_interval_ms": (1000, int),
         }

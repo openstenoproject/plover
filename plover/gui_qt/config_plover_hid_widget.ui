@@ -76,6 +76,24 @@ If the key is pressed and released again, another chord is sent.</string>
      </property>
     </widget>
    </item>
+   <!-- Row 4: Device scan interval (ms) -->
+   <item row="4" column="0">
+    <widget class="QLabel" name="label_device_scan_interval_ms">
+     <property name="text">
+      <string>Device scan interval (ms)</string>
+     </property>
+     <property name="buddy">
+      <cstring>device_scan_interval_ms</cstring>
+     </property>
+    </widget>
+   </item>
+   <item row="4" column="1">
+    <widget class="QLineEdit" name="device_scan_interval_ms">
+     <property name="toolTip">
+      <string>How often to scan for newly plugged-in devices.</string>
+     </property>
+    </widget>
+   </item>
   </layout>
  </widget>
 
@@ -108,6 +126,12 @@ If the key is pressed and released again, another chord is sent.</string>
    <receiver>PloverHidWidget</receiver>
    <slot>update_repeat_interval_ms(QString)</slot>
   </connection>
+  <connection>
+   <sender>device_scan_interval_ms</sender>
+   <signal>textChanged(QString)</signal>
+   <receiver>PloverHidWidget</receiver>
+   <slot>update_device_scan_interval_ms(QString)</slot>
+  </connection>
  </connections>
 
  <slots>
@@ -115,5 +139,6 @@ If the key is pressed and released again, another chord is sent.</string>
   <slot>update_double_tap_repeat(bool)</slot>
   <slot>update_repeat_delay_ms(QString)</slot>
   <slot>update_repeat_interval_ms(QString)</slot>
+  <slot>update_device_scan_interval_ms(QString)</slot>
  </slots>
 </ui>

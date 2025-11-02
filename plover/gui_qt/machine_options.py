@@ -247,6 +247,7 @@ class PloverHidOption(QGroupBox, Ui_PloverHidWidget):
         self._value = {}
         self.repeat_delay_ms.setValidator(QIntValidator(10, 10000, self))
         self.repeat_interval_ms.setValidator(QIntValidator(10, 10000, self))
+        self.device_scan_interval_ms.setValidator(QIntValidator(250, 100000, self))
 
     def setValue(self, value):
         self._value = copy(value)
@@ -254,6 +255,9 @@ class PloverHidOption(QGroupBox, Ui_PloverHidWidget):
         self.double_tap_repeat.setChecked(value["double_tap_repeat"])
         self.repeat_delay_ms.setText(str(value["repeat_delay_ms"]))
         self.repeat_interval_ms.setText(str(value["repeat_interval_ms"]))
+        self.device_scan_interval_ms.setText(
+            str(value.get("device_scan_interval_ms", 1000))
+        )
 
     @Slot(bool)
     def update_first_up_chord_send(self, value):
@@ -275,4 +279,10 @@ class PloverHidOption(QGroupBox, Ui_PloverHidWidget):
     def update_repeat_interval_ms(self, text):
         if text.isdigit():
             self._value["repeat_interval_ms"] = int(text)
+            self.valueChanged.emit(self._value)
+
+    @Slot(str)
+    def update_device_scan_interval_ms(self, text):
+        if text.isdigit():
+            self._value["device_scan_interval_ms"] = int(text)
             self.valueChanged.emit(self._value)
