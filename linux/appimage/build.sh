@@ -2,6 +2,7 @@
 
 set -e
 
+. ./plover_build_utils/deps.sh
 . ./plover_build_utils/functions.sh
 
 topdir="$PWD"
@@ -195,6 +196,34 @@ run "$linuxdeploy" \
 
 # Install Plover and dependencies.
 bootstrap_dist "$wheel"
+
+# ------- Start: Build & bundle hidapi from source -------
+hidapi_src="$builddir/hidapi-src"
+hidapi_bld="$builddir/hidapi-build"
+
+. ./linux/build_hidapi.sh
+
+echo "Downloading and unpacking hidapi ${hidapi_version}…"
+fetch_hidapi "$hidapi_src" "$builddir"
+
+echo "Building hidapi…"
+cmake_build_linux "$hidapi_src" "$hidapi_bld" "Release"
+
+# Locate the produced .so
+hidapi_so="$(find "$hidapi_bld" -name 'libhidapi-hidraw.so*' -type f -print -quit)"
+if [ -z "$hidapi_so" ] || [ ! -f "$hidapi_so" ]; then
+  echo "Error: built libhidapi-hidraw.so not found." >&2
+  exit 3
+fi
+
+# Bundle into the AppDir's lib directory
+run cp -v "$hidapi_so" "$appdir/usr/lib/"
+base="$(basename "$hidapi_so")"
+# Add symlink for unversioned .so if needed
+if [ ! -e "$appdir/usr/lib/libhidapi-hidraw.so" ]; then
+  ln -s "$base" "$appdir/usr/lib/libhidapi-hidraw.so"
+fi
+# ------- End: Build & bundle hidapi from source -------
 
 # Trim the fat, second pass.
 run "$python" -m plover_build_utils.trim "$appdir" "$builddir/blacklist.txt"

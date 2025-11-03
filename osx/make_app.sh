@@ -2,6 +2,7 @@
 
 set -e
 
+. ./plover_build_utils/deps.sh
 . ./plover_build_utils/functions.sh
 
 topdir="$PWD"
@@ -57,13 +58,44 @@ EOF
 
 # Switch to target Python.
 SSL_CERT_FILE="$("$python" -m certifi)"
-run_eval "appdir_python() { env PYTHONNOUSERSITE=1 "$py_home/bin/python" \"\$@\"; }"
+run_eval "appdir_python() { env PYTHONNOUSERSITE=1 \"$py_home/bin/python\" \"\$@\"; }"
 run_eval "export SSL_CERT_FILE='$SSL_CERT_FILE'"
 run_eval "unset __PYVENV_LAUNCHER__"
 python='appdir_python'
 
 # Install Plover and dependencies.
 bootstrap_dist "$plover_wheel"
+
+# ------- Start: Build & bundle hidapi from source  -------
+. ./osx/build_hidapi.sh
+
+hidapi_src="$builddir/hidapi-src"
+hidapi_bld="$builddir/hidapi-build"
+
+echo "Downloading and unpacking hidapi ${hidapi_version}…"
+fetch_hidapi "$hidapi_src" "$builddir"
+
+echo "Building hidapi…"
+cmake_build_macos "$hidapi_src" "$hidapi_bld" "x86_64;arm64" "Release"
+
+# Locate the produced dylib
+hidapi_dylib="$(/usr/bin/find "$hidapi_bld" -name 'libhidapi*.dylib' -type f -print -quit)"
+if [ -z "$hidapi_dylib" ] || [ ! -f "$hidapi_dylib" ]; then
+  echo "Error: built libhidapi*.dylib not found." >&2
+  exit 3
+fi
+
+# Bundle into the app's Frameworks directory
+run cp "$hidapi_dylib" "$frameworks_dir/"
+base="$(basename "$hidapi_dylib")"
+
+# Add alias to Frameworks dir
+ln -sfn "$base" "$frameworks_dir/libhidapi.dylib"
+
+# Add RPATH to the Python binary itself and re-sign it
+run install_name_tool -add_rpath "@executable_path/../../../../../Frameworks" "$py_binary"
+run /usr/bin/codesign -f -s - "$py_binary"
+# ------- End: Build & bundle hidapi from source  -------
 
 # Create launcher.
 run gcc -Wall -O2 -arch x86_64 -arch arm64 'osx/app_resources/plover_launcher.c' -o "$macos_dir/Plover"
@@ -90,6 +122,9 @@ run "$python" -m plover_build_utils.source_less "$py_home/lib" "*/site-packages/
 
 # Check requirements.
 run "$python" -I -m plover_build_utils.check_requirements
+
+# Ad-hoc signing to satisfy Gatekeeper.
+run /usr/bin/codesign -s - --deep --force "$appdir"
 
 # Move the finished app to dist.
 run mv "$appdir" "$distdir"
