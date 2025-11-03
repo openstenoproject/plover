@@ -32,10 +32,11 @@ def main(argv: list[str]) -> int:
     pth_path = site_packages / "plover_hidapi_add_dll_dir.pth"
 
     # Keep it one line: .pth executes arbitrary Python on import.
+    # Include defensive checks for directory existence and DLL loading
     code = (
         "import os,sys;"
         "p=r%r;"
-        "getattr(os,'add_dll_directory',lambda *_:None)(p) if sys.platform=='win32' else None\n"
+        "os.add_dll_directory(p) if sys.platform=='win32' and hasattr(os,'add_dll_directory') and os.path.isdir(p) else None\n"
         % (str(dll_dir),)
     )
 

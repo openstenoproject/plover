@@ -15,7 +15,7 @@ set -euo pipefail
 . ./plover_build_utils/deps.sh
 . ./plover_build_utils/functions.sh
 
-python='python3'
+python='python'
 
 MACOS_UNIVERSAL2="${MACOS_UNIVERSAL2:-1}"
 
