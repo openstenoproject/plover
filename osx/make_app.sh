@@ -71,11 +71,11 @@ bootstrap_dist "$plover_wheel"
 
 hidapi_src="$builddir/hidapi-src"
 hidapi_bld="$builddir/hidapi-build"
-hidapi_tar="$builddir/hidapi.tar.gz"
 
-echo "Downloading and unpacking hidapi ${HIDAPI_VERSION}…"
-fetch_hidapi_macos "$HIDAPI_VERSION" "$hidapi_src" "$hidapi_tar"
+echo "Downloading and unpacking hidapi ${hidapi_version}…"
+fetch_hidapi "$hidapi_src" "$builddir"
 
+echo "Building hidapi…"
 cmake_build_macos "$hidapi_src" "$hidapi_bld" "x86_64;arm64" "Release"
 
 # Locate the produced dylib

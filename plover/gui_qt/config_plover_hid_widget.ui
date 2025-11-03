@@ -76,6 +76,7 @@ If the key is pressed and released again, another chord is sent.</string>
      </property>
     </widget>
    </item>
+
    <!-- Row 4: Device scan interval (ms) -->
    <item row="4" column="0">
     <widget class="QLabel" name="label_device_scan_interval_ms">

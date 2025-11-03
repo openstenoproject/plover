@@ -75,13 +75,15 @@ build_dist()
   bootstrap_dist "$wheel" --no-warn-script-location
 
   # ------- Start: Build & bundle hidapi from source  -------
+  . ./windows/build_hidapi.sh
+
   hidapi_src="$builddir/hidapi-src"
   hidapi_bld="$builddir/hidapi-build"
-  hidapi_tar="$builddir/hidapi.tar.gz"
 
-  echo "Downloading and unpacking hidapi ${HIDAPI_VERSION}..."
-  . ./windows/build_hidapi.sh
-  fetch_hidapi_windows "$HIDAPI_VERSION" "$hidapi_src" "$hidapi_tar"
+  echo "Downloading and unpacking hidapi ${hidapi_version}..."
+  fetch_hidapi "$hidapi_src" "$builddir"
+
+  echo "Building hidapi…"
   cmake_build_windows "$hidapi_src" "$hidapi_bld" "Release"
 
   # Find the built DLL - should be in Release/ subdirectory

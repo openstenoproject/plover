@@ -13,6 +13,9 @@ set -euo pipefail
 #   Windows: build/local-hidapi/windows/bin/hidapi.dll
 
 . ./plover_build_utils/deps.sh
+. ./plover_build_utils/functions.sh
+
+python='python3'
 
 MACOS_UNIVERSAL2="${MACOS_UNIVERSAL2:-1}"
 
@@ -54,7 +57,8 @@ fi
 rm -rf "${SRC_DIR}" "${BUILD_DIR}"
 mkdir -p "${SRC_DIR}" "${BUILD_DIR}"
 
-TARBALL="${WORK_DIR}/hidapi-${HIDAPI_VERSION}.tar.gz"
+echo "==> Downloading & unpacking hidapi ${hidapi_version}"
+fetch_hidapi "${SRC_DIR}" "${WORK_DIR}"
 
 
 if [[ "${OS}" == "Darwin" ]]; then
@@ -63,9 +67,6 @@ if [[ "${OS}" == "Darwin" ]]; then
   # Shared fetch/build helpers (macOS)
   # shellcheck disable=SC1091
   . "${REPO_ROOT}/osx/build_hidapi.sh"
-
-  echo "==> Downloading & unpacking hidapi ${HIDAPI_VERSION}"
-  fetch_hidapi_macos "${HIDAPI_VERSION}" "${SRC_DIR}" "${TARBALL}"
 
   mkdir -p "${OUT_LIB_DIR_MAC}"
   # Architectures
@@ -108,8 +109,6 @@ elif [[ "${OS}" == "Linux" ]]; then
   # shellcheck disable=SC1091
   . "${REPO_ROOT}/linux/build_hidapi.sh"
 
-  echo "==> Downloading & unpacking hidapi ${HIDAPI_VERSION}"
-  fetch_hidapi_linux "${HIDAPI_VERSION}" "${SRC_DIR}" "${TARBALL}"
   cmake_build_linux "${SRC_DIR}" "${BUILD_DIR}" "RelWithDebInfo"
 
   SO="$(/usr/bin/find "${BUILD_DIR}" -type f -name 'libhidapi-hidraw.so*' -print -quit || true)"
@@ -136,9 +135,6 @@ elif [[ "${OS}" == MINGW* || "${OS}" == MSYS* || "${OS}" == CYGWIN* || "${OS}" =
   # Shared fetch/build helpers (Windows)
   # shellcheck disable=SC1091
   . "${REPO_ROOT}/windows/build_hidapi.sh"
-
-  echo "==> Downloading & unpacking hidapi ${HIDAPI_VERSION}"
-  fetch_hidapi_windows "${HIDAPI_VERSION}" "${SRC_DIR}" "${TARBALL}"
 
   # Build shared DLL
   cmake_build_windows "${SRC_DIR}" "${BUILD_DIR}" "Release"
