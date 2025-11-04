@@ -13,9 +13,12 @@ environment created using tools like [venv](https://docs.python.org/3/library/ve
 This helps keep your global Python environment clean, avoids project conflicts, and
 isolates tox and its dependencies.
 
-A typical setup looks like this:
+You also need [CMake](https://cmake.org) to build [hidapi](https://github.com/libusb/hidapi) from source which is required for Plover HID support.
+
+A typical development setup looks like this, assuming that `python` has the correct version:
 
 ### Linux/macOS (Bash):
+
 ```bash
 cd path/to/plover
 python -m venv .venv
@@ -24,9 +27,13 @@ pip install -r reqs/dev.txt
 pre-commit install
 pre-commit run --all-files
 tox
+tox -e launch -- -l debug
 ```
 
 ### Windows (PowerShell):
+
+This assumes that you installed a Git version that includes Git Bash.
+
 ```powershell
 cd path\to\plover
 python -m venv .venv
@@ -34,9 +41,11 @@ python -m venv .venv
 pip install -r reqs\dev.txt
 pre-commit install
 pre-commit run --all-files
-tox
+& "C:\Program Files\Git\bin\bash.exe" -lc "tox"
+& "C:\Program Files\Git\bin\bash.exe" -lc "tox -e launch -- -l debug"
 ```
-Some features require a Bash shell, so on Windows you may need to use Git Bash or WSL instead of PowerShell.
+
+Some features require a Bash shell, which is why on Windows you need to run commands through Git Bash or similar.
 
 ## Tox
 
