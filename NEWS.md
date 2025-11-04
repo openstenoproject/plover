@@ -1,3 +1,30 @@
+# v5.1.0 (2025-11-04)
+
+
+## Features
+
+### Core
+
+- Add support for Plover HID protocol based on plover-machine-hid plugin by dnaq. (#1777)
+
+### User Interface
+
+- Dynamically update individual status icons while loading dictionaries. (#1400)
+
+### macOS
+
+- Add code signing and notarization for macOS app. (#1769)
+
+## Bugfixes
+
+### Core
+
+- Update frontmatter in GPLv2 license file; no substantive change to the license (#1779)
+
+## API
+
+No significant changes.
+
 # v5.0.0 (2025-09-10)
 
 
