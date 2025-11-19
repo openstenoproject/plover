@@ -1,7 +1,6 @@
 from collections import ChainMap
 from copy import copy
 from functools import partial
-import sys
 
 from PySide6.QtCore import (
     Qt,
