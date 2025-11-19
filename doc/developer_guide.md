@@ -23,7 +23,7 @@ A typical development setup looks like this, assuming that `python` has the corr
 cd path/to/plover
 python -m venv .venv
 source .venv/bin/activate 
-pip install -r reqs/dev.txt
+pip install -c reqs/constraints.txt -r reqs/dev.txt
 pre-commit install
 pre-commit run --all-files
 tox
@@ -38,7 +38,7 @@ This assumes that you installed a Git version that includes Git Bash.
 cd path\to\plover
 python -m venv .venv
 .venv\Scripts\Activate.ps1
-pip install -r reqs\dev.txt
+pip install -c reqs\constraints.txt -r reqs\dev.txt
 pre-commit install
 pre-commit run --all-files
 & "C:\Program Files\Git\bin\bash.exe" -lc "tox"

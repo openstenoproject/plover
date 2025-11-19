@@ -17,6 +17,7 @@ from plover import log
 
 
 # General configuration sections, options and defaults.
+APPEARANCE_CONFIG_SECTION = "Appearance"
 MACHINE_CONFIG_SECTION = "Machine Configuration"
 
 LEGACY_DICTIONARY_CONFIG_SECTION = "Dictionary Configuration"
@@ -439,6 +440,13 @@ class Config:
             ),
             boolean_option("enable_stroke_logging", False, LOGGING_CONFIG_SECTION),
             boolean_option("enable_translation_logging", False, LOGGING_CONFIG_SECTION),
+            # Appearance.
+            choice_option(
+                "appearance_mode",
+                ("system", "light", "dark"),
+                APPEARANCE_CONFIG_SECTION,
+                "mode",
+            ),
             # GUI.
             boolean_option("start_minimized", False, "Startup", "Start Minimized"),
             boolean_option("show_stroke_display", False, "Stroke Display", "show"),

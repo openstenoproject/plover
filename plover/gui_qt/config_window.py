@@ -26,6 +26,7 @@ from PySide6.QtWidgets import (
 
 from plover import _
 from plover.config import MINIMUM_UNDO_LEVELS, MINIMUM_TIME_BETWEEN_KEY_PRESSES
+from plover.gui_qt import appearance
 from plover.misc import expand_path, shorten_path
 from plover.registry import registry
 
@@ -314,6 +315,24 @@ class ConfigWindow(QDialog, Ui_ConfigWindow, WindowStateMixin):
                 _("Interface"),
                 (
                     ConfigOption(
+                        _("Appearance:"),
+                        "appearance_mode",
+                        partial(
+                            ChoiceOption,
+                            choices={
+                                "system": _("System"),
+                                "light": _("Light"),
+                                "dark": _("Dark"),
+                            },
+                        ),
+                        _(
+                            "Set the application appearance:\n"
+                            "- System: follow the operating system mode\n"
+                            "- Light: force light mode\n"
+                            "- Dark: force dark mode"
+                        ),
+                    ),
+                    ConfigOption(
                         _("Start minimized:"),
                         "start_minimized",
                         BooleanOption,
@@ -539,7 +558,7 @@ class ConfigWindow(QDialog, Ui_ConfigWindow, WindowStateMixin):
         self._supported_options = set()
         for section, option_list in mappings:
             self._supported_options.update(option.option_name for option in option_list)
-        self._update_config()
+        self._load_config()
         # Create and fill tabs.
         option_by_name = {}
         for section, option_list in mappings:
@@ -577,18 +596,27 @@ class ConfigWindow(QDialog, Ui_ConfigWindow, WindowStateMixin):
         self.restore_state()
         self.finished.connect(self.save_state)
 
-    def _update_config(self, save=False):
+    def _update_appearance(self):
+        appearance.update(self._config.maps[0])
+
+    def _save_config(self):
+        """Persist the overrides from this dialog back into the engine config.
+
+        This uses the engine's async config update mechanism; the engine thread
+        will apply the update after it processes the queued job.
+        """
         with self._engine:
-            if save:
-                self._engine.config = self._config.maps[0]
-            self._config = ChainMap(
-                {},
-                {
-                    name: value
-                    for name, value in self._engine.config.items()
-                    if name in self._supported_options
-                },
-            )
+            self._engine.config = self._config.maps[0]
+
+    def _load_config(self):
+        """Load the current config from the engine into this dialog."""
+        with self._engine:
+            base_config = {
+                name: value
+                for name, value in self._engine.config.items()
+                if name in self._supported_options
+            }
+        self._config = ChainMap({}, base_config)
 
     def _machine_option(self, *args):
         machine_options = {
@@ -651,4 +679,5 @@ class ConfigWindow(QDialog, Ui_ConfigWindow, WindowStateMixin):
             dependent.widget = widget
 
     def on_apply(self):
-        self._update_config(save=True)
+        self._update_appearance()
+        self._save_config()
