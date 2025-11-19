@@ -1,6 +1,7 @@
 from collections import ChainMap
 from copy import copy
 from functools import partial
+import sys
 
 from PySide6.QtCore import (
     Qt,
@@ -29,6 +30,7 @@ from plover.config import MINIMUM_UNDO_LEVELS, MINIMUM_TIME_BETWEEN_KEY_PRESSES
 from plover.gui_qt import appearance
 from plover.misc import expand_path, shorten_path
 from plover.registry import registry
+from plover.oslayer.config import PLATFORM
 
 from plover.gui_qt.config_window_ui import Ui_ConfigWindow
 from plover.gui_qt.config_file_widget_ui import Ui_FileWidget
@@ -580,6 +582,21 @@ class ConfigWindow(QDialog, Ui_ConfigWindow, WindowStateMixin):
             scroll_area.setWidget(frame)
             scroll_area.setFocusProxy(frame)
             self.tabs.addTab(scroll_area, section)
+
+        # platform specific overwrites
+        if PLATFORM == "linux":
+            # Appearance overwrite doesn't work on Linux so we're not showing the option
+            appearance_option = option_by_name.get("appearance_mode")
+            if appearance_option is not None:
+                appearance_option.label.hide()
+                appearance_option.widget.hide()
+        if PLATFORM != "linux":
+            # Keyboard layout is only relevant on Linux
+            keyboard_layout_option = option_by_name.get("keyboard_layout")
+            if keyboard_layout_option is not None:
+                keyboard_layout_option.label.hide()
+                keyboard_layout_option.widget.hide()
+
         # Update dependents.
         for option in option_by_name.values():
             option.dependents = [
