@@ -6,7 +6,6 @@ to the DLL search path on Windows via os.add_dll_directory.
 Usage (optional): write_hidapi_pth.py <repo_dir> <env_sitepackages_dir>
 """
 
-from __future__ import annotations
 import sys
 from pathlib import Path
 
