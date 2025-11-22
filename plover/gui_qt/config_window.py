@@ -596,6 +596,14 @@ class ConfigWindow(QDialog, Ui_ConfigWindow, WindowStateMixin):
                 keyboard_layout_option.label.hide()
                 keyboard_layout_option.widget.hide()
 
+        # temporary hiding start_minimized setting on macOS due to bug in
+        # macOS 26, see https://github.com/openstenoproject/plover/issues/1782
+        if PLATFORM == "mac":
+            start_minimized_option = option_by_name.get("start_minimized")
+            if start_minimized_option is not None:
+                start_minimized_option.label.hide()
+                start_minimized_option.widget.hide()
+
         # Update dependents.
         for option in option_by_name.values():
             option.dependents = [
