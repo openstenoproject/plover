@@ -7,7 +7,10 @@ from PySide6.QtCore import (
     Signal,
     Slot,
 )
+from typing import Set
+
 from PySide6.QtWidgets import (
+    QAbstractScrollArea,
     QCheckBox,
     QComboBox,
     QDialog,
@@ -18,6 +21,7 @@ from PySide6.QtWidgets import (
     QGroupBox,
     QLabel,
     QScrollArea,
+    QSizePolicy,
     QSpinBox,
     QStyledItemDelegate,
     QTableWidget,
@@ -120,7 +124,7 @@ class FileOption(QGroupBox, Ui_FileWidget):
 class TableOption(QTableWidget):
     def __init__(self):
         super().__init__()
-        self.horizontalHeader().setStretchLastSection(True)
+        self.horizontalHeader().setStretchLastSection(False)
         self.setSelectionMode(self.SelectionMode.SingleSelection)
         self.setTabKeyNavigation(False)
         self.setVerticalScrollBarPolicy(Qt.ScrollBarPolicy.ScrollBarAlwaysOff)
@@ -213,9 +217,9 @@ class MultipleChoicesOption(TableOption):
 
     LABELS = (
         # i18n: Widget: “MultipleChoicesOption”.
-        _("Choice"),
-        # i18n: Widget: “MultipleChoicesOption”.
         _("Selected"),
+        # i18n: Widget: “MultipleChoicesOption”.
+        _("Choice"),
     )
 
     # i18n: Widget: “MultipleChoicesOption”.
@@ -223,20 +227,22 @@ class MultipleChoicesOption(TableOption):
         super().__init__()
         if labels is None:
             labels = self.LABELS
-        self._value = {}
+        self._value: Set[str] = set()
         self._updating = False
         self._choices = {} if choices is None else choices
         self._reversed_choices = {
             translation: choice for choice, translation in choices.items()
         }
+        self.setSizeAdjustPolicy(QAbstractScrollArea.SizeAdjustPolicy.AdjustToContents)
+        self.setSizePolicy(
+            QSizePolicy(QSizePolicy.Policy.Preferred, QSizePolicy.Policy.Fixed)
+        )
         self.setColumnCount(2)
         self.setHorizontalHeaderLabels(labels)
         self.cellChanged.connect(self._on_cell_changed)
 
     def setValue(self, value):
         self._updating = True
-        self.resizeColumnsToContents()
-        self.setMinimumSize(self.viewportSizeHint())
         self.setRowCount(0)
         if value is None:
             value = set()
@@ -248,9 +254,6 @@ class MultipleChoicesOption(TableOption):
         for choice in sorted(self._reversed_choices):
             row += 1
             self.insertRow(row)
-            item = QTableWidgetItem(self._choices[choice])
-            item.setFlags(item.flags() & ~Qt.ItemFlag.ItemIsEditable)
-            self.setItem(row, 0, item)
             item = QTableWidgetItem()
             item.setFlags(
                 (item.flags() & ~Qt.ItemFlag.ItemIsEditable)
@@ -259,19 +262,28 @@ class MultipleChoicesOption(TableOption):
             item.setCheckState(
                 Qt.CheckState.Checked if choice in value else Qt.CheckState.Unchecked
             )
+            self.setItem(row, 0, item)
+            item = QTableWidgetItem(self._choices[choice])
+            item.setFlags(item.flags() & ~Qt.ItemFlag.ItemIsEditable)
             self.setItem(row, 1, item)
         self.resizeColumnsToContents()
-        self.setMinimumSize(self.viewportSizeHint())
         self._updating = False
 
     def _on_cell_changed(self, row, column):
         if self._updating:
             return
-        assert column == 1
-        choice = self._reversed_choices[
-            self.item(row, 0).data(Qt.ItemDataRole.DisplayRole)
-        ]
-        if self.item(row, 1).checkState():
+        assert column == 0
+        name_item = self.item(row, 1)
+        state_item = self.item(row, 0)
+        if name_item is None or state_item is None:
+            return
+        name = name_item.data(Qt.ItemDataRole.DisplayRole)
+        if name is None:
+            return
+        choice = self._reversed_choices.get(name)
+        if choice is None:
+            return
+        if state_item.checkState() == Qt.CheckState.Checked:
             self._value.add(choice)
         else:
             self._value.discard(choice)
@@ -515,7 +527,7 @@ class ConfigWindow(QDialog, Ui_ConfigWindow, WindowStateMixin):
                 _("Plugins"),
                 (
                     ConfigOption(
-                        _("Extension:"),
+                        _("Extensions:"),
                         "enabled_extensions",
                         partial(
                             MultipleChoicesOption,
@@ -523,7 +535,7 @@ class ConfigWindow(QDialog, Ui_ConfigWindow, WindowStateMixin):
                                 plugin.name: plugin.name
                                 for plugin in registry.list_plugins("extension")
                             },
-                            labels=(_("Name"), _("Enabled")),
+                            labels=(_("Enabled"), _("Name")),
                         ),
                         _("Configure enabled plugin extensions."),
                     ),
