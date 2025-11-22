@@ -18,6 +18,7 @@ from PySide6.QtWidgets import (
     QFileDialog,
     QFormLayout,
     QFrame,
+    QHeaderView,
     QGroupBox,
     QLabel,
     QScrollArea,
@@ -233,12 +234,19 @@ class MultipleChoicesOption(TableOption):
         self._reversed_choices = {
             translation: choice for choice, translation in choices.items()
         }
-        self.setSizeAdjustPolicy(QAbstractScrollArea.SizeAdjustPolicy.AdjustToContents)
+        self.setSizeAdjustPolicy(
+            QAbstractScrollArea.SizeAdjustPolicy.AdjustToContentsOnFirstShow
+        )
         self.setSizePolicy(
-            QSizePolicy(QSizePolicy.Policy.Preferred, QSizePolicy.Policy.Fixed)
+            QSizePolicy(QSizePolicy.Policy.Expanding, QSizePolicy.Policy.Fixed)
         )
         self.setColumnCount(2)
         self.setHorizontalHeaderLabels(labels)
+        header = self.horizontalHeader()
+        header.setSectionResizeMode(0, QHeaderView.ResizeMode.ResizeToContents)
+        header.setSectionResizeMode(1, QHeaderView.ResizeMode.ResizeToContents)
+        header.setStretchLastSection(True)
+        header.setStretchLastSection(True)
         self.cellChanged.connect(self._on_cell_changed)
 
     def setValue(self, value):
