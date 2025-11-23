@@ -12,10 +12,6 @@ skippy_enabled: true
 
 default_python: 3.13.3
 
-cache_dist_linux: &cache_dist_linux ["reqs/dist.txt", "reqs/dist_extra_gui_qt.txt", "reqs/dist_extra_log.txt", "linux/appimage/deps.sh"]
-cache_dist_macos: &cache_dist_macos ["reqs/dist.txt", "reqs/dist_extra_gui_qt.txt", "reqs/dist_extra_log.txt", "osx/deps.sh"]
-cache_dist_windows: &cache_dist_windows ["reqs/dist.txt", "reqs/dist_extra_gui_qt.txt", "reqs/dist_extra_log.txt", "windows/dist_deps.sh"]
-
 vars:
   - &dist_linux
     variant: Linux
@@ -95,36 +91,36 @@ jobs:
     type: build
     needs: [test_linux]
     reqs: ["build", "setup"]
-    cache_extra_deps: *cache_dist_linux
+    cache_extra_deps: ["reqs/dist_*.txt", "linux/appimage/deps.sh"]
     skiplists: ["job_build", "os_linux"]
   - <<: *build
     <<: *dist_macos
     variant: macOS App
     needs: [test_macos]
-    cache_extra_deps: *cache_dist_macos
+    cache_extra_deps: ["reqs/dist_*.txt", "osx/deps.sh"]
     skiplists: ["job_build", "os_macos"]
   - <<: *dist_macos
     type: notarize
     variant: macOS App
     needs: [build_macos_app]
     reqs: ["build", "setup"]
-    cache_extra_deps: *cache_dist_macos
+    cache_extra_deps: ["reqs/dist_*.txt", "osx/deps.sh"]
     skiplists: ["job_build", "os_macos"]
   - <<: *build
     <<: *dist_macos
     variant: macOS DMG
     needs: [build_macos_app, notarize_macos_app]
-    cache_extra_deps: *cache_dist_macos
+    cache_extra_deps: ["reqs/dist_*.txt", "osx/deps.sh"]
     skiplists: ["job_build", "os_macos"]
   - <<: *dist_macos
     type: notarize
     variant: macOS DMG
     needs: [build_macos_dmg]
     reqs: ["build", "setup"]
-    cache_extra_deps: *cache_dist_macos
+    cache_extra_deps: ["reqs/dist_*.txt", "osx/deps.sh"]
     skiplists: ["job_build", "os_macos"]
   - <<: *build
     <<: *dist_win
     needs: [test_windows]
-    cache_extra_deps: *cache_dist_windows
+    cache_extra_deps: ["reqs/dist_*.txt", "windows/dist_deps.sh"]
     skiplists: ["job_build", "os_windows"]

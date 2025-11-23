@@ -49,12 +49,12 @@ jobs:
           job_cache_extra_deps=(); job_id=test_qt_gui; job_name='Test (Qt GUI)'; job_needs=(); job_os=Linux; job_platform=ubuntu-22.04; job_python=3.13.3; job_reqs=(reqs/dist.txt reqs/dist_extra_gui_qt.txt reqs/test.txt); job_skip_cache_name=skip_test_qt_gui_py-3.13.3_ubuntu-22.04; job_skip_cache_path=.skip_cache_test_qt_gui; job_skiplists=(job_test_gui_qt); job_test_args=test/gui_qt; job_type=test_gui_qt; job_variant='Qt GUI'; analyze_set_job_skip_cache_key
           job_cache_extra_deps=(); job_id=test_packaging; job_name='Test (Packaging)'; job_needs=(); job_os=Linux; job_platform=ubuntu-latest; job_python=3.13.3; job_reqs=(reqs/packaging.txt reqs/setup.txt); job_skip_cache_name=skip_test_packaging_py-3.13.3_ubuntu-latest; job_skip_cache_path=.skip_cache_test_packaging; job_skiplists=(job_test_packaging); job_type=test_packaging; job_variant=Packaging; analyze_set_job_skip_cache_key
           job_cache_extra_deps=(); job_id=test_code_quality; job_name='Test (Code Quality)'; job_needs=(); job_os=Linux; job_platform=ubuntu-latest; job_python=3.13.3; job_reqs=(reqs/code_quality.txt); job_skip_cache_name=skip_test_code_quality_py-3.13.3_ubuntu-latest; job_skip_cache_path=.skip_cache_test_code_quality; job_type=test_code_quality; job_variant='Code Quality'; analyze_set_job_skip_cache_key
-          job_cache_extra_deps=(reqs/dist.txt reqs/dist_extra_gui_qt.txt reqs/dist_extra_log.txt linux/appimage/deps.sh); job_id=build_linux; job_name='Build (Linux)'; job_needs=(test_linux); job_os=Linux; job_platform=ubuntu-22.04; job_python=3.13.3; job_reqs=(reqs/build.txt reqs/setup.txt); job_skip_cache_name=skip_build_linux_py-3.13.3_ubuntu-22.04; job_skip_cache_path=.skip_cache_build_linux; job_skiplists=(job_build os_linux); job_type=build; job_variant=Linux; analyze_set_job_skip_cache_key
-          job_cache_extra_deps=(reqs/dist.txt reqs/dist_extra_gui_qt.txt reqs/dist_extra_log.txt osx/deps.sh); job_id=build_macos_app; job_name='Build (macOS App)'; job_needs=(test_macos); job_os=macOS; job_platform=macos-15; job_python=3.13.3; job_reqs=(reqs/build.txt reqs/setup.txt); job_skip_cache_name=skip_build_macos_app_py-3.13.3_macos-15; job_skip_cache_path=.skip_cache_build_macos_app; job_skiplists=(job_build os_macos); job_type=build; job_variant='macOS App'; analyze_set_job_skip_cache_key
-          job_cache_extra_deps=(reqs/dist.txt reqs/dist_extra_gui_qt.txt reqs/dist_extra_log.txt osx/deps.sh); job_id=notarize_macos_app; job_name='Notarize (macOS App)'; job_needs=(build_macos_app); job_os=macOS; job_platform=macos-15; job_python=3.13.3; job_reqs=(reqs/build.txt reqs/setup.txt); job_skip_cache_name=skip_notarize_macos_app_py-3.13.3_macos-15; job_skip_cache_path=.skip_cache_notarize_macos_app; job_skiplists=(job_build os_macos); job_type=notarize; job_variant='macOS App'; analyze_set_job_skip_cache_key
-          job_cache_extra_deps=(reqs/dist.txt reqs/dist_extra_gui_qt.txt reqs/dist_extra_log.txt osx/deps.sh); job_id=build_macos_dmg; job_name='Build (macOS DMG)'; job_needs=(build_macos_app notarize_macos_app); job_os=macOS; job_platform=macos-15; job_python=3.13.3; job_reqs=(reqs/build.txt reqs/setup.txt); job_skip_cache_name=skip_build_macos_dmg_py-3.13.3_macos-15; job_skip_cache_path=.skip_cache_build_macos_dmg; job_skiplists=(job_build os_macos); job_type=build; job_variant='macOS DMG'; analyze_set_job_skip_cache_key
-          job_cache_extra_deps=(reqs/dist.txt reqs/dist_extra_gui_qt.txt reqs/dist_extra_log.txt osx/deps.sh); job_id=notarize_macos_dmg; job_name='Notarize (macOS DMG)'; job_needs=(build_macos_dmg); job_os=macOS; job_platform=macos-15; job_python=3.13.3; job_reqs=(reqs/build.txt reqs/setup.txt); job_skip_cache_name=skip_notarize_macos_dmg_py-3.13.3_macos-15; job_skip_cache_path=.skip_cache_notarize_macos_dmg; job_skiplists=(job_build os_macos); job_type=notarize; job_variant='macOS DMG'; analyze_set_job_skip_cache_key
-          job_cache_extra_deps=(reqs/dist.txt reqs/dist_extra_gui_qt.txt reqs/dist_extra_log.txt windows/dist_deps.sh); job_id=build_windows; job_name='Build (Windows)'; job_needs=(test_windows); job_os=Windows; job_platform=windows-2022; job_python=3.13.3; job_reqs=(reqs/build.txt reqs/setup.txt); job_skip_cache_name=skip_build_windows_py-3.13.3_windows-2022; job_skip_cache_path=.skip_cache_build_windows; job_skiplists=(job_build os_windows); job_type=build; job_variant=Windows; analyze_set_job_skip_cache_key
+          job_cache_extra_deps=('reqs/dist_*.txt' linux/appimage/deps.sh); job_id=build_linux; job_name='Build (Linux)'; job_needs=(test_linux); job_os=Linux; job_platform=ubuntu-22.04; job_python=3.13.3; job_reqs=(reqs/build.txt reqs/setup.txt); job_skip_cache_name=skip_build_linux_py-3.13.3_ubuntu-22.04; job_skip_cache_path=.skip_cache_build_linux; job_skiplists=(job_build os_linux); job_type=build; job_variant=Linux; analyze_set_job_skip_cache_key
+          job_cache_extra_deps=('reqs/dist_*.txt' osx/deps.sh); job_id=build_macos_app; job_name='Build (macOS App)'; job_needs=(test_macos); job_os=macOS; job_platform=macos-15; job_python=3.13.3; job_reqs=(reqs/build.txt reqs/setup.txt); job_skip_cache_name=skip_build_macos_app_py-3.13.3_macos-15; job_skip_cache_path=.skip_cache_build_macos_app; job_skiplists=(job_build os_macos); job_type=build; job_variant='macOS App'; analyze_set_job_skip_cache_key
+          job_cache_extra_deps=('reqs/dist_*.txt' osx/deps.sh); job_id=notarize_macos_app; job_name='Notarize (macOS App)'; job_needs=(build_macos_app); job_os=macOS; job_platform=macos-15; job_python=3.13.3; job_reqs=(reqs/build.txt reqs/setup.txt); job_skip_cache_name=skip_notarize_macos_app_py-3.13.3_macos-15; job_skip_cache_path=.skip_cache_notarize_macos_app; job_skiplists=(job_build os_macos); job_type=notarize; job_variant='macOS App'; analyze_set_job_skip_cache_key
+          job_cache_extra_deps=('reqs/dist_*.txt' osx/deps.sh); job_id=build_macos_dmg; job_name='Build (macOS DMG)'; job_needs=(build_macos_app notarize_macos_app); job_os=macOS; job_platform=macos-15; job_python=3.13.3; job_reqs=(reqs/build.txt reqs/setup.txt); job_skip_cache_name=skip_build_macos_dmg_py-3.13.3_macos-15; job_skip_cache_path=.skip_cache_build_macos_dmg; job_skiplists=(job_build os_macos); job_type=build; job_variant='macOS DMG'; analyze_set_job_skip_cache_key
+          job_cache_extra_deps=('reqs/dist_*.txt' osx/deps.sh); job_id=notarize_macos_dmg; job_name='Notarize (macOS DMG)'; job_needs=(build_macos_dmg); job_os=macOS; job_platform=macos-15; job_python=3.13.3; job_reqs=(reqs/build.txt reqs/setup.txt); job_skip_cache_name=skip_notarize_macos_dmg_py-3.13.3_macos-15; job_skip_cache_path=.skip_cache_notarize_macos_dmg; job_skiplists=(job_build os_macos); job_type=notarize; job_variant='macOS DMG'; analyze_set_job_skip_cache_key
+          job_cache_extra_deps=('reqs/dist_*.txt' windows/dist_deps.sh); job_id=build_windows; job_name='Build (Windows)'; job_needs=(test_windows); job_os=Windows; job_platform=windows-2022; job_python=3.13.3; job_reqs=(reqs/build.txt reqs/setup.txt); job_skip_cache_name=skip_build_windows_py-3.13.3_windows-2022; job_skip_cache_path=.skip_cache_build_windows; job_skiplists=(job_build os_windows); job_type=build; job_variant=Windows; analyze_set_job_skip_cache_key
 
       - name: Check skip cache for Test (Linux)
         uses: actions/cache@v3
@@ -198,12 +198,12 @@ jobs:
           job_cache_extra_deps=(); job_id=test_qt_gui; job_name='Test (Qt GUI)'; job_needs=(); job_os=Linux; job_platform=ubuntu-22.04; job_python=3.13.3; job_reqs=(reqs/dist.txt reqs/dist_extra_gui_qt.txt reqs/test.txt); job_skip_cache_name=skip_test_qt_gui_py-3.13.3_ubuntu-22.04; job_skip_cache_path=.skip_cache_test_qt_gui; job_skiplists=(job_test_gui_qt); job_test_args=test/gui_qt; job_type=test_gui_qt; job_variant='Qt GUI'; analyze_set_job_skip_job
           job_cache_extra_deps=(); job_id=test_packaging; job_name='Test (Packaging)'; job_needs=(); job_os=Linux; job_platform=ubuntu-latest; job_python=3.13.3; job_reqs=(reqs/packaging.txt reqs/setup.txt); job_skip_cache_name=skip_test_packaging_py-3.13.3_ubuntu-latest; job_skip_cache_path=.skip_cache_test_packaging; job_skiplists=(job_test_packaging); job_type=test_packaging; job_variant=Packaging; analyze_set_job_skip_job
           job_cache_extra_deps=(); job_id=test_code_quality; job_name='Test (Code Quality)'; job_needs=(); job_os=Linux; job_platform=ubuntu-latest; job_python=3.13.3; job_reqs=(reqs/code_quality.txt); job_skip_cache_name=skip_test_code_quality_py-3.13.3_ubuntu-latest; job_skip_cache_path=.skip_cache_test_code_quality; job_type=test_code_quality; job_variant='Code Quality'; analyze_set_job_skip_job
-          job_cache_extra_deps=(reqs/dist.txt reqs/dist_extra_gui_qt.txt reqs/dist_extra_log.txt linux/appimage/deps.sh); job_id=build_linux; job_name='Build (Linux)'; job_needs=(test_linux); job_os=Linux; job_platform=ubuntu-22.04; job_python=3.13.3; job_reqs=(reqs/build.txt reqs/setup.txt); job_skip_cache_name=skip_build_linux_py-3.13.3_ubuntu-22.04; job_skip_cache_path=.skip_cache_build_linux; job_skiplists=(job_build os_linux); job_type=build; job_variant=Linux; analyze_set_job_skip_job
-          job_cache_extra_deps=(reqs/dist.txt reqs/dist_extra_gui_qt.txt reqs/dist_extra_log.txt osx/deps.sh); job_id=build_macos_app; job_name='Build (macOS App)'; job_needs=(test_macos); job_os=macOS; job_platform=macos-15; job_python=3.13.3; job_reqs=(reqs/build.txt reqs/setup.txt); job_skip_cache_name=skip_build_macos_app_py-3.13.3_macos-15; job_skip_cache_path=.skip_cache_build_macos_app; job_skiplists=(job_build os_macos); job_type=build; job_variant='macOS App'; analyze_set_job_skip_job
-          job_cache_extra_deps=(reqs/dist.txt reqs/dist_extra_gui_qt.txt reqs/dist_extra_log.txt osx/deps.sh); job_id=notarize_macos_app; job_name='Notarize (macOS App)'; job_needs=(build_macos_app); job_os=macOS; job_platform=macos-15; job_python=3.13.3; job_reqs=(reqs/build.txt reqs/setup.txt); job_skip_cache_name=skip_notarize_macos_app_py-3.13.3_macos-15; job_skip_cache_path=.skip_cache_notarize_macos_app; job_skiplists=(job_build os_macos); job_type=notarize; job_variant='macOS App'; analyze_set_job_skip_job
-          job_cache_extra_deps=(reqs/dist.txt reqs/dist_extra_gui_qt.txt reqs/dist_extra_log.txt osx/deps.sh); job_id=build_macos_dmg; job_name='Build (macOS DMG)'; job_needs=(build_macos_app notarize_macos_app); job_os=macOS; job_platform=macos-15; job_python=3.13.3; job_reqs=(reqs/build.txt reqs/setup.txt); job_skip_cache_name=skip_build_macos_dmg_py-3.13.3_macos-15; job_skip_cache_path=.skip_cache_build_macos_dmg; job_skiplists=(job_build os_macos); job_type=build; job_variant='macOS DMG'; analyze_set_job_skip_job
-          job_cache_extra_deps=(reqs/dist.txt reqs/dist_extra_gui_qt.txt reqs/dist_extra_log.txt osx/deps.sh); job_id=notarize_macos_dmg; job_name='Notarize (macOS DMG)'; job_needs=(build_macos_dmg); job_os=macOS; job_platform=macos-15; job_python=3.13.3; job_reqs=(reqs/build.txt reqs/setup.txt); job_skip_cache_name=skip_notarize_macos_dmg_py-3.13.3_macos-15; job_skip_cache_path=.skip_cache_notarize_macos_dmg; job_skiplists=(job_build os_macos); job_type=notarize; job_variant='macOS DMG'; analyze_set_job_skip_job
-          job_cache_extra_deps=(reqs/dist.txt reqs/dist_extra_gui_qt.txt reqs/dist_extra_log.txt windows/dist_deps.sh); job_id=build_windows; job_name='Build (Windows)'; job_needs=(test_windows); job_os=Windows; job_platform=windows-2022; job_python=3.13.3; job_reqs=(reqs/build.txt reqs/setup.txt); job_skip_cache_name=skip_build_windows_py-3.13.3_windows-2022; job_skip_cache_path=.skip_cache_build_windows; job_skiplists=(job_build os_windows); job_type=build; job_variant=Windows; analyze_set_job_skip_job
+          job_cache_extra_deps=('reqs/dist_*.txt' linux/appimage/deps.sh); job_id=build_linux; job_name='Build (Linux)'; job_needs=(test_linux); job_os=Linux; job_platform=ubuntu-22.04; job_python=3.13.3; job_reqs=(reqs/build.txt reqs/setup.txt); job_skip_cache_name=skip_build_linux_py-3.13.3_ubuntu-22.04; job_skip_cache_path=.skip_cache_build_linux; job_skiplists=(job_build os_linux); job_type=build; job_variant=Linux; analyze_set_job_skip_job
+          job_cache_extra_deps=('reqs/dist_*.txt' osx/deps.sh); job_id=build_macos_app; job_name='Build (macOS App)'; job_needs=(test_macos); job_os=macOS; job_platform=macos-15; job_python=3.13.3; job_reqs=(reqs/build.txt reqs/setup.txt); job_skip_cache_name=skip_build_macos_app_py-3.13.3_macos-15; job_skip_cache_path=.skip_cache_build_macos_app; job_skiplists=(job_build os_macos); job_type=build; job_variant='macOS App'; analyze_set_job_skip_job
+          job_cache_extra_deps=('reqs/dist_*.txt' osx/deps.sh); job_id=notarize_macos_app; job_name='Notarize (macOS App)'; job_needs=(build_macos_app); job_os=macOS; job_platform=macos-15; job_python=3.13.3; job_reqs=(reqs/build.txt reqs/setup.txt); job_skip_cache_name=skip_notarize_macos_app_py-3.13.3_macos-15; job_skip_cache_path=.skip_cache_notarize_macos_app; job_skiplists=(job_build os_macos); job_type=notarize; job_variant='macOS App'; analyze_set_job_skip_job
+          job_cache_extra_deps=('reqs/dist_*.txt' osx/deps.sh); job_id=build_macos_dmg; job_name='Build (macOS DMG)'; job_needs=(build_macos_app notarize_macos_app); job_os=macOS; job_platform=macos-15; job_python=3.13.3; job_reqs=(reqs/build.txt reqs/setup.txt); job_skip_cache_name=skip_build_macos_dmg_py-3.13.3_macos-15; job_skip_cache_path=.skip_cache_build_macos_dmg; job_skiplists=(job_build os_macos); job_type=build; job_variant='macOS DMG'; analyze_set_job_skip_job
+          job_cache_extra_deps=('reqs/dist_*.txt' osx/deps.sh); job_id=notarize_macos_dmg; job_name='Notarize (macOS DMG)'; job_needs=(build_macos_dmg); job_os=macOS; job_platform=macos-15; job_python=3.13.3; job_reqs=(reqs/build.txt reqs/setup.txt); job_skip_cache_name=skip_notarize_macos_dmg_py-3.13.3_macos-15; job_skip_cache_path=.skip_cache_notarize_macos_dmg; job_skiplists=(job_build os_macos); job_type=notarize; job_variant='macOS DMG'; analyze_set_job_skip_job
+          job_cache_extra_deps=('reqs/dist_*.txt' windows/dist_deps.sh); job_id=build_windows; job_name='Build (Windows)'; job_needs=(test_windows); job_os=Windows; job_platform=windows-2022; job_python=3.13.3; job_reqs=(reqs/build.txt reqs/setup.txt); job_skip_cache_name=skip_build_windows_py-3.13.3_windows-2022; job_skip_cache_path=.skip_cache_build_windows; job_skiplists=(job_build os_windows); job_type=build; job_variant=Windows; analyze_set_job_skip_job
 
     outputs:
       is_release: ${{ steps.set_ouputs.outputs.is_release }}
@@ -856,7 +856,7 @@ jobs:
         uses: actions/cache@v4
         with:
           path: .cache
-          key: 0_${{ steps.set_cache.outputs.cache_name }}_${{ hashFiles('reqs/constraints.txt', 'reqs/build.txt', 'reqs/setup.txt', 'reqs/dist.txt', 'reqs/dist_extra_gui_qt.txt', 'reqs/dist_extra_log.txt', 'linux/appimage/deps.sh') }}
+          key: 0_${{ steps.set_cache.outputs.cache_name }}_${{ hashFiles('reqs/constraints.txt', 'reqs/build.txt', 'reqs/setup.txt', 'reqs/dist_*.txt', 'linux/appimage/deps.sh') }}
 
       - name: Install system dependencies
         run: apt_get_install cmake libdbus-1-dev libdbus-glib-1-dev libudev-dev libusb-1.0-0-dev libegl-dev libxkbcommon-x11-0
@@ -922,7 +922,7 @@ jobs:
         uses: actions/cache@v4
         with:
           path: .cache
-          key: 0_${{ steps.set_cache.outputs.cache_name }}_${{ hashFiles('reqs/constraints.txt', 'reqs/build.txt', 'reqs/setup.txt', 'reqs/dist.txt', 'reqs/dist_extra_gui_qt.txt', 'reqs/dist_extra_log.txt', 'osx/deps.sh') }}
+          key: 0_${{ steps.set_cache.outputs.cache_name }}_${{ hashFiles('reqs/constraints.txt', 'reqs/build.txt', 'reqs/setup.txt', 'reqs/dist_*.txt', 'osx/deps.sh') }}
 
       # To support older macOS versions, setup Python from an official installer.
       - name: Setup Python
@@ -1005,7 +1005,7 @@ jobs:
         uses: actions/cache@v4
         with:
           path: .cache
-          key: 0_${{ steps.set_cache.outputs.cache_name }}_${{ hashFiles('reqs/constraints.txt', 'reqs/build.txt', 'reqs/setup.txt', 'reqs/dist.txt', 'reqs/dist_extra_gui_qt.txt', 'reqs/dist_extra_log.txt', 'osx/deps.sh') }}
+          key: 0_${{ steps.set_cache.outputs.cache_name }}_${{ hashFiles('reqs/constraints.txt', 'reqs/build.txt', 'reqs/setup.txt', 'reqs/dist_*.txt', 'osx/deps.sh') }}
 
       # Notarize {{{
 
@@ -1090,7 +1090,7 @@ jobs:
         uses: actions/cache@v4
         with:
           path: .cache
-          key: 0_${{ steps.set_cache.outputs.cache_name }}_${{ hashFiles('reqs/constraints.txt', 'reqs/build.txt', 'reqs/setup.txt', 'reqs/dist.txt', 'reqs/dist_extra_gui_qt.txt', 'reqs/dist_extra_log.txt', 'osx/deps.sh') }}
+          key: 0_${{ steps.set_cache.outputs.cache_name }}_${{ hashFiles('reqs/constraints.txt', 'reqs/build.txt', 'reqs/setup.txt', 'reqs/dist_*.txt', 'osx/deps.sh') }}
 
       # To support older macOS versions, setup Python from an official installer.
       - name: Setup Python
@@ -1185,7 +1185,7 @@ jobs:
         uses: actions/cache@v4
         with:
           path: .cache
-          key: 0_${{ steps.set_cache.outputs.cache_name }}_${{ hashFiles('reqs/constraints.txt', 'reqs/build.txt', 'reqs/setup.txt', 'reqs/dist.txt', 'reqs/dist_extra_gui_qt.txt', 'reqs/dist_extra_log.txt', 'osx/deps.sh') }}
+          key: 0_${{ steps.set_cache.outputs.cache_name }}_${{ hashFiles('reqs/constraints.txt', 'reqs/build.txt', 'reqs/setup.txt', 'reqs/dist_*.txt', 'osx/deps.sh') }}
 
       # Notarize {{{
 
@@ -1270,7 +1270,7 @@ jobs:
         uses: actions/cache@v4
         with:
           path: .cache
-          key: 0_${{ steps.set_cache.outputs.cache_name }}_${{ hashFiles('reqs/constraints.txt', 'reqs/build.txt', 'reqs/setup.txt', 'reqs/dist.txt', 'reqs/dist_extra_gui_qt.txt', 'reqs/dist_extra_log.txt', 'windows/dist_deps.sh') }}
+          key: 0_${{ steps.set_cache.outputs.cache_name }}_${{ hashFiles('reqs/constraints.txt', 'reqs/build.txt', 'reqs/setup.txt', 'reqs/dist_*.txt', 'windows/dist_deps.sh') }}
 
       - name: Setup Python environment
         run: setup_python_env -c reqs/constraints.txt -r reqs/build.txt -r reqs/setup.txt        
