@@ -35,6 +35,8 @@ jobs:
 
       - name: Checkout
         uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
 
       - name: Calculate skip cache keys
         id: set_cache
@@ -257,6 +259,8 @@ jobs:
 
       - name: Checkout
         uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
 
       - name: Setup Python
         uses: actions/setup-python@v5
@@ -311,6 +315,8 @@ jobs:
 
       - name: Checkout
         uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
 
       - name: Set cache name
         id: set_cache
@@ -364,6 +370,8 @@ jobs:
 
       - name: Checkout
         uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
 
       - name: Setup Python
         uses: actions/setup-python@v5
@@ -423,6 +431,8 @@ jobs:
 
       - name: Checkout
         uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
 
       - name: Setup Python
         uses: actions/setup-python@v5
@@ -477,6 +487,8 @@ jobs:
 
       - name: Checkout
         uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
 
       - name: Setup Python
         uses: actions/setup-python@v5
@@ -531,6 +543,8 @@ jobs:
 
       - name: Checkout
         uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
 
       - name: Setup Python
         uses: actions/setup-python@v5
@@ -585,6 +599,8 @@ jobs:
 
       - name: Checkout
         uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
 
       - name: Setup Python
         uses: actions/setup-python@v5
@@ -639,6 +655,8 @@ jobs:
 
       - name: Checkout
         uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
 
       - name: Setup Python
         uses: actions/setup-python@v5
@@ -700,7 +718,6 @@ jobs:
       - name: Checkout
         uses: actions/checkout@v4
         with:
-          # We need the whole history for patching the version.
           fetch-depth: 0
 
       - name: Setup Python
@@ -789,6 +806,8 @@ jobs:
 
       - name: Checkout
         uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
 
       - name: Setup Python
         uses: actions/setup-python@v5
@@ -840,7 +859,6 @@ jobs:
       - name: Checkout
         uses: actions/checkout@v4
         with:
-          # We need the whole history for patching the version.
           fetch-depth: 0
 
       - name: Setup Python
@@ -911,7 +929,6 @@ jobs:
       - name: Checkout
         uses: actions/checkout@v4
         with:
-          # We need the whole history for patching the version.
           fetch-depth: 0
 
       - name: Set cache name
@@ -996,6 +1013,8 @@ jobs:
 
       - name: Checkout
         uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
 
       - name: Set cache name
         id: set_cache
@@ -1079,7 +1098,6 @@ jobs:
       - name: Checkout
         uses: actions/checkout@v4
         with:
-          # We need the whole history for patching the version.
           fetch-depth: 0
 
       - name: Set cache name
@@ -1176,6 +1194,8 @@ jobs:
 
       - name: Checkout
         uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
 
       - name: Set cache name
         id: set_cache
@@ -1249,7 +1269,6 @@ jobs:
       - name: Checkout
         uses: actions/checkout@v4
         with:
-          # We need the whole history for patching the version.
           fetch-depth: 0
 
       - name: Setup Python
@@ -1349,6 +1368,8 @@ jobs:
 
       - name: Checkout
         uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
 
       - name: Setup Python
         uses: actions/setup-python@v5

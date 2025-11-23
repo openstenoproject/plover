@@ -30,6 +30,8 @@ jobs:
 
       - name: Checkout
         uses: <@ action_checkout @>
+        with:
+          fetch-depth: 0
 
     <% if skippy_enabled %>
       - name: Calculate skip cache keys
@@ -108,11 +110,8 @@ jobs:
 
       - name: Checkout
         uses: <@ action_checkout @>
-      <% if j.type in ['build', 'test_packaging'] %>
         with:
-          # We need the whole history for patching the version.
           fetch-depth: 0
-      <% endif %>
 
       <% if j.os != 'macOS' %>
       - name: Setup Python
@@ -419,6 +418,8 @@ jobs:
 
       - name: Checkout
         uses: <@ action_checkout @>
+        with:
+          fetch-depth: 0
 
       - name: Setup Python
         uses: <@ action_setup_python @>
