@@ -24,7 +24,7 @@ Developers:
 
 Joshua Lifton
 Hesky Fisher
-Ted Morin
+Thea Morin
 Benoit Pierre
 Sammi Ta
 Martin Koerner

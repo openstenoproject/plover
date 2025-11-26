@@ -1,6 +1,3 @@
-# Copyright (c) 2016 Ted Morin
-# See LICENSE.txt for details.
-
 """Thread-based monitoring of a ProCAT stenotype machine."""
 
 import binascii
