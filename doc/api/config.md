@@ -213,8 +213,7 @@ The number of stop bits for serial connections. 1 by default.
 ```
 
 ```{describe} timeout
-The read timeout for serial connections in seconds, may be ``None`` to
-disable read timeouts altogether. 2.0 (2 seconds) by default.
+The read timeout for serial connections in seconds. 2.0 (2 seconds) by default.
 ```
 
 ```{describe} xonxoff
