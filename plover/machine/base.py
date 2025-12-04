@@ -282,8 +282,15 @@ class SerialStenotypeBase(ThreadedStenotypeBase):
         - an incomplete packet will only be discarded if one of
           those reads return no data (but not on short read)
         """
+        if not self.serial_port:
+            log.warning("Serial port not initialized")
+            return
+
+        configured_timeout = self.serial_params.get(
+            "timeout", self.SERIAL_PARAMS["timeout"]
+        )
         self.serial_port.timeout = max(
-            self.serial_params.get("timeout", 1.0) / packet_size,
+            configured_timeout / packet_size,
             0.01,
         )
         packet = b""

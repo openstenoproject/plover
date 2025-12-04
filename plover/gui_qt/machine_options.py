@@ -89,7 +89,6 @@ class SerialOption(QGroupBox, Ui_SerialWidget):
             if not details:
                 return
             cursor.insertFrame(self._details_frame_format)
-            details_list = cursor.createList(self._details_list_format)
             for n, part in enumerate(details):
                 if n:
                     cursor.insertBlock()
@@ -140,15 +139,7 @@ class SerialOption(QGroupBox, Ui_SerialWidget):
         self.parity.setCurrentText(value["parity"])
         self.stopbits.addItems(map(str, Serial.STOPBITS))
         self.stopbits.setCurrentText(str(value["stopbits"]))
-        timeout = value["timeout"]
-        if timeout is None:
-            self.use_timeout.setChecked(False)
-            self.timeout.setValue(0.0)
-            self.timeout.setEnabled(False)
-        else:
-            self.use_timeout.setChecked(True)
-            self.timeout.setValue(timeout)
-            self.timeout.setEnabled(True)
+        self.timeout.setValue(value["timeout"])
         for setting in ("xonxoff", "rtscts"):
             widget = getattr(self, setting)
             if setting in value:
@@ -187,15 +178,6 @@ class SerialOption(QGroupBox, Ui_SerialWidget):
     @Slot(float)
     def update_timeout(self, value):
         self._update("timeout", value)
-
-    @Slot(bool)
-    def update_use_timeout(self, value):
-        if value:
-            timeout = self.timeout.value()
-        else:
-            timeout = None
-        self.timeout.setEnabled(value)
-        self._update("timeout", timeout)
 
     @Slot(bool)
     def update_xonxoff(self, value):
