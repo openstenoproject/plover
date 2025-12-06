@@ -356,7 +356,7 @@ class KeyboardEmulation(GenericKeyboardEmulation):
             )
 
     def _update_layout(self, layout):
-        if not layout in LAYOUTS:
+        if layout not in LAYOUTS:
             log.warning(f"Layout {layout} not supported. Falling back to qwerty.")
         self._KEY_TO_KEYCODE = LAYOUTS.get(layout, LAYOUTS[DEFAULT_LAYOUT])
 
@@ -494,7 +494,7 @@ class KeyboardCapture(Capture):
         for device in self._devices:
             try:
                 device.ungrab()
-            except:
+            except Exception:
                 log.debug("failed to ungrab device", exc_info=True)
 
     def start(self):
@@ -613,7 +613,7 @@ class KeyboardCapture(Capture):
 
                         # Passthrough event
                         self._ui.write_event(event)
-        except:
+        except Exception:
             log.error("keyboard capture error", exc_info=True)
         finally:
             # Always ungrab devices to prevent exceptions in the _run loop

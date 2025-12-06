@@ -24,7 +24,6 @@ http://tronche.com/gui/x/xlib/input/keyboard-encoding.html
 import os
 import select
 import threading
-from time import sleep
 
 from Xlib import X, XK
 from Xlib.display import Display

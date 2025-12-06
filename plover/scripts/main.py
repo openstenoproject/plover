@@ -163,7 +163,7 @@ def main():
                     code = -1
                 else:
                     code = 0
-    except:
+    except Exception:
         gui.show_error("Unexpected error", traceback.format_exc())
         code = 2
     # Execute atexit handlers.

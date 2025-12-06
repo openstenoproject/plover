@@ -10,7 +10,6 @@ from PySide6.QtWidgets import (
     QMessageBox,
     QTableWidgetItem,
     QInputDialog,
-    QWidget,
 )
 
 from plover.gui_qt.tool import Tool

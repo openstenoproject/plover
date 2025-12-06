@@ -156,8 +156,11 @@ jobs:
 
       <% endif %>
       <% if j.type == 'test_code_quality' %>
-      - name: Run Ruff (format check)
-        run: ruff format --check .
+      - name: Run linting check (Ruff)
+        run: ruff check
+
+      - name: Run format check (Ruff)
+        run: ruff format --check
 
       <% endif %>
       <% if j.type in ['build', 'test_packaging'] %>

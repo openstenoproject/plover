@@ -2,8 +2,11 @@ class Capture:
     """Keyboard capture interface."""
 
     # Callbacks for keyboard press/release events.
-    key_down = lambda key: None
-    key_up = lambda key: None
+    def key_down(key):
+        return None
+
+    def key_up(key):
+        return None
 
     def start(self):
         """Start capturing key events."""

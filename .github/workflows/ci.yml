@@ -808,8 +808,11 @@ jobs:
       - name: Setup Python environment
         run: setup_python_env -c reqs/constraints.txt -r reqs/code_quality.txt        
 
-      - name: Run Ruff (format check)
-        run: ruff format --check .
+      - name: Run linting check (Ruff)
+        run: ruff check
+
+      - name: Run format check (Ruff)
+        run: ruff format --check
 
       - name: Update skip cache 1
         uses: actions/cache@v4
