@@ -356,7 +356,7 @@ class KeyboardEmulation(GenericKeyboardEmulation):
             )
 
     def _update_layout(self, layout):
-        if not layout in LAYOUTS:
+        if layout not in LAYOUTS:
             log.warning(f"Layout {layout} not supported. Falling back to qwerty.")
         self._KEY_TO_KEYCODE = LAYOUTS.get(layout, LAYOUTS[DEFAULT_LAYOUT])
 

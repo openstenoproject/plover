@@ -921,7 +921,7 @@ def apply_case(text, case):
 
 def apply_mode(text, case, space_char, begin, last_action):
     # Should title case be applied to the beginning of the next string?
-    lower_title_case = begin and not last_action.case in (
+    lower_title_case = begin and last_action.case not in (
         Case.CAP_FIRST_WORD,
         Case.UPPER_FIRST_WORD,
     )

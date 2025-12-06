@@ -16,8 +16,7 @@ from plover.misc import expand_path
 
 from plover_build_utils.testing import parametrize
 
-from ..py37compat import mock
-
+from unittest import mock
 
 INVALID_EXCEPTION = Exception("loading error")
 

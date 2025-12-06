@@ -84,7 +84,7 @@ any other virtual environment](https://virtualenv.pypa.io/en/latest/user_guide.h
 
 The configuration also provides support for lightweight tests only environment:
 `pyX`, where `X` is the version of the Python interpreter to use. E.g. running
-`tox -e 'py3,py36,py37,py38,py39` will execute the testsuite for each version
+`tox -e 'py3,py310,py311,py312` will execute the testsuite for each version
 of Python we support.
 
 # Creating a binary distribution
