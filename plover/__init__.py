@@ -11,7 +11,9 @@ else:
     # exec from `setup.py`, package data
     # may not be available, and we don't
     # want to translate anyway.
-    _ = lambda s: s
+    def _(s):
+        return s
+
 
 __version__ = "5.1.0"
 __copyright__ = "(C) Open Steno Project"

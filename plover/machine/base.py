@@ -255,7 +255,10 @@ class SerialStenotypeBase(ThreadedStenotypeBase):
     @classmethod
     def get_option_info(cls):
         """Get the default options for this machine."""
-        sb = lambda s: int(float(s)) if float(s).is_integer() else float(s)
+
+        def sb(s):
+            return int(float(s)) if float(s).is_integer() else float(s)
+
         converters = {
             "port": str,
             "baudrate": int,

@@ -106,7 +106,7 @@ class ModelTest(
             steno_dictionaries_from_state(state, self.dictionaries)
         )
         self.connections["dictionaries_loaded"](self.dictionaries)
-        loaded = [
+        [
             row
             for row, (enabled, icon, path) in enumerate(parse_state(state))
             if icon != "loading"
