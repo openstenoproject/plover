@@ -494,7 +494,7 @@ class KeyboardCapture(Capture):
         for device in self._devices:
             try:
                 device.ungrab()
-            except:
+            except Exception:
                 log.debug("failed to ungrab device", exc_info=True)
 
     def start(self):
@@ -613,7 +613,7 @@ class KeyboardCapture(Capture):
 
                         # Passthrough event
                         self._ui.write_event(event)
-        except:
+        except Exception:
             log.error("keyboard capture error", exc_info=True)
         finally:
             # Always ungrab devices to prevent exceptions in the _run loop
