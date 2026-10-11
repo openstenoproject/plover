@@ -6,9 +6,9 @@
 # Willem Sonke <willem@wimiso.nl>, 2021.
 msgid ""
 msgstr ""
-"Project-Id-Version: plover 5.4.1\n"
+"Project-Id-Version: plover 5.4.2\n"
 "Report-Msgid-Bugs-To: EMAIL@ADDRESS\n"
-"POT-Creation-Date: 2026-08-27 07:52+0200\n"
+"POT-Creation-Date: 2026-10-11 18:03+0200\n"
 "PO-Revision-Date: 2026-03-08 12:00+0100\n"
 "Last-Translator: Gemini CLI\n"
 "Language: nl\n"
