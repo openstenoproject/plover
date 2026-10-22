@@ -123,6 +123,44 @@ Because this requires access to sensitive credentials, notarization is only
 performed for commits on the `main` branch and `maintenance/*` branches. These
 jobs are automatically skipped for all other branches and pull requests from forks.
 
+### Renewing the code signing certificate
+
+Signing uses a **Developer ID Application** certificate issued by the
+*Developer ID Certification Authority (G2)*. These certificates expire after
+about one year, so they need to be renewed (and the secrets below updated)
+annually.
+
+To renew it:
+- Create a certificate signing request (CSR), the file Apple asks you to upload:
+  - Open Keychain Access and choose Keychain Access → Certificate Assistant →
+    Request a Certificate From a Certificate Authority…
+  - Enter the email address of your Apple Developer account as *User Email
+    Address* and your name as *Common Name*; leave *CA Email Address* empty.
+  - Select *Saved to disk*, click Continue and save the file (by default
+    `CertificateSigningRequest.certSigningRequest`).
+
+  This also creates a new private key in your login keychain, so create the
+  request on the Mac you'll export the `.p12` file from.
+- On [developer.apple.com](https://developer.apple.com/account/resources/certificates/list),
+  add a new certificate of type *Developer ID Application*, choose the
+  *G2 Sub-CA* intermediary, upload the request, then download the `.cer` file 
+  and double-click it to install it.
+- In Keychain Access (My Certificates), export the certificate together with
+  its private key as a password-protected `.p12` file, and base64-encode it:
+  `base64 -i signing.p12 | pbcopy`.
+- Update the repository secrets `MACOS_CODESIGN_CERT_P12_BASE64` (the
+  base64-encoded `.p12`) and `MACOS_CODESIGN_CERT_PASSWORD` (its password).
+  `MACOS_CODESIGN_IDENTITY` (e.g. `Developer ID Application: Name (TEAMID)`)
+  only needs to change if the name or team changes.
+- The notarization secrets (`MACOS_NOTARIZE_*`) don't need to change: they use
+  an App Store Connect API key, which doesn't expire.
+
+Check the new identity with `security find-identity -v -p codesigning`. If the
+old and new certificates have the same name, delete the old one from the
+keychain so `codesign` doesn't pick the expired certificate. Releases signed
+with the old certificate keep working after it expires, since they are signed
+with a secure timestamp.
+
 
 ## Packaging job
 

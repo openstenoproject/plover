@@ -1,3 +1,20 @@
+# v5.4.2 (2026-10-11)
+
+
+## Features
+
+No significant changes.
+
+## Bugfixes
+
+### macOS
+
+- Fix crash when clicking the menu bar icon on macOS 27. (#1874)
+
+## API
+
+No significant changes.
+
 # v5.4.1 (2026-08-27)
 
 
